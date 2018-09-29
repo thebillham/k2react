@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
-import Dashboard from './Dashboard.js';
+import MainScreen from './MainScreen.js';
 import K2SignInScreen from './K2SignInScreen.js';
 import firebase, { auth, provider } from './firebase.js';
 
@@ -42,7 +42,7 @@ class App extends Component {
       <div className='wrapper'>
         { (auth.currentUser && (this.whitelist.indexOf(auth.currentUser.uid) > -1)) ?
           // < MainScreen />
-          < Dashboard app = {this} />
+          < MainScreen app = {this} />
           :
           < K2SignInScreen app = {this} />
         }
