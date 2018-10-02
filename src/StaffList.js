@@ -1,9 +1,15 @@
 import React from 'react';
+import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
+import PDFViewer from 'mgr-pdf-viewer-react';
+import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import SimpleLineChart from './SimpleLineChart';
-import SimpleTable from './SimpleTable';
+import Drawer from '@material-ui/core/Drawer';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import StaffCard from './StaffCard.js';
+import firebase, { auth } from './firebase.js';
 
 const drawerWidth = 240;
 
@@ -84,32 +90,56 @@ const styles = theme => ({
   }
 });
 
-class Dashboard extends React.Component {
+class StaffList extends React.Component {
+  constructor(props){
+    super(props);
+
+    this.state = {
+      staffList: [],
+      count: 0,
+    }
+  }
+
+  componentWillMount(){
+    const usersRef = firebase.database().ref("users");
+    usersRef.on('child_added', function(snapshot) {
+      this.state.count = this.state.count + 1;
+      const previousList = this.state.staffList;
+      previousList.append({
+        id: snapshot.key,
+        name: snapshot.val().name,
+        email: snapshot.val().email,
+        gmail: snapshot.val().gmail,
+        address: snapshot.val().address,
+      });
+      this.setState({
+        staffList: previousList,
+      });
+    })
+  }
+
   render() {
     const { classes } = this.props;
-
+    const staffList = this.state.staffList.map(staffMember =>
+      <ListItem>
+        <StaffCard staff={staffMember} />
+      </ListItem>
+    );
     return (
       <div>
         <div className={classes.appBarSpacer} />
-        <Typography variant="display1" gutterBottom>
-          Orders
-        </Typography>
-        <Typography component="div" className={classes.chartContainer}>
-          <SimpleLineChart />
-        </Typography>
-        <Typography variant="display1" gutterBottom>
-          Products
-        </Typography>
-        <div className={classes.tableContainer}>
-          <SimpleTable />
-        </div>
+        { this.state.staffList.length }
+        { this.state.count }
+        <List>
+          {staffList}
+        </List>
       </div>
-    );
+    )
   }
 }
 
-Dashboard.propTypes = {
+StaffList.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Dashboard);
+export default withStyles(styles)(StaffList);

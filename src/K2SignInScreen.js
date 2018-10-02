@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 // import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import FirebaseAuth from 'react-firebaseui/FirebaseAuth';
-import firebase, { auth, provider } from './firebase.js';
+import firebase, { auth } from './firebase.js';
 import './App.css';
 import img_Logo from './images/logo.png';
-import Button from '@material-ui/core/Button';
 
 export default class K2SignInScreen extends Component {
 
