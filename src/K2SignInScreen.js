@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 // import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import FirebaseAuth from 'react-firebaseui/FirebaseAuth';
-import firebase, { auth } from './firebase.js';
+import firebase, { app, auth } from './firebase.js';
 import './App.css';
 import img_Logo from './images/logo.png';
 

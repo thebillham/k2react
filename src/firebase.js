@@ -1,5 +1,6 @@
-import firebase from 'firebase'
-const config = {
+import * as firebase from 'firebase';
+
+let config = {
   apiKey: "AIzaSyDDKJ9pXS7mSHs-Ay8Rw2szoHbyIGnPfiw",
   authDomain: "k2flutter-f03a1.firebaseapp.com",
   databaseURL: "https://k2flutter-f03a1.firebaseio.com",
@@ -7,12 +8,15 @@ const config = {
   storageBucket: "k2flutter-f03a1.appspot.com",
   messagingSenderId: "303642156934"
 };
-firebase.initializeApp(config);
+const app = firebase.initializeApp(config);
 var p = new firebase.auth.GoogleAuthProvider();
 p.setCustomParameters({
   prompt: 'select_account'
 });
 
-export const provider = p;
-export const auth = firebase.auth();
+const provider = p;
+const auth = firebase.auth();
+const database = firebase.firestore();
+database.settings({timestampsInSnapshots: true})
+export { app, provider, auth, database };
 export default firebase;

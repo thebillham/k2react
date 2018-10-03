@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import firebase, { auth } from './firebase.js';
 import { withStyles } from '@material-ui/core/styles';
 import { createMuiTheme } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -26,6 +25,7 @@ import Menu from '@material-ui/core/Menu';
 import Dashboard from './Dashboard.js';
 import Reference from './Reference.js';
 import StaffList from './StaffList.js';
+import MyDetails from './MyDetails.js';
 
 import JobsIcon from '@material-ui/icons/Assignment';
 import LabIcon from '@material-ui/icons/Colorize';
@@ -35,6 +35,7 @@ import ReferenceIcon from '@material-ui/icons/Info';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import NotificationsIcon from '@material-ui/icons/Notifications';
+import firebase, { auth, database } from './firebase.js';
 
 const drawerWidth = 240;
 
@@ -130,6 +131,7 @@ class MainScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      userRef: null,
       openDrawer: true,
       anchorEl: null,
       screen: 'Dashboard',
@@ -137,6 +139,17 @@ class MainScreen extends React.Component {
     };
 
     this.handleListClick = this.handleListClick.bind(this);
+  }
+
+  componentWillMount() {
+      database.collection("users").where('gmail', "==", auth.currentUser.email).limit(1)
+        .onSnapshot((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+          this.setState({
+            userRef: doc.id,
+          });
+          });
+        });
   }
 
 
@@ -176,6 +189,8 @@ class MainScreen extends React.Component {
         return <Dashboard />
       case 'Staff':
         return <StaffList />
+      case 'My Details':
+        return <MyDetails userRef = {this.state.userRef} />
       case 'Reference':
         return <Reference />
       default:

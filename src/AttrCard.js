@@ -7,8 +7,8 @@ import Typography from '@material-ui/core/Typography';
 
 const styles = {
   card: {
-    minWidth: 50,
-    minHeight: 200,
+    minWidth: 500,
+    minHeight: 50,
   },
   bullet: {
     display: 'inline-block',
@@ -25,23 +25,17 @@ const styles = {
   },
 };
 
-function StaffCard(props) {
+function AttrCard(props) {
   const { classes } = props;
 
   return (
     <Card className={classes.card}>
       <CardContent>
         <Typography className={classes.name} color="textSecondary">
-          { props.staff.name }
+          { props.attr.name }
         </Typography>
         <Typography className={classes.details}>
-          { props.staff.address }
-        </Typography>
-        <Typography className={classes.details} color="textSecondary">
-          { props.staff.email }
-        </Typography>
-        <Typography className={classes.details} color="textSecondary">
-          { props.staff.gmail }
+          { props.attr.category }
           <br />
         </Typography>
       </CardContent>
@@ -49,8 +43,8 @@ function StaffCard(props) {
   )
 }
 
-StaffCard.propTypes = {
+AttrCard.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(StaffCard);
+export default withStyles(styles)(AttrCard);
