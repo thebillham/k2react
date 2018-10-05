@@ -1,6 +1,7 @@
 import React from 'react';
-import Paper from '@material-ui/core/Paper';
 import PDFViewer from 'mgr-pdf-viewer-react';
+
+import Paper from '@material-ui/core/Paper';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';

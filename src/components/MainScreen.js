@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+
 import { withStyles } from '@material-ui/core/styles';
 import { createMuiTheme } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -17,16 +18,11 @@ import IconButton from '@material-ui/core/IconButton';
 import Badge from '@material-ui/core/Badge';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
-
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 import MenuItem from '@material-ui/core/MenuItem';
 import MenuList from '@material-ui/core/MenuList';
 import Menu from '@material-ui/core/Menu';
-
-import Dashboard from './Dashboard.js';
-import Reference from './Reference.js';
-import StaffList from './StaffList.js';
-import MyDetails from './MyDetails.js';
-
 import JobsIcon from '@material-ui/icons/Assignment';
 import LabIcon from '@material-ui/icons/Colorize';
 import StaffIcon from '@material-ui/icons/People';
@@ -35,7 +31,13 @@ import ReferenceIcon from '@material-ui/icons/Info';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import NotificationsIcon from '@material-ui/icons/Notifications';
-import firebase, { auth, database } from './firebase.js';
+
+import Dashboard from './Dashboard.js';
+import Reference from './Reference.js';
+import Staff from './Staff.js';
+import MyDetails from './MyDetails.js';
+
+import firebase, { auth, database } from '../firebase/firebase.js';
 
 const drawerWidth = 240;
 
@@ -116,6 +118,9 @@ const styles = theme => ({
   tableContainer: {
     height: 320,
   },
+  button: {
+    color: "#fff",
+  },
   avatar: {
     margin: 10,
   },
@@ -131,27 +136,18 @@ class MainScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      userRef: null,
       openDrawer: true,
       anchorEl: null,
       screen: 'Dashboard',
+      staffUid: null,
       openRef: false,
+      tab: 0,
     };
 
     this.handleListClick = this.handleListClick.bind(this);
+    this.handleTabChange = this.handleTabChange.bind(this);
+    this.handleEditStaff = this.handleEditStaff.bind(this);
   }
-
-  componentWillMount() {
-      database.collection("users").where('gmail', "==", auth.currentUser.email).limit(1)
-        .onSnapshot((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-          this.setState({
-            userRef: doc.id,
-          });
-          });
-        });
-  }
-
 
   handleGoogleMenuToggle = event => {
     this.setState({ anchorEl: event.currentTarget });
@@ -172,6 +168,7 @@ class MainScreen extends React.Component {
   handleListClick(link) {
     this.setState({
       screen: link,
+      tab: 0,
       // openDrawer: false
     });
   };
@@ -183,24 +180,106 @@ class MainScreen extends React.Component {
     })
   }
 
+  handleTabChange = (event, value) => {
+    this.setState({ tab: value });
+  }
+
+  handleEditStaff = id => {
+    this.setState({
+      staffUid: id,
+      screen: 'Staff Details',
+    });
+  }
+
   renderContent() {
-    switch (this.state.screen) {
-      case 'Dashboard':
-        return <Dashboard />
-      case 'Staff':
-        return <StaffList />
-      case 'My Details':
-        return <MyDetails userRef = {this.state.userRef} />
-      case 'Reference':
-        return <Reference />
-      default:
-        return <h1>HEY</h1>
+    let screen = this.state.screen;
+    let tab = this.state.tab;
+    if (screen === 'Dashboard') {
+      return <Dashboard />
+    } else if (screen === 'Staff') {
+      return <Staff handleEditStaff={this.handleEditStaff} />
+    } else if (screen === 'Staff Details') {
+      if (this.state.staffUid) {
+        return <MyDetails tab = {tab} userRef = {this.state.staffUid} />
+      } else {
+        return <MyDetails tab = {tab} userRef = {auth.currentUser.uid} />
+      }
+    } else if (screen === 'My Details') {
+      return <MyDetails tab = {tab} userRef = {auth.currentUser.uid} />
+    } else if (screen === 'Reference') {
+      return <Reference />
+    } else {
+      return <Dashboard />
     }
   };
 
   render() {
     const { classes } = this.props;
     const { anchorEl } = this.state;
+
+    const drawer = (
+      <Drawer
+        variant="permanent"
+        classes={{
+          paper: classNames(classes.drawerPaper, classes.accentButton, !this.state.openDrawer && classes.drawerPaperClose),
+        }}
+        open={this.state.openDrawer}
+        >
+        <div className={classes.toolbarIcon}>
+          <IconButton onClick={this.handleDrawerClose} className={classes.accentButton}>
+            <ChevronLeftIcon />
+          </IconButton>
+        </div>
+        <Divider />
+        <List>
+          <ListItem button onClick={() => this.handleListClick('Jobs')}>
+            <ListItemIcon>
+              <JobsIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="Jobs" />
+          </ListItem>
+          <ListItem button onClick={() => this.handleListClick('Lab')}>
+            <ListItemIcon>
+              <LabIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="Asbestos Lab" />
+          </ListItem>
+          <ListItem button onClick={() => this.handleListClick('Staff')}>
+            <ListItemIcon>
+              <StaffIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="Staff" />
+          </ListItem>
+          <ListItem button onClick={() => this.handleListClick('My Details')}>
+            <ListItemIcon>
+              <MyDetailsIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="My Details" />
+          </ListItem>
+          <ListItem button onClick={() => this.handleListClick('Reference')}>
+            <ListItemIcon>
+              <ReferenceIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="Reference" />
+            {/* {this.state.openRef ? <ExpandLess /> : <ExpandMore /> } */}
+          </ListItem>
+          {/* <Collapse in={this.state.openRef} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <ListItem button onClick={() => this.handleListClick('Reference : All Documents')} className={classes.nested}>
+                <ListItemText primary="All Documents" className={classes.subitem} />
+              </ListItem>
+              <ListItem button onClick={() => this.handleListClick('Reference : Hazard Register')} className={classes.nested}>
+                <ListItemText primary="Hazard Register" className={classes.subitem} />
+              </ListItem>
+                <ListItem button onClick={() => this.handleListClick('Reference : Test Methods')} className={classes.nested}>
+                  <ListItemText primary="Test Methods" className={classes.subitem} />
+                </ListItem>
+              </List>
+            </Collapse> */}
+          </List>
+        <Divider />
+      </Drawer>
+    )
 
     return (
       <React.Fragment>
@@ -210,7 +289,7 @@ class MainScreen extends React.Component {
             position="absolute"
             className={classNames(classes.appBar, this.state.openDrawer && classes.appBarShift)}
           >
-            <Toolbar disableGutters={!this.state.openDrawer} className={classes.toolbar}>
+            <Toolbar variant="dense" disableGutters={!this.state.openDrawer} className={classes.toolbar}>
               <IconButton
                 color="inherit"
                 aria-label="openDrawer drawer"
@@ -225,11 +304,6 @@ class MainScreen extends React.Component {
               <Typography variant="title" color="inherit" noWrap className={classes.title}>
                 {this.state.screen}
               </Typography>
-              <IconButton color="inherit">
-                <Badge badgeContent={4} color="secondary">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
               <Button
                 aria-owns={ anchorEl ? 'google-menu' : null}
                 aria-haspopup="true"
@@ -240,76 +314,38 @@ class MainScreen extends React.Component {
               <Menu
                 id="google-menu"
                 anchorEl={ anchorEl }
-                openDrawer={Boolean(anchorEl)}
+                open={Boolean(anchorEl)}
                 onClose={this.handleGoogleMenuClose}
                 >
-                <MenuItem onClick={this.handleGoogleMenuClose} disabled>Profile</MenuItem>
-                <MenuItem onClick={this.handleGoogleMenuClose} disabled>My account</MenuItem>
-                <MenuItem onClick={this.props.app.logOut}>Logout</MenuItem>
+                <MenuItem onClick={this.props.app.logOut}>Logout {auth.currentUser.displayName}</MenuItem>
               </Menu>
             </Toolbar>
+            { (this.state.screen === 'My Details' || this.state.screen === 'Staff Details') ?
+            <Tabs
+              value={this.state.tab}
+              onChange={this.handleTabChange}
+              centered
+              >
+                <Tab label="General Information" />
+                <Tab label="Qualifications" />
+                <Tab label="Training Log" />
+                <Tab label="Training Roadmap" />
+              </Tabs>
+              : <div></div>
+            }
+            { (this.state.screen === 'Staff') ?
+            <Tabs
+              value={this.state.tab}
+              onChange={this.handleTabChange}
+              centered
+              >
+                <Tab label="Overview" />
+                <Tab label="Training" />
+              </Tabs>
+              : <div></div>
+            }
           </AppBar>
-          <Drawer
-            variant="permanent"
-            classes={{
-              paper: classNames(classes.drawerPaper, classes.accentButton, !this.state.openDrawer && classes.drawerPaperClose),
-            }}
-            openDrawer={this.state.openDrawer}
-          >
-            <div className={classes.toolbarIcon}>
-              <IconButton onClick={this.handleDrawerClose} className={classes.accentButton}>
-                <ChevronLeftIcon />
-              </IconButton>
-            </div>
-            <Divider />
-            <List>
-              <ListItem button onClick={() => this.handleListClick('Jobs')}>
-                <ListItemIcon>
-                  <JobsIcon className={classes.accentButton} />
-                </ListItemIcon>
-                <ListItemText primary="Jobs" />
-              </ListItem>
-              <ListItem button onClick={() => this.handleListClick('Lab')}>
-                <ListItemIcon>
-                  <LabIcon className={classes.accentButton} />
-                </ListItemIcon>
-                <ListItemText primary="Asbestos Lab" />
-              </ListItem>
-              <ListItem button onClick={() => this.handleListClick('Staff')}>
-                <ListItemIcon>
-                  <StaffIcon className={classes.accentButton} />
-                </ListItemIcon>
-                <ListItemText primary="Staff" />
-              </ListItem>
-              <ListItem button onClick={() => this.handleListClick('My Details')}>
-                <ListItemIcon>
-                  <MyDetailsIcon className={classes.accentButton} />
-                </ListItemIcon>
-                <ListItemText primary="My Details" />
-              </ListItem>
-              <ListItem button onClick={() => this.handleListClick('Reference')}>
-                <ListItemIcon>
-                  <ReferenceIcon className={classes.accentButton} />
-                </ListItemIcon>
-                <ListItemText primary="Reference" />
-                {/* {this.state.openRef ? <ExpandLess /> : <ExpandMore /> } */}
-              </ListItem>
-              {/* <Collapse in={this.state.openRef} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  <ListItem button onClick={() => this.handleListClick('Reference : All Documents')} className={classes.nested}>
-                    <ListItemText primary="All Documents" className={classes.subitem} />
-                  </ListItem>
-                  <ListItem button onClick={() => this.handleListClick('Reference : Hazard Register')} className={classes.nested}>
-                    <ListItemText primary="Hazard Register" className={classes.subitem} />
-                  </ListItem>
-                    <ListItem button onClick={() => this.handleListClick('Reference : Test Methods')} className={classes.nested}>
-                      <ListItemText primary="Test Methods" className={classes.subitem} />
-                    </ListItem>
-                  </List>
-                </Collapse> */}
-              </List>
-            <Divider />
-          </Drawer>
+          {drawer}
           <main className={classes.content}>
             {this.renderContent()}
           </main>

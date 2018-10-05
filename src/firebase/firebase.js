@@ -16,7 +16,8 @@ p.setCustomParameters({
 
 const provider = p;
 const auth = firebase.auth();
+const storage = firebase.storage();
 const database = firebase.firestore();
 database.settings({timestampsInSnapshots: true})
-export { app, provider, auth, database };
+export { app, provider, auth, database, storage };
 export default firebase;

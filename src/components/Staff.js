@@ -1,8 +1,9 @@
 import React from 'react';
-import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
 import PDFViewer from 'mgr-pdf-viewer-react';
 import classNames from 'classnames';
+
+import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
@@ -16,19 +17,14 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import StaffCard from './StaffCard.js';
-import firebase, { auth, database } from './firebase.js';
+
+import StaffCard from './widgets/StaffCard.js';
+
+import firebase, { auth, database } from '../firebase/firebase.js';
 
 const styles = theme => ({
   root: {
-    display: 'flex',
-  },
-  appBarSpacer: theme.mixins.toolbar,
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing.unit * 3,
-    height: '100vh',
-    overflow: 'auto',
+    marginTop: theme.spacing.unit * 17,
   },
 });
 
@@ -39,22 +35,51 @@ class StaffList extends React.Component {
     this.state = {
       staffList: [],
       table: false,
+      admin: false,
     }
 
     this.switch = this.switch.bind(this);
+    this.onStaffCardClick = this.onStaffCardClick.bind(this);
   }
 
-  componentDidMount(){
+  componentWillMount(){
+    database.collection("users").doc(auth.currentUser.uid).get().then((doc) => {
+      this.setState({ admin: doc.data().auth_admin });
+    });
     database.collection("users").orderBy('name')
       .onSnapshot((querySnapshot) => {
         var users = [];
         querySnapshot.forEach((doc) => {
-          users.push(doc.data());
+          let attrs = [];
+          let jobs = [];
+          let user = doc.data();
+          database.collection("users").doc(doc.id).collection("attr")
+            .onSnapshot((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                attrs.push(doc.data());
+              });
+            });
+          database.collection("users").doc(doc.id).collection("myjobs")
+            .onSnapshot((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                jobs.push(doc.data());
+              });
+            });
+          user.uid = doc.id;
+          user.attrs = attrs;
+          user.jobs = jobs;
+          users.push(user);
         });
         this.setState({
           staffList: users,
         });
       });
+  }
+
+  onStaffCardClick = id => {
+    if (this.state.admin && id) {
+      this.props.handleEditStaff(id);
+    }
   }
 
   switch(){
@@ -65,15 +90,8 @@ class StaffList extends React.Component {
 
   render() {
     const { classes } = this.props;
-
-    const staffList = this.state.staffList.map(staffMember =>
-      <ListItem>
-        <StaffCard staff={staffMember} />
-      </ListItem>
-    );
     return (
-      <div>
-        <div className={classes.appBarSpacer} />
+      <div className={classes.root}>
         <div>
           <Button color="primary" onClick={this.switch}>
             {this.state.table? 'Switch to Card View' : 'Switch to Table View'}
@@ -93,7 +111,7 @@ class StaffList extends React.Component {
             <TableBody>
               {this.state.staffList.map((user) => {
                 return (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.name}>
                     <TableCell>{user.id}</TableCell>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.address}</TableCell>
@@ -108,8 +126,8 @@ class StaffList extends React.Component {
           <GridList cols={6} cellHeight={250}>
           {this.state.staffList.map((user) => {
             return (
-              <GridListTile>
-                <StaffCard staff={user} />
+              <GridListTile key={user.name}>
+                <StaffCard staff={user} onEditClick={(e) => this.onStaffCardClick(user.uid, e)} />
               </GridListTile>
             )
           })}

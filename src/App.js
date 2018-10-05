@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import './App.css';
-import MainScreen from './MainScreen.js';
-import K2SignInScreen from './K2SignInScreen.js';
-import firebase, { auth, provider } from './firebase.js';
+import MainScreen from './components/MainScreen.js';
+import K2SignInScreen from './components/K2SignInScreen.js';
+import firebase, { auth, provider } from './firebase/firebase.js';
+import { IntlProvider } from 'react-intl';
 
 class App extends Component {
   constructor() {
@@ -39,14 +40,16 @@ class App extends Component {
 
   render() {
     return (
-      <div className='wrapper'>
-        { (auth.currentUser && (this.whitelist.indexOf(auth.currentUser.uid) > -1)) ?
-          // < MainScreen />
-          < MainScreen app = {this} />
-          :
-          < K2SignInScreen app = {this} />
-        }
-      </div>
+      <IntlProvider locale='en-AUS'>
+        <div className='wrapper'>
+          { (auth.currentUser && (this.whitelist.indexOf(auth.currentUser.uid) > -1)) ?
+            // < MainScreen />
+            < MainScreen app = {this} />
+            :
+            < K2SignInScreen app = {this} />
+          }
+        </div>
+      </IntlProvider>
     );
   }
 }

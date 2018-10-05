@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import SimpleLineChart from './SimpleLineChart';
-import SimpleTable from './SimpleTable';
+
+import SimpleLineChart from './widgets/SimpleLineChart';
+import SimpleTable from './widgets/SimpleTable';
 
 const drawerWidth = 240;
 
