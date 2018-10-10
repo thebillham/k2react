@@ -29,11 +29,13 @@ import MenuItem from '@material-ui/core/MenuItem';
 
 import CreatableSelect from 'react-select/lib/Creatable';
 
-import AttrCard from './widgets/AttrCard.js';
-import TrainingCard from './widgets/TrainingCard.js';
-import JobCard from './widgets/JobCard.js';
+import AttrCard from '../widgets/AttrCard.js';
+import TrainingCard from '../widgets/TrainingCard.js';
+import JobCard from '../widgets/JobCard.js';
 
-import {auth, database, storage} from '../firebase/firebase.js';
+import {auth, database, storage} from '../../config/firebase.js';
+
+import { connect } from "react-redux";
 
 const styles = theme => ({
   root: {
@@ -139,7 +141,6 @@ class MyDetails extends React.Component {
       trainingObj: {},
       isUploading: false,
       progress: 0,
-      staffList: [],
       deleteAttrObj: null,
       deleteTrainingObj: null,
     }
@@ -176,16 +177,6 @@ class MyDetails extends React.Component {
   };
 
   componentWillMount(){
-    database.collection("users").orderBy('name')
-      .onSnapshot((querySnapshot) => {
-        var users = [];
-        querySnapshot.forEach((doc) => {
-          users.push(doc.data().name);
-        });
-        this.setState({
-          staffList: users,
-        });
-      });
     database.collection("users").doc(this.props.userRef)
       .onSnapshot((doc) => {
         this.setState({ user: doc.data(), });
@@ -483,7 +474,7 @@ class MyDetails extends React.Component {
                     onChange={this.handleTrainingObjChange}
                   >
                     <MenuItem value="" />
-                    { this.state.staffList.map((staff) => {
+                    { this.props.data.staff.map((staff) => {
                       return (
                         <MenuItem value={staff}>{staff}</MenuItem>
                       )})
@@ -759,4 +750,8 @@ MyDetails.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(MyDetails);
+const mapStateToProps = ({ data }) => {
+  return { data };
+};
+
+export default connect(mapStateToProps)(withStyles(styles)(MyDetails));

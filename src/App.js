@@ -1,9 +1,22 @@
 import React, { Component } from 'react';
-import './App.css';
 import MainScreen from './components/MainScreen.js';
 import K2SignInScreen from './components/K2SignInScreen.js';
-import firebase, { auth, provider } from './firebase/firebase.js';
-import { IntlProvider } from 'react-intl';
+import { auth } from './config/firebase.js';
+import { fetchStaff, fetchDocuments, fetchUserAuth } from './actions/index';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
+
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchStaff: () => dispatch(fetchStaff()),
+    fetchDocuments: () => dispatch(fetchDocuments()),
+    fetchUserAuth: () => dispatch(fetchUserAuth()),
+  };
+};
+
+const mapStateToProps = state => {
+  return { state };
+}
 
 class App extends Component {
   constructor() {
@@ -11,9 +24,6 @@ class App extends Component {
     this.state = {
       user: null,
     }
-    this.whitelist = [
-      'fTVM9JqKb8QNVlcXzmnTcpkyI2j1' // Ben Dodd
-    ];
 
     this.logIn = this.logIn.bind(this);
     this.logOut = this.logOut.bind(this);
@@ -31,6 +41,9 @@ class App extends Component {
     }
 
   componentDidMount() {
+    this.props.fetchStaff();
+    this.props.fetchDocuments();
+    this.props.fetchUserAuth();
     auth.onAuthStateChanged((user) => {
       if (user) {
         this.setState({ user });
@@ -40,18 +53,15 @@ class App extends Component {
 
   render() {
     return (
-      <IntlProvider locale='en-AUS'>
-        <div className='wrapper'>
-          { (auth.currentUser && (this.whitelist.indexOf(auth.currentUser.uid) > -1)) ?
-            // < MainScreen />
-            < MainScreen app = {this} />
-            :
-            < K2SignInScreen app = {this} />
-          }
-        </div>
-      </IntlProvider>
+      <div className='wrapper'>
+        { auth.currentUser ?
+          < MainScreen />
+          :
+          < K2SignInScreen />
+        }
+      </div>
     );
   }
 }
 
-export default App;
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));

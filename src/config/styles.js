@@ -1,11 +1,4 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-
-import { withStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-
-import SimpleLineChart from './widgets/SimpleLineChart';
-import SimpleTable from './widgets/SimpleTable';
+import { fade } from '@material-ui/core/styles/colorManipulator';
 
 const drawerWidth = 240;
 
@@ -23,7 +16,48 @@ const styles = theme => ({
     padding: '0 8px',
     ...theme.mixins.toolbar,
   },
+  search: {
+    position: 'relative',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: fade(theme.palette.common.white, 0.15),
+    '&:hover': {
+      backgroundColor: fade(theme.palette.common.white, 0.25),
+    },
+    marginRight: theme.spacing.unit * 2,
+    marginLeft: 0,
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      marginLeft: theme.spacing.unit * 3,
+      width: 'auto',
+    },
+  },
+  searchIcon: {
+    width: theme.spacing.unit * 9,
+    height: '100%',
+    position: 'absolute',
+    pointerEvents: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inputRoot: {
+    color: 'inherit',
+    width: '100%',
+  },
+  inputInput: {
+    paddingTop: theme.spacing.unit,
+    paddingRight: theme.spacing.unit,
+    paddingBottom: theme.spacing.unit,
+    paddingLeft: theme.spacing.unit * 10,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: 200,
+    },
+  },
+
   appBar: {
+    background: theme.palette.primary.main,
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
       easing: theme.transitions.easing.sharp,
@@ -38,6 +72,9 @@ const styles = theme => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
   },
+  accentButton: {
+    color: theme.palette.secondary.main,
+  },
   menuButton: {
     marginLeft: 12,
     marginRight: 36,
@@ -49,6 +86,7 @@ const styles = theme => ({
     flexGrow: 1,
   },
   drawerPaper: {
+    background: '#fff',
     position: 'relative',
     whiteSpace: 'nowrap',
     width: drawerWidth,
@@ -81,37 +119,18 @@ const styles = theme => ({
   tableContainer: {
     height: 320,
   },
+  button: {
+    color: "#fff",
+  },
   avatar: {
     margin: 10,
+  },
+  nested: {
+    paddingLeft: theme.spacing.unit * 10,
+  },
+  subitem: {
+    fontSize: 8,
   }
 });
 
-class Dashboard extends React.Component {
-  render() {
-    const { classes } = this.props;
-
-    return (
-      <div>
-        <div className={classes.appBarSpacer} />
-        <Typography variant="display1" gutterBottom>
-          Orders
-        </Typography>
-        <Typography component="div" className={classes.chartContainer}>
-          <SimpleLineChart />
-        </Typography>
-        <Typography variant="display1" gutterBottom>
-          Products
-        </Typography>
-        <div className={classes.tableContainer}>
-          <SimpleTable />
-        </div>
-      </div>
-    );
-  }
-}
-
-Dashboard.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
-export default withStyles(styles)(Dashboard);
+export default styles;
