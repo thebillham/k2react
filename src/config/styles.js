@@ -2,6 +2,56 @@ import { fade } from '@material-ui/core/styles/colorManipulator';
 
 const drawerWidth = 240;
 
+const modalStyles = theme => ({
+  accentButton: {
+    color: theme.palette.secondary.main,
+  },
+
+  dialogField: {
+    marginLeft: theme.spacing.unit,
+    marginRight: theme.spacing.unit,
+    marginBottom: theme.spacing.unit * 2,
+    width: 500,
+  },
+});
+
+const formStyles = theme => ({
+
+  paper: {
+    ...theme.mixins.gutters(),
+    display: 'flex',
+    paddingTop: theme.spacing.unit * 2,
+    paddingBottom: theme.spacing.unit * 2,
+    width: 700,
+    justifyContent: 'center',
+  },
+
+  textField: {
+    marginLeft: theme.spacing.unit,
+    marginRight: theme.spacing.unit,
+    // marginBottom: theme.spacing.unit * 2,
+    width: 500,
+  },
+
+  note: {
+    marginLeft: theme.spacing.unit,
+    fontSize: 12,
+    color: '#888',
+    // marginBottom: theme.spacing.unit * 2,
+  },
+  labels: {
+    marginTop: theme.spacing.unit * 2,
+    marginLeft: theme.spacing.unit,
+    fontSize: 16,
+    fontWeight: 'bold',
+    // marginBottom: theme.spacing.unit * 2,
+  },
+  container: {
+    marginTop: theme.spacing.unit * 10,
+    justifyContent: 'center',
+  },
+});
+
 const styles = theme => ({
   root: {
     display: 'flex',
@@ -130,7 +180,47 @@ const styles = theme => ({
   },
   subitem: {
     fontSize: 8,
-  }
+  },
+  fineprint: {
+    fontSize: 10,
+  },
+
+  notifications: {
+    fontSize: 10,
+    display: 'flex',
+    flexDirection: 'row',
+  },
+
+  todo: {
+    fontSize: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+
+  notificationIcon: {
+    fontSize: 16,
+    marginRight: 10,
+  },
+
+  notificationIconUrgent: {
+    color: '#ff5733',
+    fontSize: 16,
+    marginRight: 10,
+  },
+
+  cardHeaderType: {
+    color: 'white',
+    fontSize: 12,
+  },
+
+  cardHeader: {
+    backgroundColor: theme.palette.primary.light
+  },
+
+  cardHeaderAlt: {
+    backgroundColor: theme.palette.secondary.dark
+  },
 });
 
-export default styles;
+export { styles, modalStyles, formStyles };

@@ -1,4 +1,4 @@
-import { GET_STAFF, AUTH_USER, HIDE_MODAL, SHOW_MODAL, GET_DOCUMENTS } from "../constants/action-types";
+import { GET_STAFF, AUTH_USER, GET_DOCUMENTS, EDIT_USER, GET_USER } from "../constants/action-types";
 import { auth } from '../config/firebase';
 
 import { usersRef, docsRef } from "../config/firebase";
@@ -45,7 +45,7 @@ export const fetchDocuments = () => async dispatch => {
     .onSnapshot((querySnapshot) => {
       var docs = [];
       querySnapshot.forEach((doc) => {
-        docs.push(doc);
+        docs.push(doc.data());
       });
       dispatch({
         type: GET_DOCUMENTS,
@@ -54,6 +54,17 @@ export const fetchDocuments = () => async dispatch => {
     });
 };
 
-export const hideModal = () => ({ type: HIDE_MODAL })
+export const editUser = ({userRef, target}) => dispatch => {
+  usersRef.doc(userRef).set({
+    [target.id]: target.value
+  }, { merge: true });
+};
 
-export const showModal = ({ modalType, modalProps }) => ({ type: SHOW_MODAL, modalType, modalProps })
+export const getUser = userRef => async dispatch => {
+  usersRef.doc(userRef).onSnapshot((doc) => {
+    dispatch({
+      type: GET_USER,
+      payload: doc.data()
+    });
+  });
+}

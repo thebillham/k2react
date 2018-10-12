@@ -1,44 +1,97 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { WithContext as ReactTags } from 'react-tag-input';
+import { withStyles } from '@material-ui/core/styles';
+import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
+import store from '../../store';
+import { DOCUMENT } from '../../constants/modal-types';
+import { docsRef } from '../../config/firebase';
+import '../../config/tags.css';
+import {
+  Dialog, DialogTitle, DialogContent, DialogActions, FormGroup, TextField,
+  LinearProgress, Button,
+} from '@material-ui/core';
+import UploadIcon from '@material-ui/icons/CloudUpload';
+import {
+  hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,
+  handleTagAddition,
+} from '../../actions/modal';
 
-const DocumentModal ({ doc, dispatch }) = (
-    <b>Add New Document</b>
+const mapStateToProps = state => {
+  return {
+    modalType: state.modal.modalType,
+    modalProps: state.modal.modalProps,
+    doc: state.modal.modalProps.doc,
+    userRefName: state.local.userRefName,
+    tags: state.modal.modalProps.tags,
+    tagSuggestions: state.const.docTagSuggestions,
+    delimiters: state.const.tagDelimiters
+   };
+};
+
+function DocumentModal (props) {
+  return(
+    <Dialog
+      open={ props.modalType === DOCUMENT }
+      onClose = {() => store.dispatch(hideModal)}
+      >
+      <DialogTitle>Add New Document</DialogTitle>
+      <DialogContent>
         <form>
           <FormGroup>
             <TextField
-              id="name"
-              label="Name"
-              value={doc.name}
-              onChange={this.handleAttrObjChange}
+              id="title"
+              label="Title"
+              value={props.doc && props.doc.title}
+              className={props.classes.dialogField}
+              onChange={e => {store.dispatch(handleModalChange(e.target))}}
             />
             <TextField
-              id="date_acquired"
-              label="Date Acquired"
+              id="version_date"
+              label="Version Date"
               type="date"
-              value={this.state.attrObj.date_acquired}
-              onChange={this.handleAttrObjChange}
+              value={props.doc && props.doc.date_acquired}
+              className={props.classes.dialogField}
+              onChange={e => {store.dispatch(handleModalChange(e.target))}}
+              InputLabelProps = {{ shrink: true }}
             />
-            <TextField
-              id="date_expires"
-              label="Expiry Date"
-              type="date"
-              value={this.state.attrObj.date_expires}
-              onChange={this.handleAttrObjChange}
-            />
-            {
-              this.state.attrObj.fileUrl &&
-              <img src={this.state.attrObj.fileUrl} style={{width: 140, height: 'auto'}} />
-            }
+            <div>
+              <ReactTags tags={props.tags}
+                suggestions={props.tagSuggestions}
+                handleDelete={i => {store.dispatch(handleTagDelete(i))}}
+                handleAddition={tag => {store.dispatch(handleTagAddition(tag))}}
+                delimiters={props.delimiters}
+                minQueryLength='1'
+                inline='true'
+                autocomplete='true'
+               />
+            </div>
             <label>
-              <UploadIcon className={classes.accentButton} />
-              <input id='attr_upload_file' type='file' className={classes.hidden} onChange={e => {this.onAttrUploadFile(e.currentTarget.files[0])}} />
-              <LinearProgress variant="determinate" value={this.state.progress} />
+              <UploadIcon className={props.classes.accentButton} />
+              <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e => {store.dispatch(onUploadFile({
+                file: e.currentTarget.files[0],
+                storagePath: 'documents/',
+              }))
+              }} />
+              <LinearProgress variant="determinate" value={props.modalProps.uploadProgress} />
             </label>
           </FormGroup>
         </form>
-        <Button onClick={() => dispatch(hideModal())} color="secondary">Cancel</Button>
-        {this.props.isUploading ? <Button onClick={this.handleAttrDialogAdd} color="primary" disabled >Submit</Button>
-        : <Button onClick={this.handleAttrDialogAdd} color="primary" >Submit</Button>}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => store.dispatch(hideModal)} color="secondary">Cancel</Button>
+        {props.modalProps.isUploading ? <Button onClick={() => store.dispatch(handleModalSubmit({
+          doc: props.doc,
+          pathRef: docsRef,
+        }))} color="primary" disabled >Submit</Button>
+        : <Button onClick={() => store.dispatch(handleModalSubmit({
+          doc: props.doc,
+          pathRef: docsRef,
+        }))} color="primary" >Submit</Button>}
       </DialogActions>
-  </Dialog>);
+    </Dialog>
+  )
+}
 
-  export default connect(mapStateToProps,mapDispatchToProps)(Dialog);
+export default withStyles(modalStyles)(connect(mapStateToProps)(DocumentModal));

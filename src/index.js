@@ -12,27 +12,7 @@ import { IntlProvider } from 'react-intl';
 import { createStore, applyMiddleware, compose } from 'redux';
 import MuiThemeProvider from '@material-ui/core/styles/MuiThemeProvider';
 import theme from './config/theme';
-
-
-const initialState = {
-  documents: [],
-  staff: [],
-  modalType: null,
-  modalProps: {},
-};
-
-const history = createBrowserHistory();
-
-const store = createStore(
-  connectRouter(history)(rootReducer),
-  initialState,
-  compose(
-    applyMiddleware(
-      routerMiddleware(history),
-      reduxThunk,
-    )
-  ),
-);
+import store, { history } from './store/index';
 
 // WRAP APP IN APP-WIDE COMPONENTS
 // Provider: Gives all components access to the redux store so properties don't need to be passed between components

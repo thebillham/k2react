@@ -1,12 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import CardHeader from '@material-ui/core/CardHeader';
-import EditButton from '@material-ui/icons/Edit';
+import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
+import { Card, CardContent, Typography, IconButton, CardHeader, Button } from '@material-ui/core';
+import EditIcon from '@material-ui/icons/Edit';
 
 const styles = {
   card: {
@@ -29,41 +26,40 @@ const styles = {
 };
 
 function StaffCard(props) {
-  const { classes } = props;
+  const { classes, staff } = props;
+  const path = "/staff/details/" + staff.uid;
 
   return (
       <Card className={classes.card}>
         <CardHeader
           title={
             <Typography className={classes.name} color="textSecondary">
-              { props.staff.name }
+              { staff.name }
             </Typography>
           }
           subheader={
             <Typography className={classes.details} color="textSecondary">
-              { props.staff.jobdescription }
+              { staff.jobdescription }
             </Typography>
           }
           action={
-            <IconButton aria-label="Edit" onClick={props.onEditClick}>
-              <EditButton />
-            </IconButton>
+            <Link to={path}><EditIcon /></Link>
           }
         />
         <CardContent>
           <Typography className={classes.details}>
-            { props.staff.address }
+            { staff.office }
           </Typography>
           <Typography className={classes.details} color="textSecondary">
-            { props.staff.email }
+            { staff.email }
           </Typography>
           <Typography className={classes.details} color="textSecondary">
-            { props.staff.gmail }
+            { staff.gmail }
             <br />
           </Typography>
         </CardContent>
       </Card>
-  )
+  );
 }
 
 StaffCard.propTypes = {

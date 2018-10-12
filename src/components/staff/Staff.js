@@ -10,13 +10,7 @@ import { connect } from 'react-redux';
 import { auth, database } from '../../config/firebase.js';
 
 const mapStateToProps = state => {
-  return { staff: state.staff };
-};
-
-const mapDispatchToProps = dispatch => {
-  // return {
-  //   addDocument: document => dispatch(showModal({modalType: DOCUMENT, modalProps: { docId: null }}))
-  // };
+  return { staff: state.local.staff };
 };
 
 class Staff extends React.Component {
@@ -25,52 +19,10 @@ class Staff extends React.Component {
 
     this.state = {
       // staffList: [],
-      table: false,
+      table: true,
       admin: false,
     }
-
     this.switch = this.switch.bind(this);
-    this.onStaffCardClick = this.onStaffCardClick.bind(this);
-  }
-
-  // componentWillMount(){
-  //   database.collection("users").doc(auth.currentUser.uid).get().then((doc) => {
-  //     this.setState({ admin: doc.data().auth_admin });
-  //   });
-  //   database.collection("users").orderBy('name')
-  //     .onSnapshot((querySnapshot) => {
-  //       var users = [];
-  //       querySnapshot.forEach((doc) => {
-  //         let attrs = [];
-  //         let jobs = [];
-  //         let user = doc.data();
-  //         database.collection("users").doc(doc.id).collection("attr")
-  //           .onSnapshot((querySnapshot) => {
-  //             querySnapshot.forEach((doc) => {
-  //               attrs.push(doc.data());
-  //             });
-  //           });
-  //         database.collection("users").doc(doc.id).collection("myjobs")
-  //           .onSnapshot((querySnapshot) => {
-  //             querySnapshot.forEach((doc) => {
-  //               jobs.push(doc.data());
-  //             });
-  //           });
-  //         user.uid = doc.id;
-  //         user.attrs = attrs;
-  //         user.jobs = jobs;
-  //         users.push(user);
-  //       });
-  //       this.setState({
-  //         staffList: users,
-  //       });
-  //     });
-  // }
-
-  onStaffCardClick = id => {
-    if (this.state.admin && id) {
-      this.props.handleEditStaff(id);
-    }
   }
 
   switch(){
@@ -93,9 +45,9 @@ class Staff extends React.Component {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>ID</TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>Address</TableCell>
+                  <TableCell>Office</TableCell>
+                  <TableCell>Job Description</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Gmail</TableCell>
                 </TableRow>
@@ -104,9 +56,9 @@ class Staff extends React.Component {
                 {this.props.staff.map((user) => {
                   return (
                     <TableRow key={user.name}>
-                      <TableCell>{user.id}</TableCell>
                       <TableCell>{user.name}</TableCell>
-                      <TableCell>{user.address}</TableCell>
+                      <TableCell>{user.office}</TableCell>
+                      <TableCell>{user.jobdescription}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.gmail}</TableCell>
                     </TableRow>
@@ -119,7 +71,7 @@ class Staff extends React.Component {
             {this.props.staff.map((user) => {
               return (
                 <GridListTile key={user.name}>
-                  <StaffCard staff={user} onEditClick={(e) => this.onStaffCardClick(user.uid, e)} />
+                  <StaffCard staff={user} />
                 </GridListTile>
               )
             })}

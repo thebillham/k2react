@@ -5,36 +5,43 @@ import { DOCUMENT } from '../../constants/modal-types';
 
 import { Drawer, List, ListItem, ListItemText, Button } from '@material-ui/core';
 import { connect } from 'react-redux';
-import { showModal } from '../../actions/index';
+import { showModal } from '../../actions/modal';
+import { modalInit } from '../../reducers/modal';
+import DocumentModal from '../modals/DocumentModal';
+import store from '../../store';
 
 const mapStateToProps = state => {
-  return { documents: state.documents };
-};
-
-const mapDispatchToProps = dispatch => {
   return {
-    showModal: document => dispatch(showModal(document))
+    documents: state.local.documents,
+    modal: state.modal.modalType
   };
-};
+}; 
 
 function Reference (props) {
     return (
       <div style = {{ marginTop: 80 }}>
         <div>
           <Button variant="outlined" color="primary"
-            onClick={() => props.showModal({modalType: DOCUMENT, modalProps: {docId: null}})}
+            onClick={() => store.dispatch(
+              showModal({
+                modalType: DOCUMENT,
+                modalProps: modalInit.modalProps,
+              })
+            )}
             >
             Add New Document
           </Button>
+          <DocumentModal />
         </div>
-        {props.documents.length > 0 && props.documents.map((doc) => {
+        <hr />
+        {props.documents && <div>{ props.documents.map((doc) => {
             return(
-              <div>{doc.title}</div>
+              <div key={doc.title}>{doc.title}</div>
             )
           })
-        }
+        }</div>}
       </div>
     )
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Reference);
+export default connect(mapStateToProps)(Reference);

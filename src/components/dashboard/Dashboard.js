@@ -2,91 +2,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { withStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
+import { styles } from '../../config/styles';
+import { Typography, Grid } from '@material-ui/core';
 
-import SimpleLineChart from '../widgets/SimpleLineChart';
-import SimpleTable from '../widgets/SimpleTable';
+import GoogleCalendar from '../widgets/GoogleCalendar';
+import CurrentJobs from '../widgets/CurrentJobs';
+import RecentNotifications from '../widgets/RecentNotifications';
+import RecentSamples from '../widgets/RecentSamples';
+import Training from '../widgets/Training';
+import ToDo from '../widgets/ToDo';
 
 import { connect } from "react-redux";
-
-const drawerWidth = 240;
-
-const styles = theme => ({
-  root: {
-    display: 'flex',
-  },
-  toolbar: {
-    paddingRight: 24, // keep right padding when drawer closed
-  },
-  toolbarIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    padding: '0 8px',
-    ...theme.mixins.toolbar,
-  },
-  appBar: {
-    zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-  },
-  appBarShift: {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
-  menuButton: {
-    marginLeft: 12,
-    marginRight: 36,
-  },
-  menuButtonHidden: {
-    display: 'none',
-  },
-  title: {
-    flexGrow: 1,
-  },
-  drawerPaper: {
-    position: 'relative',
-    whiteSpace: 'nowrap',
-    width: drawerWidth,
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
-  drawerPaperClose: {
-    overflowX: 'hidden',
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    width: theme.spacing.unit * 7,
-    [theme.breakpoints.up('sm')]: {
-      width: theme.spacing.unit * 9,
-    },
-  },
-  appBarSpacer: theme.mixins.toolbar,
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing.unit * 3,
-    height: '100vh',
-    overflow: 'auto',
-  },
-  chartContainer: {
-    marginLeft: -22,
-  },
-  tableContainer: {
-    height: 320,
-  },
-  avatar: {
-    margin: 10,
-  }
-});
 
 const mapStateToProps = state => {
   return { staff: state.staff };
@@ -99,18 +25,42 @@ class Dashboard extends React.Component {
     return (
       <div>
         <div className={classes.appBarSpacer} />
-        <Typography variant="display1" gutterBottom>
-          Orders
-        </Typography>
-        <Typography component="div" className={classes.chartContainer}>
-          <SimpleLineChart />
-        </Typography>
-        <Typography variant="display1" gutterBottom>
-          Products
-        </Typography>
-        <div className={classes.tableContainer}>
-          <SimpleTable />
-        </div>
+          <Grid container direction='row' justify='flex-start' className={classes.container} alignItems='stretch' spacing={16}>
+            <Grid item xs={3}>
+              <Grid container direction='column' spacing={16}>
+                <Grid item>
+                  <GoogleCalendar />
+                </Grid>
+                <Grid item>
+                  <Training />
+                </Grid>
+              </Grid>
+            </Grid>
+            <Grid item xs={3}>
+              <Grid container direction='column' spacing={16}>
+                <Grid item>
+                  <CurrentJobs />
+                </Grid>
+              </Grid>
+            </Grid>
+            <Grid item xs={3}>
+              <Grid container direction='column' spacing={16}>
+                <Grid item>
+                  <RecentNotifications />
+                </Grid>
+                <Grid item>
+                  <RecentSamples />
+                </Grid>
+              </Grid>
+            </Grid>
+            <Grid item xs={3}>
+              <Grid container direction='column' spacing={16}>
+                <Grid item>
+                  <ToDo />
+                </Grid>
+              </Grid>
+            </Grid>
+          </Grid>
       </div>
     );
   }
