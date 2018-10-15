@@ -50,6 +50,19 @@ const formStyles = theme => ({
     marginTop: theme.spacing.unit * 10,
     justifyContent: 'center',
   },
+
+  dashboardIcon: {
+    color: 'white',
+    fontSize: 14,
+  },
+  formIcon: {
+    color: 'black',
+    fontSize: 14,
+  },
+  warningIcon: {
+    color: 'red',
+    fontSize: 14,
+  },
 });
 
 const styles = theme => ({
@@ -182,17 +195,17 @@ const styles = theme => ({
     fontSize: 8,
   },
   fineprint: {
-    fontSize: 10,
+    fontSize: 12,
   },
 
   notifications: {
-    fontSize: 10,
+    fontSize: 12,
     display: 'flex',
     flexDirection: 'row',
   },
 
   todo: {
-    fontSize: 10,
+    fontSize: 12,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -216,6 +229,11 @@ const styles = theme => ({
 
   cardHeader: {
     backgroundColor: theme.palette.primary.light
+  },
+
+  dashboardIcon: {
+    color: 'white',
+    fontSize: 12,
   },
 
   cardHeaderAlt: {

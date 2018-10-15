@@ -5,12 +5,13 @@ import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { Typography, Grid } from '@material-ui/core';
 
-import GoogleCalendar from '../widgets/GoogleCalendar';
-import CurrentJobs from '../widgets/CurrentJobs';
-import RecentNotifications from '../widgets/RecentNotifications';
-import RecentSamples from '../widgets/RecentSamples';
-import Training from '../widgets/Training';
-import ToDo from '../widgets/ToDo';
+import GoogleCalendar from './widgets/GoogleCalendar';
+import CurrentJobs from './widgets/CurrentJobs';
+import RecentNotifications from './widgets/RecentNotifications';
+import RecentSamples from './widgets/RecentSamples';
+import Training from './widgets/Training';
+import ToDo from './widgets/ToDo';
+import ReportsChart from './widgets/ReportsChart';
 
 import { connect } from "react-redux";
 
@@ -57,6 +58,9 @@ class Dashboard extends React.Component {
               <Grid container direction='column' spacing={16}>
                 <Grid item>
                   <ToDo />
+                </Grid>
+                <Grid item>
+                  <ReportsChart />
                 </Grid>
               </Grid>
             </Grid>

@@ -1,9 +1,9 @@
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import { styles } from '../../config/styles';
+import { styles } from '../../../config/styles';
 import { Card, CardContent, Typography, IconButton, CardHeader, Button, Grid, Checkbox } from '@material-ui/core';
 import { FormattedDate } from 'react-intl';
-import { Close } from '@material-ui/icons';
+import { Close, Edit, Add } from '@material-ui/icons';
 import UrgentIcon from '@material-ui/icons/Warning';
 import AnalysisIcon from '@material-ui/icons/Colorize';
 import TrainingIcon from '@material-ui/icons/School';
@@ -37,7 +37,11 @@ function ToDo(props) {
             </Typography>
           }
           action={
-            <Close style={{color: 'white'}} />
+            <div>
+              <IconButton><Add className={classes.dashboardIcon} /></IconButton>
+              <IconButton><Edit className={classes.dashboardIcon} /></IconButton>
+              <IconButton><Close className={classes.dashboardIcon} /></IconButton>
+            </div>
           }
         />
         <CardContent>

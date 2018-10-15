@@ -153,11 +153,11 @@ class MainScreen extends React.Component {
             </ListItem>
             <Collapse in={this.state.openStaff} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
-                  <ListItem button component={Link} to="/staff/qualifications" className={classes.nested}>
-                  <ListItemText primary="Qualifications" className={classes.subitem} />
-                </ListItem>
                 <ListItem button component={Link} to="/staff/training" className={classes.nested}>
                   <ListItemText primary="Training" className={classes.subitem} />
+                </ListItem>
+                  <ListItem button component={Link} to="/staff/jobs" className={classes.nested}>
+                  <ListItemText primary="Jobs" className={classes.subitem} />
                 </ListItem>
               </List>
             </Collapse>
@@ -171,11 +171,8 @@ class MainScreen extends React.Component {
             </ListItem>
             <Collapse in={this.state.openMyDetails} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
-                  <ListItem button component={Link} to="/mydetails/qualifications" className={classes.nested}>
-                  <ListItemText primary="Qualifications" className={classes.subitem} />
-                </ListItem>
-                <ListItem button component={Link} to="/mydetails/log" className={classes.nested}>
-                  <ListItemText primary="Training Log" className={classes.subitem} />
+                <ListItem button component={Link} to="/mydetails/training" className={classes.nested}>
+                  <ListItemText primary="Training" className={classes.subitem} />
                 </ListItem>
                 <ListItem button component={Link} to="/mydetails/jobs" className={classes.nested}>
                   <ListItemText primary="Job History" className={classes.subitem} />
@@ -273,6 +270,34 @@ class MainScreen extends React.Component {
                   />
                 </div>
               } />
+              <Route path="/training" render={() =>
+                <div className={classes.search}>
+                  <div className={classes.searchIcon}>
+                    <SearchIcon />
+                  </div>
+                  <InputBase
+                    placeholder="Search…"
+                    classes={{
+                      root: classes.inputRoot,
+                      input: classes.inputInput,
+                    }}
+                  />
+                </div>
+              } />
+              <Route path="/staff" render={() =>
+                <div className={classes.search}>
+                  <div className={classes.searchIcon}>
+                    <SearchIcon />
+                  </div>
+                  <InputBase
+                    placeholder="Search…"
+                    classes={{
+                      root: classes.inputRoot,
+                      input: classes.inputInput,
+                    }}
+                  />
+                </div>
+              } />
               <Button
                 aria-owns={ anchorEl ? 'google-menu' : null}
                 aria-haspopup="true"
@@ -302,10 +327,8 @@ class MainScreen extends React.Component {
               <Route exact path="/staff/jobs" component={StaffJobs} />
               <Route exact path="/staff/training" component={StaffTraining} />
               <Route exact path="/staff/details/:user" component={UserDetails} />
-              <Route exact path="/staff/qualifications/:user" component={UserQualifications} />
               <Route exact path="/staff/training/:user" component={UserTraining} />
               <Route exact path="/mydetails" component={UserDetails} />
-              <Route exact path="/mydetails/qualifications" component={UserQualifications} />
               <Route exact path="/mydetails/training" component={UserTraining} />
               <Route exact path="/mydetails/preferences" component={AppPreferences} />
               <Route exact path="/training" component={TrainingModules} />

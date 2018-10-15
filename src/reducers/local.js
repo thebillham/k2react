@@ -4,14 +4,16 @@ import {
           ADD_DOCUMENT,
           EDIT_USER,
           GET_USER,
+          GET_WFM,
         } from "../constants/action-types"
 
 const localInit = {
-  userRef: 'koRSGnzyz4dxfhvXjQklU8CzENG3',
-  userRefName: 'Jeff',
+  userRef: null,
+  userRefName: null,
   documents: [],
   staff: [],
   user: {},
+  wfmJobs: [],
 };
 
 // Properties related to local data retrieved from firebase
@@ -26,6 +28,11 @@ export default function localReducer(state = localInit, action) {
         ...state,
         user: action.payload,
       };
+    case GET_WFM:
+      return {
+        ...state,
+        wfmJobs: action.payload,
+      }
     default:
       return state;
   }

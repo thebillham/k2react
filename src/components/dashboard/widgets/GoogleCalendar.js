@@ -1,9 +1,9 @@
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import { styles } from '../../config/styles';
+import { styles } from '../../../config/styles';
 import { Card, CardContent, Typography, IconButton, CardHeader, Button } from '@material-ui/core';
 import { FormattedDate } from 'react-intl';
-import { Close } from '@material-ui/icons';
+import { Close, Edit, Add } from '@material-ui/icons';
 
 const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
@@ -517,7 +517,11 @@ function GoogleCalendar(props) {
             </Typography>
           }
           action={
-            <Close style={{color: 'white'}} />
+            <div>
+              <IconButton><Add className={classes.dashboardIcon} /></IconButton>
+              <IconButton><Edit className={classes.dashboardIcon} /></IconButton>
+              <IconButton><Close className={classes.dashboardIcon} /></IconButton>
+            </div>
           }
         />
         <CardContent>
@@ -526,7 +530,7 @@ function GoogleCalendar(props) {
               <div key={event.updated} className={classes.fineprint}>
                 <b>{event.summary}</b><br />
                 {event.location}<br />
-                <FormattedDate value={event.updated} month='long' day='numeric' weekday='short' /><hr />
+                <FormattedDate value={event.updated} month='long' day='numeric' weekday='short' hour='numeric' minute='numeric' /><hr />
               </div>
             );
           })}

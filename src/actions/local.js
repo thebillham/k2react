@@ -1,5 +1,6 @@
-import { GET_STAFF, AUTH_USER, GET_DOCUMENTS, EDIT_USER, GET_USER } from "../constants/action-types";
+import { GET_STAFF, AUTH_USER, GET_DOCUMENTS, EDIT_USER, GET_USER, GET_WFM } from "../constants/action-types";
 import { auth } from '../config/firebase';
+import {parseString}from 'xml2js';
 
 import { usersRef, docsRef } from "../config/firebase";
 
@@ -67,4 +68,19 @@ export const getUser = userRef => async dispatch => {
       payload: doc.data()
     });
   });
-}
+};
+
+
+export const fetchWFM = () => async dispatch => {
+  fetch('path')
+  .then(xml => {
+    parseString(xml, (err, result));
+    return JSON.stringify(result);
+  }).then(data => {
+    let jobs = [];
+    dispatch({
+      type: GET_WFM,
+      payload: jobs
+    });
+  });
+};
