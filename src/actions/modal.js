@@ -1,9 +1,8 @@
 import { HIDE_MODAL, SHOW_MODAL, EDIT_MODAL, EDIT_MODAL_DOC,
   ADD_TAG, DELETE_TAG,
  } from "../constants/action-types";
-import { auth } from '../config/firebase';
 
-import { usersRef, docsRef, storage } from "../config/firebase";
+import { storage } from "../config/firebase";
 import store from '../store';
 
 export const hideModal = dispatch => {

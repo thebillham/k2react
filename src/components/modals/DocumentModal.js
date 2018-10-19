@@ -48,6 +48,15 @@ function DocumentModal (props) {
               onChange={e => {store.dispatch(handleModalChange(e.target))}}
             />
             <TextField
+              id="desc"
+              label="Description"
+              value={props.doc && props.doc.desc}
+              className={props.classes.dialogField}
+              multiline
+              rows={4}
+              onChange={e => {store.dispatch(handleModalChange(e.target))}}
+            />
+            <TextField
               id="version_date"
               label="Version Date"
               type="date"
@@ -81,14 +90,15 @@ function DocumentModal (props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={() => store.dispatch(hideModal)} color="secondary">Cancel</Button>
-        {props.modalProps.isUploading ? <Button onClick={() => store.dispatch(handleModalSubmit({
+        {props.modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
+        : <Button onClick={() => {
+          props.doc.tags = props.tags.map(tag => tag.text);
+          store.dispatch(handleModalSubmit({
           doc: props.doc,
           pathRef: docsRef,
-        }))} color="primary" disabled >Submit</Button>
-        : <Button onClick={() => store.dispatch(handleModalSubmit({
-          doc: props.doc,
-          pathRef: docsRef,
-        }))} color="primary" >Submit</Button>}
+          }))
+        }
+      } color="primary" >Submit</Button>}
       </DialogActions>
     </Dialog>
   )

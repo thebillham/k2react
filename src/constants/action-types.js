@@ -2,10 +2,16 @@
 export const AUTH_USER = "AUTH_USER";
 export const GET_STAFF = "GET_STAFF";
 export const GET_DOCUMENTS = "GET_DOCUMENTS";
+export const GET_TOOLS = "GET_TOOLS";
 export const ADD_DOCUMENT = "ADD_DOCUMENT";
 export const EDIT_USER = "EDIT_USER";
 export const GET_USER = "GET_USER";
 export const GET_WFM = "GET_WFM";
+export const GET_MODULES = "GET_MODULES";
+export const GET_NOTICES = "GET_NOTICES";
+export const SEARCH_CHANGE = "SEARCH_CHANGE";
+export const CAT_CHANGE = "CAT_CHANGE";
+export const GET_READINGLOG = "GET_READINGLOG";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";

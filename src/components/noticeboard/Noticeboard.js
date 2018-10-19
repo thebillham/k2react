@@ -4,29 +4,25 @@ import { Button, ExpansionPanel, ExpansionPanelDetails, ExpansionPanelSummary, G
 
 import { connect } from 'react-redux';
 import { ExpandMore  } from '@material-ui/icons';
-import ModuleCard from '../widgets/ModuleCard';
+import NoticeCard from '../widgets/NoticeCard';
 import { onCatChange, onSearchChange } from '../../actions/local';
 import store from '../../store';
 
 const mapStateToProps = state => {
   return {
     staff: state.local.staff,
-    modules: state.local.modules,
-    categories: state.const.trainingcategories,
+    auth: state.local.auth,
+    notices: state.local.notices,
+    categories: state.const.noticecategories,
     search: state.local.search,
     category: state.local.category,
    };
 };
 
-class TrainingModules extends React.Component {
+class Noticeboard extends React.Component {
   constructor(props){
     super(props);
 
-    this.state = {
-      // staffList: [],
-      modPath: null,
-      admin: false,
-    }
     this.select = this.select.bind(this);
   }
 
@@ -58,7 +54,7 @@ class TrainingModules extends React.Component {
           <Grid container spacing={8}>
             { this.props.categories.map(cat => {
               return (
-                <Grid item>
+                <Grid item key={cat.key}>
                   <Button variant="outlined" color={this.props.category === cat.key ? "secondary" : "primary"} onClick={() => this.switch(cat.key)}>
                     {cat.desc}
                   </Button>
@@ -67,38 +63,31 @@ class TrainingModules extends React.Component {
             })}
           </Grid>
           <Grid container spacing={16} style={{paddingTop: 30}}>
-            <Grid item xs={6} >
-              { this.props.modules.filter(mod => {
-                if (this.props.search) {
-                  return mod.title.toLowerCase().includes(this.props.search.toLowerCase())
-                } else if (this.props.category) {
-                  return mod.category == this.props.category
+          { this.props.notices.filter(notice => {
+              if (notice.auth !== undefined && this.props.auth.includes(notice.auth) == false) {
+                return false;
+              }
+              if (this.props.search) {
+                if (notice.tags) {
+                  return [...notice.tags, notice.text].find(tag => tag.toLowerCase().includes(this.props.search.toLowerCase()));
                 } else {
-                  return true;
+                  return notice.text.toLowerCase().includes(this.props.search.toLowerCase());
                 }
-              }).map(mod => {
-                return(
-                  <div>
-                    <ExpansionPanel onChange={e => { this.select(mod.uid) }}>
-                      <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                        { mod.title }
-                      </ExpansionPanelSummary>
-                      <ExpansionPanelDetails>
-                        <i>{ mod.description }</i>
-                      </ExpansionPanelDetails>
-                    </ExpansionPanel>
-                  </div>
-                );
-              }) }
+              } else if (this.props.category) {
+                return notice.category == this.props.category;
+              } else {
+                return true;
+              }
+            }).map(notice => {
+              return(
+                <Grid item xs={2} key={notice.uid}>
+                  <NoticeCard notice={notice} />
+                </Grid>
+              )})}
             </Grid>
-            <Grid item xs={6} >
-              { this.state.modPath &&
-              <ModuleCard key={this.state.modPath} mod={this.state.modPath} /> }
-            </Grid>
-          </Grid>
         </div>
       )
     }
 }
 
-export default connect(mapStateToProps)(TrainingModules);
+export default connect(mapStateToProps)(Noticeboard);

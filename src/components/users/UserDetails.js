@@ -3,11 +3,9 @@ import { withRouter } from 'react-router-dom';
 import { connect } from "react-redux";
 import { withStyles } from '@material-ui/core/styles';
 import { formStyles } from '../../config/styles';
-import { Paper, List, ListItem, TextField, Typography, InputLabel,
+import { List, ListItem, TextField, Typography, InputLabel,
   Select, FormControl, Input, Grid, CircularProgress, Card, CardHeader,
   CardContent, IconButton } from '@material-ui/core';
-import store from '../../store';
-import { editUser, getUser } from '../../actions/local';
 import { auth, usersRef } from '../../config/firebase';
 import { CloudUpload, Warning, Add, ExpandLess, ExpandMore, Edit, Delete } from '@material-ui/icons';
 
@@ -54,7 +52,7 @@ class UserDetails extends React.Component {
     return (
       <div>
         <Grid container justify='space-evenly' className={classes.container} spacing={16}>
-          <Grid item xs={4}>
+          <Grid item xs={5}>
             <Card className={classes.card}>
               <CardHeader
                 style={{ background: 'linear-gradient(to right bottom, #ff5733, #fff)'}}
@@ -194,7 +192,7 @@ class UserDetails extends React.Component {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={5}>
             <Card className={classes.card}>
               <CardHeader
                 style={{ background: 'linear-gradient(to right bottom, #ff5733, #fff)'}}
@@ -341,30 +339,6 @@ class UserDetails extends React.Component {
                     style={{ background: 'linear-gradient(to right bottom, #ff5733, #fff)'}}
                     title={
                       <Typography className={classes.cardHeaderType} color="textSecondary">
-                        Profile Photo
-                      </Typography>
-                    }
-                    action={
-                      <div>
-                        <IconButton><CloudUpload className={classes.dashboardIcon} /></IconButton>
-                      </div>
-                    }
-                  />
-                  <CardContent>
-                    <Grid content justify='center' >
-                      <Grid item>
-                        <img src="https://firebasestorage.googleapis.com/v0/b/k2flutter-f03a1.appspot.com/o/dummyprofilephoto.jpg?alt=media&token=0fa9ec7e-14b0-4b94-ae10-adc79824040f" height="250" />
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item>
-                <Card className={classes.card}>
-                  <CardHeader
-                    style={{ background: 'linear-gradient(to right bottom, #ff5733, #fff)'}}
-                    title={
-                      <Typography className={classes.cardHeaderType} color="textSecondary">
                         Signature
                       </Typography>
                     }
@@ -375,9 +349,9 @@ class UserDetails extends React.Component {
                     }
                   />
                   <CardContent>
-                    <Grid content justify='center' >
+                    <Grid container justify='center' >
                       <Grid item>
-                        <img src="https://firebasestorage.googleapis.com/v0/b/k2flutter-f03a1.appspot.com/o/gop.png?alt=media&token=d4d0f0da-9057-4e8e-8397-50cd87af3e44" height="100" />
+                        <img alt='signature' src="https://firebasestorage.googleapis.com/v0/b/k2flutter-f03a1.appspot.com/o/gop.png?alt=media&token=d4d0f0da-9057-4e8e-8397-50cd87af3e44" height="100" />
                       </Grid>
                     </Grid>
                   </CardContent>

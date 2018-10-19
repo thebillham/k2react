@@ -5,8 +5,6 @@ import { Card, CardContent, Typography, IconButton, CardHeader, Button } from '@
 import { FormattedDate } from 'react-intl';
 import { Close, Edit, Add } from '@material-ui/icons';
 
-const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-
 // Replace with an actual GoogleCalendar API response
 // This response is from here: https://developers.google.com/calendar/v3/reference/events/list#try-it
 const dummyList =

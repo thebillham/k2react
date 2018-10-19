@@ -1,11 +1,8 @@
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../../config/styles';
-import { Card, CardContent, Typography, IconButton, CardHeader, Button, Grid, LinearProgress } from '@material-ui/core';
-import { FormattedDate } from 'react-intl';
+import { Card, CardContent, Typography, IconButton, CardHeader, LinearProgress } from '@material-ui/core';
 import { Close, Edit, Add } from '@material-ui/icons';
-
-const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
 // Gets jobs from your job list
 const dummyList = [

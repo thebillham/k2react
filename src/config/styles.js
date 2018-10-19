@@ -29,6 +29,7 @@ const formStyles = theme => ({
   textField: {
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,
+    fontSize: 14,
     // marginBottom: theme.spacing.unit * 2,
     width: 500,
   },
@@ -55,13 +56,21 @@ const formStyles = theme => ({
     color: 'white',
     fontSize: 14,
   },
+
   formIcon: {
     color: 'black',
     fontSize: 14,
   },
+
   warningIcon: {
     color: 'red',
     fontSize: 14,
+  },
+
+  cardHeaderType: {
+    color: '#fff',
+    fontWeight: 500,
+    fontSize: 16,
   },
 });
 
@@ -223,8 +232,9 @@ const styles = theme => ({
   },
 
   cardHeaderType: {
-    color: 'white',
-    fontSize: 12,
+    color: '#fff',
+    fontWeight: 500,
+    fontSize: 16,
   },
 
   cardHeader: {

@@ -58,8 +58,8 @@ function RecentNotifications(props) {
         <CardContent>
           { dummyList.slice(0, 5).map((not) => {
             return(
-              <div>
-                <div key={not.text} className={classes.notifications}>
+              <div key={not.text}>
+                <div className={classes.notifications}>
                   {not.type==='training' && <TrainingIcon className={classes.notificationIcon} />}
                   {not.type==='analysis' && <AnalysisIcon className={classes.notificationIcon} />}
                   {not.type==='urgent' && <NotificationIcon className={classes.notificationIconUrgent} />}

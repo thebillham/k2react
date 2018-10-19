@@ -16,7 +16,7 @@ const styles = {
     transform: 'scale(0.8)',
   },
   name: {
-    marginBottom: 16,
+    marginBottom: 4,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -26,22 +26,25 @@ const styles = {
 };
 
 function JobCard(props) {
-  const { classes } = props;
+  const { classes, job } = props;
 
   return (
     <Card className={classes.card}>
       <CardContent>
         <Typography className={classes.name} color="textSecondary">
-          { props.job.jobnumber }
+          { job.jobNumber + ' (' + job.type + ')'}
         </Typography>
-        <Typography className={classes.details}>
-          { props.job.clientname }
-        </Typography>
-        <Typography className={classes.details} color="textSecondary">
-          { props.job.address }
+        <Typography className={classes.name}>
+          { job.client }
         </Typography>
         <Typography className={classes.details} color="textSecondary">
-          { props.job.type }
+          <i>{ job.state }</i>
+        </Typography>
+        <Typography className={classes.details} color="textSecondary">
+          { job.address }
+        </Typography>
+        <Typography className={classes.details} color="textSecondary">
+          { job.description }
           <br />
         </Typography>
       </CardContent>

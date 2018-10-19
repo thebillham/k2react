@@ -1,13 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import { withStyles } from '@material-ui/core/styles';
-import { Drawer, GridList, GridListTile, Button, Table, TableBody,
+import { Button, Table, TableBody,
   TableCell, TableHead, TableRow, CircularProgress } from '@material-ui/core';
 
-import StaffCard from '../widgets/StaffCard.js';
 import { connect } from 'react-redux';
-import { auth, database } from '../../config/firebase.js';
 import { School, Update, CheckCircle, LooksOne  } from '@material-ui/icons';
 
 const mapStateToProps = state => {

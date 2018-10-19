@@ -65,7 +65,7 @@ export default function modalReducer(state = modalInit, action){
         modalProps: {
           ...state.modalProps,
           tags: {
-            ...state.modalProps.tags.filter(el => el !== action.payload)
+            ...state.modalProps.tags.filter((tag, index) => index !== action.payload)
           }
         }
       }

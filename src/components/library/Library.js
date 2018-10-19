@@ -22,7 +22,7 @@ const mapStateToProps = state => {
   };
 };
 
-class Reference extends React.Component {
+class Library extends React.Component {
   constructor(props){
     super(props);
 
@@ -30,6 +30,7 @@ class Reference extends React.Component {
       listselect: null,
 
     }
+
   }
 
   componentWillMount(){
@@ -61,7 +62,7 @@ class Reference extends React.Component {
         <Grid container spacing={8}>
           { this.props.categories.map(cat => {
             return (
-              <Grid item>
+              <Grid item key={cat.key}>
                 <Button variant="outlined" color={this.props.category === cat.key ? "secondary" : "primary"} onClick={() => this.switch(cat.key)}>
                   {cat.desc}
                 </Button>
@@ -90,30 +91,9 @@ class Reference extends React.Component {
             )
           })}
         </List>
-        {/* <Grid container spacing={16} style={{paddingTop: 30}}>
-        { this.props.docs.filter(doc => {
-            if (this.props.search) {
-              if (doc.tags) {
-                return [...doc.tags, doc.title].find(tag => tag.toLowerCase().includes(this.props.search.toLowerCase()));
-              } else {
-                return doc.title.toLowerCase().includes(this.props.search.toLowerCase());
-              }
-            } else if (this.props.category) {
-              return doc.category == this.props.category;
-            } else {
-              return true;
-            }
-          }).map(doc => {
-            return(
-              <Grid item xs={2}>
-                <DocCard doc={doc} />
-              </Grid>
-            )
-          })}
-          </Grid> */}
       </div>
     );
   }
 }
 
-export default connect(mapStateToProps)(Reference);
+export default connect(mapStateToProps)(Library);

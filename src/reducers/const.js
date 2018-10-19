@@ -16,6 +16,138 @@ const constInit = {
     'Managing Director',
     'Operations Manager',
   ],
+  trainingcategories: [
+    {
+      key: 'gen',
+      desc: 'General'
+    },
+    {
+      key: 'stack',
+      desc: 'Stack'
+    },
+    {
+      key: 'air',
+      desc: 'Air Quality'
+    },
+    {
+      key: 'bio',
+      desc: 'Biological'
+    },
+    {
+      key: 'noise',
+      desc: 'Noise'
+    },
+    {
+      key: 'asb',
+      desc: 'Asbestos'
+    },
+    {
+      key: 'meth',
+      desc: 'Meth'
+    },
+    {
+      key: 'other',
+      desc: 'Other Testing'
+    },
+    {
+      key: 'eq',
+      desc: 'Equipment'
+    },
+    {
+      key: 'rep',
+      desc: 'Reporting'
+    },
+    {
+      key: 'admin',
+      desc: 'Admin'
+    },
+    {
+      key: 'software',
+      desc: 'Software'
+    },
+    {
+      key: 'haz',
+      desc: 'Hazards'
+    },
+  ],
+  toolcategories: [
+    {
+      key: 'gen',
+      desc: 'General'
+    },
+    {
+      key: 'conv',
+      desc: 'Conversions'
+    },
+    {
+      key: 'occ',
+      desc: 'OCC Health'
+    },
+    {
+      key: 'asb',
+      desc: 'Asbestos'
+    },
+    {
+      key: 'admin',
+      desc: 'Admin'
+    },
+  ],
+  documentcategories: [
+    {
+      key: 'gen',
+      desc: 'General',
+    },
+    {
+      key: 'manuals',
+      desc: 'Equipment Manuals',
+    },
+    {
+      key: 'k2methods',
+      desc: 'K2 Methods',
+    },
+    {
+      key: 'refmethods',
+      desc: 'Reference Methods',
+    },
+    {
+      key: 'legislation',
+      desc: 'Legislation',
+    },
+    {
+      key: 'guidelines',
+      desc: 'Guidelines',
+    },
+    {
+      key: 'cheatsheets',
+      desc: 'Cheatsheets',
+    },
+    {
+      key: 'other',
+      desc: 'Other',
+    },
+  ],
+  noticecategories: [
+    {
+      key: 'gen',
+      desc: 'General'
+    },
+    {
+      key: 'leads',
+      desc: 'Job Leads'
+    },
+    {
+      key: 'jqfmeth',
+      desc: 'Meth Quality Feedback'
+    },
+    {
+      key: 'jqfasb',
+      desc: 'Asbestos Quality Feedback'
+    },
+    {
+      key: 'eq',
+      desc: 'Equipment'
+    },
+  ],
   offices: [
     'Auckland',
     'Christchurch',

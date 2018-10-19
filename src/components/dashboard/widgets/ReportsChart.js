@@ -8,7 +8,6 @@ import XAxis from 'recharts/lib/cartesian/XAxis';
 import YAxis from 'recharts/lib/cartesian/YAxis';
 import CartesianGrid from 'recharts/lib/cartesian/CartesianGrid';
 import Tooltip from 'recharts/lib/component/Tooltip';
-import Legend from 'recharts/lib/component/Legend';
 import { Card, CardHeader, CardContent, Typography, IconButton } from '@material-ui/core';
 import { Close, Edit } from '@material-ui/icons';
 

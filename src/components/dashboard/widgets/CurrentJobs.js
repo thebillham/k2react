@@ -1,11 +1,9 @@
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../../config/styles';
-import { Card, CardContent, Typography, IconButton, CardHeader, Button, Grid, LinearProgress } from '@material-ui/core';
+import { Card, CardContent, Typography, IconButton, CardHeader, Grid, LinearProgress } from '@material-ui/core';
 import { FormattedDate } from 'react-intl';
 import { Add, Close, Edit } from '@material-ui/icons';
-
-const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
 // Gets jobs from your job list
 const dummyList = [
@@ -69,7 +67,7 @@ function CurrentJobs(props) {
             );
           })}
           <Grid container direction='row' justify='center'><Grid item>
-            <img src="https://firebasestorage.googleapis.com/v0/b/k2flutter-f03a1.appspot.com/o/dummygoogle.PNG?alt=media&token=f804036b-ff23-40dd-b44e-fd71d9586ac3" width='400' height='400' />
+            <img alt='googlemaps' src="https://firebasestorage.googleapis.com/v0/b/k2flutter-f03a1.appspot.com/o/dummygoogle.PNG?alt=media&token=f804036b-ff23-40dd-b44e-fd71d9586ac3" width='400' height='400' />
           </Grid></Grid>
         </CardContent>
       </Card>

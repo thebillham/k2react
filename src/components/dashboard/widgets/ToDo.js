@@ -1,15 +1,13 @@
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../../config/styles';
-import { Card, CardContent, Typography, IconButton, CardHeader, Button, Grid, Checkbox } from '@material-ui/core';
+import { Card, CardContent, Typography, IconButton, CardHeader, Checkbox } from '@material-ui/core';
 import { FormattedDate } from 'react-intl';
 import { Close, Edit, Add } from '@material-ui/icons';
 import UrgentIcon from '@material-ui/icons/Warning';
 import AnalysisIcon from '@material-ui/icons/Colorize';
 import TrainingIcon from '@material-ui/icons/School';
 import NotificationIcon from '@material-ui/icons/Notifications';
-
-const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
 // Gets jobs from your job list
 const dummyList = [
@@ -47,8 +45,8 @@ function ToDo(props) {
         <CardContent>
           { dummyList.slice(0, 5).map((todo) => {
             return(
-              <div>
-                <div key={todo.text} className={classes.notifications}>
+              <div key={todo.text}>
+                <div className={classes.notifications}>
                   <Checkbox
                     checked={todo.done}
                     color='primary'

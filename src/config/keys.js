@@ -6,9 +6,11 @@ export const FirebaseConfig = {
   storageBucket: "k2flutter-f03a1.appspot.com",
   messagingSenderId: "303642156934"
 };
-export const WfmApi = '14C10292983D48CE86E1AA1FE0F8DDFE';
-export const WfmAcc = '36D1774D691E431BB11DABB2FD65079D';
-export const WfmRoot = 'https://api.workflowmax.com';
+export const wfmApi = '14C10292983D48CE86E1AA1FE0F8DDFE';
+export const wfmAcc = '36D1774D691E431BB11DABB2FD65079D';
+export const wfmRoot = 'https://api.workflowmax.com/';
+export const apiKey = 'BfqKcOR6tcMtFPCH7MrmHoaANEIJ5grs';
+export const apiRoot = 'https://api.k2.co.nz/v1/';
 
 export const taskTravel = '1832696';
 export const taskSiteWork = '1832701';

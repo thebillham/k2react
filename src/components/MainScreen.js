@@ -2,6 +2,7 @@ import React from 'react';
 
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import { auth } from '../config/firebase.js';
+import { connect } from 'react-redux';
 
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
@@ -15,13 +16,14 @@ import { CssBaseline, Collapse, Drawer, AppBar, Toolbar, List, ListItem,
 
 // Icons
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import NoticeboardIcon from '@material-ui/icons/SpeakerNotes';
 import JobsIcon from '@material-ui/icons/Assignment';
 import LabIcon from '@material-ui/icons/Colorize';
 import StaffIcon from '@material-ui/icons/People';
 import MyDetailsIcon from '@material-ui/icons/Person';
 import TrainingIcon from '@material-ui/icons/School';
 import ToolsIcon from '@material-ui/icons/Build';
-import ReferenceIcon from '@material-ui/icons/Info';
+import LibraryIcon from '@material-ui/icons/Info';
 
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
@@ -30,6 +32,7 @@ import { ExpandLess, ExpandMore } from '@material-ui/icons';
 
 // Pages
 import Dashboard from './dashboard/Dashboard';
+import Noticeboard from './noticeboard/Noticeboard';
 import Jobs from './jobs/Jobs';
 import AsbestosLab from './asbestoslab/AsbestosLab'
 
@@ -38,8 +41,8 @@ import StaffJobs from './staff/StaffJobs';
 import StaffTraining from './staff/StaffTraining';
 
 import UserDetails from './users/UserDetails';
-import UserQualifications from './users/UserQualifications';
 import UserTraining from './users/UserTraining';
+import UserReadingLog from './users/UserReadingLog';
 import AppPreferences from './users/AppPreferences';
 
 import TrainingModules from './training/TrainingModules';
@@ -47,10 +50,46 @@ import TrainingModule from './training/TrainingModule';
 
 import Tools from './tools/Tools';
 
-import Reference from './reference/Reference';
+import Library from './library/Library';
+import DocumentViewer from './library/DocumentViewer';
 
 import Admin from './admin/Admin';
 import AdminConstants from './admin/AdminConstants';
+import store from '../store';
+import { onSearchChange, onCatChange } from '../actions/local';
+
+import { fetchStaff, fetchDocuments, fetchUserAuth, editUser, getUser, fetchWFM,
+  fetchModules, fetchTools, fetchNotices, fetchReadingLog,  } from '../actions/local';
+import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmit,
+  handleTagAddition, handleTagDelete, } from '../actions/modal';
+
+const mapStateToProps = state => {
+  return { state };
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchReadingLog: () => dispatch(fetchReadingLog()),
+    fetchNotices: () => dispatch(fetchNotices()),
+    fetchModules: () => dispatch(fetchModules()),
+    fetchStaff: () => dispatch(fetchStaff()),
+    fetchDocuments: () => dispatch(fetchDocuments()),
+    fetchUserAuth: () => dispatch(fetchUserAuth()),
+    editUser: ({userRef, target}) => dispatch(editUser(userRef, target)),
+    getUser: userRef => dispatch(getUser(userRef)),
+    fetchWFM: () => dispatch(fetchWFM()),
+    fetchTools: () => dispatch(fetchTools()),
+
+    hideModal: () => dispatch(hideModal()),
+    showModal: document => dispatch(showModal(document)),
+    onUploadFile: ({file, pathRef}) => dispatch(onUploadFile(file, pathRef)),
+    handleModalChange: target => dispatch(handleModalChange(target)),
+    handleModalSubmit: pathRef => dispatch(handleModalSubmit(pathRef)),
+
+    handleTagAddition: addedTag => dispatch(handleTagAddition(addedTag)),
+    handleTagDelete: removedTag => dispatch(handleTagDelete(removedTag)),
+  };
+};
 
 class MainScreen extends React.Component {
   constructor(props) {
@@ -63,6 +102,17 @@ class MainScreen extends React.Component {
       openStaff: false,
       openMyDetails: false,
     };
+  }
+
+  componentWillMount() {
+    // this.props.fetchNotices();
+    // this.props.fetchWFM();
+    this.props.fetchUserAuth();
+    this.props.fetchReadingLog();
+    // this.props.fetchTools();
+    // this.props.fetchModules();
+    // this.props.fetchStaff();
+    this.props.fetchDocuments();
   }
 
   handleGoogleMenuToggle = event => {
@@ -122,13 +172,19 @@ class MainScreen extends React.Component {
         </div>
         <Divider />
           <List>
-
             <ListItem button component={Link} to="/dashboard">
               <ListItemIcon>
                 <DashboardIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
+
+              <ListItem button component={Link} to="/noticeboard">
+                <ListItemIcon>
+                  <NoticeboardIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Noticeboard" />
+              </ListItem>
 
             <ListItem button component={Link} to="/jobs">
               <ListItemIcon>
@@ -177,6 +233,9 @@ class MainScreen extends React.Component {
                 <ListItem button component={Link} to="/mydetails/jobs" className={classes.nested}>
                   <ListItemText primary="Job History" className={classes.subitem} />
                 </ListItem>
+                <ListItem button component={Link} to="/mydetails/readinglog" className={classes.nested}>
+                  <ListItemText primary="Reading Log" className={classes.subitem} />
+                </ListItem>
               </List>
             </Collapse>
 
@@ -194,23 +253,12 @@ class MainScreen extends React.Component {
               <ListItemText primary="Tools" />
             </ListItem>
 
-            <ListItem button onClick={this.handleRefClick} component={Link} to="/reference">
+            <ListItem button onClick={this.handleRefClick} component={Link} to="/library">
               <ListItemIcon>
-                <ReferenceIcon className={classes.accentButton} />
+                <LibraryIcon className={classes.accentButton} />
               </ListItemIcon>
-              <ListItemText primary="Reference" />
-              {this.state.openRef ? <ExpandLess /> : <ExpandMore /> }
+              <ListItemText primary="Library" />
             </ListItem>
-            <Collapse in={this.state.openRef} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItem button component={Link} to="/reference/testmethods" className={classes.nested}>
-                  <ListItemText primary="Test Methods" className={classes.subitem} />
-                </ListItem>
-                <ListItem button component={Link} to="/reference/hazard" className={classes.nested}>
-                  <ListItemText primary="Hazard Register" className={classes.subitem} />
-                </ListItem>
-              </List>
-            </Collapse>
           </List>
         <Divider />
       </Drawer>
@@ -241,55 +289,35 @@ class MainScreen extends React.Component {
                 <Switch>
                   <Route exact path="/" render={() => <div>Dashboard</div>} />
                   <Route path="/dashboard" render={() => <div>Dashboard</div>} />
+                  <Route path="/noticeboard" render={() => <div>Noticeboard</div>} />
                   <Route path="/jobs" render={() => <div>Jobs</div>} />
                   <Route path="/lab" render={() => <div>Asbestos Lab</div>} />
                   <Route exact path="/staff" render={() => <div>Staff</div>} />
+                  <Route path="/staff/details" render={() => <div>Staff Details</div>} />
                   <Route exact path="/staff/jobs" render={() => <div>Staff Jobs</div>} />
                   <Route exact path="/staff/training" render={() => <div>Staff Training</div>} />
                   <Route exact path="/mydetails" render={() => <div>My Details</div>} />
-                  <Route exact path="/mydetails/qualifications" render={() => <div>My Qualifications</div>} />
                   <Route exact path="/mydetails/training" render={() => <div>My Training</div>} />
+                  <Route exact path="/mydetails/jobs" render={() => <div>My Job History</div>} />
+                  <Route exact path="/mydetails/readinglog" render={() => <div>My Reading Log</div>} />
                   <Route exact path="/mydetails/preferences" render={() => <div>App Preferences</div>} />
                   <Route path="/training" render={() => <div>Training Modules</div>} />
                   <Route path="/tools" render={() => <div>Tools</div>} />
-                  <Route path="/reference" render={() => <div>Reference</div>} />
+                  <Route path="/library" render={() => <div>Library</div>} />
+                  <Route path="/document" render={() => <div>Document Viewer</div>} />
                 </Switch>
               </Typography>
-              {/* Document library searchbar */}
-              <Route path="/reference" render={() =>
+              <Route path="/(library|training|tools|noticeboard)" render={() =>
                 <div className={classes.search}>
                   <div className={classes.searchIcon}>
                     <SearchIcon />
                   </div>
                   <InputBase
-                    placeholder="Search…"
-                    classes={{
-                      root: classes.inputRoot,
-                      input: classes.inputInput,
+                    value={this.props.search}
+                    onChange={e => {
+                      store.dispatch(onSearchChange(e.target.value));
+                      if (e.target.value !== null) { store.dispatch(onCatChange(null)); }
                     }}
-                  />
-                </div>
-              } />
-              <Route path="/training" render={() =>
-                <div className={classes.search}>
-                  <div className={classes.searchIcon}>
-                    <SearchIcon />
-                  </div>
-                  <InputBase
-                    placeholder="Search…"
-                    classes={{
-                      root: classes.inputRoot,
-                      input: classes.inputInput,
-                    }}
-                  />
-                </div>
-              } />
-              <Route path="/staff" render={() =>
-                <div className={classes.search}>
-                  <div className={classes.searchIcon}>
-                    <SearchIcon />
-                  </div>
-                  <InputBase
                     placeholder="Search…"
                     classes={{
                       root: classes.inputRoot,
@@ -321,20 +349,25 @@ class MainScreen extends React.Component {
             <Switch>
               <Route exact path="/" component={Dashboard} />
               <Route path="/dashboard" component={Dashboard} />
+              <Route path="/noticeboard" component={Noticeboard} />
               <Route path="/jobs" component={Jobs} />
               <Route path="/asbestoslab" component={AsbestosLab} />
               <Route exact path="/staff" component={Staff} />
               <Route exact path="/staff/jobs" component={StaffJobs} />
               <Route exact path="/staff/training" component={StaffTraining} />
-              <Route exact path="/staff/details/:user" component={UserDetails} />
-              <Route exact path="/staff/training/:user" component={UserTraining} />
-              <Route exact path="/mydetails" component={UserDetails} />
-              <Route exact path="/mydetails/training" component={UserTraining} />
+              <Route exact path="/staff/details/:user" component={UserDetails} key="staffdetails" />
+              <Route exact path="/staff/training/:user" component={UserTraining} key="stafftraining" />
+              <Route exact path="/staff/readinglog/:user" component={UserReadingLog} key="staffreadinglog" />
+              <Route exact path="/mydetails" component={UserDetails} key="mydetails" />
+              <Route exact path="/mydetails/training" component={UserTraining} key="mytraining" />
+              {/* <Route exact path="/mydetails/jobs" component={UserJobs} key="myjobs" /> */}
+              <Route exact path="/mydetails/readinglog" component={UserReadingLog} key="myreadinglog" />
               <Route exact path="/mydetails/preferences" component={AppPreferences} />
               <Route exact path="/training" component={TrainingModules} />
               <Route path="/training/:module/:stage" component={TrainingModule} />
               <Route path="/tools" component={Tools} />
-              <Route path="/reference" component={Reference} />
+              <Route path="/library" component={Library} />
+              <Route path="/document/:uid" component={DocumentViewer} />
               <Route exact path="/admin" component={Admin} />
               <Route path="/admin/constants" component={AdminConstants} />
               {/* <Route component={NoMatch} /> */}
@@ -350,4 +383,4 @@ MainScreen.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withRouter(withStyles(styles)(MainScreen));
+export default withRouter(withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(MainScreen)));
