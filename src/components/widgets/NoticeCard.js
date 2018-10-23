@@ -2,8 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { Card, CardContent, Typography, CardHeader, Button } from '@material-ui/core';
+import { Card, CardContent, Typography, CardHeader, Button, IconButton, CardActions } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
+import PinIcon from '@material-ui/icons/Star';
+import ReadIcon from '@material-ui/icons/CheckBox';
+import DiscardIcon from '@material-ui/icons/Delete';
 import { FormattedDate } from 'react-intl';
 
 const styles = {
@@ -57,6 +60,23 @@ function NoticeCard(props) {
               { notice.text }
             </Typography>
           </CardContent>
+          <CardActions>
+            <IconButton aira-label="Pin notice"
+              onClick={() => props.onFavNotice(notice.uid)
+              }>
+              <PinIcon color={props.fav ? "secondary" : "primary" }/>
+            </IconButton>
+            <IconButton aira-label='Mark as read'
+              onClick={() => props.onReadNotice(notice.uid)
+              }>
+              <ReadIcon color={props.read ? "primary" : "secondary" }/>
+            </IconButton>
+            <IconButton aira-label='Discard notice'
+              onClick={() => props.onDeleteNotice(notice.uid)
+              }>
+              <DiscardIcon color="action" />
+            </IconButton>
+          </CardActions>
       </Card>
   );
 }

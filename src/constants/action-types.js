@@ -12,6 +12,10 @@ export const GET_NOTICES = "GET_NOTICES";
 export const SEARCH_CHANGE = "SEARCH_CHANGE";
 export const CAT_CHANGE = "CAT_CHANGE";
 export const GET_READINGLOG = "GET_READINGLOG";
+export const GET_ME = "GET_ME";
+export const DELETE_NOTICE = "DELETE_NOTICE";
+export const READ_NOTICE = "READ_NOTICE";
+export const FAV_NOTICE = "FAV_NOTICE";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";

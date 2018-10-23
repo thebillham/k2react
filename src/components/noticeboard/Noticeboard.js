@@ -3,15 +3,18 @@ import React from 'react';
 import { Button, ExpansionPanel, ExpansionPanelDetails, ExpansionPanelSummary, Grid } from '@material-ui/core';
 
 import { connect } from 'react-redux';
-import { ExpandMore  } from '@material-ui/icons';
+import { ExpandMore, IconButton  } from '@material-ui/icons';
 import NoticeCard from '../widgets/NoticeCard';
 import { onCatChange, onSearchChange } from '../../actions/local';
+import AddIcon from '@material-ui/icons/Add';
 import store from '../../store';
+import { usersRef } from '../../config/firebase';
+import { onFavNotice, onReadNotice, onDeleteNotice,  } from '../../actions/local';
 
 const mapStateToProps = state => {
   return {
     staff: state.local.staff,
-    auth: state.local.auth,
+    me: state.local.me,
     notices: state.local.notices,
     categories: state.const.noticecategories,
     search: state.local.search,
@@ -24,6 +27,9 @@ class Noticeboard extends React.Component {
     super(props);
 
     this.select = this.select.bind(this);
+    this.onFavNotice = this.onFavNotice.bind(this);
+    this.onReadNotice = this.onReadNotice.bind(this);
+    this.onDeleteNotice = this.onDeleteNotice.bind(this);
   }
 
   componentWillMount(){
@@ -48,6 +54,24 @@ class Noticeboard extends React.Component {
     });
   }
 
+  onFavNotice = uid => {
+    var favnotices = [];
+    favnotices.push(this.props.me.favnotices);
+    store.dispatch(onFavNotice(favnotices, uid));
+  }
+
+  onReadNotice = uid => {
+    var readnotices = [];
+    readnotices.push(this.props.me.readnotices);
+    store.dispatch(onReadNotice(readnotices, uid));
+  }
+
+  onDeleteNotice = uid => {
+    var deletednotices = [];
+    deletednotices.push(this.props.me.deletednotices);
+    store.dispatch(onDeleteNotice(deletednotices, uid));
+  }
+
   render() {
     return (
         <div style = {{ marginTop: 80 }}>
@@ -64,9 +88,15 @@ class Noticeboard extends React.Component {
           </Grid>
           <Grid container spacing={16} style={{paddingTop: 30}}>
           { this.props.notices.filter(notice => {
-              if (notice.auth !== undefined && this.props.auth.includes(notice.auth) == false) {
+              if (notice.auth !== undefined && this.props.me.auth.includes(notice.auth) == false) {
                 return false;
               }
+              // if (this.props.me.deletednotices && this.props.me.deletednotices.includes(notice.uid)) {
+              //   return false;
+              // }
+              // if (this.props.me.favnotices && this.props.categories == 'fav' && this.props.me.favnotices.includes(notice.uid)) {
+              //   return true;
+              // }
               if (this.props.search) {
                 if (notice.tags) {
                   return [...notice.tags, notice.text].find(tag => tag.toLowerCase().includes(this.props.search.toLowerCase()));
@@ -80,8 +110,10 @@ class Noticeboard extends React.Component {
               }
             }).map(notice => {
               return(
-                <Grid item xs={2} key={notice.uid}>
-                  <NoticeCard notice={notice} />
+                <Grid item xs={12} s={6} m={4} l={3} xl={2} key={notice.uid}>
+                  <NoticeCard notice={notice}
+                    // fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)} read={this.props.me.readnotices && this.props.me.readnotices.includes(notice.uid)}
+                  onFavNotice={() => this.onFavNotice(notice.uid)} onDeleteNotice={() => this.onDeleteNotice(notice.uid)} onReadNotice={() => this.onReadNotice(notice.uid)} />
                 </Grid>
               )})}
             </Grid>

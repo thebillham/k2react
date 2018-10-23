@@ -58,8 +58,8 @@ import AdminConstants from './admin/AdminConstants';
 import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
 
-import { fetchStaff, fetchDocuments, fetchUserAuth, editUser, getUser, fetchWFM,
-  fetchModules, fetchTools, fetchNotices, fetchReadingLog,  } from '../actions/local';
+import { fetchStaff, fetchDocuments, editUser, getUser, fetchWFM,
+  fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMe,  } from '../actions/local';
 import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmit,
   handleTagAddition, handleTagDelete, } from '../actions/modal';
 
@@ -74,7 +74,7 @@ const mapDispatchToProps = dispatch => {
     fetchModules: () => dispatch(fetchModules()),
     fetchStaff: () => dispatch(fetchStaff()),
     fetchDocuments: () => dispatch(fetchDocuments()),
-    fetchUserAuth: () => dispatch(fetchUserAuth()),
+    fetchMe: () => dispatch(fetchMe()),
     editUser: ({userRef, target}) => dispatch(editUser(userRef, target)),
     getUser: userRef => dispatch(getUser(userRef)),
     fetchWFM: () => dispatch(fetchWFM()),
@@ -105,14 +105,14 @@ class MainScreen extends React.Component {
   }
 
   componentWillMount() {
-    // this.props.fetchNotices();
+    this.props.fetchMe();
+    this.props.fetchNotices();
     // this.props.fetchWFM();
-    this.props.fetchUserAuth();
-    this.props.fetchReadingLog();
+    // this.props.fetchReadingLog();
     // this.props.fetchTools();
     // this.props.fetchModules();
     // this.props.fetchStaff();
-    this.props.fetchDocuments();
+    // this.props.fetchDocuments();
   }
 
   handleGoogleMenuToggle = event => {
@@ -370,6 +370,7 @@ class MainScreen extends React.Component {
               <Route path="/document/:uid" component={DocumentViewer} />
               <Route exact path="/admin" component={Admin} />
               <Route path="/admin/constants" component={AdminConstants} />
+              <Route component={Dashboard} />
               {/* <Route component={NoMatch} /> */}
             </Switch>
           </main>

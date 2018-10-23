@@ -1,6 +1,5 @@
 import {
           GET_STAFF,
-          AUTH_USER,
           GET_DOCUMENTS,
           GET_USER,
           GET_WFM,
@@ -10,10 +9,15 @@ import {
           GET_TOOLS,
           GET_NOTICES,
           GET_READINGLOG,
+          GET_ME,
+          DELETE_NOTICE,
+          READ_NOTICE,
+          FAV_NOTICE,
         } from "../constants/action-types"
 
 const localInit = {
   auth: [],
+  me: {},
   userRef: null,
   userRefName: null,
   documents: [],
@@ -33,15 +37,21 @@ export default function localReducer(state = localInit, action) {
   switch (action.type) {
     case GET_STAFF:
       return { ...state, staff: action.payload };
-    case AUTH_USER:
-      return { ...state, auth: action.payload };
     case GET_DOCUMENTS:
       return { ...state, documents: action.payload };
+    case GET_ME:
+      return {
+        ...state,
+        me: {
+          ...state.me,
+          ...action.payload,
+        }
+      }
     case GET_USER:
       return {
         ...state,
         user: action.payload,
-      };
+      }
     case GET_WFM:
       return {
         ...state,
@@ -77,6 +87,30 @@ export default function localReducer(state = localInit, action) {
         ...state,
         readingLog: action.payload,
       }
+    case DELETE_NOTICE:
+      return {
+        ...state,
+        me: {
+          ...state.me,
+          deletednotices: action.payload,
+        }
+      }
+      case FAV_NOTICE:
+        return {
+          ...state,
+          me: {
+            ...state.me,
+            favnotices: action.payload,
+          }
+        }
+      case READ_NOTICE:
+        return {
+          ...state,
+          me: {
+            ...state.me,
+            readnotices: action.payload,
+          }
+        }
     default:
       return state;
   }

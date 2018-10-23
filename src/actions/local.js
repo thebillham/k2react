@@ -9,6 +9,10 @@ import { GET_STAFF,
         GET_TOOLS,
         GET_NOTICES,
         GET_READINGLOG,
+        GET_ME,
+        DELETE_NOTICE,
+        READ_NOTICE,
+        FAV_NOTICE,
       } from "../constants/action-types";
 import { auth } from '../config/firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
@@ -16,9 +20,11 @@ import { usersRef, docsRef, modulesRef, toolsRef, noticesRef } from "../config/f
 import { xmlToJson } from "../config/XmlToJson";
 // import { convert } from 'xml-js';
 
-export const fetchUserAuth = () => async dispatch => {
+export const fetchMe = () => async dispatch => {
   auth.currentUser &&
-  usersRef.doc(auth.currentUser.uid).get().then((doc) => {
+  usersRef.doc(auth.currentUser.uid)
+    .onSnapshot((doc) => {
+    dispatch({ type: GET_ME, payload: doc.data()})
     dispatch({ type: AUTH_USER, payload: doc.data().auth });
   });
 };
@@ -210,5 +216,47 @@ export const onCatChange = value => dispatch => {
   dispatch({
     type: CAT_CHANGE,
     payload: value,
+  });
+};
+
+export const onFavNotice = (favnotices, uid) => dispatch => {
+  let newArray = [];
+  if (favnotices.includes(uid)) {
+    newArray = favnotices.filter(item => item !== uid);
+  } else {
+    favnotices.push(uid);
+    newArray = favnotices;
+  }
+  dispatch({
+    type: FAV_NOTICE,
+    payload: newArray,
+  });
+};
+
+export const onDeleteNotice = (deletednotices, uid) => dispatch => {
+  let newArray = [];
+  if (deletednotices.includes(uid)) {
+    newArray = deletednotices.filter(item => item !== uid);
+  } else {
+    deletednotices.push(uid);
+    newArray = deletednotices;
+  }
+  dispatch({
+    type: DELETE_NOTICE,
+    payload: newArray,
+  });
+};
+
+export const onReadNotice = (readnotices, uid) => dispatch => {
+  let newArray = [];
+  if (readnotices.includes(uid)) {
+    newArray = readnotices.filter(item => item !== uid);
+  } else {
+    readnotices.push(uid);
+    newArray = readnotices;
+  }
+  dispatch({
+    type: READ_NOTICE,
+    payload: newArray,
   });
 };

@@ -128,6 +128,10 @@ const constInit = {
   ],
   noticecategories: [
     {
+      key: 'fav',
+      desc: 'Favourites'
+    },
+    {
       key: 'gen',
       desc: 'General'
     },
