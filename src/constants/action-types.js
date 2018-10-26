@@ -2,6 +2,7 @@
 export const AUTH_USER = "AUTH_USER";
 export const GET_STAFF = "GET_STAFF";
 export const GET_DOCUMENTS = "GET_DOCUMENTS";
+export const GET_QUIZZES = "GET_QUIZZES";
 export const GET_TOOLS = "GET_TOOLS";
 export const ADD_DOCUMENT = "ADD_DOCUMENT";
 export const EDIT_USER = "EDIT_USER";

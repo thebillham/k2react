@@ -91,12 +91,12 @@ class Noticeboard extends React.Component {
               if (notice.auth !== undefined && this.props.me.auth.includes(notice.auth) == false) {
                 return false;
               }
-              // if (this.props.me.deletednotices && this.props.me.deletednotices.includes(notice.uid)) {
-              //   return false;
-              // }
-              // if (this.props.me.favnotices && this.props.categories == 'fav' && this.props.me.favnotices.includes(notice.uid)) {
-              //   return true;
-              // }
+              if (this.props.me.deletednotices && this.props.me.deletednotices.includes(notice.uid)) {
+                return false;
+              }
+              if (this.props.me.favnotices && this.props.category == 'fav' && this.props.me.favnotices.includes(notice.uid)) {
+                return true;
+              }
               if (this.props.search) {
                 if (notice.tags) {
                   return [...notice.tags, notice.text].find(tag => tag.toLowerCase().includes(this.props.search.toLowerCase()));

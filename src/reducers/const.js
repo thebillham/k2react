@@ -16,6 +16,20 @@ const constInit = {
     'Managing Director',
     'Operations Manager',
   ],
+  quiztags: [
+    'asbestos',
+    'meth',
+    'asbestos-analysis',
+    'chemistry',
+    'biology',
+    'asbestos-surveying',
+    'construction',
+    'legislation',
+    'asbestos-materials',
+    'asbestos-analysis',
+    'asbestos-sampling',
+    'asbestos-contamination',
+  ],
   trainingcategories: [
     {
       key: 'gen',

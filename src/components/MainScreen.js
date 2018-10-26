@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { auth } from '../config/firebase.js';
+import { BrowserRouter as Router, Route, Link, Switch, withRouter, } from "react-router-dom";
+import { auth } from '../config/firebase';
 import { connect } from 'react-redux';
 
 import PropTypes from 'prop-types';
@@ -12,7 +12,7 @@ import { styles } from '../config/styles';
 // Material UI
 import { CssBaseline, Collapse, Drawer, AppBar, Toolbar, List, ListItem,
   ListItemIcon, ListItemText, Typography, Divider, IconButton, Avatar,
-  Button, MenuItem, Menu, InputBase } from '@material-ui/core';
+  Button, MenuItem, Menu, InputBase, } from '@material-ui/core';
 
 // Icons
 import DashboardIcon from '@material-ui/icons/Dashboard';
@@ -22,11 +22,13 @@ import LabIcon from '@material-ui/icons/Colorize';
 import StaffIcon from '@material-ui/icons/People';
 import MyDetailsIcon from '@material-ui/icons/Person';
 import TrainingIcon from '@material-ui/icons/School';
+import QuizIcon from '@material-ui/icons/ContactSupport';
 import ToolsIcon from '@material-ui/icons/Build';
 import LibraryIcon from '@material-ui/icons/Info';
 
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
+import BackIcon from '@material-ui/icons/ArrowBack';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 
@@ -48,6 +50,9 @@ import AppPreferences from './users/AppPreferences';
 import TrainingModules from './training/TrainingModules';
 import TrainingModule from './training/TrainingModule';
 
+import Quizzes from './quizzes/Quizzes';
+import Quiz from './quizzes/Quiz';
+
 import Tools from './tools/Tools';
 
 import Library from './library/Library';
@@ -59,9 +64,13 @@ import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
 
 import { fetchStaff, fetchDocuments, editUser, getUser, fetchWFM,
-  fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMe,  } from '../actions/local';
+  fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMe, fetchQuizzes,  } from '../actions/local';
 import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmit,
   handleTagAddition, handleTagDelete, } from '../actions/modal';
+import { DragDropContext } from 'react-beautiful-dnd';
+
+
+// import { quizzesRef, questionsRef } from '../config/firebase';
 
 const mapStateToProps = state => {
   return { state };
@@ -69,6 +78,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
+    fetchQuizzes: () => dispatch(fetchQuizzes()),
     fetchReadingLog: () => dispatch(fetchReadingLog()),
     fetchNotices: () => dispatch(fetchNotices()),
     fetchModules: () => dispatch(fetchModules()),
@@ -105,14 +115,15 @@ class MainScreen extends React.Component {
   }
 
   componentWillMount() {
+    this.props.fetchQuizzes();
     this.props.fetchMe();
     this.props.fetchNotices();
-    // this.props.fetchWFM();
-    // this.props.fetchReadingLog();
-    // this.props.fetchTools();
-    // this.props.fetchModules();
-    // this.props.fetchStaff();
-    // this.props.fetchDocuments();
+    this.props.fetchWFM();
+    this.props.fetchReadingLog();
+    this.props.fetchTools();
+    this.props.fetchModules();
+    this.props.fetchStaff();
+    this.props.fetchDocuments();
   }
 
   handleGoogleMenuToggle = event => {
@@ -246,6 +257,13 @@ class MainScreen extends React.Component {
               <ListItemText primary="Training" />
             </ListItem>
 
+            <ListItem button component={Link} to="/quizzes">
+              <ListItemIcon>
+                <QuizIcon className={classes.accentButton} />
+              </ListItemIcon>
+              <ListItemText primary="Quizzes" />
+            </ListItem>
+
             <ListItem button component={Link} to="/tools">
               <ListItemIcon>
                 <ToolsIcon className={classes.accentButton} />
@@ -284,6 +302,13 @@ class MainScreen extends React.Component {
               >
                 <MenuIcon />
               </IconButton>
+              <IconButton
+                color="inherit"
+                onClick={ () => this.props.history.goBack() }
+                className={classes.menuButton}
+                >
+                <BackIcon />
+              </IconButton>
               {/* Toolbar heading and breadcrumbs go here */}
               <Typography variant="title" color='inherit' noWrap className={classes.title}>
                 <Switch>
@@ -302,6 +327,8 @@ class MainScreen extends React.Component {
                   <Route exact path="/mydetails/readinglog" render={() => <div>My Reading Log</div>} />
                   <Route exact path="/mydetails/preferences" render={() => <div>App Preferences</div>} />
                   <Route path="/training" render={() => <div>Training Modules</div>} />
+                  <Route path="/quizzes" render={() => <div>Quizzes</div>} />
+                  <Route path="/quiz/" render={() => <div>Quiz</div>} />
                   <Route path="/tools" render={() => <div>Tools</div>} />
                   <Route path="/library" render={() => <div>Library</div>} />
                   <Route path="/document" render={() => <div>Document Viewer</div>} />
@@ -365,6 +392,8 @@ class MainScreen extends React.Component {
               <Route exact path="/mydetails/preferences" component={AppPreferences} />
               <Route exact path="/training" component={TrainingModules} />
               <Route path="/training/:module/:stage" component={TrainingModule} />
+              <Route exact path="/quizzes" component={Quizzes} />
+              <Route path="/quiz/:quiz" component={Quiz} />
               <Route path="/tools" component={Tools} />
               <Route path="/library" component={Library} />
               <Route path="/document/:uid" component={DocumentViewer} />

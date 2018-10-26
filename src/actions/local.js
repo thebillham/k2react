@@ -2,6 +2,7 @@ import { GET_STAFF,
         AUTH_USER,
         GET_DOCUMENTS,
         GET_USER,
+        GET_QUIZZES,
         GET_WFM,
         GET_MODULES,
         SEARCH_CHANGE,
@@ -16,7 +17,7 @@ import { GET_STAFF,
       } from "../constants/action-types";
 import { auth } from '../config/firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
-import { usersRef, docsRef, modulesRef, toolsRef, noticesRef } from "../config/firebase";
+import { usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 // import { convert } from 'xml-js';
 
@@ -24,7 +25,7 @@ export const fetchMe = () => async dispatch => {
   auth.currentUser &&
   usersRef.doc(auth.currentUser.uid)
     .onSnapshot((doc) => {
-    dispatch({ type: GET_ME, payload: doc.data()})
+    dispatch({ type: GET_ME, payload: doc.data()});
     dispatch({ type: AUTH_USER, payload: doc.data().auth });
   });
 };
@@ -103,6 +104,22 @@ export const fetchModules = () => async dispatch => {
       dispatch({
         type: GET_MODULES,
         payload: modules
+      });
+    });
+};
+
+export const fetchQuizzes = () => async dispatch => {
+  quizzesRef.orderBy('title')
+    .onSnapshot((querySnapshot) => {
+      var quizzes = [];
+      querySnapshot.forEach((doc) => {
+        let quiz = doc.data();
+        quiz.uid = doc.id;
+        quizzes.push(quiz);
+      });
+      dispatch({
+        type: GET_QUIZZES,
+        payload: quizzes
       });
     });
 };

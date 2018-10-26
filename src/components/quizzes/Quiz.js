@@ -1,0 +1,341 @@
+import React from 'react';
+
+import { DOCUMENT } from '../../constants/modal-types';
+
+import { Button, Grid, List, Card, CardContent, Typography, CircularProgress } from '@material-ui/core';
+import { withStyles } from '@material-ui/core/styles';
+import { connect } from 'react-redux';
+import { showModal } from '../../actions/modal';
+import { modalInit } from '../../reducers/modal';
+import DocumentModal from '../modals/DocumentModal';
+import { onSearchChange, onCatChange } from '../../actions/local';
+import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
+import store from '../../store';
+import QuizList from '../widgets/QuizList';
+import { auth, quizzesRef, usersRef, questionsRef } from '../../config/firebase';
+import { formStyles } from '../../config/styles';
+import { FormattedDate } from 'react-intl';
+import MultiMultiQuestion from './MultiMultiQuestion';
+import MultiSingleQuestion from './MultiSingleQuestion';
+import ShortStringQuestion from './ShortStringQuestion';
+import SortQuestion from './SortQuestion';
+import BucketQuestion from './BucketQuestion';
+import ImageMapQuestion from './ImageMapQuestion';
+import ImageSelectSingleQuestion from './ImageSelectSingleQuestion';
+import ImageSelectMultiQuestion from './ImageSelectMultiQuestion';
+import SortImageQuestion from './SortImageQuestion';
+import BucketImageQuestion from './BucketImageQuestion';
+import { Bar, XAxis, YAxis, Legend, BarChart } from 'recharts';
+
+const mapStateToProps = state => {
+  return {
+    categories: state.const.trainingcategories,
+    category: state.local.category,
+    search: state.local.search,
+  };
+};
+
+class Quiz extends React.Component {
+  constructor(props){
+    super(props);
+
+    this.state = {
+      quiz: {},
+      questions: [],
+      isLoading: true,
+      listselect: null,
+    }
+
+    this.onSortChanged = this.onSortChanged.bind(this);
+    this.updateLists = this.updateLists.bind(this);
+  }
+
+  componentWillMount(){
+    quizzesRef.doc(this.props.match.params.quiz).get().then((quiz) => {
+      usersRef.doc(auth.currentUser.uid).collection("quizlog").doc(quiz.id).get().then((log) => {
+        // get required questions first
+        let questions = [];
+        const shuffled = quiz.data().optional
+          .sort(() => .5 - Math.random())
+          .slice(0, quiz.data().numberofquestions - quiz.data().required.length)
+          .concat(quiz.data().required)
+          .sort(() => .5 - Math.random());
+        shuffled.forEach((uid) => {
+          questionsRef.doc(uid).get().then((q) => {
+            let question = q.data();
+            question.uid = q.id;
+            questions.push(question);
+            if (questions.length == quiz.data().numberofquestions) {
+            // if (questions.length == uidlist.length) {
+              this.setState({
+                quiz: quiz.data(),
+                questions: questions,
+                isLoading: false,
+                completed: log.exists && log.data().date.toDate(),
+              });
+            }
+          });
+        });
+      });
+    });
+  }
+
+  updateLists = (uid, correct, incorrect) => {
+    let questions = this.state.questions;
+    const index = questions.findIndex(q => q.uid == uid);
+    questions[index].correct = correct;
+    questions[index].incorrect = incorrect;
+    this.setState({
+      questions: questions,
+    });
+  }
+
+  onSingleChanged = (uid, val) => {
+    let questions = this.state.questions;
+    const index = questions.findIndex(q => q.uid == uid);
+    questions[index].selected = val;
+    this.setState({
+      questions: questions,
+    });
+  }
+
+  onMultiChecked = (uid, val, single) => {
+    let questions = this.state.questions;
+    const index = questions.findIndex(q => q.uid == uid);
+    if (questions[index].selected == undefined || single) {
+      questions[index].selected = [val];
+    } else {
+      const s = questions[index].selected.findIndex(item => item == val);
+      if (s > -1) {
+        questions[index].selected.splice(s, 1);
+      } else {
+        questions[index].selected.push(val);
+      }
+    }
+    this.setState({
+      questions: questions,
+    });
+  }
+
+  onSortChanged = (uid, items) => {
+    let questions = this.state.questions;
+    const index = questions.findIndex(q => q.uid == uid);
+    questions[index].selected = items;
+    this.setState({
+      questions: questions,
+    });
+  }
+
+  handleToggle = (uid) => {
+    this.setState({
+      listselect: uid,
+    })
+  }
+
+  onSubmit = () => {
+    // calculate scores
+    let tagScores = {};
+    let quizScore = 0;
+    let questionScores = [];
+    let unansweredList = [];
+
+    this.state.questions.map((q, index) => {
+      let score = 0;
+      if (q.selected == undefined || q.selected == null || q.selected.length == 0) {
+        unansweredList.push(q.uid);
+      } else if (q.type == 'multi-single') {
+          if (q.correct[0].text == q.selected)
+            score = 1;
+      } else if (q.type == 'multi-multi') {
+        let num = 0;
+        q.correct.map(opt => {
+          if (q.selected.includes(opt.text)) {
+            score = score + 1;
+          }
+          num = num + 1;
+        });
+        q.incorrect.map(opt => {
+          if (q.selected.includes(opt.text)) {
+            score = score - 1;
+            num = num + 1;
+          }
+        });
+        if (score < 0) score = 0;
+        score = score / num;
+      } else if (q.type == 'short-string') {
+        if (q.answers.includes(q.selected))
+          score = 1;
+      } else if (q.type == 'sort' || q.type == 'sort-image') {
+        q.selected.map((item, index) => {
+          if (q.answers[index] == item) {
+            score = score + 1;
+          } else {
+            score = score - 1;
+          }
+        });
+        if (score < 0) score = 0;
+        score = score / q.selected.length;
+      } else if (q.type == 'sort-bucket' || q.type == 'sort-bucket-image') {
+        let num = 0;
+        q.selected.map((bucket, index) =>{
+          bucket.answers.map(answer => {
+            num = num + 1;
+            if (q.buckets[index].answers.includes(answer)) {
+              score = score + 1;
+            } else {
+              score = score - 1;
+            }
+          });
+        });
+        if (score < 0) score = 0;
+        score = score / num;
+      } else if (q.type == 'imagemap-single') {
+        if (q.selected[0]._id == q.correct) {
+          score = 1;
+        }
+      } else if (q.type == 'imagemap-multi') {
+        let corrects = q.correct.length;
+        q.selected.map(obj => {
+          if (q.correct.includes(obj._id)) {
+            score = score + 1;
+            corrects = corrects - 1;
+          } else {
+            score = score - 1;
+          }
+        });
+        if (score < 0) score = 0;
+        score = score / (q.selected.length + corrects);
+      } else if (q.type == 'imageselect-single') {
+        if (q.correct[0].src == q.selected)
+          score = 1;
+      } else if (q.type == 'imageselect-multi') {
+        let num = 0;
+        q.correct.map(opt => {
+          if (q.selected.includes(opt.src)) {
+            score = score + 1;
+          }
+          num = num + 1;
+        });
+        q.incorrect.map(opt => {
+          if (q.selected.includes(opt.src)) {
+            score = score - 1;
+            num = num + 1;
+          }
+        });
+        if (score < 0) score = 0;
+        score = score / num;
+      }
+
+      questionScores.push(score);
+      quizScore = quizScore + score;
+
+      if (q.tags) {
+        q.tags.map(tag => {
+          if (tagScores[tag]) {
+            tagScores[tag] = {
+              score: tagScores[tag].score + score,
+              num: tagScores[tag].num + 1,
+            }
+          } else {
+            tagScores[tag] = {
+              score: score,
+              num: 1,
+            }
+          }
+        });
+      }
+    });
+
+    this.setState({
+      tagScores: Object.keys(tagScores).map(key => { return({
+        name: key,
+        value: tagScores[key].score / tagScores[key].num * 100,
+      })}),
+      quizScore: Math.round(quizScore / this.state.questions.length * 1000) / 10,
+      questionScores: questionScores.map(q => { return(q * 100)}),
+      unansweredList: unansweredList,
+      submitted: true,
+    });
+  }
+
+
+
+  render() {
+    const { classes } = this.props;
+    const { quiz, questions, tagScores, questionScores, quizScore, unansweredList } = this.state;
+    return (
+      <div style = {{ marginTop: 80 }}>
+          <Card className={classes.card}>
+            <CardContent>
+                { this.state.isLoading ?
+                  <div>
+                    <CircularProgress />
+                  </div>
+                :
+                  (<div>
+                      <Typography className={classes.labels}>{quiz.title}</Typography>
+                      <Typography className={classes.note}>{quiz.desc}</Typography>
+                      <Typography className={classes.note}><b>Date completed: </b>
+                        {this.state.read ? <FormattedDate value={this.state.read} month='long' day='numeric' year='numeric' /> : 'N/A' }
+                      </Typography>
+                      { this.state.submitted ?
+                          <List>
+                            <div><b>Total Score: </b> {quizScore} %</div>
+                            { questions.map((q, index) => {
+                              return(<div key={q.uid}>
+                                <div>{ q.question }</div>
+                                { unansweredList.includes(q.uid) ? <div style={{ color: 'grey' }}>Not answered</div>
+                                : <div>{ questionScores[index] > 0 ? <div style={{ color: 'green' }}>{ questionScores[index] }% Correct</div> : <div style={{ color: 'red' }}>Incorrect</div> }</div>}
+                              <hr /></div>);
+                            })}
+                            <BarChart width={850} height={400} data={ tagScores }>
+                              <XAxis dataKey="name" interval={0} tick={{ angle: -90, size: 8, }} height={200} tickMargin={100} />
+                              <YAxis domain={[0, 100]} />
+                              <Bar barSize={2} dataKey="value" fill="#FF2D00" />
+                            </BarChart>
+                          </List>
+                        :
+                      <List>
+                        { questions.map(q => {
+                          switch(q.type) {
+                            case 'multi-single':
+                              return (<MultiSingleQuestion q={q} key={q.uid} onChanged={e => this.onSingleChanged(q.uid, e.target.value)} />);
+                            case 'multi-multi':
+                              return (<MultiMultiQuestion q={q} key={q.uid} updateLists={ this.updateLists } onChanged={e => this.onMultiChecked(q.uid, e.target.value)} />);
+                            case 'short-string':
+                              return (<ShortStringQuestion q={q} key={q.uid} onChanged={e => this.onSingleChanged(q.uid, e.target.value)} />);
+                            case 'sort':
+                              return (<SortQuestion q={q} key={q.uid} onChanged={ this.onSortChanged } />);
+                            case 'sort-image':
+                              return (<SortImageQuestion q={q} key={q.uid} onChanged={ this.onSortChanged } />);
+                            case 'sort-bucket':
+                              return (<BucketQuestion q={q} key={q.uid} onChanged={ this.onSortChanged } />);
+                            case 'sort-bucket-image':
+                              return (<BucketImageQuestion q={q} key={q.uid} onChanged={ this.onSortChanged } />);
+                            case 'imagemap-single':
+                              return (<ImageMapQuestion q={q} key={q.uid} onChanged={ this.onMultiChecked } single />);
+                            case 'imagemap-multi':
+                              return (<ImageMapQuestion q={q} key={q.uid} onChanged={ this.onMultiChecked } />);
+                            case 'imageselect-single':
+                              return (<ImageSelectSingleQuestion q={q} key={q.uid} onChanged={ e => this.onSingleChanged(q.uid, e.target.value) } />);
+                            case 'imageselect-multi':
+                              return (<ImageSelectMultiQuestion q={q} key={q.uid} updateLists={ this.updateLists } onChanged={e => this.onMultiChecked(q.uid, e.target.value)} />);
+                            default:
+                              return (<div key={q.uid}>{q.question}</div>);
+                          }
+                        })}
+                        <div>
+                          <Button variant="outlined" color="secondary" onClick={ () => this.onSubmit() }>Submit</Button>
+                        </div>
+                      </List>
+                    }
+                  </div>
+                )}
+            </CardContent>
+          </Card>
+      </div>
+    );
+  }
+}
+
+export default withStyles(formStyles)(connect(mapStateToProps)(Quiz));
