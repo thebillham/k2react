@@ -74,6 +74,7 @@ import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmi
   handleTagAddition, handleTagDelete, } from '../actions/modal';
 import { DragDropContext } from 'react-beautiful-dnd';
 import UploadtoFirebase from './training/Path';
+import QuestionsToFirebase from './quizzes/Questions';
 
 
 // import { quizzesRef, questionsRef } from '../config/firebase';
@@ -125,6 +126,7 @@ class MainScreen extends React.Component {
 
   componentWillMount() {
     UploadtoFirebase();
+    QuestionsToFirebase();
     this.props.fetchTrainingPaths();
     this.props.fetchQuizzes();
     this.props.fetchMe();
