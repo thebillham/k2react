@@ -13,6 +13,8 @@ const storage = firebase.storage();
 const database = firebase.firestore();
 database.settings({timestampsInSnapshots: true})
 const usersRef = database.collection("users");
+const asbestosSamplesRef = database.collection("samplesasbestos");
+const jobsRef = database.collection("jobheaders");
 const docsRef = database.collection("documents");
 const modulesRef = database.collection("modules");
 const toolsRef = database.collection("tools");
@@ -25,5 +27,5 @@ const methodsRef = database.collection("methods");
 export { app, provider, auth, database, storage };
 export { usersRef, docsRef, modulesRef, toolsRef,
   noticesRef, quizzesRef, questionsRef, trainingPathsRef,
-  methodsRef, };
+  methodsRef, asbestosSamplesRef, jobsRef };
 export default firebase;

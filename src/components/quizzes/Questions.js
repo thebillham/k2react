@@ -46,6 +46,7 @@ const biobackgroundreadings0005 = {
   question: 'Roughly how many sexes of fungi are there?',
   correct: ['36,000'],
   incorrect: ['One','Two','Four','100','54,000'],
+  numberofoptions: 4,
   tags: ['biological',],
   type: 'multi-single',
 }
@@ -54,6 +55,7 @@ const biobackgroundreadings0006 = {
   question: 'All fungi are moulds.',
   correct: ['False',],
   incorrect: ['True',],
+  numberofoptions: 2,
   tags: ['biological',],
   type: 'multi-single',
 }
@@ -101,8 +103,9 @@ const biobackgroundreadings0008 = {
 
 const bioglossary0001 = {
   question: 'What two words have been banned from biological reports?',
-  answer: '^(?=.*\bimmunocompromised\b)(?=.*\bcarcinogenic\b).*$',
+  answer: '^(?=.*\\bimmunocompromised\\b)(?=.*\\bcarcinogenic\\b).*$',
   tags: ['biological','glossary',],
+  selected: '',
   type: 'short-string',
 }
 
@@ -162,29 +165,33 @@ const biomoistureinhomes0002 = {
 
 const biomoistureinhomes0003 = {
   question: 'What should you always inspect on the exterior of all houses during a biological assessment?',
-  correct: '\b(gutters|gutter|roof|roofs)\b',
+  answer: '\\b(gutters|gutter|roof|roofs)\\b',
   tags: ['biological','moisture in homes'],
+  selected: '',
   type: 'short-string',
 }
 
 const biomoistureinhomes0004 = {
   question: 'Where should extraction vents vent to?',
-  correct: '\b(outside|outdoors)\b',
+  answer: '\\b(outside|outdoors)\\b',
   tags: ['biological','moisture in homes'],
+  selected: '',
   type: 'short-string',
 }
 
 const biomoistureinhomes0005 = {
   question: 'What is the minimum number of windows you should open to ventilate your home?',
-  correct: '\b(2|two)\b',
+  answer: '\\b(2|two)\\b',
   tags: ['biological','moisture in homes'],
+  selected: '',
   type: 'short-string',
 }
 
 const biomoistureinhomes0006 = {
   question: 'What forms when warm air hits a cold surface?',
-  correct: '\bcondensation\b',
+  answer: '\\bcondensation\\b',
   tags: ['biological','moisture in homes'],
+  selected: '',
   type: 'short-string',
 }
 
@@ -206,6 +213,7 @@ const biomoistureinhomes0007 = {
     'Clean your home regularly',
     'Do a little dance',
   ],
+  numberofoptions: 6,
   tags: ['biological','moisture in homes'],
   type: 'multi-multi',
 }
@@ -231,6 +239,7 @@ const biopresentation0001 = {
     'Amputees',
     'Athletes',
   ],
+  numberofoptions: 5,
   tags: ['biological','presentation',],
   type: 'multi-multi',
 }
@@ -330,6 +339,7 @@ const biopresentation0004 = {
     'Be weak',
     'Lifted with their back not their knees',
   ],
+  numberofoptions: 5,
   tags: ['biological','presentation',],
   type: 'multi-single',
 }
@@ -362,6 +372,7 @@ const biopresentation0005 = {
     'Jewellery Box',
     'Medicine Cabinet',
   ],
+  numberofoptions: 8,
   tags: ['biological','presentation',],
   type: 'multi-multi',
 }

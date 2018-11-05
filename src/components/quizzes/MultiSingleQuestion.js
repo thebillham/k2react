@@ -41,8 +41,9 @@ class MultiSingleQuestion extends React.Component {
             onChange={this.props.onChanged}
             >
             { this.state.options.map(opt => {
+              if (typeof opt === 'object') { opt = opt.text }
               return(
-                <FormControlLabel key={opt.text} value={opt.text} control={<Radio />} label={opt.text} />
+                <FormControlLabel key={opt} value={opt} control={<Radio />} label={opt} />
               );
             })}
           </RadioGroup>

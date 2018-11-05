@@ -44,8 +44,9 @@ class MultiMultiQuestion extends React.Component {
           <FormLabel component="legend"> { q.question }</FormLabel>
           <FormGroup>
             { this.state.options.map(opt => {
+              if (typeof opt === 'object') { opt = opt.text }
               return(
-                <FormControlLabel key={opt.text} value={opt.text} control={<Checkbox checked={q.selected && q.selected.includes(opt.text)} onChange={this.props.onChanged} />} label={opt.text} />
+                <FormControlLabel key={opt} value={opt} control={<Checkbox checked={q.selected && q.selected.includes(opt)} onChange={this.props.onChanged} />} label={opt} />
               );
             })}
           </FormGroup>

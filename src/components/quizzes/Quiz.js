@@ -144,18 +144,22 @@ class Quiz extends React.Component {
       if (q.selected == undefined || q.selected == null || q.selected.length == 0) {
         unansweredList.push(q.uid);
       } else if (q.type == 'multi-single') {
-          if (q.correct[0].text == q.selected)
+          var opt = q.correct[0];
+          if (typeof opt === 'object') opt = opt.text;
+          if (opt == q.selected)
             score = 1;
       } else if (q.type == 'multi-multi') {
         let num = 0;
         q.correct.map(opt => {
-          if (q.selected.includes(opt.text)) {
+          if (typeof opt === 'object') opt = opt.text;
+          if (q.selected.includes(opt)) {
             score = score + 1;
           }
           num = num + 1;
         });
         q.incorrect.map(opt => {
-          if (q.selected.includes(opt.text)) {
+          if (typeof opt === 'object') opt = opt.text;
+          if (q.selected.includes(opt)) {
             score = score - 1;
             num = num + 1;
           }
@@ -163,7 +167,7 @@ class Quiz extends React.Component {
         if (score < 0) score = 0;
         score = score / num;
       } else if (q.type == 'short-string') {
-        if (q.selected.toLowerCase().match(q.answer.toLowerCase()) != null) score = 1;
+        if (new RegExp(q.answer.toLowerCase(), '').test(q.selected.toLowerCase())) score = 1;
       } else if (q.type == 'sort' || q.type == 'sort-image') {
         q.selected.map((item, index) => {
           if (q.answers[index] == item) {

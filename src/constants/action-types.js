@@ -20,6 +20,7 @@ export const DELETE_NOTICE = "DELETE_NOTICE";
 export const READ_NOTICE = "READ_NOTICE";
 export const FAV_NOTICE = "FAV_NOTICE";
 export const SET_STEPPER = "SET_STEPPER";
+export const GET_ASBESTOS_SAMPLES = "GET_ASBESTOS_SAMPLES";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";

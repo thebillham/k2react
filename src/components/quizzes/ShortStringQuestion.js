@@ -2,7 +2,6 @@ import React from 'react';
 import { FormControl, FormLabel, TextField, } from '@material-ui/core';
 
 function ShortStringQuestion(props) {
-
   return (
     <div style = {{ marginTop: 24 }}>
       <FormControl component="fieldset">

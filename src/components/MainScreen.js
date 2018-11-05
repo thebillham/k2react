@@ -69,7 +69,7 @@ import { onSearchChange, onCatChange } from '../actions/local';
 
 import { fetchStaff, fetchDocuments, editUser, getUser, fetchWFM,
   fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMethodLog,
-  fetchMe, fetchQuizzes, fetchTrainingPaths  } from '../actions/local';
+  fetchMe, fetchQuizzes, fetchTrainingPaths, fetchAsbestosSamples,  } from '../actions/local';
 import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmit,
   handleTagAddition, handleTagDelete, } from '../actions/modal';
 import { DragDropContext } from 'react-beautiful-dnd';
@@ -85,6 +85,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
+    fetchAsbestosSamples: () => dispatch(fetchAsbestosSamples()),
     fetchTrainingPaths: () => dispatch(fetchTrainingPaths()),
     fetchQuizzes: () => dispatch(fetchQuizzes()),
     fetchReadingLog: () => dispatch(fetchReadingLog()),
@@ -127,6 +128,7 @@ class MainScreen extends React.Component {
   componentWillMount() {
     UploadtoFirebase();
     QuestionsToFirebase();
+    this.props.fetchAsbestosSamples();
     this.props.fetchTrainingPaths();
     this.props.fetchQuizzes();
     this.props.fetchMe();
@@ -225,7 +227,7 @@ class MainScreen extends React.Component {
               <ListItemText primary="Jobs" />
             </ListItem>
 
-            <ListItem button component={Link} to="/lab" disabled>
+            <ListItem button component={Link} to="/lab">
               <ListItemIcon>
                 <LabIcon className={classes.accentButton} />
               </ListItemIcon>
@@ -409,7 +411,7 @@ class MainScreen extends React.Component {
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/noticeboard" component={Noticeboard} />
               <Route path="/jobs" component={Jobs} />
-              <Route path="/asbestoslab" component={AsbestosLab} />
+              <Route path="/lab" component={AsbestosLab} />
               <Route exact path="/staff" component={Staff} />
               <Route exact path="/staff/jobs" component={StaffJobs} />
               <Route exact path="/staff/training" component={StaffTraining} />

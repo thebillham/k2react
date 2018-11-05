@@ -78,6 +78,12 @@ const styles = theme => ({
   root: {
     display: 'flex',
   },
+  hoverItem: {
+      backgroundColor: "#fff",
+      "&:hover": {
+          backgroundColor: "#eee"
+      }
+  },
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
   },

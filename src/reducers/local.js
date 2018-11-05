@@ -17,6 +17,7 @@ import {
           READ_NOTICE,
           FAV_NOTICE,
           SET_STEPPER,
+          GET_ASBESTOS_SAMPLES,
         } from "../constants/action-types"
 
 const localInit = {
@@ -38,6 +39,7 @@ const localInit = {
   search: null,
   category: 'gen',
   steppers: [],
+  samplesasbestos: {},
 };
 
 // Properties related to local data retrieved from firebase
@@ -138,6 +140,11 @@ export default function localReducer(state = localInit, action) {
         return {
           ...state,
           stepper: action.payload,
+        }
+      case GET_ASBESTOS_SAMPLES:
+        return {
+          ...state,
+          samplesasbestos: action.payload,
         }
     default:
       return state;

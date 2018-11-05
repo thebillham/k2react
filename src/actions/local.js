@@ -17,10 +17,12 @@ import { GET_STAFF,
         READ_NOTICE,
         FAV_NOTICE,
         SET_STEPPER,
+        GET_ASBESTOS_SAMPLES,
       } from "../constants/action-types";
 import { auth } from '../config/firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
-import { usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef, trainingPathsRef, methodsRef } from "../config/firebase";
+import { usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
+    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 // import { convert } from 'xml-js';
 
@@ -107,6 +109,40 @@ export const fetchTrainingPaths = () => async dispatch => {
       dispatch({
         type: GET_TRAININGS,
         payload: trainings
+      });
+    });
+};
+
+export const fetchAsbestosSamples = () => async dispatch => {
+  asbestosSamplesRef.orderBy("jobnumber", "desc").orderBy("samplenumber").limit(50)
+    .onSnapshot((querySnapshot) => {
+      var samples = [];
+      querySnapshot.forEach((doc) => {
+        let sample = doc.data();
+        sample.uid = doc.id;
+        samples.push(sample);
+      });
+      let samplemap = {};
+      samples.map(sample => {
+        if (samplemap[sample.jobnumber]) {
+          samplemap[sample.jobnumber]['samples'].push(sample);
+        } else {
+          samplemap[sample.jobnumber] = {samples: [sample], clientname: '', address: '', type: '',};
+        }
+      });
+      Object.keys(samplemap).map(job => {
+        jobsRef.where("jobnumber", "==", job).limit(1)
+        .get().then(doc => {
+          doc.forEach(jobheader => {
+            samplemap[job]['clientname'] = jobheader.data().clientname;
+            samplemap[job]['address'] = jobheader.data().address;
+            samplemap[job]['type'] = jobheader.data().type;
+          });
+          dispatch({
+            type: GET_ASBESTOS_SAMPLES,
+            payload: samplemap,
+          });
+        });
       });
     });
 };
