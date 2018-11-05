@@ -8,15 +8,18 @@ export const ADD_DOCUMENT = "ADD_DOCUMENT";
 export const EDIT_USER = "EDIT_USER";
 export const GET_USER = "GET_USER";
 export const GET_WFM = "GET_WFM";
+export const GET_TRAININGS = "GET_TRAININGS";
 export const GET_MODULES = "GET_MODULES";
 export const GET_NOTICES = "GET_NOTICES";
 export const SEARCH_CHANGE = "SEARCH_CHANGE";
 export const CAT_CHANGE = "CAT_CHANGE";
 export const GET_READINGLOG = "GET_READINGLOG";
+export const GET_METHODLOG = "GET_METHODLOG";
 export const GET_ME = "GET_ME";
 export const DELETE_NOTICE = "DELETE_NOTICE";
 export const READ_NOTICE = "READ_NOTICE";
 export const FAV_NOTICE = "FAV_NOTICE";
+export const SET_STEPPER = "SET_STEPPER";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";

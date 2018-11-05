@@ -4,20 +4,23 @@ import { GET_STAFF,
         GET_USER,
         GET_QUIZZES,
         GET_WFM,
+        GET_TRAININGS,
         GET_MODULES,
         SEARCH_CHANGE,
         CAT_CHANGE,
         GET_TOOLS,
         GET_NOTICES,
         GET_READINGLOG,
+        GET_METHODLOG,
         GET_ME,
         DELETE_NOTICE,
         READ_NOTICE,
         FAV_NOTICE,
+        SET_STEPPER,
       } from "../constants/action-types";
 import { auth } from '../config/firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
-import { usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef } from "../config/firebase";
+import { usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef, trainingPathsRef, methodsRef } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 // import { convert } from 'xml-js';
 
@@ -92,6 +95,22 @@ export const fetchTools = () => async dispatch => {
     });
 };
 
+export const fetchTrainingPaths = () => async dispatch => {
+  trainingPathsRef.orderBy('title')
+    .onSnapshot((querySnapshot) => {
+      var trainings = [];
+      querySnapshot.forEach((doc) => {
+        let training = doc.data();
+        training.uid = doc.id;
+        trainings.push(training);
+      });
+      dispatch({
+        type: GET_TRAININGS,
+        payload: trainings
+      });
+    });
+};
+
 export const fetchModules = () => async dispatch => {
   modulesRef.orderBy('title')
     .onSnapshot((querySnapshot) => {
@@ -149,11 +168,34 @@ export const fetchReadingLog = () => async dispatch => {
         log.uid = doc.id;
         docsRef.doc(doc.id).get().then((doc) => {
           log.title = doc.data().title;
+          log.updatedate = doc.data().updatedate;
           logs.push(log);
         });
       });
       dispatch({
         type: GET_READINGLOG,
+        payload: logs
+      });
+    });
+};
+
+export const fetchMethodLog = () => async dispatch => {
+  usersRef.doc(auth.currentUser.uid).collection('methodlog').orderBy('methodCompleted','desc')
+    .onSnapshot((querySnapshot) => {
+      var logs = [];
+      querySnapshot.forEach((doc) => {
+        let log = doc.data();
+        log.uid = doc.id;
+        methodsRef.doc(doc.id).get().then((doc) => {
+          log.title = doc.data().title;
+          log.subtitle = doc.data().subtitle;
+          log.sectionlength = doc.data().sections.length;
+          log.updatedate = doc.data().updateDate;
+          logs.push(log);
+        });
+      });
+      dispatch({
+        type: GET_METHODLOG,
         payload: logs
       });
     });
@@ -277,3 +319,11 @@ export const onReadNotice = (readnotices, uid) => dispatch => {
     payload: newArray,
   });
 };
+
+export const setStepper = (steppers, uid, step) => dispatch => {
+  steppers[uid] = step;
+  dispatch({
+    type: SET_STEPPER,
+    payload: steppers,
+  });
+}

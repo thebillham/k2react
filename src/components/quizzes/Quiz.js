@@ -71,7 +71,7 @@ class Quiz extends React.Component {
                 quiz: quiz.data(),
                 questions: questions,
                 isLoading: false,
-                completed: log.exists && log.data().date.toDate(),
+                completed: log.exists && log.data().latestSubmit.toDate(),
               });
             }
           });
@@ -163,8 +163,7 @@ class Quiz extends React.Component {
         if (score < 0) score = 0;
         score = score / num;
       } else if (q.type == 'short-string') {
-        if (q.answers.includes(q.selected))
-          score = 1;
+        if (q.selected.toLowerCase().match(q.answer.toLowerCase()) != null) score = 1;
       } else if (q.type == 'sort' || q.type == 'sort-image') {
         q.selected.map((item, index) => {
           if (q.answers[index] == item) {
@@ -247,6 +246,7 @@ class Quiz extends React.Component {
     });
 
     this.setState({
+      tags: tagScores,
       tagScores: Object.keys(tagScores).map(key => { return({
         name: key,
         value: tagScores[key].score / tagScores[key].num * 100,
@@ -255,6 +255,29 @@ class Quiz extends React.Component {
       questionScores: questionScores.map(q => { return(q * 100)}),
       unansweredList: unansweredList,
       submitted: true,
+    });
+
+    let scores = [];
+    usersRef.doc(auth.currentUser.uid).collection("quizlog").doc(this.props.match.params.quiz).get().then(doc => {
+        if (doc.exists) scores = doc.data().scores;
+        scores.push({ date: new Date(), score: this.state.quizScore, })
+        usersRef.doc(auth.currentUser.uid).collection("quizlog").doc(this.props.match.params.quiz).set({
+          latestSubmit: new Date(),
+          scores: scores,
+        });
+    });
+    usersRef.doc(auth.currentUser.uid).get().then(doc => {
+      var quiztags = {};
+      if (doc.data().quiztags) quiztags = doc.data().quiztags;
+      Object.keys(this.state.tags).map(tag => {
+        if (quiztags[tag]) {
+          quiztags[tag] = { score: quiztags[tag].score + this.state.tags[tag].score, num: quiztags[tag].num + this.state.tags[tag].num };
+        } else {
+          quiztags[tag] = { score: this.state.tags[tag].score, num: this.state.tags[tag].num };
+        }
+      });
+      this.setState({ quiztags: quiztags });
+      usersRef.doc(auth.currentUser.uid).set({ quiztags: quiztags}, { merge: true });
     });
   }
 

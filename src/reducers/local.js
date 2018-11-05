@@ -4,16 +4,19 @@ import {
           GET_USER,
           GET_WFM,
           GET_QUIZZES,
+          GET_TRAININGS,
           GET_MODULES,
           SEARCH_CHANGE,
           CAT_CHANGE,
           GET_TOOLS,
           GET_NOTICES,
           GET_READINGLOG,
+          GET_METHODLOG,
           GET_ME,
           DELETE_NOTICE,
           READ_NOTICE,
           FAV_NOTICE,
+          SET_STEPPER,
         } from "../constants/action-types"
 
 const localInit = {
@@ -28,10 +31,13 @@ const localInit = {
   user: {},
   wfmJobs: [],
   modules: [],
+  trainingpaths: [],
   notices: [],
   readingLog: [],
+  methodLog: [],
   search: null,
   category: 'gen',
+  steppers: [],
 };
 
 // Properties related to local data retrieved from firebase
@@ -64,6 +70,11 @@ export default function localReducer(state = localInit, action) {
         ...state,
         quizzes: action.payload,
       }
+    case GET_TRAININGS:
+      return {
+        ...state,
+        trainingpaths: action.payload,
+      }
     case GET_MODULES:
       return {
         ...state,
@@ -94,6 +105,11 @@ export default function localReducer(state = localInit, action) {
         ...state,
         readingLog: action.payload,
       }
+    case GET_METHODLOG:
+      return {
+        ...state,
+        methodLog: action.payload,
+      }
     case DELETE_NOTICE:
       return {
         ...state,
@@ -117,6 +133,11 @@ export default function localReducer(state = localInit, action) {
             ...state.me,
             readnotices: action.payload,
           }
+        }
+      case SET_STEPPER:
+        return {
+          ...state,
+          stepper: action.payload,
         }
     default:
       return state;

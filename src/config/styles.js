@@ -29,7 +29,7 @@ const formStyles = theme => ({
   textField: {
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,
-    fontSize: 14,
+    fontSize: 12,
     // marginBottom: theme.spacing.unit * 2,
     width: 500,
   },

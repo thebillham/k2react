@@ -47,8 +47,12 @@ import UserTraining from './users/UserTraining';
 import UserReadingLog from './users/UserReadingLog';
 import AppPreferences from './users/AppPreferences';
 
+import Training from './training/Training';
+import TrainingPath from './training/TrainingPath';
 import TrainingModules from './training/TrainingModules';
 import TrainingModule from './training/TrainingModule';
+
+import Method from './methods/Method';
 
 import Quizzes from './quizzes/Quizzes';
 import Quiz from './quizzes/Quiz';
@@ -64,10 +68,12 @@ import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
 
 import { fetchStaff, fetchDocuments, editUser, getUser, fetchWFM,
-  fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMe, fetchQuizzes,  } from '../actions/local';
+  fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMethodLog,
+  fetchMe, fetchQuizzes, fetchTrainingPaths  } from '../actions/local';
 import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmit,
   handleTagAddition, handleTagDelete, } from '../actions/modal';
 import { DragDropContext } from 'react-beautiful-dnd';
+import UploadtoFirebase from './training/Path';
 
 
 // import { quizzesRef, questionsRef } from '../config/firebase';
@@ -78,8 +84,10 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
+    fetchTrainingPaths: () => dispatch(fetchTrainingPaths()),
     fetchQuizzes: () => dispatch(fetchQuizzes()),
     fetchReadingLog: () => dispatch(fetchReadingLog()),
+    fetchMethodLog: () => dispatch(fetchMethodLog()),
     fetchNotices: () => dispatch(fetchNotices()),
     fetchModules: () => dispatch(fetchModules()),
     fetchStaff: () => dispatch(fetchStaff()),
@@ -111,15 +119,19 @@ class MainScreen extends React.Component {
       openRef: false,
       openStaff: false,
       openMyDetails: false,
+      openTraining: false,
     };
   }
 
   componentWillMount() {
+    UploadtoFirebase();
+    this.props.fetchTrainingPaths();
     this.props.fetchQuizzes();
     this.props.fetchMe();
     this.props.fetchNotices();
-    this.props.fetchWFM();
+    // this.props.fetchWFM();
     this.props.fetchReadingLog();
+    this.props.fetchMethodLog();
     this.props.fetchTools();
     this.props.fetchModules();
     this.props.fetchStaff();
@@ -163,6 +175,13 @@ class MainScreen extends React.Component {
     });
   }
 
+  handleTrainingClick = () => {
+    this.setState({
+      openDrawer: true,
+      openTraining: !this.state.openTraining
+    });
+  }
+
   render() {
     const { classes } = this.props;
     const { anchorEl } = this.state;
@@ -183,28 +202,28 @@ class MainScreen extends React.Component {
         </div>
         <Divider />
           <List>
-            <ListItem button component={Link} to="/dashboard">
+            <ListItem button component={Link} to="/dashboard" disabled>
               <ListItemIcon>
                 <DashboardIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
 
-              <ListItem button component={Link} to="/noticeboard">
+              <ListItem button component={Link} to="/noticeboard" disabled>
                 <ListItemIcon>
                   <NoticeboardIcon className={classes.accentButton} />
                 </ListItemIcon>
                 <ListItemText primary="Noticeboard" />
               </ListItem>
 
-            <ListItem button component={Link} to="/jobs">
+            <ListItem button component={Link} to="/jobs" disabled>
               <ListItemIcon>
                 <JobsIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Jobs" />
             </ListItem>
 
-            <ListItem button component={Link} to="/lab">
+            <ListItem button component={Link} to="/lab" disabled>
               <ListItemIcon>
                 <LabIcon className={classes.accentButton} />
               </ListItemIcon>
@@ -223,7 +242,7 @@ class MainScreen extends React.Component {
                 <ListItem button component={Link} to="/staff/training" className={classes.nested}>
                   <ListItemText primary="Training" className={classes.subitem} />
                 </ListItem>
-                  <ListItem button component={Link} to="/staff/jobs" className={classes.nested}>
+                  <ListItem button component={Link} to="/staff/jobs" className={classes.nested} disabled>
                   <ListItemText primary="Jobs" className={classes.subitem} />
                 </ListItem>
               </List>
@@ -241,7 +260,7 @@ class MainScreen extends React.Component {
                 <ListItem button component={Link} to="/mydetails/training" className={classes.nested}>
                   <ListItemText primary="Training" className={classes.subitem} />
                 </ListItem>
-                <ListItem button component={Link} to="/mydetails/jobs" className={classes.nested}>
+                <ListItem button component={Link} to="/mydetails/jobs" className={classes.nested} disabled>
                   <ListItemText primary="Job History" className={classes.subitem} />
                 </ListItem>
                 <ListItem button component={Link} to="/mydetails/readinglog" className={classes.nested}>
@@ -250,12 +269,20 @@ class MainScreen extends React.Component {
               </List>
             </Collapse>
 
-            <ListItem button component={Link} to="/training">
+            <ListItem button onClick={this.handleTrainingClick} component={Link} to="/training">
               <ListItemIcon>
                 <TrainingIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Training" />
+               {/*this.state.openTraining ? <ExpandLess /> : <ExpandMore /> }*/}
             </ListItem>
+            {/*<Collapse in={this.state.openTraining} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItem button component={Link} to="/training/modules" className={classes.nested}>
+                  <ListItemText primary="All Modules" className={classes.subitem} />
+                </ListItem>
+              </List>
+            </Collapse>*/}
 
             <ListItem button component={Link} to="/quizzes">
               <ListItemIcon>
@@ -264,7 +291,7 @@ class MainScreen extends React.Component {
               <ListItemText primary="Quizzes" />
             </ListItem>
 
-            <ListItem button component={Link} to="/tools">
+            <ListItem button component={Link} to="/tools" disabled>
               <ListItemIcon>
                 <ToolsIcon className={classes.accentButton} />
               </ListItemIcon>
@@ -312,7 +339,7 @@ class MainScreen extends React.Component {
               {/* Toolbar heading and breadcrumbs go here */}
               <Typography variant="title" color='inherit' noWrap className={classes.title}>
                 <Switch>
-                  <Route exact path="/" render={() => <div>Dashboard</div>} />
+                  <Route exact path="/" render={() => <div>My Details</div>} />
                   <Route path="/dashboard" render={() => <div>Dashboard</div>} />
                   <Route path="/noticeboard" render={() => <div>Noticeboard</div>} />
                   <Route path="/jobs" render={() => <div>Jobs</div>} />
@@ -326,7 +353,9 @@ class MainScreen extends React.Component {
                   <Route exact path="/mydetails/jobs" render={() => <div>My Job History</div>} />
                   <Route exact path="/mydetails/readinglog" render={() => <div>My Reading Log</div>} />
                   <Route exact path="/mydetails/preferences" render={() => <div>App Preferences</div>} />
-                  <Route path="/training" render={() => <div>Training Modules</div>} />
+                  <Route path="/training" render={() => <div>Training</div>} />
+                  <Route exact path="/training/modules" render={() => <div>Training Modules</div>} />
+                  <Route path="/method" render={() => <div>Method</div>} />
                   <Route path="/quizzes" render={() => <div>Quizzes</div>} />
                   <Route path="/quiz/" render={() => <div>Quiz</div>} />
                   <Route path="/tools" render={() => <div>Tools</div>} />
@@ -334,7 +363,7 @@ class MainScreen extends React.Component {
                   <Route path="/document" render={() => <div>Document Viewer</div>} />
                 </Switch>
               </Typography>
-              <Route path="/(library|training|tools|noticeboard)" render={() =>
+              <Route path="/(library|training/modules|tools|noticeboard)" render={() =>
                 <div className={classes.search}>
                   <div className={classes.searchIcon}>
                     <SearchIcon />
@@ -374,7 +403,7 @@ class MainScreen extends React.Component {
           <main className={classes.content}>
             {/* All locations are matched to their components here */}
             <Switch>
-              <Route exact path="/" component={Dashboard} />
+              <Route exact path="/" component={UserDetails} key="mydetails" />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/noticeboard" component={Noticeboard} />
               <Route path="/jobs" component={Jobs} />
@@ -390,8 +419,11 @@ class MainScreen extends React.Component {
               {/* <Route exact path="/mydetails/jobs" component={UserJobs} key="myjobs" /> */}
               <Route exact path="/mydetails/readinglog" component={UserReadingLog} key="myreadinglog" />
               <Route exact path="/mydetails/preferences" component={AppPreferences} />
-              <Route exact path="/training" component={TrainingModules} />
+              <Route exact path="/training" component={Training} />
+              <Route exact path="/training/modules" component={TrainingModules} />
+              <Route path="/training/:uid" component={TrainingPath} />
               <Route path="/training/:module/:stage" component={TrainingModule} />
+              <Route path="/method/:uid" component={Method} />
               <Route exact path="/quizzes" component={Quizzes} />
               <Route path="/quiz/:quiz" component={Quiz} />
               <Route path="/tools" component={Tools} />

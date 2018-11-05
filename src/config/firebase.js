@@ -19,7 +19,11 @@ const toolsRef = database.collection("tools");
 const noticesRef = database.collection("notices");
 const quizzesRef = database.collection("quizzes");
 const questionsRef = database.collection("questions");
+const trainingPathsRef = database.collection("trainingpaths");
+const methodsRef = database.collection("methods");
 
 export { app, provider, auth, database, storage };
-export { usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef, questionsRef };
+export { usersRef, docsRef, modulesRef, toolsRef,
+  noticesRef, quizzesRef, questionsRef, trainingPathsRef,
+  methodsRef, };
 export default firebase;

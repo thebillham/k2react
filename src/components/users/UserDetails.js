@@ -45,6 +45,21 @@ class UserDetails extends React.Component {
     });
   }
 
+  displayTimeAtK2 = () => {
+    var timeAtK2 = new Date() - new Date(this.state.user.startdate);
+    var divideBy = {
+      d: 86400000,
+      m: 2629800000,
+      y: 31557600000,
+    };
+    var years = Math.floor(timeAtK2/divideBy['y']);
+    timeAtK2 = timeAtK2 % divideBy['y'];
+    var months = Math.floor(timeAtK2/divideBy['m']);
+    timeAtK2 = timeAtK2 % divideBy['m'];
+    var days = Math.floor(timeAtK2/divideBy['d']);
+    return (years + ' years, ' + months + ' months and ' + days + ' days');
+  }
+
   render() {
     const { classes } = this.props;
     const { user } = this.state;
@@ -55,7 +70,7 @@ class UserDetails extends React.Component {
           <Grid item xs={5}>
             <Card className={classes.card}>
               <CardHeader
-                style={{ background: 'linear-gradient(to right bottom, #ff5733, #fff)'}}
+                style={{ background: '#ff5733'}}
                 title={
                   <Typography className={classes.cardHeaderType} color="textSecondary">
                     General Details
@@ -129,6 +144,13 @@ class UserDetails extends React.Component {
                         />
                       </ListItem>
                       <ListItem>
+                        <TextField
+                          label="Time At K2"
+                          className={classes.textField}
+                          value={this.displayTimeAtK2()}
+                        />
+                      </ListItem>
+                      <ListItem>
                         <Typography className={classes.labels}>Contact Information</Typography>
                       </ListItem>
                       <ListItem>
@@ -195,7 +217,7 @@ class UserDetails extends React.Component {
           <Grid item xs={5}>
             <Card className={classes.card}>
               <CardHeader
-                style={{ background: 'linear-gradient(to right bottom, #ff5733, #fff)'}}
+                style={{ background: '#ff5733'}}
                 title={
                   <Typography className={classes.cardHeaderType} color="textSecondary">
                     Qualifications
@@ -336,7 +358,7 @@ class UserDetails extends React.Component {
               <Grid item>
                 <Card className={classes.card}>
                   <CardHeader
-                    style={{ background: 'linear-gradient(to right bottom, #ff5733, #fff)'}}
+                    style={{ background: '#ff5733'}}
                     title={
                       <Typography className={classes.cardHeaderType} color="textSecondary">
                         Signature
