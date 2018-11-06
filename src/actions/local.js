@@ -134,6 +134,7 @@ export const fetchAsbestosSamples = () => async dispatch => {
         jobsRef.where("jobnumber", "==", job).limit(1)
         .get().then(doc => {
           doc.forEach(jobheader => {
+            samplemap[job]['jobnumber'] = job;
             samplemap[job]['clientname'] = jobheader.data().clientname;
             samplemap[job]['address'] = jobheader.data().address;
             samplemap[job]['type'] = jobheader.data().type;

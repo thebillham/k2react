@@ -132,12 +132,12 @@ class MainScreen extends React.Component {
     this.props.fetchTrainingPaths();
     this.props.fetchQuizzes();
     this.props.fetchMe();
-    this.props.fetchNotices();
+    // this.props.fetchNotices();
     // this.props.fetchWFM();
     this.props.fetchReadingLog();
     this.props.fetchMethodLog();
-    this.props.fetchTools();
-    this.props.fetchModules();
+    // this.props.fetchTools();
+    // this.props.fetchModules();
     this.props.fetchStaff();
     this.props.fetchDocuments();
   }
