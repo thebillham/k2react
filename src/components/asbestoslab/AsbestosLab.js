@@ -4,16 +4,17 @@ import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 import store from '../../store';
-import { asbestosSamplesRef } from '../../config/firebase';
+import { asbestosSamplesRef, jobsRef } from '../../config/firebase';
 import { ExpansionPanel, ExpansionPanelDetails, ExpansionPanelSummary,
   List, ListItem, ListItemIcon, ListItemText, CircularProgress, Button,
   ListItemSecondaryAction, Grid, Paper, TextField, IconButton } from '@material-ui/core';
-import { ExpandMore, CheckCircleOutline, Edit, Inbox, CameraAlt, Print } from '@material-ui/icons';
+import { ExpandMore, CheckCircleOutline, Edit, Inbox, CameraAlt, Print, Send } from '@material-ui/icons';
 import Popup from 'reactjs-popup';
 
 const mapStateToProps = state => {
   return {
     samples: state.local.samplesasbestos,
+    search: state.local.search,
    };
 };
 
@@ -74,40 +75,77 @@ class AsbestosLab extends React.Component {
 
   writeResult = result => {
     let detected = [];
+    if (result === undefined) return ('Not analysed');
     Object.keys(result).forEach(type => {
       if (result[type]) detected.push(type);
     });
     if (detected.length < 1) return ('Not analysed');
     if (detected[0] == 'no') return ('No asbestos detected');
     let asbestos = [];
+    if (result['ch']) asbestos.push('chrysotile');
+    if (result['am']) asbestos.push('amosite');
+    if (result['cr']) asbestos.push('crocidolite');
+    if (asbestos.length > 0) {
+      asbestos[asbestos.length - 1] = asbestos[asbestos.length - 1] + ' asbestos';
+    }
+    let str = '';
+    if (asbestos.length == 1) {
+      str = asbestos[0];
+    } else if (asbestos.length > 1) {
+      var last_element = asbestos.pop();
+      str = asbestos.join(', ') + ' and ' + last_element;
+    }
     detected.forEach(detect => {
-      if (detect == 'ch') asbestos.push('chrysotile');
-      if (detect == 'am') asbestos.push('amosite');
-      if (detect == 'cr') asbestos.push('crocidolite');
+      if (detect == 'umf') {
+        if (asbestos.length > 0) {
+          str = str + ' and unknown mineral fibres (UMF)';
+        } else {
+          str = 'unknown mineral fibres (UMF)';
+        }
+      }
     });
-    if (asbestos.length > 0) asbestos[asbestos.length] = asbestos[asbestos.length] + ' asbestos';
-    detected.forEach(detect => {
-      if (detect == 'umf') asbestos.push('unknown mineral fibres');
-    });
-    let str = asbestos.join(", ") + ' detected';
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    return str.charAt(0).toUpperCase() + str.slice(1) + ' detected';
+  }
+
+  issueLabReport = (job, version) => {
+    jobsRef.doc(job).set({ reportversion: version }, {merge: true});
+  }
+
+  onEdit = (target, uid) => {
+    this.setState({
+      [target.id]: target.value,
+    })
+  }
+
+  onSubmitEdit = uid => {
+    var change = {};
+    if (this.state.samplenumber) change['samplenumber'] = this.state.samplenumber;
+    if (this.state.description) change['description'] = this.state.description;
+    if (this.state.material) change['material'] = this.state.material;
+    if (Object.keys(change).length > 0) {
+      change['reported'] = false;
+      change['reportdate'] = null;
+      this.state.material = null;
+      this.state.description = null;
+      this.state.samplenumber = null;
+      asbestosSamplesRef.doc(uid).update(change);
+    }
   }
 
   printLabReport = job => {
-    let str = 'http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=';
     let samples = [];
     job.samples.forEach(sample => {
       if (sample.reported) {
         let samplemap = {};
         samplemap['no'] = sample.samplenumber;
-        samplemap['description'] = sample.description;
-        samplemap['material'] = sample.material;
+        samplemap['description'] = sample.description.charAt(0).toUpperCase() + sample.description.slice(1);
+        samplemap['material'] = sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
         samplemap['result'] = this.writeResult(sample.result);
         samples.push(samplemap);
       }
     })
     let report = {
-      jobNumber: job.jobNumber,
+      jobNumber: job.jobnumber,
       client: job.clientname,
       address: job.address,
       date: '7 November 2018',
@@ -117,10 +155,10 @@ class AsbestosLab extends React.Component {
       analysts: ['Ben Dodd'],
       samples: samples,
     }
-    str = str + JSON.stringify(report);
-    this.setState({
-      print: str,
-    })
+    let url = 'http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report);
+    this.setState({ url: url });
+    window.open(url);
+    // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
   }
 
   render() {
@@ -132,15 +170,33 @@ class AsbestosLab extends React.Component {
         { Object.keys(samples).length < 1 ?
         ( <CircularProgress />)
         :
-        (<div>{ Object.keys(samples).map(job => {
+        (<div>{ Object.keys(samples).filter(job => {
+          if (this.props.search) {
+            let terms = this.props.search.split(' ');
+            let search = job + ' ' + samples[job].clientname + ' ' + samples[job].address;
+            let result = true;
+            terms.forEach(term => {
+              if (!search.toLowerCase().includes(term.toLowerCase())) result = false;
+            });
+            return result;
+          } else {
+            return true;
+          }
+        }).map(job => {
           return (
             <ExpansionPanel key={job}>
               <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                <IconButton onClick={() => {this.printLabReport(samples[job])}} ><Print style={{ fontSize: 24, margin: 5, }} /></IconButton>
                 <b>{job}</b> {samples[job].clientname} ({samples[job].address})
               </ExpansionPanelSummary>
               <ExpansionPanelDetails>
                 <List>
+                <Button variant='outlined' onClick={() => {this.issueLabReport(samples[job].uid, samples[job].reportversion + 1)}}>
+                  <Send style={{ fontSize: 24, margin: 5, }} />
+                  Issue Version {samples[job].reportversion + 1}
+                </Button>
+                <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printLabReport(samples[job])}}>
+                  <Print style={{ fontSize: 24, margin: 5, }} /> Print Test Certificate
+                </Button>
                 { samples[job].samples.map(sample => {
                   let result = 'none';
                   if (sample.result && (sample.result['ch'] || sample.result['am'] || sample.result['cr'] || sample.result['umf'])) result = 'positive';
@@ -176,7 +232,7 @@ class AsbestosLab extends React.Component {
                   return(
                     <ListItem dense className={classes.hoverItem} key={sample.jobnumber+sample.samplenumber+sample.description}>
                       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '70vw'}}>
-                        <div style={{ width: '60vw', display: 'flex', flexDirection: 'row',
+                        <div style={{ width: '30vw', display: 'flex', flexDirection: 'row',
                           textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden',
                           alignItems: 'center', justifyContent: 'flex-start',}}>
                           <Popup
@@ -186,18 +242,18 @@ class AsbestosLab extends React.Component {
                             disabled={sample.path_remote == null}
                             >
                             { sample.path_remote &&
-                            <img src={sample.path_remote} width={400} />}
+                            <img src={sample.path_remote} width={200} />}
                           </Popup>
 
                           <Popup
                             trigger={<Edit style={{ fontSize: 24, margin: 10 }} />}
                             position="right center"
-                            closeOnDocumentClick
+                            onClose={() => this.onSubmitEdit(sample.uid)}
                             >
-                            <Paper>
-                              <TextField value={sample.samplenumber} />
-                              <TextField value={sample.description} />
-                              <TextField value={sample.material} />
+                            <Paper style={{ height: 200, width: 480, padding: 20, display: 'flex', flexDirection: 'column', }}>
+                              <TextField id='samplenumber' label='Sample number' defaultValue={sample.samplenumber} onChange={e => this.onEdit(e.target, sample.uid)} />
+                              <TextField id='description' label='Description' defaultValue={sample.description} onChange={e => this.onEdit(e.target, sample.uid)} />
+                              <TextField id='material' label='Material' defaultValue={sample.material} onChange={e => this.onEdit(e.target, sample.uid)} />
                             </Paper>
                           </Popup>
 

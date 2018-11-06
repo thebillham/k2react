@@ -134,10 +134,12 @@ export const fetchAsbestosSamples = () => async dispatch => {
         jobsRef.where("jobnumber", "==", job).limit(1)
         .get().then(doc => {
           doc.forEach(jobheader => {
+            samplemap[job]['uid'] = jobheader.id;
             samplemap[job]['jobnumber'] = job;
             samplemap[job]['clientname'] = jobheader.data().clientname;
             samplemap[job]['address'] = jobheader.data().address;
             samplemap[job]['type'] = jobheader.data().type;
+            samplemap[job]['reportversion'] = jobheader.data().reportversion ? jobheader.data().reportversion : 0;
           });
           dispatch({
             type: GET_ASBESTOS_SAMPLES,

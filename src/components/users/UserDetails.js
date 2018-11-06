@@ -252,7 +252,7 @@ class UserDetails extends React.Component {
                           </Grid>
                         </Grid>
                       </ListItem>
-                      <ListItem>
+                      {/*<ListItem>
                         <Grid container justify='space-between'>
                           <Grid item><Typography className={classes.note}><i>Certificate in Design</i><br/>2008</Typography></Grid>
                           <Grid item style={{display: 'flex', flexDirection: 'row'}}>
@@ -260,7 +260,7 @@ class UserDetails extends React.Component {
                             <IconButton><Delete className={classes.formIcon} /></IconButton>
                           </Grid>
                         </Grid>
-                      </ListItem>
+                      </ListItem>*/}
 
                       <ListItem>
                         <Grid container justify='space-between'>
