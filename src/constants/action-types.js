@@ -1,3 +1,5 @@
+// ACTION TYPES are saved as constants to avoid errors with typos and make debugging simpler.
+
 // Local
 export const AUTH_USER = "AUTH_USER";
 export const GET_STAFF = "GET_STAFF";
@@ -21,6 +23,7 @@ export const READ_NOTICE = "READ_NOTICE";
 export const FAV_NOTICE = "FAV_NOTICE";
 export const SET_STEPPER = "SET_STEPPER";
 export const GET_ASBESTOS_SAMPLES = "GET_ASBESTOS_SAMPLES";
+export const GET_HELP = "GET_HELP";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";
@@ -35,3 +38,7 @@ export const DELETE_TAG = "DELETE_TAG";
 
 
 // Const
+
+// Footprints
+export const MARK_FOOTPRINT = "MARK_FOOTPRINT";
+export const MARK_TIME = "MARK_TIME";

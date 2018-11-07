@@ -25,6 +25,7 @@ import TrainingIcon from '@material-ui/icons/School';
 import QuizIcon from '@material-ui/icons/ContactSupport';
 import ToolsIcon from '@material-ui/icons/Build';
 import LibraryIcon from '@material-ui/icons/Info';
+import HelpIcon from '@material-ui/icons/Help';
 
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
@@ -64,6 +65,9 @@ import DocumentViewer from './library/DocumentViewer';
 
 import Admin from './admin/Admin';
 import AdminConstants from './admin/AdminConstants';
+
+import Help from './help/Help';
+
 import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
 
@@ -126,20 +130,20 @@ class MainScreen extends React.Component {
   }
 
   componentWillMount() {
-    UploadtoFirebase();
-    QuestionsToFirebase();
-    this.props.fetchAsbestosSamples();
-    this.props.fetchTrainingPaths();
-    this.props.fetchQuizzes();
+    // UploadtoFirebase();
+    // QuestionsToFirebase();
+    // this.props.fetchAsbestosSamples();
+    // this.props.fetchTrainingPaths();
+    // this.props.fetchQuizzes();
     this.props.fetchMe();
     // this.props.fetchNotices();
     // this.props.fetchWFM();
-    this.props.fetchReadingLog();
-    this.props.fetchMethodLog();
+    // this.props.fetchReadingLog();
+    // this.props.fetchMethodLog();
     // this.props.fetchTools();
     // this.props.fetchModules();
     this.props.fetchStaff();
-    this.props.fetchDocuments();
+    // this.props.fetchDocuments();
   }
 
   handleGoogleMenuToggle = event => {
@@ -206,21 +210,21 @@ class MainScreen extends React.Component {
         </div>
         <Divider />
           <List>
-            <ListItem button component={Link} to="/dashboard" disabled>
+            {/*<ListItem button component={Link} to="/dashboard">
               <ListItemIcon>
                 <DashboardIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
 
-              <ListItem button component={Link} to="/noticeboard" disabled>
+              <ListItem button component={Link} to="/noticeboard">
                 <ListItemIcon>
                   <NoticeboardIcon className={classes.accentButton} />
                 </ListItemIcon>
                 <ListItemText primary="Noticeboard" />
               </ListItem>
 
-            <ListItem button component={Link} to="/jobs" disabled>
+            <ListItem button component={Link} to="/jobs">
               <ListItemIcon>
                 <JobsIcon className={classes.accentButton} />
               </ListItemIcon>
@@ -232,39 +236,39 @@ class MainScreen extends React.Component {
                 <LabIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Asbestos Lab" />
-            </ListItem>
+            </ListItem>*/}
 
             <ListItem button onClick={this.handleStaffClick} component={Link} to="/staff">
               <ListItemIcon>
                 <StaffIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Staff" />
-              {this.state.openStaff ? <ExpandLess /> : <ExpandMore /> }
+              {/*{this.state.openStaff ? <ExpandLess /> : <ExpandMore /> }*/}
             </ListItem>
-            <Collapse in={this.state.openStaff} timeout="auto" unmountOnExit>
+            {/*<Collapse in={this.state.openStaff} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
                 <ListItem button component={Link} to="/staff/training" className={classes.nested}>
                   <ListItemText primary="Training" className={classes.subitem} />
                 </ListItem>
-                  <ListItem button component={Link} to="/staff/jobs" className={classes.nested} disabled>
+                  <ListItem button component={Link} to="/staff/jobs" className={classes.nested}>
                   <ListItemText primary="Jobs" className={classes.subitem} />
                 </ListItem>
               </List>
-            </Collapse>
+            </Collapse>*/}
 
             <ListItem button onClick={this.handleMyDetailsClick} component={Link} to="/mydetails">
               <ListItemIcon>
                 <MyDetailsIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="My Details" />
-              {this.state.openMyDetails ? <ExpandLess /> : <ExpandMore /> }
+              {/*{this.state.openMyDetails ? <ExpandLess /> : <ExpandMore /> }*/}
             </ListItem>
-            <Collapse in={this.state.openMyDetails} timeout="auto" unmountOnExit>
+            {/*<Collapse in={this.state.openMyDetails} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
                 <ListItem button component={Link} to="/mydetails/training" className={classes.nested}>
                   <ListItemText primary="Training" className={classes.subitem} />
                 </ListItem>
-                <ListItem button component={Link} to="/mydetails/jobs" className={classes.nested} disabled>
+                <ListItem button component={Link} to="/mydetails/jobs" className={classes.nested}>
                   <ListItemText primary="Job History" className={classes.subitem} />
                 </ListItem>
                 <ListItem button component={Link} to="/mydetails/readinglog" className={classes.nested}>
@@ -278,7 +282,7 @@ class MainScreen extends React.Component {
                 <TrainingIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Training" />
-               {/*this.state.openTraining ? <ExpandLess /> : <ExpandMore /> }*/}
+               { this.state.openTraining ? <ExpandLess /> : <ExpandMore /> }
             </ListItem>
             {/*<Collapse in={this.state.openTraining} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
@@ -288,14 +292,14 @@ class MainScreen extends React.Component {
               </List>
             </Collapse>*/}
 
-            <ListItem button component={Link} to="/quizzes">
+            {/*<ListItem button component={Link} to="/quizzes">
               <ListItemIcon>
                 <QuizIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Quizzes" />
             </ListItem>
 
-            <ListItem button component={Link} to="/tools" disabled>
+            <ListItem button component={Link} to="/tools">
               <ListItemIcon>
                 <ToolsIcon className={classes.accentButton} />
               </ListItemIcon>
@@ -307,9 +311,17 @@ class MainScreen extends React.Component {
                 <LibraryIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Library" />
-            </ListItem>
+            </ListItem>*/}
           </List>
         <Divider />
+          <List>
+          <ListItem button component={Link} to="/help">
+            <ListItemIcon>
+              <HelpIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="Help" />
+          </ListItem>
+          </List>
       </Drawer>
     )
 
@@ -365,6 +377,7 @@ class MainScreen extends React.Component {
                   <Route path="/tools" render={() => <div>Tools</div>} />
                   <Route path="/library" render={() => <div>Library</div>} />
                   <Route path="/document" render={() => <div>Document Viewer</div>} />
+                  <Route path="/help" render={() => <div>Help</div>} />
                 </Switch>
               </Typography>
               <Route path="/(library|training/modules|lab|tools|noticeboard)" render={() =>
@@ -399,7 +412,11 @@ class MainScreen extends React.Component {
                 open={Boolean(anchorEl)}
                 onClose={this.handleGoogleMenuClose}
                 >
-                <MenuItem onClick={auth.signOut}>Logout {auth.currentUser.displayName}</MenuItem>
+                <MenuItem onClick={() => {
+                  auth.signOut().then(() => {
+                    this.props.history.push("/");
+                  });
+                }}>Logout {auth.currentUser.displayName}</MenuItem>
               </Menu>
             </Toolbar>
           </AppBar>
@@ -435,6 +452,7 @@ class MainScreen extends React.Component {
               <Route path="/document/:uid" component={DocumentViewer} />
               <Route exact path="/admin" component={Admin} />
               <Route path="/admin/constants" component={AdminConstants} />
+              <Route path="/help" component={Help} />
               <Route component={Dashboard} />
               {/* <Route component={NoMatch} /> */}
             </Switch>

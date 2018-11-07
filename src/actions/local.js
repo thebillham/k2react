@@ -18,11 +18,12 @@ import { GET_STAFF,
         FAV_NOTICE,
         SET_STEPPER,
         GET_ASBESTOS_SAMPLES,
+        GET_HELP,
       } from "../constants/action-types";
 import { auth } from '../config/firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
 import { usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
-    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef } from "../config/firebase";
+    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 // import { convert } from 'xml-js';
 
@@ -214,6 +215,20 @@ export const fetchReadingLog = () => async dispatch => {
       dispatch({
         type: GET_READINGLOG,
         payload: logs
+      });
+    });
+};
+
+export const fetchHelp = () => async dispatch => {
+  helpRef.orderBy('date','desc')
+    .onSnapshot(querySnapshot => {
+      var helps = [];
+      querySnapshot.forEach(doc => {
+        helps.push(doc.data());
+      });
+      dispatch({
+        type: GET_HELP,
+        payload: helps,
       });
     });
 };

@@ -9,12 +9,17 @@ const KeyCodes = {
 
 const constInit = {
   jobdescriptions: [
+    'Administration Manager',
+    'Asbestos Administrator',
     'Environmental Scientist',
     'Environmental Technician',
+    'Lab Manager',
     'Lab Technician',
-    'Technical Writer',
     'Managing Director',
+    'Occupational Hygienist',
+    'Operations Administrator',
     'Operations Manager',
+    'Technical Writer',
   ],
   quiztags: [
     'asbestos',

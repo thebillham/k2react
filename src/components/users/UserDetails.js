@@ -46,18 +46,22 @@ class UserDetails extends React.Component {
   }
 
   displayTimeAtK2 = () => {
-    var timeAtK2 = new Date() - new Date(this.state.user.startdate);
-    var divideBy = {
-      d: 86400000,
-      m: 2629800000,
-      y: 31557600000,
-    };
-    var years = Math.floor(timeAtK2/divideBy['y']);
-    timeAtK2 = timeAtK2 % divideBy['y'];
-    var months = Math.floor(timeAtK2/divideBy['m']);
-    timeAtK2 = timeAtK2 % divideBy['m'];
-    var days = Math.floor(timeAtK2/divideBy['d']);
-    return (years + ' years, ' + months + ' months and ' + days + ' days');
+    if (this.state.user.startdate) {
+      var timeAtK2 = new Date() - new Date(this.state.user.startdate);
+      var divideBy = {
+        d: 86400000,
+        m: 2629800000,
+        y: 31557600000,
+      };
+      var years = Math.floor(timeAtK2/divideBy['y']);
+      timeAtK2 = timeAtK2 % divideBy['y'];
+      var months = Math.floor(timeAtK2/divideBy['m']);
+      timeAtK2 = timeAtK2 % divideBy['m'];
+      var days = Math.floor(timeAtK2/divideBy['d']);
+      return (years + ' years, ' + months + ' months and ' + days + ' days');
+    } else {
+      return ('No start date set')
+    }
   }
 
   render() {
@@ -65,9 +69,9 @@ class UserDetails extends React.Component {
     const { user } = this.state;
 
     return (
-      <div>
-        <Grid container justify='space-evenly' className={classes.container} spacing={16}>
-          <Grid item xs={5}>
+      <div style={{ marginTop: 80, }}>
+        <Grid container direction='row' justify='flex-start' alignItems='flex-start' spacing={16}>
+          <Grid item xl={5} lg={6} md={12}>
             <Card className={classes.card}>
               <CardHeader
                 style={{ background: '#ff5733'}}
@@ -87,7 +91,7 @@ class UserDetails extends React.Component {
                     <div>
                       <ListItem>
                         <TextField
-                          label="Name"
+                          label="Preferred Name"
                           id="name"
                           className={classes.textField}
                           value={user.name}
@@ -134,7 +138,7 @@ class UserDetails extends React.Component {
                       </ListItem>
                       <ListItem>
                         <TextField
-                          label="Start Date"
+                          label="Start Date At K2"
                           id="startdate"
                           type="date"
                           className={classes.textField}
@@ -184,7 +188,7 @@ class UserDetails extends React.Component {
                         />
                       </ListItem>
                       <ListItem>
-                        <Typography className={classes.labels}>Personal Information</Typography>
+                        <Typography className={classes.labels}>Personal Contact Information</Typography>
                       </ListItem>
                       <ListItem>
                         <TextField
@@ -214,7 +218,7 @@ class UserDetails extends React.Component {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={5}>
+          <Grid item xl={5} lg={6} md={12}>
             <Card className={classes.card}>
               <CardHeader
                 style={{ background: '#ff5733'}}
@@ -353,7 +357,7 @@ class UserDetails extends React.Component {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xl={2} lg={6} md={12}>
             <Grid container direction='column' spacing={16}>
               <Grid item>
                 <Card className={classes.card}>
@@ -380,6 +384,176 @@ class UserDetails extends React.Component {
                 </Card>
               </Grid>
             </Grid>
+          </Grid>
+          <Grid item xl={5} lg={6} md={12}>
+            <Card className={classes.card}>
+              <CardHeader
+                style={{ background: '#ff5733'}}
+                title={
+                  <Typography className={classes.cardHeaderType} color="textSecondary">
+                    Emergency Contacts
+                  </Typography>
+                }
+              />
+              <CardContent>
+                <List>
+                  { this.state.isLoading ?
+                    <div>
+                      <CircularProgress />
+                    </div>
+                  :
+                    <div>
+                      <ListItem>
+                        <Typography className={classes.labels}>Primary Emergency Contact</Typography>
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Name"
+                          id="emergencyprimaryname"
+                          className={classes.textField}
+                          value={user.emergencyprimaryname}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Relation"
+                          id="emergencyprimaryrelation"
+                          className={classes.textField}
+                          value={user.emergencyprimaryrelation}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Home Phone"
+                          id="emergencyprimaryhomephone"
+                          className={classes.textField}
+                          value={user.emergencyprimaryhomephone}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Work Phone"
+                          id="emergencyprimaryworkphone"
+                          className={classes.textField}
+                          value={user.emergencyprimaryworkphone}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Mobile"
+                          id="emergencyprimarymobile"
+                          className={classes.textField}
+                          value={user.emergencyprimarymobile}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Email"
+                          id="emergencyprimaryemail"
+                          className={classes.textField}
+                          value={user.emergencyprimaryemail}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Home Address"
+                          id="emergencyprimaryhomeaddress"
+                          className={classes.textField}
+                          value={user.emergencyprimaryhomeaddress}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <Typography className={classes.labels}>Secondary Emergency Contact</Typography>
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Name"
+                          id="emergencysecondaryname"
+                          className={classes.textField}
+                          value={user.emergencysecondaryname}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Relation"
+                          id="emergencysecondaryrelation"
+                          className={classes.textField}
+                          value={user.emergencysecondaryrelation}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Home Phone"
+                          id="emergencysecondaryhomephone"
+                          className={classes.textField}
+                          value={user.emergencysecondaryhomephone}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Work Phone"
+                          id="emergencysecondaryworkphone"
+                          className={classes.textField}
+                          value={user.emergencysecondaryworkphone}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Mobile"
+                          id="emergencyprimarymobile"
+                          className={classes.textField}
+                          value={user.emergencysecondarymobile}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Email"
+                          id="emergencyprimaryemail"
+                          className={classes.textField}
+                          value={user.emergencysecondaryemail}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Home Address"
+                          id="emergencyprimaryhomeaddress"
+                          className={classes.textField}
+                          value={user.emergencysecondaryhomeaddress}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                    </div>
+                  }
+                </List>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </div>
