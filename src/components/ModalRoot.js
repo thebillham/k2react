@@ -1,7 +1,7 @@
 import DocumentModal from ./Document;
 
 const MODAL_COMPONENTS = {
-  'DOCUMENT': DocumentModal,
+  'DOCUMENT': DocumentModal,'
 }
 
 const ModalRoot = ({ modalType, modalProps }) => {

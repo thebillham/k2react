@@ -19,6 +19,7 @@ import {
           SET_STEPPER,
           GET_ASBESTOS_SAMPLES,
           GET_HELP,
+          RESET_LOCAL,
         } from "../constants/action-types"
 
 const localInit = {
@@ -47,6 +48,8 @@ const localInit = {
 // Properties related to local data retrieved from firebase
 export default function localReducer(state = localInit, action) {
   switch (action.type) {
+    case RESET_LOCAL:
+      return localInit;
     case GET_STAFF:
       return { ...state, staff: action.payload };
     case GET_DOCUMENTS:

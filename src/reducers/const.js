@@ -8,6 +8,70 @@ const KeyCodes = {
 };
 
 const constInit = {
+  qualificationtypes: [
+    {
+      name: 'Asbestos Awareness Training',
+      expiry: true,
+      issuer: true,
+    },
+    {
+      name: 'Asbestos Assessor',
+      id: false,
+      number: true,
+      expiry: true,
+      full: false,
+      abbrev: false,
+      issuer: false,
+      class: false,
+      unit: false,
+    },
+    {
+      name: 'Site Safe Course',
+      id: true,
+      expiry: true,
+      full: true,
+    },
+    {
+      name: 'NZQA Unit Standard',
+      expiry: true,
+      full: true,
+      issuer: true,
+      unit: true,
+    },
+    {
+      name: 'Inductions/Company Cards',
+      id: true,
+      expiry: true,
+      full: true,
+      issuer: true,
+    },
+    {
+      name: 'Tertiary',
+      full: true,
+      abbrev: true,
+      issuer: true,
+    },
+    {
+      name: 'Asbestos Exposure',
+      issuer: true,
+      notes: true,
+    },
+    {
+      name: 'Driver Licence',
+      number: true,
+      expiry: true,
+      class: true,
+    },
+    {
+      name: 'EWP',
+      number: true,
+      expiry: true,
+      issuer: true,
+    },
+    {
+      name: 'IP402',
+    },
+  ],
   jobdescriptions: [
     'Administration Manager',
     'Asbestos Administrator',

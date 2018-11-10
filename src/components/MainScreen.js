@@ -8,11 +8,12 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../config/styles';
+import img_Logo from '../images/logo.png';
 
 // Material UI
 import { CssBaseline, Collapse, Drawer, AppBar, Toolbar, List, ListItem,
   ListItemIcon, ListItemText, Typography, Divider, IconButton, Avatar,
-  Button, MenuItem, Menu, InputBase, } from '@material-ui/core';
+  Button, MenuItem, Menu, InputBase, LinearProgress, CircularProgress } from '@material-ui/core';
 
 // Icons
 import DashboardIcon from '@material-ui/icons/Dashboard';
@@ -73,9 +74,10 @@ import { onSearchChange, onCatChange } from '../actions/local';
 
 import { fetchStaff, fetchDocuments, editUser, getUser, fetchWFM,
   fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMethodLog,
-  fetchMe, fetchQuizzes, fetchTrainingPaths, fetchAsbestosSamples,  } from '../actions/local';
+  fetchMe, fetchQuizzes, fetchTrainingPaths, fetchAsbestosSamples, resetLocal  } from '../actions/local';
 import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmit,
-  handleTagAddition, handleTagDelete, } from '../actions/modal';
+  handleTagAddition, handleTagDelete, resetModal } from '../actions/modal';
+import { resetDisplay } from '../actions/display';
 import { DragDropContext } from 'react-beautiful-dnd';
 import UploadtoFirebase from './training/Path';
 import QuestionsToFirebase from './quizzes/Questions';
@@ -109,9 +111,12 @@ const mapDispatchToProps = dispatch => {
     onUploadFile: ({file, pathRef}) => dispatch(onUploadFile(file, pathRef)),
     handleModalChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: pathRef => dispatch(handleModalSubmit(pathRef)),
-
     handleTagAddition: addedTag => dispatch(handleTagAddition(addedTag)),
     handleTagDelete: removedTag => dispatch(handleTagDelete(removedTag)),
+
+    resetLocal: () => dispatch(resetLocal()),
+    resetModal: () => dispatch(resetModal()),
+    resetDisplay: () => dispatch(resetDisplay()),
   };
 };
 
@@ -130,25 +135,34 @@ class MainScreen extends React.Component {
   }
 
   componentWillMount() {
+    this.props.fetchMe();
+    this.props.fetchStaff();
     // UploadtoFirebase();
     // QuestionsToFirebase();
     // this.props.fetchAsbestosSamples();
     // this.props.fetchTrainingPaths();
     // this.props.fetchQuizzes();
-    this.props.fetchMe();
     // this.props.fetchNotices();
     // this.props.fetchWFM();
     // this.props.fetchReadingLog();
     // this.props.fetchMethodLog();
     // this.props.fetchTools();
     // this.props.fetchModules();
-    this.props.fetchStaff();
     // this.props.fetchDocuments();
   }
 
+  handleLogOut = () => {
+    auth.signOut().then(() => {
+      this.props.resetDisplay();
+      this.props.resetLocal();
+      this.props.resetModal();
+      this.props.history.push("/");
+    });
+  };
+
   handleGoogleMenuToggle = event => {
     this.setState({ anchorEl: event.currentTarget });
-  }
+  };
 
   handleGoogleMenuClose = event => {
     this.setState({ anchorEl: null });
@@ -193,6 +207,13 @@ class MainScreen extends React.Component {
   render() {
     const { classes } = this.props;
     const { anchorEl } = this.state;
+
+    let displayName;
+    if (auth.currentUser) {
+      displayName = auth.currentUser.displayName;
+    } else {
+      displayName = '';
+    }
 
     // Edit navigation drawer here
     const drawer = (
@@ -327,137 +348,177 @@ class MainScreen extends React.Component {
 
     return (
       <React.Fragment>
-        <CssBaseline />
-        <div className={classes.root}>
-          <AppBar
-            position="absolute"
-            className={classNames(classes.appBar, this.state.openDrawer && classes.appBarShift)}
-            >
-            <Toolbar variant="dense" disableGutters={!this.state.openDrawer} className={classes.toolbar}>
-              <IconButton
-                color="inherit"
-                aria-label="openDrawer drawer"
-                onClick={this.handleDrawerOpen}
-                className={classNames(
-                  classes.menuButton,
-                  this.state.openDrawer && classes.menuButtonHidden,
-                )}
-              >
-                <MenuIcon />
-              </IconButton>
-              <IconButton
-                color="inherit"
-                onClick={ () => this.props.history.goBack() }
-                className={classes.menuButton}
-                >
-                <BackIcon />
-              </IconButton>
-              {/* Toolbar heading and breadcrumbs go here */}
-              <Typography variant="title" color='inherit' noWrap className={classes.title}>
-                <Switch>
-                  <Route exact path="/" render={() => <div>My Details</div>} />
-                  <Route path="/dashboard" render={() => <div>Dashboard</div>} />
-                  <Route path="/noticeboard" render={() => <div>Noticeboard</div>} />
-                  <Route path="/jobs" render={() => <div>Jobs</div>} />
-                  <Route path="/lab" render={() => <div>Asbestos Lab</div>} />
-                  <Route exact path="/staff" render={() => <div>Staff</div>} />
-                  <Route path="/staff/details" render={() => <div>Staff Details</div>} />
-                  <Route exact path="/staff/jobs" render={() => <div>Staff Jobs</div>} />
-                  <Route exact path="/staff/training" render={() => <div>Staff Training</div>} />
-                  <Route exact path="/mydetails" render={() => <div>My Details</div>} />
-                  <Route exact path="/mydetails/training" render={() => <div>My Training</div>} />
-                  <Route exact path="/mydetails/jobs" render={() => <div>My Job History</div>} />
-                  <Route exact path="/mydetails/readinglog" render={() => <div>My Reading Log</div>} />
-                  <Route exact path="/mydetails/preferences" render={() => <div>App Preferences</div>} />
-                  <Route path="/training" render={() => <div>Training</div>} />
-                  <Route exact path="/training/modules" render={() => <div>Training Modules</div>} />
-                  <Route path="/method" render={() => <div>Method</div>} />
-                  <Route path="/quizzes" render={() => <div>Quizzes</div>} />
-                  <Route path="/quiz/" render={() => <div>Quiz</div>} />
-                  <Route path="/tools" render={() => <div>Tools</div>} />
-                  <Route path="/library" render={() => <div>Library</div>} />
-                  <Route path="/document" render={() => <div>Document Viewer</div>} />
-                  <Route path="/help" render={() => <div>Help</div>} />
-                </Switch>
-              </Typography>
-              <Route path="/(library|training/modules|lab|tools|noticeboard)" render={() =>
-                <div className={classes.search}>
-                  <div className={classes.searchIcon}>
-                    <SearchIcon />
-                  </div>
-                  <InputBase
-                    value={this.props.search}
-                    onChange={e => {
-                      store.dispatch(onSearchChange(e.target.value));
-                      if (e.target.value !== null) { store.dispatch(onCatChange(null)); }
-                    }}
-                    placeholder="Search…"
-                    classes={{
-                      root: classes.inputRoot,
-                      input: classes.inputInput,
-                    }}
-                  />
+        { this.props.state.display.initialLoading ?
+          (
+            <div className="AppScreen K2SignInScreen">
+              <div className="background">
+                <div className='appBg containerMinHeight elBackground' style={{ backgroundColor: '#f6f6f6', pointerEvents: 'none', }}>
+                  <div style={{ width: '100%', height: '100%' }} />
                 </div>
-              } />
-              <Button
-                aria-owns={ anchorEl ? 'google-menu' : null}
-                aria-haspopup="true"
-                onClick={this.handleGoogleMenuToggle}
-                >
-                <Avatar alt={auth.currentUser.displayName} src={auth.currentUser.photoURL} className={classes.avatar} />
-              </Button>
-              <Menu
-                id="google-menu"
-                anchorEl={ anchorEl }
-                open={Boolean(anchorEl)}
-                onClose={this.handleGoogleMenuClose}
-                >
-                <MenuItem onClick={() => {
-                  auth.signOut().then(() => {
-                    this.props.history.push("/");
-                  });
-                }}>Logout {auth.currentUser.displayName}</MenuItem>
-              </Menu>
-            </Toolbar>
-          </AppBar>
-          {drawer}
-          <main className={classes.content}>
-            {/* All locations are matched to their components here */}
-            <Switch>
-              <Route exact path="/" component={UserDetails} key="mydetails" />
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/noticeboard" component={Noticeboard} />
-              <Route path="/jobs" component={Jobs} />
-              <Route path="/lab" component={AsbestosLab} />
-              <Route exact path="/staff" component={Staff} />
-              <Route exact path="/staff/jobs" component={StaffJobs} />
-              <Route exact path="/staff/training" component={StaffTraining} />
-              <Route exact path="/staff/details/:user" component={UserDetails} key="staffdetails" />
-              <Route exact path="/staff/training/:user" component={UserTraining} key="stafftraining" />
-              <Route exact path="/staff/readinglog/:user" component={UserReadingLog} key="staffreadinglog" />
-              <Route exact path="/mydetails" component={UserDetails} key="mydetails" />
-              <Route exact path="/mydetails/training" component={UserTraining} key="mytraining" />
-              {/* <Route exact path="/mydetails/jobs" component={UserJobs} key="myjobs" /> */}
-              <Route exact path="/mydetails/readinglog" component={UserReadingLog} key="myreadinglog" />
-              <Route exact path="/mydetails/preferences" component={AppPreferences} />
-              <Route exact path="/training" component={Training} />
-              <Route exact path="/training/modules" component={TrainingModules} />
-              <Route path="/training/:uid" component={TrainingPath} />
-              <Route path="/training/:module/:stage" component={TrainingModule} />
-              <Route path="/method/:uid" component={Method} />
-              <Route exact path="/quizzes" component={Quizzes} />
-              <Route path="/quiz/:quiz" component={Quiz} />
-              <Route path="/tools" component={Tools} />
-              <Route path="/library" component={Library} />
-              <Route path="/document/:uid" component={DocumentViewer} />
-              <Route exact path="/admin" component={Admin} />
-              <Route path="/admin/constants" component={AdminConstants} />
-              <Route path="/help" component={Help} />
-              <Route component={Dashboard} />
-              {/* <Route component={NoMatch} /> */}
-            </Switch>
-          </main>
-        </div>
+              </div>
+              <div className="screenFgContainer">
+                <div className="foreground">
+                  <img className="elImage" src={img_Logo} alt=""  />
+                  <CircularProgress className="elCircular" size={200} />
+                </div>
+              </div>
+            </div>
+          )
+          :
+          (
+            <div>
+              <CssBaseline />
+              {
+                (this.props.state.local.me.gmail == auth.currentUser.email) ?
+                  <div className={classes.root}>
+                    <AppBar
+                      position="absolute"
+                      className={classNames(classes.appBar, this.state.openDrawer && classes.appBarShift)}
+                      >
+                      <Toolbar variant="dense" disableGutters={!this.state.openDrawer} className={classes.toolbar}>
+                        <IconButton
+                          color="inherit"
+                          aria-label="openDrawer drawer"
+                          onClick={this.handleDrawerOpen}
+                          className={classNames(
+                            classes.menuButton,
+                            this.state.openDrawer && classes.menuButtonHidden,
+                          )}
+                        >
+                          <MenuIcon />
+                        </IconButton>
+                        <IconButton
+                          color="inherit"
+                          onClick={ () => this.props.history.goBack() }
+                          className={classes.menuButton}
+                          >
+                          <BackIcon />
+                        </IconButton>
+                        {/* Toolbar heading and breadcrumbs go here */}
+                        <Typography variant="h6" color='inherit' noWrap className={classes.title}>
+                          <Switch>
+                            <Route exact path="/" render={() => <div>My Details</div>} />
+                            <Route path="/dashboard" render={() => <div>Dashboard</div>} />
+                            <Route path="/noticeboard" render={() => <div>Noticeboard</div>} />
+                            <Route path="/jobs" render={() => <div>Jobs</div>} />
+                            <Route path="/lab" render={() => <div>Asbestos Lab</div>} />
+                            <Route exact path="/staff" render={() => <div>Staff</div>} />
+                            <Route path="/staff/details" render={() => <div>Staff Details</div>} />
+                            <Route exact path="/staff/jobs" render={() => <div>Staff Jobs</div>} />
+                            <Route exact path="/staff/training" render={() => <div>Staff Training</div>} />
+                            <Route exact path="/mydetails" render={() => <div>My Details</div>} />
+                            <Route exact path="/mydetails/training" render={() => <div>My Training</div>} />
+                            <Route exact path="/mydetails/jobs" render={() => <div>My Job History</div>} />
+                            <Route exact path="/mydetails/readinglog" render={() => <div>My Reading Log</div>} />
+                            <Route exact path="/mydetails/preferences" render={() => <div>App Preferences</div>} />
+                            <Route path="/training" render={() => <div>Training</div>} />
+                            <Route exact path="/training/modules" render={() => <div>Training Modules</div>} />
+                            <Route path="/method" render={() => <div>Method</div>} />
+                            <Route path="/quizzes" render={() => <div>Quizzes</div>} />
+                            <Route path="/quiz/" render={() => <div>Quiz</div>} />
+                            <Route path="/tools" render={() => <div>Tools</div>} />
+                            <Route path="/library" render={() => <div>Library</div>} />
+                            <Route path="/document" render={() => <div>Document Viewer</div>} />
+                            <Route path="/help" render={() => <div>Help</div>} />
+                          </Switch>
+                        </Typography>
+                        <Route path="/(library|training/modules|lab|tools|noticeboard)" render={() =>
+                          <div className={classes.search}>
+                            <div className={classes.searchIcon}>
+                              <SearchIcon />
+                            </div>
+                            <InputBase
+                              value={this.props.search}
+                              onChange={e => {
+                                store.dispatch(onSearchChange(e.target.value));
+                                if (e.target.value !== null) { store.dispatch(onCatChange(null)); }
+                              }}
+                              placeholder="Search…"
+                              classes={{
+                                root: classes.inputRoot,
+                                input: classes.inputInput,
+                              }}
+                            />
+                          </div>
+                        } />
+                        <Button
+                          aria-owns={ anchorEl ? 'google-menu' : null}
+                          aria-haspopup="true"
+                          onClick={this.handleGoogleMenuToggle}
+                          >
+                          <Avatar alt={auth.currentUser.displayName} src={auth.currentUser.photoURL} className={classes.avatar} />
+                        </Button>
+                        <Menu
+                          id="google-menu"
+                          anchorEl={ anchorEl }
+                          open={Boolean(anchorEl)}
+                          onClose={this.handleGoogleMenuClose}
+                          >
+                          <MenuItem onClick={this.handleLogOut}>Log Out { displayName }</MenuItem>
+                        </Menu>
+                      </Toolbar>
+                    </AppBar>
+                    {drawer}
+                    <main className={classes.content}>
+                      {/* All locations are matched to their components here */}
+                      <Switch>
+                        <Route exact path="/" component={UserDetails} key="mydetails" />
+                        <Route path="/dashboard" component={Dashboard} />
+                        <Route path="/noticeboard" component={Noticeboard} />
+                        <Route path="/jobs" component={Jobs} />
+                        <Route path="/lab" component={AsbestosLab} />
+                        <Route exact path="/staff" component={Staff} />
+                        <Route exact path="/staff/jobs" component={StaffJobs} />
+                        <Route exact path="/staff/training" component={StaffTraining} />
+                        <Route exact path="/staff/details/:user" component={UserDetails} key="staffdetails" />
+                        <Route exact path="/staff/training/:user" component={UserTraining} key="stafftraining" />
+                        <Route exact path="/staff/readinglog/:user" component={UserReadingLog} key="staffreadinglog" />
+                        <Route exact path="/mydetails" component={UserDetails} key="mydetails" />
+                        <Route exact path="/mydetails/training" component={UserTraining} key="mytraining" />
+                        {/* <Route exact path="/mydetails/jobs" component={UserJobs} key="myjobs" /> */}
+                        <Route exact path="/mydetails/readinglog" component={UserReadingLog} key="myreadinglog" />
+                        <Route exact path="/mydetails/preferences" component={AppPreferences} />
+                        <Route exact path="/training" component={Training} />
+                        <Route exact path="/training/modules" component={TrainingModules} />
+                        <Route path="/training/:uid" component={TrainingPath} />
+                        <Route path="/training/:module/:stage" component={TrainingModule} />
+                        <Route path="/method/:uid" component={Method} />
+                        <Route exact path="/quizzes" component={Quizzes} />
+                        <Route path="/quiz/:quiz" component={Quiz} />
+                        <Route path="/tools" component={Tools} />
+                        <Route path="/library" component={Library} />
+                        <Route path="/document/:uid" component={DocumentViewer} />
+                        <Route exact path="/admin" component={Admin} />
+                        <Route path="/admin/constants" component={AdminConstants} />
+                        <Route path="/help" component={Help} />
+                        <Route component={Dashboard} />
+                        {/* <Route component={NoMatch} /> */}
+                      </Switch>
+                    </main>
+                  </div>
+                :
+                  <div className="AppScreen K2SignInScreen">
+                    <div className="background">
+                      <div className='appBg containerMinHeight elBackground' style={{ backgroundColor: '#f6f6f6', pointerEvents: 'none', }}>
+                        <div style={{ width: '100%', height: '100%' }} />
+                      </div>
+                    </div>
+                    <div className="screenFgContainer">
+                      <div className="foreground">
+                        <img className="elImage" src={img_Logo} alt=""  />
+                        <div className="elFirebaseLogin">
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%'}}>
+                            <Button variant='outlined' onClick={this.handleLogOut}>Log Out { displayName }</Button>
+                            <div>You have not been authorised to view this site. Please wait for the <a href="mailto:ben@k2.co.nz">site admin</a> to create your account.</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              }
+            </div>
+          )
+        }
       </React.Fragment>
     );
   }

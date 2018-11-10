@@ -4,18 +4,29 @@ import { connect } from "react-redux";
 import { withStyles } from '@material-ui/core/styles';
 import { formStyles } from '../../config/styles';
 import { List, ListItem, TextField, Typography, InputLabel,
-  Select, FormControl, Input, Grid, CircularProgress, Card, CardHeader,
+  Select, FormControl, Input, Divider, Grid, CircularProgress, Card,
+  CardHeader, Checkbox, FormControlLabel,
   CardContent, IconButton } from '@material-ui/core';
 import { auth, usersRef } from '../../config/firebase';
-import { CloudUpload, Warning, Add, ExpandLess, ExpandMore, Edit, Delete } from '@material-ui/icons';
+import { CloudUpload, Warning, Add, ExpandLess, ExpandMore, Edit, Delete, AddPhotoAlternate } from '@material-ui/icons';
+import UserAttrModal from '../modals/UserAttrModal';
+import { USERATTR } from '../../constants/modal-types';
+import { showModal } from '../../actions/modal';
+import _ from 'lodash';
 
 const mapStateToProps = state => {
   return {
     staff: state.local.staff,
-    user: state.local.user,
+    user: state.local.me,
     userRef: state.local.userRef,
     offices: state.const.offices,
     jobdescriptions: state.const.jobdescriptions,
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    showModal: document => dispatch(showModal(document)),
   };
 };
 
@@ -23,26 +34,41 @@ class UserDetails extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      user: {},
       userPath: props.match.params.user ? props.match.params.user : auth.currentUser.uid,
-      isLoading: true,
+      isLoading: false,
+      change: {},
     }
-    this.onEditUser = this.onEditUser.bind(this);
+    this.onEditUser = _.debounce(this.onEditUser, 1000);
   }
 
-  onEditUser = target => {
-    var change = {};
+  onEditUser = (target, select) => {
+    let change = {}
     change[target.id] = target.value;
+    if (select) {
+      this.setState({
+        user: {
+          ...this.state.user,
+          ...change,
+        },
+      });
+    }
     usersRef.doc(this.state.userPath).update(change);
   }
 
   componentWillMount(){
-    usersRef.doc(this.state.userPath).onSnapshot((doc) => {
-      this.setState({
-        user: doc.data(),
-        isLoading: false
+    if (this.props.match.params.user) {
+      this.setState({ isLoading: true });
+      usersRef.doc(this.state.userPath).onSnapshot((doc) => {
+        this.setState({
+          user: doc.data(),
+          isLoading: false
+        });
       });
-    });
+    } else {
+      this.setState({
+        user: this.props.user,
+      });
+    }
   }
 
   displayTimeAtK2 = () => {
@@ -66,10 +92,11 @@ class UserDetails extends React.Component {
 
   render() {
     const { classes } = this.props;
-    const { user } = this.state;
+    var { user } = this.state;
 
     return (
       <div style={{ marginTop: 80, }}>
+        <UserAttrModal />
         <Grid container direction='row' justify='flex-start' alignItems='flex-start' spacing={16}>
           <Grid item xl={5} lg={6} md={12}>
             <Card className={classes.card}>
@@ -94,7 +121,7 @@ class UserDetails extends React.Component {
                           label="Preferred Name"
                           id="name"
                           className={classes.textField}
-                          value={user.name}
+                          defaultValue={user.name}
                           onChange={e => this.onEditUser(e.target)}
                           InputLabelProps = {{ shrink: true }}
                         />
@@ -107,7 +134,7 @@ class UserDetails extends React.Component {
                           <InputLabel>Job Description</InputLabel>
                           <Select
                             value={user.jobdescription}
-                            onChange={e => this.onEditUser({id: 'jobdescription', value: e.target.value})}
+                            onChange={e => this.onEditUser({id: 'jobdescription', value: e.target.value}, true)}
                             input={<Input name='jobdescription' id='jobdescription' />}
                           >
                             <option value='' />
@@ -124,7 +151,7 @@ class UserDetails extends React.Component {
                           <InputLabel>Office</InputLabel>
                           <Select
                             value={user.office}
-                            onChange={e => this.onEditUser({id: 'office', value: e.target.value})}
+                            onChange={e => this.onEditUser({id: 'office', value: e.target.value}, true)}
                             input={<Input name='office' id='office' />}
                           >
                             <option value='' />
@@ -142,13 +169,14 @@ class UserDetails extends React.Component {
                           id="startdate"
                           type="date"
                           className={classes.textField}
-                          value={user.startdate}
+                          defaultValue={user.startdate}
                           onChange={e => this.onEditUser(e.target)}
                           InputLabelProps = {{ shrink: true }}
                         />
                       </ListItem>
                       <ListItem>
                         <TextField
+                          disabled
                           label="Time At K2"
                           className={classes.textField}
                           value={this.displayTimeAtK2()}
@@ -162,7 +190,8 @@ class UserDetails extends React.Component {
                           label="Work Phone"
                           id="workphone"
                           className={classes.textField}
-                          value={user.workphone}
+                          type="tel"
+                          defaultValue={user.workphone}
                           onChange={e => this.onEditUser(e.target)}
                           InputLabelProps = {{ shrink: true }}
                         />
@@ -171,8 +200,9 @@ class UserDetails extends React.Component {
                         <TextField
                           label="K2 Email"
                           id="email"
+                          type="email"
                           className={classes.textField}
-                          value={user.email}
+                          defaultValue={user.email}
                           onChange={e => this.onEditUser(e.target)}
                           InputLabelProps = {{ shrink: true }}
                         />
@@ -181,8 +211,9 @@ class UserDetails extends React.Component {
                         <TextField
                           label="Gmail"
                           id="gmail"
+                          type="email"
                           className={classes.textField}
-                          value={user.gmail}
+                          defaultValue={user.gmail}
                           onChange={e => this.onEditUser(e.target)}
                           InputLabelProps = {{ shrink: true }}
                         />
@@ -194,8 +225,9 @@ class UserDetails extends React.Component {
                         <TextField
                           label="Personal Phone"
                           id="personalphone"
+                          type="tel"
                           className={classes.textField}
-                          value={user.personalphone}
+                          defaultValue={user.personalphone}
                           onChange={e => this.onEditUser(e.target)}
                           InputLabelProps = {{ shrink: true }}
                         />
@@ -207,7 +239,7 @@ class UserDetails extends React.Component {
                           multiline
                           rowsMax="4"
                           className={classes.textField}
-                          value={user.address}
+                          defaultValue={user.address}
                           onChange={e => this.onEditUser(e.target)}
                           InputLabelProps = {{ shrink: true }}
                         />
@@ -227,163 +259,127 @@ class UserDetails extends React.Component {
                     Qualifications
                   </Typography>
                 }
+                action={
+                  <IconButton onClick={() => { this.props.showModal(USERATTR)}}>
+                    <Add />
+                  </IconButton>
+                }
               />
               <CardContent>
                 <List>
-                  { this.state.isLoading ?
+                  { this.state.isLoading || !user ?
                     <div>
                       <CircularProgress />
                     </div>
                   :
                     <div>
+                      <UserAttrModal />
                       <ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item style={{display: 'flex', flexDirection: 'row'}}>
-                            <Typography className={classes.labels}>Tertiary Education</Typography>
-                            <IconButton><ExpandLess className={classes.formIcon} /></IconButton>
-                          </Grid>
-                          <Grid item style={{display: 'flex', flexDirection: 'row'}}>
-                            <IconButton><Add className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
+                        <Typography className={classes.labels}>Tertiary</Typography>
                       </ListItem>
                       <ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item><Typography className={classes.note}><b>BA</b> <i>Bachelor of Arts (Philosophy)</i><br/>2012</Typography></Grid>
-                          <Grid item style={{display: 'flex', flexDirection: 'row'}}>
-                            <IconButton><Edit className={classes.formIcon} /></IconButton>
-                            <IconButton><Delete className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
-                      </ListItem>
-                      {/*<ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item><Typography className={classes.note}><i>Certificate in Design</i><br/>2008</Typography></Grid>
-                          <Grid item style={{display: 'flex', flexDirection: 'row'}}>
-                            <IconButton><Edit className={classes.formIcon} /></IconButton>
-                            <IconButton><Delete className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
-                      </ListItem>*/}
-
-                      <ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item style={{display: 'flex', flexDirection: 'row'}}>
-                            <Typography className={classes.labels}>Health and Safety</Typography>
-                            <IconButton><ExpandLess className={classes.formIcon} /></IconButton>
-                          </Grid>
-                          <Grid item style={{display: 'flex', flexDirection: 'row'}}>
-                            <IconButton><Add className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
+                        <TextField
+                          label="Full (e.g. Bachelor of Science in Physics and Geology)"
+                          id="tertiarylong"
+                          className={classes.textField}
+                          defaultValue={user.tertiarylong}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
                       </ListItem>
                       <ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <Warning className={classes.warningIcon} />
-                            <Typography className={classes.note}><b>Mask Fit Test</b> 19 April 2016</Typography>
-                          </Grid>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <IconButton><Edit className={classes.formIcon} /></IconButton>
-                            <IconButton><Delete className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
+                        <TextField
+                          label="Abbreviation (e.g. BSc)"
+                          id="tertiary"
+                          className={classes.textField}
+                          defaultValue={user.tertiary}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <Divider />
+                      <ListItem>
+                        <Typography className={classes.labels}>Asbestos</Typography>
                       </ListItem>
                       <ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <Warning className={classes.warningIcon} />
-                            <Typography className={classes.note}><b>Site Safe Passport (ID 465670)</b><br /><b>Expires:</b>8 June 2017</Typography>
-                          </Grid>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <IconButton><Edit className={classes.formIcon} /></IconButton>
-                            <IconButton><Delete className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
-                      </ListItem>
-
-                      <ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <Typography className={classes.labels}>ID Cards</Typography>
-                            <IconButton><ExpandMore className={classes.formIcon} /></IconButton>
-                          </Grid>
-                          <Grid>
-                            <IconButton><Add className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
-                      </ListItem>
-
-                      <ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <Typography className={classes.labels}>Asbestos</Typography>
-                            <IconButton><ExpandLess className={classes.formIcon} /></IconButton>
-                          </Grid>
-                          <Grid>
-                            <IconButton><Add className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
+                        <TextField
+                          label="Asbestos Assessor Number"
+                          id="aanumber"
+                          className={classes.textField}
+                          defaultValue={user.aanumber}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
                       </ListItem>
                       <ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <Typography className={classes.note}><b>Asbestos Assessors License</b> 8 January 2018<br />AA161000161</Typography>
-                          </Grid>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <IconButton><Edit className={classes.formIcon} /></IconButton>
-                            <IconButton><Delete className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
+                        <TextField
+                          label="Asbestos Assessor Expiry"
+                          id="aaexpiry"
+                          type="date"
+                          className={classes.textField}
+                          defaultValue={user.aaexpiry}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
                       </ListItem>
                       <ListItem>
-                        <Grid container justify='space-between'>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <Typography className={classes.note}><b>IP402</b> 14 August 2018<br /></Typography>
-                          </Grid>
-                          <Grid item style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center',}}>
-                            <IconButton><Edit className={classes.formIcon} /></IconButton>
-                            <IconButton><Delete className={classes.formIcon} /></IconButton>
-                          </Grid>
-                        </Grid>
+                        <FormControlLabel
+                          style={{ marginLeft: 1, }}
+                          control={
+                            <Checkbox
+                              checked={user.ip402}
+                              onChange={e => this.onEditUser({id: 'ip402', value: e.target.checked}, true)}
+                              value='ip402'
+                            />
+                          }
+                          label="IP402"
+                        />
                       </ListItem>
-
-
-
-
+                      <ListItem>
+                        <TextField
+                          label="Mask Fit Expiry"
+                          id="maskfitexpiry"
+                          type="date"
+                          className={classes.textField}
+                          defaultValue={user.maskfitexpiry}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <Divider />
+                      <ListItem>
+                        <Typography className={classes.labels}>NZQA Unit Standards</Typography>
+                      </ListItem>
+                      <Divider />
+                      <ListItem>
+                        <Typography className={classes.labels}>Driver Licence</Typography>
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Driver Licence Class"
+                          id="driverlicenceclass"
+                          className={classes.textField}
+                          defaultValue={user.driverlicenceclass}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <TextField
+                          label="Driver Licence Expiry"
+                          id="driverlicenceexpiry"
+                          type="date"
+                          className={classes.textField}
+                          defaultValue={user.driverlicenceexpiry}
+                          onChange={e => this.onEditUser(e.target)}
+                          InputLabelProps = {{ shrink: true }}
+                        />
+                      </ListItem>
                     </div>
                   }
                 </List>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xl={2} lg={6} md={12}>
-            <Grid container direction='column' spacing={16}>
-              <Grid item>
-                <Card className={classes.card}>
-                  <CardHeader
-                    style={{ background: '#ff5733'}}
-                    title={
-                      <Typography className={classes.cardHeaderType} color="textSecondary">
-                        Signature
-                      </Typography>
-                    }
-                    action={
-                      <div>
-                        <IconButton><CloudUpload className={classes.dashboardIcon} /></IconButton>
-                      </div>
-                    }
-                  />
-                  <CardContent>
-                    <Grid container justify='center' >
-                      <Grid item>
-                        <img alt='signature' src="https://firebasestorage.googleapis.com/v0/b/k2flutter-f03a1.appspot.com/o/gop.png?alt=media&token=d4d0f0da-9057-4e8e-8397-50cd87af3e44" height="100" />
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
           </Grid>
           <Grid item xl={5} lg={6} md={12}>
             <Card className={classes.card}>
@@ -397,7 +393,7 @@ class UserDetails extends React.Component {
               />
               <CardContent>
                 <List>
-                  { this.state.isLoading ?
+                  { this.state.isLoading || !user ?
                     <div>
                       <CircularProgress />
                     </div>
@@ -561,4 +557,4 @@ class UserDetails extends React.Component {
   }
 }
 
-export default withStyles(formStyles)(connect(mapStateToProps, {pure: false})(UserDetails));
+export default withStyles(formStyles)(connect(mapStateToProps, mapDispatchToProps)(UserDetails));

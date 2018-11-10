@@ -59,7 +59,7 @@ const formStyles = theme => ({
 
   formIcon: {
     color: 'black',
-    fontSize: 14,
+    fontSize: 18,
   },
 
   warningIcon: {

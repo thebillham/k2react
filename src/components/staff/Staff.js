@@ -60,16 +60,20 @@ class Staff extends React.Component {
                 show: false,
               },
               {
-                accessor: 'email',
-                show: false,
-              },
-              {
-                accessor: 'gmail',
-                show: false,
-              },
-              {
                 Header: 'Name',
                 accessor: 'name',
+              },
+              {
+                Header: 'Email',
+                accessor: 'email',
+              },
+              {
+                Header: 'Gmail',
+                accessor: 'gmail',
+              },
+              {
+                Header: 'Mobile',
+                accessor: 'phone',
               },
               {
                 Header: 'Tertiary',

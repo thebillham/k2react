@@ -24,6 +24,7 @@ export const FAV_NOTICE = "FAV_NOTICE";
 export const SET_STEPPER = "SET_STEPPER";
 export const GET_ASBESTOS_SAMPLES = "GET_ASBESTOS_SAMPLES";
 export const GET_HELP = "GET_HELP";
+export const RESET_LOCAL = "RESET_LOCAL";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";
@@ -33,9 +34,11 @@ export const EDIT_MODAL_DOC = "EDIT_MODAL_DOC";
 
 export const ADD_TAG = "ADD_TAG";
 export const DELETE_TAG = "DELETE_TAG";
+export const RESET_MODAL = "RESET_MODAL";
 
 // Display
-
+export const APP_HAS_LOADED = "APP_HAS_LOADED";
+export const RESET_DISPLAY = "RESET_DISPLAY";
 
 // Const
 

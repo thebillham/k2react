@@ -19,20 +19,28 @@ import { GET_STAFF,
         SET_STEPPER,
         GET_ASBESTOS_SAMPLES,
         GET_HELP,
+        APP_HAS_LOADED,
+        RESET_LOCAL,
       } from "../constants/action-types";
 import { auth } from '../config/firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
 import { usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
     trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
-// import { convert } from 'xml-js';
+
+export const resetLocal = () => dispatch => {
+  dispatch({ type: RESET_LOCAL });
+}
 
 export const fetchMe = () => async dispatch => {
   auth.currentUser &&
   usersRef.doc(auth.currentUser.uid)
     .onSnapshot((doc) => {
-    dispatch({ type: GET_ME, payload: doc.data()});
-    dispatch({ type: AUTH_USER, payload: doc.data().auth });
+    if (doc.exists) {
+      dispatch({ type: GET_ME, payload: doc.data()});
+      dispatch({ type: AUTH_USER, payload: doc.data().auth });
+    }
+    dispatch({ type: APP_HAS_LOADED });
   });
 };
 

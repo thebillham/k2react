@@ -295,14 +295,14 @@
   .K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
     position: absolute;
     left: calc(50.0% + -158px);
-    top: 274px;
+    top: 374px;
     width: 317px;
     height: 91px;
   }
 @media (min-width: 568px) {
   .K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
     left: calc(50.0% + -158px);
-    top: 150px;
+    top: 374px;
     width: 317px;
     height: 91px;
   }
@@ -310,7 +310,7 @@
 @media (min-width: 768px) {
   .K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
     left: calc(50.0% + -158px);
-    top: 502px;
+    top: 374px;
     width: 315px;
     height: 90px;
   }
@@ -329,31 +329,14 @@
   .K2SignInScreen > .screenFgContainer > .foreground > .elImage {
     position: absolute;
     left: calc(50.0% + -68px);
-    top: 127px;
-    width: 136px;
-    height: 136px;
-  }
-@media (min-width: 568px) {
-  .K2SignInScreen > .screenFgContainer > .foreground > .elImage {
-    left: calc(50.0% + -68px);
-    top: 3px;
-    width: 136px;
-    height: 136px;
-  }
-}
-@media (min-width: 768px) {
-  .K2SignInScreen > .screenFgContainer > .foreground > .elImage {
-    left: calc(50.0% + -68px);
-    top: 356px;
-    width: 136px;
-    height: 136px;
-  }
-}
-@media (min-width: 1024px) {
-  .K2SignInScreen > .screenFgContainer > .foreground > .elImage {
-    left: calc(50.0% + -68px);
     top: 228px;
     width: 136px;
     height: 136px;
   }
-}
+
+/* Narrowest size for this element's responsive layout */
+  .K2SignInScreen > .screenFgContainer > .foreground > .elCircular {
+    position: absolute;
+    left: calc(50.0% + -102px);
+    top: 194px;
+  }

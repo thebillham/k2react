@@ -5,6 +5,7 @@ import {
           EDIT_MODAL_DOC,
           ADD_TAG,
           DELETE_TAG,
+          RESET_MODAL,
         } from "../constants/action-types"
 
 export const modalInit = {
@@ -20,6 +21,8 @@ export const modalInit = {
 // All properties related to dialog boxes etc.
 export default function modalReducer(state = modalInit, action){
   switch (action.type) {
+    case RESET_MODAL:
+      return modalInit;
     case SHOW_MODAL:
       return {
         modalProps: {
