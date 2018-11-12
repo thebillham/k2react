@@ -6,7 +6,7 @@ import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 import store from '../../store';
 import { USERATTR } from '../../constants/modal-types';
-import { docsRef } from '../../config/firebase';
+import { usersRef } from '../../config/firebase';
 import '../../config/tags.css';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, FormGroup, TextField,
@@ -17,6 +17,7 @@ import {
   hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,
   handleTagAddition,
 } from '../../actions/modal';
+import _ from 'lodash';
 
 const mapStateToProps = state => {
   return {
@@ -34,95 +35,138 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     hideModal: () => dispatch(hideModal()),
-    onUploadFile: ({file, pathRef}) => dispatch(onUploadFile(file, pathRef)),
-    handleModalChange: target => dispatch(handleModalChange(target)),
+    onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
+    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 1000),
+    handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: pathRef => dispatch(handleModalSubmit(pathRef)),
   };
 };
 
 class UserAttrModal extends React.Component {
-  constructor(props){
-    super(props);
-
-    this.state = {
-      type: '',
-    }
-  }
-
-  onSelectType = value => {
-    this.setState({
-      type: value,
-    });
-  }
-
   render() {
+    const { modalProps, doc, classes } = this.props;
     return(
       <Dialog
         open={ this.props.modalType === USERATTR }
         onClose = {() => this.props.hideModal}
         >
-        <DialogTitle>Add New Qualification</DialogTitle>
+        <DialogTitle>Add New</DialogTitle>
         <DialogContent>
           <form>
             <FormGroup>
-              <FormControl>
+              <FormControl className={classes.dialogField}>
                 <InputLabel>Qualification Type</InputLabel>
                 <Select
-                  onChange={e => this.onSelectType(e.target.value)}
+                  onChange={e => this.props.handleSelectChange({id: 'type', value: e.target.value})}
+                  value={doc.type}
                   input={<Input name='qualificationtypes' id='qualificationtypes' />}
                 >
-                  <option value='' />
-                  { this.props.qualificationtypes && Object.keys(this.props.qualificationtypes).map((type) => {
+                  { this.props.qualificationtypes && Object.keys(this.props.qualificationtypes).map((key) => {
                     return(
-                      <option key={type} value={type}>{type}</option>
+                      <option key={key} value={key}>{this.props.qualificationtypes[key].name}</option>
                     );
                   })}
                 </Select>
               </FormControl>
+              { this.props.qualificationtypes[doc.type].id &&
               <TextField
-                id="title"
-                label="Title"
-                value={this.props.doc && this.props.doc.title}
-                className={this.props.classes.dialogField}
+                id="id"
+                label="ID Number"
+                defaultValue={doc && doc.id}
+                className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange(e.target)}}
-              />
+              />}
+
+              { this.props.qualificationtypes[doc.type].full &&
               <TextField
-                id="desc"
-                label="Description"
-                value={this.props.doc && this.props.doc.desc}
-                className={this.props.classes.dialogField}
-                multiline
-                rows={4}
+                id="full"
+                label="Full Qualification Title"
+                defaultValue={doc && doc.full}
+                className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange(e.target)}}
-              />
+              />}
+
+              { this.props.qualificationtypes[doc.type].abbrev &&
               <TextField
-                id="date_acquired"
-                label="Date Acquired"
+                id="abbrev"
+                label="Abbreviated Title (e.g. BSc (Hons))"
+                defaultValue={doc && doc.abbrev}
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange(e.target)}}
+              />}
+
+              { this.props.qualificationtypes[doc.type].unit &&
+              <TextField
+                id="unit"
+                label="Unit Standard Number"
+                defaultValue={doc && doc.unit}
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange(e.target)}}
+              />}
+
+              { this.props.qualificationtypes[doc.type].class &&
+              <TextField
+                id="class"
+                label="Class"
+                defaultValue={doc && doc.class}
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange(e.target)}}
+              />}
+
+              { this.props.qualificationtypes[doc.type].issuer &&
+              <TextField
+                id="issuer"
+                label="Issuer/Provider"
+                defaultValue={doc && doc.issuer}
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange(e.target)}}
+              />}
+
+              {/*Date is always shown*/}
+              <TextField
+                id="date"
+                label="Date Issued"
                 type="date"
-                value={this.props.doc && this.props.doc.date_acquired}
-                className={this.props.classes.dialogField}
+                defaultValue={doc && doc.date}
+                className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange(e.target)}}
                 InputLabelProps = {{ shrink: true }}
               />
+
+              { this.props.qualificationtypes[doc.type].expiry &&
+              <TextField
+                id="expiry"
+                label="Expiry Date"
+                type="date"
+                defaultValue={doc && doc.expiry}
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange(e.target)}}
+                InputLabelProps = {{ shrink: true }}
+              />}
+
+              {/*Always allow file upload*/}
+              <InputLabel style={{ fontSize: 12, }}>Upload Scanned Image</InputLabel>
               <label>
-                <UploadIcon className={this.props.classes.accentButton} />
-                <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e => {this.props.onUploadFile({
+                <UploadIcon className={classes.accentButton} />
+                <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e =>
+                {this.props.onUploadFile({
                   file: e.currentTarget.files[0],
-                  storagePath: 'documents/',
-                })
-                }} />
-                <LinearProgress variant="determinate" value={this.props.modalProps.uploadProgress} />
+                  storagePath: 'attr/' + modalProps.userPath + '/' + doc.type + '_',
+                  })
+                }
+                } />
+                <LinearProgress variant="determinate" value={modalProps.uploadProgress} />
               </label>
             </FormGroup>
           </form>
         </DialogContent>
         <DialogActions>
           <Button onClick={this.props.hideModal} color="secondary">Cancel</Button>
-          {this.props.modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
+          {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
           : <Button onClick={() => {
             this.props.handleModalSubmit({
-            doc: this.props.doc,
-            pathRef: docsRef,
+            doc: doc,
+            pathRef: usersRef.doc(modalProps.userPath).collection("attr"),
             })
           }
         } color="primary" >Submit</Button>}

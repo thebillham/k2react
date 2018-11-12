@@ -73,7 +73,7 @@ export const handleModalChange = target => dispatch => {
 
 export const handleModalSubmit = ({ doc, pathRef }) => dispatch => {
   pathRef.add(doc);
-  dispatch(hideModal);
+  dispatch({type: HIDE_MODAL});
 }
 
 export const handleTagAddition = addedTag => dispatch => {

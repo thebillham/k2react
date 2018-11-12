@@ -31,46 +31,57 @@ import { xmlToJson } from "../config/XmlToJson";
 export const resetLocal = () => dispatch => {
   dispatch({ type: RESET_LOCAL });
 }
-
-export const fetchMe = () => async dispatch => {
-  auth.currentUser &&
-  usersRef.doc(auth.currentUser.uid)
-    .onSnapshot((doc) => {
-    if (doc.exists) {
-      dispatch({ type: GET_ME, payload: doc.data()});
-      dispatch({ type: AUTH_USER, payload: doc.data().auth });
-    }
-    dispatch({ type: APP_HAS_LOADED });
-  });
-};
+//
+// export const fetchMe = () => async dispatch => {
+//   auth.currentUser &&
+//   usersRef.doc(auth.currentUser.uid)
+//     .onSnapshot((doc) => {
+//     if (doc.exists) {
+//       dispatch({ type: GET_ME, payload: doc.data()});
+//       dispatch({ type: AUTH_USER, payload: doc.data().auth });
+//       usersRef.doc(auth.currentUser.uid).collection("attr");
+//     }
+//   });
+// };
 
 export const fetchStaff = () => async dispatch => {
+  var registered = false;
+  auth.currentUser &&
   usersRef.orderBy('name')
     .onSnapshot((querySnapshot) => {
       var users = [];
       querySnapshot.forEach((doc) => {
-        let attrs = [];
-        let jobs = [];
         let user = doc.data();
+        user.attrs = [];
+        user.jobs = [];
         usersRef.doc(doc.id).collection("attr")
           .onSnapshot((querySnapshot) => {
             querySnapshot.forEach((doc) => {
-              attrs.push(doc.data());
+              user.attrs.push(doc.data());
+              if (doc.data().type == 'Tertiary') {
+                user.tertiary = doc.data().abbrev;
+              }
+              if (doc.data().type == 'IP402') {
+                user.ip402 = true;
+              }
             });
           });
         usersRef.doc(doc.id).collection("myjobs")
           .onSnapshot((querySnapshot) => {
             querySnapshot.forEach((doc) => {
-              jobs.push(doc.data());
+              user.jobs.push(doc.data());
             });
           });
         user.uid = doc.id;
-        user.attrs = attrs;
-        user.jobs = jobs;
         users.push(user);
+        if (doc.id == auth.currentUser.uid) {
+          registered = true;
+          // dispatch({ type: GET_ME, payload: user});
+        }
       });
-      dispatch(
+      if (registered) dispatch(
         { type: GET_STAFF, payload: users});
+      dispatch({ type: APP_HAS_LOADED });
     });
 }
 

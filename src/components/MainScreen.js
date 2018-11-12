@@ -74,7 +74,7 @@ import { onSearchChange, onCatChange } from '../actions/local';
 
 import { fetchStaff, fetchDocuments, editUser, getUser, fetchWFM,
   fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMethodLog,
-  fetchMe, fetchQuizzes, fetchTrainingPaths, fetchAsbestosSamples, resetLocal  } from '../actions/local';
+  fetchQuizzes, fetchTrainingPaths, fetchAsbestosSamples, resetLocal  } from '../actions/local';
 import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmit,
   handleTagAddition, handleTagDelete, resetModal } from '../actions/modal';
 import { resetDisplay } from '../actions/display';
@@ -100,7 +100,6 @@ const mapDispatchToProps = dispatch => {
     fetchModules: () => dispatch(fetchModules()),
     fetchStaff: () => dispatch(fetchStaff()),
     fetchDocuments: () => dispatch(fetchDocuments()),
-    fetchMe: () => dispatch(fetchMe()),
     editUser: ({userRef, target}) => dispatch(editUser(userRef, target)),
     getUser: userRef => dispatch(getUser(userRef)),
     fetchWFM: () => dispatch(fetchWFM()),
@@ -135,7 +134,6 @@ class MainScreen extends React.Component {
   }
 
   componentWillMount() {
-    this.props.fetchMe();
     this.props.fetchStaff();
     // UploadtoFirebase();
     // QuestionsToFirebase();
@@ -369,7 +367,7 @@ class MainScreen extends React.Component {
             <div>
               <CssBaseline />
               {
-                (this.props.state.local.me.gmail == auth.currentUser.email) ?
+                (this.props.state.local.staff.filter(staff => { return(staff.key == '47Z@g*dy!EYGL%fMnOReuTJeB1$' && staff.gmail == auth.currentUser.email) })) ?
                   <div className={classes.root}>
                     <AppBar
                       position="absolute"

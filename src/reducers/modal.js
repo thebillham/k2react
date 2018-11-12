@@ -11,7 +11,9 @@ import {
 export const modalInit = {
   modalType: null,
   modalProps: {
-    doc: {},
+    doc: {
+      type: 'Tertiary',
+    },
     isUploading: false,
     uploadProgress: 0,
     tags: [],

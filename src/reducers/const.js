@@ -8,13 +8,8 @@ const KeyCodes = {
 };
 
 const constInit = {
-  qualificationtypes: [
-    {
-      name: 'Asbestos Awareness Training',
-      expiry: true,
-      issuer: true,
-    },
-    {
+  qualificationtypes: {
+    AsbestosAssessor: {
       name: 'Asbestos Assessor',
       id: false,
       number: true,
@@ -25,53 +20,58 @@ const constInit = {
       class: false,
       unit: false,
     },
-    {
-      name: 'Site Safe Course',
-      id: true,
+    AsbestosAwarenessTraining: {
+      name: 'Asbestos Awareness Training',
       expiry: true,
-      full: true,
-    },
-    {
-      name: 'NZQA Unit Standard',
-      expiry: true,
-      full: true,
       issuer: true,
-      unit: true,
     },
-    {
+    AsbestosExposureHealthMonitoring: {
+      name: 'Asbestos Exposure Health Monitoring',
+      issuer: true,
+      notes: true,
+    },
+    DriverLicence: {
+      name: 'Driver Licence',
+      number: true,
+      expiry: true,
+      class: true,
+    },
+    EWP: {
+      name: 'EWP',
+      number: true,
+      expiry: true,
+      issuer: true,
+    },
+    Inductions: {
       name: 'Inductions/Company Cards',
       id: true,
       expiry: true,
       full: true,
       issuer: true,
     },
-    {
-      name: 'Tertiary',
+    IP402: {
+      name: 'IP402',
+    },
+    NZQAUnitStandard: {
+      name: 'NZQA Unit Standard',
+      expiry: true,
+      full: true,
+      issuer: true,
+      unit: true,
+    },
+    SiteSafeCourse: {
+      name: 'Site Safe Course',
+      id: true,
+      expiry: true,
+      full: true,
+    },
+    Tertiary: {
+      name: 'Tertiary Qualification (Highest Level Only)',
       full: true,
       abbrev: true,
       issuer: true,
     },
-    {
-      name: 'Asbestos Exposure',
-      issuer: true,
-      notes: true,
-    },
-    {
-      name: 'Driver Licence',
-      number: true,
-      expiry: true,
-      class: true,
-    },
-    {
-      name: 'EWP',
-      number: true,
-      expiry: true,
-      issuer: true,
-    },
-    {
-      name: 'IP402',
-    },
-  ],
+  },
   jobdescriptions: [
     'Administration Manager',
     'Asbestos Administrator',

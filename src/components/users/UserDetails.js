@@ -17,8 +17,6 @@ import _ from 'lodash';
 const mapStateToProps = state => {
   return {
     staff: state.local.staff,
-    user: state.local.me,
-    userRef: state.local.userRef,
     offices: state.const.offices,
     jobdescriptions: state.const.jobdescriptions,
   };
@@ -26,7 +24,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    showModal: document => dispatch(showModal(document)),
+    showModal: modal => dispatch(showModal(modal)),
   };
 };
 
@@ -36,7 +34,6 @@ class UserDetails extends React.Component {
     this.state = {
       userPath: props.match.params.user ? props.match.params.user : auth.currentUser.uid,
       isLoading: false,
-      change: {},
     }
     this.onEditUser = _.debounce(this.onEditUser, 1000);
   }
@@ -55,20 +52,13 @@ class UserDetails extends React.Component {
     usersRef.doc(this.state.userPath).update(change);
   }
 
-  componentWillMount(){
-    if (this.props.match.params.user) {
-      this.setState({ isLoading: true });
-      usersRef.doc(this.state.userPath).onSnapshot((doc) => {
-        this.setState({
-          user: doc.data(),
-          isLoading: false
-        });
-      });
-    } else {
-      this.setState({
-        user: this.props.user,
-      });
-    }
+  componentDidMount(){
+    this.setState({
+      user: this.props.staff.filter(staff => {
+        return staff.uid == this.state.userPath;
+      })[0],
+      isLoading: false,
+    });
   }
 
   displayTimeAtK2 = () => {
@@ -256,12 +246,12 @@ class UserDetails extends React.Component {
                 style={{ background: '#ff5733'}}
                 title={
                   <Typography className={classes.cardHeaderType} color="textSecondary">
-                    Qualifications
+                    Qualifications, Training and Health & Safety
                   </Typography>
                 }
                 action={
-                  <IconButton onClick={() => { this.props.showModal(USERATTR)}}>
-                    <Add />
+                  <IconButton onClick={() => {this.props.showModal({ modalType: USERATTR, modalProps: { userPath: this.state.userPath } })}}>
+                    <Add style={{ color: 'white', }} />
                   </IconButton>
                 }
               />
@@ -274,7 +264,30 @@ class UserDetails extends React.Component {
                   :
                     <div>
                       <UserAttrModal />
-                      <ListItem>
+                      {
+                        user.attrs ?
+                        <div>
+                          This job has attributes.
+                          { user.attrs.map(attr => {
+                          return(
+                            <ListItem key={ attr.date + attr.type }>
+                              Hello this is an attribute.
+                              <TextField
+                                label="Name"
+                                id="emergencyprimaryname"
+                                className={classes.textField}
+                                value={user.emergencyprimaryname}
+                                onChange={e => this.onEditUser(e.target)}
+                                InputLabelProps = {{ shrink: true }}
+                              />
+                            </ListItem>
+                          );
+                        }) }</div> :
+                        <ListItem>
+                          Click the plus (+) symbol to add your qualifications, training and health and safety records.
+                        </ListItem>
+                      }
+                      {/*}<ListItem>
                         <Typography className={classes.labels}>Tertiary</Typography>
                       </ListItem>
                       <ListItem>
@@ -286,95 +299,8 @@ class UserDetails extends React.Component {
                           onChange={e => this.onEditUser(e.target)}
                           InputLabelProps = {{ shrink: true }}
                         />
-                      </ListItem>
-                      <ListItem>
-                        <TextField
-                          label="Abbreviation (e.g. BSc)"
-                          id="tertiary"
-                          className={classes.textField}
-                          defaultValue={user.tertiary}
-                          onChange={e => this.onEditUser(e.target)}
-                          InputLabelProps = {{ shrink: true }}
-                        />
-                      </ListItem>
-                      <Divider />
-                      <ListItem>
-                        <Typography className={classes.labels}>Asbestos</Typography>
-                      </ListItem>
-                      <ListItem>
-                        <TextField
-                          label="Asbestos Assessor Number"
-                          id="aanumber"
-                          className={classes.textField}
-                          defaultValue={user.aanumber}
-                          onChange={e => this.onEditUser(e.target)}
-                          InputLabelProps = {{ shrink: true }}
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <TextField
-                          label="Asbestos Assessor Expiry"
-                          id="aaexpiry"
-                          type="date"
-                          className={classes.textField}
-                          defaultValue={user.aaexpiry}
-                          onChange={e => this.onEditUser(e.target)}
-                          InputLabelProps = {{ shrink: true }}
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <FormControlLabel
-                          style={{ marginLeft: 1, }}
-                          control={
-                            <Checkbox
-                              checked={user.ip402}
-                              onChange={e => this.onEditUser({id: 'ip402', value: e.target.checked}, true)}
-                              value='ip402'
-                            />
-                          }
-                          label="IP402"
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <TextField
-                          label="Mask Fit Expiry"
-                          id="maskfitexpiry"
-                          type="date"
-                          className={classes.textField}
-                          defaultValue={user.maskfitexpiry}
-                          onChange={e => this.onEditUser(e.target)}
-                          InputLabelProps = {{ shrink: true }}
-                        />
-                      </ListItem>
-                      <Divider />
-                      <ListItem>
-                        <Typography className={classes.labels}>NZQA Unit Standards</Typography>
-                      </ListItem>
-                      <Divider />
-                      <ListItem>
-                        <Typography className={classes.labels}>Driver Licence</Typography>
-                      </ListItem>
-                      <ListItem>
-                        <TextField
-                          label="Driver Licence Class"
-                          id="driverlicenceclass"
-                          className={classes.textField}
-                          defaultValue={user.driverlicenceclass}
-                          onChange={e => this.onEditUser(e.target)}
-                          InputLabelProps = {{ shrink: true }}
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <TextField
-                          label="Driver Licence Expiry"
-                          id="driverlicenceexpiry"
-                          type="date"
-                          className={classes.textField}
-                          defaultValue={user.driverlicenceexpiry}
-                          onChange={e => this.onEditUser(e.target)}
-                          InputLabelProps = {{ shrink: true }}
-                        />
-                      </ListItem>
+                      </ListItem>*/}
+
                     </div>
                   }
                 </List>
