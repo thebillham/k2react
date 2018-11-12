@@ -52,7 +52,7 @@ class UserDetails extends React.Component {
     usersRef.doc(this.state.userPath).update(change);
   }
 
-  componentDidMount(){
+  componentWillMount(){
     this.setState({
       user: this.props.staff.filter(staff => {
         return staff.uid == this.state.userPath;
@@ -265,21 +265,13 @@ class UserDetails extends React.Component {
                     <div>
                       <UserAttrModal />
                       {
-                        user.attrs ?
+                        user.attrs && user.attrs.length > 0 ?
                         <div>
                           This job has attributes.
                           { user.attrs.map(attr => {
                           return(
                             <ListItem key={ attr.date + attr.type }>
-                              Hello this is an attribute.
-                              <TextField
-                                label="Name"
-                                id="emergencyprimaryname"
-                                className={classes.textField}
-                                value={user.emergencyprimaryname}
-                                onChange={e => this.onEditUser(e.target)}
-                                InputLabelProps = {{ shrink: true }}
-                              />
+                              { attr.type }
                             </ListItem>
                           );
                         }) }</div> :
