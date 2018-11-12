@@ -6,7 +6,7 @@ import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 import store from '../../store';
 import { USERATTR } from '../../constants/modal-types';
-import { usersRef } from '../../config/firebase';
+import { usersRef, auth } from '../../config/firebase';
 import '../../config/tags.css';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, FormGroup, TextField,
@@ -36,7 +36,7 @@ const mapDispatchToProps = dispatch => {
   return {
     hideModal: () => dispatch(hideModal()),
     onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
-    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 1000),
+    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: pathRef => dispatch(handleModalSubmit(pathRef)),
   };
@@ -151,7 +151,7 @@ class UserAttrModal extends React.Component {
                 <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e =>
                 {this.props.onUploadFile({
                   file: e.currentTarget.files[0],
-                  storagePath: 'attr/' + modalProps.userPath + '/' + doc.type + '_',
+                  storagePath: 'attr/' + auth.currentUser.displayName.replace(/\s+/g, '') + '/' + doc.type + '_',
                   })
                 }
                 } />
@@ -167,7 +167,7 @@ class UserAttrModal extends React.Component {
             this.props.handleModalSubmit({
             doc: doc,
             pathRef: usersRef.doc(modalProps.userPath).collection("attr"),
-            })
+          })
           }
         } color="primary" >Submit</Button>}
         </DialogActions>

@@ -72,7 +72,11 @@ export const handleModalChange = target => dispatch => {
 }
 
 export const handleModalSubmit = ({ doc, pathRef }) => dispatch => {
-  pathRef.add(doc);
+  if (doc.uid) {
+    pathRef.doc(doc.uid).set(doc);
+  } else {
+    pathRef.doc(doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)))).set(doc);
+  }
   dispatch({type: HIDE_MODAL});
 }
 

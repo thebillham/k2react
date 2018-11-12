@@ -10,6 +10,7 @@ import { List, ListItem, TextField, Typography, InputLabel,
 import { auth, usersRef } from '../../config/firebase';
 import { CloudUpload, Warning, Add, ExpandLess, ExpandMore, Edit, Delete, AddPhotoAlternate } from '@material-ui/icons';
 import UserAttrModal from '../modals/UserAttrModal';
+import AttrList from '../widgets/AttrList';
 import { USERATTR } from '../../constants/modal-types';
 import { showModal } from '../../actions/modal';
 import _ from 'lodash';
@@ -31,8 +32,11 @@ const mapDispatchToProps = dispatch => {
 class UserDetails extends React.Component {
   constructor(props){
     super(props);
+    var userPath = auth.currentUser.uid;
+    if (props.match.params.user) userPath = props.match.params.user;
     this.state = {
-      userPath: props.match.params.user ? props.match.params.user : auth.currentUser.uid,
+      userPath: userPath,
+      user: props.staff[userPath],
       isLoading: false,
     }
     this.onEditUser = _.debounce(this.onEditUser, 1000);
@@ -50,15 +54,6 @@ class UserDetails extends React.Component {
       });
     }
     usersRef.doc(this.state.userPath).update(change);
-  }
-
-  componentWillMount(){
-    this.setState({
-      user: this.props.staff.filter(staff => {
-        return staff.uid == this.state.userPath;
-      })[0],
-      isLoading: false,
-    });
   }
 
   displayTimeAtK2 = () => {
@@ -265,13 +260,12 @@ class UserDetails extends React.Component {
                     <div>
                       <UserAttrModal />
                       {
-                        user.attrs && user.attrs.length > 0 ?
+                        user.attrs && Object.keys(user.attrs).length > 0 ?
                         <div>
-                          This job has attributes.
-                          { user.attrs.map(attr => {
+                          { Object.keys(user.attrs).map(key => {
                           return(
-                            <ListItem key={ attr.date + attr.type }>
-                              { attr.type }
+                            <ListItem key={ key }>
+                              <AttrList attr={user.attrs[key]} userPath={ this.state.userPath } />
                             </ListItem>
                           );
                         }) }</div> :

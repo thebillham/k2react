@@ -44,44 +44,71 @@ export const resetLocal = () => dispatch => {
 //   });
 // };
 
+
+// CHANGE USERS TO MAP
+
 export const fetchStaff = () => async dispatch => {
   var registered = false;
+  var jobsize = 0;
+  var attrsize = 0;
   auth.currentUser &&
   usersRef.orderBy('name')
     .onSnapshot((querySnapshot) => {
-      var users = [];
+      let users = {};
+      let usersize = querySnapshot.size;
       querySnapshot.forEach((doc) => {
         let user = doc.data();
-        user.attrs = [];
-        user.jobs = [];
+        user.uid = doc.id;
         usersRef.doc(doc.id).collection("attr")
           .onSnapshot((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-              user.attrs.push(doc.data());
-              if (doc.data().type == 'Tertiary') {
-                user.tertiary = doc.data().abbrev;
-              }
-              if (doc.data().type == 'IP402') {
-                user.ip402 = true;
-              }
-            });
+            user.attrs = {};
+            user.tertiary = '';
+            user.ip402 = false;
+            if (querySnapshot.size > 0) {
+              querySnapshot.forEach((doc) => {
+                let attr = doc.data();
+                attr.uid = doc.id;
+                user.attrs[doc.id] = attr;
+                if (attr.type == 'Tertiary') {
+                  user.tertiary = attr.abbrev;
+                }
+                if (attr.type == 'IP402') {
+                  user.ip402 = true;
+                }
+              });
+              attrsize = attrsize + 1;
+            } else {
+              attrsize = attrsize + 1;
+            }
+            if (usersize == attrsize) {
+              dispatch({ type: GET_STAFF, payload: users });
+              dispatch({ type: APP_HAS_LOADED });
+            } else if (usersize < attrsize) {
+              dispatch({ type: GET_STAFF, payload: users });
+            }
           });
         usersRef.doc(doc.id).collection("myjobs")
           .onSnapshot((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-              user.jobs.push(doc.data());
-            });
+            user.jobs = {};
+            if (querySnapshot.size > 0) {
+              querySnapshot.forEach((doc) => {
+                let job = doc.data();
+                job.uid = doc.id;
+                user.jobs[doc.id] = job;
+              });
+              jobsize = jobsize + 1;
+            } else {
+              jobsize = jobsize + 1;
+            }
+            if (usersize == jobsize) {
+              dispatch({ type: GET_STAFF, payload: users });
+              dispatch({ type: APP_HAS_LOADED });
+            } else if (usersize < jobsize) {
+              dispatch({ type: GET_STAFF, payload: users });
+            }
           });
-        user.uid = doc.id;
-        users.push(user);
-        if (doc.id == auth.currentUser.uid) {
-          registered = true;
-          // dispatch({ type: GET_ME, payload: user});
-        }
+        users[doc.id] = user;
       });
-      if (registered) dispatch(
-        { type: GET_STAFF, payload: users});
-      dispatch({ type: APP_HAS_LOADED });
     });
 }
 

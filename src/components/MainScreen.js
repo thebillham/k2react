@@ -367,7 +367,8 @@ class MainScreen extends React.Component {
             <div>
               <CssBaseline />
               {
-                (this.props.state.local.staff.filter(staff => { return(staff.key == '47Z@g*dy!EYGL%fMnOReuTJeB1$' && staff.gmail == auth.currentUser.email) })) ?
+                (this.props.state.local.staff[auth.currentUser.uid].key == '47Z@g*dy!EYGL%fMnOReuTJeB1$'
+                && this.props.state.local.staff[auth.currentUser.uid].gmail == auth.currentUser.email) ?
                   <div className={classes.root}>
                     <AppBar
                       position="absolute"

@@ -37,7 +37,7 @@ class Staff extends React.Component {
     const TreeTable = treeTableHOC(ReactTable);
     return (
       <div style = {{ marginTop: 80 }}>
-      { (this.props.staff.length > 0) ?
+      { (Object.keys(this.props.staff).length > 0) ?
         <div>
           <TreeTable
             filterable
@@ -50,7 +50,7 @@ class Staff extends React.Component {
                   .includes(filter.value.toLowerCase())
                 : false;
             }}
-            data={this.props.staff}
+            data={Object.values(this.props.staff)}
             showPagination={false}
             defaultPageSize={31}
             className="-striped -highlight"
