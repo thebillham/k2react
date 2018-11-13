@@ -31,7 +31,7 @@ export const onUploadFile = ({ file, storagePath }) => async dispatch => {
       uploadProgress: 0,
     }
   });
-  var path = storagePath + file.name;
+  var path = storagePath + '_' + parseInt(Math.floor(Math.random() * Math.floor(1000))) + '_' + file.name;
   var uploadTask = storage.ref(path).put(file);
   uploadTask.on('state_changed',
     (snapshot) => {
@@ -65,18 +65,24 @@ export const onUploadFile = ({ file, storagePath }) => async dispatch => {
 }
 
 export const handleModalChange = target => dispatch => {
+  let val;
+  if (target.id == 'course' || target.id == 'unit' || target.id == 'class' ) val = target.value.split(','); else val = target.value;
   dispatch({
     type: EDIT_MODAL_DOC,
-    payload: {[target.id]: target.value,}
+    payload: {[target.id]: val,}
   });
 }
 
 export const handleModalSubmit = ({ doc, pathRef }) => dispatch => {
+  let uid;
   if (doc.uid) {
+    uid = doc.uid;
     pathRef.doc(doc.uid).set(doc);
   } else {
-    pathRef.doc(doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)))).set(doc);
+    uid = doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)));
   }
+  doc.uid = uid;
+  pathRef.doc(uid).set(doc);
   dispatch({type: HIDE_MODAL});
 }
 

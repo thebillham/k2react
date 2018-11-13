@@ -76,10 +76,8 @@ export const fetchStaff = () => async dispatch => {
                   user.ip402 = true;
                 }
               });
-              attrsize = attrsize + 1;
-            } else {
-              attrsize = attrsize + 1;
             }
+            attrsize = attrsize + 1;
             if (usersize == attrsize) {
               dispatch({ type: GET_STAFF, payload: users });
               dispatch({ type: APP_HAS_LOADED });
@@ -96,10 +94,8 @@ export const fetchStaff = () => async dispatch => {
                 job.uid = doc.id;
                 user.jobs[doc.id] = job;
               });
-              jobsize = jobsize + 1;
-            } else {
-              jobsize = jobsize + 1;
             }
+            jobsize = jobsize + 1;
             if (usersize == jobsize) {
               dispatch({ type: GET_STAFF, payload: users });
               dispatch({ type: APP_HAS_LOADED });
@@ -109,6 +105,9 @@ export const fetchStaff = () => async dispatch => {
           });
         users[doc.id] = user;
       });
+    }, (error) => {
+      dispatch({ type: APP_HAS_LOADED });
+      console.error(error);
     });
 }
 

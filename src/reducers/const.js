@@ -11,14 +11,8 @@ const constInit = {
   qualificationtypes: {
     AsbestosAssessor: {
       name: 'Asbestos Assessor',
-      id: false,
-      number: true,
+      id: true,
       expiry: true,
-      full: false,
-      abbrev: false,
-      issuer: false,
-      class: false,
-      unit: false,
     },
     AsbestosAwarenessTraining: {
       name: 'Asbestos Awareness Training',
@@ -46,8 +40,8 @@ const constInit = {
       name: 'Inductions/Company Cards',
       id: true,
       expiry: true,
-      full: true,
       issuer: true,
+      notes: true,
     },
     IP402: {
       name: 'IP402',
@@ -63,12 +57,17 @@ const constInit = {
       name: 'Site Safe Course',
       id: true,
       expiry: true,
-      full: true,
+      course: true,
     },
     Tertiary: {
-      name: 'Tertiary Qualification (Highest Level Only)',
+      name: 'Tertiary Qualification (Highest Level)',
       full: true,
       abbrev: true,
+      issuer: true,
+    },
+    TertiaryOther: {
+      name: 'Tertiary Qualification (Other)',
+      full: true,
       issuer: true,
     },
   },

@@ -264,29 +264,13 @@ class UserDetails extends React.Component {
                         <div>
                           { Object.keys(user.attrs).map(key => {
                           return(
-                            <ListItem key={ key }>
-                              <AttrList attr={user.attrs[key]} userPath={ this.state.userPath } />
-                            </ListItem>
+                            <AttrList key = { key} attr={user.attrs[key]} userPath={ this.state.userPath } />
                           );
                         }) }</div> :
                         <ListItem>
-                          Click the plus (+) symbol to add your qualifications, training and health and safety records.
+                          Click the plus (+) symbol to add your qualifications, training and health & safety records.
                         </ListItem>
                       }
-                      {/*}<ListItem>
-                        <Typography className={classes.labels}>Tertiary</Typography>
-                      </ListItem>
-                      <ListItem>
-                        <TextField
-                          label="Full (e.g. Bachelor of Science in Physics and Geology)"
-                          id="tertiarylong"
-                          className={classes.textField}
-                          defaultValue={user.tertiarylong}
-                          onChange={e => this.onEditUser(e.target)}
-                          InputLabelProps = {{ shrink: true }}
-                        />
-                      </ListItem>*/}
-
                     </div>
                   }
                 </List>

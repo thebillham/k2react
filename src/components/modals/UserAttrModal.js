@@ -6,13 +6,14 @@ import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 import store from '../../store';
 import { USERATTR } from '../../constants/modal-types';
-import { usersRef, auth } from '../../config/firebase';
+import { usersRef, auth, storage } from '../../config/firebase';
 import '../../config/tags.css';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, FormGroup, TextField,
-  LinearProgress, Button, FormControl, InputLabel, Input, Select,
+  LinearProgress, Button, FormControl, InputLabel, Input, Select, IconButton
 } from '@material-ui/core';
 import UploadIcon from '@material-ui/icons/CloudUpload';
+import { Delete } from '@material-ui/icons';
 import {
   hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,
   handleTagAddition,
@@ -43,6 +44,27 @@ const mapDispatchToProps = dispatch => {
 };
 
 class UserAttrModal extends React.Component {
+  constructor(props){
+    super(props);
+
+    this.state = {
+      floatingImage: false,
+    }
+  }
+
+  deleteImage = (file, uid) => {
+    this.props.handleSelectChange({ id: 'fileUrl', value: null });
+    this.props.handleSelectChange({ id: 'fileRef', value: null });
+    if (uid) {
+      let change = {
+        fileUrl: null,
+        fileRef: null,
+      }
+      usersRef.doc(this.props.modalProps.userPath).collection("attr").doc(uid).update(change);
+    }
+    storage.ref(file).delete();
+  }
+
   render() {
     const { modalProps, doc, classes } = this.props;
     return(
@@ -83,33 +105,47 @@ class UserAttrModal extends React.Component {
                 label="Full Qualification Title"
                 defaultValue={doc && doc.full}
                 className={classes.dialogField}
+                helperText="e.g. Bachelor of Science in Physics and Geography"
+                onChange={e => {this.props.handleModalChange(e.target)}}
+              />}
+
+              { this.props.qualificationtypes[doc.type].course &&
+              <TextField
+                id="course"
+                label="Course Name(s)"
+                defaultValue={doc && doc.course && doc.course.join(', ')}
+                className={classes.dialogField}
+                helperText="The name of the course as written on your card. If more than one course, separate each one with a comma."
                 onChange={e => {this.props.handleModalChange(e.target)}}
               />}
 
               { this.props.qualificationtypes[doc.type].abbrev &&
               <TextField
                 id="abbrev"
-                label="Abbreviated Title (e.g. BSc (Hons))"
+                label="Abbreviated Title"
                 defaultValue={doc && doc.abbrev}
                 className={classes.dialogField}
+                helperText="e.g. BSc (Hons); This will be displayed beside your name on reports"
                 onChange={e => {this.props.handleModalChange(e.target)}}
               />}
 
               { this.props.qualificationtypes[doc.type].unit &&
               <TextField
                 id="unit"
-                label="Unit Standard Number"
-                defaultValue={doc && doc.unit}
+                label="Unit Standard Number(s)"
+                defaultValue={doc && doc.unit && doc.unit.join(', ')}
                 className={classes.dialogField}
+                helperText="If more than one unit standard, seperate each one with a comma"
                 onChange={e => {this.props.handleModalChange(e.target)}}
               />}
 
               { this.props.qualificationtypes[doc.type].class &&
               <TextField
                 id="class"
-                label="Class"
-                defaultValue={doc && doc.class}
+                label="Class(es)"
+                defaultValue={doc && doc.class && doc.class.join(', ')}
                 className={classes.dialogField}
+                helperText="1 = Car Full, 1L = Car Learner, 1R = Car Restricted etc. If more than one class, separate each one with a comma."
                 onChange={e => {this.props.handleModalChange(e.target)}}
               />}
 
@@ -144,15 +180,35 @@ class UserAttrModal extends React.Component {
                 InputLabelProps = {{ shrink: true }}
               />}
 
+              { this.props.qualificationtypes[doc.type].notes &&
+              <TextField
+                id="notes"
+                label="Notes"
+                multiline
+                maxlines={4}
+                defaultValue={doc && doc.notes}
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange(e.target)}}
+              />}
+
+              { doc.fileUrl &&
+                <div>
+                  <img src={doc.fileUrl} width="200" />
+                  <IconButton onClick={() => { if (window.confirm('Are you sure you wish to delete the image?')) this.deleteImage(doc.fileRef, doc.uid)}}>
+                    <Delete />
+                  </IconButton>
+                </div>
+              }
+
               {/*Always allow file upload*/}
               <InputLabel style={{ fontSize: 12, }}>Upload Scanned Image</InputLabel>
               <label>
                 <UploadIcon className={classes.accentButton} />
                 <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e =>
-                {this.props.onUploadFile({
+                { this.props.onUploadFile({
                   file: e.currentTarget.files[0],
                   storagePath: 'attr/' + auth.currentUser.displayName.replace(/\s+/g, '') + '/' + doc.type + '_',
-                  })
+                  });
                 }
                 } />
                 <LinearProgress variant="determinate" value={modalProps.uploadProgress} />
@@ -161,7 +217,7 @@ class UserAttrModal extends React.Component {
           </form>
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.props.hideModal} color="secondary">Cancel</Button>
+          <Button onClick={() => { this.props.hideModal }} color="secondary">Cancel</Button>
           {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
           : <Button onClick={() => {
             this.props.handleModalSubmit({

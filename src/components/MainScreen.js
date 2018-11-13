@@ -367,7 +367,8 @@ class MainScreen extends React.Component {
             <div>
               <CssBaseline />
               {
-                (this.props.state.local.staff[auth.currentUser.uid].key == '47Z@g*dy!EYGL%fMnOReuTJeB1$'
+                (this.props.state.local.staff[auth.currentUser.uid]
+                && this.props.state.local.staff[auth.currentUser.uid].key == '47Z@g*dy!EYGL%fMnOReuTJeB1$'
                 && this.props.state.local.staff[auth.currentUser.uid].gmail == auth.currentUser.email) ?
                   <div className={classes.root}>
                     <AppBar
@@ -508,7 +509,7 @@ class MainScreen extends React.Component {
                         <div className="elFirebaseLogin">
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%'}}>
                             <Button variant='outlined' onClick={this.handleLogOut}>Log Out { displayName }</Button>
-                            <div>You have not been authorised to view this site. Please wait for the <a href="mailto:ben@k2.co.nz">site admin</a> to create your account.</div>
+                            <div style={{ marginTop: 20, }}>You have not been authorised to view this site. Please wait for the <a href="mailto:ben@k2.co.nz">site admin</a> to create your account.</div>
                           </div>
                         </div>
                       </div>
