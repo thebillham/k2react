@@ -22,41 +22,88 @@ import { GET_STAFF,
         APP_HAS_LOADED,
         RESET_LOCAL,
       } from "../constants/action-types";
-import { auth } from '../config/firebase';
+import * as firebase from 'firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
-import { usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
+import { auth, database, firestore, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
     trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 
 export const resetLocal = () => dispatch => {
   dispatch({ type: RESET_LOCAL });
 }
-//
-// export const fetchMe = () => async dispatch => {
-//   auth.currentUser &&
-//   usersRef.doc(auth.currentUser.uid)
-//     .onSnapshot((doc) => {
-//     if (doc.exists) {
-//       dispatch({ type: GET_ME, payload: doc.data()});
-//       dispatch({ type: AUTH_USER, payload: doc.data().auth });
-//       usersRef.doc(auth.currentUser.uid).collection("attr");
-//     }
-//   });
-// };
+
+// Separate stream for just your information. So you don't re-read all staff for just changing your details.
+export const fetchMe = () => async dispatch => {
+  auth.currentUser &&
+  usersRef.doc(auth.currentUser.uid)
+    .onSnapshot((doc) => {
+    console.log("Read a doc (fetchMe)!");
+    if (doc.exists) {
+      let user = doc.data();
+      dispatch({ type: GET_ME, payload: user});
+      // dispatch({ type: AUTH_USER, payload: doc.data().auth });
+      usersRef.doc(auth.currentUser.uid).collection("attr")
+        .onSnapshot((querySnapshot) => {
+          user.attrs = {};
+          user.tertiary = '';
+          user.maskfit = false;
+          user.ip402 = false;
+          if (querySnapshot.size > 0) {
+            querySnapshot.forEach((doc) => {
+              console.log("Read a doc (my Attr)!");
+              let attr = doc.data();
+              attr.uid = doc.id;
+              user.attrs[doc.id] = attr;
+              if (attr.type == 'Tertiary') {
+                user.tertiary = attr.abbrev;
+              }
+              if (attr.type == 'MaskFit' && new Date(attr.expiry) > new Date()) {
+                user.maskfit = true;
+              }
+              if (attr.type == 'IP402') {
+                user.ip402 = true;
+              }
+              if (attr.type == 'AsbestosAssessor') {
+                user.aanumber = attr.number;
+              }
+            });
+            dispatch({ type: GET_ME, payload: user });
+          }
+          dispatch({ type: APP_HAS_LOADED });
+        });
+      usersRef.doc(doc.id).collection("myjobs")
+        .onSnapshot((querySnapshot) => {
+          user.jobs = {};
+          if (querySnapshot.size > 0) {
+            querySnapshot.forEach((doc) => {
+              console.log("Read a doc (my job)!");
+              let job = doc.data();
+              job.uid = doc.id;
+              user.jobs[doc.id] = job;
+            });
+            dispatch({ type: GET_ME, payload: user });
+          }
+        });
+    }
+  });
+};
 
 
 // CHANGE USERS TO MAP
 
 export const fetchStaff = () => async dispatch => {
-  var registered = false;
-  var jobsize = 0;
-  var attrsize = 0;
+  var gtsize = 0;
+  var ltsize = 0;
+  var users = {};
   auth.currentUser &&
-  usersRef.orderBy('name')
+  usersRef
+    .where(firebase.firestore.FieldPath.documentId(), ">", auth.currentUser.uid)
     .onSnapshot((querySnapshot) => {
-      let users = {};
-      let usersize = querySnapshot.size;
+      gtsize = querySnapshot.size;
+      console.log("GT Size: " + gtsize);
+      // let gtattrsize = 0;
       querySnapshot.forEach((doc) => {
+        console.log("Read a doc (Greater than User)! " + doc.data().name);
         let user = doc.data();
         user.uid = doc.id;
         usersRef.doc(doc.id).collection("attr")
@@ -66,49 +113,78 @@ export const fetchStaff = () => async dispatch => {
             user.ip402 = false;
             if (querySnapshot.size > 0) {
               querySnapshot.forEach((doc) => {
+                console.log("Read a doc (GT Attr)!");
                 let attr = doc.data();
                 attr.uid = doc.id;
                 user.attrs[doc.id] = attr;
                 if (attr.type == 'Tertiary') {
                   user.tertiary = attr.abbrev;
                 }
+                if (attr.type == 'MaskFit' && new Date(attr.expiry) > new Date()) {
+                  user.maskfit = true;
+                }
                 if (attr.type == 'IP402') {
                   user.ip402 = true;
                 }
+                if (attr.type == 'AsbestosAssessor') {
+                  user.aanumber = attr.number;
+                }
               });
-            }
-            attrsize = attrsize + 1;
-            if (usersize == attrsize) {
-              dispatch({ type: GET_STAFF, payload: users });
-              dispatch({ type: APP_HAS_LOADED });
-            } else if (usersize < attrsize) {
               dispatch({ type: GET_STAFF, payload: users });
             }
+            // gtattrsize = gtattrsize + 1;
+            // console.log(gtattrsize);
           });
-        usersRef.doc(doc.id).collection("myjobs")
-          .onSnapshot((querySnapshot) => {
-            user.jobs = {};
-            if (querySnapshot.size > 0) {
-              querySnapshot.forEach((doc) => {
-                let job = doc.data();
-                job.uid = doc.id;
-                user.jobs[doc.id] = job;
-              });
-            }
-            jobsize = jobsize + 1;
-            if (usersize == jobsize) {
-              dispatch({ type: GET_STAFF, payload: users });
-              dispatch({ type: APP_HAS_LOADED });
-            } else if (usersize < jobsize) {
-              dispatch({ type: GET_STAFF, payload: users });
-            }
-          });
-        users[doc.id] = user;
+          users[doc.id] = user;
+          // if (ltsize < attrsize) dispatch({ type: GET_STAFF, payload: users });
+        });
+        dispatch({ type: GET_STAFF, payload: users });
       });
-    }, (error) => {
-      dispatch({ type: APP_HAS_LOADED });
-      console.error(error);
-    });
+      usersRef
+        .where(firebase.firestore.FieldPath.documentId(), "<", auth.currentUser.uid)
+        .onSnapshot((querySnapshot) => {
+          ltsize = querySnapshot.size;
+          console.log("LT Size: " + ltsize);
+          // let ltattrsize = 0;
+          querySnapshot.forEach((doc) => {
+            console.log("Read a doc (LT user)! " + doc.data().name);
+            let user = doc.data();
+            user.uid = doc.id;
+            usersRef.doc(doc.id).collection("attr")
+              .onSnapshot((querySnapshot) => {
+                user.attrs = {};
+                user.tertiary = '';
+                user.ip402 = false;
+                if (querySnapshot.size > 0) {
+                  querySnapshot.forEach((doc) => {
+                    console.log("Read a doc (LT attr)!");
+                    let attr = doc.data();
+                    attr.uid = doc.id;
+                    user.attrs[doc.id] = attr;
+                    if (attr.type == 'Tertiary') {
+                      user.tertiary = attr.abbrev;
+                    }
+                    if (attr.type == 'MaskFit' && new Date(attr.expiry) > new Date()) {
+                      user.maskfit = true;
+                    }
+                    if (attr.type == 'IP402') {
+                      user.ip402 = true;
+                    }
+                    if (attr.type == 'AsbestosAssessor') {
+                      user.aanumber = attr.number;
+                    }
+                  });
+                  dispatch({ type: GET_STAFF, payload: users });
+                }
+                // ltattrsize = ltattrsize + 1;
+                // console.log(ltattrsize);
+              });
+              users[doc.id] = user;
+              // if (ltsize < attrsize) dispatch({ type: GET_STAFF, payload: users });
+            });
+            dispatch({ type: GET_STAFF, payload: users });
+          });
+  // If any
 }
 
 export const fetchDocuments = () => async dispatch => {

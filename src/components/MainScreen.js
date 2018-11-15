@@ -27,6 +27,7 @@ import QuizIcon from '@material-ui/icons/ContactSupport';
 import ToolsIcon from '@material-ui/icons/Build';
 import LibraryIcon from '@material-ui/icons/Info';
 import HelpIcon from '@material-ui/icons/Help';
+import UpdatesIcon from '@material-ui/icons/Update';
 
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
@@ -68,11 +69,12 @@ import Admin from './admin/Admin';
 import AdminConstants from './admin/AdminConstants';
 
 import Help from './help/Help';
+import Updates from './help/Updates';
 
 import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
 
-import { fetchStaff, fetchDocuments, editUser, getUser, fetchWFM,
+import { fetchStaff, fetchMe, fetchDocuments, editUser, getUser, fetchWFM,
   fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMethodLog,
   fetchQuizzes, fetchTrainingPaths, fetchAsbestosSamples, resetLocal  } from '../actions/local';
 import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmit,
@@ -91,31 +93,32 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchAsbestosSamples: () => dispatch(fetchAsbestosSamples()),
-    fetchTrainingPaths: () => dispatch(fetchTrainingPaths()),
-    fetchQuizzes: () => dispatch(fetchQuizzes()),
-    fetchReadingLog: () => dispatch(fetchReadingLog()),
-    fetchMethodLog: () => dispatch(fetchMethodLog()),
-    fetchNotices: () => dispatch(fetchNotices()),
-    fetchModules: () => dispatch(fetchModules()),
     fetchStaff: () => dispatch(fetchStaff()),
-    fetchDocuments: () => dispatch(fetchDocuments()),
-    editUser: ({userRef, target}) => dispatch(editUser(userRef, target)),
-    getUser: userRef => dispatch(getUser(userRef)),
-    fetchWFM: () => dispatch(fetchWFM()),
-    fetchTools: () => dispatch(fetchTools()),
-
-    hideModal: () => dispatch(hideModal()),
-    showModal: document => dispatch(showModal(document)),
-    onUploadFile: ({file, pathRef}) => dispatch(onUploadFile(file, pathRef)),
-    handleModalChange: target => dispatch(handleModalChange(target)),
-    handleModalSubmit: pathRef => dispatch(handleModalSubmit(pathRef)),
-    handleTagAddition: addedTag => dispatch(handleTagAddition(addedTag)),
-    handleTagDelete: removedTag => dispatch(handleTagDelete(removedTag)),
-
-    resetLocal: () => dispatch(resetLocal()),
-    resetModal: () => dispatch(resetModal()),
-    resetDisplay: () => dispatch(resetDisplay()),
+    fetchMe: () => dispatch(fetchMe()),
+    // fetchAsbestosSamples: () => dispatch(fetchAsbestosSamples()),
+    // fetchTrainingPaths: () => dispatch(fetchTrainingPaths()),
+    // fetchQuizzes: () => dispatch(fetchQuizzes()),
+    // fetchReadingLog: () => dispatch(fetchReadingLog()),
+    // fetchMethodLog: () => dispatch(fetchMethodLog()),
+    // fetchNotices: () => dispatch(fetchNotices()),
+    // fetchModules: () => dispatch(fetchModules()),
+    // fetchDocuments: () => dispatch(fetchDocuments()),
+    // editUser: ({userRef, target}) => dispatch(editUser(userRef, target)),
+    // getUser: userRef => dispatch(getUser(userRef)),
+    // fetchWFM: () => dispatch(fetchWFM()),
+    // fetchTools: () => dispatch(fetchTools()),
+    //
+    // hideModal: () => dispatch(hideModal()),
+    // showModal: document => dispatch(showModal(document)),
+    // onUploadFile: ({file, pathRef}) => dispatch(onUploadFile(file, pathRef)),
+    // handleModalChange: target => dispatch(handleModalChange(target)),
+    // handleModalSubmit: pathRef => dispatch(handleModalSubmit(pathRef)),
+    // handleTagAddition: addedTag => dispatch(handleTagAddition(addedTag)),
+    // handleTagDelete: removedTag => dispatch(handleTagDelete(removedTag)),
+    //
+    // resetLocal: () => dispatch(resetLocal()),
+    // resetModal: () => dispatch(resetModal()),
+    // resetDisplay: () => dispatch(resetDisplay()),
   };
 };
 
@@ -126,14 +129,16 @@ class MainScreen extends React.Component {
       openDrawer: true,
       anchorEl: null,
       staffUid: null,
-      openRef: false,
-      openStaff: false,
-      openMyDetails: false,
-      openTraining: false,
+      // openRef: false,
+      // openStaff: false,
+      // openMyDetails: false,
+      // openTraining: false,
+      openHelp: false,
     };
   }
 
   componentWillMount() {
+    this.props.fetchMe();
     this.props.fetchStaff();
     // UploadtoFirebase();
     // QuestionsToFirebase();
@@ -334,12 +339,18 @@ class MainScreen extends React.Component {
           </List>
         <Divider />
           <List>
-          <ListItem button component={Link} to="/help">
-            <ListItemIcon>
-              <HelpIcon className={classes.accentButton} />
-            </ListItemIcon>
-            <ListItemText primary="Help" />
-          </ListItem>
+            <ListItem button component={Link} to="/help">
+              <ListItemIcon>
+                <HelpIcon className={classes.accentButton} />
+              </ListItemIcon>
+              <ListItemText primary="Help" />
+            </ListItem>
+            <ListItem button component={Link} to="/updates">
+              <ListItemIcon>
+                <UpdatesIcon className={classes.accentButton} />
+              </ListItemIcon>
+              <ListItemText primary="Version Updates" />
+            </ListItem>
           </List>
       </Drawer>
     )
@@ -367,9 +378,10 @@ class MainScreen extends React.Component {
             <div>
               <CssBaseline />
               {
-                (this.props.state.local.staff[auth.currentUser.uid]
-                && this.props.state.local.staff[auth.currentUser.uid].key == '47Z@g*dy!EYGL%fMnOReuTJeB1$'
-                && this.props.state.local.staff[auth.currentUser.uid].gmail == auth.currentUser.email) ?
+                (this.props.state.local.me
+                && this.props.state.local.me.key == '47Z@g*dy!EYGL%fMnOReuTJeB1$')
+                // && this.props.state.local.staff[auth.currentUser.uid].gmail == auth.currentUser.email)
+                ?
                   <div className={classes.root}>
                     <AppBar
                       position="absolute"
@@ -420,9 +432,10 @@ class MainScreen extends React.Component {
                             <Route path="/library" render={() => <div>Library</div>} />
                             <Route path="/document" render={() => <div>Document Viewer</div>} />
                             <Route path="/help" render={() => <div>Help</div>} />
+                            <Route path="/updates" render={() => <div>Version Updates</div>} />
                           </Switch>
                         </Typography>
-                        <Route path="/(library|training/modules|lab|tools|noticeboard)" render={() =>
+                        <Route path="/(library|training/modules|lab|tools|noticeboard|help)" render={() =>
                           <div className={classes.search}>
                             <div className={classes.searchIcon}>
                               <SearchIcon />
@@ -491,6 +504,7 @@ class MainScreen extends React.Component {
                         <Route exact path="/admin" component={Admin} />
                         <Route path="/admin/constants" component={AdminConstants} />
                         <Route path="/help" component={Help} />
+                        <Route path="/updates" component={Updates} />
                         <Route component={Dashboard} />
                         {/* <Route component={NoMatch} /> */}
                       </Switch>

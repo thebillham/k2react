@@ -13,7 +13,7 @@ import {
   LinearProgress, Button, FormControl, InputLabel, Input, Select, IconButton
 } from '@material-ui/core';
 import UploadIcon from '@material-ui/icons/CloudUpload';
-import { Delete } from '@material-ui/icons';
+import { Close } from '@material-ui/icons';
 import {
   hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,
   handleTagAddition,
@@ -72,7 +72,7 @@ class UserAttrModal extends React.Component {
         open={ this.props.modalType === USERATTR }
         onClose = {() => this.props.hideModal}
         >
-        <DialogTitle>Add New</DialogTitle>
+        <DialogTitle>{ modalProps.title ? modalProps.title : 'Add New Item' }</DialogTitle>
         <DialogContent>
           <form>
             <FormGroup>
@@ -106,6 +106,16 @@ class UserAttrModal extends React.Component {
                 defaultValue={doc && doc.full}
                 className={classes.dialogField}
                 helperText="e.g. Bachelor of Science in Physics and Geography"
+                onChange={e => {this.props.handleModalChange(e.target)}}
+              />}
+
+              { this.props.qualificationtypes[doc.type].title &&
+              <TextField
+                id="title"
+                label="Qualification Title"
+                defaultValue={doc && doc.title}
+                className={classes.dialogField}
+                helperText="The title of the qualification or unit standard."
                 onChange={e => {this.props.handleModalChange(e.target)}}
               />}
 
@@ -193,15 +203,15 @@ class UserAttrModal extends React.Component {
 
               { doc.fileUrl &&
                 <div>
-                  <img src={doc.fileUrl} width="200" />
-                  <IconButton onClick={() => { if (window.confirm('Are you sure you wish to delete the image?')) this.deleteImage(doc.fileRef, doc.uid)}}>
-                    <Delete />
+                  <img src={doc.fileUrl} width="200px" style={{ opacity: "0.5", borderStyle: "solid", borderWidth: "2px" }} />
+                  <IconButton style={{ position: 'relative', top: '2px', left: "-120px", borderStyle: "solid", borderWidth: "2px", fontSize: 8, }} onClick={() => { if (window.confirm('Are you sure you wish to delete the image?')) this.deleteImage(doc.fileRef, doc.uid)}}>
+                    <Close />
                   </IconButton>
                 </div>
               }
 
               {/*Always allow file upload*/}
-              <InputLabel style={{ fontSize: 12, }}>Upload Scanned Image</InputLabel>
+              <InputLabel style={{ fontSize: 12, marginTop: 4 }}>Upload Scanned Image (Image files are preferred over PDF)</InputLabel>
               <label>
                 <UploadIcon className={classes.accentButton} />
                 <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e =>
@@ -211,13 +221,13 @@ class UserAttrModal extends React.Component {
                   });
                 }
                 } />
-                <LinearProgress variant="determinate" value={modalProps.uploadProgress} />
+                <LinearProgress style={{ marginTop: 4, }} variant="determinate" value={modalProps.uploadProgress} />
               </label>
             </FormGroup>
           </form>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { this.props.hideModal }} color="secondary">Cancel</Button>
+          <Button onClick={() => { this.props.hideModal() }} color="secondary">Cancel</Button>
           {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
           : <Button onClick={() => {
             this.props.handleModalSubmit({

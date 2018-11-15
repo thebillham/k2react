@@ -11,7 +11,7 @@ const constInit = {
   qualificationtypes: {
     AsbestosAssessor: {
       name: 'Asbestos Assessor',
-      id: true,
+      number: true,
       expiry: true,
     },
     AsbestosAwarenessTraining: {
@@ -46,10 +46,15 @@ const constInit = {
     IP402: {
       name: 'IP402',
     },
+    MaskFit: {
+      name: 'Mask Fit Test',
+      expiry: true,
+      issuer: true,
+    },
     NZQAUnitStandard: {
       name: 'NZQA Unit Standard',
       expiry: true,
-      full: true,
+      title: true,
       issuer: true,
       unit: true,
     },

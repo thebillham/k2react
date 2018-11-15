@@ -55,14 +55,15 @@ export default function localReducer(state = localInit, action) {
       return { ...state, staff: action.payload };
     case GET_DOCUMENTS:
       return { ...state, documents: action.payload };
-    // case GET_ME:
-    //   return {
-    //     ...state,
-    //     me: {
-    //       ...state.me,
-    //       ...action.payload,
-    //     }
-    //   }
+    case GET_ME:
+      console.log('Fired get me!');
+      return {
+        ...state,
+        me: {
+          ...state.me,
+          ...action.payload,
+        }
+      }
     case GET_USER:
       return {
         ...state,

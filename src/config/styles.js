@@ -163,6 +163,13 @@ const styles = theme => ({
   title: {
     flexGrow: 1,
   },
+  labels: {
+    marginTop: theme.spacing.unit * 2,
+    marginLeft: theme.spacing.unit,
+    fontSize: 16,
+    fontWeight: 'bold',
+    // marginBottom: theme.spacing.unit * 2,
+  },
   drawerPaper: {
     background: '#fff',
     position: 'relative',

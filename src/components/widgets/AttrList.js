@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from "react-redux";
-import { ListItem, ListItemText, ListItemSecondaryAction, IconButton, } from '@material-ui/core';
+import { ListItem, ListItemText, ListItemSecondaryAction, IconButton, Grid } from '@material-ui/core';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import { Edit, Image, Delete } from '@material-ui/icons';
 import UserAttrModal from '../modals/UserAttrModal';
@@ -44,72 +44,54 @@ function AttrList(props) {
   if (attr.expiry) {
     let expiry = new Date(attr.expiry);
     if (expiry <= today) expirycolor = 'red';
-    console.log(expirycolor);
-    console.log(expiry);
-    console.log(today);
   }
   return (
     <ListItem
       dense
       className={classes.hoverItem}
       key={attr.type + attr.date} >
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        }}>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          alignItems: 'center',
-          justifyContent: 'flex-start',}}>
+      <Grid container
+        direction="row"
+        justify="flex-start"
+        alignItems="center">
+        <Grid item xs={2}>
+          { attr.fileUrl ?
           <Popup
             trigger={<Image style={{ fontSize: 24, color: cameracolor, margin: 10 }} />}
             position="right bottom"
             on="hover"
             disabled={attr.fileUrl == null}
             >
-            { attr.fileUrl &&
-            <img src={attr.fileUrl} width={200} />}
+            <img src={attr.fileUrl} width={200} />
           </Popup>
-          <IconButton onClick={() => {props.showModal({ modalType: USERATTR, modalProps: { doc: attr, userPath: props.userPath, } })}}>
+        :
+          <Image style={{ fontSize: 24, color: cameracolor, margin: 10 }} />}
+          <IconButton onClick={() => {props.showModal({ modalType: USERATTR, modalProps: { doc: attr, userPath: props.userPath, title: "Edit Item", } })}}>
             <Edit />
           </IconButton>
           <UserAttrModal />
-        </div>
-        <div style={{
-          textOverflow: 'ellipsis',
-          width: '20vw',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-        }}>
-          <b>{ qual.name }</b><br />
-          { attr.id && <div>ID Number: { attr.id }</div>}
-          { attr.number && <div>Number: { attr.number }</div>}
-          { attr.full && <div><i>{ attr.full }</i></div>}
-          { attr.abbrev && <div>({ attr.abbrev })</div>}
-          { attr.class && <div><b>Class(es):</b> { attr.class.join(', ') }</div>}
-          { attr.unit && <div><b>Unit Standard(s):</b> { attr.unit.join(', ') }</div>}
-          { attr.course && <div><b>Course(s):</b> { attr.class.course(', ') }</div>}
-          { attr.date && <div><b>Issue Date:</b> <FormattedDate value={attr.date} month='long' day='numeric' year='numeric' /> </div>}
-          { attr.expiry && <div><b>Expiry Date:</b> <span style={{ color: expirycolor }}><FormattedDate value={attr.expiry} month='long' day='numeric' year='numeric' /></span></div>}
-          { attr.issuer && <div><b>Issued By:</b> { attr.issuer }</div>}
-          { attr.notes && <div><b>Notes:</b> { attr.notes }</div>}
-        </div>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'flex-end',}}>
+        </Grid>
+        <Grid item xs={8}>
+          <div style={{ marginTop: 16, marginBottom: 8, fontSize: 18, fontWeight: 500, }}>{ qual.name }</div>
+          { qual.id && attr.id && <div><span style={{ fontWeight: 450, }}>ID Number:</span> { attr.id }</div>}
+          { qual.number && attr.number && <div><span style={{ fontWeight: 450, }}>Number:</span> { attr.number }</div>}
+          { qual.title && attr.title && <div><i>{ attr.title }</i></div>}
+          <div>{ qual.full && attr.full && <span><i>{ attr.full }</i></span>}
+          { qual.abbrev && attr.abbrev && <span> ({ attr.abbrev })</span>}</div>
+          { qual.class && attr.class && <div><span style={{ fontWeight: 450, }}>Class(es):</span> { attr.class.join(', ') }</div>}
+          { qual.unit && attr.unit && <div><span style={{ fontWeight: 450, }}>Unit Standard(s):</span> { attr.unit.join(', ') }</div>}
+          { qual.course && attr.course && <div><span style={{ fontWeight: 450, }}>Course(s):</span> { attr.class.course(', ') }</div>}
+          { attr.date && <div><span style={{ fontWeight: 450, }}>Issue Date:</span> <FormattedDate value={attr.date} month='long' day='numeric' year='numeric' /> </div>}
+          { qual.expiry && attr.expiry && <div><span style={{ fontWeight: 450, }}>Expiry Date:</span> <span style={{ color: expirycolor }}><FormattedDate value={attr.expiry} month='long' day='numeric' year='numeric' /></span></div>}
+          { qual.issuer && attr.issuer && <div><span style={{ fontWeight: 450, }}>Issued By:</span> { attr.issuer }</div>}
+          { qual.notes && attr.notes && <div><span style={{ fontWeight: 450, }}>Notes:</span> { attr.notes }</div>}
+        </Grid>
+        <Grid item xs={1}>
           <IconButton onClick={() => { if (window.confirm('Are you sure you wish to delete this item?')) deleteAttr(attr.uid, props.userPath, attr.fileRef)}}>
             <Delete />
           </IconButton>
-        </div>
-      </div>
+        </Grid>
+      </Grid>
     </ListItem>
   );
 }

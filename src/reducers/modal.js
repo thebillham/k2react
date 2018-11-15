@@ -52,7 +52,10 @@ export default function modalReducer(state = modalInit, action){
           ...action.payload}
         }
     case HIDE_MODAL:
-      return modalInit;
+      return {
+        ...state,
+        modalType: null,
+      };
     case ADD_TAG:
       return {
         ...state,

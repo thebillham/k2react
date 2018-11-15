@@ -13,6 +13,9 @@ export const hideModal = () => dispatch => {
   dispatch({
     type: HIDE_MODAL
   });
+  dispatch({
+    type: RESET_MODAL
+  });
 }
 
 export const showModal = ({ modalType, modalProps }) => dispatch => {
