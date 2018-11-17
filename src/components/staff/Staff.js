@@ -172,7 +172,8 @@ class Staff extends React.Component {
                       }
                       if (this.state.authFilterOn) {
                         this.props.permissions.map(permission => {
-                          if (this.state.authFilters[permission.name] && !user.auth[permission.name]) filter = false;
+                          if (!user.auth) filter = false;
+                            else if (this.state.authFilters[permission.name] && !user.auth[permission.name]) filter = false;
                         });
                       }
                       return(filter)
