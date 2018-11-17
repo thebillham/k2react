@@ -76,6 +76,28 @@ const constInit = {
       issuer: true,
     },
   },
+  permissions: [
+    {
+      name: 'K2 Staff',
+      desc: 'Gives the user access to view all K2 samples and jobs.'
+    },
+    {
+      name: 'Admin',
+      desc: 'Gives the user full access and the ability to edit other users including granting them permissions.'
+    },
+    {
+      name: 'Asbestos Air Analysis',
+      desc: 'Gives the user the ability to add fibre count results to air samples.'
+    },
+    {
+      name: 'Asbestos Bulk Analysis',
+      desc: 'Gives the user the ability to add analysis results to bulk samples.',
+    },
+    {
+      name: 'Analysis Checker',
+      desc: 'Gives the user the ability to check off air and bulk analysis results so they can be issued.',
+    },
+  ],
   jobdescriptions: [
     'Administration Manager',
     'Asbestos Administrator',

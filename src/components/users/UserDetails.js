@@ -5,7 +5,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { formStyles } from '../../config/styles';
 import { List, ListItem, TextField, Typography, InputLabel,
   Select, FormControl, Input, Divider, Grid, CircularProgress, Card,
-  CardHeader, Checkbox, FormControlLabel, Paper, Tab, Tabs, Button,
+  CardHeader, Checkbox, FormControlLabel, FormHelperText, Paper, Tab, Tabs, Button,
   CardContent, IconButton } from '@material-ui/core';
 import { auth, usersRef } from '../../config/firebase';
 import { CloudUpload, Warning, Add, ExpandLess, ExpandMore, Edit, Delete, AddPhotoAlternate, Error, CheckCircleOutline } from '@material-ui/icons';
@@ -21,6 +21,7 @@ const mapStateToProps = state => {
     me: state.local.me,
     offices: state.const.offices,
     jobdescriptions: state.const.jobdescriptions,
+    permissions: state.const.permissions,
   };
 };
 
@@ -34,11 +35,7 @@ class UserDetails extends React.Component {
   constructor(props){
     super(props);
     var userPath = auth.currentUser.uid;
-    var user = props.me;
-    if (props.match.params.user) {
-      user = props.staff[props.match.params.user];
-      userPath = props.match.params.user;
-    }
+    if (props.match.params.user) userPath = props.match.params.user;
     this.state = {
       tabValue: 0,
       userPath: userPath,
@@ -64,6 +61,22 @@ class UserDetails extends React.Component {
     }
     usersRef.doc(this.state.userPath).update(change);
   }
+
+  onEditAuth = (target, auth) => {
+    if (this.props.me.auth && this.props.me.auth['Admin']) {
+      let change = {};
+      if (auth) change = auth;
+      change[target.id] = target.value;
+      this.setState({
+        user: {
+          ...this.state.user,
+          auth: change,
+        },
+      });
+      usersRef.doc(this.state.userPath).update({auth: change});
+    }
+  }
+
 
   displayTimeAtK2 = () => {
     var user = {};
@@ -105,6 +118,8 @@ class UserDetails extends React.Component {
     let sixmonths = new Date();
     sixmonths = sixmonths.setMonth(sixmonths.getMonth() - 6);
 
+    let admin = false;
+    if (this.props.me.auth && this.props.me.auth['Admin']) admin = true;
     return (
       <div style={{ marginTop: 80, }}>
         <UserAttrModal />
@@ -121,6 +136,7 @@ class UserDetails extends React.Component {
               <Tab label="Certificates" />
               <Tab label="Personal Gear" />
               <Tab label="Emergency Contacts" />
+              <Tab label="Permissions" />
             </Tabs>
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', }}>
@@ -300,8 +316,7 @@ class UserDetails extends React.Component {
                 }
               </div>
             }
-            {
-              tabValue === 2 &&
+            { tabValue === 2 &&
                 <div>
                   { this.state.isLoading ?
                   <div>
@@ -452,15 +467,14 @@ class UserDetails extends React.Component {
                 }
                 </div>
             }
-            {
-              tabValue === 3 &&
+            { tabValue === 3 &&
               <div>
                 { this.state.isLoading || !user ?
                     <div>
                       <CircularProgress />
                     </div>
                   :
-                    <Grid container justifyContent='center' direction='row'>
+                    <Grid container justify='center' direction='row'>
                       <Grid item xs={12} sm={9} md={8} lg={7} xl={6}>
                         <ListItem>
                           <Typography className={classes.labels}>Primary Emergency Contact</Typography>
@@ -615,6 +629,42 @@ class UserDetails extends React.Component {
                   }
               </div>
             }
+            { tabValue === 4 &&
+                <div>
+                  { this.state.isLoading ?
+                  <div>
+                    <CircularProgress />
+                  </div>
+                :
+                  <Grid container justify='flex-start' direction='row' style={{ width: 800 }}>
+                    <Grid item>
+                      {
+                        this.props.permissions.map(permission => {
+                          return (
+                          <ListItem key={permission.name}>
+                            <FormControlLabel
+                              style={{ marginLeft: 1, }}
+                              control={
+                                <Checkbox
+                                  disabled={!admin}
+                                  checked={user.auth[permission.name]}
+                                  onChange={e => this.onEditAuth({id: permission.name, value: e.target.checked}, user.auth)}
+                                  value={permission.name}
+                                />
+                              }
+                              label={permission.name}
+                            />
+                            <FormHelperText>{permission.desc}</FormHelperText>
+                          </ListItem>
+                        );
+                      })
+                    }
+                    </Grid>
+                  </Grid>
+                }
+                </div>
+            }
+
           </div>
         </Paper>
       </div>

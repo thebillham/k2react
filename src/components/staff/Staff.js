@@ -5,7 +5,7 @@ import { Grid, GridList, GridListTile, Button, Table, TableBody,
   TableCell, TableHead, TableRow, CircularProgress, Chip, Tab, Tabs, Paper, ExpansionPanel,
   ExpansionPanelDetails, ExpansionPanelSummary, ListItem, } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
-import { LocationCity, School, ExpandMore } from '@material-ui/icons';
+import { LocationCity, School, ExpandMore, Https } from '@material-ui/icons';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css'
 import treeTableHOC from 'react-table/lib/hoc/treeTable';
@@ -17,7 +17,8 @@ import { connect } from 'react-redux';
 const mapStateToProps = state => {
   return {
     staff: state.local.staff,
-    me: state.local.me
+    me: state.local.me,
+    permissions: state.const.permissions,
   };
 };
 
@@ -32,6 +33,8 @@ class Staff extends React.Component {
       officeFilterOn: false,
       attrFilters: {},
       attrFilterOn: false,
+      authFilters: {},
+      authFilterOn: false,
     }
   }
 
@@ -77,6 +80,27 @@ class Staff extends React.Component {
     });
   }
 
+  filterAuth = chip => {
+    let state = true;
+    if (this.state.authFilters[chip]) state = false;
+
+    let filterOn = state;
+
+    let newFilters = {
+      ...this.state.authFilters,
+      [chip]: state,
+    }
+
+    Object.values(newFilters).forEach(filter => {
+      if (filter) filterOn = true;
+    });
+
+    this.setState({
+      authFilters: newFilters,
+      authFilterOn: filterOn,
+    });
+  }
+
   handleTabChange = (event, value) => {
     this.setState({ tabValue: value });
   };
@@ -116,10 +140,19 @@ class Staff extends React.Component {
                 })}
               </Grid>
               <Grid container spacing={8}>
-                { ['IP402','Asbestos Assessor','Tertiary Degree','Science Degree','Mask Fit Tested','Air Test Analyst',].map(chip => {
+                { ['IP402','Asbestos Assessor','Tertiary Degree','Science Degree','Mask Fit Tested',].map(chip => {
                   return (
                     <Grid item key={chip}>
                       <Chip icon={<School />} variant="outlined" color={this.state.attrFilters[chip] ? "secondary" : "default"} onClick={() => this.filterAttr(chip)} label={chip} />
+                    </Grid>
+                  );
+                })}
+              </Grid>
+              <Grid container spacing={8}>
+                { this.props.permissions.map(chip => {
+                  return (
+                    <Grid item key={chip.name}>
+                      <Chip icon={<Https />} variant="outlined" color={this.state.authFilters[chip.name] ? "secondary" : "default"} onClick={() => this.filterAuth(chip.name)} label={chip.name} />
                     </Grid>
                   );
                 })}
@@ -130,13 +163,17 @@ class Staff extends React.Component {
                     .filter(user => {
                       let filter = false;
                       if (this.state.officeFilterOn === false || this.state.officeFilters[user.office]) filter = true;
-                      if (!this.state.attrFilterOn) {
-                        if ((this.state.officeFilters['IP402'] && !user.ip402) ||
-                        (this.state.officeFilters['Asbestos Assessor'] && !user.aanumber) ||
-                        (this.state.officeFilters['Tertiary Degree'] && !user.tertiary) ||
-                        (this.state.officeFilters['Science Degree'] && !(user.tertiary && user.tertiary.includes('Sc'))) ||
-                        (this.state.officeFilters['Mask Fit Tested'] && !user.maskfit) ||
-                        (this.state.officeFilters['Air Test Analyst'] && !user.auth.airanalyst)) filter = false;
+                      if (this.state.attrFilterOn) {
+                        if (this.state.attrFilters['IP402'] && !user.ip402) filter = false;
+                        if (this.state.attrFilters['Asbestos Assessor'] && !user.aanumber) filter = false;
+                        if (this.state.attrFilters['Tertiary Degree'] && !user.tertiary) filter = false;
+                        if (this.state.attrFilters['Science Degree'] && !(user.tertiary && user.tertiary.includes('Sc'))) filter = false;
+                        if (this.state.attrFilters['Mask Fit Tested'] && !user.maskfit) filter = false;
+                      }
+                      if (this.state.authFilterOn) {
+                        this.props.permissions.map(permission => {
+                          if (this.state.authFilters[permission.name] && !user.auth[permission.name]) filter = false;
+                        });
                       }
                       return(filter)
                     })
@@ -284,7 +321,7 @@ class Staff extends React.Component {
             <div style={{ position: 'relative', width: '80vw'}}>
               { staff.map(user => {
                 return(
-                  <ListItem button>
+                  <ListItem button key={user.name}>
                     <Grid container>
                       <Grid item xs={3}>{ user.name }</Grid>
                       <Grid item xs={2}>{ user.phone ?
