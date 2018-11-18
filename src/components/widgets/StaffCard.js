@@ -1,79 +1,77 @@
 import React from 'react';
+import { connect } from "react-redux";
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { Card, CardContent, Typography, CardHeader, Button } from '@material-ui/core';
+import { Card, CardContent, Typography, CardHeader, Button, Grid, List, ListItem, } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
+import { FormattedDate } from 'react-intl';
 
-const styles = {
-  card: {
-    minWidth: 50,
-    minHeight: 300,
-  },
-  bullet: {
-    display: 'inline-block',
-    margin: '0 2px',
-    transform: 'scale(0.8)',
-  },
-  name: {
-    marginBottom: 16,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  details: {
-    fontSize: 14,
-  },
-  formIcon: {
-    color: 'black',
-    fontSize: 14,
-  },
+const mapStateToProps = state => {
+  return {
+    me: state.local.me,
+   };
 };
+
+function displayTimeAtK2(user) {
+  if (user.startdate) {
+    var timeAtK2 = new Date() - new Date(user.startdate);
+    var divideBy = {
+      d: 86400000,
+      m: 2629800000,
+      y: 31557600000,
+    };
+    var years = Math.floor(timeAtK2/divideBy['y']);
+    timeAtK2 = timeAtK2 % divideBy['y'];
+    var months = Math.floor(timeAtK2/divideBy['m']);
+    timeAtK2 = timeAtK2 % divideBy['m'];
+    var days = Math.floor(timeAtK2/divideBy['d']);
+    let y = ' years ';
+    let m = ' months and ';
+    let d = ' days';
+    if (years == 1) y = ' year ';
+    if (months == 1) m = ' month and ';
+    if (days == 1) d = ' day';
+    return (years + y + months + m + days + d);
+  } else {
+    return ('No start date set')
+  }
+}
 
 function StaffCard(props) {
   const { classes, staff } = props;
-  const path = "/staff/details/" + staff.uid;
+  const path = staff.uid ? "/staff/details/" + staff.uid : "/mydetails";
 
   return (
-      <Card className={classes.card}>
-        {/* <CardActionArea> */}
-          {/* <CardMedia
-            component="img"
-            image="https://firebasestorage.googleapis.com/v0/b/k2flutter-f03a1.appspot.com/o/dummyprofilephoto.jpg?alt=media&token=0fa9ec7e-14b0-4b94-ae10-adc79824040f"
-          /> */}
-          <CardHeader
-            action={
-              <Link to={path}><EditIcon className={classes.formIcon} /></Link>
+      <Grid container>
+        <Grid item xs={6}>
+            { props.me.auth && props.me.auth['Admin'] &&
+                <Link to={path} style={{ textDecoration: 'none',}} >
+                  <Button style={{ marginBottom: 20, }} variant='outlined'>Edit User</Button><br />
+                </Link>
             }
-            title={
-              <Typography className={classes.name} color="textSecondary">
-                { staff.jobdescription }
-              </Typography>
-            }
-            subheader={
-              <Typography className={classes.details} color="textSecondary">
-                { staff.office }
-              </Typography>
-            }
-          />
-          <CardContent>
-            <Typography className={classes.details}>
-              { staff.aanumber }
-            </Typography>
-            <Typography className={classes.details} color="textSecondary">
-              { staff.email }
-            </Typography>
-            <Typography className={classes.details} color="textSecondary">
-              { staff.gmail }
-              <br />
-            </Typography>
-          </CardContent>
-        {/* </CardActionArea> */}
-      </Card>
+            <i>{staff.jobdescription}</i><br />
+            Office: <span style={{ fontWeight: 100 }}>{staff.office ? staff.office : 'Office not set.' }</span><br />
+            Phone: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.phone ? <a href={'tel:' + staff.phone}>{staff.phone}</a> : 'No work phone set.'}</span><br />
+            Email: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.email ? <a href={'mailto:' + staff.email}>{staff.email}</a> : 'No email set.'}</span><br />
+            Gmail: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.gmail ? <a href={'mailto:' + staff.gmail}>{staff.gmail}</a> : 'No Gmail set.'}</span><br />
+            Personal Phone: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.personalphone ? <a href={'tel:' + staff.personalphone}>{staff.personalphone}</a> : 'Personal phone not set.'}</span><br />
+            <hr />
+            IP402: <span style={{ fontWeight: 100 }}>{staff.ip402 ? 'Yes' : 'No' }</span><br />
+            Asbestos Assessor: <span style={{ fontWeight: 100 }}>{staff.aanumber ? staff.aanumber : 'No' }</span><br />
+            Mask Fit Tested: <span style={{ fontWeight: 100 }}>{staff.maskfit ? staff.maskfit : 'No' }</span><br />
+            <hr />
+            Start Date at K2: <span style={{ fontWeight: 100 }}>{staff.startdate ? <FormattedDate value={staff.startdate} month='long' day='numeric' year='numeric' /> : 'Start date not set.' }</span><br />
+            Time at K2: <span style={{ fontWeight: 100 }}>{displayTimeAtK2(staff)}</span><br />
+            <hr />
+            Asbestos Air Analyst: <span style={{ fontWeight: 100 }}>{staff.auth && staff.auth['Asbestos Air Analysis'] ? 'Yes' : 'No' }</span><br />
+            Asbestos Bulk Analyst: <span style={{ fontWeight: 100 }}>{staff.auth && staff.auth['Asbestos Bulk Analysis'] ? 'Yes' : 'No' }</span><br />
+            Asbestos Checker: <span style={{ fontWeight: 100 }}>{staff.auth && staff.auth['Analysis Checker'] ? 'Yes' : 'No' }</span><br />
+        </Grid>
+        <Grid item xs={6}>
+        </Grid>
+      </Grid>
   );
 }
 
-StaffCard.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
-export default withStyles(styles)(StaffCard);
+export default connect(mapStateToProps)(StaffCard);

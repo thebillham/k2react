@@ -71,8 +71,8 @@ function AttrList(props) {
           </IconButton>
           <UserAttrModal />
         </Grid>
-        <Grid item xs={8}>
-          <div style={{ marginTop: 16, marginBottom: 8, fontSize: 18, fontWeight: 500, }}>{ qual.name }</div>
+        <Grid item xs={8} style={{ fontWeight: 100, fontSize: 14, }}>
+          <div style={{ marginTop: 16, marginBottom: 8, fontSize: 16, fontWeight: 500, }}>{ qual.name }</div>
           { qual.id && attr.id && <div><span style={{ fontWeight: 450, }}>ID Number:</span> { attr.id }</div>}
           { qual.number && attr.number && <div><span style={{ fontWeight: 450, }}>Number:</span> { attr.number }</div>}
           { qual.title && attr.title && <div><i>{ attr.title }</i></div>}

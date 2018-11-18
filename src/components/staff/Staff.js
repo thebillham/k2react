@@ -101,12 +101,39 @@ class Staff extends React.Component {
     });
   }
 
+  returnDocs = () => {
+    const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
+    if (this.state.docview) {
+        staff.forEach(e => {
+          if (e.attrs) {
+            Object.values(e.attrs).forEach(attr => {
+              if (attr.type == this.state.docview && attr.fileUrl) {
+                return (
+                  <GridListTile>
+                    <img src={attr.fileUrl} />
+                  </GridListTile>
+                );
+              }
+            });
+          }
+        });
+      }
+  }
+
   handleTabChange = (event, value) => {
     this.setState({ tabValue: value });
   };
 
+  setDocView = type => {
+    if (this.state.docview == type) {
+      this.setState({ docview: undefined });
+    } else {
+      this.setState({ docview: type});
+    }
+  }
+
   render() {
-    const TreeTable = treeTableHOC(ReactTable);
+    // const TreeTable = treeTableHOC(ReactTable);
     const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
     var { tabValue } = this.state;
 
@@ -158,7 +185,7 @@ class Staff extends React.Component {
                 })}
               </Grid>
               { staff.length > 0 ?
-                <div>
+                <div style={{ marginTop: 5, }}>
                   { staff
                     .filter(user => {
                       let filter = false;
@@ -184,136 +211,10 @@ class Staff extends React.Component {
                         <b>{user.name}</b>
                       </ExpansionPanelSummary>
                       <ExpansionPanelDetails>
-                        <div>Gmail: { user.gmail }</div>
+                        <StaffCard staff={user} />
                       </ExpansionPanelDetails>
                     </ExpansionPanel>
                   )})}
-                  {/*<TreeTable
-                    filterable
-                    defaultFilterMethod={(filter, row, column) => {
-                      const id = filter.pivotId || filter.id;
-                      return row[id] !== undefined
-                        ?
-                          String(row[id])
-                          .toLowerCase()
-                          .includes(filter.value.toLowerCase())
-                        : false;
-                    }}
-                    data={Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name))}
-                    showPagination={false}
-                    defaultPageSize={31}
-                    className="-striped -highlight"
-                    columns={[
-                      {
-                        accessor: 'uid',
-                        show: false,
-                      },
-                      {
-                        Header: 'Name',
-                        accessor: 'name',
-                      },
-                      {
-                        Header: 'Email',
-                        accessor: 'email',
-                      },
-                      {
-                        Header: 'Gmail',
-                        accessor: 'gmail',
-                      },
-                      {
-                        Header: 'Mobile',
-                        accessor: 'phone',
-                      },
-                      {
-                        Header: 'Tertiary',
-                        accessor: 'tertiary',
-                      },
-                      {
-                        Header: 'IP402',
-                        id: 'ip402',
-                        accessor: d => d.ip402 && 'Yes',
-                        filterMethod: (filter, row) => {
-                          if (filter.value === "yes") {
-                            return row[filter.id] === 'Yes';
-                          }
-                          return true;
-                        },
-                        Filter: ({ filter, onChange }) =>
-                          <select
-                            onChange={event => onChange(event.target.value)}
-                            style={{ width: "100%" }}
-                            value={filter ? filter.value : "all"}
-                          >
-                            <option value="all">Show All</option>
-                            <option value="yes">Show IP402 Only</option>
-                          </select>,
-                      },
-                      {
-                        Header: 'Asbestos Assessors Number',
-                        accessor: 'aanumber',
-                        filterMethod: (filter, row) => {
-                          if (filter.value === "aa") {
-                            return row[filter.id] !== undefined;
-                          }
-                          return true;
-                        },
-                        Filter: ({ filter, onChange }) =>
-                          <select
-                            onChange={event => onChange(event.target.value)}
-                            style={{ width: "100%" }}
-                            value={filter ? filter.value : "all"}
-                          >
-                            <option value="all">Show All</option>
-                            <option value="aa">Show Licensed Assessors</option>
-                          </select>,
-                      },
-                      {
-                        Header: 'Job Description',
-                        accessor: 'jobdescription',
-                      },
-                      {
-                        Header: 'Office',
-                        accessor: 'office',
-                        filterMethod: (filter, row) => {
-                          if (filter.value === "akl") {
-                            return row[filter.id] === 'Auckland';
-                          }
-                          if (filter.value === "chc") {
-                            return row[filter.id] === 'Christchurch';
-                          }
-                          if (filter.value === "htn") {
-                            return row[filter.id] === 'Hamilton';
-                          }
-                          if (filter.value === "nsn") {
-                            return row[filter.id] === 'Nelson';
-                          }
-                          if (filter.value === "wtn") {
-                            return row[filter.id] === 'Wellington';
-                          }
-                          return true;
-                        },
-                        Filter: ({ filter, onChange }) =>
-                          <select
-                            onChange={event => onChange(event.target.value)}
-                            style={{ width: "100%" }}
-                            value={filter ? filter.value : "all"}
-                          >
-                            <option value="all">Show All</option>
-                            <option value="akl">Auckland</option>
-                            <option value="chc">Christchurch</option>
-                            <option value="htn">Hamilton</option>
-                            <option value="nsn">Nelson</option>
-                            <option value="wtn">Wellington</option>
-                          </select>,
-                      },
-                    ]}
-                    SubComponent={row => {
-                      // a SubComponent just for the final detail
-                      return (
-                        <StaffCard staff={row.row} />
-                      );
-                    }}
-                  />*/}
                 </div> : <CircularProgress />
               }
             </div>
@@ -331,7 +232,7 @@ class Staff extends React.Component {
                         position="bottom center"
                         on="hover"
                         >
-                        <div style={{ borderRadius: 5, backgroundColor: 'black', color: 'white', fontSize: 128, padding: 48, margin: -8, width: '60vw'}}>{user.phone}</div>
+                        <div style={{ borderRadius: 20, display: 'inline-flex', backgroundColor: 'darkgrey', color: 'white', whiteSpace: 'nowrap', fontSize: 96, padding: 48, margin: -8, }}>{user.phone}</div>
                       </Popup>
                       : <div>Work phone not listed.</div>}</Grid>
                       <Grid item xs={3}>{user.email ? <a style={{ textDecoration: 'none' }} href={'mailto:' + user.email}>{ user.email }</a> : <div>Email not set.</div>}</Grid>
@@ -344,6 +245,15 @@ class Staff extends React.Component {
           }
           { tabValue === 2 &&
             <div style={{ position: 'relative', width: '80vw'}}>
+              {['Tertiary','IP402','AsbestosAssessor'].map(type => {
+                return(
+                  <Button onClick={() => this.setDocView(type)} variant='outlined' key={type}>{type}</Button>
+                );
+              })
+              }
+              <GridList>
+                { this.returnDocs() }
+              </GridList>
             </div>
           }
         </div>

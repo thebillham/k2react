@@ -57,8 +57,12 @@ export const fetchMe = () => async dispatch => {
               if (attr.type == 'Tertiary') {
                 user.tertiary = attr.abbrev;
               }
-              if (attr.type == 'MaskFit' && new Date(attr.expiry) > new Date()) {
-                user.maskfit = true;
+              if (attr.type == 'MaskFit') {
+                if (new Date(attr.expiry) > new Date()) {
+                  user.maskfit = 'OK';
+                } else {
+                  user.maskfit = 'Expired';
+                }
               }
               if (attr.type == 'IP402') {
                 user.ip402 = true;
@@ -120,8 +124,12 @@ export const fetchStaff = () => async dispatch => {
                 if (attr.type == 'Tertiary') {
                   user.tertiary = attr.abbrev;
                 }
-                if (attr.type == 'MaskFit' && new Date(attr.expiry) > new Date()) {
-                  user.maskfit = true;
+                if (attr.type == 'MaskFit') {
+                  if (new Date(attr.expiry) > new Date()) {
+                    user.maskfit = 'OK';
+                  } else {
+                    user.maskfit = 'Expired';
+                  }
                 }
                 if (attr.type == 'IP402') {
                   user.ip402 = true;
@@ -164,8 +172,12 @@ export const fetchStaff = () => async dispatch => {
                     if (attr.type == 'Tertiary') {
                       user.tertiary = attr.abbrev;
                     }
-                    if (attr.type == 'MaskFit' && new Date(attr.expiry) > new Date()) {
-                      user.maskfit = true;
+                    if (attr.type == 'MaskFit') {
+                      if (new Date(attr.expiry) > new Date()) {
+                        user.maskfit = 'OK';
+                      } else {
+                        user.maskfit = 'Expired';
+                      }
                     }
                     if (attr.type == 'IP402') {
                       user.ip402 = true;

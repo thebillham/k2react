@@ -97,7 +97,13 @@ class UserDetails extends React.Component {
       var months = Math.floor(timeAtK2/divideBy['m']);
       timeAtK2 = timeAtK2 % divideBy['m'];
       var days = Math.floor(timeAtK2/divideBy['d']);
-      return (years + ' years, ' + months + ' months and ' + days + ' days');
+      let y = ' years ';
+      let m = ' months and ';
+      let d = ' days';
+      if (years == 1) y = ' year ';
+      if (months == 1) m = ' month and ';
+      if (days == 1) d = ' day';
+      return (years + y + months + m + days + d);
     } else {
       return ('No start date set')
     }
@@ -330,10 +336,10 @@ class UserDetails extends React.Component {
                       </ListItem>
                       <ListItem>
                        {
-                         user.maskfit ?
+                         user.maskfit == 'OK' ?
                          <div style={{ color: 'green', fontWeight: 500 }}>Mask Fit Tested <CheckCircleOutline /></div>
                          :
-                         <div style={{ color: 'red', fontWeight: 500 }}>Mask Fit Test Expired! <Error /></div>
+                         <div style={{ color: 'red', fontWeight: 500 }}>{user.maskfit == 'Expired' ? 'Mask Fit Test Expired!' : 'Mask Fit Not Tested'}<Error /></div>
                        }
                       </ListItem>
                       <ListItem>
@@ -641,21 +647,24 @@ class UserDetails extends React.Component {
                       {
                         this.props.permissions.map(permission => {
                           return (
-                          <ListItem key={permission.name}>
-                            <FormControlLabel
-                              style={{ marginLeft: 1, }}
-                              control={
-                                <Checkbox
-                                  disabled={!admin}
-                                  checked={user.auth[permission.name]}
-                                  onChange={e => this.onEditAuth({id: permission.name, value: e.target.checked}, user.auth)}
-                                  value={permission.name}
+                            <div key={permission.name}>
+                              <ListItem key={permission.name} dense>
+                                <FormControlLabel
+                                  control={
+                                    <Checkbox
+                                      disabled={!admin}
+                                      checked={user.auth ? user.auth[permission.name] : false}
+                                      onChange={e => this.onEditAuth({id: permission.name, value: e.target.checked}, user.auth)}
+                                      value={permission.name}
+                                    />
+                                  }
+                                  label={permission.name}
                                 />
-                              }
-                              label={permission.name}
-                            />
-                            <FormHelperText>{permission.desc}</FormHelperText>
-                          </ListItem>
+                              </ListItem>
+                              <ListItem dense>
+                                <FormHelperText>{permission.desc}</FormHelperText>
+                              </ListItem>
+                            </div>
                         );
                       })
                     }
