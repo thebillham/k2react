@@ -84,6 +84,8 @@ import { DragDropContext } from 'react-beautiful-dnd';
 import UploadtoFirebase from './training/Path';
 import QuestionsToFirebase from './quizzes/Questions';
 
+import ApiCalendar from 'react-google-calendar-api/ApiCalendar';
+
 
 // import { quizzesRef, questionsRef } from '../config/firebase';
 
@@ -468,6 +470,7 @@ class MainScreen extends React.Component {
                           onClose={this.handleGoogleMenuClose}
                           >
                           <MenuItem onClick={this.handleLogOut}>Log Out { displayName }</MenuItem>
+                          // <MenuItem onClick={() => ApiCalendar.handleAuthClick() }>Access Google Calendar</MenuItem>
                         </Menu>
                       </Toolbar>
                     </AppBar>

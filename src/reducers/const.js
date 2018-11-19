@@ -268,6 +268,24 @@ const constInit = {
     'Nelson',
     'Wellington',
   ],
+  officecontacts: [
+    {
+      name: 'Christchurch, Unit 21 (main)',
+      workphone: '03 384 8966',
+    },
+    {
+      name: 'Christchurch, Unit 21 (other)',
+      workphone: '03 384 8965',
+    },
+    {
+      name: 'Christchurch, Unit 24',
+      workphone: '03 384 8957',
+    },
+    {
+      name: 'Auckland',
+      workphone: '09 275 1261',
+    },
+  ],
   asbestosmaterials: [],
   buildingmaterials: [],
   asbestostypes: ['Chrysotile', 'Amosite', 'Crocidolite'],

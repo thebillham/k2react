@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import FirebaseAuth from 'react-firebaseui/FirebaseAuth';
 import firebase, { auth } from '../config/firebase.js';
+import { Button } from '@material-ui/core';
 import '../App.css';
 import img_Logo from '../images/logo.png';
+import ApiCalendar from 'react-google-calendar-api/ApiCalendar';
 
 export default class K2SignInScreen extends Component {
 
@@ -23,6 +25,7 @@ export default class K2SignInScreen extends Component {
       callbacks: {
         signInSuccessWithAuthResult: (authResult, redirectUrl) => {
             this.props.app.logIn();
+            ApiCalendar.handleAuthClick();
             return false;
         },
         signInFailure: (error) => {
