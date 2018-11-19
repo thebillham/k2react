@@ -4,20 +4,20 @@ import { Paper } from '@material-ui/core';
 
 import { connect } from 'react-redux';
 import store from '../../store';
-import { fetchHelp  } from '../../actions/local';
+import { fetchUpdates  } from '../../actions/local';
 import { markFootprint } from '../../actions/footprints';
 
 const mapStateToProps = state => {
   return {
-    helps: state.local.helps,
-    footprint: state.footprints.footprints.help,
+    updates: state.local.updates,
+    footprint: state.footprints.footprints.update,
    };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchHelp: () => dispatch(fetchHelp()),
-    markFootprint: () => dispatch(markFootprint()),
+    fetchUpdates: () => dispatch(fetchUpdates()),
+    markFootprint: () => dispatch(markFootprint('update')),
   };
 };
 
@@ -25,7 +25,7 @@ class Updates extends React.Component {
 
   componentWillMount(){
     if (!this.props.footprint) {
-      this.props.fetchHelp();
+      this.props.fetchUpdates();
       this.props.markFootprint();
     }
   }
@@ -33,11 +33,11 @@ class Updates extends React.Component {
   render() {
     return (
         <div style = {{ marginTop: 80, flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', display: 'flex', }}>
-          { this.props.helps && this.props.helps.length > 0 && (
-              this.props.helps.map(help => {
+          { this.props.updates && this.props.updates.length > 0 && (
+              this.props.updates.map(update => {
                 return(
-                  <Paper key={help.date} style={{ padding: 128, width: 1000, }}>
-                    <div style={{ fontSize: 16, color: '#555'}} dangerouslySetInnerHTML={{ __html: help.text}} />
+                  <Paper key={update.date} style={{ padding: 128, width: 1000, }}>
+                    <div style={{ fontSize: 16, color: '#555'}} dangerouslySetInnerHTML={{ __html: update.text}} />
                   </Paper>
                 )
               })

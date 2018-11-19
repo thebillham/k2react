@@ -24,6 +24,7 @@ export const FAV_NOTICE = "FAV_NOTICE";
 export const SET_STEPPER = "SET_STEPPER";
 export const GET_ASBESTOS_SAMPLES = "GET_ASBESTOS_SAMPLES";
 export const GET_HELP = "GET_HELP";
+export const GET_UPDATES = "GET_UPDATES";
 export const RESET_LOCAL = "RESET_LOCAL";
 
 // Modal

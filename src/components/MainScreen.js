@@ -470,7 +470,6 @@ class MainScreen extends React.Component {
                           onClose={this.handleGoogleMenuClose}
                           >
                           <MenuItem onClick={this.handleLogOut}>Log Out { displayName }</MenuItem>
-                          // <MenuItem onClick={() => ApiCalendar.handleAuthClick() }>Access Google Calendar</MenuItem>
                         </Menu>
                       </Toolbar>
                     </AppBar>

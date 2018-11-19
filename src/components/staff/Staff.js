@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-
 import { withStyles } from '@material-ui/core/styles';
 import { Grid, GridList, GridListTile, Button, Table, TableBody,
   TableCell, TableHead, TableRow, CircularProgress, Chip, Tab, Tabs, Paper, ExpansionPanel,
-  ExpansionPanelDetails, ExpansionPanelSummary, ListItem, } from '@material-ui/core';
+  ExpansionPanelDetails, ExpansionPanelSummary, ListItem, GridListTileBar, } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import { LocationCity, School, ExpandMore, Https } from '@material-ui/icons';
 import ReactTable from 'react-table';
@@ -39,6 +39,8 @@ class Staff extends React.Component {
       attrFilterOn: false,
       authFilters: {},
       authFilterOn: false,
+      signedFilter: undefined,
+      signedFilterOn: false,
       events: {},
     }
   }
@@ -106,6 +108,20 @@ class Staff extends React.Component {
     });
   }
 
+  filterSigned = chip => {
+    if (this.state.signedFilter == chip) {
+      this.setState({
+        signedFilter: undefined,
+        signedFilterOn: false,
+      });
+    } else {
+      this.setState({
+        signedFilter: chip,
+        signedFilterOn: true,
+      })
+    }
+  }
+
   handleTabChange = (event, value) => {
     this.setState({ tabValue: value });
   };
@@ -135,28 +151,33 @@ class Staff extends React.Component {
     }
   }
 
+  getDocs = () => {
+    const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
+    let docs = [];
+    if (this.state.docview) {
+      staff.map(e => {
+        if (e.attrs) {
+          Object.values(e.attrs).map(attr => {
+            if (attr.type == this.state.docview && attr.fileUrl) {
+              docs.push(
+                {
+                  url: attr.fileUrl,
+                  name: e.name,
+                }
+              )
+            }
+          })
+        }
+      });
+    }
+    return docs;
+  }
+
   render() {
     // const TreeTable = treeTableHOC(ReactTable);
     const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
     var { tabValue } = this.state;
-
-    // const returnDocs = (
-    //   if (this.state.docview) {
-    //       staff.forEach(e => {
-    //         if (e.attrs) {
-    //           Object.values(e.attrs).forEach(attr => {
-    //             if (attr.type == this.state.docview && attr.fileUrl) {
-    //               return (
-    //                 <GridListTile>
-    //                   <img src={attr.fileUrl} />
-    //                 </GridListTile>
-    //               );
-    //             }
-    //           });
-    //         }
-    //       });
-    //     }
-    // );
+    const docs = this.getDocs();
 
     return (
       <div style = {{ marginTop: 80 }}>
@@ -177,33 +198,51 @@ class Staff extends React.Component {
         <div style={{ display: 'flex', justifyContent: 'center', }}>
           { tabValue === 0 &&
             <div style={{ position: 'relative', width: '80vw'}}>
-              <Grid container spacing={8}>
-                { this.props.offices.map(chip => {
-                  return (
-                    <Grid item key={chip}>
-                      <Chip icon={<LocationCity />} variant="outlined" color={this.state.officeFilters[chip] ? "secondary" : "default"} onClick={() => this.filterOffice(chip)} label={chip} />
+              <ExpansionPanel>
+                <ExpansionPanelSummary expandIcon={<ExpandMore />}>
+                  Filters
+                </ExpansionPanelSummary>
+                <ExpansionPanelDetails>
+                  <Grid container spacing={8} direction='row' justify='space-between' alignItems='flex-start'>
+                    <Grid item xs={6} md={3}>
+                      { this.props.offices.map(chip => {
+                        return (
+                          <div key={chip} style={{ padding: 5,}}>
+                            <Chip icon={<LocationCity />} variant="outlined" color={this.state.officeFilters[chip] ? "secondary" : "default"} onClick={() => this.filterOffice(chip)} label={chip} />
+                          </div>
+                        );
+                      })}
                     </Grid>
-                  );
-                })}
-              </Grid>
-              <Grid container spacing={8}>
-                { ['IP402','Asbestos Assessor','Tertiary Degree','Science Degree','Mask Fit Tested',].map(chip => {
-                  return (
-                    <Grid item key={chip}>
-                      <Chip icon={<School />} variant="outlined" color={this.state.attrFilters[chip] ? "secondary" : "default"} onClick={() => this.filterAttr(chip)} label={chip} />
+                    <Grid item xs={6} md={3}>
+                      { ['IP402','Asbestos Assessor','Tertiary Degree','Science Degree','Mask Fit Tested',].map(chip => {
+                        return (
+                          <div key={chip} style={{ padding: 5,}}>
+                            <Chip icon={<School />} variant="outlined" color={this.state.attrFilters[chip] ? "secondary" : "default"} onClick={() => this.filterAttr(chip)} label={chip} />
+                          </div>
+                        );
+                      })}
                     </Grid>
-                  );
-                })}
-              </Grid>
-              <Grid container spacing={8}>
-                { this.props.permissions.map(chip => {
-                  return (
-                    <Grid item key={chip.name}>
-                      <Chip icon={<Https />} variant="outlined" color={this.state.authFilters[chip.name] ? "secondary" : "default"} onClick={() => this.filterAuth(chip.name)} label={chip.name} />
+                    <Grid item xs={6} md={3}>
+                      { this.props.permissions.map(chip => {
+                        return (
+                          <div key={chip.name} style={{ padding: 5,}}>
+                            <Chip icon={<Https />} variant="outlined" color={this.state.authFilters[chip.name] ? "secondary" : "default"} onClick={() => this.filterAuth(chip.name)} label={chip.name} />
+                          </div>
+                        );
+                      })}
                     </Grid>
-                  );
-                })}
-              </Grid>
+                    <Grid item xs={6} md={3}>
+                      { ['MyK2 User','Not Signed Up'].map(chip => {
+                        return (
+                          <div key={chip} style={{ padding: 5,}}>
+                            <Chip variant='outlined' color={this.state.signedFilter == chip ? 'secondary' : 'default'} onClick={() => this.filterSigned(chip)} label={chip} />
+                          </div>
+                        );
+                      })}
+                    </Grid>
+                  </Grid>
+                </ExpansionPanelDetails>
+              </ExpansionPanel>
               { staff.length > 0 ?
                 <div style={{ marginTop: 5, }}>
                   { staff
@@ -215,13 +254,17 @@ class Staff extends React.Component {
                         if (this.state.attrFilters['Asbestos Assessor'] && !user.aanumber) filter = false;
                         if (this.state.attrFilters['Tertiary Degree'] && !user.tertiary) filter = false;
                         if (this.state.attrFilters['Science Degree'] && !(user.tertiary && user.tertiary.includes('Sc'))) filter = false;
-                        if (this.state.attrFilters['Mask Fit Tested'] && !user.maskfit) filter = false;
+                        if (this.state.attrFilters['Mask Fit Tested'] && user.maskfit != 'OK') filter = false;
                       }
                       if (this.state.authFilterOn) {
                         this.props.permissions.map(permission => {
                           if (!user.auth) filter = false;
                             else if (this.state.authFilters[permission.name] && !user.auth[permission.name]) filter = false;
                         });
+                      }
+                      if (this.state.signedFilterOn) {
+                        if (this.state.signedFilter == 'MyK2 User' && !user.key) filter = false;
+                        if (this.state.signedFilter == 'Not Signed Up' && user.key) filter = false;
                       }
                       return(filter)
                     })
@@ -246,7 +289,7 @@ class Staff extends React.Component {
                   <ListItem button key={user.name}>
                     <Grid container>
                       <Grid item xs={3}>{ user.name }</Grid>
-                      <Grid item xs={2}>{ user.workphone ?
+                      <Grid item xs={3}>{ user.workphone ?
                       <Popup
                         trigger={<a href={'tel:' + user.workphone}>{ user.workphone }</a>}
                         position="bottom center"
@@ -265,7 +308,7 @@ class Staff extends React.Component {
                   <ListItem button key={user.name}>
                     <Grid container>
                       <Grid item xs={3}>{ user.name }</Grid>
-                      <Grid item xs={2}>{ user.workphone ?
+                      <Grid item xs={3}>{ user.workphone ?
                       <Popup
                         trigger={<a href={'tel:' + user.workphone}>{ user.workphone }</a>}
                         position="bottom center"
@@ -290,7 +333,19 @@ class Staff extends React.Component {
                 );
               })
               }
-              <GridList>
+              <GridList cellHeight={420} cols={4}>
+                {
+                  docs.map(doc => {
+                    return(
+                      <GridListTile key={doc.url}>
+                        <img src={doc.url} alt={doc.name} />
+                        <GridListTileBar
+                          title={doc.name}
+                          />
+                      </GridListTile>
+                    )
+                  })
+                }
               </GridList>
             </div>
           }

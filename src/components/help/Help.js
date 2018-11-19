@@ -17,7 +17,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     fetchHelp: () => dispatch(fetchHelp()),
-    markFootprint: () => dispatch(markFootprint()),
+    markFootprint: () => dispatch(markFootprint('help')),
   };
 };
 
