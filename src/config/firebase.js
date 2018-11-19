@@ -25,9 +25,10 @@ const questionsRef = database.collection("questions");
 const trainingPathsRef = database.collection("trainingpaths");
 const methodsRef = database.collection("methods");
 const helpRef = database.collection("help");
+const updateRef = database.collection("updates");
 
 export { app, provider, auth, database, storage };
 export { usersRef, docsRef, modulesRef, toolsRef,
   noticesRef, quizzesRef, questionsRef, trainingPathsRef,
-  methodsRef, asbestosSamplesRef, jobsRef, helpRef };
+  methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef };
 export default firebase;

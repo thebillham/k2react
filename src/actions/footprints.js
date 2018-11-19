@@ -5,6 +5,6 @@ import { auth } from '../config/firebase';
 export const markFootprint = area => dispatch => {
   dispatch({
     type: MARK_FOOTPRINT,
-    payload: { help: true, },
+    payload: { [area]: true, },
   });
 };

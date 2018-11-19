@@ -19,13 +19,14 @@ import { GET_STAFF,
         SET_STEPPER,
         GET_ASBESTOS_SAMPLES,
         GET_HELP,
+        GET_UPDATES,
         APP_HAS_LOADED,
         RESET_LOCAL,
       } from "../constants/action-types";
 import * as firebase from 'firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
 import { auth, database, firestore, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
-    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef } from "../config/firebase";
+    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 
 export const resetLocal = () => dispatch => {
@@ -362,6 +363,20 @@ export const fetchHelp = () => async dispatch => {
       dispatch({
         type: GET_HELP,
         payload: helps,
+      });
+    });
+};
+
+export const fetchUpdates = () => async dispatch => {
+  updateRef.orderBy('date','desc')
+    .onSnapshot(querySnapshot => {
+      var updates = [];
+      querySnapshot.forEach(doc => {
+        updates.push(doc.data());
+      });
+      dispatch({
+        type: GET_UPDATES,
+        payload: updates,
       });
     });
 };

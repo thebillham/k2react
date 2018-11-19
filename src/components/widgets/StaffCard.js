@@ -77,7 +77,7 @@ function StaffCard(props) {
                   <ListItem button onClick={() => { window.open(event.htmlLink) }} key={event.id}>
                     <ListItemText
                       primary={event.summary}
-                      secondary={ event.start.date ? <FormattedDate value={Date.parse(event.start.date)} month='long' day='numeric' /> : <FormattedDate value={Date.parse(event.start.dateTime)} month='long' day='numeric' hour='numeric' minute='numeric' />} /><br />
+                      secondary={ event.start.date ? <div><FormattedDate value={Date.parse(event.start.date)} month='long' day='numeric' /> (all day)</div> : <FormattedDate value={Date.parse(event.start.dateTime)} month='long' day='numeric' hour='numeric' minute='numeric' />} /><br />
 
                   </ListItem>
                 )
