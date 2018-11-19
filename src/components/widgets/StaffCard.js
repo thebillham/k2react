@@ -3,7 +3,8 @@ import { connect } from "react-redux";
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { Card, CardContent, Typography, CardHeader, Button, Grid, List, ListItem, } from '@material-ui/core';
+import { Card, CardContent, Typography, CardHeader, Button, Grid, List, ListItem,
+  CircularProgress, ListItemText, Avatar, ListSubheader, } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import { FormattedDate } from 'react-intl';
 
@@ -52,7 +53,7 @@ function StaffCard(props) {
             }
             <i>{staff.jobdescription}</i><br />
             Office: <span style={{ fontWeight: 100 }}>{staff.office ? staff.office : 'Office not set.' }</span><br />
-            Phone: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.phone ? <a href={'tel:' + staff.phone}>{staff.phone}</a> : 'No work phone set.'}</span><br />
+            Phone: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.workphone ? <a href={'tel:' + staff.workphone}>{staff.workphone}</a> : 'No work phone set.'}</span><br />
             Email: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.email ? <a href={'mailto:' + staff.email}>{staff.email}</a> : 'No email set.'}</span><br />
             Gmail: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.gmail ? <a href={'mailto:' + staff.gmail}>{staff.gmail}</a> : 'No Gmail set.'}</span><br />
             Personal Phone: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.personalphone ? <a href={'tel:' + staff.personalphone}>{staff.personalphone}</a> : 'Personal phone not set.'}</span><br />
@@ -69,6 +70,25 @@ function StaffCard(props) {
             Asbestos Checker: <span style={{ fontWeight: 100 }}>{staff.auth && staff.auth['Analysis Checker'] ? 'Yes' : 'No' }</span><br />
         </Grid>
         <Grid item xs={6}>
+          { staff.events ?
+            <List subheader={<ListSubheader>Upcoming Events</ListSubheader>}>
+              { staff.events.map(event => {
+                console.log('Raw: ' + event.start.dateTime);
+                console.log('Parsed: ' + new Date(event.start.dateTime));
+                return(
+                  <ListItem button onClick={() => { window.open(event.htmlLink) }} key={event.id}>
+                    <ListItemText
+                      primary={event.summary}
+                      secondary={ event.start.date ? <FormattedDate value={Date.parse(event.start.date)} month='long' day='numeric' /> + ' (all day)' : <FormattedDate value={Date.parse(event.start.dateTime)} month='long' day='numeric' hour='numeric' minute='numeric' />} /><br />
+
+                  </ListItem>
+                )
+              })
+            }
+            </List>
+          :
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 100, fontSize: 12, color: '#aaa', }}>No events to display. Either the user has not set their Gmail address, they have not shared their calendar with you, or they have no upcoming events.</div>
+          }
         </Grid>
       </Grid>
   );

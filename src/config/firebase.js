@@ -6,6 +6,7 @@ var p = new firebase.auth.GoogleAuthProvider();
 p.setCustomParameters({
   prompt: 'select_account'
 });
+p.addScope('https://www.googleapis.com/auth/calendar');
 
 const provider = p;
 const auth = firebase.auth();

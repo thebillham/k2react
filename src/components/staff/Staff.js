@@ -10,6 +10,8 @@ import ReactTable from 'react-table';
 import 'react-table/react-table.css'
 import treeTableHOC from 'react-table/lib/hoc/treeTable';
 import Popup from 'reactjs-popup';
+import { GapiConfig } from '../../config/keys';
+import ApiCalendar from 'react-google-calendar-api/ApiCalendar';
 
 import StaffCard from '../widgets/StaffCard.js';
 import { connect } from 'react-redux';
@@ -18,6 +20,8 @@ const mapStateToProps = state => {
   return {
     staff: state.local.staff,
     me: state.local.me,
+    offices: state.const.offices,
+    contacts: state.const.officecontacts,
     permissions: state.const.permissions,
   };
 };
@@ -35,6 +39,7 @@ class Staff extends React.Component {
       attrFilterOn: false,
       authFilters: {},
       authFilterOn: false,
+      events: {},
     }
   }
 
@@ -101,28 +106,26 @@ class Staff extends React.Component {
     });
   }
 
-  returnDocs = () => {
-    const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
-    if (this.state.docview) {
-        staff.forEach(e => {
-          if (e.attrs) {
-            Object.values(e.attrs).forEach(attr => {
-              if (attr.type == this.state.docview && attr.fileUrl) {
-                return (
-                  <GridListTile>
-                    <img src={attr.fileUrl} />
-                  </GridListTile>
-                );
-              }
-            });
-          }
-        });
-      }
-  }
-
   handleTabChange = (event, value) => {
     this.setState({ tabValue: value });
   };
+
+  getEvents = (expanded, calendarid) => {
+    if (expanded && calendarid) {
+      if (ApiCalendar.sign && !this.state.events[calendarid]) {
+        console.log('Api calendar is signed');
+        ApiCalendar.listUpcomingEvents(5, calendarid)
+          .then(({result}: any) => {
+            console.log('Results in');
+            this.setState({ events: {
+              ...this.state.events,
+              [calendarid]: result.items,
+            }});
+            console.log(result.items);
+          });
+      }
+    }
+  }
 
   setDocView = type => {
     if (this.state.docview == type) {
@@ -137,6 +140,23 @@ class Staff extends React.Component {
     const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
     var { tabValue } = this.state;
 
+    // const returnDocs = (
+    //   if (this.state.docview) {
+    //       staff.forEach(e => {
+    //         if (e.attrs) {
+    //           Object.values(e.attrs).forEach(attr => {
+    //             if (attr.type == this.state.docview && attr.fileUrl) {
+    //               return (
+    //                 <GridListTile>
+    //                   <img src={attr.fileUrl} />
+    //                 </GridListTile>
+    //               );
+    //             }
+    //           });
+    //         }
+    //       });
+    //     }
+    // );
 
     return (
       <div style = {{ marginTop: 80 }}>
@@ -158,7 +178,7 @@ class Staff extends React.Component {
           { tabValue === 0 &&
             <div style={{ position: 'relative', width: '80vw'}}>
               <Grid container spacing={8}>
-                { ['Auckland','Christchurch','Hamilton','Nelson', 'Wellington'].map(chip => {
+                { this.props.offices.map(chip => {
                   return (
                     <Grid item key={chip}>
                       <Chip icon={<LocationCity />} variant="outlined" color={this.state.officeFilters[chip] ? "secondary" : "default"} onClick={() => this.filterOffice(chip)} label={chip} />
@@ -206,12 +226,12 @@ class Staff extends React.Component {
                       return(filter)
                     })
                     .map(user => { return(
-                    <ExpansionPanel key={user.name}>
+                    <ExpansionPanel key={user.name} onChange={(event, ex) => { this.getEvents(ex, user.gmail)}}>
                       <ExpansionPanelSummary expandIcon={<ExpandMore />}>
                         <b>{user.name}</b>
                       </ExpansionPanelSummary>
                       <ExpansionPanelDetails>
-                        <StaffCard staff={user} />
+                        <StaffCard staff={{...user, events: this.state.events[user.gmail] }} />
                       </ExpansionPanelDetails>
                     </ExpansionPanel>
                   )})}
@@ -221,20 +241,39 @@ class Staff extends React.Component {
           }
           { tabValue === 1 &&
             <div style={{ position: 'relative', width: '80vw'}}>
+              { this.props.contacts.map(user => {
+                return(
+                  <ListItem button key={user.name}>
+                    <Grid container>
+                      <Grid item xs={3}>{ user.name }</Grid>
+                      <Grid item xs={2}>{ user.workphone ?
+                      <Popup
+                        trigger={<a href={'tel:' + user.workphone}>{ user.workphone }</a>}
+                        position="bottom center"
+                        on="hover"
+                        >
+                        <div style={{ borderRadius: 20, display: 'inline-flex', backgroundColor: 'darkgrey', color: 'white', whiteSpace: 'nowrap', fontSize: 96, padding: 48, margin: -8, }}>{user.workphone}</div>
+                      </Popup>
+                      : <div>Phone not listed.</div>}</Grid>
+                    </Grid>
+                  </ListItem>
+                )
+              })}
+              <hr />
               { staff.map(user => {
                 return(
                   <ListItem button key={user.name}>
                     <Grid container>
                       <Grid item xs={3}>{ user.name }</Grid>
-                      <Grid item xs={2}>{ user.phone ?
+                      <Grid item xs={2}>{ user.workphone ?
                       <Popup
-                        trigger={<a href={'tel:' + user.phone}>{ user.phone }</a>}
+                        trigger={<a href={'tel:' + user.workphone}>{ user.workphone }</a>}
                         position="bottom center"
                         on="hover"
                         >
-                        <div style={{ borderRadius: 20, display: 'inline-flex', backgroundColor: 'darkgrey', color: 'white', whiteSpace: 'nowrap', fontSize: 96, padding: 48, margin: -8, }}>{user.phone}</div>
+                        <div style={{ borderRadius: 20, display: 'inline-flex', backgroundColor: 'darkgrey', color: 'white', whiteSpace: 'nowrap', fontSize: 96, padding: 48, margin: -8, }}>{user.workphone}</div>
                       </Popup>
-                      : <div>Work phone not listed.</div>}</Grid>
+                      : <div>Phone not listed.</div>}</Grid>
                       <Grid item xs={3}>{user.email ? <a style={{ textDecoration: 'none' }} href={'mailto:' + user.email}>{ user.email }</a> : <div>Email not set.</div>}</Grid>
                       <Grid item xs={3}>{user.gmail ? <a style={{ textDecoration: 'none' }} href={'mailto:' + user.gmail}>{ user.gmail }</a> : <div>Gmail not set.</div>}</Grid>
                     </Grid>
@@ -247,12 +286,11 @@ class Staff extends React.Component {
             <div style={{ position: 'relative', width: '80vw'}}>
               {['Tertiary','IP402','AsbestosAssessor'].map(type => {
                 return(
-                  <Button onClick={() => this.setDocView(type)} variant='outlined' key={type}>{type}</Button>
+                  <Button onClick={() => this.setDocView(type)} color={this.state.docview === type ? "secondary" : "default"} variant='outlined' style={{ margin: 20, }} key={type}>{type}</Button>
                 );
               })
               }
               <GridList>
-                { this.returnDocs() }
               </GridList>
             </div>
           }

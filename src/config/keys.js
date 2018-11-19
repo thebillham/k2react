@@ -6,6 +6,12 @@ export const FirebaseConfig = {
   storageBucket: "k2flutter-f03a1.appspot.com",
   messagingSenderId: "303642156934"
 };
+export const GapiConfig = {
+  apiKey: "AIzaSyDDKJ9pXS7mSHs-Ay8Rw2szoHbyIGnPfiw",
+  clientId: "303642156934-lth1dne9k560tsf2jocgaggpln1vr3l6.apps.googleusercontent.com",
+  discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+  scope: 'https://www.googleapis.com/auth/calendar',
+};
 export const wfmApi = '14C10292983D48CE86E1AA1FE0F8DDFE';
 export const wfmAcc = '36D1774D691E431BB11DABB2FD65079D';
 export const wfmRoot = 'https://api.workflowmax.com/';
