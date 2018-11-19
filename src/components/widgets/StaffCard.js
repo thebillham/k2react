@@ -73,13 +73,11 @@ function StaffCard(props) {
           { staff.events ?
             <List subheader={<ListSubheader>Upcoming Events</ListSubheader>}>
               { staff.events.map(event => {
-                console.log('Raw: ' + event.start.dateTime);
-                console.log('Parsed: ' + new Date(event.start.dateTime));
                 return(
                   <ListItem button onClick={() => { window.open(event.htmlLink) }} key={event.id}>
                     <ListItemText
                       primary={event.summary}
-                      secondary={ event.start.date ? <FormattedDate value={Date.parse(event.start.date)} month='long' day='numeric' /> + ' (all day)' : <FormattedDate value={Date.parse(event.start.dateTime)} month='long' day='numeric' hour='numeric' minute='numeric' />} /><br />
+                      secondary={ event.start.date ? <FormattedDate value={Date.parse(event.start.date)} month='long' day='numeric' /> : <FormattedDate value={Date.parse(event.start.dateTime)} month='long' day='numeric' hour='numeric' minute='numeric' />} /><br />
 
                   </ListItem>
                 )
