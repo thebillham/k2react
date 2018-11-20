@@ -1,8 +1,16 @@
 import React from 'react';
 import { connect } from "react-redux";
-import { ListItem, ListItemText, ListItemSecondaryAction, IconButton, Grid } from '@material-ui/core';
+
+import ListItem from '@material-ui/core/ListItem';
+import IconButton from '@material-ui/core/IconButton';
+import Grid from '@material-ui/core/Grid';
+
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { Edit, Image, Delete } from '@material-ui/icons';
+
+import Edit from '@material-ui/icons/Edit';
+import Image from '@material-ui/icons/Image';
+import Delete from '@material-ui/icons/Delete';
+
 import UserAttrModal from '../modals/UserAttrModal';
 import { USERATTR } from '../../constants/modal-types';
 import { withStyles } from '@material-ui/core/styles';

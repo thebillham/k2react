@@ -1,11 +1,11 @@
 import React from 'react';
-import { Typography, Paper, Button } from '@material-ui/core';
+
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import OpenIcon from '@material-ui/icons/OpenInNew';
-import EditIcon from '@material-ui/icons/Edit';
 
 function QuizWidget(props) {
-  const { classes, quiz } = props;
+  const { quiz } = props;
   const path = "/quiz/" + quiz.link;
   const checked = Math.random() < 0.5;
   var color = '#338a69';

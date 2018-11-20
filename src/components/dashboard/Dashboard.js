@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
-import { Grid } from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
 
 import GoogleCalendar from './widgets/GoogleCalendar';
 import CurrentJobs from './widgets/CurrentJobs';

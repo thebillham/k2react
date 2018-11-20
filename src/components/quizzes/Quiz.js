@@ -1,17 +1,14 @@
 import React from 'react';
 
-import { DOCUMENT } from '../../constants/modal-types';
+import Button from '@material-ui/core/Button';
+import List from '@material-ui/core/List';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Typography from '@material-ui/core/Typography';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
-import { Button, Grid, List, Card, CardContent, Typography, CircularProgress } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
-import { showModal } from '../../actions/modal';
-import { modalInit } from '../../reducers/modal';
-import DocumentModal from '../modals/DocumentModal';
-import { onSearchChange, onCatChange } from '../../actions/local';
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import store from '../../store';
-import QuizList from '../widgets/QuizList';
 import { auth, quizzesRef, usersRef, questionsRef } from '../../config/firebase';
 import { formStyles } from '../../config/styles';
 import { FormattedDate } from 'react-intl';
@@ -25,7 +22,7 @@ import ImageSelectSingleQuestion from './ImageSelectSingleQuestion';
 import ImageSelectMultiQuestion from './ImageSelectMultiQuestion';
 import SortImageQuestion from './SortImageQuestion';
 import BucketImageQuestion from './BucketImageQuestion';
-import { Bar, XAxis, YAxis, Legend, BarChart } from 'recharts';
+import { Bar, XAxis, YAxis, BarChart } from 'recharts';
 
 const mapStateToProps = state => {
   return {
@@ -92,7 +89,7 @@ class Quiz extends React.Component {
 
   onSingleChanged = (uid, val) => {
     let questions = this.state.questions;
-    const index = questions.findIndex(q => q.uid == uid);
+    const index = questions.findIndex(q => q.uid === uid);
     questions[index].selected = val;
     this.setState({
       questions: questions,
@@ -101,7 +98,7 @@ class Quiz extends React.Component {
 
   onMultiChecked = (uid, val, single) => {
     let questions = this.state.questions;
-    const index = questions.findIndex(q => q.uid == uid);
+    const index = questions.findIndex(q => q.uid === uid);
     if (questions[index].selected == undefined || single) {
       questions[index].selected = [val];
     } else {

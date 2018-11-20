@@ -1,7 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { withStyles } from '@material-ui/core/styles';
-import { Button, Grid, Paper } from '@material-ui/core';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 import { FormattedDate } from 'react-intl';

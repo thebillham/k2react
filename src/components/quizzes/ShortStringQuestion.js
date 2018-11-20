@@ -1,5 +1,8 @@
 import React from 'react';
-import { FormControl, FormLabel, TextField, } from '@material-ui/core';
+
+import FormControl from '@material-ui/core/FormControl';
+import TextField from '@material-ui/core/TextField';
+import FormLabel from '@material-ui/core/FormLabel';
 
 function ShortStringQuestion(props) {
   return (

@@ -1,5 +1,8 @@
 import React from 'react';
-import { Typography, Paper } from '@material-ui/core';
+
+import Typography from '@material-ui/core/Typography';
+import Paper from '@material-ui/core/Paper';
+
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import OpenIcon from '@material-ui/icons/OpenInNew';
 import EditIcon from '@material-ui/icons/Edit';

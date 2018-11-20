@@ -1,13 +1,9 @@
 import React from 'react';
 
-import { DOCUMENT } from '../../constants/modal-types';
-
-import { List, ListItem, ListItemText } from '@material-ui/core';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import { connect } from 'react-redux';
-import { onSearchChange, onCatChange } from '../../actions/local';
-import store from '../../store';
-import DocList from '../widgets/DocList';
-import { docsRef } from '../../config/firebase';
 import { FormattedDate } from 'react-intl';
 
 const mapStateToProps = state => {

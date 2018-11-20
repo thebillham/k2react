@@ -1,14 +1,27 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
-import store from '../../store';
 import { asbestosSamplesRef, jobsRef } from '../../config/firebase';
-import { ExpansionPanel, ExpansionPanelDetails, ExpansionPanelSummary,
-  List, ListItem, ListItemIcon, ListItemText, CircularProgress, Button,
-  ListItemSecondaryAction, Grid, Paper, TextField, IconButton } from '@material-ui/core';
-import { ExpandMore, CheckCircleOutline, Edit, Inbox, CameraAlt, Print, Send } from '@material-ui/icons';
+
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Paper from '@material-ui/core/Paper';
+import TextField from '@material-ui/core/TextField';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
+
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
+import Edit from '@material-ui/icons/Edit';
+import Inbox from '@material-ui/icons/Inbox';
+import CameraAlt from '@material-ui/icons/CameraAlt';
+import Print from '@material-ui/icons/Print';
+import Send from '@material-ui/icons/Send';
 import Popup from 'reactjs-popup';
 
 const mapStateToProps = state => {
@@ -46,7 +59,7 @@ class AsbestosLab extends React.Component {
     }
     if (map === undefined) {
       newmap = { [result]: true }
-    } else if (result == 'no') {
+    } else if (result === 'no') {
       let val = map[result];
       newmap = { 'no': !val };
     } else if (map[result] === undefined) {
@@ -80,7 +93,7 @@ class AsbestosLab extends React.Component {
       if (result[type]) detected.push(type);
     });
     if (detected.length < 1) return ('Not analysed');
-    if (detected[0] == 'no') return ('No asbestos detected');
+    if (detected[0] === 'no') return ('No asbestos detected');
     let asbestos = [];
     if (result['ch']) asbestos.push('chrysotile');
     if (result['am']) asbestos.push('amosite');
@@ -89,14 +102,14 @@ class AsbestosLab extends React.Component {
       asbestos[asbestos.length - 1] = asbestos[asbestos.length - 1] + ' asbestos';
     }
     let str = '';
-    if (asbestos.length == 1) {
+    if (asbestos.length === 1) {
       str = asbestos[0];
     } else if (asbestos.length > 1) {
       var last_element = asbestos.pop();
       str = asbestos.join(', ') + ' and ' + last_element;
     }
     detected.forEach(detect => {
-      if (detect == 'umf') {
+      if (detect === 'umf') {
         if (asbestos.length > 0) {
           str = str + ' and unknown mineral fibres (UMF)';
         } else {
@@ -125,9 +138,11 @@ class AsbestosLab extends React.Component {
     if (Object.keys(change).length > 0) {
       change['reported'] = false;
       change['reportdate'] = null;
-      this.state.material = null;
-      this.state.description = null;
-      this.state.samplenumber = null;
+      this.setState({
+        material: null,
+        description: null,
+        samplenumber: null,
+      });
       asbestosSamplesRef.doc(uid).update(change);
     }
   }
@@ -211,7 +226,7 @@ class AsbestosLab extends React.Component {
                   let amcolor = '#ddd';
                   let crcolor = '#ddd';
                   let umfcolor = '#ddd';
-                  if (result == 'positive') {
+                  if (result === 'positive') {
                     chcolor = '#b00';
                     amcolor = '#b00';
                     crcolor = '#b00';
@@ -223,12 +238,12 @@ class AsbestosLab extends React.Component {
                   if (sample.result && sample.result['umf']) umfcolor = 'white';
                   let nocolor = '#ddd';
                   let nodivcolor = '#fff';
-                  if (result == 'negative') {
+                  if (result === 'negative') {
                     nocolor = 'green';
                     nodivcolor = 'lightgreen';
                   }
                   let asbdivcolor = '#fff';
-                  if (result == 'positive') asbdivcolor = 'red';
+                  if (result === 'positive') asbdivcolor = 'red';
                   return(
                     <ListItem dense className={classes.hoverItem} key={sample.jobnumber+sample.samplenumber+sample.description}>
                       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '70vw'}}>

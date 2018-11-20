@@ -1,14 +1,31 @@
 import React from "react";
-import { withRouter } from 'react-router-dom';
 import { connect } from "react-redux";
 import { withStyles } from '@material-ui/core/styles';
 import { formStyles } from '../../config/styles';
-import { List, ListItem, TextField, Typography, InputLabel,
-  Select, FormControl, Input, Divider, Grid, CircularProgress, Card,
-  CardHeader, Checkbox, FormControlLabel, FormHelperText, Paper, Tab, Tabs, Button,
-  CardContent, IconButton } from '@material-ui/core';
+
+import Grid from '@material-ui/core/Grid';
+import ListItem from '@material-ui/core/ListItem';
+import Paper from '@material-ui/core/Paper';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Checkbox from '@material-ui/core/Checkbox';
+import IconButton from '@material-ui/core/IconButton';
+
 import { auth, usersRef } from '../../config/firebase';
-import { CloudUpload, Warning, Add, ExpandLess, ExpandMore, Edit, Delete, AddPhotoAlternate, Error, CheckCircleOutline } from '@material-ui/icons';
+
+import Error from '@material-ui/icons/Error';
+import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
+
 import UserAttrModal from '../modals/UserAttrModal';
 import AttrList from '../widgets/AttrList';
 import { USERATTR } from '../../constants/modal-types';
@@ -100,9 +117,9 @@ class UserDetails extends React.Component {
       let y = ' years ';
       let m = ' months and ';
       let d = ' days';
-      if (years == 1) y = ' year ';
-      if (months == 1) m = ' month and ';
-      if (days == 1) d = ' day';
+      if (years === 1) y = ' year ';
+      if (months === 1) m = ' month and ';
+      if (days === 1) d = ' day';
       return (years + y + months + m + days + d);
     } else {
       return ('No start date set')
@@ -336,10 +353,10 @@ class UserDetails extends React.Component {
                       </ListItem>
                       <ListItem>
                        {
-                         user.maskfit == 'OK' ?
+                         user.maskfit === 'OK' ?
                          <div style={{ color: 'green', fontWeight: 500 }}>Mask Fit Tested <CheckCircleOutline /></div>
                          :
-                         <div style={{ color: 'red', fontWeight: 500 }}>{user.maskfit == 'Expired' ? 'Mask Fit Test Expired!' : 'Mask Fit Not Tested'}<Error /></div>
+                         <div style={{ color: 'red', fontWeight: 500 }}>{user.maskfit === 'Expired' ? 'Mask Fit Test Expired!' : 'Mask Fit Not Tested'}<Error /></div>
                        }
                       </ListItem>
                       <ListItem>

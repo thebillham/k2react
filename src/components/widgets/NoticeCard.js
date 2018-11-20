@@ -1,9 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { Card, CardContent, Typography, CardHeader, Button, IconButton, CardActions } from '@material-ui/core';
-import EditIcon from '@material-ui/icons/Edit';
+
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardActions from '@material-ui/core/CardActions';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+
 import PinIcon from '@material-ui/icons/Star';
 import ReadIcon from '@material-ui/icons/CheckBox';
 import DiscardIcon from '@material-ui/icons/Delete';

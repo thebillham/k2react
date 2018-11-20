@@ -10,10 +10,25 @@ import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../config/styles';
 import img_Logo from '../images/logo.png';
 
-// Material UI
-import { CssBaseline, Collapse, Drawer, AppBar, Toolbar, List, ListItem,
-  ListItemIcon, ListItemText, Typography, Divider, IconButton, Avatar,
-  Button, MenuItem, Menu, InputBase, LinearProgress, CircularProgress } from '@material-ui/core';
+// Material UI;
+
+import CssBaseline from '@material-ui/core/CssBaseline';
+import Drawer from '@material-ui/core/Drawer';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import Typography from '@material-ui/core/Typography';
+import Divider from '@material-ui/core/Divider';
+import IconButton from '@material-ui/core/IconButton';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import InputBase from '@material-ui/core/InputBase';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 // Icons
 import DashboardIcon from '@material-ui/icons/Dashboard';
@@ -65,8 +80,8 @@ import Tools from './tools/Tools';
 import Library from './library/Library';
 import DocumentViewer from './library/DocumentViewer';
 
-import Admin from './admin/Admin';
-import AdminConstants from './admin/AdminConstants';
+// import Admin from './admin/Admin';
+// import AdminConstants from './admin/AdminConstants';
 
 import Help from './help/Help';
 import Updates from './help/Updates';
@@ -83,8 +98,6 @@ import { resetDisplay } from '../actions/display';
 import { DragDropContext } from 'react-beautiful-dnd';
 import UploadtoFirebase from './training/Path';
 import QuestionsToFirebase from './quizzes/Questions';
-
-import ApiCalendar from 'react-google-calendar-api/ApiCalendar';
 
 
 // import { quizzesRef, questionsRef } from '../config/firebase';
@@ -503,8 +516,6 @@ class MainScreen extends React.Component {
                         <Route path="/tools" component={Tools} />
                         <Route path="/library" component={Library} />
                         <Route path="/document/:uid" component={DocumentViewer} />
-                        <Route exact path="/admin" component={Admin} />
-                        <Route path="/admin/constants" component={AdminConstants} />
                         <Route path="/help" component={Help} />
                         <Route path="/updates" component={Updates} />
                         <Route component={Dashboard} />

@@ -1,11 +1,11 @@
 import React from 'react';
-import { ListItem, ListItemText, ListItemSecondaryAction, IconButton, } from '@material-ui/core';
+
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import OpenIcon from '@material-ui/icons/OpenInNew';
-import EditIcon from '@material-ui/icons/Edit';
 
 function DocList(props) {
-  const { classes, doc } = props;
+  const { doc } = props;
   const path = "/document/" + doc.uid;
 
   return (

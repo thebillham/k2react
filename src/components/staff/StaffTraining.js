@@ -1,11 +1,20 @@
 import React from 'react';
 
 import { withStyles } from '@material-ui/core/styles';
-import { Button, Table, TableBody,
-  TableCell, TableHead, TableRow, CircularProgress } from '@material-ui/core';
+
+import Button from '@material-ui/core/Button';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { connect } from 'react-redux';
-import { School, Update, CheckCircle, LooksOne  } from '@material-ui/icons';
+import School from '@material-ui/icons/School';
+import Update from '@material-ui/icons/Update';
+import CheckCircle from '@material-ui/icons/CheckCircle';
+import LooksOne from '@material-ui/icons/LooksOne';
 
 const mapStateToProps = state => {
   return { staff: state.local.staff };

@@ -1,7 +1,11 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { FormControl, FormLabel, Grid } from '@material-ui/core';
+
+import FormLabel from '@material-ui/core/FormLabel';
+import Grid from '@material-ui/core/Grid';
+
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+
+const radix = 10;
 
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
@@ -94,7 +98,7 @@ class BucketImageQuestion extends React.Component {
     if (source.droppableId === destination.droppableId) {
       // change order in the same bucket
       const items = reorder(
-        answerBuckets[parseInt(source.droppableId)].answers,
+        answerBuckets[parseInt(source.droppableId, radix)].answers,
         source.index,
         destination.index,
       );
@@ -102,15 +106,15 @@ class BucketImageQuestion extends React.Component {
       answerBuckets[source.droppableId].answers = items;
     } else {
       const result = move(
-        answerBuckets[parseInt(source.droppableId)].answers,
-        answerBuckets[parseInt(destination.droppableId)].answers,
+        answerBuckets[parseInt(source.droppableId, radix)].answers,
+        answerBuckets[parseInt(destination.droppableId, radix)].answers,
         source,
         destination,
       );
 
       // DND doesn't like droppableId being an integer so it is stored as a string
-      answerBuckets[parseInt(source.droppableId)].answers = result.sourceList;
-      answerBuckets[parseInt(destination.droppableId)].answers = result.destList;
+      answerBuckets[parseInt(source.droppableId, radix)].answers = result.sourceList;
+      answerBuckets[parseInt(destination.droppableId, radix)].answers = result.destList;
     }
 
     this.props.onChanged(this.props.q.uid, answerBuckets);

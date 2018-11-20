@@ -1,5 +1,12 @@
 import React from 'react';
-import { Typography, FormControl, FormLabel, FormGroup, FormControlLabel, Checkbox } from '@material-ui/core';
+
+import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormLabel from '@material-ui/core/FormLabel';
+import FormGroup from '@material-ui/core/FormGroup';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import Checkbox from '@material-ui/core/Checkbox';
 
 class ImageSelectMultiQuestion extends React.Component {
   constructor(props){

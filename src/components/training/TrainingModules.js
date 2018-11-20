@@ -1,9 +1,13 @@
 import React from 'react';
 
-import { Button, ExpansionPanel, ExpansionPanelDetails, ExpansionPanelSummary, Grid } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import Grid from '@material-ui/core/Grid';
 
 import { connect } from 'react-redux';
-import { ExpandMore  } from '@material-ui/icons';
+import ExpandMore from '@material-ui/icons/ExpandMore';
 import ModuleCard from '../widgets/ModuleCard';
 import { onCatChange, onSearchChange } from '../../actions/local';
 import store from '../../store';
@@ -72,7 +76,7 @@ class TrainingModules extends React.Component {
                 if (this.props.search) {
                   return mod.title.toLowerCase().includes(this.props.search.toLowerCase())
                 } else if (this.props.category) {
-                  return mod.category == this.props.category
+                  return mod.category === this.props.category
                 } else {
                   return true;
                 }

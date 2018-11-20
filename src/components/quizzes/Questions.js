@@ -1,4 +1,3 @@
-import React from 'react';
 import { quizzesRef, questionsRef } from '../../config/firebase';
 
 const biobackgroundreadings0001 = {

@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { Card, CardContent, Typography, CardHeader, Button } from '@material-ui/core';
-import EditIcon from '@material-ui/icons/Edit';
+
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import CardHeader from '@material-ui/core/CardHeader';
+import Typography from '@material-ui/core/Typography';
 
 const styles = {
   card: {

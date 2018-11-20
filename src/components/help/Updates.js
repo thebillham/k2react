@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { Paper } from '@material-ui/core';
+import Paper from '@material-ui/core/Paper';
 
 import { connect } from 'react-redux';
-import store from '../../store';
 import { fetchUpdates  } from '../../actions/local';
 import { markFootprint } from '../../actions/footprints';
 

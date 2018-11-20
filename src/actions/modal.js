@@ -3,7 +3,6 @@ import { HIDE_MODAL, SHOW_MODAL, EDIT_MODAL, EDIT_MODAL_DOC,
  } from "../constants/action-types";
 
 import { storage } from "../config/firebase";
-import store from '../store';
 
 export const resetModal = () => dispatch => {
   dispatch({ type: RESET_MODAL });
@@ -69,7 +68,7 @@ export const onUploadFile = ({ file, storagePath }) => async dispatch => {
 
 export const handleModalChange = target => dispatch => {
   let val;
-  if (target.id == 'course' || target.id == 'unit' || target.id == 'class' ) val = target.value.split(','); else val = target.value;
+  if (target.id === 'course' || target.id === 'unit' || target.id === 'class' ) val = target.value.split(','); else val = target.value;
   dispatch({
     type: EDIT_MODAL_DOC,
     payload: {[target.id]: val,}
