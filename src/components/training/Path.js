@@ -1,4 +1,3 @@
-import React from 'react';
 import { trainingPathsRef, methodsRef } from '../../config/firebase';
 
 const bio = {
@@ -540,86 +539,86 @@ const methodbio2 = {
   ],
 }
 
-const methodbio3 = {
-  updateDate: '',
-  title: 'Biological Sampling Part 1',
-  subtitle: 'Overview of Methods',
-  preparedBy: '',
-  checkedBy: '',
-  documentController: '',
-  tmCode: 'TM 4.21-17 Part 1',
-  version: '4.1',
-  changes: [
-    {
-      version: '4.0',
-      changes: 'Document created.',
-      person: 'Stuart Keer-Keer',
-      date: '',
-    },
-    {
-      version: '4.1',
-      changes: 'Added method update table.<br />Minor grammatical changes.<br />Genus and species changed to italics.',
-      person: 'Max Gallagher',
-      date: '',
-    },
-  ],
-  sections: [
-  ],
-}
-
-const methodbio4 = {
-  updateDate: '',
-  title: 'Biological Sampling Part 1',
-  subtitle: 'Overview of Methods',
-  preparedBy: '',
-  checkedBy: '',
-  documentController: '',
-  tmCode: 'TM 4.21-17 Part 1',
-  version: '4.1',
-  changes: [
-    {
-      version: '4.0',
-      changes: 'Document created.',
-      person: 'Stuart Keer-Keer',
-      date: '',
-    },
-    {
-      version: '4.1',
-      changes: 'Added method update table.<br />Minor grammatical changes.<br />Genus and species changed to italics.',
-      person: 'Max Gallagher',
-      date: '',
-    },
-  ],
-  sections: [
-  ],
-}
-
-const methodbio5 = {
-  updateDate: '',
-  title: 'Biological Sampling Part 1',
-  subtitle: 'Overview of Methods',
-  preparedBy: '',
-  checkedBy: '',
-  documentController: '',
-  tmCode: 'TM 4.21-17 Part 1',
-  version: '4.1',
-  changes: [
-    {
-      version: '4.0',
-      changes: 'Document created.',
-      person: 'Stuart Keer-Keer',
-      date: '',
-    },
-    {
-      version: '4.1',
-      changes: 'Added method update table.<br />Minor grammatical changes.<br />Genus and species changed to italics.',
-      person: 'Max Gallagher',
-      date: '',
-    },
-  ],
-  sections: [
-  ],
-}
+// const methodbio3 = {
+//   updateDate: '',
+//   title: 'Biological Sampling Part 1',
+//   subtitle: 'Overview of Methods',
+//   preparedBy: '',
+//   checkedBy: '',
+//   documentController: '',
+//   tmCode: 'TM 4.21-17 Part 1',
+//   version: '4.1',
+//   changes: [
+//     {
+//       version: '4.0',
+//       changes: 'Document created.',
+//       person: 'Stuart Keer-Keer',
+//       date: '',
+//     },
+//     {
+//       version: '4.1',
+//       changes: 'Added method update table.<br />Minor grammatical changes.<br />Genus and species changed to italics.',
+//       person: 'Max Gallagher',
+//       date: '',
+//     },
+//   ],
+//   sections: [
+//   ],
+// }
+//
+// const methodbio4 = {
+//   updateDate: '',
+//   title: 'Biological Sampling Part 1',
+//   subtitle: 'Overview of Methods',
+//   preparedBy: '',
+//   checkedBy: '',
+//   documentController: '',
+//   tmCode: 'TM 4.21-17 Part 1',
+//   version: '4.1',
+//   changes: [
+//     {
+//       version: '4.0',
+//       changes: 'Document created.',
+//       person: 'Stuart Keer-Keer',
+//       date: '',
+//     },
+//     {
+//       version: '4.1',
+//       changes: 'Added method update table.<br />Minor grammatical changes.<br />Genus and species changed to italics.',
+//       person: 'Max Gallagher',
+//       date: '',
+//     },
+//   ],
+//   sections: [
+//   ],
+// }
+//
+// const methodbio5 = {
+//   updateDate: '',
+//   title: 'Biological Sampling Part 1',
+//   subtitle: 'Overview of Methods',
+//   preparedBy: '',
+//   checkedBy: '',
+//   documentController: '',
+//   tmCode: 'TM 4.21-17 Part 1',
+//   version: '4.1',
+//   changes: [
+//     {
+//       version: '4.0',
+//       changes: 'Document created.',
+//       person: 'Stuart Keer-Keer',
+//       date: '',
+//     },
+//     {
+//       version: '4.1',
+//       changes: 'Added method update table.<br />Minor grammatical changes.<br />Genus and species changed to italics.',
+//       person: 'Max Gallagher',
+//       date: '',
+//     },
+//   ],
+//   sections: [
+//   ],
+// }
 
 function UploadtoFirebase(props) {
   trainingPathsRef.doc('bio').set(bio);

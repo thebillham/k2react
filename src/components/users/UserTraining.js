@@ -1,10 +1,8 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
-import store from '../../store';
-import { Bar, XAxis, YAxis, Legend, BarChart } from 'recharts';
+import { Bar, XAxis, YAxis, BarChart } from 'recharts';
 
 const mapStateToProps = state => {
   return {

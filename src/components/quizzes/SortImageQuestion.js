@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { FormControl, FormLabel, } from '@material-ui/core';
+
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
+
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const reorder = (list, startIndex, endIndex) => {

@@ -1,12 +1,9 @@
 import React from 'react';
 
-import { DOCUMENT } from '../../constants/modal-types';
-
-import { Button, Grid, List } from '@material-ui/core';
+import List from '@material-ui/core/List';
+import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
 import { connect } from 'react-redux';
-import { showModal } from '../../actions/modal';
-import { modalInit } from '../../reducers/modal';
-import DocumentModal from '../modals/DocumentModal';
 import { onSearchChange, onCatChange } from '../../actions/local';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import store from '../../store';

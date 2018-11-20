@@ -1,15 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import reduxThunk from 'redux-thunk';
-import { createBrowserHistory } from 'history';
-import { connectRouter, routerMiddleware, ConnectedRouter } from 'connected-react-router';
+import { ConnectedRouter } from 'connected-react-router';
 import rootReducer from "./reducers";
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { IntlProvider } from 'react-intl';
-import { createStore, applyMiddleware, compose } from 'redux';
 import MuiThemeProvider from '@material-ui/core/styles/MuiThemeProvider';
 import theme from './config/theme';
 import store, { history } from './store/index';

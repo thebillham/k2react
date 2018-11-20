@@ -1,13 +1,22 @@
 import React from "react";
-import { withRouter } from 'react-router-dom';
 import { connect } from "react-redux";
 import { withStyles } from '@material-ui/core/styles';
 import { formStyles } from '../../config/styles';
-import { List, ListItem, TextField, Typography, InputLabel,
-  Select, FormControl, Input, Grid, CircularProgress, Card, CardHeader,
-  CardContent, IconButton } from '@material-ui/core';
-import { auth, modulesRef } from '../../config/firebase';
-import { CloudUpload, Warning, Add, ExpandLess, ExpandMore, Edit, Delete } from '@material-ui/icons';
+
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import CardHeader from '@material-ui/core/CardHeader';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import TextField from '@material-ui/core/TextField';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import FormControl from '@material-ui/core/FormControl';
+import Input from '@material-ui/icons/Input';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Typography from '@material-ui/core/Typography';
+
+import { modulesRef } from '../../config/firebase';
 
 const mapStateToProps = state => {
   return {

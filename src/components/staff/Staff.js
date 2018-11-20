@@ -1,17 +1,28 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { withStyles } from '@material-ui/core/styles';
-import { Grid, GridList, GridListTile, Button, Table, TableBody,
-  TableCell, TableHead, TableRow, CircularProgress, Chip, Tab, Tabs, Paper, ExpansionPanel,
-  ExpansionPanelDetails, ExpansionPanelSummary, ListItem, GridListTileBar, } from '@material-ui/core';
-import EditIcon from '@material-ui/icons/Edit';
-import { LocationCity, School, ExpandMore, Https } from '@material-ui/icons';
-import ReactTable from 'react-table';
-import 'react-table/react-table.css'
-import treeTableHOC from 'react-table/lib/hoc/treeTable';
+
+import Grid from '@material-ui/core/Grid';
+import GridList from '@material-ui/core/GridList';
+import GridListTile from '@material-ui/core/GridListTile';
+import GridListTileBar from '@material-ui/core/GridListTileBar';
+import ListItem from '@material-ui/core/ListItem';
+import Paper from '@material-ui/core/Paper';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import Chip from '@material-ui/core/Chip';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@material-ui/core/Button';
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+
+import LocationCity from '@material-ui/icons/LocationCity';
+import School from '@material-ui/icons/School';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import Https from '@material-ui/icons/Https';
+
+import 'react-table/react-table.css';
 import Popup from 'reactjs-popup';
-import { GapiConfig } from '../../config/keys';
-import ApiCalendar from 'react-google-calendar-api/ApiCalendar';
+import ApiCalendar from 'react-google-calendar-api';
 
 import StaffCard from '../widgets/StaffCard.js';
 import { connect } from 'react-redux';
@@ -109,7 +120,7 @@ class Staff extends React.Component {
   }
 
   filterSigned = chip => {
-    if (this.state.signedFilter == chip) {
+    if (this.state.signedFilter === chip) {
       this.setState({
         signedFilter: undefined,
         signedFilterOn: false,
@@ -144,7 +155,7 @@ class Staff extends React.Component {
   }
 
   setDocView = type => {
-    if (this.state.docview == type) {
+    if (this.state.docview === type) {
       this.setState({ docview: undefined });
     } else {
       this.setState({ docview: type});
@@ -158,7 +169,7 @@ class Staff extends React.Component {
       staff.map(e => {
         if (e.attrs) {
           Object.values(e.attrs).map(attr => {
-            if (attr.type == this.state.docview && attr.fileUrl) {
+            if (attr.type === this.state.docview && attr.fileUrl) {
               docs.push(
                 {
                   url: attr.fileUrl,
@@ -235,7 +246,7 @@ class Staff extends React.Component {
                       { ['MyK2 User','Not Signed Up'].map(chip => {
                         return (
                           <div key={chip} style={{ padding: 5,}}>
-                            <Chip variant='outlined' color={this.state.signedFilter == chip ? 'secondary' : 'default'} onClick={() => this.filterSigned(chip)} label={chip} />
+                            <Chip variant='outlined' color={this.state.signedFilter === chip ? 'secondary' : 'default'} onClick={() => this.filterSigned(chip)} label={chip} />
                           </div>
                         );
                       })}
@@ -254,7 +265,7 @@ class Staff extends React.Component {
                         if (this.state.attrFilters['Asbestos Assessor'] && !user.aanumber) filter = false;
                         if (this.state.attrFilters['Tertiary Degree'] && !user.tertiary) filter = false;
                         if (this.state.attrFilters['Science Degree'] && !(user.tertiary && user.tertiary.includes('Sc'))) filter = false;
-                        if (this.state.attrFilters['Mask Fit Tested'] && user.maskfit != 'OK') filter = false;
+                        if (this.state.attrFilters['Mask Fit Tested'] && user.maskfit !== 'OK') filter = false;
                       }
                       if (this.state.authFilterOn) {
                         this.props.permissions.map(permission => {
@@ -263,8 +274,8 @@ class Staff extends React.Component {
                         });
                       }
                       if (this.state.signedFilterOn) {
-                        if (this.state.signedFilter == 'MyK2 User' && !user.key) filter = false;
-                        if (this.state.signedFilter == 'Not Signed Up' && user.key) filter = false;
+                        if (this.state.signedFilter === 'MyK2 User' && !user.key) filter = false;
+                        if (this.state.signedFilter === 'Not Signed Up' && user.key) filter = false;
                       }
                       return(filter)
                     })

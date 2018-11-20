@@ -69,9 +69,9 @@ export default class ImageMapper extends Component {
 	hoverOn(area, index, event) {
 		const shape = event.target.getAttribute('shape');
 		if (this.props.active && this['draw' + shape])
-      if (this.props.selectedArea == undefined) {
+      if (this.props.selectedArea === undefined) {
         this['draw' + shape](event.target.getAttribute('coords'));
-      } else if (this.props.selectedArea.includes(area) == false) {
+      } else if (this.props.selectedArea.includes(area) === false) {
         this['draw' + shape](event.target.getAttribute('coords'));
       }
 		if (this.props.onMouseEnter)

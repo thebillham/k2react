@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import FirebaseAuth from 'react-firebaseui/FirebaseAuth';
 import firebase, { auth } from '../config/firebase.js';
-import { Button } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
 import '../App.css';
 import img_Logo from '../images/logo.png';
-import ApiCalendar from 'react-google-calendar-api/ApiCalendar';
+import ApiCalendar from 'react-google-calendar-api';
 
 export default class K2SignInScreen extends Component {
 

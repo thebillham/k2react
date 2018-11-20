@@ -2,7 +2,10 @@ import React from 'react';
 
 import { DOCUMENT } from '../../constants/modal-types';
 
-import { Button, Grid, List } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import List from '@material-ui/core/List';
+
 import { connect } from 'react-redux';
 import { showModal } from '../../actions/modal';
 import { modalInit } from '../../reducers/modal';

@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { WithContext as ReactTags } from 'react-tag-input';
 import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
@@ -8,10 +7,15 @@ import store from '../../store';
 import { DOCUMENT } from '../../constants/modal-types';
 import { docsRef } from '../../config/firebase';
 import '../../config/tags.css';
-import {
-  Dialog, DialogTitle, DialogContent, DialogActions, FormGroup, TextField,
-  LinearProgress, Button,
-} from '@material-ui/core';
+
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
+import FormGroup from '@material-ui/core/FormGroup';
+import TextField from '@material-ui/core/TextField';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import UploadIcon from '@material-ui/icons/CloudUpload';
 import {
   hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,

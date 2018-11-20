@@ -1,16 +1,14 @@
 import React from "react";
-import { withRouter } from 'react-router-dom';
 import { connect } from "react-redux";
 import { withStyles } from '@material-ui/core/styles';
 import { formStyles } from '../../config/styles';
-import { List, ListItem, TextField, Typography, InputLabel,
-  Select, FormControl, Input, Grid, CircularProgress, Card, CardHeader,
-  CardContent, IconButton, Button } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Button from '@material-ui/core/Button';
 import { auth, docsRef, usersRef } from '../../config/firebase';
-import { CloudUpload, Warning, Add, ExpandLess, ExpandMore, Edit, Delete } from '@material-ui/icons';
 import { FormattedDate } from 'react-intl';
-import LinkIcon from '@material-ui/icons/Link';
-import { Document, Page } from 'react-pdf';
 
 const mapStateToProps = state => {
   return {
@@ -34,7 +32,7 @@ class DocumentViewer extends React.Component {
 
   componentWillMount(){
     docsRef.doc(this.props.match.params.uid).get().then((doc) => {
-      if (this.props.auth.includes(doc.data().auth) || doc.data().auth == undefined){
+      if (this.props.auth.includes(doc.data().auth) || doc.data().auth === undefined){
         usersRef.doc(auth.currentUser.uid).collection("readinglog").doc(doc.id).get().then((log) => {
           this.setState({
             docID: doc.id,

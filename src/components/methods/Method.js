@@ -1,19 +1,19 @@
 import React from 'react';
 
-import { Button, Grid, Card, CardContent, Typography, CircularProgress, Paper, Avatar, Stepper, Step, StepButton } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
+import Step from '@material-ui/core/Step';
+import Stepper from '@material-ui/core/Stepper';
+import StepButton from '@material-ui/core/StepButton';
+import Paper from '@material-ui/core/Paper';
+import CircularProgress from '@material-ui/core/CircularProgress';
+
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import { connect } from 'react-redux';
 import { methodsRef, usersRef, auth } from '../../config/firebase';
-import LineTo, { SteppedLineTo } from 'react-lineto';
 import MethodNode from './MethodNode';
-import { ArrowBack, ArrowDownward, ArrowForward, ArrowUpward, AddCircle, Lock, LockOpen, } from '@material-ui/icons';
 import store from '../../store';
 import { setStepper } from '../../actions/local';
-
-const iconStyle = {
-  color: '#FF2D00',
-  fontSize: 40,
-}
 
 const mapStateToProps = state => {
   return {

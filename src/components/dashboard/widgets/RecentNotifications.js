@@ -1,9 +1,16 @@
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../../config/styles';
-import { Card, CardContent, Typography, IconButton, CardHeader, Button, Grid } from '@material-ui/core';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import CardHeader from '@material-ui/core/CardHeader';
+
 import { FormattedDate } from 'react-intl';
-import { Close, Edit } from '@material-ui/icons';
+import Add from '@material-ui/icons/Add';
+import Close from '@material-ui/icons/Close';
+import Edit from '@material-ui/icons/Edit';
 import UrgentIcon from '@material-ui/icons/Warning';
 import AnalysisIcon from '@material-ui/icons/Colorize';
 import TrainingIcon from '@material-ui/icons/School';

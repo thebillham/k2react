@@ -1,14 +1,13 @@
 import React from 'react';
 
-import { Button, ExpansionPanel, ExpansionPanelDetails, ExpansionPanelSummary, Grid } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
 
 import { connect } from 'react-redux';
-import { ExpandMore, IconButton  } from '@material-ui/icons';
 import NoticeCard from '../widgets/NoticeCard';
 import { onCatChange, onSearchChange } from '../../actions/local';
 import AddIcon from '@material-ui/icons/Add';
 import store from '../../store';
-import { usersRef } from '../../config/firebase';
 import { onFavNotice, onReadNotice, onDeleteNotice,  } from '../../actions/local';
 
 const mapStateToProps = state => {

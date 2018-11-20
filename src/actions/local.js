@@ -1,5 +1,4 @@
 import { GET_STAFF,
-        AUTH_USER,
         GET_DOCUMENTS,
         GET_USER,
         GET_QUIZZES,
@@ -25,7 +24,7 @@ import { GET_STAFF,
       } from "../constants/action-types";
 import * as firebase from 'firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
-import { auth, database, firestore, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
+import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
     trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 
@@ -55,20 +54,20 @@ export const fetchMe = () => async dispatch => {
               let attr = doc.data();
               attr.uid = doc.id;
               user.attrs[doc.id] = attr;
-              if (attr.type == 'Tertiary') {
+              if (attr.type === 'Tertiary') {
                 user.tertiary = attr.abbrev;
               }
-              if (attr.type == 'MaskFit') {
+              if (attr.type === 'MaskFit') {
                 if (new Date(attr.expiry) > new Date()) {
                   user.maskfit = 'OK';
                 } else {
                   user.maskfit = 'Expired';
                 }
               }
-              if (attr.type == 'IP402') {
+              if (attr.type === 'IP402') {
                 user.ip402 = true;
               }
-              if (attr.type == 'AsbestosAssessor') {
+              if (attr.type === 'AsbestosAssessor') {
                 user.aanumber = attr.number;
               }
             });
@@ -122,20 +121,20 @@ export const fetchStaff = () => async dispatch => {
                 let attr = doc.data();
                 attr.uid = doc.id;
                 user.attrs[doc.id] = attr;
-                if (attr.type == 'Tertiary') {
+                if (attr.type === 'Tertiary') {
                   user.tertiary = attr.abbrev;
                 }
-                if (attr.type == 'MaskFit') {
+                if (attr.type === 'MaskFit') {
                   if (new Date(attr.expiry) > new Date()) {
                     user.maskfit = 'OK';
                   } else {
                     user.maskfit = 'Expired';
                   }
                 }
-                if (attr.type == 'IP402') {
+                if (attr.type === 'IP402') {
                   user.ip402 = true;
                 }
-                if (attr.type == 'AsbestosAssessor') {
+                if (attr.type === 'AsbestosAssessor') {
                   user.aanumber = attr.number;
                 }
               });
@@ -170,20 +169,20 @@ export const fetchStaff = () => async dispatch => {
                     let attr = doc.data();
                     attr.uid = doc.id;
                     user.attrs[doc.id] = attr;
-                    if (attr.type == 'Tertiary') {
+                    if (attr.type === 'Tertiary') {
                       user.tertiary = attr.abbrev;
                     }
-                    if (attr.type == 'MaskFit') {
+                    if (attr.type === 'MaskFit') {
                       if (new Date(attr.expiry) > new Date()) {
                         user.maskfit = 'OK';
                       } else {
                         user.maskfit = 'Expired';
                       }
                     }
-                    if (attr.type == 'IP402') {
+                    if (attr.type === 'IP402') {
                       user.ip402 = true;
                     }
-                    if (attr.type == 'AsbestosAssessor') {
+                    if (attr.type === 'AsbestosAssessor') {
                       user.aanumber = attr.number;
                     }
                   });

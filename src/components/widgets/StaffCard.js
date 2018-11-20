@@ -1,10 +1,15 @@
 import React from 'react';
 import { connect } from "react-redux";
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
+
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListSubheader from '@material-ui/core/ListSubheader';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { Card, CardContent, Typography, CardHeader, Button, Grid, List, ListItem,
-  CircularProgress, ListItemText, Avatar, ListSubheader, } from '@material-ui/core';
+
 import EditIcon from '@material-ui/icons/Edit';
 import { FormattedDate } from 'react-intl';
 
@@ -40,7 +45,7 @@ function displayTimeAtK2(user) {
 }
 
 function StaffCard(props) {
-  const { classes, staff } = props;
+  const { staff } = props;
   const path = staff.uid ? "/staff/details/" + staff.uid : "/mydetails";
 
   return (
@@ -77,7 +82,7 @@ function StaffCard(props) {
                   <ListItem button onClick={() => { window.open(event.htmlLink) }} key={event.id}>
                     <ListItemText
                       primary={event.summary}
-                      secondary={ event.start.date ? <div><FormattedDate value={Date.parse(event.start.date)} month='long' day='numeric' /> (all day)</div> : <FormattedDate value={Date.parse(event.start.dateTime)} month='long' day='numeric' hour='numeric' minute='numeric' />} /><br />
+                      secondary={ event.start.date ? <span><FormattedDate value={Date.parse(event.start.date)} month='long' day='numeric' /> (all day)</span> : <FormattedDate value={Date.parse(event.start.dateTime)} month='long' day='numeric' hour='numeric' minute='numeric' />} /><br />
 
                   </ListItem>
                 )

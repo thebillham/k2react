@@ -1,14 +1,28 @@
 import React from 'react';
 
-import { Button, Grid, Card, CardContent, Typography, CircularProgress, Paper, Avatar, Stepper, Step, StepButton } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
+import Step from '@material-ui/core/Step';
+import Stepper from '@material-ui/core/Stepper';
+import StepButton from '@material-ui/core/StepButton';
+import Paper from '@material-ui/core/Paper';
+import Grid from '@material-ui/core/Grid';
+import CircularProgress from '@material-ui/core/CircularProgress';
+
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import { trainingPathsRef } from '../../config/firebase';
-import LineTo, { SteppedLineTo } from 'react-lineto';
 import TrainingGridCol from './TrainingGridCol';
 import QuizWidget from './QuizWidget';
 import TrainingNode from './TrainingNode';
 import TrainingLink from './TrainingLink';
-import { ArrowBack, ArrowDownward, ArrowForward, ArrowUpward, AddCircle, Lock, LockOpen, } from '@material-ui/icons';
+
+import ArrowBack from '@material-ui/icons/ArrowBack';
+import ArrowUpward from '@material-ui/icons/ArrowUpward';
+import ArrowForward from '@material-ui/icons/ArrowForward';
+import ArrowDownward from '@material-ui/icons/ArrowDownward';
+import AddCircle from '@material-ui/icons/AddCircle';
+import Lock from '@material-ui/icons/Lock';
+import LockOpen from '@material-ui/icons/LockOpen';
 
 const iconStyle = {
   color: '#FF2D00',

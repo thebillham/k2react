@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { withStyles } from '@material-ui/core/styles';
-import { Grid, Button } from '@material-ui/core';
+
+import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
+
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 import { onSearchChange, onCatChange } from '../../actions/local';
