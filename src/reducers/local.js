@@ -5,6 +5,8 @@ import {
           GET_WFM,
           GET_QUIZZES,
           GET_TRAININGS,
+          GET_COCS,
+          GET_SAMPLES,
           GET_MODULES,
           SEARCH_CHANGE,
           CAT_CHANGE,
@@ -43,6 +45,7 @@ const localInit = {
   category: 'gen',
   steppers: [],
   samplesasbestos: {},
+  cocs: {},
   helps: [],
   updates: [],
 };
@@ -57,6 +60,19 @@ export default function localReducer(state = localInit, action) {
       return { ...state, staff: action.payload };
     case GET_DOCUMENTS:
       return { ...state, documents: action.payload };
+    case GET_COCS:
+      return { ...state, cocs: action.payload };
+    case GET_SAMPLES:
+      return {
+        ...state,
+        cocs: {
+          ...state.cocs,
+          [action.jobnumber]: {
+            ...state.cocs[action.jobnumber],
+            samples: action.payload,
+        }
+      }
+    };
     case GET_ME:
       console.log('Fired get me!');
       return {

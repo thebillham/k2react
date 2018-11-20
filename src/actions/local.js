@@ -19,13 +19,16 @@ import { GET_STAFF,
         GET_ASBESTOS_SAMPLES,
         GET_HELP,
         GET_UPDATES,
+        GET_COCS,
+        GET_SAMPLES,
         APP_HAS_LOADED,
         RESET_LOCAL,
       } from "../constants/action-types";
 import * as firebase from 'firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
 import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
-    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef } from "../config/firebase";
+    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef,
+    updateRef, cocsRef, } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 
 export const resetLocal = () => dispatch => {
@@ -211,6 +214,37 @@ export const fetchDocuments = () => async dispatch => {
       dispatch({
         type: GET_DOCUMENTS,
         payload: docs
+      });
+    });
+};
+
+export const fetchCocs = () => async dispatch => {
+  cocsRef.orderBy('date', 'desc')
+    .onSnapshot((querySnapshot) => {
+      var cocs = {};
+      querySnapshot.forEach((doc) => {
+        cocs[doc.id] = doc.data();
+      });
+      dispatch({
+        type: GET_COCS,
+        payload: cocs
+      });
+    });
+};
+
+export const fetchSamples = jobnumber => async dispatch => {
+  cocsRef.doc(jobnumber).collection('samples').orderBy('samplenumber')
+    .onSnapshot((querySnapshot) => {
+      var samples = [];
+      querySnapshot.forEach((doc) => {
+        let sample = doc.data();
+        sample.uid = doc.id;
+        samples.push(sample);
+      });
+      dispatch({
+        type: GET_SAMPLES,
+        jobnumber: jobnumber,
+        payload: samples
       });
     });
 };

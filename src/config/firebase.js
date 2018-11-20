@@ -16,6 +16,7 @@ database.settings({timestampsInSnapshots: true})
 const usersRef = database.collection("users");
 const asbestosSamplesRef = database.collection("samplesasbestos");
 const jobsRef = database.collection("jobheaders");
+const cocsRef = database.collection("cocs");
 const docsRef = database.collection("documents");
 const modulesRef = database.collection("modules");
 const toolsRef = database.collection("tools");
@@ -30,5 +31,6 @@ const updateRef = database.collection("updates");
 export { app, provider, auth, database, storage };
 export { usersRef, docsRef, modulesRef, toolsRef,
   noticesRef, quizzesRef, questionsRef, trainingPathsRef,
-  methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef };
+  methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef,
+  cocsRef, };
 export default firebase;
