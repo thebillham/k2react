@@ -32,24 +32,13 @@ const mapStateToProps = state => {
    };
 };
 
-const mapDispatchToProps = dispatch => {
-  return {
-    fetchCocs: () => dispatch(fetchCocs()),
-    fetchSamples: jobnumber => dispatch(fetchSamples(jobnumber)),
-  }
-}
-
-class AsbestosLab extends React.Component {
+class SampleList extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
       isLoading: false,
     };
-  }
-
-  componentWillMount = () => {
-    this.props.fetchCocs();
   }
 
   receiveSample = (uid, receivedbylab) => {
@@ -64,10 +53,10 @@ class AsbestosLab extends React.Component {
     asbestosSamplesRef.doc(uid).set({ reported: !reported, reportdate: reportdate }, {merge: true});
   }
 
-  toggleResult = (job, uid, result, map, reported) => {
+  toggleResult = (uid, result, map, reported) => {
     let newmap = {};
     if (reported) {
-      cocsRef.doc(job).set({ reported: false, reportdate: null }, {merge: true});
+      asbestosSamplesRef.doc(uid).set({ reported: false, reportdate: null }, {merge: true});
     }
     if (map === undefined) {
       newmap = { [result]: true }
@@ -83,7 +72,7 @@ class AsbestosLab extends React.Component {
       newmap['no'] = false;
       newmap[result] = !map[result];
     }
-    cocsRef.doc(job).collection('samples').doc(uid).update({ result: newmap, resultdate: new Date() });
+    asbestosSamplesRef.doc(uid).update({ result: newmap, resultdate: new Date() });
   }
 
   sortSamples = samples => {
@@ -188,12 +177,6 @@ class AsbestosLab extends React.Component {
     // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
   }
 
-  getSamples = (expanded, jobnumber) => {
-    if (expanded && jobnumber) {
-      this.props.fetchSamples(jobnumber);
-    }
-  }
-
   render() {
     const { classes, samples } = this.props;
 
@@ -217,7 +200,7 @@ class AsbestosLab extends React.Component {
           }
         }).map(job => {
           return (
-            <ExpansionPanel key={job} onChange={(event, ex) => { this.getSamples(ex, job)}}>
+            <ExpansionPanel key={job}>
               <ExpansionPanelSummary expandIcon={<ExpandMore />}>
                 <b>{job}</b> {samples[job].clientname} ({samples[job].address})
               </ExpansionPanelSummary>
@@ -230,7 +213,7 @@ class AsbestosLab extends React.Component {
                 <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printLabReport(samples[job])}}>
                   <Print style={{ fontSize: 24, margin: 5, }} /> Print Test Certificate
                 </Button>
-                { samples[job].samples && samples[job].samples.map(sample => {
+                { samples[job].samples.map(sample => {
                   let result = 'none';
                   if (sample.result && (sample.result['ch'] || sample.result['am'] || sample.result['cr'] || sample.result['umf'])) result = 'positive';
                   if (sample.result && sample.result['no']) result = 'negative';
@@ -301,14 +284,14 @@ class AsbestosLab extends React.Component {
                             <Inbox style={{ fontSize: 24, margin: 10, color: receivedcolor }} />
                           </IconButton>
                           <div style={{ backgroundColor: asbdivcolor, borderRadius: 5 }}>
-                          <Button variant='outlined' style={{ margin: 5, color: chcolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'ch', sample.result, sample.reported) }}>CH</Button>
-                          <Button variant='outlined' style={{ margin: 5, color: amcolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'am', sample.result, sample.reported) }}>AM</Button>
-                          <Button variant='outlined' style={{ margin: 5, color: crcolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'cr', sample.result, sample.reported) }}>CR</Button>
-                          <Button variant='outlined' style={{ margin: 5, color: umfcolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'umf', sample.result, sample.reported) }}>UMF</Button>
+                          <Button variant='outlined' style={{ margin: 5, color: chcolor, }} onClick={ () => { this.toggleResult(sample.uid, 'ch', sample.result, sample.reported) }}>CH</Button>
+                          <Button variant='outlined' style={{ margin: 5, color: amcolor, }} onClick={ () => { this.toggleResult(sample.uid, 'am', sample.result, sample.reported) }}>AM</Button>
+                          <Button variant='outlined' style={{ margin: 5, color: crcolor, }} onClick={ () => { this.toggleResult(sample.uid, 'cr', sample.result, sample.reported) }}>CR</Button>
+                          <Button variant='outlined' style={{ margin: 5, color: umfcolor, }} onClick={ () => { this.toggleResult(sample.uid, 'umf', sample.result, sample.reported) }}>UMF</Button>
                           </div>
                           <div style={{ width: 30 }} />
                           <div style={{ backgroundColor: nodivcolor, borderRadius: 5 }}>
-                            <Button variant='outlined' style={{ margin: 5, color: nocolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'no', sample.result, sample.reported) }}>NO</Button>
+                            <Button variant='outlined' style={{ margin: 5, color: nocolor, }} onClick={ () => { this.toggleResult(sample.uid, 'no', sample.result, sample.reported) }}>NO</Button>
                           </div>
                           <IconButton onClick={ () => { this.reportSample(sample.uid, sample.reported) }} disabled={this.state.isLoading}>
                             <CheckCircleOutline style={{ fontSize: 24, margin: 10, color: reportcolor }} />

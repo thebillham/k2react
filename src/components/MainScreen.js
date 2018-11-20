@@ -268,14 +268,14 @@ class MainScreen extends React.Component {
                 <JobsIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Jobs" />
-            </ListItem>
+            </ListItem>*/}
 
             <ListItem button component={Link} to="/lab">
               <ListItemIcon>
                 <LabIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Asbestos Lab" />
-            </ListItem>*/}
+            </ListItem>
 
             <ListItem button onClick={this.handleStaffClick} component={Link} to="/staff">
               <ListItemIcon>
