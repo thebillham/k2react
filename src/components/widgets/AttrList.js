@@ -82,13 +82,13 @@ function AttrList(props) {
         <Grid item xs={8} style={{ fontWeight: 100, fontSize: 14, }}>
           <div style={{ marginTop: 16, marginBottom: 8, fontSize: 16, fontWeight: 500, }}>{ qual.name }</div>
           { qual.id && attr.id && <div><span style={{ fontWeight: 450, }}>ID Number:</span> { attr.id }</div>}
-          { qual.number && attr.number && <div><span style={{ fontWeight: 450, }}>Number:</span> { attr.number }</div>}
+          { qual.number && attr.number && <div><span style={{ fontWeight: 450, }}>Licence Number:</span> { attr.number }</div>}
           { qual.title && attr.title && <div><i>{ attr.title }</i></div>}
           <div>{ qual.full && attr.full && <span><i>{ attr.full }</i></span>}
           { qual.abbrev && attr.abbrev && <span> ({ attr.abbrev })</span>}</div>
           { qual.class && attr.class && <div><span style={{ fontWeight: 450, }}>Class(es):</span> { attr.class.join(', ') }</div>}
           { qual.unit && attr.unit && <div><span style={{ fontWeight: 450, }}>Unit Standard(s):</span> { attr.unit.join(', ') }</div>}
-          { qual.course && attr.course && <div><span style={{ fontWeight: 450, }}>Course(s):</span> { attr.class.course(', ') }</div>}
+          { qual.course && attr.course && <div><span style={{ fontWeight: 450, }}>Course(s):</span> { attr.course.join(', ') }</div>}
           { attr.date && <div><span style={{ fontWeight: 450, }}>Issue Date:</span> <FormattedDate value={attr.date} month='long' day='numeric' year='numeric' /> </div>}
           { qual.expiry && attr.expiry && <div><span style={{ fontWeight: 450, }}>Expiry Date:</span> <span style={{ color: expirycolor }}><FormattedDate value={attr.expiry} month='long' day='numeric' year='numeric' /></span></div>}
           { qual.issuer && attr.issuer && <div><span style={{ fontWeight: 450, }}>Issued By:</span> { attr.issuer }</div>}

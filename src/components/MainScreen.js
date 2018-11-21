@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 
 import { BrowserRouter as Router, Route, Link, Switch, withRouter, } from "react-router-dom";
 import { auth } from '../config/firebase';
@@ -31,16 +31,16 @@ import InputBase from '@material-ui/core/InputBase';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 // Icons
-import DashboardIcon from '@material-ui/icons/Dashboard';
-import NoticeboardIcon from '@material-ui/icons/SpeakerNotes';
-import JobsIcon from '@material-ui/icons/Assignment';
-import LabIcon from '@material-ui/icons/Colorize';
+// import DashboardIcon from '@material-ui/icons/Dashboard';
+// import NoticeboardIcon from '@material-ui/icons/SpeakerNotes';
+// import JobsIcon from '@material-ui/icons/Assignment';
+// import LabIcon from '@material-ui/icons/Colorize';
 import StaffIcon from '@material-ui/icons/People';
 import MyDetailsIcon from '@material-ui/icons/Person';
-import TrainingIcon from '@material-ui/icons/School';
-import QuizIcon from '@material-ui/icons/ContactSupport';
-import ToolsIcon from '@material-ui/icons/Build';
-import LibraryIcon from '@material-ui/icons/Info';
+// import TrainingIcon from '@material-ui/icons/School';
+// import QuizIcon from '@material-ui/icons/ContactSupport';
+// import ToolsIcon from '@material-ui/icons/Build';
+// import LibraryIcon from '@material-ui/icons/Info';
 import HelpIcon from '@material-ui/icons/Help';
 import UpdatesIcon from '@material-ui/icons/Update';
 
@@ -48,43 +48,8 @@ import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
 import BackIcon from '@material-ui/icons/ArrowBack';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import { ExpandLess, ExpandMore } from '@material-ui/icons';
-
-// Pages
-import Dashboard from './dashboard/Dashboard';
-import Noticeboard from './noticeboard/Noticeboard';
-import Jobs from './jobs/Jobs';
-import AsbestosLab from './asbestoslab/AsbestosLab'
-
-import Staff from './staff/Staff';
-import StaffJobs from './staff/StaffJobs';
-import StaffTraining from './staff/StaffTraining';
-
-import UserDetails from './users/UserDetails';
-import UserTraining from './users/UserTraining';
-import UserReadingLog from './users/UserReadingLog';
-import AppPreferences from './users/AppPreferences';
-
-import Training from './training/Training';
-import TrainingPath from './training/TrainingPath';
-import TrainingModules from './training/TrainingModules';
-import TrainingModule from './training/TrainingModule';
-
-import Method from './methods/Method';
-
-import Quizzes from './quizzes/Quizzes';
-import Quiz from './quizzes/Quiz';
-
-import Tools from './tools/Tools';
-
-import Library from './library/Library';
-import DocumentViewer from './library/DocumentViewer';
-
-// import Admin from './admin/Admin';
-// import AdminConstants from './admin/AdminConstants';
-
-import Help from './help/Help';
-import Updates from './help/Updates';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
 
 import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
@@ -98,6 +63,43 @@ import { resetDisplay } from '../actions/display';
 import { DragDropContext } from 'react-beautiful-dnd';
 import UploadtoFirebase from './training/Path';
 import QuestionsToFirebase from './quizzes/Questions';
+
+// Pages
+const Dashboard = lazy(() => import('./dashboard/Dashboard'));
+const Noticeboard = lazy(() => import('./noticeboard/Noticeboard'));
+// import Noticeboard from './noticeboard/Noticeboard';
+// import Jobs from './jobs/Jobs';
+// import AsbestosLab from './asbestoslab/AsbestosLab'
+//
+const Staff = lazy(() => import('./staff/Staff'));
+// import StaffJobs from './staff/StaffJobs';
+// import StaffTraining from './staff/StaffTraining';
+//
+const UserDetails = lazy(() => import('./users/UserDetails'));
+// import UserTraining from './users/UserTraining';
+// import UserReadingLog from './users/UserReadingLog';
+// import AppPreferences from './users/AppPreferences';
+//
+// import Training from './training/Training';
+// import TrainingPath from './training/TrainingPath';
+// import TrainingModules from './training/TrainingModules';
+// import TrainingModule from './training/TrainingModule';
+//
+// import Method from './methods/Method';
+//
+// import Quizzes from './quizzes/Quizzes';
+// import Quiz from './quizzes/Quiz';
+//
+// import Tools from './tools/Tools';
+//
+// import Library from './library/Library';
+// import DocumentViewer from './library/DocumentViewer';
+
+// import Admin from './admin/Admin';
+// import AdminConstants from './admin/AdminConstants';
+
+const Help = lazy(() => import('./help/Help'));
+const Updates = lazy(() => import('./help/Updates'));
 
 
 // import { quizzesRef, questionsRef } from '../config/firebase';
@@ -268,14 +270,14 @@ class MainScreen extends React.Component {
                 <JobsIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Jobs" />
-            </ListItem>*/}
+            </ListItem>
 
             <ListItem button component={Link} to="/lab">
               <ListItemIcon>
                 <LabIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Asbestos Lab" />
-            </ListItem>
+            </ListItem>*/}
 
             <ListItem button onClick={this.handleStaffClick} component={Link} to="/staff">
               <ListItemIcon>
@@ -489,38 +491,41 @@ class MainScreen extends React.Component {
                     {drawer}
                     <main className={classes.content}>
                       {/* All locations are matched to their components here */}
-                      <Switch>
-                        <Route exact path="/" component={UserDetails} key="mydetails" />
-                        <Route path="/dashboard" component={Dashboard} />
-                        <Route path="/noticeboard" component={Noticeboard} />
-                        <Route path="/jobs" component={Jobs} />
-                        <Route path="/lab" component={AsbestosLab} />
-                        <Route exact path="/staff" component={Staff} />
-                        <Route exact path="/staff/jobs" component={StaffJobs} />
-                        <Route exact path="/staff/training" component={StaffTraining} />
-                        <Route exact path="/staff/details/:user" component={UserDetails} key="staffdetails" />
-                        <Route exact path="/staff/training/:user" component={UserTraining} key="stafftraining" />
-                        <Route exact path="/staff/readinglog/:user" component={UserReadingLog} key="staffreadinglog" />
-                        <Route exact path="/mydetails" component={UserDetails} key="mydetails" />
-                        <Route exact path="/mydetails/training" component={UserTraining} key="mytraining" />
-                        {/* <Route exact path="/mydetails/jobs" component={UserJobs} key="myjobs" /> */}
-                        <Route exact path="/mydetails/readinglog" component={UserReadingLog} key="myreadinglog" />
-                        <Route exact path="/mydetails/preferences" component={AppPreferences} />
-                        <Route exact path="/training" component={Training} />
-                        <Route exact path="/training/modules" component={TrainingModules} />
-                        <Route path="/training/:uid" component={TrainingPath} />
-                        <Route path="/training/:module/:stage" component={TrainingModule} />
-                        <Route path="/method/:uid" component={Method} />
-                        <Route exact path="/quizzes" component={Quizzes} />
-                        <Route path="/quiz/:quiz" component={Quiz} />
-                        <Route path="/tools" component={Tools} />
-                        <Route path="/library" component={Library} />
-                        <Route path="/document/:uid" component={DocumentViewer} />
-                        <Route path="/help" component={Help} />
-                        <Route path="/updates" component={Updates} />
-                        <Route component={Dashboard} />
-                        {/* <Route component={NoMatch} /> */}
-                      </Switch>
+                      <Suspense fallback={<div style={{ marginTop: 80, display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200,}}><CircularProgress /></div>}>
+                        <Switch>
+                          <Route exact path="/" component={UserDetails} key="mydetails" />
+                          <Route exact path="/staff" component={Staff} />
+                          <Route exact path="/mydetails" component={UserDetails} key="mydetails" />
+                          <Route exact path="/staff/details/:user" component={UserDetails} key="staffdetails" />
+                          <Route path="/help" component={Help} />
+                          <Route path="/updates" component={Updates} />
+                          {/*
+                          <Route path="/dashboard" component={Dashboard} />
+                          <Route path="/noticeboard" component={Noticeboard} />
+                          <Route path="/jobs" component={Jobs} />
+                          <Route path="/lab" component={AsbestosLab} />
+                          <Route exact path="/staff/jobs" component={StaffJobs} />
+                          <Route exact path="/staff/training" component={StaffTraining} />
+                          <Route exact path="/staff/training/:user" component={UserTraining} key="stafftraining" />
+                          <Route exact path="/staff/readinglog/:user" component={UserReadingLog} key="staffreadinglog" />
+                          <Route exact path="/mydetails/training" component={UserTraining} key="mytraining" />
+                          <Route exact path="/mydetails/jobs" component={UserJobs} key="myjobs" />
+                          <Route exact path="/mydetails/readinglog" component={UserReadingLog} key="myreadinglog" />
+                          <Route exact path="/mydetails/preferences" component={AppPreferences} />
+                          <Route exact path="/training" component={Training} />
+                          <Route exact path="/training/modules" component={TrainingModules} />
+                          <Route path="/training/:uid" component={TrainingPath} />
+                          <Route path="/training/:module/:stage" component={TrainingModule} />
+                          <Route path="/method/:uid" component={Method} />
+                          <Route exact path="/quizzes" component={Quizzes} />
+                          <Route path="/quiz/:quiz" component={Quiz} />
+                          <Route path="/tools" component={Tools} />
+                          <Route path="/library" component={Library} />
+                          <Route path="/document/:uid" component={DocumentViewer} />
+                          <Route component={Dashboard} />*/}
+                          {/* <Route component={NoMatch} /> */}
+                        </Switch>
+                      </Suspense>
                     </main>
                   </div>
                 :
