@@ -86,6 +86,7 @@ export const handleModalSubmit = ({ doc, pathRef }) => dispatch => {
   doc.uid = uid;
   pathRef.doc(uid).set(doc);
   dispatch({type: HIDE_MODAL});
+  dispatch({type: RESET_MODAL});
 }
 
 export const handleTagAddition = addedTag => dispatch => {

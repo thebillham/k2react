@@ -95,9 +95,6 @@ export const fetchMe = () => async dispatch => {
   });
 };
 
-
-// CHANGE USERS TO MAP
-
 export const fetchStaff = () => async dispatch => {
   var gtsize = 0;
   var ltsize = 0;

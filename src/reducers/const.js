@@ -30,10 +30,8 @@ const constInit = {
       expiry: true,
       class: true,
     },
-    EWP: {
-      name: 'EWP',
-      number: true,
-      expiry: true,
+    FirstAid: {
+      name: 'First Aid',
       issuer: true,
     },
     Inductions: {
@@ -73,6 +71,7 @@ const constInit = {
     TertiaryOther: {
       name: 'Tertiary Qualification (Other)',
       full: true,
+      abbrev: true,
       issuer: true,
     },
   },

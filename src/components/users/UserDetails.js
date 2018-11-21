@@ -58,7 +58,7 @@ class UserDetails extends React.Component {
       userPath: userPath,
       isLoading: false,
     }
-    this.onEditUser = _.debounce(this.onEditUser, 1000);
+    this.onEditUser = _.debounce(this.onEditUser, 300);
   }
 
   handleTabChange = (event, value) => {
@@ -190,8 +190,8 @@ class UserDetails extends React.Component {
                       <FormControl className={classes.textField}>
                         <InputLabel>Job Description</InputLabel>
                         <Select
-                          value={user.jobdescription}
                           onChange={e => this.onEditUser({id: 'jobdescription', value: e.target.value}, true)}
+                          value={user.jobdescription}
                           input={<Input name='jobdescription' id='jobdescription' />}
                         >
                           <option value='' />
@@ -507,7 +507,7 @@ class UserDetails extends React.Component {
                             label="Name"
                             id="emergencyprimaryname"
                             className={classes.textField}
-                            value={user.emergencyprimaryname}
+                            defaultValue={user.emergencyprimaryname}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -517,7 +517,7 @@ class UserDetails extends React.Component {
                             label="Relation"
                             id="emergencyprimaryrelation"
                             className={classes.textField}
-                            value={user.emergencyprimaryrelation}
+                            defaultValue={user.emergencyprimaryrelation}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -527,7 +527,7 @@ class UserDetails extends React.Component {
                             label="Home Phone"
                             id="emergencyprimaryhomephone"
                             className={classes.textField}
-                            value={user.emergencyprimaryhomephone}
+                            defaultValue={user.emergencyprimaryhomephone}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -537,7 +537,7 @@ class UserDetails extends React.Component {
                             label="Work Phone"
                             id="emergencyprimaryworkphone"
                             className={classes.textField}
-                            value={user.emergencyprimaryworkphone}
+                            defaultValue={user.emergencyprimaryworkphone}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -547,7 +547,7 @@ class UserDetails extends React.Component {
                             label="Mobile"
                             id="emergencyprimarymobile"
                             className={classes.textField}
-                            value={user.emergencyprimarymobile}
+                            defaultValue={user.emergencyprimarymobile}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -557,7 +557,7 @@ class UserDetails extends React.Component {
                             label="Email"
                             id="emergencyprimaryemail"
                             className={classes.textField}
-                            value={user.emergencyprimaryemail}
+                            defaultValue={user.emergencyprimaryemail}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -567,7 +567,7 @@ class UserDetails extends React.Component {
                             label="Home Address"
                             id="emergencyprimaryhomeaddress"
                             className={classes.textField}
-                            value={user.emergencyprimaryhomeaddress}
+                            defaultValue={user.emergencyprimaryhomeaddress}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -582,7 +582,7 @@ class UserDetails extends React.Component {
                             label="Name"
                             id="emergencysecondaryname"
                             className={classes.textField}
-                            value={user.emergencysecondaryname}
+                            defaultValue={user.emergencysecondaryname}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -592,7 +592,7 @@ class UserDetails extends React.Component {
                             label="Relation"
                             id="emergencysecondaryrelation"
                             className={classes.textField}
-                            value={user.emergencysecondaryrelation}
+                            defaultValue={user.emergencysecondaryrelation}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -602,7 +602,7 @@ class UserDetails extends React.Component {
                             label="Home Phone"
                             id="emergencysecondaryhomephone"
                             className={classes.textField}
-                            value={user.emergencysecondaryhomephone}
+                            defaultValue={user.emergencysecondaryhomephone}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -612,7 +612,7 @@ class UserDetails extends React.Component {
                             label="Work Phone"
                             id="emergencysecondaryworkphone"
                             className={classes.textField}
-                            value={user.emergencysecondaryworkphone}
+                            defaultValue={user.emergencysecondaryworkphone}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -620,9 +620,9 @@ class UserDetails extends React.Component {
                         <ListItem>
                           <TextField
                             label="Mobile"
-                            id="emergencyprimarymobile"
+                            id="emergencysecondarymobile"
                             className={classes.textField}
-                            value={user.emergencysecondarymobile}
+                            defaultValue={user.emergencysecondarymobile}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -630,9 +630,9 @@ class UserDetails extends React.Component {
                         <ListItem>
                           <TextField
                             label="Email"
-                            id="emergencyprimaryemail"
+                            id="emergencysecondaryemail"
                             className={classes.textField}
-                            value={user.emergencysecondaryemail}
+                            defaultValue={user.emergencysecondaryemail}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />
@@ -640,9 +640,9 @@ class UserDetails extends React.Component {
                         <ListItem>
                           <TextField
                             label="Home Address"
-                            id="emergencyprimaryhomeaddress"
+                            id="emergencysecondaryhomeaddress"
                             className={classes.textField}
-                            value={user.emergencysecondaryhomeaddress}
+                            defaultValue={user.emergencysecondaryhomeaddress}
                             onChange={e => this.onEditUser(e.target)}
                             InputLabelProps = {{ shrink: true }}
                           />

@@ -94,6 +94,7 @@ class UserAttrModal extends React.Component {
                   value={doc.type}
                   input={<Input name='qualificationtypes' id='qualificationtypes' />}
                 >
+                  <option value='' />
                   { this.props.qualificationtypes && Object.keys(this.props.qualificationtypes).map((key) => {
                     return(
                       <option key={key} value={key}>{this.props.qualificationtypes[key].name}</option>
@@ -106,6 +107,15 @@ class UserAttrModal extends React.Component {
                 id="id"
                 label="ID Number"
                 defaultValue={doc && doc.id}
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange(e.target)}}
+              />}
+
+              { this.props.qualificationtypes[doc.type].number &&
+              <TextField
+                id="number"
+                label="Licence Number"
+                defaultValue={doc && doc.number}
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange(e.target)}}
               />}
