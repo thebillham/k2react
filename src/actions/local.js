@@ -49,14 +49,26 @@ export const fetchMe = () => async dispatch => {
         .onSnapshot((querySnapshot) => {
           user.attrs = {};
           user.tertiary = '';
-          user.maskfit = false;
           user.ip402 = false;
+          user.nzqa = [];
+          user.firstaid = null;
           if (querySnapshot.size > 0) {
             querySnapshot.forEach((doc) => {
               console.log("Read a doc (my Attr)!");
               let attr = doc.data();
               attr.uid = doc.id;
               user.attrs[doc.id] = attr;
+              if (attr.type === 'NZQAUnitStandard' && attr.date) {
+                if (attr.expiry) {
+                  if (new Date(attr.expiry) > new Date())
+                    user.nzqa = user.nzqa.concat(attr.unit);
+                } else {
+                  var expiry = new Date(attr.date);
+                  expiry.setFullYear(expiry.getFullYear() + 3);
+                  if (expiry > new Date())
+                    user.nzqa = user.nzqa.concat(attr.unit);
+                }
+              }
               if (attr.type === 'Tertiary') {
                 user.tertiary = attr.abbrev;
               }
@@ -72,6 +84,19 @@ export const fetchMe = () => async dispatch => {
               }
               if (attr.type === 'AsbestosAssessor') {
                 user.aanumber = attr.number;
+              }
+              if (attr.type === 'FirstAid' && attr.date) {
+                user.firstaid = 'Expired';
+                if (attr.expiry) {
+                  if (new Date(attr.expiry) > new Date()) user.firstaid = 'OK';
+                } else {
+                  var expiry = new Date(attr.date);
+                  console.log(user.name);
+                  console.log(expiry);
+                  expiry.setFullYear(expiry.getFullYear() + 2);
+                  console.log(expiry);
+                  if (expiry > new Date()) user.firstaid = 'OK';
+                }
               }
             });
             dispatch({ type: GET_ME, payload: user });
@@ -115,12 +140,25 @@ export const fetchStaff = () => async dispatch => {
             user.attrs = {};
             user.tertiary = '';
             user.ip402 = false;
+            user.nzqa = [];
+            user.firstaid = null;
             if (querySnapshot.size > 0) {
               querySnapshot.forEach((doc) => {
-                console.log("Read a doc (GT Attr)!");
+                console.log("Read a doc (my Attr)!");
                 let attr = doc.data();
                 attr.uid = doc.id;
                 user.attrs[doc.id] = attr;
+                if (attr.type === 'NZQAUnitStandard' && attr.date) {
+                  if (attr.expiry) {
+                    if (new Date(attr.expiry) > new Date())
+                      user.nzqa = user.nzqa.concat(attr.unit);
+                  } else {
+                    var expiry = new Date(attr.date);
+                    expiry.setFullYear(expiry.getFullYear() + 3);
+                    if (expiry > new Date())
+                      user.nzqa = user.nzqa.concat(attr.unit);
+                  }
+                }
                 if (attr.type === 'Tertiary') {
                   user.tertiary = attr.abbrev;
                 }
@@ -136,6 +174,19 @@ export const fetchStaff = () => async dispatch => {
                 }
                 if (attr.type === 'AsbestosAssessor') {
                   user.aanumber = attr.number;
+                }
+                if (attr.type === 'FirstAid' && attr.date) {
+                  user.firstaid = 'Expired';
+                  if (attr.expiry) {
+                    if (new Date(attr.expiry) > new Date()) user.firstaid = 'OK';
+                  } else {
+                    var expiry = new Date(attr.date);
+                    console.log(user.name);
+                    console.log(expiry);
+                    expiry.setFullYear(expiry.getFullYear() + 2);
+                    console.log(expiry);
+                    if (expiry > new Date()) user.firstaid = 'OK';
+                  }
                 }
               });
               dispatch({ type: GET_STAFF, payload: users });
@@ -163,12 +214,25 @@ export const fetchStaff = () => async dispatch => {
                 user.attrs = {};
                 user.tertiary = '';
                 user.ip402 = false;
+                user.nzqa = [];
+                user.firstaid = null;
                 if (querySnapshot.size > 0) {
                   querySnapshot.forEach((doc) => {
-                    console.log("Read a doc (LT attr)!");
+                    console.log("Read a doc (my Attr)!");
                     let attr = doc.data();
                     attr.uid = doc.id;
                     user.attrs[doc.id] = attr;
+                    if (attr.type === 'NZQAUnitStandard' && attr.date) {
+                      if (attr.expiry) {
+                        if (new Date(attr.expiry) > new Date())
+                          user.nzqa = user.nzqa.concat(attr.unit);
+                      } else {
+                        var expiry = new Date(attr.date);
+                        expiry.setFullYear(expiry.getFullYear() + 3);
+                        if (expiry > new Date())
+                          user.nzqa = user.nzqa.concat(attr.unit);
+                      }
+                    }
                     if (attr.type === 'Tertiary') {
                       user.tertiary = attr.abbrev;
                     }
@@ -184,6 +248,19 @@ export const fetchStaff = () => async dispatch => {
                     }
                     if (attr.type === 'AsbestosAssessor') {
                       user.aanumber = attr.number;
+                    }
+                    if (attr.type === 'FirstAid' && attr.date) {
+                      user.firstaid = 'Expired';
+                      if (attr.expiry) {
+                        if (new Date(attr.expiry) > new Date()) user.firstaid = 'OK';
+                      } else {
+                        var expiry = new Date(attr.date);
+                        console.log(user.name);
+                        console.log(expiry);
+                        expiry.setFullYear(expiry.getFullYear() + 2);
+                        console.log(expiry);
+                        if (expiry > new Date()) user.firstaid = 'OK';
+                      }
                     }
                   });
                   dispatch({ type: GET_STAFF, payload: users });

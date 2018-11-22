@@ -319,7 +319,7 @@ class UserDetails extends React.Component {
                 :
                   <div style={{ position: 'relative', width: '60vw'}}>
                     <div>
-                      <Button variant='outlined' onClick={() => {this.props.showModal({ modalType: USERATTR, modalProps: { userPath: this.state.userPath, title: 'Add New Item' } })}}>
+                      <Button variant='outlined' onClick={() => {this.props.showModal({ modalType: USERATTR, modalProps: { userPath: this.state.userPath, title: 'Add New Item', staffName: user.name } })}}>
                         Add New Item
                       </Button>
                     </div>
@@ -328,7 +328,7 @@ class UserDetails extends React.Component {
                       <div>
                         { Object.keys(user.attrs).map(key => {
                         return(
-                          <AttrList key = { key} attr={user.attrs[key]} userPath={ this.state.userPath } />
+                          <AttrList key = { key} attr={user.attrs[key]} userPath={ this.state.userPath } staffName={ user.name } />
                         );
                       }) }</div> :
                       <ListItem>
