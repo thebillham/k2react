@@ -63,8 +63,11 @@ function StaffCard(props) {
             Gmail: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.gmail ? <a href={'mailto:' + staff.gmail}>{staff.gmail}</a> : 'No Gmail set.'}</span><br />
             Personal Phone: <span style={{ fontWeight: 100, textDecoration: 'none' }}>{staff.personalphone ? <a href={'tel:' + staff.personalphone}>{staff.personalphone}</a> : 'Personal phone not set.'}</span><br />
             <hr />
+            Tertiary: <span style={{ fontWeight: 100 }}>{staff.tertiary ? staff.tertiary : 'No' }</span><br />
             IP402: <span style={{ fontWeight: 100 }}>{staff.ip402 ? 'Yes' : 'No' }</span><br />
             Asbestos Assessor: <span style={{ fontWeight: 100 }}>{staff.aanumber ? staff.aanumber : 'No' }</span><br />
+            NZQA Unit Standards: <span style={{ fontWeight: 100 }}>{staff.nzqa && staff.nzqa.length > 0 ? staff.nzqa.join(', ') : 'None' }</span><br />
+            First Aid: <span style={{ fontWeight: 100 }}>{staff.firstaid ? staff.firstaid : 'No' }</span><br />
             Mask Fit Tested: <span style={{ fontWeight: 100 }}>{staff.maskfit ? staff.maskfit : 'No' }</span><br />
             <hr />
             Start Date at K2: <span style={{ fontWeight: 100 }}>{staff.startdate ? <FormattedDate value={staff.startdate} month='long' day='numeric' year='numeric' /> : 'Start date not set.' }</span><br />
@@ -88,9 +91,11 @@ function StaffCard(props) {
                 )
               })
             }
-            </List>
+          </List>
           :
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 100, fontSize: 12, color: '#aaa', }}>No events to display. Either the user has not set their Gmail address, they have not shared their calendar with you, or they have no upcoming events.</div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 100, fontSize: 12, color: '#aaa', }}>
+            { staff.gmail ? <span>No events to display. Either the user has not shared their calendar with you or they have no upcoming events.</span> : <span>The user has not set their Google Calendar account.</span> }
+            </div>
           }
         </Grid>
       </Grid>

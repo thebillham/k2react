@@ -74,7 +74,7 @@ function AttrList(props) {
           </Popup>
         :
           <Image style={{ fontSize: 24, color: cameracolor, margin: 10 }} />}
-          <IconButton onClick={() => {props.showModal({ modalType: USERATTR, modalProps: { doc: attr, userPath: props.userPath, title: "Edit Item", } })}}>
+          <IconButton onClick={() => {props.showModal({ modalType: USERATTR, modalProps: { doc: attr, userPath: props.userPath, title: "Edit Item", staffName: props.staffName } })}}>
             <Edit />
           </IconButton>
           <UserAttrModal />

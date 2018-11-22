@@ -14,11 +14,16 @@ import Button from '@material-ui/core/Button';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import Input from '@material-ui/core/Input';
 
 import LocationCity from '@material-ui/icons/LocationCity';
 import School from '@material-ui/icons/School';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Https from '@material-ui/icons/Https';
+import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
 
 import 'react-table/react-table.css';
 import Popup from 'reactjs-popup';
@@ -34,6 +39,7 @@ const mapStateToProps = state => {
     offices: state.const.offices,
     contacts: state.const.officecontacts,
     permissions: state.const.permissions,
+    qualificationtypes: state.const.qualificationtypes,
   };
 };
 
@@ -53,6 +59,7 @@ class Staff extends React.Component {
       signedFilter: undefined,
       signedFilterOn: false,
       events: {},
+      docview: '',
     }
   }
 
@@ -155,11 +162,48 @@ class Staff extends React.Component {
   }
 
   setDocView = type => {
-    if (this.state.docview === type) {
-      this.setState({ docview: undefined });
-    } else {
-      this.setState({ docview: type});
+    this.setState({ docview: type });
+  }
+
+  email = who => {
+    var list = [];
+    Object.values(this.props.staff).forEach(user => {
+      if (user.auth && user.auth['K2 Staff'] && user.email) {
+        if (who === 'all') {
+          list.push(user.email);
+        } else if (who === 'Christchurch' && user.office === 'Christchurch') {
+          list.push(user.email);
+        } else if (who === 'Auckland' && user.office !== 'Christchurch') {
+          list.push(user.email);
+        }
+      }
+    });
+    let href = 'mailto:'+list.join(';');
+    window.location.href=href;
+  }
+
+  filterUser = user => {
+    let filter = false;
+    if (this.state.officeFilterOn === false || this.state.officeFilters[user.office]) filter = true;
+    if (this.state.attrFilterOn) {
+      if (this.state.attrFilters['IP402'] && !user.ip402) filter = false;
+      if (this.state.attrFilters['Asbestos Assessor'] && !user.aanumber) filter = false;
+      if (this.state.attrFilters['Tertiary Degree'] && !user.tertiary) filter = false;
+      if (this.state.attrFilters['Science Degree'] && !(user.tertiary && user.tertiary.includes('Sc'))) filter = false;
+      if (this.state.attrFilters['Mask Fit Tested'] && user.maskfit !== 'OK') filter = false;
+      if (this.state.attrFilters['First Aid'] && !user.firstaid) filter = false;
     }
+    if (this.state.authFilterOn) {
+      this.props.permissions.map(permission => {
+        if (!user.auth) filter = false;
+          else if (this.state.authFilters[permission.name] && !user.auth[permission.name]) filter = false;
+      });
+    }
+    if (this.state.signedFilterOn) {
+      if (this.state.signedFilter === 'MyK2 User' && !user.key) filter = false;
+      if (this.state.signedFilter === 'Not Signed Up' && user.key) filter = false;
+    }
+    return(filter)
   }
 
   getDocs = () => {
@@ -190,6 +234,54 @@ class Staff extends React.Component {
     var { tabValue } = this.state;
     const docs = this.getDocs();
 
+    const filter = (
+      <ExpansionPanel>
+        <ExpansionPanelSummary expandIcon={<ExpandMore />}>
+          Filters
+        </ExpansionPanelSummary>
+        <ExpansionPanelDetails>
+          <Grid container spacing={8} direction='row' justify='space-between' alignItems='flex-start'>
+            <Grid item xs={6} md={3}>
+              { this.props.offices.map(chip => {
+                return (
+                  <div key={chip} style={{ padding: 5,}}>
+                    <Chip icon={<LocationCity />} variant="outlined" color={this.state.officeFilters[chip] ? "secondary" : "default"} onClick={() => this.filterOffice(chip)} label={chip} />
+                  </div>
+                );
+              })}
+            </Grid>
+            <Grid item xs={6} md={3}>
+              { ['IP402','Asbestos Assessor','Tertiary Degree','Science Degree','Mask Fit Tested','First Aid'].map(chip => {
+                return (
+                  <div key={chip} style={{ padding: 5,}}>
+                    <Chip icon={<School />} variant="outlined" color={this.state.attrFilters[chip] ? "secondary" : "default"} onClick={() => this.filterAttr(chip)} label={chip} />
+                  </div>
+                );
+              })}
+            </Grid>
+            <Grid item xs={6} md={3}>
+              { this.props.permissions.map(chip => {
+                return (
+                  <div key={chip.name} style={{ padding: 5,}}>
+                    <Chip icon={<Https />} variant="outlined" color={this.state.authFilters[chip.name] ? "secondary" : "default"} onClick={() => this.filterAuth(chip.name)} label={chip.name} />
+                  </div>
+                );
+              })}
+            </Grid>
+            <Grid item xs={6} md={3}>
+              { ['MyK2 User','Not Signed Up'].map(chip => {
+                return (
+                  <div key={chip} style={{ padding: 5,}}>
+                    <Chip variant='outlined' color={this.state.signedFilter === chip ? 'secondary' : 'default'} onClick={() => this.filterSigned(chip)} label={chip} />
+                  </div>
+                );
+              })}
+            </Grid>
+          </Grid>
+        </ExpansionPanelDetails>
+      </ExpansionPanel>
+    );
+
     return (
       <div style = {{ marginTop: 80 }}>
       <Paper style={{ padding: 20, }}>
@@ -203,81 +295,19 @@ class Staff extends React.Component {
           >
             <Tab label="Overview" />
             <Tab label="Contact List" />
+            <Tab label="Qualifications" />
             <Tab label="Documents" />
           </Tabs>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', }}>
           { tabValue === 0 &&
             <div style={{ position: 'relative', width: '80vw'}}>
-              <ExpansionPanel>
-                <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                  Filters
-                </ExpansionPanelSummary>
-                <ExpansionPanelDetails>
-                  <Grid container spacing={8} direction='row' justify='space-between' alignItems='flex-start'>
-                    <Grid item xs={6} md={3}>
-                      { this.props.offices.map(chip => {
-                        return (
-                          <div key={chip} style={{ padding: 5,}}>
-                            <Chip icon={<LocationCity />} variant="outlined" color={this.state.officeFilters[chip] ? "secondary" : "default"} onClick={() => this.filterOffice(chip)} label={chip} />
-                          </div>
-                        );
-                      })}
-                    </Grid>
-                    <Grid item xs={6} md={3}>
-                      { ['IP402','Asbestos Assessor','Tertiary Degree','Science Degree','Mask Fit Tested',].map(chip => {
-                        return (
-                          <div key={chip} style={{ padding: 5,}}>
-                            <Chip icon={<School />} variant="outlined" color={this.state.attrFilters[chip] ? "secondary" : "default"} onClick={() => this.filterAttr(chip)} label={chip} />
-                          </div>
-                        );
-                      })}
-                    </Grid>
-                    <Grid item xs={6} md={3}>
-                      { this.props.permissions.map(chip => {
-                        return (
-                          <div key={chip.name} style={{ padding: 5,}}>
-                            <Chip icon={<Https />} variant="outlined" color={this.state.authFilters[chip.name] ? "secondary" : "default"} onClick={() => this.filterAuth(chip.name)} label={chip.name} />
-                          </div>
-                        );
-                      })}
-                    </Grid>
-                    <Grid item xs={6} md={3}>
-                      { ['MyK2 User','Not Signed Up'].map(chip => {
-                        return (
-                          <div key={chip} style={{ padding: 5,}}>
-                            <Chip variant='outlined' color={this.state.signedFilter === chip ? 'secondary' : 'default'} onClick={() => this.filterSigned(chip)} label={chip} />
-                          </div>
-                        );
-                      })}
-                    </Grid>
-                  </Grid>
-                </ExpansionPanelDetails>
-              </ExpansionPanel>
+              { filter }
               { staff.length > 0 ?
                 <div style={{ marginTop: 5, }}>
                   { staff
                     .filter(user => {
-                      let filter = false;
-                      if (this.state.officeFilterOn === false || this.state.officeFilters[user.office]) filter = true;
-                      if (this.state.attrFilterOn) {
-                        if (this.state.attrFilters['IP402'] && !user.ip402) filter = false;
-                        if (this.state.attrFilters['Asbestos Assessor'] && !user.aanumber) filter = false;
-                        if (this.state.attrFilters['Tertiary Degree'] && !user.tertiary) filter = false;
-                        if (this.state.attrFilters['Science Degree'] && !(user.tertiary && user.tertiary.includes('Sc'))) filter = false;
-                        if (this.state.attrFilters['Mask Fit Tested'] && user.maskfit !== 'OK') filter = false;
-                      }
-                      if (this.state.authFilterOn) {
-                        this.props.permissions.map(permission => {
-                          if (!user.auth) filter = false;
-                            else if (this.state.authFilters[permission.name] && !user.auth[permission.name]) filter = false;
-                        });
-                      }
-                      if (this.state.signedFilterOn) {
-                        if (this.state.signedFilter === 'MyK2 User' && !user.key) filter = false;
-                        if (this.state.signedFilter === 'Not Signed Up' && user.key) filter = false;
-                      }
-                      return(filter)
+                      return (this.filterUser(user));
                     })
                     .map(user => { return(
                     <ExpansionPanel key={user.name} onChange={(event, ex) => { this.getEvents(ex, user.gmail)}}>
@@ -295,6 +325,9 @@ class Staff extends React.Component {
           }
           { tabValue === 1 &&
             <div style={{ position: 'relative', width: '80vw'}}>
+              <Button onClick={() => this.email('all')} color={"secondary"} variant='outlined' style={{ margin: 20, }}>Email All Staff</Button>
+              <Button onClick={() => this.email('Auckland')} color={"secondary"} variant='outlined' style={{ margin: 20, }}>Email North Island Staff</Button>
+              <Button onClick={() => this.email('Christchurch')} color={"secondary"} variant='outlined' style={{ margin: 20, }}>Email Christchurch Staff</Button>
               { this.props.contacts.map(user => {
                 return(
                   <ListItem button key={user.name}>
@@ -338,17 +371,72 @@ class Staff extends React.Component {
           }
           { tabValue === 2 &&
             <div style={{ position: 'relative', width: '80vw'}}>
-              {['Tertiary','IP402','AsbestosAssessor'].map(type => {
+              { filter }
+              <ListItem>
+                <Grid container style={{ fontWeight: 600}}>
+                  <Grid item xs={3}>Name</Grid>
+                  <Grid item xs={1}>Tertiary</Grid>
+                  <Grid item xs={1}>IP402</Grid>
+                  <Grid item xs={2}>Asbestos Assessor</Grid>
+                  <Grid item xs={1}>Mask Fit</Grid>
+                  <Grid item xs={1}>First Aid</Grid>
+                  <Grid item xs={3}>NZQA Unit Standards</Grid>
+                </Grid>
+              </ListItem>
+              { staff
+                .filter(user => {
+                  return (this.filterUser(user));
+                })
+                .map(user => {
                 return(
-                  <Button onClick={() => this.setDocView(type)} color={this.state.docview === type ? "secondary" : "default"} variant='outlined' style={{ margin: 20, }} key={type}>{type}</Button>
-                );
-              })
-              }
-              <GridList cellHeight={420} cols={4}>
+                  <ListItem button key={user.name}>
+                    <Grid container>
+                      <Grid item xs={3}>{ user.name }</Grid>
+                      <Grid item xs={1}>{ user.tertiary }</Grid>
+                      <Grid item xs={1}>{ user.ip402 && <span>IP402</span> }</Grid>
+                      <Grid item xs={2}>{ user.aanumber }</Grid>
+                      <Grid item xs={1}>{ user.maskfit }</Grid>
+                      <Grid item xs={1}>{ user.firstaid }</Grid>
+                      <Grid item xs={1}>{ (user.nzqa && user.nzqa.includes('23229') && user.nzqa.includes('17600') && user.nzqa.includes('25045')) && <span>Height</span> }</Grid>
+                      <Grid item xs={1}>{ (user.nzqa && user.nzqa.includes('23960') && user.nzqa.includes('23962') && user.nzqa.includes('23966')) && <span>MEWP</span> }</Grid>
+                      <Grid item xs={1}>{ (user.nzqa && user.nzqa.includes('17599') && user.nzqa.includes('18426') && user.nzqa.includes('25510')) && <span>Confined Spaces</span> }</Grid>
+                    </Grid>
+                  </ListItem>
+                )
+              })}
+            </div>
+          }
+          { tabValue === 3 &&
+            <div style={{ position: 'relative', width: '80vw'}}>
+              <FormControl style={{ width: 500, marginBottom: 10, }}>
+                <InputLabel shrink>Document Type</InputLabel>
+                <Select
+                  value={this.state.docview}
+                  onChange={e => this.setDocView(e.target.value)}
+                  input={<Input name='docview' id='docview' />}
+                >
+                  <option value='' />
+                  { Object.keys(this.props.qualificationtypes).map(doctype => {
+                    return(
+                      <option key={doctype} value={doctype}>{this.props.qualificationtypes[doctype].name}</option>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+              <Button variant='outlined' color='primary'
+                onClick={() => {
+                  let url = 'https://api.k2.co.nz/v1/doc/scripts/staff/qualification_documents.php?images=' + docs.map(doc => encodeURIComponent(doc.url)).join(';') + '&doctype=' + this.props.qualificationtypes[this.state.docview].name + '&format=A5';
+                  window.open(url);
+                  }
+                }>Download as DocX</Button>
+              <GridList
+                cellHeight={this.state.docview ? this.props.qualificationtypes[this.state.docview].cellHeight : 420 }
+                cols={this.state.docview ? this.props.qualificationtypes[this.state.docview].cols : 6}
+                >
                 {
                   docs.map(doc => {
                     return(
-                      <GridListTile key={doc.url}>
+                      <GridListTile key={doc.url} onClick={() => window.open(doc.url)}>
                         <img src={doc.url} alt={doc.name} />
                         <GridListTileBar
                           title={doc.name}

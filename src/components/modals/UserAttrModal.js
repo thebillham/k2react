@@ -88,7 +88,7 @@ class UserAttrModal extends React.Component {
           <form>
             <FormGroup>
               <FormControl className={classes.dialogField}>
-                <InputLabel>Qualification Type</InputLabel>
+                <InputLabel shrink>Qualification Type</InputLabel>
                 <Select
                   onChange={e => this.props.handleSelectChange({id: 'type', value: e.target.value})}
                   value={doc.type}
@@ -236,10 +236,15 @@ class UserAttrModal extends React.Component {
               <label>
                 <UploadIcon className={classes.accentButton} />
                 <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e =>
-                { this.props.onUploadFile({
+                {
+                  if (doc.fileUrl) {
+                    storage.ref(doc.fileRef).delete();
+                  }
+                  this.props.onUploadFile({
                   file: e.currentTarget.files[0],
-                  storagePath: 'attr/' + auth.currentUser.displayName.replace(/\s+/g, '') + '/' + doc.type + '_',
+                  storagePath: 'attr/' + modalProps.staffName.replace(/\s+/g, '') + '/' + doc.type + '_',
                   });
+
                 }
                 } />
                 <LinearProgress style={{ marginTop: 4, }} variant="determinate" value={modalProps.uploadProgress} />

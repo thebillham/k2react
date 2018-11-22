@@ -7,32 +7,56 @@ const KeyCodes = {
   enter: 13,
 };
 
+// const cardCols = 8;
+const cardCols = 6;
+// const cardHeight = 120;
+const cardHeight = 180;
+const cardVertCols = 8;
+const cardVertHeight = 280;
+
+const A4Cols = 6;
+const A4Height = 420;
+
+const A5Cols = 4;
+const A5Height = 300;
+
 const constInit = {
   qualificationtypes: {
     AsbestosAssessor: {
       name: 'Asbestos Assessor',
       number: true,
       expiry: true,
+      cols: cardCols,
+      cellHeight: cardHeight,
     },
     AsbestosAwarenessTraining: {
       name: 'Asbestos Awareness Training',
       expiry: true,
       issuer: true,
+      cols: A5Cols,
+      cellHeight: A5Height,
     },
     AsbestosExposureHealthMonitoring: {
       name: 'Asbestos Exposure Health Monitoring',
       issuer: true,
       notes: true,
+      cols: A4Cols,
+      cellHeight: A4Height,
     },
     DriverLicence: {
       name: 'Driver Licence',
       number: true,
       expiry: true,
       class: true,
+      cols: cardCols,
+      cellHeight: cardHeight,
     },
     FirstAid: {
       name: 'First Aid',
       issuer: true,
+      expiry: true,
+      cols: A5Cols,
+      cellHeight: A5Height,
     },
     Inductions: {
       name: 'Inductions/Company Cards',
@@ -40,14 +64,27 @@ const constInit = {
       expiry: true,
       issuer: true,
       notes: true,
+      cols: cardVertCols,
+      cellHeight: cardVertHeight,
     },
     IP402: {
       name: 'IP402',
+      cols: A4Cols,
+      cellHeight: A4Height,
     },
     MaskFit: {
       name: 'Mask Fit Test',
       expiry: true,
       issuer: true,
+      cols: A5Cols,
+      cellHeight: A5Height,
+    },
+    Membership: {
+      name: 'Membership',
+      expiry: true,
+      issuer: true,
+      cols: A5Cols,
+      cellHeight: A5Height,
     },
     NZQAUnitStandard: {
       name: 'NZQA Unit Standard',
@@ -55,24 +92,42 @@ const constInit = {
       title: true,
       issuer: true,
       unit: true,
+      cols: A5Cols,
+      cellHeight: A5Height,
+    },
+    Training: {
+      name: 'Other',
+      title: true,
+      id: true,
+      issuer: true,
+      expiry: true,
+      notes: true,
+      cols: A4Cols,
+      cellHeight: A4Height,
     },
     SiteSafeCourse: {
       name: 'Site Safe Course',
       id: true,
       expiry: true,
       course: true,
+      cols: cardCols,
+      cellHeight: cardHeight,
     },
     Tertiary: {
       name: 'Tertiary Qualification (Highest Level)',
       full: true,
       abbrev: true,
       issuer: true,
+      cols: A4Cols,
+      cellHeight: A4Height,
     },
     TertiaryOther: {
       name: 'Tertiary Qualification (Other)',
       full: true,
       abbrev: true,
       issuer: true,
+      cols: A4Cols,
+      cellHeight: A4Height,
     },
   },
   permissions: [
