@@ -10,9 +10,6 @@ export const resetModal = () => dispatch => {
 
 export const hideModal = () => dispatch => {
   dispatch({
-    type: HIDE_MODAL
-  });
-  dispatch({
     type: RESET_MODAL
   });
 }
@@ -83,9 +80,7 @@ export const handleModalSubmit = ({ doc, pathRef }) => dispatch => {
   } else {
     uid = doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)));
   }
-  doc.uid = uid;
-  pathRef.doc(uid).set(doc);
-  dispatch({type: HIDE_MODAL});
+  pathRef.doc(uid).set({ ...doc, uid: uid, });
   dispatch({type: RESET_MODAL});
 }
 

@@ -23,6 +23,7 @@ import { GET_STAFF,
         GET_SAMPLES,
         APP_HAS_LOADED,
         RESET_LOCAL,
+        UPDATE_STAFF,
       } from "../constants/action-types";
 import * as firebase from 'firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
@@ -99,181 +100,136 @@ export const fetchMe = () => async dispatch => {
                 }
               }
             });
+            usersRef.doc(auth.currentUser.uid).update({
+              tertiary: user.tertiary,
+              ip402: user.ip402,
+              nzqa: user.nzqa,
+              firstaid: user.firstaid,
+              maskfit: user.maskfit,
+            });
             dispatch({ type: GET_ME, payload: user });
           }
           dispatch({ type: APP_HAS_LOADED });
         });
-      usersRef.doc(doc.id).collection("myjobs")
-        .onSnapshot((querySnapshot) => {
-          user.jobs = {};
-          if (querySnapshot.size > 0) {
-            querySnapshot.forEach((doc) => {
-              console.log("Read a doc (my job)!");
-              let job = doc.data();
-              job.uid = doc.id;
-              user.jobs[doc.id] = job;
-            });
-            dispatch({ type: GET_ME, payload: user });
-          }
-        });
+      // usersRef.doc(doc.id).collection("myjobs")
+      //   .onSnapshot((querySnapshot) => {
+      //     user.jobs = {};
+      //     if (querySnapshot.size > 0) {
+      //       querySnapshot.forEach((doc) => {
+      //         console.log("Read a doc (my job)!");
+      //         let job = doc.data();
+      //         job.uid = doc.id;
+      //         user.jobs[doc.id] = job;
+      //       });
+      //       dispatch({ type: GET_ME, payload: user });
+      //     }
+      //     dispatch({ type: APP_HAS_LOADED });
+      //   });
     }
   });
 };
 
 export const fetchStaff = () => async dispatch => {
-  var gtsize = 0;
-  var ltsize = 0;
   var users = {};
   auth.currentUser &&
-  usersRef
-    .where(firebase.firestore.FieldPath.documentId(), ">", auth.currentUser.uid)
-    .onSnapshot((querySnapshot) => {
-      gtsize = querySnapshot.size;
-      console.log("GT Size: " + gtsize);
-      // let gtattrsize = 0;
-      querySnapshot.forEach((doc) => {
-        console.log("Read a doc (Greater than User)! " + doc.data().name);
-        let user = doc.data();
-        user.uid = doc.id;
-        usersRef.doc(doc.id).collection("attr")
-          .onSnapshot((querySnapshot) => {
-            user.attrs = {};
-            user.tertiary = '';
-            user.ip402 = false;
-            user.nzqa = [];
-            user.firstaid = null;
-            if (querySnapshot.size > 0) {
-              querySnapshot.forEach((doc) => {
-                console.log("Read a doc (my Attr)!");
-                let attr = doc.data();
-                attr.uid = doc.id;
-                user.attrs[doc.id] = attr;
-                if (attr.type === 'NZQAUnitStandard' && attr.date) {
-                  if (attr.expiry) {
-                    if (new Date(attr.expiry) > new Date())
-                      user.nzqa = user.nzqa.concat(attr.unit);
-                  } else {
-                    var expiry = new Date(attr.date);
-                    expiry.setFullYear(expiry.getFullYear() + 3);
-                    if (expiry > new Date())
-                      user.nzqa = user.nzqa.concat(attr.unit);
-                  }
-                }
-                if (attr.type === 'Tertiary') {
-                  user.tertiary = attr.abbrev;
-                }
-                if (attr.type === 'MaskFit') {
-                  if (new Date(attr.expiry) > new Date()) {
-                    user.maskfit = 'OK';
-                  } else {
-                    user.maskfit = 'Expired';
-                  }
-                }
-                if (attr.type === 'IP402') {
-                  user.ip402 = true;
-                }
-                if (attr.type === 'AsbestosAssessor') {
-                  user.aanumber = attr.number;
-                }
-                if (attr.type === 'FirstAid' && attr.date) {
-                  user.firstaid = 'Expired';
-                  if (attr.expiry) {
-                    if (new Date(attr.expiry) > new Date()) user.firstaid = 'OK';
-                  } else {
-                    var expiry = new Date(attr.date);
-                    console.log(user.name);
-                    console.log(expiry);
-                    expiry.setFullYear(expiry.getFullYear() + 2);
-                    console.log(expiry);
-                    if (expiry > new Date()) user.firstaid = 'OK';
-                  }
-                }
-              });
-              dispatch({ type: GET_STAFF, payload: users });
-            }
-            // gtattrsize = gtattrsize + 1;
-            // console.log(gtattrsize);
-          });
+    usersRef
+      .where(firebase.firestore.FieldPath.documentId(), ">", auth.currentUser.uid)
+      .get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          console.log("Read a doc (Greater than User)! " + doc.data().name);
+          let user = doc.data();
+          user.uid = doc.id;
           users[doc.id] = user;
-          // if (ltsize < attrsize) dispatch({ type: GET_STAFF, payload: users });
         });
         dispatch({ type: GET_STAFF, payload: users });
       });
-      usersRef
-        .where(firebase.firestore.FieldPath.documentId(), "<", auth.currentUser.uid)
-        .onSnapshot((querySnapshot) => {
-          ltsize = querySnapshot.size;
-          console.log("LT Size: " + ltsize);
-          // let ltattrsize = 0;
+  auth.currentUser &&
+    usersRef
+      .where(firebase.firestore.FieldPath.documentId(), "<", auth.currentUser.uid)
+      .get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          console.log("Read a doc (LT user)! " + doc.data().name);
+          let user = doc.data();
+          user.uid = doc.id;
+          users[doc.id] = user;
+        });
+        dispatch({ type: GET_STAFF, payload: users });
+      });
+}
+
+export const updateStaff = userPath => async dispatch => {
+  console.log('Calling update staff for ' + userPath);
+  let user = {};
+  auth.currentUser &&
+    usersRef.doc(userPath).collection("attr")
+      .get().then((querySnapshot) => {
+        user.attrs = {};
+        user.tertiary = '';
+        user.ip402 = false;
+        user.nzqa = [];
+        user.firstaid = null;
+        user.maskfit = '';
+        if (querySnapshot.size > 0) {
           querySnapshot.forEach((doc) => {
-            console.log("Read a doc (LT user)! " + doc.data().name);
-            let user = doc.data();
-            user.uid = doc.id;
-            usersRef.doc(doc.id).collection("attr")
-              .onSnapshot((querySnapshot) => {
-                user.attrs = {};
-                user.tertiary = '';
-                user.ip402 = false;
-                user.nzqa = [];
-                user.firstaid = null;
-                if (querySnapshot.size > 0) {
-                  querySnapshot.forEach((doc) => {
-                    console.log("Read a doc (my Attr)!");
-                    let attr = doc.data();
-                    attr.uid = doc.id;
-                    user.attrs[doc.id] = attr;
-                    if (attr.type === 'NZQAUnitStandard' && attr.date) {
-                      if (attr.expiry) {
-                        if (new Date(attr.expiry) > new Date())
-                          user.nzqa = user.nzqa.concat(attr.unit);
-                      } else {
-                        var expiry = new Date(attr.date);
-                        expiry.setFullYear(expiry.getFullYear() + 3);
-                        if (expiry > new Date())
-                          user.nzqa = user.nzqa.concat(attr.unit);
-                      }
-                    }
-                    if (attr.type === 'Tertiary') {
-                      user.tertiary = attr.abbrev;
-                    }
-                    if (attr.type === 'MaskFit') {
-                      if (new Date(attr.expiry) > new Date()) {
-                        user.maskfit = 'OK';
-                      } else {
-                        user.maskfit = 'Expired';
-                      }
-                    }
-                    if (attr.type === 'IP402') {
-                      user.ip402 = true;
-                    }
-                    if (attr.type === 'AsbestosAssessor') {
-                      user.aanumber = attr.number;
-                    }
-                    if (attr.type === 'FirstAid' && attr.date) {
-                      user.firstaid = 'Expired';
-                      if (attr.expiry) {
-                        if (new Date(attr.expiry) > new Date()) user.firstaid = 'OK';
-                      } else {
-                        var expiry = new Date(attr.date);
-                        console.log(user.name);
-                        console.log(expiry);
-                        expiry.setFullYear(expiry.getFullYear() + 2);
-                        console.log(expiry);
-                        if (expiry > new Date()) user.firstaid = 'OK';
-                      }
-                    }
-                  });
-                  dispatch({ type: GET_STAFF, payload: users });
-                }
-                // ltattrsize = ltattrsize + 1;
-                // console.log(ltattrsize);
-              });
-              users[doc.id] = user;
-              // if (ltsize < attrsize) dispatch({ type: GET_STAFF, payload: users });
-            });
-            dispatch({ type: GET_STAFF, payload: users });
+            console.log("Read a doc (Attr)!");
+            let attr = doc.data();
+            attr.uid = doc.id;
+            user.attrs[doc.id] = attr;
+            if (attr.type === 'NZQAUnitStandard' && attr.date) {
+              if (attr.expiry) {
+                if (new Date(attr.expiry) > new Date())
+                  user.nzqa = user.nzqa.concat(attr.unit);
+              } else {
+                var expiry = new Date(attr.date);
+                expiry.setFullYear(expiry.getFullYear() + 3);
+                if (expiry > new Date())
+                  user.nzqa = user.nzqa.concat(attr.unit);
+              }
+            }
+            if (attr.type === 'Tertiary') {
+              user.tertiary = attr.abbrev;
+            }
+            if (attr.type === 'MaskFit') {
+              if (new Date(attr.expiry) > new Date()) {
+                user.maskfit = 'OK';
+              } else {
+                user.maskfit = 'Expired';
+              }
+            }
+            if (attr.type === 'IP402') {
+              user.ip402 = true;
+            }
+            if (attr.type === 'AsbestosAssessor') {
+              user.aanumber = attr.number;
+            }
+            if (attr.type === 'FirstAid' && attr.date) {
+              user.firstaid = 'Expired';
+              if (attr.expiry) {
+                if (new Date(attr.expiry) > new Date()) user.firstaid = 'OK';
+              } else {
+                var expiry = new Date(attr.date);
+                console.log(user.name);
+                console.log(expiry);
+                expiry.setFullYear(expiry.getFullYear() + 2);
+                console.log(expiry);
+                if (expiry > new Date()) user.firstaid = 'OK';
+              }
+            }
           });
-  // If any
+          usersRef.doc(userPath).update({
+            tertiary: user.tertiary,
+            ip402: user.ip402,
+            nzqa: user.nzqa,
+            firstaid: user.firstaid,
+            maskfit: user.maskfit,
+          });
+          dispatch({
+            type: UPDATE_STAFF,
+            userPath: userPath,
+            payload: user,
+          })
+        }
+      });
 }
 
 export const fetchDocuments = () => async dispatch => {

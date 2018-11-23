@@ -28,6 +28,7 @@ export const GET_ASBESTOS_SAMPLES = "GET_ASBESTOS_SAMPLES";
 export const GET_HELP = "GET_HELP";
 export const GET_UPDATES = "GET_UPDATES";
 export const RESET_LOCAL = "RESET_LOCAL";
+export const UPDATE_STAFF = "UPDATE_STAFF";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";

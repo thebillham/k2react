@@ -1,4 +1,7 @@
 import React from 'react';
+import classNames from 'classnames';
+import { withStyles } from '@material-ui/core/styles';
+import { styles } from '../../config/styles';
 
 import Grid from '@material-ui/core/Grid';
 import GridList from '@material-ui/core/GridList';
@@ -31,15 +34,23 @@ import ApiCalendar from 'react-google-calendar-api';
 
 import StaffCard from '../widgets/StaffCard.js';
 import { connect } from 'react-redux';
+import { updateStaff } from '../../actions/local';
 
 const mapStateToProps = state => {
   return {
     staff: state.local.staff,
     me: state.local.me,
+    search: state.local.search,
     offices: state.const.offices,
     contacts: state.const.officecontacts,
     permissions: state.const.permissions,
     qualificationtypes: state.const.qualificationtypes,
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    updateStaff: userPath => dispatch(updateStaff(userPath)),
   };
 };
 
@@ -148,7 +159,7 @@ class Staff extends React.Component {
     if (expanded && calendarid) {
       if (ApiCalendar.sign && !this.state.events[calendarid]) {
         console.log('Api calendar is signed');
-        ApiCalendar.listUpcomingEvents(5, calendarid)
+        ApiCalendar.listUpcomingEvents(7, calendarid)
           .then(({result}: any) => {
             console.log('Results in');
             this.setState({ events: {
@@ -159,6 +170,14 @@ class Staff extends React.Component {
           });
       }
     }
+  }
+
+  updateAllStaff = () => {
+    console.log('Updating all staff');
+    Object.keys(this.props.staff).forEach(userPath => {
+      console.log('Updating ' + userPath);
+      this.props.updateStaff(userPath);
+    });
   }
 
   setDocView = type => {
@@ -203,6 +222,9 @@ class Staff extends React.Component {
       if (this.state.signedFilter === 'MyK2 User' && !user.key) filter = false;
       if (this.state.signedFilter === 'Not Signed Up' && user.key) filter = false;
     }
+    if (this.props.search) {
+      if (!(user.name+user.office+user.jobdescription).toLowerCase().includes(this.props.search.toLowerCase())) filter = false;
+    }
     return(filter)
   }
 
@@ -212,16 +234,18 @@ class Staff extends React.Component {
     if (this.state.docview) {
       staff.map(e => {
         if (e.attrs) {
-          Object.values(e.attrs).map(attr => {
-            if (attr.type === this.state.docview && attr.fileUrl) {
-              docs.push(
-                {
-                  url: attr.fileUrl,
-                  name: e.name,
-                }
-              )
-            }
-          })
+          if (!this.props.search || (e.name+e.office+e.jobdescription).toLowerCase().includes(this.props.search.toLowerCase())) {
+            Object.values(e.attrs).map(attr => {
+              if (attr.type === this.state.docview && attr.fileUrl) {
+                docs.push(
+                  {
+                    url: attr.fileUrl,
+                    name: e.name,
+                  }
+                )
+              }
+            })
+          }
         }
       });
     }
@@ -232,6 +256,7 @@ class Staff extends React.Component {
     // const TreeTable = treeTableHOC(ReactTable);
     const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
     var { tabValue } = this.state;
+    const { classes } = this.props;
     const docs = this.getDocs();
 
     const filter = (
@@ -325,12 +350,12 @@ class Staff extends React.Component {
           }
           { tabValue === 1 &&
             <div style={{ position: 'relative', width: '80vw'}}>
-              <Button onClick={() => this.email('all')} color={"secondary"} variant='outlined' style={{ margin: 20, }}>Email All Staff</Button>
-              <Button onClick={() => this.email('Auckland')} color={"secondary"} variant='outlined' style={{ margin: 20, }}>Email North Island Staff</Button>
-              <Button onClick={() => this.email('Christchurch')} color={"secondary"} variant='outlined' style={{ margin: 20, }}>Email Christchurch Staff</Button>
+              <Button onClick={() => this.email('all')} color={"primary"} variant='outlined' style={{ margin: 20, }}>Email All Staff</Button>
+              <Button onClick={() => this.email('Christchurch')} color={"primary"} variant='outlined' style={{ margin: 20, }}>Email Christchurch Staff</Button>
+              <Button onClick={() => this.email('Auckland')} color={"primary"} variant='outlined' style={{ margin: 20, }}>Email North Island Staff</Button>
               { this.props.contacts.map(user => {
                 return(
-                  <ListItem button key={user.name}>
+                  <ListItem key={user.name}>
                     <Grid container>
                       <Grid item xs={3}>{ user.name }</Grid>
                       <Grid item xs={3}>{ user.workphone ?
@@ -347,9 +372,16 @@ class Staff extends React.Component {
                 )
               })}
               <hr />
-              { staff.map(user => {
+              { staff
+                .filter(user => {
+                  if (this.props.search) {
+                    return (user.name.toLowerCase().includes(this.props.search.toLowerCase()));
+                  } else {
+                    return true;
+                  }
+                }).map(user => {
                 return(
-                  <ListItem button key={user.name}>
+                  <ListItem className={classes.hoverItem} key={user.name}>
                     <Grid container>
                       <Grid item xs={3}>{ user.name }</Grid>
                       <Grid item xs={3}>{ user.workphone ?
@@ -371,6 +403,7 @@ class Staff extends React.Component {
           }
           { tabValue === 2 &&
             <div style={{ position: 'relative', width: '80vw'}}>
+              { this.props.me.name === 'Ben Dodd' && <Button variant='outlined' onClick={() => { this.updateAllStaff() }}>Refresh</Button> }
               { filter }
               <ListItem>
                 <Grid container style={{ fontWeight: 600}}>
@@ -389,7 +422,7 @@ class Staff extends React.Component {
                 })
                 .map(user => {
                 return(
-                  <ListItem button key={user.name}>
+                  <ListItem className={classes.hoverItem} key={user.name}>
                     <Grid container>
                       <Grid item xs={3}>{ user.name }</Grid>
                       <Grid item xs={1}>{ user.tertiary }</Grid>
@@ -428,7 +461,7 @@ class Staff extends React.Component {
                   let url = 'https://api.k2.co.nz/v1/doc/scripts/staff/qualification_documents.php?images=' + docs.map(doc => encodeURIComponent(doc.url)).join(';') + '&doctype=' + this.props.qualificationtypes[this.state.docview].name + '&format=A5';
                   window.open(url);
                   }
-                }>Download as DocX</Button>
+                }>Printable Version</Button>
               <GridList
                 cellHeight={this.state.docview ? this.props.qualificationtypes[this.state.docview].cellHeight : 420 }
                 cols={this.state.docview ? this.props.qualificationtypes[this.state.docview].cols : 6}
@@ -455,4 +488,4 @@ class Staff extends React.Component {
   }
 }
 
-export default connect(mapStateToProps)(Staff);
+export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(Staff));
