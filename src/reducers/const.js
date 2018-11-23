@@ -325,16 +325,8 @@ const constInit = {
   ],
   officecontacts: [
     {
-      name: 'Christchurch, Unit 21 (main)',
+      name: 'Christchurch',
       workphone: '03 384 8966',
-    },
-    {
-      name: 'Christchurch, Unit 21 (other)',
-      workphone: '03 384 8965',
-    },
-    {
-      name: 'Christchurch, Unit 24',
-      workphone: '03 384 8957',
     },
     {
       name: 'Auckland',

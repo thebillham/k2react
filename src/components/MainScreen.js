@@ -452,7 +452,7 @@ class MainScreen extends React.Component {
                             <Route path="/updates" render={() => <div>Version Updates</div>} />
                           </Switch>
                         </Typography>
-                        <Route path="/(library|training/modules|lab|tools|noticeboard|help)" render={() =>
+                        <Route path="/(library|training/modules|lab|tools|noticeboard|help|staff)" render={() =>
                           <div className={classes.search}>
                             <div className={classes.searchIcon}>
                               <SearchIcon />

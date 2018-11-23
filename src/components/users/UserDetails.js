@@ -30,6 +30,7 @@ import UserAttrModal from '../modals/UserAttrModal';
 import AttrList from '../widgets/AttrList';
 import { USERATTR } from '../../constants/modal-types';
 import { showModal } from '../../actions/modal';
+import { updateStaff } from '../../actions/local';
 import _ from 'lodash';
 
 const mapStateToProps = state => {
@@ -45,6 +46,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     showModal: modal => dispatch(showModal(modal)),
+    updateStaff: userPath => dispatch(updateStaff(userPath)),
   };
 };
 
@@ -64,6 +66,12 @@ class UserDetails extends React.Component {
   handleTabChange = (event, value) => {
     this.setState({ tabValue: value });
   };
+
+  componentWillMount = () => {
+    if (this.props.match.params.user && !this.props.staff[this.props.match.params.user].attrs) {
+      this.props.updateStaff(this.props.match.params.user);
+    }
+  }
 
   onEditUser = (target, select) => {
     let change = {}

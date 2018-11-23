@@ -80,21 +80,29 @@ function StaffCard(props) {
         <Grid item xs={6}>
           { staff.events ?
             <List subheader={<ListSubheader>Upcoming Events</ListSubheader>}>
-              { staff.events.map(event => {
-                return(
-                  <ListItem button onClick={() => { window.open(event.htmlLink) }} key={event.id}>
-                    <ListItemText
-                      primary={event.summary}
-                      secondary={ event.start.date ? <span><FormattedDate value={Date.parse(event.start.date)} month='long' day='numeric' /> (all day)</span> : <FormattedDate value={Date.parse(event.start.dateTime)} month='long' day='numeric' hour='numeric' minute='numeric' />} /><br />
+              { staff.events.length < 1 ?
+                <div style={{ marginLeft: 24, fontWeight: 100, fontSize: 12, color: '#aaa', }}>
+                  No events to display.
+                </div>
+                :
+                <div>
+                { staff.events.map(event => {
+                  return(
+                    <ListItem button onClick={() => { window.open(event.htmlLink) }} key={event.id}>
+                      <ListItemText
+                        primary={event.summary}
+                        secondary={ event.start.date ? <span><FormattedDate value={Date.parse(event.start.date)} month='long' day='numeric' /> (all day)</span> : <FormattedDate value={Date.parse(event.start.dateTime)} month='long' day='numeric' hour='numeric' minute='numeric' />} /><br />
 
-                  </ListItem>
-                )
-              })
+                    </ListItem>
+                  )
+                })
+              }
+              </div>
             }
           </List>
           :
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 100, fontSize: 12, color: '#aaa', }}>
-            { staff.gmail ? <span>No events to display. Either the user has not shared their calendar with you or they have no upcoming events.</span> : <span>The user has not set their Google Calendar account.</span> }
+            { staff.gmail ? <span>The user has not shared their Google Calendar with you. You can request access by entering their Gmail address into the "Add a friend's calendar" field on your Google Calendar sidebar.</span> : <span>The user has not set their Google Calendar account.</span> }
             </div>
           }
         </Grid>

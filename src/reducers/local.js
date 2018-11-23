@@ -23,6 +23,7 @@ import {
           GET_HELP,
           GET_UPDATES,
           RESET_LOCAL,
+          UPDATE_STAFF,
         } from "../constants/action-types"
 
 const localInit = {
@@ -74,7 +75,6 @@ export default function localReducer(state = localInit, action) {
       }
     };
     case GET_ME:
-      console.log('Fired get me!');
       return {
         ...state,
         me: {
@@ -86,6 +86,17 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         user: action.payload,
+      }
+    case UPDATE_STAFF:
+      return {
+        ...state,
+        staff: {
+          ...state.staff,
+          [action.userPath]: {
+            ...state.staff[action.userPath],
+            ...action.payload,
+          }
+        }
       }
     case GET_WFM:
       return {
