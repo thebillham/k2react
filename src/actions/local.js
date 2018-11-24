@@ -45,72 +45,7 @@ export const fetchMe = () => async dispatch => {
     if (doc.exists) {
       let user = doc.data();
       dispatch({ type: GET_ME, payload: user});
-      // dispatch({ type: AUTH_USER, payload: doc.data().auth });
-      usersRef.doc(auth.currentUser.uid).collection("attr")
-        .onSnapshot((querySnapshot) => {
-          user.attrs = {};
-          user.tertiary = '';
-          user.ip402 = false;
-          user.nzqa = [];
-          user.firstaid = null;
-          if (querySnapshot.size > 0) {
-            querySnapshot.forEach((doc) => {
-              console.log("Read a doc (my Attr)!");
-              let attr = doc.data();
-              attr.uid = doc.id;
-              user.attrs[doc.id] = attr;
-              if (attr.type === 'NZQAUnitStandard' && attr.date) {
-                if (attr.expiry) {
-                  if (new Date(attr.expiry) > new Date())
-                    user.nzqa = user.nzqa.concat(attr.unit);
-                } else {
-                  var expiry = new Date(attr.date);
-                  expiry.setFullYear(expiry.getFullYear() + 3);
-                  if (expiry > new Date())
-                    user.nzqa = user.nzqa.concat(attr.unit);
-                }
-              }
-              if (attr.type === 'Tertiary') {
-                user.tertiary = attr.abbrev;
-              }
-              if (attr.type === 'MaskFit') {
-                if (new Date(attr.expiry) > new Date()) {
-                  user.maskfit = 'OK';
-                } else {
-                  user.maskfit = 'Expired';
-                }
-              }
-              if (attr.type === 'IP402') {
-                user.ip402 = true;
-              }
-              if (attr.type === 'AsbestosAssessor') {
-                user.aanumber = attr.number;
-              }
-              if (attr.type === 'FirstAid' && attr.date) {
-                user.firstaid = 'Expired';
-                if (attr.expiry) {
-                  if (new Date(attr.expiry) > new Date()) user.firstaid = 'OK';
-                } else {
-                  var expiry = new Date(attr.date);
-                  console.log(user.name);
-                  console.log(expiry);
-                  expiry.setFullYear(expiry.getFullYear() + 2);
-                  console.log(expiry);
-                  if (expiry > new Date()) user.firstaid = 'OK';
-                }
-              }
-            });
-            usersRef.doc(auth.currentUser.uid).update({
-              tertiary: user.tertiary,
-              ip402: user.ip402,
-              nzqa: user.nzqa,
-              firstaid: user.firstaid,
-              maskfit: user.maskfit,
-            });
-            dispatch({ type: GET_ME, payload: user });
-          }
-          dispatch({ type: APP_HAS_LOADED });
-        });
+      dispatch({ type: APP_HAS_LOADED });
       // usersRef.doc(doc.id).collection("myjobs")
       //   .onSnapshot((querySnapshot) => {
       //     user.jobs = {};
@@ -157,24 +92,33 @@ export const fetchStaff = () => async dispatch => {
       });
 }
 
-export const updateStaff = userPath => async dispatch => {
+export const getUserAttrs = userPath => async dispatch => {
   console.log('Calling update staff for ' + userPath);
   let user = {};
   auth.currentUser &&
     usersRef.doc(userPath).collection("attr")
       .get().then((querySnapshot) => {
         user.attrs = {};
+        user.aanumber = '';
         user.tertiary = '';
         user.ip402 = false;
         user.nzqa = [];
+        user.nzqatraining = 'None',
         user.firstaid = null;
         user.maskfit = '';
+        user.docimages = [];
         if (querySnapshot.size > 0) {
           querySnapshot.forEach((doc) => {
             console.log("Read a doc (Attr)!");
             let attr = doc.data();
             attr.uid = doc.id;
             user.attrs[doc.id] = attr;
+            if (attr.fileUrl) {
+              user.docimages.push({
+                type: attr.type,
+                url: attr.fileUrl,
+              });
+            }
             if (attr.type === 'NZQAUnitStandard' && attr.date) {
               if (attr.expiry) {
                 if (new Date(attr.expiry) > new Date())
@@ -216,18 +160,45 @@ export const updateStaff = userPath => async dispatch => {
               }
             }
           });
+          if (user.nzqa) {
+            let nzqalist = [];
+            if (user.nzqa.includes('23229') && user.nzqa.includes('17600') && user.nzqa.includes('25045')) {
+              nzqalist.push('Height Training');
+            }
+            if (user.nzqa.includes('23960') && user.nzqa.includes('23962') && user.nzqa.includes('23966')) {
+              nzqalist.push('Mobile Elevated Work Platforms');
+            }
+            if (user.nzqa.includes('17599') && user.nzqa.includes('18426') && user.nzqa.includes('25510')) {
+              nzqalist.push('Confined Spaces');
+            }
+            user.nzqatraining = nzqalist.join(', ');
+          }
           usersRef.doc(userPath).update({
             tertiary: user.tertiary,
             ip402: user.ip402,
             nzqa: user.nzqa,
+            nzqatraining: user.nzqatraining,
             firstaid: user.firstaid,
             maskfit: user.maskfit,
+            aanumber: user.aanumber,
+            docimages: user.docimages,
           });
-          dispatch({
-            type: UPDATE_STAFF,
-            userPath: userPath,
-            payload: user,
-          })
+          if (userPath === auth.currentUser.uid) {
+            console.log('Updating user');
+            console.log(user);
+            dispatch({
+              type: GET_ME,
+              payload: user,
+            });
+          } else {
+            console.log('Updating other staff');
+            console.log(user);
+            dispatch({
+              type: UPDATE_STAFF,
+              userPath: userPath,
+              payload: user,
+            });
+          }
         }
       });
 }

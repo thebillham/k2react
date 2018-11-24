@@ -67,6 +67,7 @@ function StaffCard(props) {
             IP402: <span style={{ fontWeight: 100 }}>{staff.ip402 ? 'Yes' : 'No' }</span><br />
             Asbestos Assessor: <span style={{ fontWeight: 100 }}>{staff.aanumber ? staff.aanumber : 'No' }</span><br />
             NZQA Unit Standards: <span style={{ fontWeight: 100 }}>{staff.nzqa && staff.nzqa.length > 0 ? staff.nzqa.join(', ') : 'None' }</span><br />
+            NZQA Training: <span style={{ fontWeight: 100 }}>{staff.nzqatraining ? staff.nzqatraining : 'None' }</span><br />
             First Aid: <span style={{ fontWeight: 100 }}>{staff.firstaid ? staff.firstaid : 'No' }</span><br />
             Mask Fit Tested: <span style={{ fontWeight: 100 }}>{staff.maskfit ? staff.maskfit : 'No' }</span><br />
             <hr />

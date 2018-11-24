@@ -416,13 +416,13 @@ class MainScreen extends React.Component {
                         >
                           <MenuIcon />
                         </IconButton>
-                        <IconButton
+                        {/*<IconButton
                           color="inherit"
                           onClick={ () => this.props.history.goBack() }
                           className={classes.menuButton}
                           >
                           <BackIcon />
-                        </IconButton>
+                        </IconButton>*/}
                         {/* Toolbar heading and breadcrumbs go here */}
                         <Typography variant="h6" color='inherit' noWrap className={classes.title}>
                           <Switch>
