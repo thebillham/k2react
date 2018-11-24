@@ -24,12 +24,13 @@ import { GET_STAFF,
         APP_HAS_LOADED,
         RESET_LOCAL,
         UPDATE_STAFF,
+        GET_VEHICLES,
       } from "../constants/action-types";
 import * as firebase from 'firebase';
 import { wfmRoot, wfmApi, wfmAcc } from '../config/keys';
 import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
     trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef,
-    updateRef, cocsRef, } from "../config/firebase";
+    updateRef, cocsRef, vehiclesRef, } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 
 export const resetLocal = () => dispatch => {
@@ -232,6 +233,22 @@ export const fetchCocs = () => async dispatch => {
       });
     });
 };
+
+export const fetchVehicles = () => async dispatch => {
+  vehiclesRef
+    .onSnapshot((querySnapshot) => {
+      var vehicles = [];
+      querySnapshot.forEach((doc) => {
+        var vehicle = doc.data();
+        vehicle.number = doc.id;
+        vehicles.push(vehicle);
+      });
+      dispatch({
+        type: GET_VEHICLES,
+        payload: vehicles,
+      });
+    })
+}
 
 export const fetchSamples = jobnumber => async dispatch => {
   cocsRef.doc(jobnumber).collection('samples').orderBy('samplenumber')
