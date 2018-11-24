@@ -29,7 +29,7 @@ import {
   hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,
   handleTagAddition,
 } from '../../actions/modal';
-import { updateStaff } from '../../actions/local';
+import { getUserAttrs } from '../../actions/local';
 import _ from 'lodash';
 
 const mapStateToProps = state => {
@@ -52,7 +52,7 @@ const mapDispatchToProps = dispatch => {
     handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
-    updateStaff: _.debounce(userPath => dispatch(updateStaff(userPath)), 1000),
+    getUserAttrs: _.debounce(userPath => dispatch(getUserAttrs(userPath)), 1000),
   };
 };
 
@@ -262,7 +262,7 @@ class UserAttrModal extends React.Component {
               doc: doc,
               pathRef: usersRef.doc(modalProps.userPath).collection("attr"),
             });
-            this.props.updateStaff(modalProps.userPath);
+            this.props.getUserAttrs(modalProps.userPath);
           }
         } color="primary" >Submit</Button>}
         </DialogActions>

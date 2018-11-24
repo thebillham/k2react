@@ -24,6 +24,8 @@ import Input from '@material-ui/core/Input';
 
 import LocationCity from '@material-ui/icons/LocationCity';
 import School from '@material-ui/icons/School';
+import Face from '@material-ui/icons/Face';
+import LocalHospital from '@material-ui/icons/LocalHospital';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Https from '@material-ui/icons/Https';
 import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
@@ -34,7 +36,7 @@ import ApiCalendar from 'react-google-calendar-api';
 
 import StaffCard from '../widgets/StaffCard.js';
 import { connect } from 'react-redux';
-import { updateStaff } from '../../actions/local';
+import { getUserAttrs } from '../../actions/local';
 
 const mapStateToProps = state => {
   return {
@@ -50,7 +52,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    updateStaff: userPath => dispatch(updateStaff(userPath)),
+    getUserAttrs: userPath => dispatch(getUserAttrs(userPath)),
   };
 };
 
@@ -70,7 +72,7 @@ class Staff extends React.Component {
       signedFilter: undefined,
       signedFilterOn: false,
       events: {},
-      docview: '',
+      docview: 'none',
     }
   }
 
@@ -176,7 +178,7 @@ class Staff extends React.Component {
     console.log('Updating all staff');
     Object.keys(this.props.staff).forEach(userPath => {
       console.log('Updating ' + userPath);
-      this.props.updateStaff(userPath);
+      this.props.getUserAttrs(userPath);
     });
   }
 
@@ -231,15 +233,15 @@ class Staff extends React.Component {
   getDocs = () => {
     const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
     let docs = [];
-    if (this.state.docview) {
+    if (this.state.docview !== 'none') {
       staff.map(e => {
-        if (e.attrs) {
+        if (e.docimages && e.docimages.length > 0) {
           if (!this.props.search || (e.name+e.office+e.jobdescription).toLowerCase().includes(this.props.search.toLowerCase())) {
-            Object.values(e.attrs).map(attr => {
-              if (attr.type === this.state.docview && attr.fileUrl) {
+            e.docimages.map(attr => {
+              if (attr.type === this.state.docview) {
                 docs.push(
                   {
-                    url: attr.fileUrl,
+                    url: attr.url,
                     name: e.name,
                   }
                 )
@@ -258,7 +260,6 @@ class Staff extends React.Component {
     var { tabValue } = this.state;
     const { classes } = this.props;
     const docs = this.getDocs();
-
     const filter = (
       <ExpansionPanel>
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
@@ -407,13 +408,13 @@ class Staff extends React.Component {
               { filter }
               <ListItem>
                 <Grid container style={{ fontWeight: 600}}>
-                  <Grid item xs={3}>Name</Grid>
+                  <Grid item xs={2}>Name</Grid>
                   <Grid item xs={1}>Tertiary</Grid>
-                  <Grid item xs={1}>IP402</Grid>
-                  <Grid item xs={2}>Asbestos Assessor</Grid>
-                  <Grid item xs={1}>Mask Fit</Grid>
-                  <Grid item xs={1}>First Aid</Grid>
-                  <Grid item xs={3}>NZQA Unit Standards</Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>IP402</div></Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>Asbestos Assessor</div></Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>Mask Fit</div></Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>First Aid</div></Grid>
+                  <Grid item xs={5}>NZQA Unit Standards Training</Grid>
                 </Grid>
               </ListItem>
               { staff
@@ -424,15 +425,17 @@ class Staff extends React.Component {
                 return(
                   <ListItem className={classes.hoverItem} key={user.name}>
                     <Grid container>
-                      <Grid item xs={3}>{ user.name }</Grid>
+                      <Grid item xs={2}>{ user.name }</Grid>
                       <Grid item xs={1}>{ user.tertiary }</Grid>
-                      <Grid item xs={1}>{ user.ip402 && <span>IP402</span> }</Grid>
-                      <Grid item xs={2}>{ user.aanumber }</Grid>
-                      <Grid item xs={1}>{ user.maskfit }</Grid>
-                      <Grid item xs={1}>{ user.firstaid }</Grid>
-                      <Grid item xs={1}>{ (user.nzqa && user.nzqa.includes('23229') && user.nzqa.includes('17600') && user.nzqa.includes('25045')) && <span>Height</span> }</Grid>
-                      <Grid item xs={1}>{ (user.nzqa && user.nzqa.includes('23960') && user.nzqa.includes('23962') && user.nzqa.includes('23966')) && <span>MEWP</span> }</Grid>
-                      <Grid item xs={1}>{ (user.nzqa && user.nzqa.includes('17599') && user.nzqa.includes('18426') && user.nzqa.includes('25510')) && <span>Confined Spaces</span> }</Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>{ user.ip402 && <CheckCircleOutline /> }</div></Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>{ user.aanumber }</div></Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
+                        { user.maskfit && ((user.maskfit === 'OK') ? <Face /> : <Face style={{ color: 'red' }} /> )}</div>
+                      </Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
+                        { user.firstaid && ((user.firstaid === 'OK') ? <LocalHospital /> : <LocalHospital style={{ color: 'red' }} /> )}</div>
+                      </Grid>
+                      <Grid item xs={5}>{ user.nzqatraining }</Grid>
                     </Grid>
                   </ListItem>
                 )
@@ -448,7 +451,7 @@ class Staff extends React.Component {
                   onChange={e => this.setDocView(e.target.value)}
                   input={<Input name='docview' id='docview' />}
                 >
-                  <option value='' />
+                  <option value='none' />
                   { Object.keys(this.props.qualificationtypes).map(doctype => {
                     return(
                       <option key={doctype} value={doctype}>{this.props.qualificationtypes[doctype].name}</option>
@@ -462,23 +465,25 @@ class Staff extends React.Component {
                   window.open(url);
                   }
                 }>Printable Version</Button>
-              <GridList
-                cellHeight={this.state.docview ? this.props.qualificationtypes[this.state.docview].cellHeight : 420 }
-                cols={this.state.docview ? this.props.qualificationtypes[this.state.docview].cols : 6}
-                >
-                {
-                  docs.map(doc => {
-                    return(
-                      <GridListTile key={doc.url} onClick={() => window.open(doc.url)}>
-                        <img src={doc.url} alt={doc.name} />
-                        <GridListTileBar
-                          title={doc.name}
-                          />
-                      </GridListTile>
-                    )
-                  })
-                }
-              </GridList>
+              { this.state.docview !== 'none' &&
+                <GridList
+                  cellHeight={this.state.docview ? this.props.qualificationtypes[this.state.docview].cellHeight : 420 }
+                  cols={this.state.docview ? this.props.qualificationtypes[this.state.docview].cols : 6}
+                  >
+                  {
+                    docs.map(doc => {
+                      return(
+                        <GridListTile key={doc.url} onClick={() => window.open(doc.url)}>
+                          <img src={doc.url} alt={doc.name} />
+                          <GridListTileBar
+                            title={doc.name}
+                            />
+                        </GridListTile>
+                      )
+                    })
+                  }
+                </GridList>
+              }
             </div>
           }
         </div>

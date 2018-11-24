@@ -30,7 +30,7 @@ import UserAttrModal from '../modals/UserAttrModal';
 import AttrList from '../widgets/AttrList';
 import { USERATTR } from '../../constants/modal-types';
 import { showModal } from '../../actions/modal';
-import { updateStaff } from '../../actions/local';
+import { getUserAttrs } from '../../actions/local';
 import _ from 'lodash';
 
 const mapStateToProps = state => {
@@ -46,7 +46,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     showModal: modal => dispatch(showModal(modal)),
-    updateStaff: userPath => dispatch(updateStaff(userPath)),
+    getUserAttrs: userPath => dispatch(getUserAttrs(userPath)),
   };
 };
 
@@ -68,8 +68,12 @@ class UserDetails extends React.Component {
   };
 
   componentWillMount = () => {
-    if (this.props.match.params.user && !this.props.staff[this.props.match.params.user].attrs) {
-      this.props.updateStaff(this.props.match.params.user);
+    if (this.props.match.params.user) {
+      if (!(this.props.staff[this.props.match.params.user] && this.props.staff[this.props.match.params.user].attrs)) {
+        this.props.getUserAttrs(this.props.match.params.user);
+      }
+    } else if (!this.props.match.params.user && !this.props.me.attrs) {
+      this.props.getUserAttrs(auth.currentUser.uid);
     }
   }
 
@@ -145,6 +149,8 @@ class UserDetails extends React.Component {
     } else {
       user = this.props.me;
     }
+
+    if (!user.maskfitsize) user.maskfitsize = '';
 
     let sixmonths = new Date();
     sixmonths = sixmonths.setMonth(sixmonths.getMonth() - 6);
