@@ -1,5 +1,5 @@
 import * as firebase from 'firebase';
-import { FirebaseConfig } from "./keys";
+import { FirebaseConfig } from "../keys";
 
 const app = firebase.initializeApp(FirebaseConfig);
 var p = new firebase.auth.GoogleAuthProvider();

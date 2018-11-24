@@ -27,7 +27,7 @@ import Error from '@material-ui/icons/Error';
 import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
 
 import UserAttrModal from '../modals/UserAttrModal';
-import AttrList from '../widgets/AttrList';
+import AttrList from './AttrList';
 import { USERATTR } from '../../constants/modal-types';
 import { showModal } from '../../actions/modal';
 import { getUserAttrs } from '../../actions/local';

@@ -6,7 +6,7 @@ import { FormattedDate } from 'react-intl';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css'
 import treeTableHOC from 'react-table/lib/hoc/treeTable';
-import JobCard from '../widgets/JobCard';
+import JobCard from './JobCard';
 
 const mapStateToProps = state => {
   return {

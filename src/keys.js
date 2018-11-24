@@ -17,6 +17,9 @@ export const wfmAcc = '36D1774D691E431BB11DABB2FD65079D';
 export const wfmRoot = 'https://api.workflowmax.com/';
 export const apiKey = 'BfqKcOR6tcMtFPCH7MrmHoaANEIJ5grs';
 export const apiRoot = 'https://api.k2.co.nz/v1/';
+export const GOOGLE_API_KEY = "AIzaSyDDKJ9pXS7mSHs-Ay8Rw2szoHbyIGnPfiw";
+export const PUBLIC_VAPID_KEY = "BGWWuuJDeOKDDJv6TG04RrK2Yg1Ytzk9h8ibG433HMBDiAhnYeN9tVoDL5X4qKK3BmVj3QeFr9tXVMqvxyDX3CY";
+export const PRIVATE_VAPID_KEY = "70ryOULpGuFYQ8XsgjkD5LeIdUX3dHoaWx3SSTAAzDk";
 
 export const taskTravel = '1832696';
 export const taskSiteWork = '1832701';

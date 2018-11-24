@@ -320,12 +320,12 @@ class MainScreen extends React.Component {
               </List>
             </Collapse>*/}
 
-            <ListItem button component={Link} to="/assets">
+            {/*<ListItem button component={Link} to="/assets">
               <ListItemIcon>
                 <AssetsIcon className={classes.accentButton} />
               </ListItemIcon>
               <ListItemText primary="Assets" />
-            </ListItem>
+            </ListItem>*/}
 
             {/*<ListItem button onClick={this.handleTrainingClick} component={Link} to="/training">
               <ListItemIcon>
@@ -462,7 +462,7 @@ class MainScreen extends React.Component {
                             <Route path="/updates" render={() => <div>Version Updates</div>} />
                           </Switch>
                         </Typography>
-                        <Route path="/(library|training/modules|lab|tools|noticeboard|help|staff)" render={() =>
+                        <Route exact path="/(library|training/modules|lab|tools|noticeboard|help|staff)" render={() =>
                           <div className={classes.search}>
                             <div className={classes.searchIcon}>
                               <SearchIcon />
