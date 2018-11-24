@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { onSearchChange, onCatChange } from '../../actions/local';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import store from '../../store';
-import DocList from '../widgets/DocList';
+import DocList from './DocList';
 
 const mapStateToProps = state => {
   return {

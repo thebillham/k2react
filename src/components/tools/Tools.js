@@ -9,7 +9,7 @@ import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 import { onSearchChange, onCatChange } from '../../actions/local';
 import store from '../../store';
-import ToolCard from '../widgets/ToolCard';
+import ToolCard from './ToolCard';
 
 const mapStateToProps = state => {
   return {

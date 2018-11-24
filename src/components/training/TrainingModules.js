@@ -8,7 +8,7 @@ import Grid from '@material-ui/core/Grid';
 
 import { connect } from 'react-redux';
 import ExpandMore from '@material-ui/icons/ExpandMore';
-import ModuleCard from '../widgets/ModuleCard';
+import ModuleCard from './ModuleCard';
 import { onCatChange, onSearchChange } from '../../actions/local';
 import store from '../../store';
 

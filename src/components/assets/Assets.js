@@ -34,11 +34,10 @@ import 'react-table/react-table.css';
 import Popup from 'reactjs-popup';
 import ApiCalendar from 'react-google-calendar-api';
 
-import StaffCard from '../widgets/StaffCard.js';
 import { connect } from 'react-redux';
 import { fetchVehicles } from '../../actions/local';
 import { showModal } from '../../actions/modal';
-import VehicleList from '../widgets/VehicleList';
+import VehicleList from './VehicleList';
 import { VEHICLE } from '../../constants/modal-types';
 
 const mapStateToProps = state => {

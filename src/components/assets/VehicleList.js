@@ -42,10 +42,17 @@ function VehicleList(props) {
   if (vehicle.fileUrl) cameracolor = 'green';
 
   let wofcolor = 'black';
+  let regcolor = 'black';
+  let servicecolor = 'black';
+  let checkcolor = 'black';
   let today = new Date();
   if (vehicle.wof) {
     let wofexpiry = new Date(vehicle.wof);
     if (wofexpiry <= today) wofcolor = 'red';
+  }
+  if (vehicle.reg) {
+    let regexpiry = new Date(vehicle.reg);
+    if (regexpiry <= today) regcolor = 'red';
   }
   return (
     <ListItem
@@ -55,7 +62,7 @@ function VehicleList(props) {
       <Grid container
         direction="row"
         justify="flex-start"
-        alignItems="center">
+        alignItems="flex-end">
         <Grid item xs={2}>
           { vehicle.fileUrl ?
           <Popup
@@ -68,15 +75,20 @@ function VehicleList(props) {
           </Popup>
         :
           <Image style={{ fontSize: 24, color: cameracolor, margin: 10 }} />}
-          <IconButton onClick={() => {props.showModal({ modalType: VEHICLE, modalProps: { vehicle: vehicle, title: "Edit Vehicle", } })}}>
+          <IconButton onClick={() => {props.showModal({ modalType: VEHICLE, modalProps: { doc: vehicle, title: "Edit Vehicle", } })}}>
             <Edit />
           </IconButton>
           <VehicleModal />
         </Grid>
-        <Grid item xs={8} style={{ fontWeight: 100, fontSize: 14, }}>
+        <Grid item xs={4} style={{ fontWeight: 100, fontSize: 14, }}>
           <div style={{ marginTop: 16, marginBottom: 8, fontSize: 16, fontWeight: 500, }}>{ vehicle.number }</div>
           <div><i>{ vehicle.make + ' ' + vehicle.model + '(' + vehicle.year + ')' }</i></div>
-          { vehicle.wof && <div><span style={{ fontWeight: 450, }}>WOF Expiry:</span> <span style={{ color: wofcolor }}><FormattedDate value={vehicle.wof.toDate()} month='long' day='numeric' year='numeric' /></span></div>}
+          { vehicle.wof && <div><span style={{ fontWeight: 450, }}>WOF Expiry:</span> <span style={{ color: wofcolor }}><FormattedDate value={vehicle.wof} month='long' day='numeric' year='numeric' /></span></div>}
+          { vehicle.reg && <div><span style={{ fontWeight: 450, }}>Reg Expiry:</span> <span style={{ color: regcolor }}><FormattedDate value={vehicle.reg} month='long' day='numeric' year='numeric' /></span></div>}
+        </Grid>
+        <Grid item xs={4} style={{ fontWeight: 100, fontSize: 14, }}>
+          { vehicle.lastservice && <div><span style={{ fontWeight: 450, }}>Last Service:</span> <span style={{ color: servicecolor }}><FormattedDate value={vehicle.lastservice} month='long' day='numeric' year='numeric' /></span></div>}
+          { vehicle.lastcheck && <div><span style={{ fontWeight: 450, }}>Last Check:</span> <span style={{ color: checkcolor }}><FormattedDate value={vehicle.lastcheck} month='long' day='numeric' year='numeric' /></span></div>}
         </Grid>
         <Grid item xs={1}>
           <IconButton onClick={() => { if (window.confirm('Are you sure you wish to delete this vehicle?')) deleteVehicle(vehicle.number)}}>

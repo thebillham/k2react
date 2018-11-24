@@ -9,7 +9,7 @@ import DocumentModal from '../modals/DocumentModal';
 import { onSearchChange, onCatChange } from '../../actions/local';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import store from '../../store';
-import QuizList from '../widgets/QuizList';
+import QuizList from './QuizList';
 
 const mapStateToProps = state => {
   return {

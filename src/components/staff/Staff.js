@@ -34,7 +34,7 @@ import 'react-table/react-table.css';
 import Popup from 'reactjs-popup';
 import ApiCalendar from 'react-google-calendar-api';
 
-import StaffCard from '../widgets/StaffCard.js';
+import StaffCard from './StaffCard.js';
 import { connect } from 'react-redux';
 import { getUserAttrs } from '../../actions/local';
 

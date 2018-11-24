@@ -84,6 +84,11 @@ export const handleModalSubmit = ({ doc, pathRef }) => dispatch => {
   dispatch({type: RESET_MODAL});
 }
 
+export const handleModalSubmitToDoc = ({ doc, pathRef }) => dispatch => {
+  pathRef.set(doc);
+  dispatch({type: RESET_MODAL});
+}
+
 export const handleTagAddition = addedTag => dispatch => {
   dispatch({
     type: ADD_TAG,
