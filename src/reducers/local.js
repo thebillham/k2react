@@ -24,6 +24,7 @@ import {
           GET_UPDATES,
           RESET_LOCAL,
           UPDATE_STAFF,
+          GET_VEHICLES,
         } from "../constants/action-types"
 
 const localInit = {
@@ -49,6 +50,7 @@ const localInit = {
   cocs: {},
   helps: [],
   updates: [],
+  vehicles: [],
 };
 
 // Properties related to local data retrieved from firebase
@@ -102,6 +104,11 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         wfmJobs: action.payload,
+      }
+    case GET_VEHICLES:
+      return {
+        ...state,
+        vehicles: action.payload,
       }
     case GET_QUIZZES:
       return {

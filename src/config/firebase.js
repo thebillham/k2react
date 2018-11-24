@@ -17,6 +17,7 @@ const usersRef = database.collection("users");
 const asbestosSamplesRef = database.collection("samplesasbestos");
 const jobsRef = database.collection("jobheaders");
 const cocsRef = database.collection("cocs");
+const vehiclesRef = database.collection("vehicles");
 const docsRef = database.collection("documents");
 const modulesRef = database.collection("modules");
 const toolsRef = database.collection("tools");
@@ -32,5 +33,5 @@ export { app, provider, auth, database, storage };
 export { usersRef, docsRef, modulesRef, toolsRef,
   noticesRef, quizzesRef, questionsRef, trainingPathsRef,
   methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef,
-  cocsRef, };
+  cocsRef, vehiclesRef };
 export default firebase;
