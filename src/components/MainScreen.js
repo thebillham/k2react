@@ -37,7 +37,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 // import LabIcon from '@material-ui/icons/Colorize';
 import StaffIcon from '@material-ui/icons/People';
 import MyDetailsIcon from '@material-ui/icons/Person';
-import AssetsIcon from '@material-ui/icons/Work';
+import VehiclesIcon from '@material-ui/icons/DirectionsCar';
 // import TrainingIcon from '@material-ui/icons/School';
 // import QuizIcon from '@material-ui/icons/ContactSupport';
 // import ToolsIcon from '@material-ui/icons/Build';
@@ -68,7 +68,7 @@ import QuestionsToFirebase from './quizzes/Questions';
 // Pages
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Noticeboard = lazy(() => import('./noticeboard/Noticeboard'));
-const Assets = lazy(() => import('./assets/Assets'));
+const Vehicles = lazy(() => import('./assets/Vehicles'));
 // import Noticeboard from './noticeboard/Noticeboard';
 // import Jobs from './jobs/Jobs';
 // import AsbestosLab from './asbestoslab/AsbestosLab'
@@ -320,12 +320,12 @@ class MainScreen extends React.Component {
               </List>
             </Collapse>*/}
 
-            {/*<ListItem button component={Link} to="/assets">
+            <ListItem button component={Link} to="/vehicles">
               <ListItemIcon>
-                <AssetsIcon className={classes.accentButton} />
+                <VehiclesIcon className={classes.accentButton} />
               </ListItemIcon>
-              <ListItemText primary="Assets" />
-            </ListItem>*/}
+              <ListItemText primary="Vehicles" />
+            </ListItem>
 
             {/*<ListItem button onClick={this.handleTrainingClick} component={Link} to="/training">
               <ListItemIcon>
@@ -441,7 +441,7 @@ class MainScreen extends React.Component {
                             <Route path="/jobs" render={() => <div>Jobs</div>} />
                             <Route path="/lab" render={() => <div>Asbestos Lab</div>} />
                             <Route exact path="/staff" render={() => <div>Staff</div>} />
-                            <Route exact path="/assets" render={() => <div>Assets</div>} />
+                            <Route exact path="/vehicles" render={() => <div>Vehicles</div>} />
                             <Route path="/staff/details" render={() => <div>Staff Details</div>} />
                             <Route exact path="/staff/jobs" render={() => <div>Staff Jobs</div>} />
                             <Route exact path="/staff/training" render={() => <div>Staff Training</div>} />
@@ -462,7 +462,7 @@ class MainScreen extends React.Component {
                             <Route path="/updates" render={() => <div>Version Updates</div>} />
                           </Switch>
                         </Typography>
-                        <Route exact path="/(library|training/modules|lab|tools|noticeboard|help|staff)" render={() =>
+                        <Route exact path="/(library|training/modules|lab|tools|noticeboard|help|staff|vehicles)" render={() =>
                           <div className={classes.search}>
                             <div className={classes.searchIcon}>
                               <SearchIcon />
@@ -507,7 +507,7 @@ class MainScreen extends React.Component {
                           <Route exact path="/staff" component={Staff} />
                           <Route exact path="/mydetails" component={UserDetails} key="mydetails" />
                           <Route exact path="/staff/details/:user" component={UserDetails} key="staffdetails" />
-                          <Route exact path="/assets" component={Assets} />
+                          <Route exact path="/vehicles" component={Vehicles} />
                           <Route path="/help" component={Help} />
                           <Route path="/updates" component={Updates} />
                           {/*

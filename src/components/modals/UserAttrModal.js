@@ -8,6 +8,7 @@ import store from '../../store';
 import { USERATTR } from '../../constants/modal-types';
 import { usersRef, auth, storage } from '../../config/firebase';
 import '../../config/tags.css';
+import { sendSlackMessage } from '../../Slack';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -262,6 +263,7 @@ class UserAttrModal extends React.Component {
               doc: doc,
               pathRef: usersRef.doc(modalProps.userPath).collection("attr"),
             });
+            sendSlackMessage(modalProps.staffName + ' has added a new qualification.');
             this.props.getUserAttrs(modalProps.userPath);
           }
         } color="primary" >Submit</Button>}
