@@ -94,17 +94,9 @@ class VehicleModal extends React.Component {
 
             <FormGroup>
               <TextField
-                id="make"
-                label="Make"
-                defaultValue={doc && doc.make}
-                className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange(e.target)}}
-              />
-
-              <TextField
-                id="model"
-                label="Model"
-                defaultValue={doc && doc.model}
+                id="makemodel"
+                label="Make/Model"
+                defaultValue={doc && doc.makemodel}
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange(e.target)}}
               />

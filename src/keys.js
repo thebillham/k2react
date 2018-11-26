@@ -21,6 +21,8 @@ export const GOOGLE_API_KEY = "AIzaSyDDKJ9pXS7mSHs-Ay8Rw2szoHbyIGnPfiw";
 export const PUBLIC_VAPID_KEY = "BGWWuuJDeOKDDJv6TG04RrK2Yg1Ytzk9h8ibG433HMBDiAhnYeN9tVoDL5X4qKK3BmVj3QeFr9tXVMqvxyDX3CY";
 export const PRIVATE_VAPID_KEY = "70ryOULpGuFYQ8XsgjkD5LeIdUX3dHoaWx3SSTAAzDk";
 
+export const SLACK_WEBHOOK = "";
+
 export const taskTravel = '1832696';
 export const taskSiteWork = '1832701';
 export const taskAnalysis = '1832699';
