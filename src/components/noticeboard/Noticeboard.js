@@ -8,7 +8,7 @@ import NoticeCard from './NoticeCard';
 import { onCatChange, onSearchChange } from '../../actions/local';
 import AddIcon from '@material-ui/icons/Add';
 import store from '../../store';
-import { onFavNotice, onReadNotice, onDeleteNotice,  } from '../../actions/local';
+import { onFavNotice, onReadNotice, onDeleteNotice, fetchNotices } from '../../actions/local';
 
 const mapStateToProps = state => {
   return {
@@ -21,6 +21,12 @@ const mapStateToProps = state => {
    };
 };
 
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchNotices: () => dispatch(fetchNotices()),
+  }
+}
+
 class Noticeboard extends React.Component {
   constructor(props){
     super(props);
@@ -32,6 +38,7 @@ class Noticeboard extends React.Component {
   }
 
   componentWillMount(){
+    this.props.fetchNotices();
     store.dispatch(onSearchChange(null));
     store.dispatch(onCatChange(null));
   }
@@ -121,4 +128,4 @@ class Noticeboard extends React.Component {
     }
 }
 
-export default connect(mapStateToProps)(Noticeboard);
+export default connect(mapStateToProps, mapDispatchToProps)(Noticeboard);

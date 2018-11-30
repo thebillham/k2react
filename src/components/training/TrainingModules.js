@@ -9,7 +9,7 @@ import Grid from '@material-ui/core/Grid';
 import { connect } from 'react-redux';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import ModuleCard from './ModuleCard';
-import { onCatChange, onSearchChange } from '../../actions/local';
+import { onCatChange, onSearchChange, fetchModules, } from '../../actions/local';
 import store from '../../store';
 
 const mapStateToProps = state => {
@@ -21,6 +21,12 @@ const mapStateToProps = state => {
     category: state.local.category,
    };
 };
+
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchModules: () => dispatch(fetchModules())
+  }
+}
 
 class TrainingModules extends React.Component {
   constructor(props){
@@ -35,6 +41,7 @@ class TrainingModules extends React.Component {
   }
 
   componentWillMount(){
+    this.props.fetchModules();
     store.dispatch(onSearchChange(null));
     store.dispatch(onCatChange(null));
   }
@@ -105,4 +112,4 @@ class TrainingModules extends React.Component {
     }
 }
 
-export default connect(mapStateToProps)(TrainingModules);
+export default connect(mapStateToProps, mapDispatchToProps)(TrainingModules);

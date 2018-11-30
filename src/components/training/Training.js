@@ -6,6 +6,7 @@ import GridListTileBar from '@material-ui/core/GridListTileBar';
 
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import { connect } from 'react-redux';
+import { fetchTrainingPaths } from '../../actions/local';
 
 const mapStateToProps = state => {
   return {
@@ -13,7 +14,16 @@ const mapStateToProps = state => {
    };
 };
 
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchTrainingPaths: () => dispatch(fetchTrainingPaths()),
+  }
+}
+
 class Training extends React.Component {
+  componentWillMount() {
+    this.props.fetchTrainingPaths();
+  }
   render() {
     return (
         <div style = {{ marginTop: 80 }}>
@@ -38,4 +48,4 @@ class Training extends React.Component {
     }
 }
 
-export default connect(mapStateToProps)(Training);
+export default connect(mapStateToProps, mapDispatchToProps)(Training);

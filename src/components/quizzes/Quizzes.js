@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid';
 
 import { connect } from 'react-redux';
 import DocumentModal from '../modals/DocumentModal';
-import { onSearchChange, onCatChange } from '../../actions/local';
+import { onSearchChange, onCatChange, fetchQuizzes, } from '../../actions/local';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import store from '../../store';
 import QuizList from './QuizList';
@@ -20,6 +20,12 @@ const mapStateToProps = state => {
   };
 };
 
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchQuizzes: () => dispatch(fetchQuizzes()),
+  }
+}
+
 class Quizzes extends React.Component {
   constructor(props){
     super(props);
@@ -32,6 +38,7 @@ class Quizzes extends React.Component {
   }
 
   componentWillMount(){
+    this.props.fetchQuizzes();
     store.dispatch(onSearchChange(null));
     store.dispatch(onCatChange(null));
   }
@@ -94,4 +101,4 @@ class Quizzes extends React.Component {
   }
 }
 
-export default connect(mapStateToProps)(Quizzes);
+export default connect(mapStateToProps, mapDispatchToProps)(Quizzes);

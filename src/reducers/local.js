@@ -106,6 +106,7 @@ export default function localReducer(state = localInit, action) {
         wfmJobs: action.payload,
       }
     case GET_VEHICLES:
+      console.log('Got vehicles!');
       return {
         ...state,
         vehicles: action.payload,
@@ -156,6 +157,7 @@ export default function localReducer(state = localInit, action) {
         updates: action.payload,
       }
     case GET_READINGLOG:
+      console.log('Got logs!');
       return {
         ...state,
         readingLog: action.payload,

@@ -36,7 +36,7 @@ import ApiCalendar from 'react-google-calendar-api';
 
 import StaffCard from './StaffCard.js';
 import { connect } from 'react-redux';
-import { getUserAttrs } from '../../actions/local';
+import { getUserAttrs, fetchStaff } from '../../actions/local';
 
 const mapStateToProps = state => {
   return {
@@ -53,6 +53,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     getUserAttrs: userPath => dispatch(getUserAttrs(userPath)),
+    fetchStaff: () => dispatch(fetchStaff()),
   };
 };
 
@@ -74,6 +75,10 @@ class Staff extends React.Component {
       events: {},
       docview: 'none',
     }
+  }
+
+  componentWillMount() {
+    if (!this.state.staff) this.props.fetchStaff();
   }
 
   filterOffice = chip => {

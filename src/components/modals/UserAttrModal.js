@@ -60,10 +60,6 @@ const mapDispatchToProps = dispatch => {
 class UserAttrModal extends React.Component {
   constructor(props){
     super(props);
-
-    this.state = {
-      floatingImage: false,
-    }
   }
 
   deleteImage = (file, uid) => {

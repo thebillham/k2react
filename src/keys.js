@@ -21,7 +21,8 @@ export const GOOGLE_API_KEY = "AIzaSyDDKJ9pXS7mSHs-Ay8Rw2szoHbyIGnPfiw";
 export const PUBLIC_VAPID_KEY = "BGWWuuJDeOKDDJv6TG04RrK2Yg1Ytzk9h8ibG433HMBDiAhnYeN9tVoDL5X4qKK3BmVj3QeFr9tXVMqvxyDX3CY";
 export const PRIVATE_VAPID_KEY = "70ryOULpGuFYQ8XsgjkD5LeIdUX3dHoaWx3SSTAAzDk";
 
-export const SLACK_WEBHOOK = "";
+export const SLACK_TOKEN = "xoxp-401915420034-401361582945-489009729958-585198d66b555e3c27f597d5fbca1694";
+export const SLACK_WEBHOOK = "https://hooks.slack.com/services/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";
 
 export const taskTravel = '1832696';
 export const taskSiteWork = '1832701';
