@@ -7,7 +7,7 @@ import Button from '@material-ui/core/Button';
 
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
-import { onSearchChange, onCatChange } from '../../actions/local';
+import { onSearchChange, onCatChange, fetchTools, } from '../../actions/local';
 import store from '../../store';
 import ToolCard from './ToolCard';
 
@@ -20,6 +20,12 @@ const mapStateToProps = state => {
    };
 };
 
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchTools: () => dispatch(fetchTools())
+  }
+}
+
 class Tools extends React.Component {
   constructor(props){
     super(props);
@@ -30,6 +36,7 @@ class Tools extends React.Component {
   }
 
   componentWillMount(){
+    this.props.fetchTools();
     store.dispatch(onSearchChange(null));
     store.dispatch(onCatChange(null));
   }
@@ -84,4 +91,4 @@ class Tools extends React.Component {
   }
 }
 
-export default withStyles(styles)(connect(mapStateToProps)(Tools));
+export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(Tools));

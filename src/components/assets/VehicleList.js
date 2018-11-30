@@ -26,12 +26,6 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const mapStateToProps = state => {
-  // return {
-  //   qualificationtypes: state.const.qualificationtypes,
-  //  };
-};
-
 function deleteVehicle(uid) {
   vehiclesRef.doc(uid).delete();
 }
@@ -102,7 +96,6 @@ function VehicleList(props) {
           <IconButton onClick={() => {props.showModal({ modalType: VEHICLE, modalProps: { doc: vehicle, title: "Edit Vehicle", } })}}>
             <Edit />
           </IconButton>
-          <VehicleModal />
         </Grid>
         <Grid item xs={4} style={{ fontWeight: 100, fontSize: 14, }}>
           <div style={{ marginTop: 16, marginBottom: 8, fontSize: 16, fontWeight: 500, }}>{ vehicle.number }</div>
@@ -149,4 +142,4 @@ function VehicleList(props) {
   );
 }
 
-export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(VehicleList));
+export default withStyles(styles)(connect(null, mapDispatchToProps)(VehicleList));

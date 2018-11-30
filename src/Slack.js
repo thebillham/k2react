@@ -1,13 +1,17 @@
-var IncomingWebhook = require('@slack/client').IncomingWebhook;
-var url = "<YOUR--SLACK--WEBHOOK--URL>";
-var webhook = new IncomingWebhook(url);
+import { SLACK_TOKEN, SLACK_WEBHOOK } from './keys';
+const { IncomingWebhook } = require('@slack/client');
+var webhook = new IncomingWebhook(SLACK_WEBHOOK);
 
 export const sendSlackMessage = message => {
-  webhook.send(message, function(err, header, statusCode, body) {
-    if (err) {
-      console.log('Error:', err);
-    } else {
-      console.log('Received', statusCode, 'from Slack');
-    }
+  fetch(SLACK_WEBHOOK, {
+    method: 'POST',
+    body: message,
   });
+  // webhook.send(message, function(err, res) {
+  //   if (err) {
+  //     console.log('Error:', err);
+  //   } else {
+  //     console.log('Received', res, 'from Slack');
+  //   }
+  // });
 }

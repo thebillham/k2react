@@ -39,6 +39,7 @@ import { connect } from 'react-redux';
 import { fetchVehicles } from '../../actions/local';
 import { showModal } from '../../actions/modal';
 import VehicleList from './VehicleList';
+import VehicleModal from '../modals/VehicleModal';
 import { VEHICLE } from '../../constants/modal-types';
 
 const mapStateToProps = state => {
@@ -47,6 +48,7 @@ const mapStateToProps = state => {
     offices: state.const.offices,
     search: state.local.search,
     permissions: state.const.permissions,
+    me: state.local.me,
   };
 };
 
@@ -62,10 +64,10 @@ class Vehicles extends React.Component {
     super(props);
 
     this.state = {
-      officeFilters: {},
-      officeFilterOn: false,
-      dueFilters: {},
-      dueFilterOn: false,
+      officeFilters: { [this.props.me.office]: true, },
+      officeFilterOn: true,
+      dueFilters: {'Requires Attention': true, },
+      dueFilterOn: true,
     }
   }
 
@@ -116,15 +118,34 @@ class Vehicles extends React.Component {
   }
 
   filterVehicle = vehicle => {
+    let today = new Date();
     let filter = false;
     if (this.state.officeFilterOn === false || this.state.officeFilters[vehicle.location]) filter = true;
     if (this.props.search) {
       if (!(vehicle.number+vehicle.location+vehicle.makemodel).toLowerCase().includes(this.props.search.toLowerCase())) filter = false;
     }
+    if (this.state.dueFilterOn) {
+      let wof = new Date(vehicle.wof);
+      let reg = new Date(vehicle.reg);
+      let service = new Date(vehicle.lastservice);
+      service = service.setFullYear(service.getFullYear() + 1);
+      let check = new Date(vehicle.lastcheck);
+      check = check.setMonth(check.getMonth() + 1);
+      if (this.state.dueFilters['Requires Attention'] && wof > today && reg > today && service > today && vehicle.servicekms > vehicle.mileage) filter = false;
+      if (this.state.dueFilters['Requires Attention'] && check <= today) filter = true;
+      if (this.state.dueFilters['Requires Attention'] && vehicle.roaduserkms <= vehicle.mileage) filter = true;
+      if (this.state.dueFilters['WOF or Rego Expired'] && wof > today && reg > today) filter = false;
+      if (this.state.dueFilters['Service Due'] && service > today && vehicle.servicekms > vehicle.mileage) filter = false;
+      if (this.state.dueFilters['Checks Due'] && check > today) filter = false;
+      if (this.state.dueFilters['Checks Due'] && !vehicle.lastcheck) filter = false;
+      if (this.state.dueFilters['Road User Charges Due'] && vehicle.roaduserkms > vehicle.mileage) filter = false;
+      if (this.state.dueFilters['Road User Charges Due'] && !vehicle.roaduserkms) filter = false;
+    }
     return(filter)
   }
 
   render() {
+    console.log('Render!');
     var { tabValue } = this.state;
     const { classes, vehicles } = this.props;
     const filter = (
@@ -144,7 +165,8 @@ class Vehicles extends React.Component {
               })}
             </Grid>
             <Grid item xs={6} md={3}>
-              { ['WOF Expired','Rego Expired','Service Due','Checks Due','Road User Charges Due','Service Kms Over'].map(chip => {
+              { ['Requires Attention', 'WOF or Rego Expired','Service Due','Checks Due','Road User Charges Due']
+              .map(chip => {
                 return (
                   <div key={chip} style={{ padding: 5,}}>
                     <Chip icon={<Error />} variant="outlined" color={this.state.dueFilters[chip] ? "secondary" : "default"} onClick={() => this.filterDue(chip)} label={chip} />
@@ -159,6 +181,7 @@ class Vehicles extends React.Component {
 
     return (
       <div style = {{ marginTop: 80 }}>
+        <VehicleModal />
         <Paper style={{ padding: 20, }}>
           <div style={{ position: 'relative', width: '70vw'}}>
             <div>

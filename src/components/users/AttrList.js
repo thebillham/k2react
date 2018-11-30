@@ -16,6 +16,7 @@ import { USERATTR } from '../../constants/modal-types';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { showModal } from '../../actions/modal';
+import { getUserAttrs } from '../../actions/local';
 import Popup from 'reactjs-popup';
 import { FormattedDate } from 'react-intl';
 import { usersRef, storage } from '../../config/firebase';
@@ -23,6 +24,7 @@ import { usersRef, storage } from '../../config/firebase';
 const mapDispatchToProps = dispatch => {
   return {
     showModal: modal => dispatch(showModal(modal)),
+    getUserAttrs: userPath => dispatch(getUserAttrs(userPath)),
   };
 };
 
@@ -37,7 +39,8 @@ function deleteAttr(uid, user, file) {
   console.log('User: ' + user);
   console.log('File: ' + file);
   if (file) storage.ref(file).delete();
-  usersRef.doc(user).collection("attr").doc(uid).delete();
+  usersRef.doc(user).collection("attr").doc(uid).delete().then(() => {
+  });
 }
 
 function AttrList(props) {
@@ -95,7 +98,11 @@ function AttrList(props) {
           { qual.notes && attr.notes && <div><span style={{ fontWeight: 450, }}>Notes:</span> { attr.notes }</div>}
         </Grid>
         <Grid item xs={1}>
-          <IconButton onClick={() => { if (window.confirm('Are you sure you wish to delete this item?')) deleteAttr(attr.uid, props.userPath, attr.fileRef)}}>
+          <IconButton onClick={() => { if (window.confirm('Are you sure you wish to delete this item?')) {
+            deleteAttr(attr.uid, props.userPath, attr.fileRef);
+            props.getUserAttrs(props.userPath);
+          }
+        }}>
             <Delete />
           </IconButton>
         </Grid>

@@ -29,19 +29,21 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputBase from '@material-ui/core/InputBase';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Collapse from '@material-ui/core/Collapse';
 
 // Icons
-// import DashboardIcon from '@material-ui/icons/Dashboard';
-// import NoticeboardIcon from '@material-ui/icons/SpeakerNotes';
-// import JobsIcon from '@material-ui/icons/Assignment';
-// import LabIcon from '@material-ui/icons/Colorize';
+import DashboardIcon from '@material-ui/icons/Dashboard';
+import NoticeboardIcon from '@material-ui/icons/SpeakerNotes';
+import JobsIcon from '@material-ui/icons/Assignment';
+import LabIcon from '@material-ui/icons/Colorize';
 import StaffIcon from '@material-ui/icons/People';
 import MyDetailsIcon from '@material-ui/icons/Person';
 import VehiclesIcon from '@material-ui/icons/DirectionsCar';
-// import TrainingIcon from '@material-ui/icons/School';
-// import QuizIcon from '@material-ui/icons/ContactSupport';
-// import ToolsIcon from '@material-ui/icons/Build';
-// import LibraryIcon from '@material-ui/icons/Info';
+import DevIcon from '@material-ui/icons/HourglassEmpty';
+import TrainingIcon from '@material-ui/icons/School';
+import QuizIcon from '@material-ui/icons/ContactSupport';
+import ToolsIcon from '@material-ui/icons/Build';
+import LibraryIcon from '@material-ui/icons/Info';
 import HelpIcon from '@material-ui/icons/Help';
 import UpdatesIcon from '@material-ui/icons/Update';
 
@@ -67,8 +69,10 @@ import QuestionsToFirebase from './quizzes/Questions';
 
 // Pages
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
-const Noticeboard = lazy(() => import('./noticeboard/Noticeboard'));
 const Vehicles = lazy(() => import('./assets/Vehicles'));
+const Noticeboard = lazy(() => import('./noticeboard/Noticeboard'));
+const AsbestosLab = lazy(() => import('./asbestoslab/AsbestosLab'));
+const Jobs = lazy(() => import('./jobs/Jobs'));
 // import Noticeboard from './noticeboard/Noticeboard';
 // import Jobs from './jobs/Jobs';
 // import AsbestosLab from './asbestoslab/AsbestosLab'
@@ -78,22 +82,35 @@ const Staff = lazy(() => import('./staff/Staff'));
 // import StaffTraining from './staff/StaffTraining';
 //
 const UserDetails = lazy(() => import('./users/UserDetails'));
+const UserTraining = lazy(() => import('./users/UserTraining'));
+const UserReadingLog = lazy(() => import('./users/UserReadingLog'));
+// import AppPreferences = lazy(() => import('./users/AppPreferences'));
 // import UserTraining from './users/UserTraining';
 // import UserReadingLog from './users/UserReadingLog';
 // import AppPreferences from './users/AppPreferences';
 //
+const Training = lazy(() => import('./training/Training'));
+const TrainingPath = lazy(() => import('./training/TrainingPath'));
+const TrainingModules = lazy(() => import('./training/TrainingModules'));
+const TrainingModule = lazy(() => import('./training/TrainingModule'));
 // import Training from './training/Training';
 // import TrainingPath from './training/TrainingPath';
 // import TrainingModules from './training/TrainingModules';
 // import TrainingModule from './training/TrainingModule';
 //
 // import Method from './methods/Method';
+const Method = lazy(() => import('./methods/Method'));
+const Quizzes = lazy(() => import('./quizzes/Quizzes'));
+const Quiz = lazy(() => import('./quizzes/Quiz'));
 //
 // import Quizzes from './quizzes/Quizzes';
 // import Quiz from './quizzes/Quiz';
+const Tools = lazy(() => import('./tools/Tools'));
 //
 // import Tools from './tools/Tools';
 //
+const Library = lazy(() => import('./library/Library'));
+const DocumentViewer = lazy(() => import('./library/DocumentViewer'));
 // import Library from './library/Library';
 // import DocumentViewer from './library/DocumentViewer';
 
@@ -112,12 +129,10 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchStaff: () => dispatch(fetchStaff()),
     fetchMe: () => dispatch(fetchMe()),
     // fetchAsbestosSamples: () => dispatch(fetchAsbestosSamples()),
     // fetchTrainingPaths: () => dispatch(fetchTrainingPaths()),
     // fetchQuizzes: () => dispatch(fetchQuizzes()),
-    // fetchReadingLog: () => dispatch(fetchReadingLog()),
     // fetchMethodLog: () => dispatch(fetchMethodLog()),
     // fetchNotices: () => dispatch(fetchNotices()),
     // fetchModules: () => dispatch(fetchModules()),
@@ -135,9 +150,9 @@ const mapDispatchToProps = dispatch => {
     // handleTagAddition: addedTag => dispatch(handleTagAddition(addedTag)),
     // handleTagDelete: removedTag => dispatch(handleTagDelete(removedTag)),
     //
-    // resetLocal: () => dispatch(resetLocal()),
-    // resetModal: () => dispatch(resetModal()),
-    // resetDisplay: () => dispatch(resetDisplay()),
+    resetLocal: () => dispatch(resetLocal()),
+    resetModal: () => dispatch(resetModal()),
+    resetDisplay: () => dispatch(resetDisplay()),
   };
 };
 
@@ -148,29 +163,17 @@ class MainScreen extends React.Component {
       openDrawer: true,
       anchorEl: null,
       staffUid: null,
+      openDev: false,
       // openRef: false,
       // openStaff: false,
       // openMyDetails: false,
       // openTraining: false,
-      openHelp: false,
+      // openHelp: false,
     };
   }
 
   componentWillMount() {
     this.props.fetchMe();
-    this.props.fetchStaff();
-    // UploadtoFirebase();
-    // QuestionsToFirebase();
-    // this.props.fetchAsbestosSamples();
-    // this.props.fetchTrainingPaths();
-    // this.props.fetchQuizzes();
-    // this.props.fetchNotices();
-    // this.props.fetchWFM();
-    // this.props.fetchReadingLog();
-    // this.props.fetchMethodLog();
-    // this.props.fetchTools();
-    // this.props.fetchModules();
-    // this.props.fetchDocuments();
   }
 
   handleLogOut = () => {
@@ -202,6 +205,13 @@ class MainScreen extends React.Component {
     this.setState({
       openDrawer: true,
       openRef: !this.state.openRef
+    });
+  }
+
+  handleDevClick = () => {
+    this.setState({
+      openDrawer: true,
+      openDev: !this.state.openDev,
     });
   }
 
@@ -320,13 +330,6 @@ class MainScreen extends React.Component {
               </List>
             </Collapse>*/}
 
-            <ListItem button component={Link} to="/vehicles">
-              <ListItemIcon>
-                <VehiclesIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Vehicles" />
-            </ListItem>
-
             {/*<ListItem button onClick={this.handleTrainingClick} component={Link} to="/training">
               <ListItemIcon>
                 <TrainingIcon className={classes.accentButton} />
@@ -377,6 +380,94 @@ class MainScreen extends React.Component {
               </ListItemIcon>
               <ListItemText primary="Version Updates" />
             </ListItem>
+          </List>
+        <Divider />
+          <List>
+            <ListItem button onClick={this.handleDevClick}>
+              <ListItemIcon>
+                <DevIcon className={classes.accentButton} />
+              </ListItemIcon>
+              <ListItemText primary="Development" />
+              {this.state.openDev ? <ExpandLess /> : <ExpandMore /> }
+            </ListItem>
+            <Collapse in={this.state.openDev} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItem button component={Link} to="/vehicles" className={classes.nested}>
+                  <ListItemIcon>
+                    <VehiclesIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Vehicles" className={classes.subitem} />
+                </ListItem>
+
+                <ListItem button component={Link} to="/noticeboard" className={classes.nested}>
+                  <ListItemIcon>
+                    <NoticeboardIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Noticeboard" />
+                </ListItem>
+
+                <ListItem button component={Link} to="/jobs" className={classes.nested}>
+                  <ListItemIcon>
+                    <JobsIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Jobs" />
+                </ListItem>
+
+                <ListItem button component={Link} to="/lab" className={classes.nested}>
+                  <ListItemIcon>
+                    <LabIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Asbestos Lab" />
+                </ListItem>
+
+                {/*<ListItem button component={Link} to="/mydetails/training" className={classes.nested}>
+                  <ListItemIcon>
+                    <MyDetailsIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Training" className={classes.subitem} />
+                </ListItem>
+                <ListItem button component={Link} to="/mydetails/jobs" className={classes.nested}>
+                  <ListItemIcon>
+                    <MyDetailsIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Job History" className={classes.subitem} />
+                </ListItem>*/}
+                <ListItem button component={Link} to="/mydetails/readinglog" className={classes.nested}>
+                  <ListItemIcon>
+                    <MyDetailsIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Reading Log" className={classes.subitem} />
+                </ListItem>
+
+                <ListItem button component={Link} to="/training" className={classes.nested}>
+                  <ListItemIcon>
+                    <TrainingIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Training" />
+                </ListItem>
+
+                <ListItem button component={Link} to="/quizzes" className={classes.nested}>
+                  <ListItemIcon>
+                    <QuizIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Quizzes" />
+                </ListItem>
+
+                <ListItem button component={Link} to="/tools" className={classes.nested}>
+                  <ListItemIcon>
+                    <ToolsIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Tools" />
+                </ListItem>
+
+                <ListItem button component={Link} to="/library" className={classes.nested}>
+                  <ListItemIcon>
+                    <LibraryIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Library" />
+                </ListItem>
+              </List>
+            </Collapse>
           </List>
       </Drawer>
     )
@@ -510,19 +601,14 @@ class MainScreen extends React.Component {
                           <Route exact path="/vehicles" component={Vehicles} />
                           <Route path="/help" component={Help} />
                           <Route path="/updates" component={Updates} />
-                          {/*
                           <Route path="/dashboard" component={Dashboard} />
                           <Route path="/noticeboard" component={Noticeboard} />
                           <Route path="/jobs" component={Jobs} />
                           <Route path="/lab" component={AsbestosLab} />
-                          <Route exact path="/staff/jobs" component={StaffJobs} />
-                          <Route exact path="/staff/training" component={StaffTraining} />
                           <Route exact path="/staff/training/:user" component={UserTraining} key="stafftraining" />
                           <Route exact path="/staff/readinglog/:user" component={UserReadingLog} key="staffreadinglog" />
                           <Route exact path="/mydetails/training" component={UserTraining} key="mytraining" />
-                          <Route exact path="/mydetails/jobs" component={UserJobs} key="myjobs" />
                           <Route exact path="/mydetails/readinglog" component={UserReadingLog} key="myreadinglog" />
-                          <Route exact path="/mydetails/preferences" component={AppPreferences} />
                           <Route exact path="/training" component={Training} />
                           <Route exact path="/training/modules" component={TrainingModules} />
                           <Route path="/training/:uid" component={TrainingPath} />
@@ -533,8 +619,6 @@ class MainScreen extends React.Component {
                           <Route path="/tools" component={Tools} />
                           <Route path="/library" component={Library} />
                           <Route path="/document/:uid" component={DocumentViewer} />
-                          <Route component={Dashboard} />*/}
-                          {/* <Route component={NoMatch} /> */}
                         </Switch>
                       </Suspense>
                     </main>

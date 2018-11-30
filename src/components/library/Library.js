@@ -4,7 +4,7 @@ import List from '@material-ui/core/List';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import { connect } from 'react-redux';
-import { onSearchChange, onCatChange } from '../../actions/local';
+import { onSearchChange, onCatChange, fetchDocuments } from '../../actions/local';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import store from '../../store';
 import DocList from './DocList';
@@ -19,6 +19,13 @@ const mapStateToProps = state => {
   };
 };
 
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchDocuments: () => dispatch(fetchDocuments())
+  }
+}
+
+
 class Library extends React.Component {
   constructor(props){
     super(props);
@@ -31,6 +38,7 @@ class Library extends React.Component {
   }
 
   componentWillMount(){
+    this.props.fetchDocuments();
     store.dispatch(onSearchChange(null));
     store.dispatch(onCatChange(null));
   }
@@ -93,4 +101,4 @@ class Library extends React.Component {
   }
 }
 
-export default connect(mapStateToProps)(Library);
+export default connect(mapStateToProps, mapDispatchToProps)(Library);

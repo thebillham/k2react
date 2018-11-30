@@ -104,7 +104,7 @@ export const getUserAttrs = userPath => async dispatch => {
         user.tertiary = '';
         user.ip402 = false;
         user.nzqa = [];
-        user.nzqatraining = 'None',
+        user.nzqatraining = 'None';
         user.firstaid = null;
         user.maskfit = '';
         user.docimages = [];
@@ -395,11 +395,11 @@ export const fetchReadingLog = () => async dispatch => {
           log.title = doc.data().title;
           log.updatedate = doc.data().updatedate;
           logs.push(log);
+          dispatch({
+            type: GET_READINGLOG,
+            payload: logs
+          });
         });
-      });
-      dispatch({
-        type: GET_READINGLOG,
-        payload: logs
       });
     });
 };

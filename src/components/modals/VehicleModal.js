@@ -48,17 +48,12 @@ const mapDispatchToProps = dispatch => {
     handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmitToDoc: (doc, pathRef) => dispatch(handleModalSubmitToDoc(doc, pathRef)),
-    getUserAttrs: _.debounce(userPath => dispatch(getUserAttrs(userPath)), 1000),
   };
 };
 
 class VehicleModal extends React.Component {
   constructor(props){
     super(props);
-
-    this.state = {
-      floatingImage: false,
-    }
   }
 
   deleteImage = (file, uid) => {
