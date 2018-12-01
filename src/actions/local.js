@@ -27,7 +27,7 @@ import { GET_STAFF,
         GET_VEHICLES,
       } from "../constants/action-types";
 import * as firebase from 'firebase';
-import { wfmRoot, wfmApi, wfmAcc } from '../keys';
+import { wfmRoot, wfmApi, wfmAcc } from 'keys.js';
 import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
     trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef,
     updateRef, cocsRef, vehiclesRef, } from "../config/firebase";

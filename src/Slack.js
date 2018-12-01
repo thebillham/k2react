@@ -1,4 +1,4 @@
-import { SLACK_TOKEN, SLACK_WEBHOOK } from './keys';
+import { SLACK_TOKEN, SLACK_WEBHOOK } from 'keys.js';
 const { IncomingWebhook } = require('@slack/client');
 var webhook = new IncomingWebhook(SLACK_WEBHOOK);
 

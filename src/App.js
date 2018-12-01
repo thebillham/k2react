@@ -36,6 +36,7 @@ class App extends Component {
   }
 
   render() {
+    console.log(process.env.GOOGLE_API_KEY);
     return (
       <div className='wrapper'>
         { auth.currentUser ?
