@@ -62,6 +62,13 @@ class UserAttrModal extends React.Component {
     super(props);
   }
 
+  sendNewAttrSlack = () => {
+    let message = {
+      text: `${this.props.modalProps.staffName} has added a new qualification.\n${this.props.qualificationtypes[this.props.doc.type].name}`,
+    };
+    sendSlackMessage(message, true);
+  }
+
   deleteImage = (file, uid) => {
     this.props.handleSelectChange({ id: 'fileUrl', value: null });
     this.props.handleSelectChange({ id: 'fileRef', value: null });
@@ -259,7 +266,7 @@ class UserAttrModal extends React.Component {
               doc: doc,
               pathRef: usersRef.doc(modalProps.userPath).collection("attr"),
             });
-            sendSlackMessage(modalProps.staffName + ' has added a new qualification.');
+            this.sendNewAttrSlack();
             this.props.getUserAttrs(modalProps.userPath);
           }
         } color="primary" >Submit</Button>}
