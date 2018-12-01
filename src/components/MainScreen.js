@@ -56,6 +56,7 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 
 import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
+import { sendSlackMessage } from '../Slack';
 
 import { fetchStaff, fetchMe, fetchDocuments, editUser, getUser, fetchWFM,
   fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMethodLog,
@@ -93,6 +94,7 @@ const Training = lazy(() => import('./training/Training'));
 const TrainingPath = lazy(() => import('./training/TrainingPath'));
 const TrainingModules = lazy(() => import('./training/TrainingModules'));
 const TrainingModule = lazy(() => import('./training/TrainingModule'));
+
 // import Training from './training/Training';
 // import TrainingPath from './training/TrainingPath';
 // import TrainingModules from './training/TrainingModules';
@@ -194,10 +196,12 @@ class MainScreen extends React.Component {
   };
 
   handleDrawerOpen = () => {
+    sendSlackMessage('Drawer opened');
     this.setState({ openDrawer: true });
   };
 
   handleDrawerClose = () => {
+    sendSlackMessage('Drawer closed');
     this.setState({ openDrawer: false, openRef: false, openStaff: false, openMyDetails: false });
   };
 

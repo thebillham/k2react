@@ -37,7 +37,6 @@ class App extends Component {
   }
 
   render() {
-    console.log(process.env.REACT_APP_GOOGLE_API_KEY);
     return (
       <div className='wrapper'>
         { auth.currentUser ?
