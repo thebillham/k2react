@@ -1,9 +1,8 @@
-import { SLACK_TOKEN, SLACK_WEBHOOK } from 'keys.js';
 const { IncomingWebhook } = require('@slack/client');
-var webhook = new IncomingWebhook(SLACK_WEBHOOK);
+var webhook = new IncomingWebhook(process.env.REACT_APP_SLACK_WEBHOOK);
 
 export const sendSlackMessage = message => {
-  fetch(SLACK_WEBHOOK, {
+  fetch(process.env.REACT_APP_SLACK_WEBHOOK, {
     method: 'POST',
     body: message,
   });

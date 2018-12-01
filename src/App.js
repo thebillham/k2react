@@ -4,6 +4,7 @@ import K2SignInScreen from './components/K2SignInScreen';
 import { auth } from './config/firebase';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
+require('dotenv').config();
 
 class App extends Component {
   constructor() {
@@ -36,7 +37,7 @@ class App extends Component {
   }
 
   render() {
-    console.log(process.env.GOOGLE_API_KEY);
+    console.log(process.env.REACT_APP_GOOGLE_API_KEY);
     return (
       <div className='wrapper'>
         { auth.currentUser ?
