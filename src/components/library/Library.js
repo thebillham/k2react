@@ -5,6 +5,10 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import { connect } from 'react-redux';
 import { onSearchChange, onCatChange, fetchDocuments } from '../../actions/local';
+<<<<<<< HEAD
+=======
+import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import store from '../../store';
 import DocList from './DocList';
 

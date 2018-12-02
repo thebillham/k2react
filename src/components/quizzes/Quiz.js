@@ -99,7 +99,11 @@ class Quiz extends React.Component {
   onMultiChecked = (uid, val, single) => {
     let questions = this.state.questions;
     const index = questions.findIndex(q => q.uid === uid);
+<<<<<<< HEAD
     if (questions[index].selected === undefined || single) {
+=======
+    if (questions[index].selected == undefined || single) {
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
       questions[index].selected = [val];
     } else {
       const s = questions[index].selected.findIndex(item => item === val);

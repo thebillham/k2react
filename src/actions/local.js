@@ -26,7 +26,11 @@ import { GET_STAFF,
         UPDATE_STAFF,
         GET_VEHICLES,
       } from "../constants/action-types";
+<<<<<<< HEAD
 import firebase from '../config/firebase';
+=======
+import * as firebase from 'firebase';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import { wfmRoot, wfmApi, wfmAcc } from 'keys.js';
 import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
     trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef,
@@ -152,9 +156,18 @@ export const getUserAttrs = userPath => async dispatch => {
               if (attr.expiry) {
                 if (new Date(attr.expiry) > new Date()) user.firstaid = 'OK';
               } else {
+<<<<<<< HEAD
                 var firstaidexpiry = new Date(attr.date);
                 firstaidexpiry.setFullYear(firstaidexpiry.getFullYear() + 2);
                 if (firstaidexpiry > new Date()) user.firstaid = 'OK';
+=======
+                var expiry = new Date(attr.date);
+                console.log(user.name);
+                console.log(expiry);
+                expiry.setFullYear(expiry.getFullYear() + 2);
+                console.log(expiry);
+                if (expiry > new Date()) user.firstaid = 'OK';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
               }
             }
           });

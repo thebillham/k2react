@@ -1,4 +1,8 @@
 import React from 'react';
+<<<<<<< HEAD
+=======
+import ReactDOM from 'react-dom';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';

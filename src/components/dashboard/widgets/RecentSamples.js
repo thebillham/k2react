@@ -7,8 +7,13 @@ import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import CardHeader from '@material-ui/core/CardHeader';
 
+<<<<<<< HEAD
 // import { FormattedDate } from 'react-intl';
 // import Add from '@material-ui/icons/Add';
+=======
+import { FormattedDate } from 'react-intl';
+import Add from '@material-ui/icons/Add';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import Close from '@material-ui/icons/Close';
 import Edit from '@material-ui/icons/Edit';
 

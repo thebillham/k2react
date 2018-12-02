@@ -5,6 +5,11 @@ import ListItem from '@material-ui/core/ListItem';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from '@material-ui/core/Grid';
 
+<<<<<<< HEAD:src/components/users/AttrList.js
+=======
+import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
+
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010:src/components/users/AttrList.js
 import Edit from '@material-ui/icons/Edit';
 import Image from '@material-ui/icons/Image';
 import Delete from '@material-ui/icons/Delete';

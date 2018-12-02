@@ -115,6 +115,60 @@ const DocumentViewer = lazy(() => import('./library/DocumentViewer'));
 const Help = lazy(() => import('./help/Help'));
 const Updates = lazy(() => import('./help/Updates'));
 
+// Pages
+const Dashboard = lazy(() => import('./dashboard/Dashboard'));
+const Vehicles = lazy(() => import('./assets/Vehicles'));
+const Noticeboard = lazy(() => import('./noticeboard/Noticeboard'));
+const AsbestosLab = lazy(() => import('./asbestoslab/AsbestosLab'));
+const Jobs = lazy(() => import('./jobs/Jobs'));
+// import Noticeboard from './noticeboard/Noticeboard';
+// import Jobs from './jobs/Jobs';
+// import AsbestosLab from './asbestoslab/AsbestosLab'
+//
+const Staff = lazy(() => import('./staff/Staff'));
+// import StaffJobs from './staff/StaffJobs';
+// import StaffTraining from './staff/StaffTraining';
+//
+const UserDetails = lazy(() => import('./users/UserDetails'));
+const UserTraining = lazy(() => import('./users/UserTraining'));
+const UserReadingLog = lazy(() => import('./users/UserReadingLog'));
+// import AppPreferences = lazy(() => import('./users/AppPreferences'));
+// import UserTraining from './users/UserTraining';
+// import UserReadingLog from './users/UserReadingLog';
+// import AppPreferences from './users/AppPreferences';
+//
+const Training = lazy(() => import('./training/Training'));
+const TrainingPath = lazy(() => import('./training/TrainingPath'));
+const TrainingModules = lazy(() => import('./training/TrainingModules'));
+const TrainingModule = lazy(() => import('./training/TrainingModule'));
+
+// import Training from './training/Training';
+// import TrainingPath from './training/TrainingPath';
+// import TrainingModules from './training/TrainingModules';
+// import TrainingModule from './training/TrainingModule';
+//
+// import Method from './methods/Method';
+const Method = lazy(() => import('./methods/Method'));
+const Quizzes = lazy(() => import('./quizzes/Quizzes'));
+const Quiz = lazy(() => import('./quizzes/Quiz'));
+//
+// import Quizzes from './quizzes/Quizzes';
+// import Quiz from './quizzes/Quiz';
+const Tools = lazy(() => import('./tools/Tools'));
+//
+// import Tools from './tools/Tools';
+//
+const Library = lazy(() => import('./library/Library'));
+const DocumentViewer = lazy(() => import('./library/DocumentViewer'));
+// import Library from './library/Library';
+// import DocumentViewer from './library/DocumentViewer';
+
+// import Admin from './admin/Admin';
+// import AdminConstants from './admin/AdminConstants';
+
+const Help = lazy(() => import('./help/Help'));
+const Updates = lazy(() => import('./help/Updates'));
+
 
 // import { quizzesRef, questionsRef } from '../config/firebase';
 

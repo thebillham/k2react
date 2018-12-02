@@ -1,9 +1,20 @@
 import React from 'react';
+<<<<<<< HEAD
 import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 import { VEHICLE } from '../../constants/modal-types';
 import { vehiclesRef, storage } from '../../config/firebase';
+=======
+import ReactDOM from 'react-dom';
+import { WithContext as ReactTags } from 'react-tag-input';
+import { withStyles } from '@material-ui/core/styles';
+import { modalStyles } from '../../config/styles';
+import { connect } from 'react-redux';
+import store from '../../store';
+import { VEHICLE } from '../../constants/modal-types';
+import { vehiclesRef, auth, storage } from '../../config/firebase';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import '../../config/tags.css';
 
 import Button from '@material-ui/core/Button';
@@ -23,8 +34,15 @@ import IconButton from '@material-ui/core/IconButton';
 import UploadIcon from '@material-ui/icons/CloudUpload';
 import Close from '@material-ui/icons/Close';
 import {
+<<<<<<< HEAD
   hideModal, handleModalChange, handleModalSubmitToDoc, onUploadFile,
 } from '../../actions/modal';
+=======
+  hideModal, handleModalChange, handleModalSubmitToDoc, onUploadFile, handleTagDelete,
+  handleTagAddition,
+} from '../../actions/modal';
+import { getUserAttrs } from '../../actions/local';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import _ from 'lodash';
 
 const mapStateToProps = state => {
@@ -47,6 +65,13 @@ const mapDispatchToProps = dispatch => {
 };
 
 class VehicleModal extends React.Component {
+<<<<<<< HEAD
+=======
+  constructor(props){
+    super(props);
+  }
+
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
   deleteImage = (file, uid) => {
     this.props.handleSelectChange({ id: 'fileUrl', value: null });
     this.props.handleSelectChange({ id: 'fileRef', value: null });
@@ -194,7 +219,11 @@ class VehicleModal extends React.Component {
 
               { doc.fileUrl &&
                 <div>
+<<<<<<< HEAD
                   <img src={doc.fileUrl} width="200px" alt='' style={{ opacity: "0.5", borderStyle: "solid", borderWidth: "2px" }} />
+=======
+                  <img src={doc.fileUrl} width="200px" style={{ opacity: "0.5", borderStyle: "solid", borderWidth: "2px" }} />
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
                   <IconButton style={{ position: 'relative', top: '2px', left: "-120px", borderStyle: "solid", borderWidth: "2px", fontSize: 8, }} onClick={() => { if (window.confirm('Are you sure you wish to delete the image?')) this.deleteImage(doc.fileRef, doc.uid)}}>
                     <Close />
                   </IconButton>

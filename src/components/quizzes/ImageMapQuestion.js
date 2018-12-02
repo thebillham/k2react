@@ -1,7 +1,16 @@
 import React from 'react';
 
 import FormControl from '@material-ui/core/FormControl';
+<<<<<<< HEAD
 import FormLabel from '@material-ui/core/FormLabel';
+=======
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormLabel from '@material-ui/core/FormLabel';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 
 import ImageMapper from '../../config/ImageMapper';
 

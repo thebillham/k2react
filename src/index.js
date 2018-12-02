@@ -2,6 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
+<<<<<<< HEAD
+=======
+import rootReducer from "./reducers";
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 import 'bootstrap/dist/css/bootstrap.min.css';

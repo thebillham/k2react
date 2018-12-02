@@ -4,6 +4,10 @@ import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormGroup from '@material-ui/core/FormGroup';
+<<<<<<< HEAD
+=======
+import Typography from '@material-ui/core/Typography';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import Checkbox from '@material-ui/core/Checkbox';
 
 class MultiMultiQuestion extends React.Component {

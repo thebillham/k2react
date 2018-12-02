@@ -5,17 +5,30 @@ import ListItem from '@material-ui/core/ListItem';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from '@material-ui/core/Grid';
 
+<<<<<<< HEAD
+=======
+import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
+
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import Edit from '@material-ui/icons/Edit';
 import Image from '@material-ui/icons/Image';
 import Delete from '@material-ui/icons/Delete';
 
+<<<<<<< HEAD
+=======
+import VehicleModal from '../modals/VehicleModal';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import { VEHICLE } from '../../constants/modal-types';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { showModal } from '../../actions/modal';
 import Popup from 'reactjs-popup';
 import { FormattedDate } from 'react-intl';
+<<<<<<< HEAD
 import { vehiclesRef } from '../../config/firebase';
+=======
+import { vehiclesRef, storage } from '../../config/firebase';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 
 const mapDispatchToProps = dispatch => {
   return {
@@ -86,7 +99,11 @@ function VehicleList(props) {
             on="hover"
             disabled={vehicle.fileUrl == null}
             >
+<<<<<<< HEAD
             <img alt='' src={vehicle.fileUrl} width={200} />
+=======
+            <img src={vehicle.fileUrl} width={200} />
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
           </Popup>
         :
           <Image style={{ fontSize: 24, color: cameracolor, margin: 10 }} />}

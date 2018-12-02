@@ -27,7 +27,13 @@ import IconButton from '@material-ui/core/IconButton';
 import UploadIcon from '@material-ui/icons/CloudUpload';
 import Close from '@material-ui/icons/Close';
 import {
+<<<<<<< HEAD
   hideModal, handleModalChange, handleModalSubmit, onUploadFile } from '../../actions/modal';
+=======
+  hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,
+  handleTagAddition,
+} from '../../actions/modal';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import { getUserAttrs } from '../../actions/local';
 import _ from 'lodash';
 
@@ -56,6 +62,13 @@ const mapDispatchToProps = dispatch => {
 };
 
 class UserAttrModal extends React.Component {
+<<<<<<< HEAD
+=======
+  constructor(props){
+    super(props);
+  }
+
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
   sendNewAttrSlack = () => {
     let message = {
       text: `${this.props.modalProps.staffName} has added a new qualification.\n${this.props.qualificationtypes[this.props.doc.type].name}`,

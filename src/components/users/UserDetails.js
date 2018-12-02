@@ -19,7 +19,11 @@ import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Checkbox from '@material-ui/core/Checkbox';
+<<<<<<< HEAD
 // import IconButton from '@material-ui/core/IconButton';
+=======
+import IconButton from '@material-ui/core/IconButton';
+>>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 
 import { auth, usersRef } from '../../config/firebase';
 
