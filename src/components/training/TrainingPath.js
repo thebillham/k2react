@@ -9,15 +9,9 @@ import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-<<<<<<< HEAD
 // import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import { trainingPathsRef } from '../../config/firebase';
 // import TrainingGridCol from './TrainingGridCol';
-=======
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import { trainingPathsRef } from '../../config/firebase';
-import TrainingGridCol from './TrainingGridCol';
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import QuizWidget from './QuizWidget';
 import TrainingNode from './TrainingNode';
 import TrainingLink from './TrainingLink';

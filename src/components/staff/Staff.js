@@ -1,8 +1,4 @@
 import React from 'react';
-<<<<<<< HEAD
-=======
-import classNames from 'classnames';
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 
@@ -223,11 +219,7 @@ class Staff extends React.Component {
       if (this.state.attrFilters['First Aid'] && !user.firstaid) filter = false;
     }
     if (this.state.authFilterOn) {
-<<<<<<< HEAD
       this.props.permissions.forEach(permission => {
-=======
-      this.props.permissions.map(permission => {
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
         if (!user.auth) filter = false;
           else if (this.state.authFilters[permission.name] && !user.auth[permission.name]) filter = false;
       });
@@ -246,17 +238,10 @@ class Staff extends React.Component {
     const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
     let docs = [];
     if (this.state.docview !== 'none') {
-<<<<<<< HEAD
       staff.forEach(e => {
         if (e.docimages && e.docimages.length > 0) {
           if (!this.props.search || (e.name+e.office+e.jobdescription).toLowerCase().includes(this.props.search.toLowerCase())) {
             e.docimages.forEach(attr => {
-=======
-      staff.map(e => {
-        if (e.docimages && e.docimages.length > 0) {
-          if (!this.props.search || (e.name+e.office+e.jobdescription).toLowerCase().includes(this.props.search.toLowerCase())) {
-            e.docimages.map(attr => {
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
               if (attr.type === this.state.docview) {
                 docs.push(
                   {

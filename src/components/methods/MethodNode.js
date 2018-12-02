@@ -1,13 +1,4 @@
 import React from 'react';
-<<<<<<< HEAD
-=======
-
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import OpenIcon from '@material-ui/icons/OpenInNew';
-import EditIcon from '@material-ui/icons/Edit';
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 
 function MethodNode(props) {
   const { node } = props;

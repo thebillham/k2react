@@ -1,12 +1,6 @@
 import React from 'react';
 
-<<<<<<< HEAD
 import Paper from '@material-ui/core/Paper';
-=======
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import OpenIcon from '@material-ui/icons/OpenInNew';

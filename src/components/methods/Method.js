@@ -8,11 +8,7 @@ import StepButton from '@material-ui/core/StepButton';
 import Paper from '@material-ui/core/Paper';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-<<<<<<< HEAD
 // import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-=======
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import { connect } from 'react-redux';
 import { methodsRef, usersRef, auth } from '../../config/firebase';
 import MethodNode from './MethodNode';

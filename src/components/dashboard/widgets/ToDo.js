@@ -8,7 +8,6 @@ import IconButton from '@material-ui/core/IconButton';
 import CardHeader from '@material-ui/core/CardHeader';
 import Checkbox from '@material-ui/core/Checkbox';
 
-<<<<<<< HEAD
 // import { FormattedDate } from 'react-intl';
 import Add from '@material-ui/icons/Add';
 import Close from '@material-ui/icons/Close';
@@ -17,16 +16,6 @@ import Edit from '@material-ui/icons/Edit';
 // import AnalysisIcon from '@material-ui/icons/Colorize';
 // import TrainingIcon from '@material-ui/icons/School';
 // import NotificationIcon from '@material-ui/icons/Notifications';
-=======
-import { FormattedDate } from 'react-intl';
-import Add from '@material-ui/icons/Add';
-import Close from '@material-ui/icons/Close';
-import Edit from '@material-ui/icons/Edit';
-import UrgentIcon from '@material-ui/icons/Warning';
-import AnalysisIcon from '@material-ui/icons/Colorize';
-import TrainingIcon from '@material-ui/icons/School';
-import NotificationIcon from '@material-ui/icons/Notifications';
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 
 // Gets jobs from your job list
 const dummyList = [

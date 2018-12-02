@@ -10,11 +10,7 @@ import Grid from '@material-ui/core/Grid';
 
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 
-<<<<<<< HEAD:src/components/staff/StaffCard.js
 // import EditIcon from '@material-ui/icons/Edit';
-=======
-import EditIcon from '@material-ui/icons/Edit';
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010:src/components/staff/StaffCard.js
 import { FormattedDate } from 'react-intl';
 
 const mapStateToProps = state => {

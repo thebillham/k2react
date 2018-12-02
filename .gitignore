@@ -17,10 +17,7 @@ apiGoogleconfig.json
 .env.test.local
 .env.production.local
 .env
-<<<<<<< HEAD
 Update.txt
-=======
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 qual.xlsx
 npm-debug.log*
 yarn-debug.log*

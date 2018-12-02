@@ -9,11 +9,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
 import LinearProgress from '@material-ui/core/LinearProgress';
 
-<<<<<<< HEAD
 // import { FormattedDate } from 'react-intl';
-=======
-import { FormattedDate } from 'react-intl';
->>>>>>> 947a2ba95b689774eab952b8a181ffa246ab3010
 import Add from '@material-ui/icons/Add';
 import Close from '@material-ui/icons/Close';
 import Edit from '@material-ui/icons/Edit';
