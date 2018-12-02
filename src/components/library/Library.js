@@ -5,7 +5,6 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import { connect } from 'react-redux';
 import { onSearchChange, onCatChange, fetchDocuments } from '../../actions/local';
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import store from '../../store';
 import DocList from './DocList';
 
@@ -61,7 +60,6 @@ class Library extends React.Component {
   }
 
   render() {
-    const { docs } = this.props;
     return (
       <div style = {{ marginTop: 80 }}>
         <Grid container spacing={8}>
@@ -84,14 +82,14 @@ class Library extends React.Component {
                 return doc.title.toLowerCase().includes(this.props.search.toLowerCase());
               }
             } else if (this.props.category) {
-              return doc.category == this.props.category;
+              return doc.category === this.props.category;
             } else {
               return true;
             }
           }).map(doc => {
             return(
               <div key={doc.uid}>
-                <DocList doc={doc} handleToggle={() => this.handleToggle(doc.uid)} selected={this.state.listselect == doc.uid} />
+                <DocList doc={doc} handleToggle={() => this.handleToggle(doc.uid)} selected={this.state.listselect === doc.uid} />
               </div>
             )
           })}

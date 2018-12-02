@@ -8,7 +8,7 @@ import StepButton from '@material-ui/core/StepButton';
 import Paper from '@material-ui/core/Paper';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
+// import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import { connect } from 'react-redux';
 import { methodsRef, usersRef, auth } from '../../config/firebase';
 import MethodNode from './MethodNode';
@@ -41,7 +41,7 @@ class Method extends React.Component {
     var com = [];
     var logs = [];
     this.props.methodLog.forEach(m => {
-      if (m.uid == this.props.match.params.uid) {
+      if (m.uid === this.props.match.params.uid) {
         if (m.sections) {
           Object.keys(m.sections).forEach(k => {
             completed.add(parseInt(k));
@@ -64,7 +64,7 @@ class Method extends React.Component {
 
   getSteps = () => {
     let steps = [];
-    this.state.method.sections.map(step => {
+    this.state.method.sections.forEach(step => {
       steps.push(step.label);
     });
     return steps;
@@ -143,7 +143,7 @@ class Method extends React.Component {
     usersRef.doc(auth.currentUser.uid).collection("methodlog").doc(this.props.match.params.uid).get().then((doc) => {
       let sections = {};
       if (doc.exists) sections = doc.data().sections;
-      if (sections == undefined) sections = {};
+      if (sections === undefined) sections = {};
       sections[step] = new Date();
       if (this.allStepsCompleted()) methodCompletedDate = sections[step];
       usersRef.doc(auth.currentUser.uid).collection("methodlog").doc(this.props.match.params.uid).set({

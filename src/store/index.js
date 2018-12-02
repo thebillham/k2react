@@ -1,4 +1,3 @@
-import firebase from '../config/firebase';
 import reduxThunk from 'redux-thunk';
 import { createBrowserHistory } from 'history';
 import { connectRouter, routerMiddleware } from 'connected-react-router';

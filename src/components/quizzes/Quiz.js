@@ -62,7 +62,7 @@ class Quiz extends React.Component {
             let question = q.data();
             question.uid = q.id;
             questions.push(question);
-            if (questions.length == quiz.data().numberofquestions) {
+            if (questions.length === quiz.data().numberofquestions) {
             // if (questions.length == uidlist.length) {
               this.setState({
                 quiz: quiz.data(),
@@ -79,7 +79,7 @@ class Quiz extends React.Component {
 
   updateLists = (uid, correct, incorrect) => {
     let questions = this.state.questions;
-    const index = questions.findIndex(q => q.uid == uid);
+    const index = questions.findIndex(q => q.uid === uid);
     questions[index].correct = correct;
     questions[index].incorrect = incorrect;
     this.setState({
@@ -99,10 +99,10 @@ class Quiz extends React.Component {
   onMultiChecked = (uid, val, single) => {
     let questions = this.state.questions;
     const index = questions.findIndex(q => q.uid === uid);
-    if (questions[index].selected == undefined || single) {
+    if (questions[index].selected === undefined || single) {
       questions[index].selected = [val];
     } else {
-      const s = questions[index].selected.findIndex(item => item == val);
+      const s = questions[index].selected.findIndex(item => item === val);
       if (s > -1) {
         questions[index].selected.splice(s, 1);
       } else {
@@ -116,7 +116,7 @@ class Quiz extends React.Component {
 
   onSortChanged = (uid, items) => {
     let questions = this.state.questions;
-    const index = questions.findIndex(q => q.uid == uid);
+    const index = questions.findIndex(q => q.uid === uid);
     questions[index].selected = items;
     this.setState({
       questions: questions,
@@ -136,25 +136,25 @@ class Quiz extends React.Component {
     let questionScores = [];
     let unansweredList = [];
 
-    this.state.questions.map((q, index) => {
+    this.state.questions.forEach((q, index) => {
       let score = 0;
-      if (q.selected == undefined || q.selected == null || q.selected.length == 0) {
+      if (q.selected === undefined || q.selected === null || q.selected.length === 0) {
         unansweredList.push(q.uid);
-      } else if (q.type == 'multi-single') {
+      } else if (q.type === 'multi-single') {
           var opt = q.correct[0];
           if (typeof opt === 'object') opt = opt.text;
-          if (opt == q.selected)
+          if (opt === q.selected)
             score = 1;
-      } else if (q.type == 'multi-multi') {
+      } else if (q.type === 'multi-multi') {
         let num = 0;
-        q.correct.map(opt => {
+        q.correct.forEach(opt => {
           if (typeof opt === 'object') opt = opt.text;
           if (q.selected.includes(opt)) {
             score = score + 1;
           }
           num = num + 1;
         });
-        q.incorrect.map(opt => {
+        q.incorrect.forEach(opt => {
           if (typeof opt === 'object') opt = opt.text;
           if (q.selected.includes(opt)) {
             score = score - 1;
@@ -163,11 +163,11 @@ class Quiz extends React.Component {
         });
         if (score < 0) score = 0;
         score = score / num;
-      } else if (q.type == 'short-string') {
+      } else if (q.type === 'short-string') {
         if (new RegExp(q.answer.toLowerCase(), '').test(q.selected.toLowerCase())) score = 1;
-      } else if (q.type == 'sort' || q.type == 'sort-image') {
-        q.selected.map((item, index) => {
-          if (q.answers[index] == item) {
+      } else if (q.type === 'sort' || q.type === 'sort-image') {
+        q.selected.forEach((item, index) => {
+          if (q.answers[index] === item) {
             score = score + 1;
           } else {
             score = score - 1;
@@ -175,10 +175,10 @@ class Quiz extends React.Component {
         });
         if (score < 0) score = 0;
         score = score / q.selected.length;
-      } else if (q.type == 'sort-bucket' || q.type == 'sort-bucket-image') {
+      } else if (q.type === 'sort-bucket' || q.type === 'sort-bucket-image') {
         let num = 0;
-        q.selected.map((bucket, index) =>{
-          bucket.answers.map(answer => {
+        q.selected.forEach((bucket, index) =>{
+          bucket.answers.forEach(answer => {
             num = num + 1;
             if (q.buckets[index].answers.includes(answer)) {
               score = score + 1;
@@ -189,13 +189,13 @@ class Quiz extends React.Component {
         });
         if (score < 0) score = 0;
         score = score / num;
-      } else if (q.type == 'imagemap-single') {
-        if (q.selected[0]._id == q.correct) {
+      } else if (q.type === 'imagemap-single') {
+        if (q.selected[0]._id === q.correct) {
           score = 1;
         }
-      } else if (q.type == 'imagemap-multi') {
+      } else if (q.type === 'imagemap-multi') {
         let corrects = q.correct.length;
-        q.selected.map(obj => {
+        q.selected.forEach(obj => {
           if (q.correct.includes(obj._id)) {
             score = score + 1;
             corrects = corrects - 1;
@@ -205,18 +205,18 @@ class Quiz extends React.Component {
         });
         if (score < 0) score = 0;
         score = score / (q.selected.length + corrects);
-      } else if (q.type == 'imageselect-single') {
-        if (q.correct[0].src == q.selected)
+      } else if (q.type === 'imageselect-single') {
+        if (q.correct[0].src === q.selected)
           score = 1;
-      } else if (q.type == 'imageselect-multi') {
+      } else if (q.type === 'imageselect-multi') {
         let num = 0;
-        q.correct.map(opt => {
+        q.correct.forEach(opt => {
           if (q.selected.includes(opt.src)) {
             score = score + 1;
           }
           num = num + 1;
         });
-        q.incorrect.map(opt => {
+        q.incorrect.forEach(opt => {
           if (q.selected.includes(opt.src)) {
             score = score - 1;
             num = num + 1;
@@ -230,7 +230,7 @@ class Quiz extends React.Component {
       quizScore = quizScore + score;
 
       if (q.tags) {
-        q.tags.map(tag => {
+        q.tags.forEach(tag => {
           if (tagScores[tag]) {
             tagScores[tag] = {
               score: tagScores[tag].score + score,
@@ -270,7 +270,7 @@ class Quiz extends React.Component {
     usersRef.doc(auth.currentUser.uid).get().then(doc => {
       var quiztags = {};
       if (doc.data().quiztags) quiztags = doc.data().quiztags;
-      Object.keys(this.state.tags).map(tag => {
+      Object.keys(this.state.tags).forEach(tag => {
         if (quiztags[tag]) {
           quiztags[tag] = { score: quiztags[tag].score + this.state.tags[tag].score, num: quiztags[tag].num + this.state.tags[tag].num };
         } else {

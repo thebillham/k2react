@@ -3,14 +3,8 @@ import React from 'react';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import Avatar from '@material-ui/core/Avatar';
 
 class ImageSelectSingleQuestion extends React.Component {
   constructor(props){
@@ -37,7 +31,7 @@ class ImageSelectSingleQuestion extends React.Component {
   // };
 
   render() {
-    const { classes, q } = this.props;
+    const { q } = this.props;
 
     return (
       <div style = {{ marginTop: 24 }}>

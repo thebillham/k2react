@@ -4,11 +4,9 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import OpenIcon from '@material-ui/icons/OpenInNew';
-import EditIcon from '@material-ui/icons/Edit';
 
 function QuizList(props) {
-  const { classes, quiz } = props;
+  const { quiz } = props;
   const path = "/quiz/" + quiz.uid;
 
   return (

@@ -1,6 +1,5 @@
 import {
           MARK_FOOTPRINT,
-          MARK_TIME,
         } from "../constants/action-types"
 
 const footprintsInit = {

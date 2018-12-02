@@ -107,42 +107,42 @@ const bioglossary0001 = {
   selected: '',
   type: 'short-string',
 }
-
-const bioglossary0002 = {
-  question: 'Match the following terms to their meaning.',
-  sortedanswers: [
-    'Fungus',
-    'Fungi',
-    'Fungal',
-    'Mould',
-    'Bacteria',
-    'Efflorescence',
-    'Hyphal Fragments',
-    'Deteriogenic',
-    'Pathogenic',
-    'Toxigenic',
-    'Allergenic',
-    'Non-viable',
-    'Viable',
-  ],
-  matchedanswers: [
-    'Living organisms that have cell walls which contain chitin (not cellulose like plants) which feed on organic matter (but do not ingest it like animals and protozoa). Unlike bacteria their DNA is enclosed in a nucleus.',
-    'Plural form of fungus',
-    'Caused by a fungus or fungi',
-    'Fungi that grow in multicellular hyphae structures, this is not a taxonomic classification rather a structural one – this means that some fungi can be moulds at some life stages and mushrooms at others',
-    'Single celled organisms which have a cell wall but lack organelles (fancy inside stuff) including a nucleus',
-    'A salt crust that forms on inorganic building materials (concrete, brick etc) when water draws up through it. Often confused with mould.',
-    'Thread like structure produced by fungi. These are the main growth stage so if they present the growth is active. They can also be inserted into other cells to feed off them or joined together for sex times',
-    'Causes decay',
-    'Causes disease. This is usually used for moulds that grow in or on you.',
-    'Produces toxins which cause negative health effects including difficulty breathing and damage to internal organs.',
-    'Commonly causes an allergic reaction',
-    'Not capable of living.',
-    'Capable of living',
-  ],
-  tags: ['biological','glossary',],
-  type: 'matched',
-}
+//
+// const bioglossary0002 = {
+//   question: 'Match the following terms to their meaning.',
+//   sortedanswers: [
+//     'Fungus',
+//     'Fungi',
+//     'Fungal',
+//     'Mould',
+//     'Bacteria',
+//     'Efflorescence',
+//     'Hyphal Fragments',
+//     'Deteriogenic',
+//     'Pathogenic',
+//     'Toxigenic',
+//     'Allergenic',
+//     'Non-viable',
+//     'Viable',
+//   ],
+//   matchedanswers: [
+//     'Living organisms that have cell walls which contain chitin (not cellulose like plants) which feed on organic matter (but do not ingest it like animals and protozoa). Unlike bacteria their DNA is enclosed in a nucleus.',
+//     'Plural form of fungus',
+//     'Caused by a fungus or fungi',
+//     'Fungi that grow in multicellular hyphae structures, this is not a taxonomic classification rather a structural one – this means that some fungi can be moulds at some life stages and mushrooms at others',
+//     'Single celled organisms which have a cell wall but lack organelles (fancy inside stuff) including a nucleus',
+//     'A salt crust that forms on inorganic building materials (concrete, brick etc) when water draws up through it. Often confused with mould.',
+//     'Thread like structure produced by fungi. These are the main growth stage so if they present the growth is active. They can also be inserted into other cells to feed off them or joined together for sex times',
+//     'Causes decay',
+//     'Causes disease. This is usually used for moulds that grow in or on you.',
+//     'Produces toxins which cause negative health effects including difficulty breathing and damage to internal organs.',
+//     'Commonly causes an allergic reaction',
+//     'Not capable of living.',
+//     'Capable of living',
+//   ],
+//   tags: ['biological','glossary',],
+//   type: 'matched',
+// }
 
 const biomoistureinhomes0001 = {
   question: 'Mould is a water problem.',
@@ -242,25 +242,25 @@ const biopresentation0001 = {
   tags: ['biological','presentation',],
   type: 'multi-multi',
 }
-
-const biopresentation0002 = {
-  question: 'Match the mould to its photo.',
-  sortedanswers: [
-    'Cladosporium',
-    'Penicillium',
-    'Aspergillus',
-    'Ulocladium',
-    'Basidiomycetes',
-    'Chaetomium',
-    'Stachybotrys',
-  ],
-  matchedanswers: [
-
-  ],
-  numberofoptions: 4,
-  tags: ['biological','presentation',],
-  type: 'matched-image',
-}
+//
+// const biopresentation0002 = {
+//   question: 'Match the mould to its photo.',
+//   sortedanswers: [
+//     'Cladosporium',
+//     'Penicillium',
+//     'Aspergillus',
+//     'Ulocladium',
+//     'Basidiomycetes',
+//     'Chaetomium',
+//     'Stachybotrys',
+//   ],
+//   matchedanswers: [
+//
+//   ],
+//   numberofoptions: 4,
+//   tags: ['biological','presentation',],
+//   type: 'matched-image',
+// }
 
 const biopresentation0003 = {
   question: 'Sort the symptoms into the correct categories',

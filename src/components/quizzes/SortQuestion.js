@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
@@ -43,7 +42,6 @@ class SortQuestion extends React.Component {
   }
 
   componentWillMount(){
-    let options = [];
     var answerList = this.props.q.answers.slice();
     this.props.onChanged(this.props.q.uid, answerList.sort(() => .5 - Math.random()));
   };
@@ -64,12 +62,12 @@ class SortQuestion extends React.Component {
   }
 
   render() {
-    const { classes, q } = this.props;
+    const { q } = this.props;
 
     return (
       <div style = {{ marginTop: 24 }}>
         <FormControl component="fieldset">
-          { q.image && <img src={q.image} height='300' style={{ borderRadius: 16 }}/> }
+          { q.image && <img alt='' src={q.image} height='300' style={{ borderRadius: 16 }}/> }
           <FormLabel component="legend"> { q.question }</FormLabel>
           <DragDropContext onDragEnd={this.onDragEnd}>
             <Droppable droppableId="droppable" direction="horizontal">

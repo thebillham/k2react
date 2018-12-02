@@ -1,17 +1,11 @@
 import React from 'react';
 
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import OpenIcon from '@material-ui/icons/OpenInNew';
-import EditIcon from '@material-ui/icons/Edit';
-
 function MethodNode(props) {
-  const { classes, node } = props;
+  const { node } = props;
 
   return (
     <div style={{ margin: 24, }}>
-      { node.type == 'table' && (
+      { node.type === 'table' && (
           <table border={node.border ? node.border : 1} cellpadding="12">
             <thead style={{ backgroundColor: '#ddd'}} >
               <tr>
@@ -41,9 +35,9 @@ function MethodNode(props) {
         )
       }
       {
-        node.type == 'image' && (
+        node.type === 'image' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', }}>
-            <img src={ node.src } style={{ width: '100%', }}/>
+            <img alt='' src={ node.src } style={{ width: '100%', }}/>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'black', }}>{ node.caption }</div>
           </div>
         )

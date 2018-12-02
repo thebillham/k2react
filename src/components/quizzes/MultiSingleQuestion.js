@@ -3,7 +3,6 @@ import React from 'react';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-import Typography from '@material-ui/core/Typography';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 
@@ -20,7 +19,6 @@ class MultiSingleQuestion extends React.Component {
   }
 
   componentWillMount(){
-    let options = [];
     // const shuffledcorrect = this.props.q.correct.sort(() => .5 - Math.random());
     const shuffledincorrect = this.props.q.incorrect.sort(() => .5 - Math.random());
     let opt = shuffledincorrect.slice(0, this.props.q.numberofoptions - 1).concat(this.props.q.correct).sort(() => .5 - Math.random());
@@ -34,12 +32,12 @@ class MultiSingleQuestion extends React.Component {
   // };
 
   render() {
-    const { classes, q } = this.props;
+    const { q } = this.props;
 
     return (
       <div style = {{ marginTop: 24 }}>
         <FormControl component="fieldset">
-          { q.image && <img src={q.image} height='300' style={{ borderRadius: 16 }}/> }
+          { q.image && <img alt='' src={q.image} height='300' style={{ borderRadius: 16 }}/> }
           <FormLabel component="legend"> { q.question }</FormLabel>
           <RadioGroup
             name={q.uid}

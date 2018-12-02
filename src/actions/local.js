@@ -26,7 +26,7 @@ import { GET_STAFF,
         UPDATE_STAFF,
         GET_VEHICLES,
       } from "../constants/action-types";
-import * as firebase from 'firebase';
+import firebase from '../config/firebase';
 import { wfmRoot, wfmApi, wfmAcc } from 'keys.js';
 import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
     trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef,
@@ -152,12 +152,9 @@ export const getUserAttrs = userPath => async dispatch => {
               if (attr.expiry) {
                 if (new Date(attr.expiry) > new Date()) user.firstaid = 'OK';
               } else {
-                var expiry = new Date(attr.date);
-                console.log(user.name);
-                console.log(expiry);
-                expiry.setFullYear(expiry.getFullYear() + 2);
-                console.log(expiry);
-                if (expiry > new Date()) user.firstaid = 'OK';
+                var firstaidexpiry = new Date(attr.date);
+                firstaidexpiry.setFullYear(firstaidexpiry.getFullYear() + 2);
+                if (firstaidexpiry > new Date()) user.firstaid = 'OK';
               }
             }
           });
@@ -309,14 +306,14 @@ export const fetchAsbestosSamples = () => async dispatch => {
         samples.push(sample);
       });
       let samplemap = {};
-      samples.map(sample => {
+      samples.forEach(sample => {
         if (samplemap[sample.jobnumber]) {
           samplemap[sample.jobnumber]['samples'].push(sample);
         } else {
           samplemap[sample.jobnumber] = {samples: [sample], clientname: '', address: '', type: '',};
         }
       });
-      Object.keys(samplemap).map(job => {
+      Object.keys(samplemap).forEach(job => {
         jobsRef.where("jobnumber", "==", job).limit(1)
         .get().then(doc => {
           doc.forEach(jobheader => {
@@ -477,7 +474,7 @@ export const fetchWFM = () => async dispatch => {
     var json = xmlToJson(xmlDOM);
     let jobs = [];
     // Map WFM jobs to a single level job object we can use
-    json.Response.Jobs.Job.map(wfmJob => {
+    json.Response.Jobs.Job.forEach(wfmJob => {
       let job = {};
       job.jobNumber = wfmJob.ID ? wfmJob.ID : 'No job number';
       job.address = wfmJob.Name ? wfmJob.Name: 'No address';

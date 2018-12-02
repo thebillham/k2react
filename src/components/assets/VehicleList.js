@@ -5,20 +5,17 @@ import ListItem from '@material-ui/core/ListItem';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from '@material-ui/core/Grid';
 
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-
 import Edit from '@material-ui/icons/Edit';
 import Image from '@material-ui/icons/Image';
 import Delete from '@material-ui/icons/Delete';
 
-import VehicleModal from '../modals/VehicleModal';
 import { VEHICLE } from '../../constants/modal-types';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { showModal } from '../../actions/modal';
 import Popup from 'reactjs-popup';
 import { FormattedDate } from 'react-intl';
-import { vehiclesRef, storage } from '../../config/firebase';
+import { vehiclesRef } from '../../config/firebase';
 
 const mapDispatchToProps = dispatch => {
   return {
@@ -89,7 +86,7 @@ function VehicleList(props) {
             on="hover"
             disabled={vehicle.fileUrl == null}
             >
-            <img src={vehicle.fileUrl} width={200} />
+            <img alt='' src={vehicle.fileUrl} width={200} />
           </Popup>
         :
           <Image style={{ fontSize: 24, color: cameracolor, margin: 10 }} />}

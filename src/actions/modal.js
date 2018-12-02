@@ -1,4 +1,4 @@
-import { HIDE_MODAL, SHOW_MODAL, EDIT_MODAL, EDIT_MODAL_DOC,
+import { SHOW_MODAL, EDIT_MODAL, EDIT_MODAL_DOC,
   ADD_TAG, DELETE_TAG, RESET_MODAL,
  } from "../constants/action-types";
 

@@ -6,7 +6,6 @@ import Grid from '@material-ui/core/Grid';
 import { connect } from 'react-redux';
 import NoticeCard from './NoticeCard';
 import { onCatChange, onSearchChange } from '../../actions/local';
-import AddIcon from '@material-ui/icons/Add';
 import store from '../../store';
 import { onFavNotice, onReadNotice, onDeleteNotice, fetchNotices } from '../../actions/local';
 
@@ -94,13 +93,13 @@ class Noticeboard extends React.Component {
           </Grid>
           <Grid container spacing={16} style={{paddingTop: 30}}>
           { this.props.notices.filter(notice => {
-              if (notice.auth !== undefined && this.props.me.auth.includes(notice.auth) == false) {
+              if (notice.auth !== undefined && this.props.me.auth.includes(notice.auth) === false) {
                 return false;
               }
               if (this.props.me.deletednotices && this.props.me.deletednotices.includes(notice.uid)) {
                 return false;
               }
-              if (this.props.me.favnotices && this.props.category == 'fav' && this.props.me.favnotices.includes(notice.uid)) {
+              if (this.props.me.favnotices && this.props.category === 'fav' && this.props.me.favnotices.includes(notice.uid)) {
                 return true;
               }
               if (this.props.search) {
@@ -110,7 +109,7 @@ class Noticeboard extends React.Component {
                   return notice.text.toLowerCase().includes(this.props.search.toLowerCase());
                 }
               } else if (this.props.category) {
-                return notice.category == this.props.category;
+                return notice.category === this.props.category;
               } else {
                 return true;
               }

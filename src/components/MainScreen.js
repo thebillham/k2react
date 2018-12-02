@@ -32,7 +32,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Collapse from '@material-ui/core/Collapse';
 
 // Icons
-import DashboardIcon from '@material-ui/icons/Dashboard';
+// import DashboardIcon from '@material-ui/icons/Dashboard';
 import NoticeboardIcon from '@material-ui/icons/SpeakerNotes';
 import JobsIcon from '@material-ui/icons/Assignment';
 import LabIcon from '@material-ui/icons/Colorize';
@@ -49,7 +49,6 @@ import UpdatesIcon from '@material-ui/icons/Update';
 
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
-import BackIcon from '@material-ui/icons/ArrowBack';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
@@ -58,15 +57,9 @@ import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
 import { sendSlackMessage } from '../Slack';
 
-import { fetchStaff, fetchMe, fetchDocuments, editUser, getUser, fetchWFM,
-  fetchModules, fetchTools, fetchNotices, fetchReadingLog, fetchMethodLog,
-  fetchQuizzes, fetchTrainingPaths, fetchAsbestosSamples, resetLocal  } from '../actions/local';
-import { hideModal, showModal, onUploadFile, handleModalChange, handleModalSubmit,
-  handleTagAddition, handleTagDelete, resetModal } from '../actions/modal';
+import { fetchMe, resetLocal  } from '../actions/local';
+import { resetModal } from '../actions/modal';
 import { resetDisplay } from '../actions/display';
-import { DragDropContext } from 'react-beautiful-dnd';
-import UploadtoFirebase from './training/Path';
-import QuestionsToFirebase from './quizzes/Questions';
 
 // Pages
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
@@ -500,7 +493,7 @@ class MainScreen extends React.Component {
               <CssBaseline />
               {
                 (this.props.state.local.me
-                && this.props.state.local.me.key == '47Z@g*dy!EYGL%fMnOReuTJeB1$')
+                && this.props.state.local.me.key === '47Z@g*dy!EYGL%fMnOReuTJeB1$')
                 // && this.props.state.local.staff[auth.currentUser.uid].gmail == auth.currentUser.email)
                 ?
                   <div className={classes.root}>

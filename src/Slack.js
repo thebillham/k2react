@@ -1,5 +1,5 @@
-const { IncomingWebhook } = require('@slack/client');
-var webhook = new IncomingWebhook(process.env.REACT_APP_SLACK_WEBHOOK);
+// const { IncomingWebhook } = require('@slack/client');
+// var webhook = new IncomingWebhook(process.env.REACT_APP_SLACK_WEBHOOK);
 
 export const sendSlackMessage = (message, json) => {
   let text;

@@ -60,7 +60,7 @@ class BucketImageQuestion extends React.Component {
     // shuffle all options and distribute evenly to each bucket
     let options = [];
     let answerBuckets = this.props.q.buckets.slice();
-    answerBuckets.map(bucket => {
+    answerBuckets.forEach(bucket => {
       options = options.concat(bucket.answers.slice());
     });
     // var totalArray = Array.from(options);
@@ -76,7 +76,7 @@ class BucketImageQuestion extends React.Component {
 
     let answer = [];
 
-    bucketGroups.map((items, index) => {
+    bucketGroups.forEach((items, index) => {
       answer.push({
         label: answerBuckets[index].label,
         answers: items,
@@ -121,7 +121,7 @@ class BucketImageQuestion extends React.Component {
   }
 
   render() {
-    const { classes, q } = this.props;
+    const { q } = this.props;
 
     return (
       <div style = {{ marginTop: 24 }}>

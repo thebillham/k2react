@@ -10,7 +10,7 @@ import Grid from '@material-ui/core/Grid';
 
 import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 
-import EditIcon from '@material-ui/icons/Edit';
+// import EditIcon from '@material-ui/icons/Edit';
 import { FormattedDate } from 'react-intl';
 
 const mapStateToProps = state => {
@@ -35,9 +35,9 @@ function displayTimeAtK2(user) {
     let y = ' years ';
     let m = ' months and ';
     let d = ' days';
-    if (years == 1) y = ' year ';
-    if (months == 1) m = ' month and ';
-    if (days == 1) d = ' day';
+    if (years === 1) y = ' year ';
+    if (months === 1) m = ' month and ';
+    if (days === 1) d = ' day';
     return (years + y + months + m + days + d);
   } else {
     return ('No start date set')

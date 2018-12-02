@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { withStyles } from '@material-ui/core/styles';
 
 import Grid from '@material-ui/core/Grid';
@@ -75,7 +74,7 @@ class Tools extends React.Component {
                 return tool.title.toLowerCase().includes(this.props.search.toLowerCase());
               }
             } else if (this.props.category) {
-              return tool.category == this.props.category;
+              return tool.category === this.props.category;
             } else {
               return true;
             }

@@ -88,7 +88,7 @@ class AsbestosLab extends React.Component {
 
   sortSamples = samples => {
     let samplemap = {};
-    samples.map(sample => {
+    samples.forEach(sample => {
       if (samplemap[sample.jobnumber]) {
         samplemap[sample.jobnumber].push(sample);
       } else {
@@ -197,7 +197,6 @@ class AsbestosLab extends React.Component {
   render() {
     const { classes, samples } = this.props;
 
-    var jobnumber = '';
     return (
       <div style = {{ marginTop: 80 }}>
         { Object.keys(samples).length < 1 ?
@@ -275,7 +274,7 @@ class AsbestosLab extends React.Component {
                             disabled={sample.path_remote == null}
                             >
                             { sample.path_remote &&
-                            <img src={sample.path_remote} width={200} />}
+                            <img alt='' src={sample.path_remote} width={200} />}
                           </Popup>
 
                           <Popup

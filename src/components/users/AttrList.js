@@ -5,8 +5,6 @@ import ListItem from '@material-ui/core/ListItem';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from '@material-ui/core/Grid';
 
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-
 import Edit from '@material-ui/icons/Edit';
 import Image from '@material-ui/icons/Image';
 import Delete from '@material-ui/icons/Delete';
@@ -73,7 +71,7 @@ function AttrList(props) {
             on="hover"
             disabled={attr.fileUrl == null}
             >
-            <img src={attr.fileUrl} width={200} />
+            <img alt='' src={attr.fileUrl} width={200} />
           </Popup>
         :
           <Image style={{ fontSize: 24, color: cameracolor, margin: 10 }} />}

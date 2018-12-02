@@ -9,9 +9,9 @@ import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
+// import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import { trainingPathsRef } from '../../config/firebase';
-import TrainingGridCol from './TrainingGridCol';
+// import TrainingGridCol from './TrainingGridCol';
 import QuizWidget from './QuizWidget';
 import TrainingNode from './TrainingNode';
 import TrainingLink from './TrainingLink';
@@ -53,7 +53,7 @@ class TrainingPath extends React.Component {
 
   getSteps = () => {
     let steps = [];
-    this.state.path.steps.map(step => {
+    this.state.path.steps.forEach(step => {
       steps.push(step.label);
     });
     return steps;

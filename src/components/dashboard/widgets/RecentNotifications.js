@@ -7,16 +7,16 @@ import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import CardHeader from '@material-ui/core/CardHeader';
 
-import { FormattedDate } from 'react-intl';
-import Add from '@material-ui/icons/Add';
+// import { FormattedDate } from 'react-intl';
+// import Add from '@material-ui/icons/Add';
 import Close from '@material-ui/icons/Close';
 import Edit from '@material-ui/icons/Edit';
-import UrgentIcon from '@material-ui/icons/Warning';
+// import UrgentIcon from '@material-ui/icons/Warning';
 import AnalysisIcon from '@material-ui/icons/Colorize';
 import TrainingIcon from '@material-ui/icons/School';
 import NotificationIcon from '@material-ui/icons/Notifications';
 
-const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+// const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
 // Gets jobs from your job list
 const dummyList = [

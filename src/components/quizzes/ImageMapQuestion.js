@@ -1,12 +1,7 @@
 import React from 'react';
 
 import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
 
 import ImageMapper from '../../config/ImageMapper';
 
@@ -26,7 +21,7 @@ class ImageMapQuestion extends React.Component {
       name: this.props.q.uid,
       areas: [],
     };
-    this.props.q.map.map(area => {
+    this.props.q.map.forEach(area => {
       imageMap.areas.push({
         _id: area.label,
         shape: area.shape,
@@ -44,7 +39,7 @@ class ImageMapQuestion extends React.Component {
   // };
 
   render() {
-    const { classes, q } = this.props;
+    const { q } = this.props;
 
     return (
       <div style = {{ marginTop: 24 }}>

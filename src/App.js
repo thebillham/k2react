@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import MainScreen from './components/MainScreen';
 import K2SignInScreen from './components/K2SignInScreen';
 import { auth } from './config/firebase';
-import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 require('dotenv').config();
 

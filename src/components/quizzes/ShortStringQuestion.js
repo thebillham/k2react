@@ -8,7 +8,7 @@ function ShortStringQuestion(props) {
   return (
     <div style = {{ marginTop: 24 }}>
       <FormControl component="fieldset">
-        { props.q.image && <img src={props.q.image} height='300' style={{ borderRadius: 16 }}/> }
+        { props.q.image && <img src={props.q.image} alt='' height='300' style={{ borderRadius: 16 }}/> }
         <FormLabel component="legend"> { props.q.question }</FormLabel>
         <TextField
           id="standard-name"

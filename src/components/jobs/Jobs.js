@@ -2,7 +2,7 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
-import { FormattedDate } from 'react-intl';
+// import { FormattedDate } from 'react-intl';
 import ReactTable from 'react-table';
 import 'react-table/react-table.css'
 import treeTableHOC from 'react-table/lib/hoc/treeTable';

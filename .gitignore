@@ -17,6 +17,7 @@ apiGoogleconfig.json
 .env.test.local
 .env.production.local
 .env
+Update.txt
 qual.xlsx
 npm-debug.log*
 yarn-debug.log*

@@ -1,5 +1,4 @@
 import React from 'react';
-import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 
@@ -220,7 +219,7 @@ class Staff extends React.Component {
       if (this.state.attrFilters['First Aid'] && !user.firstaid) filter = false;
     }
     if (this.state.authFilterOn) {
-      this.props.permissions.map(permission => {
+      this.props.permissions.forEach(permission => {
         if (!user.auth) filter = false;
           else if (this.state.authFilters[permission.name] && !user.auth[permission.name]) filter = false;
       });
@@ -239,10 +238,10 @@ class Staff extends React.Component {
     const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
     let docs = [];
     if (this.state.docview !== 'none') {
-      staff.map(e => {
+      staff.forEach(e => {
         if (e.docimages && e.docimages.length > 0) {
           if (!this.props.search || (e.name+e.office+e.jobdescription).toLowerCase().includes(this.props.search.toLowerCase())) {
-            e.docimages.map(attr => {
+            e.docimages.forEach(attr => {
               if (attr.type === this.state.docview) {
                 docs.push(
                   {

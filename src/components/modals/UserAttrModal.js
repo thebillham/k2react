@@ -1,12 +1,12 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { WithContext as ReactTags } from 'react-tag-input';
+// import ReactDOM from 'react-dom';
+// import { WithContext as ReactTags } from 'react-tag-input';
 import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
-import store from '../../store';
+// import store from '../../store';
 import { USERATTR } from '../../constants/modal-types';
-import { usersRef, auth, storage } from '../../config/firebase';
+import { usersRef, storage } from '../../config/firebase';
 import '../../config/tags.css';
 import { sendSlackMessage } from '../../Slack';
 
@@ -27,9 +27,7 @@ import IconButton from '@material-ui/core/IconButton';
 import UploadIcon from '@material-ui/icons/CloudUpload';
 import Close from '@material-ui/icons/Close';
 import {
-  hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,
-  handleTagAddition,
-} from '../../actions/modal';
+  hideModal, handleModalChange, handleModalSubmit, onUploadFile } from '../../actions/modal';
 import { getUserAttrs } from '../../actions/local';
 import _ from 'lodash';
 
@@ -58,10 +56,6 @@ const mapDispatchToProps = dispatch => {
 };
 
 class UserAttrModal extends React.Component {
-  constructor(props){
-    super(props);
-  }
-
   sendNewAttrSlack = () => {
     let message = {
       text: `${this.props.modalProps.staffName} has added a new qualification.\n${this.props.qualificationtypes[this.props.doc.type].name}`,
@@ -230,7 +224,7 @@ class UserAttrModal extends React.Component {
 
               { doc.fileUrl &&
                 <div>
-                  <img src={doc.fileUrl} width="200px" style={{ opacity: "0.5", borderStyle: "solid", borderWidth: "2px" }} />
+                  <img src={doc.fileUrl} alt='' width="200px" style={{ opacity: "0.5", borderStyle: "solid", borderWidth: "2px" }} />
                   <IconButton style={{ position: 'relative', top: '2px', left: "-120px", borderStyle: "solid", borderWidth: "2px", fontSize: 8, }} onClick={() => { if (window.confirm('Are you sure you wish to delete the image?')) this.deleteImage(doc.fileRef, doc.uid)}}>
                     <Close />
                   </IconButton>

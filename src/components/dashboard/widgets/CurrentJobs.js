@@ -9,7 +9,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
 import LinearProgress from '@material-ui/core/LinearProgress';
 
-import { FormattedDate } from 'react-intl';
+// import { FormattedDate } from 'react-intl';
 import Add from '@material-ui/icons/Add';
 import Close from '@material-ui/icons/Close';
 import Edit from '@material-ui/icons/Edit';
