@@ -4,6 +4,9 @@ import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 import { jobsRef, cocsRef, asbestosSamplesRef } from '../../config/firebase';
 import { fetchCocs, fetchSamples, } from '../../actions/local';
+import { showModal } from '../../actions/modal';
+import CocModal from '../modals/CocModal';
+import { COC } from '../../constants/modal-types';
 
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
@@ -35,6 +38,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     fetchCocs: () => dispatch(fetchCocs()),
+    showModal: modal => dispatch(showModal(modal)),
     fetchSamples: jobnumber => dispatch(fetchSamples(jobnumber)),
   }
 }
@@ -133,6 +137,7 @@ class AsbestosLab extends React.Component {
   }
 
   issueLabReport = (job, version) => {
+    console.log(`Job is ${job}, version is ${version}`);
     jobsRef.doc(job).set({ reportversion: version }, {merge: true});
   }
 
@@ -188,6 +193,35 @@ class AsbestosLab extends React.Component {
     // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
   }
 
+  printCoc = job => {
+    let samples = [];
+    job.samples.forEach(sample => {
+      if (sample.reported) {
+        let samplemap = {};
+        samplemap['no'] = sample.samplenumber;
+        samplemap['description'] = sample.description.charAt(0).toUpperCase() + sample.description.slice(1);
+        samplemap['material'] = sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
+        samplemap['result'] = this.writeResult(sample.result);
+        samples.push(samplemap);
+      }
+    })
+    let report = {
+      jobNumber: job.jobnumber,
+      client: job.clientname,
+      address: job.address,
+      date: '7 November 2018',
+      ktp: 'Stuart Keer-Keer',
+      personnel: ['Max van den Oever','Reagan Solodi',],
+      assessors: ['AA16100168','AA18050075',],
+      analysts: ['Ben Dodd'],
+      samples: samples,
+    }
+    let url = 'http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/coc_singlepage.php?report=' + JSON.stringify(report);
+    this.setState({ url: url });
+    window.open(url);
+    // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
+  }
+
   getSamples = (expanded, jobnumber) => {
     if (expanded && jobnumber) {
       this.props.fetchSamples(jobnumber);
@@ -199,6 +233,12 @@ class AsbestosLab extends React.Component {
 
     return (
       <div style = {{ marginTop: 80 }}>
+        <CocModal />
+        <div>
+          <Button variant='outlined' onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody' } })}} style={{ marginBottom: 16 }}>
+            New Chain of Custody
+          </Button>
+        </div>
         { Object.keys(samples).length < 1 ?
         ( <CircularProgress />)
         :
@@ -215,6 +255,9 @@ class AsbestosLab extends React.Component {
             return true;
           }
         }).map(job => {
+          console.log(samples[job].reportversion);
+          let version = 1;
+          if (samples[job].reportversion) version = samples[job].reportversion + 1;
           return (
             <ExpansionPanel key={job} onChange={(event, ex) => { this.getSamples(ex, job)}}>
               <ExpansionPanelSummary expandIcon={<ExpandMore />}>
@@ -222,12 +265,15 @@ class AsbestosLab extends React.Component {
               </ExpansionPanelSummary>
               <ExpansionPanelDetails>
                 <List>
-                <Button variant='outlined' onClick={() => {this.issueLabReport(samples[job].uid, samples[job].reportversion + 1)}}>
-                  <Send style={{ fontSize: 24, margin: 5, }} />
-                  Issue Version {samples[job].reportversion + 1}
+                <Button variant='outlined' onClick={() => {this.issueLabReport(samples[job].uid, version)}}>
+                  <Send style={{ fontSize: 20, margin: 5, }} />
+                  Issue Version { version }
                 </Button>
                 <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printLabReport(samples[job])}}>
-                  <Print style={{ fontSize: 24, margin: 5, }} /> Print Test Certificate
+                  <Print style={{ fontSize: 20, margin: 5, }} /> Print Test Certificate
+                </Button>
+                <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printCoc(samples[job])}}>
+                  <Print style={{ fontSize: 20, margin: 5, }} /> Print Chain of Custody
                 </Button>
                 { samples[job].samples && samples[job].samples.map(sample => {
                   let result = 'none';
