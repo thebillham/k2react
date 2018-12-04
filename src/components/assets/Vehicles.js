@@ -112,9 +112,10 @@ class Vehicles extends React.Component {
       service = service.setFullYear(service.getFullYear() + 1);
       let check = new Date(vehicle.lastcheck);
       check = check.setMonth(check.getMonth() + 1);
-      if (this.state.dueFilters['Requires Attention'] && wof > today && reg > today && service > today && vehicle.servicekms > vehicle.mileage) filter = false;
-      if (this.state.dueFilters['Requires Attention'] && check <= today) filter = true;
-      if (this.state.dueFilters['Requires Attention'] && vehicle.roaduserkms <= vehicle.mileage) filter = true;
+      if (this.state.dueFilters['Requires Attention']){
+        if ((check <= today || vehicle.roaduserkms <= vehicle.mileage) && filter) filter = true;
+        else if (wof > today && reg > today && service > today && vehicle.servicekms > vehicle.mileage) filter = false;
+      }
       if (this.state.dueFilters['WOF or Rego Expired'] && wof > today && reg > today) filter = false;
       if (this.state.dueFilters['Service Due'] && service > today && vehicle.servicekms > vehicle.mileage) filter = false;
       if (this.state.dueFilters['Checks Due'] && check > today) filter = false;

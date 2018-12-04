@@ -32,6 +32,8 @@ const mapStateToProps = state => {
   return {
     samples: state.local.cocs,
     search: state.local.search,
+    me: state.local.me,
+    staff: state.local.staff,
    };
 };
 
@@ -165,8 +167,15 @@ class AsbestosLab extends React.Component {
   }
 
   printLabReport = job => {
+    let aanumbers = {};
+    Object.values(this.props.staff).forEach(staff =>  {
+      aanumbers[staff.name] = staff.aanumber ? staff.aanumber : '-';
+    });
+    aanumbers[this.props.me.name] = this.props.me.aanumber ? this.props.me.aanumber : '-';
+    aanumbers['Client'] = '-';
+    console.log(aanumbers);
     let samples = [];
-    job.samples.forEach(sample => {
+    job.samples && job.samples.forEach(sample => {
       if (sample.reported) {
         let samplemap = {};
         samplemap['no'] = sample.samplenumber;
@@ -177,16 +186,25 @@ class AsbestosLab extends React.Component {
       }
     })
     let report = {
-      jobNumber: job.jobnumber,
-      client: job.clientname,
+      jobNumber: job.jobNumber,
+      client: job.client,
       address: job.address,
-      date: '7 November 2018',
+      date: job.dates.sort((b,a) => {
+        return new Date(b.toDate()) - new Date(a.toDate())
+      }).map(date => { return(
+        new Intl.DateTimeFormat('en-GB', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }).format(date.toDate())
+      )}).join(', '),
       ktp: 'Stuart Keer-Keer',
-      personnel: ['Max van den Oever','Reagan Solodi',],
-      assessors: ['AA16100168','AA18050075',],
+      personnel: job.personnel.sort(),
+      assessors: job.personnel.sort().map(staff => { return(aanumbers[staff])}),
       analysts: ['Ben Dodd'],
       samples: samples,
     }
+    console.log(report);
     let url = 'http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report);
     this.setState({ url: url });
     window.open(url);
@@ -245,7 +263,7 @@ class AsbestosLab extends React.Component {
         (<div>{ Object.keys(samples).filter(job => {
           if (this.props.search) {
             let terms = this.props.search.split(' ');
-            let search = job + ' ' + samples[job].clientname + ' ' + samples[job].address;
+            let search = job + ' ' + samples[job].client + ' ' + samples[job].address;
             let result = true;
             terms.forEach(term => {
               if (!search.toLowerCase().includes(term.toLowerCase())) result = false;

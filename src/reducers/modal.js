@@ -14,7 +14,7 @@ export const modalInit = {
   modalProps: {
     doc: {
       type: 'Tertiary',
-      samplers: [],
+      personnel: [],
       dates: [],
     },
     isUploading: false,
