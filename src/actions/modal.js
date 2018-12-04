@@ -1,5 +1,5 @@
 import { SHOW_MODAL, EDIT_MODAL, EDIT_MODAL_DOC,
-  ADD_TAG, DELETE_TAG, RESET_MODAL,
+  ADD_TAG, DELETE_TAG, RESET_MODAL, SET_MODAL_ERROR,
  } from "../constants/action-types";
 
 import { storage } from "../config/firebase";
@@ -63,6 +63,13 @@ export const onUploadFile = ({ file, storagePath }) => async dispatch => {
   });
 }
 
+export const setModalError = error => dispatch => {
+  dispatch({
+    type: SET_MODAL_ERROR,
+    payload: error,
+  });
+}
+
 export const handleModalChange = target => dispatch => {
   let val;
   if (target.id === 'course' || target.id === 'unit' || target.id === 'class' ) val = target.value.split(','); else val = target.value;
@@ -72,15 +79,17 @@ export const handleModalChange = target => dispatch => {
   });
 }
 
-export const handleModalSubmit = ({ doc, pathRef }) => dispatch => {
+export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
   let uid;
-  if (doc.uid) {
+  if (docid) {
+    pathRef.doc(docid).set({ ...doc, uid: docid });
+  } else if (doc.uid) {
     uid = doc.uid;
     pathRef.doc(doc.uid).set(doc);
   } else {
     uid = doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)));
+    pathRef.doc(uid).set({ ...doc, uid: uid, });
   }
-  pathRef.doc(uid).set({ ...doc, uid: uid, });
   dispatch({type: RESET_MODAL});
 }
 

@@ -3,6 +3,7 @@ import {
           GET_DOCUMENTS,
           GET_USER,
           GET_WFM,
+          GET_WFMJOB,
           GET_QUIZZES,
           GET_TRAININGS,
           GET_COCS,
@@ -25,6 +26,7 @@ import {
           RESET_LOCAL,
           UPDATE_STAFF,
           GET_VEHICLES,
+          SET_MODAL_ERROR,
         } from "../constants/action-types"
 
 const localInit = {
@@ -38,6 +40,7 @@ const localInit = {
   tools: [],
   user: {},
   wfmJobs: [],
+  wfmJob: null,
   modules: [],
   trainingpaths: [],
   notices: [],
@@ -104,6 +107,11 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         wfmJobs: action.payload,
+      }
+    case GET_WFMJOB:
+      return {
+        ...state,
+        wfmJob: action.payload,
       }
     case GET_VEHICLES:
       console.log('Got vehicles!');

@@ -1,12 +1,11 @@
 import React from 'react';
-// import ReactDOM from 'react-dom';
 // import { WithContext as ReactTags } from 'react-tag-input';
 import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 // import store from '../../store';
 import { COC } from '../../constants/modal-types';
-import { usersRef, storage } from '../../config/firebase';
+import { cocsRef, storage } from '../../config/firebase';
 import '../../config/tags.css';
 import { sendSlackMessage } from '../../Slack';
 
@@ -26,26 +25,26 @@ import IconButton from '@material-ui/core/IconButton';
 import Chip from '@material-ui/core/Chip';
 import MenuItem from '@material-ui/core/MenuItem';
 
+import DayPicker, { DateUtils } from 'react-day-picker';
+import 'react-day-picker/lib/style.css';
+
 import UploadIcon from '@material-ui/icons/CloudUpload';
 import Close from '@material-ui/icons/Close';
 import Sync from '@material-ui/icons/Sync';
-import {
-  hideModal, handleModalChange, handleModalSubmit, onUploadFile } from '../../actions/modal';
-import { fetchStaff, } from '../../actions/local';
+import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError } from '../../actions/modal';
+import { fetchStaff, syncJobWithWFM } from '../../actions/local';
 import _ from 'lodash';
+import { injectIntl, IntlProvider,  } from 'react-intl';
 
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
+    wfmJob: state.local.wfmJob,
     me: state.local.me,
     userRefName: state.local.userRefName,
-    tags: state.modal.modalProps.tags,
-    tagSuggestions: state.const.docTagSuggestions,
     staff: state.local.staff,
-    qualificationtypes: state.const.qualificationtypes,
-    delimiters: state.const.tagDelimiters,
    };
 };
 
@@ -54,20 +53,30 @@ const mapDispatchToProps = dispatch => {
     hideModal: () => dispatch(hideModal()),
     fetchStaff: () => dispatch(fetchStaff()),
     onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
-    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
+    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 100),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
+    setModalError: error => dispatch(setModalError(error)),
+    syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
   };
 };
 
-class CocModal extends React.Component {
-  constructor(props) {
-    super(props);
+function getStyles(name, that) {
+  return {
+    fontWeight:
+      that.state.samplers.indexOf(name) === -1
+        ? 200
+        : 600
+  };
+}
 
-    this.state = {
-      samplers: [],
-    };
-  }
+
+class CocModal extends React.Component {
+  state = {
+    samplers: [],
+    dates: [],
+    syncError: null,
+  };
 
   componentWillMount() {
     if (Object.keys(this.props.staff).length < 1)
@@ -79,50 +88,88 @@ class CocModal extends React.Component {
     this.setState({
       samplers: event.target.value
     });
+    this.props.handleSelectChange({ id: 'samplers', value: event.target.value, })
   }
-  // sendNewAttrSlack = () => {
-  //   let message = {
-  //     text: `${this.props.modalProps.staffName} has added a new qualification.\n${this.props.qualificationtypes[this.props.doc.type].name}`,
-  //   };
-  //   sendSlackMessage(message, true);
-  // }
+
+  handleDateChange = (day, { selected }) => {
+    const { dates } = this.state;
+    if (selected) {
+      const selectedIndex = dates.findIndex(selectedDay =>
+        DateUtils.isSameDay(selectedDay, day)
+      );
+      dates.splice(selectedIndex, 1);
+    } else {
+      dates.push(day);
+    }
+    this.props.handleSelectChange({ id: 'dates', value: dates, })
+  }
+
+  wfmSync = () => {
+    let jobNumber = this.props.doc.jobNumber;
+    if (!jobNumber) {
+      this.props.setModalError('Enter the job number to sync with WorkflowMax');
+    } else if (jobNumber.substring(0,2).toUpperCase() !== 'AS') {
+      this.props.setModalError('Asbestos job numbers must begin with "AS"');
+    } else {
+      this.props.setModalError(null);
+      this.props.syncJobWithWFM(jobNumber);
+    }
+  }
+
+  sendNewAttrSlack = () => {
+    // let message = {
+    //   text: `${this.props.modalProps.staffName} has added a new Chain of Custody.\n${this.props.qualificationtypes[this.props.doc.type].name}`,
+    // };
+    // sendSlackMessage(message, true);
+  }
 
   render() {
-    const { modalProps, doc, classes, staff } = this.props;
+    const { modalProps, doc, wfmJob, classes, staff } = this.props;
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name)));
-    console.log(names);
+    let today = new Date();
     return(
       <Dialog
         open={ this.props.modalType === COC }
         onClose = {() => this.props.hideModal}
         >
         <DialogTitle>{ modalProps.title ? modalProps.title : 'Add New Chain of Custody' }</DialogTitle>
-        <DialogContent>
+        <DialogContent className={classes.dialogField}>
           <div style={{ display: 'flex', flexDirection: 'row', }}>
             <TextField
-              id="jobnumber"
+              id="jobNumber"
               label="Job Number"
-              defaultValue={doc && doc.id}
-              className={classes.dialogField}
+              style={{ width: '100%' }}
+              defaultValue={doc && doc.jobNumber}
               onChange={e => {this.props.handleModalChange(e.target)}}
             />
-            <IconButton>
-              <Sync />
+            <IconButton onClick={ this.wfmSync }>
+              <Sync style={{ width: 32, height: 32, }}/>
             </IconButton>
           </div>
+          <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+            { modalProps.error }
+          </div>
+          { wfmJob &&
+            (
+              <div style={{ color: '#666', fontWeight: 200, fontSize: 14, }}>
+                { wfmJob.client }<br />
+                { wfmJob.address }<br />
+              </div>
+            )
+          }
           <form>
             <FormGroup>
-              <FormControl className={classes.formControl}>
+              <FormControl>
                 <InputLabel>Sampled By</InputLabel>
                 <Select
                  multiple
-                 value={this.state.samplers}
+                 value={doc.samplers}
                  onChange={this.handleSamplerChange}
-                 input={<Input id="select-multiple-chip" />}
+                 input={<Input id="samplers" />}
                  renderValue={selected => (
-                   <div className={classes.chips}>
+                   <div style={{ display: 'flex', flexWrap: 'wrap', }}>
                      {selected.map(value => (
-                       <Chip key={value.uid} label={value.name} style={{ display: 'flex', flexWrap: 'wrap', }} />
+                       <Chip key={value} label={value} style={{ margin: 5}} />
                      ))}
                    </div>)
                  }
@@ -136,86 +183,19 @@ class CocModal extends React.Component {
                  }}
                 >
                  {names.map(name => (
-                   <MenuItem key={name.uid} value={{ uid: name.uid, name: name.name, }}>
+                   <MenuItem key={name.name} value={ name.name } style={getStyles(name.name, this)}>
                      {name.name}
                    </MenuItem>
                  ))}
                 </Select>
               </FormControl>
-
-
-
-              { this.props.qualificationtypes[doc.type].abbrev &&
-              <TextField
-                id="abbrev"
-                label="Abbreviated Title"
-                defaultValue={doc && doc.abbrev}
-                className={classes.dialogField}
-                helperText="e.g. BSc (Hons); This will be displayed beside your name on reports"
-                onChange={e => {this.props.handleModalChange(e.target)}}
-              />}
-
-              { this.props.qualificationtypes[doc.type].unit &&
-              <TextField
-                id="unit"
-                label="Unit Standard Number(s)"
-                defaultValue={doc && doc.unit && doc.unit.join(', ')}
-                className={classes.dialogField}
-                helperText="If more than one unit standard, seperate each one with a comma"
-                onChange={e => {this.props.handleModalChange(e.target)}}
-              />}
-
-              { this.props.qualificationtypes[doc.type].class &&
-              <TextField
-                id="class"
-                label="Class(es)"
-                defaultValue={doc && doc.class && doc.class.join(', ')}
-                className={classes.dialogField}
-                helperText="1 = Car Full, 1L = Car Learner, 1R = Car Restricted etc. If more than one class, separate each one with a comma."
-                onChange={e => {this.props.handleModalChange(e.target)}}
-              />}
-
-              { this.props.qualificationtypes[doc.type].issuer &&
-              <TextField
-                id="issuer"
-                label="Issuer/Provider"
-                defaultValue={doc && doc.issuer}
-                className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange(e.target)}}
-              />}
-
-              {/*Date is always shown*/}
-              <TextField
-                id="date"
-                label="Date Issued"
-                type="date"
-                defaultValue={doc && doc.date}
-                className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange(e.target)}}
-                InputLabelProps = {{ shrink: true }}
-              />
-
-              { this.props.qualificationtypes[doc.type].expiry &&
-              <TextField
-                id="expiry"
-                label="Expiry Date"
-                type="date"
-                defaultValue={doc && doc.expiry}
-                className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange(e.target)}}
-                InputLabelProps = {{ shrink: true }}
-              />}
-
-              { this.props.qualificationtypes[doc.type].notes &&
-              <TextField
-                id="notes"
-                label="Notes"
-                multiline
-                maxlines={4}
-                defaultValue={doc && doc.notes}
-                className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange(e.target)}}
-              />}
+              <FormControl>
+                <InputLabel>Sample Date(s)</InputLabel>
+                <DayPicker
+                  selectedDays={this.state.dates}
+                  onDayClick={this.handleDateChange}
+                />
+              </FormControl>
             </FormGroup>
           </form>
         </DialogContent>
@@ -223,12 +203,43 @@ class CocModal extends React.Component {
           <Button onClick={() => { this.props.hideModal() }} color="secondary">Cancel</Button>
           {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
           : <Button onClick={() => {
-            this.props.handleModalSubmit({
-              doc: doc,
-              pathRef: usersRef.doc(modalProps.userPath).collection("attr"),
-            });
-            this.sendNewAttrSlack();
-            this.props.getUserAttrs(modalProps.userPath);
+            if (!wfmJob) {
+              this.props.setModalError('Sync a job with WorkflowMax before submitting.')
+            } else {
+              doc.jobNumber = doc.jobNumber.toUpperCase();
+              doc.client = wfmJob.client;
+              doc.address = wfmJob.address;
+              doc.clientOrderNumber = wfmJob.clientOrderNumber;
+              doc.contact = wfmJob.contact;
+              doc.dueDate = wfmJob.dueDate;
+              doc.manager = wfmJob.manager;
+              doc.type = wfmJob.type;
+              let now = new Date();
+              doc.dateSubmit = now;
+              let datestring = new Intl.DateTimeFormat('en-GB', {
+                year: '2-digit',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              }).format(now).replace(/[.:/,\s]/g, '_');
+              console.log(datestring);
+              if (doc.uid) {
+                this.props.handleModalSubmit({
+                  doc: doc,
+                  pathRef: cocsRef,
+                });
+              } else {
+                this.props.handleModalSubmit({
+                  doc: doc,
+                  pathRef: cocsRef,
+                  docid: `${doc.jobNumber}_${datestring}`
+                });
+                // SET WFM JOB TO {} HERE
+                // this.sendNewCocSlack();
+              }
+            }
           }
         } color="primary" >Submit</Button>}
         </DialogActions>

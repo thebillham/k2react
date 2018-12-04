@@ -30,12 +30,14 @@ export const GET_UPDATES = "GET_UPDATES";
 export const RESET_LOCAL = "RESET_LOCAL";
 export const UPDATE_STAFF = "UPDATE_STAFF";
 export const GET_VEHICLES = "GET_VEHICLES";
+export const GET_WFMJOB = "GET_WFMJOB";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";
 export const HIDE_MODAL = "HIDE_MODAL";
 export const EDIT_MODAL = "EDIT_MODAL";
 export const EDIT_MODAL_DOC = "EDIT_MODAL_DOC";
+export const SET_MODAL_ERROR = "SET_MODAL_ERROR";
 
 export const ADD_TAG = "ADD_TAG";
 export const DELETE_TAG = "DELETE_TAG";

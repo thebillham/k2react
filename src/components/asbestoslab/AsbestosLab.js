@@ -261,7 +261,7 @@ class AsbestosLab extends React.Component {
           return (
             <ExpansionPanel key={job} onChange={(event, ex) => { this.getSamples(ex, job)}}>
               <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                <b>{job}</b> {samples[job].clientname} ({samples[job].address})
+                <b>{samples[job].jobNumber}</b> {samples[job].client} ({samples[job].address})
               </ExpansionPanelSummary>
               <ExpansionPanelDetails>
                 <List>

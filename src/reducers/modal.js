@@ -6,6 +6,7 @@ import {
           ADD_TAG,
           DELETE_TAG,
           RESET_MODAL,
+          SET_MODAL_ERROR,
         } from "../constants/action-types"
 
 export const modalInit = {
@@ -13,6 +14,8 @@ export const modalInit = {
   modalProps: {
     doc: {
       type: 'Tertiary',
+      samplers: [],
+      dates: [],
     },
     isUploading: false,
     uploadProgress: 0,
@@ -75,6 +78,14 @@ export default function modalReducer(state = modalInit, action){
           tags: {
             ...state.modalProps.tags.filter((tag, index) => index !== action.payload)
           }
+        }
+      }
+    case SET_MODAL_ERROR:
+      return {
+        ...state,
+        modalProps: {
+          ...state.modalProps,
+          error: action.payload
         }
       }
     default:

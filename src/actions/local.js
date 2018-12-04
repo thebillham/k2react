@@ -25,9 +25,10 @@ import { GET_STAFF,
         RESET_LOCAL,
         UPDATE_STAFF,
         GET_VEHICLES,
+        SET_MODAL_ERROR,
+        GET_WFMJOB,
       } from "../constants/action-types";
 import firebase from '../config/firebase';
-import { wfmRoot, wfmApi, wfmAcc } from 'keys.js';
 import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
     trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef,
     updateRef, cocsRef, vehiclesRef, } from "../config/firebase";
@@ -218,7 +219,7 @@ export const fetchDocuments = () => async dispatch => {
 };
 
 export const fetchCocs = () => async dispatch => {
-  cocsRef.orderBy('date', 'desc')
+  cocsRef.orderBy('dueDate', 'desc')
     .onSnapshot((querySnapshot) => {
       var cocs = {};
       querySnapshot.forEach((doc) => {
@@ -468,7 +469,7 @@ export const getUser = userRef => async dispatch => {
 
 export const fetchWFM = () => async dispatch => {
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
-  let path = wfmRoot + 'job.api/current?apiKey=' + wfmApi + '&accountKey=' + wfmAcc;
+  let path = `${process.env.REACT_APP_WFM_ROOT}job.api/current?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   fetch(path).then(results => results.text()).then(data =>{
     var xmlDOM = new DOMParser().parseFromString(data, 'text/xml')
     var json = xmlToJson(xmlDOM);
@@ -511,6 +512,58 @@ export const fetchWFM = () => async dispatch => {
       type: GET_WFM,
       payload: jobs
     });
+  });
+};
+
+export const syncJobWithWFM = jobNumber => async dispatch => {
+  let path = `${process.env.REACT_APP_WFM_ROOT}job.api/get/${jobNumber}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+  console.log(path);
+  fetch(path).then(results => results.text()).then(data =>{
+    var xmlDOM = new DOMParser().parseFromString(data, 'text/xml')
+    var json = xmlToJson(xmlDOM);
+    console.log(json);
+    if (json.Response.Status === 'ERROR') {
+      dispatch({
+        type: SET_MODAL_ERROR,
+        payload: json.Response.ErrorDescription,
+      });
+    } else {
+      let wfmJob = json.Response.Job;
+      let job = {};
+      job.jobNumber = wfmJob.ID ? wfmJob.ID : 'No job number';
+      job.address = wfmJob.Name ? wfmJob.Name: 'No address';
+      job.description = wfmJob.Description ? wfmJob.Description : 'No description';
+      if (wfmJob.Client) {
+        job.client = wfmJob.Client.Name ? wfmJob.Client.Name : 'No client name';
+        job.clientID = wfmJob.Client.ID ? wfmJob.Client.ID : 'No client ID';
+      } else {
+        job.client = 'No client name';
+        job.clientID = 'No client ID';
+      }
+      job.clientOrderNumber = wfmJob.ClientOrderNumber ? wfmJob.ClientOrderNumber : 'No client order number';
+      if (wfmJob.Contact) {
+        job.contact = wfmJob.Contact.Name ? wfmJob.Contact.Name : 'No contact name';
+        job.contactID = wfmJob.Contact.ID ? wfmJob.Contact.ID : 'No contact ID';
+      } else {
+        job.contact = 'No contact name';
+        job.contactID = 'No contact ID';
+      }
+      if (wfmJob.Manager) {
+        job.manager = wfmJob.Manager.Name ? wfmJob.Manager.Name : 'No contact name';
+        job.managerID = wfmJob.Manager.ID ? wfmJob.Manager.ID : 'No contact ID';
+      } else {
+        job.manager = 'No contact name';
+        job.managerID = 'No contact ID';
+      }
+      job.dueDate = wfmJob.DueDate ? wfmJob.DueDate : '';
+      job.startDate = wfmJob.StartDate ? wfmJob.StartDate : '';
+      job.state = wfmJob.State ? wfmJob.State : 'Unknown state';
+      job.type = wfmJob.Type ? wfmJob.Type : 'Other';
+      dispatch({
+        type: GET_WFMJOB,
+        payload: job,
+      });
+    }
   });
 };
 
