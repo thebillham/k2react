@@ -7,15 +7,16 @@ import {
           DELETE_TAG,
           RESET_MODAL,
           SET_MODAL_ERROR,
+          EDIT_MODAL_SAMPLE
         } from "../constants/action-types"
 
 export const modalInit = {
   modalType: null,
   modalProps: {
     doc: {
-      type: 'Tertiary',
       personnel: [],
       dates: [],
+      samples: {},
     },
     isUploading: false,
     uploadProgress: 0,
@@ -46,6 +47,23 @@ export default function modalReducer(state = modalInit, action){
             ...action.payload,
            },
          }
+      }
+    case EDIT_MODAL_SAMPLE:
+      return {
+        ...state,
+        modalProps: {
+          ...state.modalProps,
+          doc: {
+            ...state.modalProps.doc,
+            samples: {
+              ...state.modalProps.doc.samples,
+              [action.payload.number]: {
+                ...state.modalProps.doc.samples[action.payload.number],
+                [action.payload.type]: action.payload.value,
+              }
+           },
+         },
+       },
       }
     case EDIT_MODAL:
       return {

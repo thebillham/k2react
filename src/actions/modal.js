@@ -1,8 +1,9 @@
 import { SHOW_MODAL, EDIT_MODAL, EDIT_MODAL_DOC,
   ADD_TAG, DELETE_TAG, RESET_MODAL, SET_MODAL_ERROR,
+  EDIT_MODAL_SAMPLE,
  } from "../constants/action-types";
 
-import { storage } from "../config/firebase";
+import { storage, cocsRef } from "../config/firebase";
 
 export const resetModal = () => dispatch => {
   dispatch({ type: RESET_MODAL });
@@ -79,6 +80,18 @@ export const handleModalChange = target => dispatch => {
   });
 }
 
+export const handleSampleChange = (number, type, value) => dispatch => {
+  console.log(`Changing sample ${number} (${type}) to ${value}`);
+  dispatch({
+    type: EDIT_MODAL_SAMPLE,
+    payload: {
+      number: number + 1,
+      type: type,
+      value: value,
+    }
+  });
+}
+
 export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
   let uid;
   if (docid) {
@@ -90,6 +103,19 @@ export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
     uid = doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)));
     pathRef.doc(uid).set({ ...doc, uid: uid, });
   }
+  dispatch({type: RESET_MODAL});
+}
+
+export const handleCocSubmit = ({ doc, docid}) => dispatch => {
+  if (doc.samples) {
+    Object.keys(doc.samples).forEach(sample => {
+      cocsRef.doc(docid).collection('samples').doc(sample).set({...doc.samples[sample], samplenumber: sample});
+    });
+  }
+  let doc2 = doc;
+  if (doc2.samples) delete doc2.samples;
+  doc2.uid = docid;
+  cocsRef.doc(docid).set(doc2);
   dispatch({type: RESET_MODAL});
 }
 

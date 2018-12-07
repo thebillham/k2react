@@ -234,7 +234,7 @@ export const fetchCocs = () => async dispatch => {
 
 export const fetchVehicles = () => async dispatch => {
   vehiclesRef
-    .onSnapshot((querySnapshot) => {
+    .get().then((querySnapshot) => {
       var vehicles = [];
       querySnapshot.forEach((doc) => {
         var vehicle = doc.data();
@@ -248,18 +248,18 @@ export const fetchVehicles = () => async dispatch => {
     })
 }
 
-export const fetchSamples = jobnumber => async dispatch => {
-  cocsRef.doc(jobnumber).collection('samples').orderBy('samplenumber')
+export const fetchSamples = cocUid => async dispatch => {
+  cocsRef.doc(cocUid).collection('samples').orderBy('samplenumber')
     .onSnapshot((querySnapshot) => {
-      var samples = [];
+      var samples = {};
       querySnapshot.forEach((doc) => {
         let sample = doc.data();
         sample.uid = doc.id;
-        samples.push(sample);
+        samples[doc.id] = sample;
       });
       dispatch({
         type: GET_SAMPLES,
-        jobnumber: jobnumber,
+        cocUid: cocUid,
         payload: samples
       });
     });
@@ -566,6 +566,13 @@ export const syncJobWithWFM = jobNumber => async dispatch => {
     }
   });
 };
+
+export const resetWfmJob = () => dispatch => {
+  dispatch({
+    type: GET_WFMJOB,
+    payload: {},
+  })
+}
 
 export const onSearchChange = value => dispatch => {
   dispatch({

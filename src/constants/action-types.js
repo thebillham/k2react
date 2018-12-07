@@ -37,6 +37,7 @@ export const SHOW_MODAL = "SHOW_MODAL";
 export const HIDE_MODAL = "HIDE_MODAL";
 export const EDIT_MODAL = "EDIT_MODAL";
 export const EDIT_MODAL_DOC = "EDIT_MODAL_DOC";
+export const EDIT_MODAL_SAMPLE = "EDIT_MODAL_SAMPLE";
 export const SET_MODAL_ERROR = "SET_MODAL_ERROR";
 
 export const ADD_TAG = "ADD_TAG";

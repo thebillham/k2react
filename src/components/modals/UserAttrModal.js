@@ -85,6 +85,7 @@ class UserAttrModal extends React.Component {
         >
         <DialogTitle>{ modalProps.title ? modalProps.title : 'Add New Item' }</DialogTitle>
         <DialogContent>
+          { doc.type &&
           <form>
             <FormGroup>
               <FormControl className={classes.dialogField}>
@@ -251,6 +252,7 @@ class UserAttrModal extends React.Component {
               </label>
             </FormGroup>
           </form>
+          }
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { this.props.hideModal() }} color="secondary">Cancel</Button>

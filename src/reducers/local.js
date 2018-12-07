@@ -49,8 +49,8 @@ const localInit = {
   search: null,
   category: 'gen',
   steppers: [],
-  samplesasbestos: {},
   cocs: {},
+  samples: {},
   helps: [],
   updates: [],
   vehicles: [],
@@ -71,14 +71,11 @@ export default function localReducer(state = localInit, action) {
     case GET_SAMPLES:
       return {
         ...state,
-        cocs: {
-          ...state.cocs,
-          [action.jobnumber]: {
-            ...state.cocs[action.jobnumber],
-            samples: action.payload,
+        samples: {
+          ...state.samples,
+          [action.cocUid]: action.payload,
         }
       }
-    };
     case GET_ME:
       return {
         ...state,
@@ -114,7 +111,6 @@ export default function localReducer(state = localInit, action) {
         wfmJob: action.payload,
       }
     case GET_VEHICLES:
-      console.log('Got vehicles!');
       return {
         ...state,
         vehicles: action.payload,
@@ -165,7 +161,6 @@ export default function localReducer(state = localInit, action) {
         updates: action.payload,
       }
     case GET_READINGLOG:
-      console.log('Got logs!');
       return {
         ...state,
         readingLog: action.payload,
@@ -183,32 +178,32 @@ export default function localReducer(state = localInit, action) {
           deletednotices: action.payload,
         }
       }
-      case FAV_NOTICE:
-        return {
-          ...state,
-          me: {
-            ...state.me,
-            favnotices: action.payload,
-          }
+    case FAV_NOTICE:
+      return {
+        ...state,
+        me: {
+          ...state.me,
+          favnotices: action.payload,
         }
-      case READ_NOTICE:
-        return {
-          ...state,
-          me: {
-            ...state.me,
-            readnotices: action.payload,
-          }
+      }
+    case READ_NOTICE:
+      return {
+        ...state,
+        me: {
+          ...state.me,
+          readnotices: action.payload,
         }
-      case SET_STEPPER:
-        return {
-          ...state,
-          stepper: action.payload,
-        }
-      case GET_ASBESTOS_SAMPLES:
-        return {
-          ...state,
-          samplesasbestos: action.payload,
-        }
+      }
+    case SET_STEPPER:
+      return {
+        ...state,
+        stepper: action.payload,
+      }
+    case GET_ASBESTOS_SAMPLES:
+      return {
+        ...state,
+        samplesasbestos: action.payload,
+      }
     default:
       return state;
   }

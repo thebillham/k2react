@@ -8,6 +8,7 @@ import { COC } from '../../constants/modal-types';
 import { cocsRef, storage } from '../../config/firebase';
 import '../../config/tags.css';
 import { sendSlackMessage } from '../../Slack';
+import ReactAutocomplete from 'react-autocomplete';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -21,10 +22,13 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
-import Select from '@material-ui/core/Select';
 import IconButton from '@material-ui/core/IconButton';
 import Chip from '@material-ui/core/Chip';
 import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import Autosuggest from 'react-autosuggest';
+import match from 'autosuggest-highlight/match';
+import parse from 'autosuggest-highlight/parse';
 
 import DayPicker, { DateUtils } from 'react-day-picker';
 import 'react-day-picker/lib/style.css';
@@ -32,13 +36,14 @@ import 'react-day-picker/lib/style.css';
 import UploadIcon from '@material-ui/icons/CloudUpload';
 import Close from '@material-ui/icons/Close';
 import Sync from '@material-ui/icons/Sync';
-import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError } from '../../actions/modal';
-import { fetchStaff, syncJobWithWFM } from '../../actions/local';
+import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, handleSampleChange, handleCocSubmit } from '../../actions/modal';
+import { fetchStaff, syncJobWithWFM, resetWfmJob, } from '../../actions/local';
 import _ from 'lodash';
 import { injectIntl, IntlProvider,  } from 'react-intl';
 
 const mapStateToProps = state => {
   return {
+    suggestions: state.const.asbestosmaterials,
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
@@ -54,18 +59,21 @@ const mapDispatchToProps = dispatch => {
     hideModal: () => dispatch(hideModal()),
     fetchStaff: () => dispatch(fetchStaff()),
     onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
-    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 100),
+    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
+    handleCocSubmit: (doc, docid) => dispatch(handleCocSubmit(doc, docid)),
+    handleSampleChange: (number, type, value) => dispatch(handleSampleChange(number, type, value)),
     setModalError: error => dispatch(setModalError(error)),
     syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
+    resetWfmJob: () => dispatch(resetWfmJob()),
   };
 };
 
 function getStyles(name, that) {
   return {
     fontWeight:
-      that.state.samplers.indexOf(name) === -1
+      that.state.personnel.indexOf(name) === -1
         ? 200
         : 600
   };
@@ -74,8 +82,7 @@ function getStyles(name, that) {
 
 class CocModal extends React.Component {
   state = {
-    samplers: [],
-    dates: [],
+    personnel: [],
     syncError: null,
   };
 
@@ -93,7 +100,7 @@ class CocModal extends React.Component {
   }
 
   handleDateChange = (day, { selected }) => {
-    const { dates } = this.state;
+    const { dates } = this.props.doc;
     if (selected) {
       const selectedIndex = dates.findIndex(selectedDay =>
         DateUtils.isSameDay(selectedDay, day)
@@ -113,6 +120,7 @@ class CocModal extends React.Component {
       this.props.setModalError('Asbestos job numbers must begin with "AS"');
     } else {
       this.props.setModalError(null);
+      jobNumber = jobNumber;
       this.props.syncJobWithWFM(jobNumber);
     }
   }
@@ -146,7 +154,7 @@ class CocModal extends React.Component {
                   label="Job Number"
                   style={{ width: '100%' }}
                   defaultValue={doc && doc.jobNumber}
-                  onChange={e => {this.props.handleModalChange(e.target)}}
+                  onChange={e => {this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'')})}}
                 />
                 <IconButton onClick={ this.wfmSync }>
                   <Sync style={{ width: 28, height: 28, }}/>
@@ -157,9 +165,20 @@ class CocModal extends React.Component {
               </div>
               { wfmJob &&
                 (
-                  <div style={{ color: '#666', fontWeight: 200, fontSize: 14, }}>
-                    { wfmJob.client }<br />
-                    { wfmJob.address }<br />
+                  <div style={{ color: '#666', fontWeight: 200, fontSize: 16, marginTop: 12, marginBottom: 12, }}>
+                    { wfmJob.client ?
+                      <div>
+                        <b>{ wfmJob.type}</b><br />
+                        { wfmJob.client }<br />
+                        { wfmJob.address }<br />
+                      </div>
+                      :
+                      <div>
+                        <b>{ doc.type}</b><br />
+                        { doc.client }<br />
+                        { doc.address }<br />
+                      </div>
+                    }
                   </div>
                 )
               }
@@ -196,9 +215,9 @@ class CocModal extends React.Component {
                     </Select>
                   </FormControl>
                   <FormControl>
-                    <InputLabel>Sample Date(s)</InputLabel><br /><br />
+                    <InputLabel shrink>Sample Date(s)</InputLabel><br /><br />
                     <DayPicker
-                      selectedDays={this.state.dates}
+                      selectedDays={doc.dates}
                       onDayClick={this.handleDateChange}
                     />
                   </FormControl>
@@ -208,16 +227,53 @@ class CocModal extends React.Component {
             <Grid item xs={12} md={8}>
               <Grid container direction='column'>
                 <Grid item>
-                  { Array.from(Array(150),(x, i) => i).map(i => {
-                    return(<Grid container>
+                  <Grid container>
                     <Grid item xs={1}>
-                      {i + 1}
+                      Sample Number
                     </Grid>
                     <Grid item xs={6}>
-                      Item
+                      Location/Item
                     </Grid>
                     <Grid item xs={5}>
                       Material
+                    </Grid>
+                  </Grid>
+                  { Array.from(Array(150),(x, i) => i).map(i => {
+                    return(<Grid container key={i}>
+                    <Grid item xs={1}>
+                      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
+                        {i+1}
+                      </div>
+                    </Grid>
+                    <Grid item xs={6} style={{ paddingLeft: 12, paddingRight: 12, }}>
+                      <TextField
+                        id={`description${i+1}`}
+                        style={{ width: '100%' }}
+                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description}
+                        onChange={e => {this.props.handleSampleChange(i, 'description', e.target.value)}}
+                      />
+                    </Grid>
+                    <Grid item xs={4} style={{ paddingLeft: 12, }}>
+                      <ReactAutocomplete
+                        items={ this.props.suggestions }
+                        shouldItemRender={(item, value) => item.toLowerCase().indexOf(value.toLowerCase()) > -1}
+                        getItemValue={item => item}
+                        wrapperStyle={{
+                          borderStyle: 'none',
+                          borderWidth: 'medium',
+                        }}
+                        renderItem={(item, highlighted) =>
+                          <div
+                            key={item}
+                            style={{ backgroundColor: highlighted ? '#eee' : 'transparent'}}
+                          >
+                            {item}
+                          </div>
+                        }
+                        value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material}
+                        onChange={e => {this.props.handleSampleChange(i, 'material', e.target.value)}}
+                        onSelect={e => {this.props.handleSampleChange(i, 'material', e)}}
+                      />
                     </Grid>
                   </Grid>)
                   })}
@@ -227,20 +283,25 @@ class CocModal extends React.Component {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { this.props.hideModal() }} color="secondary">Cancel</Button>
+          <Button onClick={() => {
+            this.props.resetWfmJob();
+            this.props.hideModal()
+          }} color="secondary">Cancel</Button>
           {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
           : <Button onClick={() => {
             if (!wfmJob) {
               this.props.setModalError('Sync a job with WorkflowMax before submitting.')
             } else {
-              doc.jobNumber = doc.jobNumber.toUpperCase();
-              doc.client = wfmJob.client;
-              doc.address = wfmJob.address;
-              doc.clientOrderNumber = wfmJob.clientOrderNumber;
-              doc.contact = wfmJob.contact;
-              doc.dueDate = wfmJob.dueDate;
-              doc.manager = wfmJob.manager;
-              doc.type = wfmJob.type;
+               if (wfmJob.client) {
+                doc.jobNumber = doc.jobNumber ? doc.jobNumber.toUpperCase() : null;
+                doc.client = wfmJob.client ? wfmJob.client : null;
+                doc.address = wfmJob.address ? wfmJob.address : null;
+                doc.clientOrderNumber = wfmJob.clientOrderNumber ? wfmJob.clientOrderNumber : null;
+                doc.contact = wfmJob.contact ? wfmJob.contact : null;
+                doc.dueDate = wfmJob.dueDate ? wfmJob.dueDate : null;
+                doc.manager = wfmJob.manager ? wfmJob.manager : null;
+                doc.type = wfmJob.type ? wfmJob.type : null;
+               }
               let now = new Date();
               doc.dateSubmit = now;
               let datestring = new Intl.DateTimeFormat('en-GB', {
@@ -253,17 +314,16 @@ class CocModal extends React.Component {
               }).format(now).replace(/[.:/,\s]/g, '_');
               console.log(datestring);
               if (doc.uid) {
-                this.props.handleModalSubmit({
+                this.props.handleCocSubmit({
                   doc: doc,
-                  pathRef: cocsRef,
+                  docid: doc.uid,
                 });
               } else {
-                this.props.handleModalSubmit({
+                this.props.handleCocSubmit({
                   doc: doc,
-                  pathRef: cocsRef,
                   docid: `${doc.jobNumber}_${datestring}`
                 });
-                // SET WFM JOB TO {} HERE
+                this.props.resetWfmJob();
                 // this.sendNewCocSlack();
               }
             }

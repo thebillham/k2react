@@ -333,7 +333,7 @@ class UserDetails extends React.Component {
                 :
                   <div style={{ position: 'relative', width: '60vw'}}>
                     <div>
-                      <Button variant='outlined' onClick={() => {this.props.showModal({ modalType: USERATTR, modalProps: { userPath: this.state.userPath, title: 'Add New Item', staffName: user.name } })}}>
+                      <Button variant='outlined' onClick={() => {this.props.showModal({ modalType: USERATTR, modalProps: { userPath: this.state.userPath, title: 'Add New Item', staffName: user.name, doc: { type: 'Tertiary' } } })}}>
                         Add New Item
                       </Button>
                     </div>
