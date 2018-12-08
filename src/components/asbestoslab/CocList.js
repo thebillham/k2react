@@ -138,7 +138,8 @@ class CocList extends React.Component {
   }
 
   issueLabReport = (job, version) => {
-    console.log(`Job is ${job}, version is ${version}`);
+    // first check all samples have been checked
+    // if not version 1, prompt for reason for new version
     this.props.job.reportversion = version;
     cocsRef.doc(this.props.job.uid).set({ reportversion: version }, {merge: true});
   }
@@ -152,7 +153,7 @@ class CocList extends React.Component {
     aanumbers['Client'] = '-';
     console.log(aanumbers);
     let samples = [];
-    job.samples && job.samples.forEach(sample => {
+    this.props.samples[job.uid] && Object.values(this.props.samples[job.uid]).forEach(sample => {
       if (sample.reported) {
         let samplemap = {};
         samplemap['no'] = sample.samplenumber;
@@ -164,16 +165,18 @@ class CocList extends React.Component {
     })
     let report = {
       jobNumber: job.jobNumber,
-      client: job.client,
+      client: `${job.client} ${job.clientOrderNumber}`,
       address: job.address,
       date: job.dates.sort((b,a) => {
         return new Date(b.toDate()) - new Date(a.toDate())
-      }).map(date => { return(
+      }).map(date => {
+        let formatDate = (date instanceof Date) ? date : date.toDate()
+        return(
         new Intl.DateTimeFormat('en-GB', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',
-        }).format(date.toDate())
+        }).format(formatDate)
       )}).join(', '),
       ktp: 'Stuart Keer-Keer',
       personnel: job.personnel.sort(),
@@ -244,7 +247,7 @@ class CocList extends React.Component {
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <List>
-          <Button variant='outlined' onClick={() => {
+          <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {
             this.props.syncJobWithWFM(job.jobNumber);
             this.props.showModal({ modalType: COC, modalProps: { title: 'Edit Chain of Custody', doc: {...job, samples: samples[job.uid]}} });
           }}>
@@ -256,7 +259,7 @@ class CocList extends React.Component {
             Issue Version { version }
           </Button>
           <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printLabReport(job)}}>
-            <Print style={{ fontSize: 20, margin: 5, }} /> Print Test Certificate
+            <Print style={{ fontSize: 20, margin: 5, }} /> Download Test Certificate
           </Button>
           <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printCoc(job)}}>
             <Print style={{ fontSize: 20, margin: 5, }} /> Print Chain of Custody

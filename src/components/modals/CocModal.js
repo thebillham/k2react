@@ -24,6 +24,7 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import IconButton from '@material-ui/core/IconButton';
 import Chip from '@material-ui/core/Chip';
+import Paper from '@material-ui/core/Paper'
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import Autosuggest from 'react-autosuggest';
@@ -39,6 +40,7 @@ import Sync from '@material-ui/icons/Sync';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, handleSampleChange, handleCocSubmit } from '../../actions/modal';
 import { fetchStaff, syncJobWithWFM, resetWfmJob, } from '../../actions/local';
 import _ from 'lodash';
+import deburr from 'lodash/deburr';
 import { injectIntl, IntlProvider,  } from 'react-intl';
 
 const mapStateToProps = state => {
@@ -83,6 +85,7 @@ function getStyles(name, that) {
 class CocModal extends React.Component {
   state = {
     personnel: [],
+    suggestions: [],
     syncError: null,
   };
 
@@ -92,12 +95,23 @@ class CocModal extends React.Component {
   }
 
   handlePersonnelChange = event => {
-    console.log(event.target.value);
     this.setState({
       personnel: event.target.value
     });
     this.props.handleSelectChange({ id: 'personnel', value: event.target.value, })
   }
+
+  handleSuggestionsFetchRequested = ({ value }) => {
+    this.setState({
+      suggestions: getSuggestions(value, this),
+    });
+  };
+
+  handleSuggestionsClearRequested = () => {
+    this.setState({
+      suggestions: [],
+    });
+  };
 
   handleDateChange = (day, { selected }) => {
     const { dates } = this.props.doc;
@@ -136,6 +150,14 @@ class CocModal extends React.Component {
     const { modalProps, doc, wfmJob, classes, staff } = this.props;
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name)));
     let today = new Date();
+    const autosuggestProps = {
+      renderInputComponent,
+      suggestions: this.state.suggestions,
+      onSuggestionsFetchRequested: _.debounce(this.handleSuggestionsFetchRequested, 100),
+      onSuggestionsClearRequested: this.handleSuggestionsClearRequested,
+      getSuggestionValue,
+      renderSuggestion,
+    };
     return(
       <Dialog
         open={ this.props.modalType === COC }
@@ -238,7 +260,7 @@ class CocModal extends React.Component {
                       Material
                     </Grid>
                   </Grid>
-                  { Array.from(Array(150),(x, i) => i).map(i => {
+                  { Array.from(Array(20),(x, i) => i).map(i => {
                     return(<Grid container key={i}>
                     <Grid item xs={1}>
                       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
@@ -254,25 +276,25 @@ class CocModal extends React.Component {
                       />
                     </Grid>
                     <Grid item xs={4} style={{ paddingLeft: 12, }}>
-                      <ReactAutocomplete
-                        items={ this.props.suggestions }
-                        shouldItemRender={(item, value) => item.toLowerCase().indexOf(value.toLowerCase()) > -1}
-                        getItemValue={item => item}
-                        wrapperStyle={{
-                          borderStyle: 'none',
-                          borderWidth: 'medium',
+                      <Autosuggest
+                        {...autosuggestProps}
+                        onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
+                          this.props.handleSampleChange(i, 'material', suggestionValue); }}
+                        inputProps={{
+                          value: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
+                          onChange: e => {this.props.handleSampleChange(i, 'material', e.target.value)},
                         }}
-                        renderItem={(item, highlighted) =>
-                          <div
-                            key={item}
-                            style={{ backgroundColor: highlighted ? '#eee' : 'transparent'}}
-                          >
-                            {item}
-                          </div>
-                        }
-                        value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material}
-                        onChange={e => {this.props.handleSampleChange(i, 'material', e.target.value)}}
-                        onSelect={e => {this.props.handleSampleChange(i, 'material', e)}}
+                        theme={{
+                          container: { position: 'relative',},
+                          suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
+                          suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
+                          suggestion: {display: 'block', },
+                        }}
+                        renderSuggestionsContainer={options => (
+                          <Paper {...options.containerProps} square>
+                            {options.children}
+                          </Paper>
+                        )}
                       />
                     </Grid>
                   </Grid>)
@@ -312,7 +334,6 @@ class CocModal extends React.Component {
                 minute: '2-digit',
                 second: '2-digit',
               }).format(now).replace(/[.:/,\s]/g, '_');
-              console.log(datestring);
               if (doc.uid) {
                 this.props.handleCocSubmit({
                   doc: doc,
@@ -334,5 +355,66 @@ class CocModal extends React.Component {
     )
   }
 }
+
+function renderInputComponent(inputProps) {
+  const { classes, inputRef = () => {}, ref, ...other } = inputProps;
+
+  return (
+    <TextField
+      fullWidth
+      InputProps={{
+        inputRef: node => {
+          ref(node);
+          inputRef(node);
+        },
+      }}
+      {...other}
+    />
+  );
+}
+
+function renderSuggestion(suggestion, { query, isHighlighted }) {
+  const matches = match(suggestion.label, query);
+  const parts = parse(suggestion.label, matches);
+
+  return (
+    <MenuItem selected={isHighlighted} component="div">
+      <div>
+        {parts.map((part, index) => {
+          return part.highlight ? (
+            <span key={String(index)} style={{ fontWeight: 500 }}>
+              {part.text}
+            </span>
+          ) : (
+            <strong key={String(index)} style={{ fontWeight: 300 }}>
+              {part.text}
+            </strong>
+          );
+        })}
+      </div>
+    </MenuItem>
+  );
+}
+
+function getSuggestions(value, that) {
+  const inputValue = deburr(value.trim()).toLowerCase();
+  const inputLength = inputValue.length;
+  let count = 0;
+
+  return inputLength === 0
+    ? []
+    : that.props.suggestions.filter(suggestion => {
+        const keep =
+          count < 5 && suggestion.label.slice(0, inputLength).toLowerCase() === inputValue;
+
+        if (keep) {
+          count += 1;
+        }
+
+        return keep;
+      });
+}
+
+const getSuggestionValue = suggestion => suggestion.label;
 
 export default withStyles(modalStyles)(connect(mapStateToProps, mapDispatchToProps)(CocModal));

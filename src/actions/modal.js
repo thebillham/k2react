@@ -81,7 +81,6 @@ export const handleModalChange = target => dispatch => {
 }
 
 export const handleSampleChange = (number, type, value) => dispatch => {
-  console.log(`Changing sample ${number} (${type}) to ${value}`);
   dispatch({
     type: EDIT_MODAL_SAMPLE,
     payload: {

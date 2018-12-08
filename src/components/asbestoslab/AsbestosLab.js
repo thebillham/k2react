@@ -63,7 +63,7 @@ class AsbestosLab extends React.Component {
           </Button>
         </div>
         { Object.keys(cocs).length < 1 ?
-          <div>No Chains of Custody to display.</div>
+          <div>No results.</div>
         :
         (<div>{ Object.keys(cocs).filter(job => {
           if (this.props.search) {
@@ -78,7 +78,6 @@ class AsbestosLab extends React.Component {
             return true;
           }
         }).map(job => {
-          console.log(cocs[job].reportversion);
           let version = 1;
           if (cocs[job].reportversion) version = cocs[job].reportversion + 1;
           return (
