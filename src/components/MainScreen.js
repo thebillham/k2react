@@ -57,7 +57,7 @@ import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
 import { sendSlackMessage } from '../Slack';
 
-import { fetchMe, resetLocal  } from '../actions/local';
+import { fetchMe, resetLocal, copyStaff } from '../actions/local';
 import { resetModal } from '../actions/modal';
 import { resetDisplay } from '../actions/display';
 
@@ -127,6 +127,7 @@ const mapDispatchToProps = dispatch => {
     resetLocal: () => dispatch(resetLocal()),
     resetModal: () => dispatch(resetModal()),
     resetDisplay: () => dispatch(resetDisplay()),
+    copyStaff: (oldId, newId) => dispatch(copyStaff(oldId, newId)),
   };
 };
 
@@ -148,6 +149,7 @@ class MainScreen extends React.Component {
 
   componentWillMount() {
     this.props.fetchMe();
+    // this.props.copyStaff('X1rKQNN0rxC2VMmR0iTU','od4rLqUFTZRXhxIcRBy2xvkxgns1');
   }
 
   handleLogOut = () => {

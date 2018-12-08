@@ -1,5 +1,7 @@
 import { GET_STAFF,
         GET_DOCUMENTS,
+        GET_AIRANALYSTS,
+        GET_BULKANALYSTS,
         GET_USER,
         GET_QUIZZES,
         GET_WFM,
@@ -46,6 +48,8 @@ export const fetchMe = () => async dispatch => {
     console.log("Read a doc (fetchMe)!");
     if (doc.exists) {
       let user = doc.data();
+      if (user.auth && user.auth['Asbestos Air Analysis']) dispatch({ type: GET_AIRANALYSTS, payload: [{id: auth.currentUser.uid, name: user.name}] });
+      if (user.auth && user.auth['Asbestos Bulk Analysis'])  dispatch({ type: GET_BULKANALYSTS, payload: [{id: auth.currentUser.uid, name: user.name}] });
       dispatch({ type: GET_ME, payload: user});
       dispatch({ type: APP_HAS_LOADED });
       // usersRef.doc(doc.id).collection("myjobs")
@@ -72,25 +76,37 @@ export const fetchStaff = () => async dispatch => {
     usersRef
       .where(firebase.firestore.FieldPath.documentId(), ">", auth.currentUser.uid)
       .get().then((querySnapshot) => {
+        let airanalysts = [];
+        let bulkanalysts = [];
         querySnapshot.forEach((doc) => {
           console.log("Read a doc (Greater than User)! " + doc.data().name);
           let user = doc.data();
           user.uid = doc.id;
           users[doc.id] = user;
+          if (user.auth && user.auth['Asbestos Air Analysis']) airanalysts.push({uid: user.uid, name: user.name});
+          if (user.auth && user.auth['Asbestos Bulk Analysis']) bulkanalysts.push({uid: user.uid, name: user.name});
         });
         dispatch({ type: GET_STAFF, payload: users });
+        dispatch({ type: GET_AIRANALYSTS, payload: airanalysts });
+        dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts });
       });
   auth.currentUser &&
     usersRef
       .where(firebase.firestore.FieldPath.documentId(), "<", auth.currentUser.uid)
       .get().then((querySnapshot) => {
+        let airanalysts = [];
+        let bulkanalysts = [];
         querySnapshot.forEach((doc) => {
           console.log("Read a doc (LT user)! " + doc.data().name);
           let user = doc.data();
           user.uid = doc.id;
           users[doc.id] = user;
+          if (user.auth && user.auth['Asbestos Air Analysis']) airanalysts.push({uid: user.uid, name: user.name});
+          if (user.auth && user.auth['Asbestos Bulk Analysis']) bulkanalysts.push({uid: user.uid, name: user.name});
         });
         dispatch({ type: GET_STAFF, payload: users });
+        dispatch({ type: GET_AIRANALYSTS, payload: airanalysts });
+        dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts });
       });
 }
 
@@ -296,43 +312,43 @@ export const fetchTrainingPaths = () => async dispatch => {
       });
     });
 };
-
-export const fetchAsbestosSamples = () => async dispatch => {
-  asbestosSamplesRef.orderBy("jobnumber", "desc").orderBy("samplenumber").limit(50)
-    .onSnapshot((querySnapshot) => {
-      var samples = [];
-      querySnapshot.forEach((doc) => {
-        let sample = doc.data();
-        sample.uid = doc.id;
-        samples.push(sample);
-      });
-      let samplemap = {};
-      samples.forEach(sample => {
-        if (samplemap[sample.jobnumber]) {
-          samplemap[sample.jobnumber]['samples'].push(sample);
-        } else {
-          samplemap[sample.jobnumber] = {samples: [sample], clientname: '', address: '', type: '',};
-        }
-      });
-      Object.keys(samplemap).forEach(job => {
-        jobsRef.where("jobnumber", "==", job).limit(1)
-        .get().then(doc => {
-          doc.forEach(jobheader => {
-            samplemap[job]['uid'] = jobheader.id;
-            samplemap[job]['jobnumber'] = job;
-            samplemap[job]['clientname'] = jobheader.data().clientname;
-            samplemap[job]['address'] = jobheader.data().address;
-            samplemap[job]['type'] = jobheader.data().type;
-            samplemap[job]['reportversion'] = jobheader.data().reportversion ? jobheader.data().reportversion : 0;
-          });
-          dispatch({
-            type: GET_ASBESTOS_SAMPLES,
-            payload: samplemap,
-          });
-        });
-      });
-    });
-};
+//
+// export const fetchAsbestosSamples = () => async dispatch => {
+//   asbestosSamplesRef.orderBy("jobnumber", "desc").orderBy("samplenumber").limit(50)
+//     .onSnapshot((querySnapshot) => {
+//       var samples = [];
+//       querySnapshot.forEach((doc) => {
+//         let sample = doc.data();
+//         sample.uid = doc.id;
+//         samples.push(sample);
+//       });
+//       let samplemap = {};
+//       samples.forEach(sample => {
+//         if (samplemap[sample.jobnumber]) {
+//           samplemap[sample.jobnumber]['samples'].push(sample);
+//         } else {
+//           samplemap[sample.jobnumber] = {samples: [sample], clientname: '', address: '', type: '',};
+//         }
+//       });
+//       Object.keys(samplemap).forEach(job => {
+//         jobsRef.where("jobnumber", "==", job).limit(1)
+//         .get().then(doc => {
+//           doc.forEach(jobheader => {
+//             samplemap[job]['uid'] = jobheader.id;
+//             samplemap[job]['jobnumber'] = job;
+//             samplemap[job]['clientname'] = jobheader.data().clientname;
+//             samplemap[job]['address'] = jobheader.data().address;
+//             samplemap[job]['type'] = jobheader.data().type;
+//             samplemap[job]['reportversion'] = jobheader.data().reportversion ? jobheader.data().reportversion : 0;
+//           });
+//           dispatch({
+//             type: GET_ASBESTOS_SAMPLES,
+//             payload: samplemap,
+//           });
+//         });
+//       });
+//     });
+// };
 
 export const fetchModules = () => async dispatch => {
   modulesRef.orderBy('title')
@@ -636,4 +652,20 @@ export const setStepper = (steppers, uid, step) => dispatch => {
     type: SET_STEPPER,
     payload: steppers,
   });
+}
+
+export const copyStaff = (oldId, newId) => dispatch => {
+  let user = {}
+  usersRef.doc(oldId).get().then(
+    doc => {
+      usersRef.doc(newId).set(doc.data());
+    }
+  )
+  usersRef.doc(oldId).collection('attr')
+    .get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          usersRef.doc(newId).collection('attr')
+            .doc(doc.id).set(doc.data())
+        });
+      });
 }

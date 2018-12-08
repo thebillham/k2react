@@ -147,7 +147,7 @@ class CocModal extends React.Component {
   }
 
   render() {
-    const { modalProps, doc, wfmJob, classes, staff } = this.props;
+    const { modalProps, doc, wfmJob, classes, staff, } = this.props;
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name)));
     let today = new Date();
     const autosuggestProps = {
@@ -206,7 +206,7 @@ class CocModal extends React.Component {
               }
               <form>
                 <FormGroup>
-                  <FormControl>
+                  <FormControl className={classes.textField}>
                     <InputLabel>Sampled By</InputLabel>
                     <Select
                      multiple
@@ -251,7 +251,6 @@ class CocModal extends React.Component {
                 <Grid item>
                   <Grid container>
                     <Grid item xs={1}>
-                      Sample Number
                     </Grid>
                     <Grid item xs={6}>
                       Location/Item
@@ -260,7 +259,7 @@ class CocModal extends React.Component {
                       Material
                     </Grid>
                   </Grid>
-                  { Array.from(Array(20),(x, i) => i).map(i => {
+                  { Array.from(Array(150),(x, i) => i).map(i => {
                     return(<Grid container key={i}>
                     <Grid item xs={1}>
                       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
@@ -334,6 +333,7 @@ class CocModal extends React.Component {
                 minute: '2-digit',
                 second: '2-digit',
               }).format(now).replace(/[.:/,\s]/g, '_');
+              this.props.resetWfmJob();
               if (doc.uid) {
                 this.props.handleCocSubmit({
                   doc: doc,
@@ -344,7 +344,6 @@ class CocModal extends React.Component {
                   doc: doc,
                   docid: `${doc.jobNumber}_${datestring}`
                 });
-                this.props.resetWfmJob();
                 // this.sendNewCocSlack();
               }
             }

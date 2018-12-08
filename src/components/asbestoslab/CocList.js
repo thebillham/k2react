@@ -18,11 +18,16 @@ import TextField from '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
+import Select from '@material-ui/core/Select';
+import FormControl from '@material-ui/core/FormControl';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
 
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
 import Edit from '@material-ui/icons/Edit';
 import Inbox from '@material-ui/icons/Inbox';
+import Save from '@material-ui/icons/SaveAlt';
 import CameraAlt from '@material-ui/icons/CameraAlt';
 import Print from '@material-ui/icons/Print';
 import Send from '@material-ui/icons/Send';
@@ -33,6 +38,8 @@ const mapStateToProps = state => {
     me: state.local.me,
     staff: state.local.staff,
     samples: state.local.samples,
+    bulkanalysts: state.local.bulkanalysts,
+    airanalysts: state.local.airanalysts,
    };
 };
 
@@ -48,11 +55,12 @@ const mapDispatchToProps = dispatch => {
 class CocList extends React.Component {
   state = {
     samples: {},
+    bulkanalyst: '',
   }
 
   componentWillMount = () => {
     this.props.job.dates = this.props.job.dates ? this.props.job.dates.map(date => {
-      return (date.toDate());
+      return ((date instanceof Date) ? date : date.toDate());
     })
     : [];
   }
@@ -191,35 +199,6 @@ class CocList extends React.Component {
     // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
   }
 
-  printCoc = job => {
-    let samples = [];
-    job.samples.forEach(sample => {
-      if (sample.reported) {
-        let samplemap = {};
-        samplemap['no'] = sample.samplenumber;
-        samplemap['description'] = sample.description.charAt(0).toUpperCase() + sample.description.slice(1);
-        samplemap['material'] = sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
-        samplemap['result'] = this.writeResult(sample.result);
-        samples.push(samplemap);
-      }
-    })
-    let report = {
-      jobNumber: job.jobnumber,
-      client: job.clientname,
-      address: job.address,
-      date: '7 November 2018',
-      ktp: 'Stuart Keer-Keer',
-      personnel: ['Max van den Oever','Reagan Solodi',],
-      assessors: ['AA16100168','AA18050075',],
-      analysts: ['Ben Dodd'],
-      samples: samples,
-    }
-    let url = 'http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/coc_singlepage.php?report=' + JSON.stringify(report);
-    this.setState({ url: url });
-    window.open(url);
-    // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
-  }
-
   getSamples = (expanded, cocUid) => {
     if (expanded && cocUid) {
       this.props.fetchSamples(cocUid);
@@ -227,15 +206,7 @@ class CocList extends React.Component {
   }
 
   render() {
-    const { classes, job, samples } = this.props;
-    // if (!job.samples) {
-    //   job.samples = this.state.samples;
-    // } else if (Object.keys(this.state.samples).length === 0) {
-    //   this.setState({
-    //     samples: job.samples,
-    //   });
-    // }
-    // console.log(job);
+    const { classes, job, samples, bulkanalysts, airanalysts } = this.props;
     let version = 1;
     if (job.reportversion) version = job.reportversion + 1;
     return (
@@ -247,23 +218,45 @@ class CocList extends React.Component {
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <List>
-          <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {
-            this.props.syncJobWithWFM(job.jobNumber);
-            this.props.showModal({ modalType: COC, modalProps: { title: 'Edit Chain of Custody', doc: {...job, samples: samples[job.uid]}} });
-          }}>
-            <Edit style={{ fontSize: 20, margin: 5, }} />
-            Edit Chain of Custody
-          </Button>
-          <Button variant='outlined' onClick={() => {this.issueLabReport(job.uid, version)}}>
-            <Send style={{ fontSize: 20, margin: 5, }} />
-            Issue Version { version }
-          </Button>
-          <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printLabReport(job)}}>
-            <Print style={{ fontSize: 20, margin: 5, }} /> Download Test Certificate
-          </Button>
-          <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printCoc(job)}}>
-            <Print style={{ fontSize: 20, margin: 5, }} /> Print Chain of Custody
-          </Button>
+            <div>
+              <Button variant='outlined' onClick={() => {
+                this.props.syncJobWithWFM(job.jobNumber);
+                this.props.showModal({ modalType: COC, modalProps: { title: 'Edit Chain of Custody', doc: {...job, samples: samples[job.uid]}} });
+              }}>
+                <Edit style={{ fontSize: 20, margin: 5, }} />
+                Edit
+              </Button>
+              <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.issueLabReport(job.uid, version)}}>
+                <Send style={{ fontSize: 20, margin: 5, }} />
+                Issue Version { version }
+              </Button>
+              <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printLabReport(job)}}>
+                <Save style={{ fontSize: 20, margin: 5, }} /> Download Test Certificate
+              </Button>
+              <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printCoc(job)}}>
+                <Print style={{ fontSize: 20, margin: 5, }} /> Print Chain of Custody
+              </Button>
+            </div>
+            <div>
+              {/*
+                  Move this to the top of the page (in asbestoslab). Replace with analysis by, sampled by fields
+              */}
+              <FormControl className={classes.textField}>
+                <InputLabel shrink>Bulk Analyst</InputLabel>
+                <Select
+                  value={this.state.analyst}
+                  onChange={e => this.setState({ analyst: e.target.value })}
+                  input={<Input name='analyst' id='analyst' />}
+                >
+                  <option value='' />
+                  { this.props.bulkanalysts.map((analyst) => {
+                    return(
+                      <option key={analyst.uid} value={analyst.uid}>{analyst.name}</option>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+            </div>
           { samples[job.uid] && Object.values(samples[job.uid]).map(sample => {
             let result = 'none';
             if (sample.result && (sample.result['ch'] || sample.result['am'] || sample.result['cr'] || sample.result['umf'])) result = 'positive';
@@ -297,7 +290,7 @@ class CocList extends React.Component {
             let asbdivcolor = '#fff';
             if (result === 'positive') asbdivcolor = 'red';
             return(
-              <ListItem dense className={classes.hoverItem} key={sample.jobnumber+sample.samplenumber+sample.description}>
+              <ListItem dense className={classes.hoverItem} key={sample.jobnumber+sample.samplenumber.toString()+sample.description}>
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '70vw'}}>
                   <div style={{ width: '30vw', display: 'flex', flexDirection: 'row',
                     textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden',

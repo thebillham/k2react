@@ -108,7 +108,7 @@ export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
 export const handleCocSubmit = ({ doc, docid}) => dispatch => {
   if (doc.samples) {
     Object.keys(doc.samples).forEach(sample => {
-      cocsRef.doc(docid).collection('samples').doc(sample).set({...doc.samples[sample], samplenumber: sample});
+      cocsRef.doc(docid).collection('samples').doc(sample).set({...doc.samples[sample], samplenumber: parseInt(sample,10)});
     });
   }
   let doc2 = doc;

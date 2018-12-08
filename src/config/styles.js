@@ -78,6 +78,13 @@ const styles = theme => ({
   root: {
     display: 'flex',
   },
+  textField: {
+    marginLeft: theme.spacing.unit,
+    marginRight: theme.spacing.unit,
+    fontSize: 12,
+    // marginBottom: theme.spacing.unit * 2,
+    width: 500,
+  },
   hoverItem: {
       backgroundColor: "#fff",
       "&:hover": {

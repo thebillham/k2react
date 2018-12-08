@@ -1,5 +1,7 @@
 import {
           GET_STAFF,
+          GET_AIRANALYSTS,
+          GET_BULKANALYSTS,
           GET_DOCUMENTS,
           GET_USER,
           GET_WFM,
@@ -32,11 +34,13 @@ import {
 const localInit = {
   auth: [],
   me: {},
+  bulkanalysts: [],
+  airanalysts: [],
   userRef: null,
   userRefName: null,
   documents: [],
   quizzes: [],
-  staff: [],
+  staff: {},
   tools: [],
   user: {},
   wfmJobs: [],
@@ -82,7 +86,7 @@ export default function localReducer(state = localInit, action) {
         me: {
           ...state.me,
           ...action.payload,
-        }
+        },
       }
     case GET_USER:
       return {
@@ -99,6 +103,16 @@ export default function localReducer(state = localInit, action) {
             ...action.payload,
           }
         }
+      }
+    case GET_AIRANALYSTS:
+      return {
+        ...state,
+        airanalysts: state.airanalysts.concat(action.payload),
+      }
+    case GET_BULKANALYSTS:
+      return {
+        ...state,
+        bulkanalysts: state.bulkanalysts.concat(action.payload),
       }
     case GET_WFM:
       return {
