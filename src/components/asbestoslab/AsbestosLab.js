@@ -3,7 +3,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 import { jobsRef, cocsRef, asbestosSamplesRef } from '../../config/firebase';
-import { fetchCocs, fetchSamples, } from '../../actions/local';
+import { fetchCocs, fetchSamples, setAnalyst, setAnalysisType, } from '../../actions/local';
 import { showModal } from '../../actions/modal';
 import CocModal from '../modals/CocModal';
 import { COC } from '../../constants/modal-types';
@@ -19,6 +19,10 @@ import TextField from '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import Input from '@material-ui/core/Input';
+import Select from '@material-ui/core/Select';
 
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
@@ -35,6 +39,10 @@ const mapStateToProps = state => {
     search: state.local.search,
     me: state.local.me,
     staff: state.local.staff,
+    bulkanalysts: state.local.bulkanalysts,
+    airanalysts: state.local.airanalysts,
+    analyst: state.local.analyst,
+    analysistype: state.local.analysistype,
    };
 };
 
@@ -43,12 +51,25 @@ const mapDispatchToProps = dispatch => {
     fetchCocs: () => dispatch(fetchCocs()),
     showModal: modal => dispatch(showModal(modal)),
     fetchSamples: jobnumber => dispatch(fetchSamples(jobnumber)),
+    setAnalyst: analyst => dispatch(setAnalyst(analyst)),
+    setAnalysisType: analysistype => dispatch(setAnalysisType(analysistype)),
   }
 }
 
 class AsbestosLab extends React.Component {
+  state = {
+    analyst: false,
+  }
+
   componentWillMount = () => {
     this.props.fetchCocs();
+    if (this.props.me && this.props.me.auth) {
+      if (this.props.me.auth['Asbestos Air Analysis'] || this.props.me.auth['Asbestos Admin'] || this.props.me.auth['Asbestos Bulk Analysis']) {
+        this.setState({
+          analyst: true,
+        });
+      }
+    }
   }
 
   render() {
@@ -57,11 +78,46 @@ class AsbestosLab extends React.Component {
     return (
       <div style = {{ marginTop: 80 }}>
         <CocModal />
-        <div>
-          <Button variant='outlined' style={{ marginBottom: 16 }} onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody' } })}}>
-            New Chain of Custody
-          </Button>
-        </div>
+        <Button variant='outlined' style={{ marginBottom: 16 }} onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody' } })}}>
+          New Chain of Custody
+        </Button>
+        { this.state.analyst && <div style = {{ borderRadius: 4, borderStyle: 'solid', borderWidth: 1, borderColor: '#ccc', width: 420, marginBottom: 12, padding: 12, }}><div style = {{ marginBottom: 12, }}>
+          <InputLabel style={{ marginLeft: 12, }}>
+            Report Analysis As:
+          </InputLabel>
+          </div>
+          <div>
+          <FormControl style={{ width: 200, }}>
+            <InputLabel shrink>Analyst</InputLabel>
+            <Select
+              value={this.props.analyst}
+              onChange={e => this.props.setAnalyst(e.target.value)}
+              input={<Input name='analyst' id='analyst' />}
+            >
+              <option value='' />
+              { this.props.bulkanalysts.map((analyst) => {
+                return(
+                  <option key={analyst.uid} value={analyst.uid}>{analyst.name}</option>
+                );
+              })}
+            </Select>
+          </FormControl>
+          <FormControl style={{ width: 180, }}>
+            <InputLabel shrink>Type</InputLabel>
+            <Select
+              value={this.props.analysistype}
+              onChange={e => this.props.setAnalysisType(e.target.value)}
+              input={<Input name='type' id='type' />}
+            >
+              <option value='' />
+              { ['normal','quality control','practice',].map((type) => {
+                return(
+                  <option key={type} value={type}>{type}</option>
+                );
+              })}
+            </Select>
+          </FormControl>
+        </div></div>}
         { Object.keys(cocs).length < 1 ?
           <div>No results.</div>
         :

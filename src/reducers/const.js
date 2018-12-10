@@ -140,6 +140,10 @@ const constInit = {
       desc: 'Gives the user full access and the ability to edit other users including granting them permissions.'
     },
     {
+      name: 'Asbestos Admin',
+      desc: 'Gives the user the ability to report bulk and air analysis for other users.'
+    },
+    {
       name: 'Asbestos Air Analysis',
       desc: 'Gives the user the ability to add fibre count results to air samples.'
     },

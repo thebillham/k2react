@@ -29,6 +29,8 @@ import { GET_STAFF,
         GET_VEHICLES,
         SET_MODAL_ERROR,
         GET_WFMJOB,
+        SET_ANALYST,
+        SET_ANALYSIS_TYPE,
       } from "../constants/action-types";
 import firebase from '../config/firebase';
 import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
@@ -48,8 +50,14 @@ export const fetchMe = () => async dispatch => {
     console.log("Read a doc (fetchMe)!");
     if (doc.exists) {
       let user = doc.data();
-      if (user.auth && user.auth['Asbestos Air Analysis']) dispatch({ type: GET_AIRANALYSTS, payload: [{id: auth.currentUser.uid, name: user.name}] });
-      if (user.auth && user.auth['Asbestos Bulk Analysis'])  dispatch({ type: GET_BULKANALYSTS, payload: [{id: auth.currentUser.uid, name: user.name}] });
+      if (user.auth && user.auth['Asbestos Air Analysis']) {
+        dispatch({ type: GET_AIRANALYSTS, payload: [{uid: auth.currentUser.uid, name: user.name}] });
+        dispatch({ type: SET_ANALYST, payload: auth.currentUser.uid, });
+      }
+      if (user.auth && user.auth['Asbestos Bulk Analysis']) {
+        dispatch({ type: GET_BULKANALYSTS, payload: [{uid: auth.currentUser.uid, name: user.name}] });
+        dispatch({ type: SET_ANALYST, payload: auth.currentUser.uid, });
+      }
       dispatch({ type: GET_ME, payload: user});
       dispatch({ type: APP_HAS_LOADED });
       // usersRef.doc(doc.id).collection("myjobs")
@@ -668,4 +676,18 @@ export const copyStaff = (oldId, newId) => dispatch => {
             .doc(doc.id).set(doc.data())
         });
       });
+}
+
+export const setAnalyst = analyst => dispatch => {
+  dispatch({
+    type: SET_ANALYST,
+    payload: analyst,
+  });
+}
+
+export const setAnalysisType = type => dispatch => {
+  dispatch({
+    type: SET_ANALYSIS_TYPE,
+    payload: type,
+  })
 }

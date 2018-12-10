@@ -33,6 +33,8 @@ export const RESET_LOCAL = "RESET_LOCAL";
 export const UPDATE_STAFF = "UPDATE_STAFF";
 export const GET_VEHICLES = "GET_VEHICLES";
 export const GET_WFMJOB = "GET_WFMJOB";
+export const SET_ANALYST = "SET_ANALYST";
+export const SET_ANALYSIS_TYPE = "SET_ANALYSIS_TYPE";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";

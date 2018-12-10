@@ -38,8 +38,6 @@ const mapStateToProps = state => {
     me: state.local.me,
     staff: state.local.staff,
     samples: state.local.samples,
-    bulkanalysts: state.local.bulkanalysts,
-    airanalysts: state.local.airanalysts,
    };
 };
 
@@ -72,31 +70,40 @@ class CocList extends React.Component {
   }
 
   reportSample = (uid, reported) => {
-    let reportdate = null;
-    if (!reported) reportdate = new Date();
-    cocsRef.doc(this.props.job.uid).collection("samples").doc(uid).set({ reported: !reported, reportdate: reportdate }, {merge: true});
+    if (this.props.me && this.props.me.auth && (this.props.me.auth['Analysis Checker'] || this.props.me.auth['Asbestos Admin'])) {
+      let reportdate = null;
+      if (!reported) reportdate = new Date();
+      cocsRef.doc(this.props.job.uid).collection("samples").doc(uid).set({ reported: !reported, reportdate: reportdate }, {merge: true});
+    } else {
+      window.alert("You don't have sufficient permissions to verify asbestos results.");
+    }
   }
 
   toggleResult = (job, uid, result, map, reported) => {
-    let newmap = {};
-    if (reported) {
-      cocsRef.doc(this.props.job.uid).collection("samples").doc(uid).set({ reported: false, reportdate: null }, {merge: true});
-    }
-    if (map === undefined) {
-      newmap = { [result]: true }
-    } else if (result === 'no') {
-      let val = map[result];
-      newmap = { 'no': !val };
-    } else if (map[result] === undefined) {
-      newmap = map;
-      newmap['no'] = false;
-      newmap[result] = true;
+    if (this.props.me && this.props.me.auth && (this.props.me.auth['Asbestos Bulk Analysis'] || this.props.me.auth['Asbestos Admin'])) {
+      let newmap = {};
+      if (reported) {
+        cocsRef.doc(this.props.job.uid).collection("samples").doc(uid).set({ reported: false, reportdate: null }, {merge: true});
+      }
+      if (map === undefined) {
+        newmap = { [result]: true }
+      } else if (result === 'no') {
+        let val = map[result];
+        newmap = { 'no': !val };
+      } else if (map[result] === undefined) {
+        newmap = map;
+        newmap['no'] = false;
+        newmap[result] = true;
+      } else {
+        newmap = map;
+        newmap['no'] = false;
+        newmap[result] = !map[result];
+      }
+      cocsRef.doc(this.props.job.uid).collection('samples').doc(uid).update({ result: newmap, resultdate: new Date() });
+      cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, });
     } else {
-      newmap = map;
-      newmap['no'] = false;
-      newmap[result] = !map[result];
+      window.alert("You don't have sufficient permissions to set asbestos results.");
     }
-    cocsRef.doc(this.props.job.uid).collection('samples').doc(uid).update({ result: newmap, resultdate: new Date() });
   }
 
   sortSamples = samples => {
@@ -145,14 +152,7 @@ class CocList extends React.Component {
     return str.charAt(0).toUpperCase() + str.slice(1) + ' detected';
   }
 
-  issueLabReport = (job, version) => {
-    // first check all samples have been checked
-    // if not version 1, prompt for reason for new version
-    this.props.job.reportversion = version;
-    cocsRef.doc(this.props.job.uid).set({ reportversion: version }, {merge: true});
-  }
-
-  printLabReport = job => {
+  writeVersionJson = job => {
     let aanumbers = {};
     Object.values(this.props.staff).forEach(staff =>  {
       aanumbers[staff.name] = staff.aanumber ? staff.aanumber : '-';
@@ -176,7 +176,9 @@ class CocList extends React.Component {
       client: `${job.client} ${job.clientOrderNumber}`,
       address: job.address,
       date: job.dates.sort((b,a) => {
-        return new Date(b.toDate()) - new Date(a.toDate())
+        let aDate = (a instanceof Date) ? a : a.toDate();
+        let bDate = (b instanceof Date) ? b : b.toDate();
+        return new Date(bDate - aDate)
       }).map(date => {
         let formatDate = (date instanceof Date) ? date : date.toDate()
         return(
@@ -192,8 +194,26 @@ class CocList extends React.Component {
       analysts: ['Ben Dodd'],
       samples: samples,
     }
-    console.log(report);
-    let url = 'http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report);
+    return report;
+  }
+
+  issueLabReport = version => {
+    // first check all samples have been checked
+    // if not version 1, prompt for reason for new version
+    let changes = 'Prompted changes';
+    let json = this.writeVersionJson(this.props.job);
+    let versionHistory = this.props.job.versionHistory ? this.props.job.versionHistory : {};
+    versionHistory[version] = {
+      issueDate: new Date(),
+      changes: changes,
+      data: json,
+    }
+    cocsRef.doc(this.props.job.uid).set({ currentVersion: version, versionHistory: versionHistory, versionUpToDate: true, }, {merge: true});
+  }
+
+  printLabReport = job => {
+    console.log(this.props.job.versionHistory[this.props.job.currentVersion]);
+    let url = 'http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(this.props.job.versionHistory[this.props.job.currentVersion].data);
     this.setState({ url: url });
     window.open(url);
     // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
@@ -205,10 +225,22 @@ class CocList extends React.Component {
     }
   }
 
+// Restructure result first to include analyst, analysis type, date etc.
+  // getAnalysts = () => {
+  //   let analysts = {};
+  //   this.props.samples[job.uid] && Object.values(this.props.samples[job.uid]).forEach(sample => {
+  //     if (sample.result) {
+  //       Object.keys(sample.result)
+  //
+  //     }
+  //   });
+  //   return false;
+  // }
+
   render() {
     const { classes, job, samples, bulkanalysts, airanalysts } = this.props;
     let version = 1;
-    if (job.reportversion) version = job.reportversion + 1;
+    if (job.currentVersion) version = job.currentVersion + 1;
     return (
       <ExpansionPanel onChange={(event, ex) => {
         if (!job.samples) this.getSamples(ex, job.uid);
@@ -226,36 +258,20 @@ class CocList extends React.Component {
                 <Edit style={{ fontSize: 20, margin: 5, }} />
                 Edit
               </Button>
-              <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.issueLabReport(job.uid, version)}}>
-                <Send style={{ fontSize: 20, margin: 5, }} />
-                Issue Version { version }
-              </Button>
-              <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printLabReport(job)}}>
-                <Save style={{ fontSize: 20, margin: 5, }} /> Download Test Certificate
-              </Button>
               <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printCoc(job)}}>
                 <Print style={{ fontSize: 20, margin: 5, }} /> Print Chain of Custody
               </Button>
+              <Button style={{ marginLeft: 5, }} variant='outlined' disabled={ job.versionUpToDate } onClick={() => {this.issueLabReport(version)}}>
+                <Send style={{ fontSize: 20, margin: 5, }} />
+                Issue Version { version }
+              </Button>
+              <Button style={{ marginLeft: 5, }} variant='outlined' disabled={ !job.currentVersion || !job.versionUpToDate } onClick={() => {this.printLabReport(job)}}>
+                <Save style={{ fontSize: 20, margin: 5, }} /> Download Test Certificate
+              </Button>
             </div>
-            <div>
-              {/*
-                  Move this to the top of the page (in asbestoslab). Replace with analysis by, sampled by fields
-              */}
-              <FormControl className={classes.textField}>
-                <InputLabel shrink>Bulk Analyst</InputLabel>
-                <Select
-                  value={this.state.analyst}
-                  onChange={e => this.setState({ analyst: e.target.value })}
-                  input={<Input name='analyst' id='analyst' />}
-                >
-                  <option value='' />
-                  { this.props.bulkanalysts.map((analyst) => {
-                    return(
-                      <option key={analyst.uid} value={analyst.uid}>{analyst.name}</option>
-                    );
-                  })}
-                </Select>
-              </FormControl>
+            <div style={{ marginTop: 12, marginBottom: 12, }}>
+              Sampled by: <span style={{ fontWeight: 300, }}>{ job.personnel ? job.personnel.join(', ') : 'Not specified.' }</span><br />
+              Analysis by: <span style={{ fontWeight: 300, }}>{ this.getAnalysts() ? this.getAnalysts().join(', ') : 'Not specified.'}</span><br />
             </div>
           { samples[job.uid] && Object.values(samples[job.uid]).map(sample => {
             let result = 'none';
