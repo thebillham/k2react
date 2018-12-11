@@ -254,7 +254,7 @@ class CocList extends React.Component {
       ktp: 'Stuart Keer-Keer',
       personnel: job.personnel.sort(),
       assessors: job.personnel.sort().map(staff => { return(aanumbers[staff])}),
-      analysts: ['Ben Dodd'],
+      analysts: this.getAnalysts() ? this.getAnalysts() : ['Not specified.'],
       samples: samples,
     }
     return report;
@@ -292,7 +292,7 @@ class CocList extends React.Component {
   getAnalysts = () => {
     let analysts = {};
     this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
-      if (sample.analyst) {
+      if (sample.analyst && sample.reported) {
         analysts[sample.analyst] = true;
       }
     });
@@ -323,7 +323,7 @@ class CocList extends React.Component {
                 <Edit style={{ fontSize: 20, margin: 5, }} />
                 Edit
               </Button>
-              <Button style={{ marginLeft: 5, }} variant='outlined' onClick={() => {this.printCoc(job)}}>
+              <Button style={{ marginLeft: 5, }} variant='outlined' disabled onClick={() => {this.printCoc(job)}}>
                 <Print style={{ fontSize: 20, margin: 5, }} /> Print Chain of Custody
               </Button>
               <Button style={{ marginLeft: 5, }} variant='outlined' disabled={ job.versionUpToDate } onClick={() => {this.issueLabReport(version)}}>
