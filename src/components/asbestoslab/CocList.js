@@ -31,6 +31,8 @@ import Save from '@material-ui/icons/SaveAlt';
 import CameraAlt from '@material-ui/icons/CameraAlt';
 import Print from '@material-ui/icons/Print';
 import Send from '@material-ui/icons/Send';
+import More from '@material-ui/icons/MoreVert';
+
 import Popup from 'reactjs-popup';
 
 const mapStateToProps = state => {
@@ -132,9 +134,36 @@ class CocList extends React.Component {
         newmap[result] = !map[result];
       }
 
-      asbestosAnalysisRef.doc(`${this.sessionID}-${sample.uid}`).set({ analyst: this.props.analyst, mode: this.props.analysismode })
-      cocsRef.doc(this.props.job.uid).collection('samples').doc(sample.uid).update({ sessionID: this.state.sessionID, analyst: this.props.analyst, result: newmap, resultdate: new Date() });
+      // Check for situation where all results are unselected
+      let notBlankAnalysis = false;
+      Object.values(newmap).forEach(value => { if (value) notBlankAnalysis = true });
+
+      if (notBlankAnalysis) {
+        asbestosAnalysisRef.doc(`${this.state.sessionID}-${sample.uid}`).set({
+          analyst: this.props.analyst,
+          mode: this.props.analysismode ,
+          sessionID: this.state.sessionID,
+          cocUID: this.props.job.uid,
+          sampleUID: sample.uid,
+          result: newmap,
+          description: sample.description,
+          material: sample.material,
+          samplers: this.props.job.personnel,
+          analysisdate: new Date(),
+        });
+      } else {
+        asbestosAnalysisRef.doc(`${this.state.sessionID}-${sample.uid}`).delete();
+      }
+
+      cocsRef.doc(this.props.job.uid).collection('samples').doc(sample.uid).update({
+        sessionID: this.state.sessionID,
+        analyst: this.props.analyst,
+        result: newmap,
+        resultdate: new Date(),
+      });
+
       cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, });
+
     } else {
       window.alert("You don't have sufficient permissions to set asbestos results.");
     }
@@ -304,6 +333,9 @@ class CocList extends React.Component {
               <Button style={{ marginLeft: 5, }} variant='outlined' disabled={ !job.currentVersion || !job.versionUpToDate } onClick={() => {this.printLabReport(job)}}>
                 <Save style={{ fontSize: 20, margin: 5, }} /> Download Test Certificate
               </Button>
+              <IconButton>
+                <More />
+              </IconButton>
             </div>
             <div style={{ marginTop: 12, marginBottom: 12, }}>
               Sampled by: <span style={{ fontWeight: 300, }}>{ job.personnel ? job.personnel.join(', ') : 'Not specified.' }</span><br />
@@ -378,6 +410,9 @@ class CocList extends React.Component {
                     </div>
                     <IconButton onClick={ () => { this.reportSample(sample.uid, sample.reported) }}>
                       <CheckCircleOutline style={{ fontSize: 24, margin: 10, color: reportcolor }} />
+                    </IconButton>
+                    <IconButton>
+                      <More />
                     </IconButton>
                   </div>
                 </div>
