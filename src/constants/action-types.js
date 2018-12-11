@@ -34,7 +34,7 @@ export const UPDATE_STAFF = "UPDATE_STAFF";
 export const GET_VEHICLES = "GET_VEHICLES";
 export const GET_WFMJOB = "GET_WFMJOB";
 export const SET_ANALYST = "SET_ANALYST";
-export const SET_ANALYSIS_TYPE = "SET_ANALYSIS_TYPE";
+export const SET_ANALYSIS_MODE = "SET_ANALYSIS_MODE";
 
 // Modal
 export const SHOW_MODAL = "SHOW_MODAL";

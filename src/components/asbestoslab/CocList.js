@@ -2,7 +2,7 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
-import { cocsRef, } from '../../config/firebase';
+import { cocsRef, asbestosAnalysisRef, } from '../../config/firebase';
 import { fetchCocs, fetchSamples, syncJobWithWFM } from '../../actions/local';
 import { showModal } from '../../actions/modal';
 import CocModal from '../modals/CocModal';
@@ -38,6 +38,10 @@ const mapStateToProps = state => {
     me: state.local.me,
     staff: state.local.staff,
     samples: state.local.samples,
+    analyst: state.local.analyst,
+    analysismode: state.local.analysismode,
+    bulkanalysts: state.local.bulkanalysts,
+    airanalysts: state.local.airanalysts,
    };
 };
 
@@ -54,6 +58,8 @@ class CocList extends React.Component {
   state = {
     samples: {},
     bulkanalyst: '',
+    // sessionID creates a unique id for this refresh of the CoC. This is used as the firestore uid for any results reported
+    sessionID: '',
   }
 
   componentWillMount = () => {
@@ -61,6 +67,20 @@ class CocList extends React.Component {
       return ((date instanceof Date) ? date : date.toDate());
     })
     : [];
+    let now = new Intl.DateTimeFormat('en-GB', {
+      year: '2-digit',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(now);
+    let uid = `${this.props.job.uid}-${this.props.me.name}-${now}`;
+
+    this.setState({
+      sessionID: uid.replace(/[.:/,\s]/g, '_'),
+    });
+    console.log(uid.replace(/[.:/,\s]/g, '_'));
   }
 
   receiveSample = (uid, receivedbylab) => {
@@ -79,11 +99,23 @@ class CocList extends React.Component {
     }
   }
 
-  toggleResult = (job, uid, result, map, reported) => {
+  toggleResult = (sample, result) => {
     if (this.props.me && this.props.me.auth && (this.props.me.auth['Asbestos Bulk Analysis'] || this.props.me.auth['Asbestos Admin'])) {
+      // Check analyst has been selected
+      if (this.props.analyst === '') {
+        window.alert("Select analyst from the dropdown at the top of the page.");
+      }
+      // Check if this sample has already been analysed
+      if (sample.sessionID !== this.state.sessionID) {
+        if (window.confirm("This sample has already been analysed. Do you wish to override the result? (If not, set your analysis mode to 'quality control' or 'practice')")) {
+        } else {
+          return;
+        }
+      }
       let newmap = {};
-      if (reported) {
-        cocsRef.doc(this.props.job.uid).collection("samples").doc(uid).set({ reported: false, reportdate: null }, {merge: true});
+      let map = sample.result;
+      if (sample.reported) {
+        cocsRef.doc(this.props.job.uid).collection("samples").doc(sample.uid).set({ reported: false, reportdate: null }, {merge: true});
       }
       if (map === undefined) {
         newmap = { [result]: true }
@@ -99,7 +131,9 @@ class CocList extends React.Component {
         newmap['no'] = false;
         newmap[result] = !map[result];
       }
-      cocsRef.doc(this.props.job.uid).collection('samples').doc(uid).update({ result: newmap, resultdate: new Date() });
+
+      asbestosAnalysisRef.doc(`${this.sessionID}-${sample.uid}`).set({ analyst: this.props.analyst, mode: this.props.analysismode })
+      cocsRef.doc(this.props.job.uid).collection('samples').doc(sample.uid).update({ sessionID: this.state.sessionID, analyst: this.props.analyst, result: newmap, resultdate: new Date() });
       cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, });
     } else {
       window.alert("You don't have sufficient permissions to set asbestos results.");
@@ -226,16 +260,18 @@ class CocList extends React.Component {
   }
 
 // Restructure result first to include analyst, analysis type, date etc.
-  // getAnalysts = () => {
-  //   let analysts = {};
-  //   this.props.samples[job.uid] && Object.values(this.props.samples[job.uid]).forEach(sample => {
-  //     if (sample.result) {
-  //       Object.keys(sample.result)
-  //
-  //     }
-  //   });
-  //   return false;
-  // }
+  getAnalysts = () => {
+    let analysts = {};
+    this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
+      if (sample.analyst) {
+        analysts[sample.analyst] = true;
+      }
+    });
+    let list = [];
+    Object.keys(analysts).forEach(analyst => {list.push(analyst)});
+    if (list.length === 0) return false;
+    return list;
+  }
 
   render() {
     const { classes, job, samples, bulkanalysts, airanalysts } = this.props;
@@ -331,14 +367,14 @@ class CocList extends React.Component {
                       <Inbox style={{ fontSize: 24, margin: 10, color: receivedcolor }} />
                     </IconButton>
                     <div style={{ backgroundColor: asbdivcolor, borderRadius: 5 }}>
-                    <Button variant='outlined' style={{ margin: 5, color: chcolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'ch', sample.result, sample.reported) }}>CH</Button>
-                    <Button variant='outlined' style={{ margin: 5, color: amcolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'am', sample.result, sample.reported) }}>AM</Button>
-                    <Button variant='outlined' style={{ margin: 5, color: crcolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'cr', sample.result, sample.reported) }}>CR</Button>
-                    <Button variant='outlined' style={{ margin: 5, color: umfcolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'umf', sample.result, sample.reported) }}>UMF</Button>
+                    <Button variant='outlined' style={{ margin: 5, color: chcolor, }} onClick={ () => { this.toggleResult(sample, 'ch') }}>CH</Button>
+                    <Button variant='outlined' style={{ margin: 5, color: amcolor, }} onClick={ () => { this.toggleResult(sample, 'am') }}>AM</Button>
+                    <Button variant='outlined' style={{ margin: 5, color: crcolor, }} onClick={ () => { this.toggleResult(sample, 'cr') }}>CR</Button>
+                    <Button variant='outlined' style={{ margin: 5, color: umfcolor, }} onClick={ () => { this.toggleResult(sample, 'umf') }}>UMF</Button>
                     </div>
                     <div style={{ width: 30 }} />
                     <div style={{ backgroundColor: nodivcolor, borderRadius: 5 }}>
-                      <Button variant='outlined' style={{ margin: 5, color: nocolor, }} onClick={ () => { this.toggleResult(job, sample.uid, 'no', sample.result, sample.reported) }}>NO</Button>
+                      <Button variant='outlined' style={{ margin: 5, color: nocolor, }} onClick={ () => { this.toggleResult(sample, 'no') }}>NO</Button>
                     </div>
                     <IconButton onClick={ () => { this.reportSample(sample.uid, sample.reported) }}>
                       <CheckCircleOutline style={{ fontSize: 24, margin: 10, color: reportcolor }} />

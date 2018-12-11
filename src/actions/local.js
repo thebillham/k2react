@@ -30,7 +30,7 @@ import { GET_STAFF,
         SET_MODAL_ERROR,
         GET_WFMJOB,
         SET_ANALYST,
-        SET_ANALYSIS_TYPE,
+        SET_ANALYSIS_MODE,
       } from "../constants/action-types";
 import firebase from '../config/firebase';
 import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
@@ -52,11 +52,11 @@ export const fetchMe = () => async dispatch => {
       let user = doc.data();
       if (user.auth && user.auth['Asbestos Air Analysis']) {
         dispatch({ type: GET_AIRANALYSTS, payload: [{uid: auth.currentUser.uid, name: user.name}] });
-        dispatch({ type: SET_ANALYST, payload: auth.currentUser.uid, });
+        dispatch({ type: SET_ANALYST, payload: user.name, });
       }
       if (user.auth && user.auth['Asbestos Bulk Analysis']) {
         dispatch({ type: GET_BULKANALYSTS, payload: [{uid: auth.currentUser.uid, name: user.name}] });
-        dispatch({ type: SET_ANALYST, payload: auth.currentUser.uid, });
+        dispatch({ type: SET_ANALYST, payload: user.name, });
       }
       dispatch({ type: GET_ME, payload: user});
       dispatch({ type: APP_HAS_LOADED });
@@ -685,9 +685,9 @@ export const setAnalyst = analyst => dispatch => {
   });
 }
 
-export const setAnalysisType = type => dispatch => {
+export const setAnalysisMode = mode => dispatch => {
   dispatch({
-    type: SET_ANALYSIS_TYPE,
-    payload: type,
+    type: SET_ANALYSIS_MODE,
+    payload: mode,
   })
 }

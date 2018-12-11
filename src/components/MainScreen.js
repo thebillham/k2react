@@ -149,7 +149,7 @@ class MainScreen extends React.Component {
 
   componentWillMount() {
     this.props.fetchMe();
-    // this.props.copyStaff('X1rKQNN0rxC2VMmR0iTU','od4rLqUFTZRXhxIcRBy2xvkxgns1');
+    // this.props.copyStaff('KiaXpWa5P8fd3FToIV0w','RF7LDcg1d5RlpHx1ccjkh9dJrZo1');
   }
 
   handleLogOut = () => {

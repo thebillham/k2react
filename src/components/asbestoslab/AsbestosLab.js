@@ -3,7 +3,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 import { jobsRef, cocsRef, asbestosSamplesRef } from '../../config/firebase';
-import { fetchCocs, fetchSamples, setAnalyst, setAnalysisType, } from '../../actions/local';
+import { fetchCocs, fetchSamples, setAnalyst, setAnalysisMode, } from '../../actions/local';
 import { showModal } from '../../actions/modal';
 import CocModal from '../modals/CocModal';
 import { COC } from '../../constants/modal-types';
@@ -42,7 +42,7 @@ const mapStateToProps = state => {
     bulkanalysts: state.local.bulkanalysts,
     airanalysts: state.local.airanalysts,
     analyst: state.local.analyst,
-    analysistype: state.local.analysistype,
+    analysismode: state.local.analysismode,
    };
 };
 
@@ -52,7 +52,7 @@ const mapDispatchToProps = dispatch => {
     showModal: modal => dispatch(showModal(modal)),
     fetchSamples: jobnumber => dispatch(fetchSamples(jobnumber)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
-    setAnalysisType: analysistype => dispatch(setAnalysisType(analysistype)),
+    setAnalysisMode: analysismode => dispatch(setAnalysisMode(analysismode)),
   }
 }
 
@@ -94,25 +94,23 @@ class AsbestosLab extends React.Component {
               onChange={e => this.props.setAnalyst(e.target.value)}
               input={<Input name='analyst' id='analyst' />}
             >
-              <option value='' />
               { this.props.bulkanalysts.map((analyst) => {
                 return(
-                  <option key={analyst.uid} value={analyst.uid}>{analyst.name}</option>
+                  <option key={analyst.uid} value={analyst.name}>{analyst.name}</option>
                 );
               })}
             </Select>
           </FormControl>
           <FormControl style={{ width: 180, }}>
-            <InputLabel shrink>Type</InputLabel>
+            <InputLabel shrink>Mode</InputLabel>
             <Select
-              value={this.props.analysistype}
-              onChange={e => this.props.setAnalysisType(e.target.value)}
-              input={<Input name='type' id='type' />}
+              value={this.props.analysismode}
+              onChange={e => this.props.setAnalysisMode(e.target.value)}
+              input={<Input name='mode' id='mode' />}
             >
-              <option value='' />
-              { ['normal','quality control','practice',].map((type) => {
+              { ['normal','quality control','practice',].map((mode) => {
                 return(
-                  <option key={type} value={type}>{type}</option>
+                  <option key={mode} value={mode}>{mode}</option>
                 );
               })}
             </Select>

@@ -30,7 +30,7 @@ import {
           GET_VEHICLES,
           SET_MODAL_ERROR,
           SET_ANALYST,
-          SET_ANALYSIS_TYPE,
+          SET_ANALYSIS_MODE,
         } from "../constants/action-types"
 
 const localInit = {
@@ -61,7 +61,7 @@ const localInit = {
   updates: [],
   vehicles: [],
   analyst: '',
-  analysistype: 'normal',
+  analysismode: 'normal',
 };
 
 // Properties related to local data retrieved from firebase
@@ -227,10 +227,10 @@ export default function localReducer(state = localInit, action) {
         ...state,
         analyst: action.payload,
       }
-    case SET_ANALYSIS_TYPE:
+    case SET_ANALYSIS_MODE:
       return {
         ...state,
-        analysistype: action.payload,
+        analysismode: action.payload,
       }
     default:
       return state;

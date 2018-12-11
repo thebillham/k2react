@@ -39,10 +39,11 @@ const trainingPathsRef = firestore.collection("trainingpaths");
 const methodsRef = firestore.collection("methods");
 const helpRef = firestore.collection("help");
 const updateRef = firestore.collection("updates");
+const asbestosAnalysisRef = firestore.collection("analysisasbestos");
 
 export { app, provider, auth, firestore, storage };
 export { usersRef, docsRef, modulesRef, toolsRef,
   noticesRef, quizzesRef, questionsRef, trainingPathsRef,
   methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef,
-  cocsRef, vehiclesRef };
+  cocsRef, vehiclesRef, asbestosAnalysisRef, };
 export default firebase;
