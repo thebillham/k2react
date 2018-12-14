@@ -5,6 +5,7 @@ import Button from '@material-ui/core/Button';
 import '../App.css';
 import img_Logo from '../images/logo.png';
 import ApiCalendar from 'react-google-calendar-api';
+import { sendSlackMessage } from '../Slack';
 
 export default class K2SignInScreen extends Component {
 

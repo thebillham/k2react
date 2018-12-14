@@ -4,9 +4,16 @@ import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 import { jobsRef, cocsRef, asbestosSamplesRef } from '../../config/firebase';
 import { fetchCocs, fetchSamples, setAnalyst, setAnalysisMode, } from '../../actions/local';
+
+//Modals
+import { COC, } from '../../constants/modal-types';
 import { showModal } from '../../actions/modal';
 import CocModal from '../modals/CocModal';
-import { COC } from '../../constants/modal-types';
+import UpdateCertificateVersion from '../modals/UpdateCertificateVersion';
+import QCAnalysis from '../modals/QCAnalysis';
+import WAAnalysis from '../modals/WAAnalysis';
+import SampleHistoryModal from '../modals/SampleHistoryModal';
+
 import CocList from './CocList';
 
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -78,10 +85,14 @@ class AsbestosLab extends React.Component {
     return (
       <div style = {{ marginTop: 80 }}>
         <CocModal />
+        <UpdateCertificateVersion />
+        <SampleHistoryModal />
+        <QCAnalysis />
+        <WAAnalysis />
         <Button variant='outlined' style={{ marginBottom: 16 }} onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody' } })}}>
           New Chain of Custody
         </Button>
-        { this.state.analyst && <div style = {{ borderRadius: 4, borderStyle: 'solid', borderWidth: 1, borderColor: '#ccc', width: 420, marginBottom: 12, padding: 12, }}><div style = {{ marginBottom: 12, }}>
+        { this.state.analyst && <div style = {{ borderRadius: 4, borderStyle: 'solid', borderWidth: 1, borderColor: '#ccc', width: 220, marginBottom: 12, padding: 12, }}><div style = {{ marginBottom: 12, }}>
           <InputLabel style={{ marginLeft: 12, }}>
             Report Analysis As:
           </InputLabel>

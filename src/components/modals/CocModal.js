@@ -87,6 +87,7 @@ class CocModal extends React.Component {
     personnel: [],
     suggestions: [],
     syncError: null,
+    modified: false,
   };
 
   componentWillMount() {
@@ -96,7 +97,8 @@ class CocModal extends React.Component {
 
   handlePersonnelChange = event => {
     this.setState({
-      personnel: event.target.value
+      personnel: event.target.value,
+      modified: true,
     });
     this.props.handleSelectChange({ id: 'personnel', value: event.target.value, })
   }
@@ -123,6 +125,7 @@ class CocModal extends React.Component {
     } else {
       dates.push(day);
     }
+    this.setState({ modified: true, });
     this.props.handleSelectChange({ id: 'dates', value: dates, })
   }
 
@@ -176,7 +179,10 @@ class CocModal extends React.Component {
                   label="Job Number"
                   style={{ width: '100%' }}
                   defaultValue={doc && doc.jobNumber}
-                  onChange={e => {this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'')})}}
+                  onChange={e => {
+                    this.setState({ modified: true, });
+                    this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'')})}
+                  }
                 />
                 <IconButton onClick={ this.wfmSync }>
                   <Sync style={{ width: 28, height: 28, }}/>
@@ -271,17 +277,27 @@ class CocModal extends React.Component {
                         id={`description${i+1}`}
                         style={{ width: '100%' }}
                         defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description}
-                        onChange={e => {this.props.handleSampleChange(i, 'description', e.target.value)}}
+                        onChange={e => {
+                          this.setState({ modified: true, });
+                          this.props.handleSampleChange(i, 'reported', false);
+                          this.props.handleSampleChange(i, 'description', e.target.value);
+                        }}
                       />
                     </Grid>
                     <Grid item xs={4} style={{ paddingLeft: 12, }}>
                       <Autosuggest
                         {...autosuggestProps}
                         onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
+                          this.setState({ modified: true, });
+                          this.props.handleSampleChange(i, 'reported', false);
                           this.props.handleSampleChange(i, 'material', suggestionValue); }}
                         inputProps={{
                           value: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
-                          onChange: e => {this.props.handleSampleChange(i, 'material', e.target.value)},
+                          onChange: e => {
+                            this.setState({ modified: true, });
+                            this.props.handleSampleChange(i, 'reported', false);
+                            this.props.handleSampleChange(i, 'material', e.target.value)
+                          },
                         }}
                         theme={{
                           container: { position: 'relative',},
@@ -309,7 +325,7 @@ class CocModal extends React.Component {
             this.props.hideModal()
           }} color="secondary">Cancel</Button>
           {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
-          : <Button onClick={() => {
+          : <Button disabled={!this.state.modified} onClick={() => {
             if (!wfmJob) {
               this.props.setModalError('Sync a job with WorkflowMax before submitting.')
             } else {
@@ -324,7 +340,9 @@ class CocModal extends React.Component {
                 doc.type = wfmJob.type ? wfmJob.type : null;
                }
               let now = new Date();
-              doc.dateSubmit = now;
+              if (!doc.dateSubmit) doc.dateSubmit = now;
+              doc.lastModified = now;
+              doc.versionUpToDate = false;
               let datestring = new Intl.DateTimeFormat('en-GB', {
                 year: '2-digit',
                 month: '2-digit',

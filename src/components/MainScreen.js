@@ -149,10 +149,12 @@ class MainScreen extends React.Component {
 
   componentWillMount() {
     this.props.fetchMe();
+    // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // this.props.copyStaff('KiaXpWa5P8fd3FToIV0w','RF7LDcg1d5RlpHx1ccjkh9dJrZo1');
   }
 
   handleLogOut = () => {
+    // sendSlackMessage(`${this.props.state.local.me.name} has logged out.`);
     auth.signOut().then(() => {
       this.props.resetDisplay();
       this.props.resetLocal();
@@ -170,12 +172,10 @@ class MainScreen extends React.Component {
   };
 
   handleDrawerOpen = () => {
-    sendSlackMessage('Drawer opened');
     this.setState({ openDrawer: true });
   };
 
   handleDrawerClose = () => {
-    sendSlackMessage('Drawer closed');
     this.setState({ openDrawer: false, openRef: false, openStaff: false, openMyDetails: false });
   };
 
