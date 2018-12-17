@@ -5,7 +5,7 @@ import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 // import store from '../../store';
 import { COC } from '../../constants/modal-types';
-import { cocsRef, storage } from '../../config/firebase';
+import { cocsRef, storage, auth } from '../../config/firebase';
 import '../../config/tags.css';
 import { sendSlackMessage } from '../../Slack';
 import ReactAutocomplete from 'react-autocomplete';
@@ -50,6 +50,7 @@ const mapStateToProps = state => {
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
     wfmJob: state.local.wfmJob,
+    samples: state.local.samples,
     me: state.local.me,
     userRefName: state.local.userRefName,
     staff: state.local.staff,
@@ -268,7 +269,7 @@ class CocModal extends React.Component {
                   { Array.from(Array(150),(x, i) => i).map(i => {
                     return(<Grid container key={i}>
                     <Grid item xs={1}>
-                      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
+                      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: 3,}}>
                         {i+1}
                       </div>
                     </Grid>
@@ -353,14 +354,29 @@ class CocModal extends React.Component {
               }).format(now).replace(/[.:/,\s]/g, '_');
               this.props.resetWfmJob();
               if (doc.uid) {
+                let log = {
+                    type: 'Edit',
+                    log: 'Details modified.',
+                    date: new Date(),
+                    username: this.props.me.name,
+                    user: auth.currentUser.uid,
+                  };
+                doc.cocLog ? doc.cocLog.push(log) : doc.cocLog = [log];
                 this.props.handleCocSubmit({
                   doc: doc,
                   docid: doc.uid,
                 });
               } else {
+                doc.cocLog = [{
+                  type: 'Edit',
+                  log: `Chain of Custody created.`,
+                  username: this.props.me.name,
+                  user: auth.currentUser.uid,
+                }];
+                doc.deleted = false;
                 this.props.handleCocSubmit({
                   doc: doc,
-                  docid: `${doc.jobNumber}_${datestring}`
+                  docid: `${doc.jobNumber}_${datestring}`,
                 });
                 // this.sendNewCocSlack();
               }

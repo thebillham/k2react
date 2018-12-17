@@ -2,11 +2,10 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
-import { cocsRef, asbestosAnalysisRef, firestore, firebase } from '../../config/firebase';
+import { cocsRef, asbestosAnalysisRef, firestore, firebase, auth } from '../../config/firebase';
 import { fetchCocs, fetchSamples, syncJobWithWFM } from '../../actions/local';
 import { showModal } from '../../actions/modal';
-import CocModal from '../modals/CocModal';
-import { COC, UPDATECERTIFICATEVERSION, WAANALYSIS, SAMPLEHISTORY, } from '../../constants/modal-types';
+import { COC, UPDATECERTIFICATEVERSION, WAANALYSIS, SAMPLEHISTORY, COCLOG,} from '../../constants/modal-types';
 
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
@@ -25,6 +24,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import Menu from '@material-ui/core/Menu';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
+import Divider from '@material-ui/core/Divider';
 
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
@@ -90,19 +90,51 @@ class CocList extends React.Component {
     console.log(uid.replace(/[.:/,\s]/g, '_'));
   }
 
-  receiveSample = (uid, receivedbylab) => {
+  receiveSample = (sample) => {
     let receiveddate = null;
-    if (!receivedbylab) receiveddate = new Date();
-    cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, });
-    cocsRef.doc(this.props.job.uid).collection("samples").doc(uid).set({ receivedbylab: !receivedbylab, receiveddate: receiveddate }, {merge: true});
+    if (!sample.receivedbylab) receiveddate = new Date();
+    let log = {
+      type: 'Received',
+      log: receiveddate ? `Sample ${sample.uid} (${sample.description} ${sample.material}) received by lab.`
+      : `Sample ${sample.uid} (${sample.description} ${sample.material}) unchecked as being received.`,
+      user: auth.currentUser.uid,
+      username: this.props.me.name,
+      date: new Date(),
+    }
+    let cocLog = this.props.job.cocLog;
+    cocLog ? cocLog.push(log) : cocLog = [log];
+    cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, cocLog: cocLog, });
+    cocsRef.doc(this.props.job.uid).collection("samples").doc(sample.uid).set({
+      receivedbylab: !sample.receivedbylab,
+      receiveduser: auth.currentUser.uid,
+      receiveddate: receiveddate
+    }, {merge: true});
   }
 
-  reportSample = (uid, reported) => {
+  reportSample = sample => {
     if (this.props.me && this.props.me.auth && (this.props.me.auth['Analysis Checker'] || this.props.me.auth['Asbestos Admin'])) {
-      let reportdate = null;
-      if (!reported) reportdate = new Date();
-      cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, });
-      cocsRef.doc(this.props.job.uid).collection("samples").doc(uid).set({ reported: !reported, reportdate: reportdate }, {merge: true});
+      if (auth.currentUser.uid === sample.resultuser) {
+        window.alert("Samples must be checked by a different user.");
+      } else {
+        let reportdate = null;
+        if (!sample.reported) reportdate = new Date();
+        let log = {
+          type: 'Reported',
+          log: reportdate ? `Sample ${sample.uid} (${sample.description} ${sample.material}) result checked.`
+          : `Sample ${sample.uid} (${sample.description} ${sample.material}) result unchecked.`,
+          user: auth.currentUser.uid,
+          username: this.props.me.name,
+          date: new Date(),
+        }
+        let cocLog = this.props.job.cocLog;
+        cocLog ? cocLog.push(log) : cocLog = [log];
+        cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, cocLog: cocLog, });
+        cocsRef.doc(this.props.job.uid).collection("samples").doc(sample.uid).set({
+          reported: !sample.reported,
+          reportuser: auth.currentUser.uid,
+          reportdate: reportdate
+        }, {merge: true});
+      }
     } else {
       window.alert("You don't have sufficient permissions to verify asbestos results.");
     }
@@ -114,9 +146,18 @@ class CocList extends React.Component {
       if (this.props.analyst === '') {
         window.alert("Select analyst from the dropdown at the top of the page.");
       }
+      let cocLog = this.props.job.cocLog;
+      if (!cocLog) cocLog = [];
       // Check if this sample has already been analysed
       if (sample.sessionID !== this.state.sessionID && sample.result) {
-        if (window.confirm("This sample has already been analysed. Do you wish to override the result? (If not, set your analysis mode to 'quality control' or 'practice')")) {
+        if (window.confirm("This sample has already been analysed. Do you wish to override the result?")) {
+          cocLog.push({
+            type: 'Analysis',
+            log: `Previous analysis of sample ${sample.uid} (${sample.description} ${sample.material}) overridden.`,
+            user: auth.currentUser.uid,
+            username: this.props.me.name,
+            date: new Date(),
+          })
         } else {
           return;
         }
@@ -142,13 +183,22 @@ class CocList extends React.Component {
       }
 
       cocsRef.doc(this.props.job.uid).collection('samples').doc(sample.uid).update({
+        resultuser: auth.currentUser.uid,
         sessionID: this.state.sessionID,
         analyst: this.props.analyst,
         result: newmap,
         resultdate: new Date(),
       });
 
-      cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, });
+      cocLog.push({
+        type: 'Analysis',
+        log: `New analysis for sample ${sample.uid} (${sample.description} ${sample.material}): ${this.writeResult(newmap)}`,
+        user: auth.currentUser.uid,
+        username: this.props.me.name,
+        date: new Date(),
+      });
+
+      cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, cocLog: cocLog, });
 
       // Check for situation where all results are unselected
       let notBlankAnalysis = false;
@@ -277,17 +327,37 @@ class CocList extends React.Component {
     // if not version 1, prompt for reason for new version
     let json = this.writeVersionJson(this.props.job);
     let versionHistory = this.props.job.versionHistory ? this.props.job.versionHistory : {};
+    let cocLog = this.props.job.cocLog;
+    if (!cocLog) cocLog = [];
+    cocLog.push({
+          type: 'Issue',
+          log: `Version ${version} issued.`,
+          user: auth.currentUser.uid,
+          username: this.props.me.name,
+          date: new Date(),
+        });
     versionHistory[version] = {
+      issueUser: this.props.me.uid,
       issueDate: new Date(),
       changes: changes,
       data: json,
     }
-    cocsRef.doc(this.props.job.uid).set({ currentVersion: version, versionHistory: versionHistory, versionUpToDate: true, }, {merge: true});
+    cocsRef.doc(this.props.job.uid).set({ currentVersion: version, versionHistory: versionHistory, versionUpToDate: true, cocLog: cocLog, }, {merge: true});
   }
 
   printLabReport = version => {
     console.log(this.props.job.versionHistory[version]);
     let report = this.props.job.versionHistory[version].data;
+    let cocLog = this.props.job.cocLog;
+    if (!cocLog) cocLog = [];
+    cocLog.push({
+          type: 'Document',
+          log: `Test Certificate (version ${version}) downloaded.`,
+          user: auth.currentUser.uid,
+          username: this.props.me.name,
+          date: new Date(),
+        });
+    cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog, }, {merge: true});
     if (report.version && report.version > 1) {
       let versionHistory = [];
       [...Array(report.version - 1).keys()].forEach(i => {
@@ -314,6 +384,16 @@ class CocList extends React.Component {
 
   printCoc = job => {
     console.log(job);
+    let cocLog = this.props.job.cocLog;
+    if (!cocLog) cocLog = [];
+    cocLog.push({
+          type: 'Document',
+          log: `Chain of Custody downloaded.`,
+          user: auth.currentUser.uid,
+          username: this.props.me.name,
+          date: new Date(),
+        });
+    cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog, }, {merge: true});
     let aanumbers = {};
     Object.values(this.props.staff).forEach(staff =>  {
       aanumbers[staff.name] = staff.aanumber ? staff.aanumber : '-';
@@ -328,7 +408,7 @@ class CocList extends React.Component {
       samplemap['description'] = sample.description.charAt(0).toUpperCase() + sample.description.slice(1);
       samplemap['material'] = sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
       samples.push(samplemap);
-    })
+    });
     let report = {
       jobNumber: job.jobNumber,
       client: job.client,
@@ -388,6 +468,21 @@ class CocList extends React.Component {
     return list;
   }
 
+  deleteCoc = () => {
+    if (window.confirm("Are you sure you wish to delete this Chain of Custody? (This action can be undone)")) {
+      let cocLog = this.props.job.cocLog;
+      if (!cocLog) cocLog = [];
+      cocLog.push({
+        type: 'Delete',
+        log: 'Chain of Custody deleted.',
+        username: this.props.me.name,
+        user: auth.currentUser.uid,
+        date: new Date(),
+      })
+      cocsRef.doc(this.props.job.uid).set({ deleted: true, cocLog: cocLog, }, {merge: true});
+    } else return;
+  }
+
   render() {
     const { classes, job, samples, bulkanalysts, airanalysts } = this.props;
     let version = 1;
@@ -433,27 +528,31 @@ class CocList extends React.Component {
               <Button style={{ marginLeft: 5, }} variant='outlined' disabled={ !job.currentVersion || !job.versionUpToDate } onClick={() => {this.printLabReport(job.currentVersion)}}>
                 <Save style={{ fontSize: 20, margin: 5, }} /> Download Test Certificate
               </Button>
-              { job.currentVersion && job.currentVersion > 1 &&
-                <span>
-                  <IconButton onClick={event => { this.setState({ cocAnchorEl: event.currentTarget }) }}>
-                    <More />
-                  </IconButton>
-                  <Menu
-                    id="coc-menu"
-                    anchorEl={ this.state.cocAnchorEl }
-                    open={Boolean(this.state.cocAnchorEl)}
-                    onClose={() => { this.setState({ cocAnchorEl: null }) }}
-                    >
-                    {
-                      [...Array(job.currentVersion - 1).keys()].map(i => {
-                        return(
-                          <MenuItem onClick={() => {this.printLabReport(i + 1)}}>Download Version {i + 1}</MenuItem>
-                        )
-                      })
-                    }
-                  </Menu>
-                </span>
-              }
+              <IconButton onClick={event => { this.setState({ cocAnchorEl: event.currentTarget }) }}>
+                <More />
+              </IconButton>
+              <Menu
+                id="coc-menu"
+                anchorEl={ this.state.cocAnchorEl }
+                open={Boolean(this.state.cocAnchorEl)}
+                onClose={() => { this.setState({ cocAnchorEl: null }) }}
+                >
+                  <MenuItem onClick={() => {this.props.showModal({ modalType: COCLOG, modalProps: { jobNumber: job.jobumber, cocLog: job.cocLog } })}}>
+                    View Change Log
+                  </MenuItem>
+                  <Divider />
+                { job.currentVersion && job.currentVersion > 1 &&
+                  [...Array(job.currentVersion).keys()].map(i => {
+                    return(
+                      <MenuItem onClick={() => {this.printLabReport(i + 1)}}>Download Version {i + 1}</MenuItem>
+                    )
+                  })
+                }
+                <Divider />
+                <MenuItem onClick={this.deleteCoc}>
+                  Delete Chain of Custody
+                </MenuItem>
+              </Menu>
             </div>
             <div style={{ marginTop: 12, marginBottom: 12, }}>
               Sampled by: <span style={{ fontWeight: 300, }}>{ job.personnel ? job.personnel.join(', ') : 'Not specified' }</span><br />
@@ -551,7 +650,7 @@ class CocList extends React.Component {
                   </div>
                   <div style={{ width: '40vw', display: 'flex', flexDirection: 'row',
                     justifyContent: 'flex-end', alignItems: 'center',}}>
-                    <IconButton onClick={ () => { this.receiveSample(sample.uid, sample.receivedbylab) } }>
+                    <IconButton onClick={ () => { this.receiveSample(sample) } }>
                       <Inbox style={{ fontSize: 24, margin: 10, color: receivedcolor }} />
                     </IconButton>
                     <div style={{ display: 'flex', flexDirection: 'row', }}>
@@ -574,7 +673,7 @@ class CocList extends React.Component {
                     </div>
                     <IconButton disabled={ !sample.receivedbylab } onClick={ () => {
                       if (!sample.result && !window.confirm("No result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?")) return;
-                      this.reportSample(sample.uid, sample.reported) }}>
+                      this.reportSample(sample) }}>
                       <CheckCircleOutline style={{ fontSize: 24, margin: 10, color: reportcolor }} />
                     </IconButton>
                     <IconButton onClick={event => { this.setState({ sampleAnchorEl: { [sample.samplenumber]: event.currentTarget } }) }}>

@@ -53,6 +53,7 @@ export const APP_HAS_LOADED = "APP_HAS_LOADED";
 export const RESET_DISPLAY = "RESET_DISPLAY";
 
 // Const
+export const INIT_CONSTANTS = "INIT_CONSTANTS";
 
 // Footprints
 export const MARK_FOOTPRINT = "MARK_FOOTPRINT";

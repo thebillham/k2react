@@ -1,5 +1,5 @@
 import {
-
+          INIT_CONSTANTS,
         } from "../constants/action-types"
 
 const KeyCodes = {
@@ -414,6 +414,8 @@ const constInit = {
 // Properties related to constants such as word lists
 export default function constReducer(state = constInit, action){
   switch (action.type) {
+    case INIT_CONSTANTS:
+      return action.payload;
     default:
       return state;
   }

@@ -243,7 +243,9 @@ export const fetchDocuments = () => async dispatch => {
 };
 
 export const fetchCocs = () => async dispatch => {
-  cocsRef.orderBy('dueDate', 'desc')
+  cocsRef
+    .where('deleted', '==', false)
+    .orderBy('dueDate', 'desc')
     .onSnapshot((querySnapshot) => {
       var cocs = {};
       querySnapshot.forEach((doc) => {
@@ -273,7 +275,8 @@ export const fetchVehicles = () => async dispatch => {
 }
 
 export const fetchSamples = cocUid => async dispatch => {
-  cocsRef.doc(cocUid).collection('samples').orderBy('samplenumber')
+  cocsRef.doc(cocUid).collection('samples')
+    .orderBy('samplenumber')
     .onSnapshot((querySnapshot) => {
       var samples = {};
       querySnapshot.forEach((doc) => {

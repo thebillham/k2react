@@ -4,6 +4,7 @@ export const UPLOADFILE = "UPLOADFILE";
 export const VEHICLE = "VEHICLE";
 
 export const COC = "COC";
+export const COCLOG = "COCLOG";
 export const UPDATECERTIFICATEVERSION = "UPDATECERTIFICATEVERSION";
 export const SAMPLEHISTORY = "SAMPLEHISTORY";
 export const WAANALYSIS = "WAANALYSIS";

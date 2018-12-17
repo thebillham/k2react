@@ -13,6 +13,7 @@ import UpdateCertificateVersion from '../modals/UpdateCertificateVersion';
 import QCAnalysis from '../modals/QCAnalysis';
 import WAAnalysis from '../modals/WAAnalysis';
 import SampleHistoryModal from '../modals/SampleHistoryModal';
+import CocLog from '../modals/CocLog';
 
 import CocList from './CocList';
 
@@ -89,6 +90,7 @@ class AsbestosLab extends React.Component {
         <SampleHistoryModal />
         <QCAnalysis />
         <WAAnalysis />
+        <CocLog />
         <Button variant='outlined' style={{ marginBottom: 16 }} onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody' } })}}>
           New Chain of Custody
         </Button>
@@ -112,7 +114,7 @@ class AsbestosLab extends React.Component {
               })}
             </Select>
           </FormControl>
-          <FormControl style={{ width: 180, }}>
+          {/*<FormControl style={{ width: 180, }}>
             <InputLabel shrink>Mode</InputLabel>
             <Select
               value={this.props.analysismode}
@@ -125,7 +127,7 @@ class AsbestosLab extends React.Component {
                 );
               })}
             </Select>
-          </FormControl>
+          </FormControl>*/}
         </div></div>}
         { Object.keys(cocs).length < 1 ?
           <div>No results.</div>

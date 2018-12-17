@@ -60,6 +60,7 @@ import { sendSlackMessage } from '../Slack';
 import { fetchMe, resetLocal, copyStaff } from '../actions/local';
 import { resetModal } from '../actions/modal';
 import { resetDisplay } from '../actions/display';
+import { initConstants } from '../actions/const';
 
 // Pages
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
@@ -128,6 +129,7 @@ const mapDispatchToProps = dispatch => {
     resetModal: () => dispatch(resetModal()),
     resetDisplay: () => dispatch(resetDisplay()),
     copyStaff: (oldId, newId) => dispatch(copyStaff(oldId, newId)),
+    initConstants: () => dispatch(initConstants()),
   };
 };
 
@@ -149,6 +151,8 @@ class MainScreen extends React.Component {
 
   componentWillMount() {
     this.props.fetchMe();
+    this.props.initConstants();
+    // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // this.props.copyStaff('KiaXpWa5P8fd3FToIV0w','RF7LDcg1d5RlpHx1ccjkh9dJrZo1');
   }
