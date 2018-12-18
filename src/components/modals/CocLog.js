@@ -64,19 +64,18 @@ class CocLog extends React.Component {
                 </Grid>
               </Grid>
               { modalProps.cocLog && modalProps.cocLog.map(log => {
-                let formatDate = (log.date instanceof Date) ? log.date : log.date.toDate();
+                let date = (log.date instanceof Date) ? log.date : log.date.toDate();
+                let formatDate = new Intl.DateTimeFormat('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  }).format(date)
                 return(
-                  <Grid container style={{ marginTop: 12, }}>
+                  <Grid key={formatDate + log.log} container style={{ marginTop: 12, }}>
                     <Grid item xs={2}>
-                      {
-                        new Intl.DateTimeFormat('en-GB', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        }).format(formatDate)
-                      }
+                      { formatDate }
                     </Grid>
                     <Grid item xs={1}>
                       {log.type}

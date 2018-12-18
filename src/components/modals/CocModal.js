@@ -24,6 +24,7 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import IconButton from '@material-ui/core/IconButton';
 import Chip from '@material-ui/core/Chip';
+import Slider from '@material-ui/lab/Slider';
 import Paper from '@material-ui/core/Paper'
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
@@ -35,6 +36,7 @@ import DayPicker, { DateUtils } from 'react-day-picker';
 import 'react-day-picker/lib/style.css';
 
 import UploadIcon from '@material-ui/icons/CloudUpload';
+import Add from '@material-ui/icons/Add';
 import Close from '@material-ui/icons/Close';
 import Sync from '@material-ui/icons/Sync';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, handleSampleChange, handleCocSubmit } from '../../actions/modal';
@@ -62,7 +64,7 @@ const mapDispatchToProps = dispatch => {
     hideModal: () => dispatch(hideModal()),
     fetchStaff: () => dispatch(fetchStaff()),
     onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
-    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
+    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 50),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
     handleCocSubmit: (doc, docid) => dispatch(handleCocSubmit(doc, docid)),
@@ -140,6 +142,7 @@ class CocModal extends React.Component {
       this.props.setModalError(null);
       jobNumber = jobNumber;
       this.props.syncJobWithWFM(jobNumber);
+      this.props.fetchSamples(this.props.doc.uid, jobNumber);
     }
   }
 
@@ -162,6 +165,9 @@ class CocModal extends React.Component {
       getSuggestionValue,
       renderSuggestion,
     };
+    let dates = doc.dates.map(date => {
+      return (date instanceof Date) ? date : date.toDate();
+    });
     return(
       <Dialog
         open={ this.props.modalType === COC }
@@ -246,7 +252,7 @@ class CocModal extends React.Component {
                   <FormControl>
                     <InputLabel shrink>Sample Date(s)</InputLabel><br /><br />
                     <DayPicker
-                      selectedDays={doc.dates}
+                      selectedDays={dates}
                       onDayClick={this.handleDateChange}
                     />
                   </FormControl>
@@ -254,9 +260,133 @@ class CocModal extends React.Component {
               </form>
             </Grid>
             <Grid item xs={12} md={8}>
+            { doc.type === 'air' ?
               <Grid container direction='column'>
                 <Grid item>
+                  <Grid container style={{ fontWeight: 450, marginLeft: 12, }}>
+                    <Grid item xs={1}>
+                    </Grid>
+                    <Grid item xs={2}>
+                      Location
+                    </Grid>
+                    <Grid item xs={2}>
+                      Pump Time (Start)
+                    </Grid>
+                    <Grid item xs={2}>
+                      Pump Time (Finish)
+                    </Grid>
+                    <Grid item xs={1}>
+                      Total Run Time
+                    </Grid>
+                    <Grid item xs={2}>
+                      Flow Rate (Start)
+                    </Grid>
+                    <Grid item xs={2}>
+                      Flow Rate (Finish)
+                    </Grid>
+                  </Grid>
+                  { Array.from(Array(doc.numberOfSamples ? doc.numberOfSamples : 10),(x, i) => i).map(i => {
+                    return(<Grid container key={i}>
+                    <Grid item xs={1}>
+                      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: 3,}}>
+                        {i+1}
+                      </div>
+                    </Grid>
+                    <Grid item xs={2}>
+                      <TextField
+                        id={`location${i+1}`}
+                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        style={{ width: '100%' }}
+                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description}
+                        onChange={e => {
+                          this.setState({ modified: true, });
+                          this.props.handleSampleChange(i, 'reported', false);
+                          this.props.handleSampleChange(i, 'description', e.target.value);
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={2}>
+                      <TextField
+                        id={`pumpstarttime${i+1}`}
+                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        style={{ width: '100%' }}
+                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].pumpstarttime}
+                        onChange={e => {
+                          this.setState({ modified: true, });
+                          this.props.handleSampleChange(i, 'reported', false);
+                          this.props.handleSampleChange(i, 'pumpstarttime', e.target.value);
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={2}>
+                      <TextField
+                        id={`pumpfinishtime${i+1}`}
+                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        style={{ width: '100%' }}
+                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].pumpfinishtime}
+                        onChange={e => {
+                          this.setState({ modified: true, });
+                          this.props.handleSampleChange(i, 'reported', false);
+                          this.props.handleSampleChange(i, 'pumpfinishtime', e.target.value);
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={1}>
+                      <TextField
+                        id={`pumptotaltime${i+1}`}
+                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        style={{ width: '100%' }}
+                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].pumptotaltime}
+                        onChange={e => {
+                          this.setState({ modified: true, });
+                          this.props.handleSampleChange(i, 'reported', false);
+                          this.props.handleSampleChange(i, 'pumptotaltime', e.target.value);
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={2}>
+                      <TextField
+                        id={`flowratestart${i+1}`}
+                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        style={{ width: '100%' }}
+                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].flowratestart}
+                        onChange={e => {
+                          this.setState({ modified: true, });
+                          this.props.handleSampleChange(i, 'reported', false);
+                          this.props.handleSampleChange(i, 'flowratestart', e.target.value);
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={2}>
+                      <TextField
+                        id={`flowratefinish${i+1}`}
+                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        style={{ width: '100%' }}
+                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].flowratefinish}
+                        onChange={e => {
+                          this.setState({ modified: true, });
+                          this.props.handleSampleChange(i, 'reported', false);
+                          this.props.handleSampleChange(i, 'flowratefinish', e.target.value);
+                        }}
+                      />
+                    </Grid>
+                  </Grid>)
+                  })}
                   <Grid container>
+                    <Grid item xs={12} justify='center' alignItems='center'>
+                      <Button
+                        style={{ marginTop: 24, marginLeft: 128, }}
+                        onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
+                        <Add style={{ marginRight: 12, }}/> Add More Samples
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Grid>
+            :
+              <Grid container direction='column'>
+                <Grid item>
+                  <Grid container style={{ fontWeight: 450, marginLeft: 12, }}>
                     <Grid item xs={1}>
                     </Grid>
                     <Grid item xs={6}>
@@ -266,7 +396,7 @@ class CocModal extends React.Component {
                       Material
                     </Grid>
                   </Grid>
-                  { Array.from(Array(150),(x, i) => i).map(i => {
+                  { Array.from(Array(doc.numberOfSamples ? doc.numberOfSamples : 10),(x, i) => i).map(i => {
                     return(<Grid container key={i}>
                     <Grid item xs={1}>
                       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: 3,}}>
@@ -276,6 +406,7 @@ class CocModal extends React.Component {
                     <Grid item xs={6} style={{ paddingLeft: 12, paddingRight: 12, }}>
                       <TextField
                         id={`description${i+1}`}
+                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
                         style={{ width: '100%' }}
                         defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description}
                         onChange={e => {
@@ -293,6 +424,7 @@ class CocModal extends React.Component {
                           this.props.handleSampleChange(i, 'reported', false);
                           this.props.handleSampleChange(i, 'material', suggestionValue); }}
                         inputProps={{
+                          disabled: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled,
                           value: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
                           onChange: e => {
                             this.setState({ modified: true, });
@@ -315,8 +447,18 @@ class CocModal extends React.Component {
                     </Grid>
                   </Grid>)
                   })}
+                  <Grid container>
+                    <Grid item xs={12} justify='center' alignItems='center'>
+                      <Button
+                        style={{ marginTop: 24, marginLeft: 128, }}
+                        onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
+                        <Add style={{ marginRight: 12, }}/> Add More Samples
+                      </Button>
+                    </Grid>
+                  </Grid>
                 </Grid>
               </Grid>
+            }
             </Grid>
           </Grid>
         </DialogContent>
@@ -325,10 +467,10 @@ class CocModal extends React.Component {
             this.props.resetWfmJob();
             this.props.hideModal()
           }} color="secondary">Cancel</Button>
-          {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
-          : <Button disabled={!this.state.modified} onClick={() => {
+          <Button disabled={!this.state.modified} onClick={() => {
             if (!wfmJob) {
-              this.props.setModalError('Sync a job with WorkflowMax before submitting.')
+              window.alert('Sync a job with WorkflowMax before submitting.');
+              return;
             } else {
                if (wfmJob.client) {
                 doc.jobNumber = doc.jobNumber ? doc.jobNumber.toUpperCase() : null;
@@ -370,6 +512,7 @@ class CocModal extends React.Component {
                 doc.cocLog = [{
                   type: 'Edit',
                   log: `Chain of Custody created.`,
+                  date: new Date(),
                   username: this.props.me.name,
                   user: auth.currentUser.uid,
                 }];
@@ -382,7 +525,7 @@ class CocModal extends React.Component {
               }
             }
           }
-        } color="primary" >Submit</Button>}
+        } color="primary" >Submit</Button>
         </DialogActions>
       </Dialog>
     )

@@ -91,8 +91,11 @@ class AsbestosLab extends React.Component {
         <QCAnalysis />
         <WAAnalysis />
         <CocLog />
-        <Button variant='outlined' style={{ marginBottom: 16 }} onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody' } })}}>
-          New Chain of Custody
+        <Button variant='outlined' style={{ marginBottom: 16 }} onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody', doc: {dates: [], samples: {}, personnel: [], type: 'bulk',} } })}}>
+          New Chain of Custody (Bulk)
+        </Button>
+        <Button variant='outlined' style={{ marginBottom: 16, marginLeft: 16, }} onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody', doc: {dates: [], samples: {}, personnel: [], type: 'air',} } })}}>
+          New Chain of Custody (Air)
         </Button>
         { this.state.analyst && <div style = {{ borderRadius: 4, borderStyle: 'solid', borderWidth: 1, borderColor: '#ccc', width: 220, marginBottom: 12, padding: 12, }}><div style = {{ marginBottom: 12, }}>
           <InputLabel style={{ marginLeft: 12, }}>

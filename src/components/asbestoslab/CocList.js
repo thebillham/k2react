@@ -54,7 +54,7 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchCocs: () => dispatch(fetchCocs()),
     showModal: modal => dispatch(showModal(modal)),
-    fetchSamples: jobnumber => dispatch(fetchSamples(jobnumber)),
+    fetchSamples: (cocUid, jobNumber) => dispatch(fetchSamples(cocUid, jobNumber)),
     syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
   }
 }
@@ -316,10 +316,22 @@ class CocList extends React.Component {
       personnel: job.personnel.sort(),
       assessors: job.personnel.sort().map(staff => { return(aanumbers[staff])}),
       analysts: analysts ? analysts : ['Not specified'],
-      version: job.currentVersion,
+      version: job.currentVersion ? job.currentVersion : 1,
       samples: samples,
     }
     return report;
+  }
+
+  writeDescription = (description, material) => {
+    if (description && material) {
+      return (description + ', ' + material);
+    } else if (description) {
+      return description;
+    } else if (material) {
+      return material;
+    } else {
+      return 'No description'
+    }
   }
 
   issueLabReport = (version, changes) => {
@@ -337,7 +349,7 @@ class CocList extends React.Component {
           date: new Date(),
         });
     versionHistory[version] = {
-      issueUser: this.props.me.uid,
+      issueUser: auth.currentUser.uid,
       issueDate: new Date(),
       changes: changes,
       data: json,
@@ -441,9 +453,9 @@ class CocList extends React.Component {
     // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
   }
 
-  getSamples = (expanded, cocUid) => {
+  getSamples = (expanded, cocUid, jobNumber) => {
     if (expanded && cocUid) {
-      this.props.fetchSamples(cocUid);
+      this.props.fetchSamples(cocUid, jobNumber);
     }
   }
 
@@ -469,7 +481,7 @@ class CocList extends React.Component {
   }
 
   deleteCoc = () => {
-    if (window.confirm("Are you sure you wish to delete this Chain of Custody? (This action can be undone)")) {
+    if (window.confirm("Are you sure you wish to delete this Chain of Custody?")) {
       let cocLog = this.props.job.cocLog;
       if (!cocLog) cocLog = [];
       cocLog.push({
@@ -489,9 +501,19 @@ class CocList extends React.Component {
     if (job.currentVersion) version = job.currentVersion + 1;
     let analysts = this.getAnalysts(false);
     let menu = {};
+
+    let dates = job.dates.map(date => {
+      let formatDate = (date instanceof Date) ? date : date.toDate();
+      return new Intl.DateTimeFormat('en-GB', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(formatDate);
+    });
+
     return (
       <ExpansionPanel onChange={(event, ex) => {
-        if (!job.samples) this.getSamples(ex, job.uid);
+        if (!job.samples) this.getSamples(ex, job.uid, job.jobNumber);
       }}>
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
           <b>{job.jobNumber}</b> {job.client} ({job.address})
@@ -555,10 +577,12 @@ class CocList extends React.Component {
               </Menu>
             </div>
             <div style={{ marginTop: 12, marginBottom: 12, }}>
-              Sampled by: <span style={{ fontWeight: 300, }}>{ job.personnel ? job.personnel.join(', ') : 'Not specified' }</span><br />
+              Sampled by: <span style={{ fontWeight: 300, }}>{ (job.personnel && job.personnel.length > 0) ? job.personnel.join(', ') : 'Not specified' }</span><br />
+              Date(s) Sampled: <span style={{ fontWeight: 300, }}>{ (dates && dates.length > 0) ? dates.join(', ') : 'Not specified' }</span><br />
               Analysis by: <span style={{ fontWeight: 300, }}>{ analysts ? analysts.join(', ') : 'Not specified'}</span><br />
             </div>
           { samples[job.uid] && Object.values(samples[job.uid]).map(sample => {
+            if (sample.disabled) return;
             let result = 'none';
             if (sample.result && (sample.result['ch'] || sample.result['am'] || sample.result['cr'] || sample.result['umf'])) result = 'positive';
             if (sample.result && sample.result['no']) result = 'negative';
@@ -622,12 +646,6 @@ class CocList extends React.Component {
               </Menu>
             );
 
-            console.log(menu);
-
-            console.log({ modalType: SAMPLEHISTORY, modalProps: { title: `Sample History for ${job.jobNumber}-${sample.samplenumber.toString()}`,
-            doc: { sample: sample }}});
-            // let asbdivcolor = '#fff';
-            // if (result === 'positive') asbdivcolor = 'red';
             return(
               <ListItem dense className={classes.hoverItem} key={`${job.jobNumber}-${sample.samplenumber.toString()}_${sample.description}`}>
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '70vw'}}>
@@ -646,7 +664,7 @@ class CocList extends React.Component {
                     <div style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#aaa',
                         marginRight: 10, color: '#fff', justifyContent: 'center', alignItems: 'center', display: 'flex',
                         fontWeight: 'bold', }}>{sample.samplenumber}</div>
-                    { sample.description + ', ' + sample.material }
+                    { this.writeDescription(sample.description, sample.material)  }
                   </div>
                   <div style={{ width: '40vw', display: 'flex', flexDirection: 'row',
                     justifyContent: 'flex-end', alignItems: 'center',}}>
