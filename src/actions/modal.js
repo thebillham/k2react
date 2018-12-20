@@ -110,13 +110,21 @@ export const handleCocSubmit = ({ doc, docid}) => dispatch => {
     Object.keys(doc.samples).forEach(sample => {
       if((doc.samples[sample].description || doc.samples[sample].material) && !doc.samples[sample].disabled){
         console.log(`Submitting sample ${sample} to ${docid}`);
-        if (doc.samples[sample.description]) doc.samples[sample.description] = doc.samples[sample.description].charAt(0).toUpperCase() + doc.samples[sample.description].slice(1);
-        cocsRef.doc(docid).collection('samples').doc(sample).set({...doc.samples[sample], samplenumber: parseInt(sample,10)});
+        let sample2 = doc.samples[sample];
+        if (sample2.description) sample2.description = sample2.description.charAt(0).toUpperCase() + sample2.description.slice(1);
+        if (doc.type === 'air') {
+          sample2.isAirSample = true;
+          sample2.material = 'Air Sample';
+        }
+        sample2.samplenumber = parseInt(sample,10);
+        if ("disabled" in sample2) delete sample2.disabled;
+        console.log(sample2);
+        cocsRef.doc(docid).collection('samples').doc(sample).set(sample2);
       }
     });
   }
   let doc2 = doc;
-  if (doc2.samples) delete doc2.samples;
+  if ("samples" in doc2) delete doc2.samples;
   doc2.uid = docid;
   console.log(doc2);
   cocsRef.doc(docid).set(doc2);

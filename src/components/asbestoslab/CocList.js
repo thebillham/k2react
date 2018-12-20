@@ -287,6 +287,7 @@ class CocList extends React.Component {
     this.props.samples[job.uid] && Object.values(this.props.samples[job.uid]).forEach(sample => {
       if (sample.reported) {
         let samplemap = {};
+        if (sample.disabled) return;
         samplemap['no'] = sample.samplenumber;
         samplemap['description'] = sample.description.charAt(0).toUpperCase() + sample.description.slice(1);
         samplemap['material'] = sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
@@ -416,6 +417,7 @@ class CocList extends React.Component {
     let samples = [];
     this.props.samples[job.uid] && Object.values(this.props.samples[job.uid]).forEach(sample => {
       let samplemap = {};
+      if (sample.disabled) return;
       samplemap['no'] = sample.samplenumber;
       samplemap['description'] = sample.description.charAt(0).toUpperCase() + sample.description.slice(1);
       samplemap['material'] = sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
@@ -475,7 +477,6 @@ class CocList extends React.Component {
     });
     let list = [];
     Object.keys(analysts).forEach(analyst => {list.push(analyst)});
-    console.log(list);
     if (list.length === 0) return false;
     return list;
   }

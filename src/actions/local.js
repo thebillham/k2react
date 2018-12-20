@@ -292,6 +292,8 @@ export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
               sample.disabled = disabled;
               samples[doc.id] = sample;
             });
+            console.log(`Ran fetch Samples`);
+            console.log(samples);
             dispatch({
               type: GET_SAMPLES,
               cocUid: cocUid,

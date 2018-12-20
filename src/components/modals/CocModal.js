@@ -40,7 +40,7 @@ import Add from '@material-ui/icons/Add';
 import Close from '@material-ui/icons/Close';
 import Sync from '@material-ui/icons/Sync';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, handleSampleChange, handleCocSubmit } from '../../actions/modal';
-import { fetchStaff, syncJobWithWFM, resetWfmJob, } from '../../actions/local';
+import { fetchStaff, syncJobWithWFM, resetWfmJob, fetchSamples } from '../../actions/local';
 import _ from 'lodash';
 import deburr from 'lodash/deburr';
 import { injectIntl, IntlProvider,  } from 'react-intl';
@@ -72,6 +72,7 @@ const mapDispatchToProps = dispatch => {
     setModalError: error => dispatch(setModalError(error)),
     syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
     resetWfmJob: () => dispatch(resetWfmJob()),
+    fetchSamples: (cocUid, jobNumber) => dispatch(fetchSamples(cocUid, jobNumber)),
   };
 };
 
@@ -142,7 +143,20 @@ class CocModal extends React.Component {
       this.props.setModalError(null);
       jobNumber = jobNumber;
       this.props.syncJobWithWFM(jobNumber);
-      this.props.fetchSamples(this.props.doc.uid, jobNumber);
+      let uid = this.props.doc.uid;
+      if (!uid) {
+        let datestring = new Intl.DateTimeFormat('en-GB', {
+          year: '2-digit',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }).format(new Date()).replace(/[.:/,\s]/g, '_');
+        uid = `${jobNumber}_${datestring}`;
+        this.props.handleModalChange({id: 'uid', value: uid});
+      }
+      this.props.fetchSamples(uid, jobNumber);
     }
   }
 
@@ -297,7 +311,7 @@ class CocModal extends React.Component {
                         id={`location${i+1}`}
                         disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
                         style={{ width: '100%' }}
-                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description}
+                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].isAirSample ? doc.samples[i+1].description : 'Bulk Sample'}
                         onChange={e => {
                           this.setState({ modified: true, });
                           this.props.handleSampleChange(i, 'reported', false);
