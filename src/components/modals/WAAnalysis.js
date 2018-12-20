@@ -5,11 +5,12 @@ import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 import store from '../../store';
 import { WAANALYSIS } from '../../constants/modal-types';
-import { docsRef } from '../../config/firebase';
+import { cocsRef } from '../../config/firebase';
 import '../../config/tags.css';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
+import Grid from '@material-ui/core/Grid';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -35,22 +36,44 @@ const mapDispatchToProps = dispatch => {
 };
 
 class WAAnalysis extends React.Component {
+  state = {
+    sample: {},
+  }
+
+  componentWillMount = () => {
+    this.setState({
+      sample: this.props.modalProps.sample,
+    });
+  }
+
   render(){
     const { classes, modalProps, modalType } = this.props;
+    const { sample } = this.state;
     return(
       <Dialog
         open={ modalType === WAANALYSIS }
         onClose = {() => this.props.hideModal()}
+        maxWidth = "lg"
+        fullWidth = { true }
         >
         <DialogTitle>{modalProps.title}</DialogTitle>
         <DialogContent>
-          In development.
+          <Grid container>
+            <Grid item xs={1}>
+              Weight Received
+            </Grid>
+            <Grid item xs={1}>
+              Weight Analysed
+            </Grid>
+            <Grid item xs={1}>
+              Fibres Detected
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => this.props.hideModal()} color="secondary">Cancel</Button>
           <Button onClick={() => {
-            modalProps.issueLabReport(modalProps.doc.version, modalProps.doc.changes);
-            this.props.hideModal();
+            cocsRef.doc(modalProps.docid).collection('samples').doc(sample.uid).set(sample);
           }
         } color="primary" >Submit</Button>}
         </DialogActions>

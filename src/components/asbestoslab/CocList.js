@@ -114,7 +114,7 @@ class CocList extends React.Component {
   reportSample = sample => {
     if (this.props.me && this.props.me.auth && (this.props.me.auth['Analysis Checker'] || this.props.me.auth['Asbestos Admin'])) {
       if (auth.currentUser.uid === sample.resultuser) {
-        window.alert("Samples must be checked by a different user.");
+        window.alert("Samples must be checked off by a different user.");
       } else {
         let reportdate = null;
         if (!sample.reported) reportdate = new Date();
@@ -706,7 +706,7 @@ class CocList extends React.Component {
                       style={{ padding: 0, }}
                       >
                       <MenuItem key={`${job.jobNumber}-${sample.samplenumber.toString()}-WA`} onClick={() => {
-                        this.props.showModal({ modalType: WAANALYSIS, modalProps: { title: 'Add WA Analysis', doc: { sample: sample, }, }})} }>Add WA Analysis</MenuItem>
+                        this.props.showModal({ modalType: WAANALYSIS, modalProps: { title: 'Add WA Analysis', sample: sample, docid: job.uid, }})} }>Add WA Analysis</MenuItem>
                       <MenuItem key={`${job.jobNumber}-${sample.samplenumber.toString()}-SampleHistory`} onClick={() => {
                         this.props.showModal({ modalType: SAMPLEHISTORY, modalProps: { title: `Sample History for ${job.jobNumber}-${sample.samplenumber.toString()}`,
                         doc: { sample: sample }}})} }>View Sample History</MenuItem>

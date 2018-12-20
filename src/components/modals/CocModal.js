@@ -179,6 +179,7 @@ class CocModal extends React.Component {
       getSuggestionValue,
       renderSuggestion,
     };
+    if (!doc.dates) doc.dates = [];
     let dates = doc.dates.map(date => {
       return (date instanceof Date) ? date : date.toDate();
     });
