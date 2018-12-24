@@ -153,7 +153,7 @@ class CocModal extends React.Component {
           minute: '2-digit',
           second: '2-digit',
         }).format(new Date()).replace(/[.:/,\s]/g, '_');
-        uid = `${jobNumber}_${datestring}`;
+        uid = `${jobNumber.toUpperCase()}_${datestring}`;
         this.props.handleModalChange({id: 'uid', value: uid});
       }
       this.props.fetchSamples(uid, jobNumber);
@@ -301,6 +301,7 @@ class CocModal extends React.Component {
                     </Grid>
                   </Grid>
                   { Array.from(Array(doc.numberOfSamples ? doc.numberOfSamples : 10),(x, i) => i).map(i => {
+                    let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid !== doc.uid;
                     return(<Grid container key={i}>
                     <Grid item xs={1}>
                       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: 3,}}>
@@ -310,7 +311,7 @@ class CocModal extends React.Component {
                     <Grid item xs={2}>
                       <TextField
                         id={`location${i+1}`}
-                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        disabled={disabled}
                         style={{ width: '100%' }}
                         defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].isAirSample ? doc.samples[i+1].description : 'Bulk Sample'}
                         onChange={e => {
@@ -323,7 +324,7 @@ class CocModal extends React.Component {
                     <Grid item xs={2}>
                       <TextField
                         id={`pumpstarttime${i+1}`}
-                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        disabled={disabled}
                         style={{ width: '100%' }}
                         defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].pumpstarttime}
                         onChange={e => {
@@ -336,7 +337,7 @@ class CocModal extends React.Component {
                     <Grid item xs={2}>
                       <TextField
                         id={`pumpfinishtime${i+1}`}
-                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        disabled={disabled}
                         style={{ width: '100%' }}
                         defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].pumpfinishtime}
                         onChange={e => {
@@ -349,7 +350,7 @@ class CocModal extends React.Component {
                     <Grid item xs={1}>
                       <TextField
                         id={`pumptotaltime${i+1}`}
-                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        disabled={disabled}
                         style={{ width: '100%' }}
                         defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].pumptotaltime}
                         onChange={e => {
@@ -362,7 +363,7 @@ class CocModal extends React.Component {
                     <Grid item xs={2}>
                       <TextField
                         id={`flowratestart${i+1}`}
-                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        disabled={disabled}
                         style={{ width: '100%' }}
                         defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].flowratestart}
                         onChange={e => {
@@ -375,7 +376,7 @@ class CocModal extends React.Component {
                     <Grid item xs={2}>
                       <TextField
                         id={`flowratefinish${i+1}`}
-                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        disabled={disabled}
                         style={{ width: '100%' }}
                         defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].flowratefinish}
                         onChange={e => {
@@ -412,6 +413,7 @@ class CocModal extends React.Component {
                     </Grid>
                   </Grid>
                   { Array.from(Array(doc.numberOfSamples ? doc.numberOfSamples : 10),(x, i) => i).map(i => {
+                    let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
                     return(<Grid container key={i}>
                     <Grid item xs={1}>
                       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: 3,}}>
@@ -421,7 +423,7 @@ class CocModal extends React.Component {
                     <Grid item xs={6} style={{ paddingLeft: 12, paddingRight: 12, }}>
                       <TextField
                         id={`description${i+1}`}
-                        disabled={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled}
+                        disabled={disabled}
                         style={{ width: '100%' }}
                         defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description}
                         onChange={e => {
@@ -439,7 +441,7 @@ class CocModal extends React.Component {
                           this.props.handleSampleChange(i, 'reported', false);
                           this.props.handleSampleChange(i, 'material', suggestionValue); }}
                         inputProps={{
-                          disabled: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].disabled,
+                          disabled: disabled,
                           value: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
                           onChange: e => {
                             this.setState({ modified: true, });
@@ -510,19 +512,17 @@ class CocModal extends React.Component {
                 second: '2-digit',
               }).format(now).replace(/[.:/,\s]/g, '_');
               this.props.resetWfmJob();
-              if (doc.uid) {
-                let log = {
-                    type: 'Edit',
-                    log: 'Details modified.',
-                    date: new Date(),
-                    username: this.props.me.name,
-                    user: auth.currentUser.uid,
-                  };
+              console.log(`Doc UID exists it is ${doc.uid}`);
+              let log = {};
+              if (doc.cocLog) {
+                log = {
+                  type: 'Edit',
+                  log: 'Details modified.',
+                  date: new Date(),
+                  username: this.props.me.name,
+                  user: auth.currentUser.uid,
+                };
                 doc.cocLog ? doc.cocLog.push(log) : doc.cocLog = [log];
-                this.props.handleCocSubmit({
-                  doc: doc,
-                  docid: doc.uid,
-                });
               } else {
                 doc.cocLog = [{
                   type: 'Edit',
@@ -531,13 +531,12 @@ class CocModal extends React.Component {
                   username: this.props.me.name,
                   user: auth.currentUser.uid,
                 }];
-                doc.deleted = false;
-                this.props.handleCocSubmit({
-                  doc: doc,
-                  docid: `${doc.jobNumber}_${datestring}`,
-                });
-                // this.sendNewCocSlack();
               }
+              doc.deleted = false;
+              this.props.handleCocSubmit({
+                doc: doc,
+                docid: doc.uid,
+              });
             }
           }
         } color="primary" >Submit</Button>

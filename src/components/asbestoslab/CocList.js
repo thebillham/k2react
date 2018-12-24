@@ -2,7 +2,7 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
-import { cocsRef, asbestosAnalysisRef, firestore, firebase, auth } from '../../config/firebase';
+import { cocsRef, asbestosAnalysisRef, firestore, firebase, auth, asbestosSamplesRef } from '../../config/firebase';
 import { fetchCocs, fetchSamples, syncJobWithWFM } from '../../actions/local';
 import { showModal } from '../../actions/modal';
 import { COC, UPDATECERTIFICATEVERSION, WAANALYSIS, SAMPLEHISTORY, COCLOG,} from '../../constants/modal-types';
@@ -95,8 +95,8 @@ class CocList extends React.Component {
     if (!sample.receivedbylab) receiveddate = new Date();
     let log = {
       type: 'Received',
-      log: receiveddate ? `Sample ${sample.uid} (${sample.description} ${sample.material}) received by lab.`
-      : `Sample ${sample.uid} (${sample.description} ${sample.material}) unchecked as being received.`,
+      log: receiveddate ? `Sample ${sample.samplenumber} (${sample.description} ${sample.material}) received by lab.`
+      : `Sample ${sample.samplenumber} (${sample.description} ${sample.material}) unchecked as being received.`,
       user: auth.currentUser.uid,
       username: this.props.me.name,
       date: new Date(),
@@ -104,7 +104,7 @@ class CocList extends React.Component {
     let cocLog = this.props.job.cocLog;
     cocLog ? cocLog.push(log) : cocLog = [log];
     cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, cocLog: cocLog, });
-    cocsRef.doc(this.props.job.uid).collection("samples").doc(sample.uid).set({
+    asbestosSamplesRef.doc(sample.uid).set({
       receivedbylab: !sample.receivedbylab,
       receiveduser: auth.currentUser.uid,
       receiveddate: receiveddate
@@ -120,8 +120,8 @@ class CocList extends React.Component {
         if (!sample.reported) reportdate = new Date();
         let log = {
           type: 'Reported',
-          log: reportdate ? `Sample ${sample.uid} (${sample.description} ${sample.material}) result checked.`
-          : `Sample ${sample.uid} (${sample.description} ${sample.material}) result unchecked.`,
+          log: reportdate ? `Sample ${sample.samplenumber} (${sample.description} ${sample.material}) result checked.`
+          : `Sample ${sample.samplenumber} (${sample.description} ${sample.material}) result unchecked.`,
           user: auth.currentUser.uid,
           username: this.props.me.name,
           date: new Date(),
@@ -129,7 +129,7 @@ class CocList extends React.Component {
         let cocLog = this.props.job.cocLog;
         cocLog ? cocLog.push(log) : cocLog = [log];
         cocsRef.doc(this.props.job.uid).update({ versionUpToDate: false, cocLog: cocLog, });
-        cocsRef.doc(this.props.job.uid).collection("samples").doc(sample.uid).set({
+        asbestosSamplesRef.doc(sample.uid).set({
           reported: !sample.reported,
           reportuser: auth.currentUser.uid,
           reportdate: reportdate
@@ -153,7 +153,7 @@ class CocList extends React.Component {
         if (window.confirm("This sample has already been analysed. Do you wish to override the result?")) {
           cocLog.push({
             type: 'Analysis',
-            log: `Previous analysis of sample ${sample.uid} (${sample.description} ${sample.material}) overridden.`,
+            log: `Previous analysis of sample ${sample.samplenumber} (${sample.description} ${sample.material}) overridden.`,
             user: auth.currentUser.uid,
             username: this.props.me.name,
             date: new Date(),
@@ -165,7 +165,7 @@ class CocList extends React.Component {
       let newmap = {};
       let map = sample.result;
       if (sample.reported) {
-        cocsRef.doc(this.props.job.uid).collection("samples").doc(sample.uid).set({ reported: false, reportdate: null }, {merge: true});
+        asbestosSamplesRef.doc(sample.uid).set({ reported: false, reportdate: null }, {merge: true});
       }
       if (map === undefined) {
         newmap = { [result]: true }
@@ -182,7 +182,7 @@ class CocList extends React.Component {
         newmap[result] = !map[result];
       }
 
-      cocsRef.doc(this.props.job.uid).collection('samples').doc(sample.uid).update({
+      asbestosSamplesRef.doc(sample.uid).update({
         resultuser: auth.currentUser.uid,
         sessionID: this.state.sessionID,
         analyst: this.props.analyst,
@@ -192,7 +192,7 @@ class CocList extends React.Component {
 
       cocLog.push({
         type: 'Analysis',
-        log: `New analysis for sample ${sample.uid} (${sample.description} ${sample.material}): ${this.writeResult(newmap)}`,
+        log: `New analysis for sample ${sample.samplenumber} (${sample.description} ${sample.material}): ${this.writeResult(newmap)}`,
         user: auth.currentUser.uid,
         username: this.props.me.name,
         date: new Date(),
@@ -207,6 +207,7 @@ class CocList extends React.Component {
       if (notBlankAnalysis) {
         asbestosAnalysisRef.doc(`${this.state.sessionID}-${sample.uid}`).set({
           analyst: this.props.analyst,
+          analystUID: auth.currentUser.uid,
           mode: this.props.analysismode ,
           sessionID: this.state.sessionID,
           cocUID: this.props.job.uid,
@@ -577,13 +578,15 @@ class CocList extends React.Component {
                 </MenuItem>
               </Menu>
             </div>
+          { samples[job.uid] && (Object.values(samples[job.uid]).length > 0) ?
+            <div>
             <div style={{ marginTop: 12, marginBottom: 12, }}>
               Sampled by: <span style={{ fontWeight: 300, }}>{ (job.personnel && job.personnel.length > 0) ? job.personnel.join(', ') : 'Not specified' }</span><br />
               Date(s) Sampled: <span style={{ fontWeight: 300, }}>{ (dates && dates.length > 0) ? dates.join(', ') : 'Not specified' }</span><br />
               Analysis by: <span style={{ fontWeight: 300, }}>{ analysts ? analysts.join(', ') : 'Not specified'}</span><br />
             </div>
           { samples[job.uid] && Object.values(samples[job.uid]).map(sample => {
-            if (sample.disabled) return;
+            if (sample.cocUid !== this.props.job.uid) return;
             let result = 'none';
             if (sample.result && (sample.result['ch'] || sample.result['am'] || sample.result['cr'] || sample.result['umf'])) result = 'positive';
             if (sample.result && sample.result['no']) result = 'negative';
@@ -715,7 +718,19 @@ class CocList extends React.Component {
                 </div>
               </ListItem>
             );
-          })}
+          })} </div>
+          :
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <CircularProgress style={{
+                margin: 40,
+              }}/>
+            </div>
+          }
           </List>
         </ExpansionPanelDetails>
       </ExpansionPanel>

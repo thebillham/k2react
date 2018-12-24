@@ -3,7 +3,7 @@ import { SHOW_MODAL, EDIT_MODAL, EDIT_MODAL_DOC,
   EDIT_MODAL_SAMPLE,
  } from "../constants/action-types";
 
-import { storage, cocsRef } from "../config/firebase";
+import { storage, cocsRef, asbestosSamplesRef } from "../config/firebase";
 
 export const resetModal = () => dispatch => {
   dispatch({ type: RESET_MODAL });
@@ -106,8 +106,25 @@ export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
 }
 
 export const handleCocSubmit = ({ doc, docid}) => dispatch => {
+  let samplelist = [];
   if (doc.samples) {
     Object.keys(doc.samples).forEach(sample => {
+      if (!doc.samples[sample].uid) {
+        let datestring = new Intl.DateTimeFormat('en-GB', {
+          year: '2-digit',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }).format(new Date()).replace(/[.:/,\s]/g, '_');
+        let uid = `${doc.jobNumber}-SAMPLE-${sample}-CREATED-${datestring}-${Math.round(Math.random()*1000)}`;
+        console.log(`UID for new sample is ${uid}`);
+        doc.samples[sample].uid = uid;
+        samplelist.push(uid);
+      } else {
+        samplelist.push(doc.samples[sample].uid);
+      }
       if((doc.samples[sample].description || doc.samples[sample].material) && !doc.samples[sample].disabled){
         console.log(`Submitting sample ${sample} to ${docid}`);
         let sample2 = doc.samples[sample];
@@ -116,16 +133,19 @@ export const handleCocSubmit = ({ doc, docid}) => dispatch => {
           sample2.isAirSample = true;
           sample2.material = 'Air Sample';
         }
+        sample2.jobNumber = doc.jobNumber;
+        sample2.cocUid = docid;
         sample2.samplenumber = parseInt(sample,10);
         if ("disabled" in sample2) delete sample2.disabled;
         console.log(sample2);
-        cocsRef.doc(docid).collection('samples').doc(sample).set(sample2);
+        asbestosSamplesRef.doc(doc.samples[sample].uid).set(sample2);
       }
     });
   }
   let doc2 = doc;
   if ("samples" in doc2) delete doc2.samples;
   doc2.uid = docid;
+  doc2.samplelist = samplelist;
   console.log(doc2);
   cocsRef.doc(docid).set(doc2);
   dispatch({type: RESET_MODAL});

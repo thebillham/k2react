@@ -276,32 +276,22 @@ export const fetchVehicles = () => async dispatch => {
 
 export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
     let samples = {};
-    cocsRef.
+    asbestosSamplesRef.
       where('jobNumber','==',jobNumber)
-      .get().then((cocSnapshot) => {
-        cocSnapshot.forEach(coc => {
-          let disabled = (coc.id !== cocUid);
-          console.log(`Read CoC (${coc.id}) (${disabled})`);
-          cocsRef.doc(coc.id).collection('samples')
-          .orderBy('samplenumber')
-          .onSnapshot((sampleSnapshot) => {
-            sampleSnapshot.forEach((doc) => {
-              console.log(`Read doc for sample ${jobNumber}-${doc.data().samplenumber} (${disabled})`);
-              let sample = doc.data();
-              sample.uid = doc.id;
-              sample.disabled = disabled;
-              samples[doc.id] = sample;
-            });
-            console.log(`Ran fetch Samples`);
-            console.log(samples);
-            dispatch({
-              type: GET_SAMPLES,
-              cocUid: cocUid,
-              payload: samples
-            });
+      .onSnapshot((sampleSnapshot) => {
+        sampleSnapshot.forEach(sampleDoc => {
+          let sample = sampleDoc.data();
+          sample.uid = sampleDoc.id;
+          samples[sample.samplenumber] = sample;
+          console.log(`Ran fetch Samples`);
+          console.log(samples);
+          dispatch({
+            type: GET_SAMPLES,
+            cocUid: cocUid,
+            payload: samples
           });
         });
-    });
+      });
 };
 
 export const fetchTools = () => async dispatch => {
