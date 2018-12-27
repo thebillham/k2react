@@ -7,6 +7,7 @@ import {
           GET_WFM,
           GET_WFMJOB,
           GET_QUIZZES,
+          GET_QUESTIONS,
           GET_TRAININGS,
           GET_COCS,
           GET_SAMPLES,
@@ -42,6 +43,7 @@ const localInit = {
   userRefName: null,
   documents: [],
   quizzes: [],
+  questions: [],
   staff: {},
   tools: [],
   user: {},
@@ -137,6 +139,11 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         quizzes: action.payload,
+      }
+    case GET_QUESTIONS:
+      return {
+        ...state,
+        questions: action.payload,
       }
     case GET_TRAININGS:
       return {

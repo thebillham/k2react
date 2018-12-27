@@ -4,6 +4,7 @@ import { GET_STAFF,
         GET_BULKANALYSTS,
         GET_USER,
         GET_QUIZZES,
+        GET_QUESTIONS,
         GET_WFM,
         GET_TRAININGS,
         GET_MODULES,
@@ -34,7 +35,7 @@ import { GET_STAFF,
       } from "../constants/action-types";
 import firebase from '../config/firebase';
 import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
-    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef,
+    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef, questionsRef,
     updateRef, cocsRef, vehiclesRef, } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 
@@ -391,6 +392,22 @@ export const fetchQuizzes = () => async dispatch => {
       dispatch({
         type: GET_QUIZZES,
         payload: quizzes
+      });
+    });
+};
+
+export const fetchQuestions = () => async dispatch => {
+  questionsRef.orderBy('question')
+    .onSnapshot((querySnapshot) => {
+      var questions = [];
+      querySnapshot.forEach((doc) => {
+        let question = doc.data();
+        question.uid = doc.id;
+        questions.push(question);
+      });
+      dispatch({
+        type: GET_QUESTIONS,
+        payload: questions
       });
     });
 };

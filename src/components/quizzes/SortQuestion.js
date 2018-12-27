@@ -78,7 +78,7 @@ class SortQuestion extends React.Component {
                   {...provided.droppableProps}
                 >
                   {q.selected.map((item, index) => (
-                    <Draggable key={item} draggableId={item} index={index}>
+                    <Draggable key={item.text} draggableId={item.text} index={index}>
                       {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}
@@ -89,7 +89,7 @@ class SortQuestion extends React.Component {
                             provided.draggableProps.style
                           )}
                         >
-                          {item}
+                          {item.text}
                         </div>
                       )}
                     </Draggable>

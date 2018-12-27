@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import { auth, quizzesRef, usersRef, questionsRef } from '../../config/firebase';
 import { formStyles } from '../../config/styles';
 import { FormattedDate } from 'react-intl';
+import TrueFalseQuestion from './TrueFalseQuestion';
 import MultiMultiQuestion from './MultiMultiQuestion';
 import MultiSingleQuestion from './MultiSingleQuestion';
 import ShortStringQuestion from './ShortStringQuestion';
@@ -140,12 +141,15 @@ class Quiz extends React.Component {
       let score = 0;
       if (q.selected === undefined || q.selected === null || q.selected.length === 0) {
         unansweredList.push(q.uid);
-      } else if (q.type === 'multi-single') {
+      } else if (q.type === 'truefalse') {
+        if (q.truefalse === q.selected)
+          score = 1;
+      } else if (q.type === 'multisingle') {
           var opt = q.correct[0];
           if (typeof opt === 'object') opt = opt.text;
           if (opt === q.selected)
             score = 1;
-      } else if (q.type === 'multi-multi') {
+      } else if (q.type === 'multimulti') {
         let num = 0;
         q.correct.forEach(opt => {
           if (typeof opt === 'object') opt = opt.text;
@@ -163,9 +167,9 @@ class Quiz extends React.Component {
         });
         if (score < 0) score = 0;
         score = score / num;
-      } else if (q.type === 'short-string') {
+      } else if (q.type === 'shortstring') {
         if (new RegExp(q.answer.toLowerCase(), '').test(q.selected.toLowerCase())) score = 1;
-      } else if (q.type === 'sort' || q.type === 'sort-image') {
+      } else if (q.type === 'sort' || q.type === 'sortimage') {
         q.selected.forEach((item, index) => {
           if (q.answers[index] === item) {
             score = score + 1;
@@ -175,7 +179,7 @@ class Quiz extends React.Component {
         });
         if (score < 0) score = 0;
         score = score / q.selected.length;
-      } else if (q.type === 'sort-bucket' || q.type === 'sort-bucket-image') {
+      } else if (q.type === 'sortbucket' || q.type === 'sortbucketimage') {
         let num = 0;
         q.selected.forEach((bucket, index) =>{
           bucket.answers.forEach(answer => {
@@ -189,11 +193,11 @@ class Quiz extends React.Component {
         });
         if (score < 0) score = 0;
         score = score / num;
-      } else if (q.type === 'imagemap-single') {
+      } else if (q.type === 'imagemapsingle') {
         if (q.selected[0]._id === q.correct) {
           score = 1;
         }
-      } else if (q.type === 'imagemap-multi') {
+      } else if (q.type === 'imagemapmulti') {
         let corrects = q.correct.length;
         q.selected.forEach(obj => {
           if (q.correct.includes(obj._id)) {
@@ -205,10 +209,10 @@ class Quiz extends React.Component {
         });
         if (score < 0) score = 0;
         score = score / (q.selected.length + corrects);
-      } else if (q.type === 'imageselect-single') {
+      } else if (q.type === 'imageselectsingle') {
         if (q.correct[0].src === q.selected)
           score = 1;
-      } else if (q.type === 'imageselect-multi') {
+      } else if (q.type === 'imageselectmulti') {
         let num = 0;
         q.correct.forEach(opt => {
           if (q.selected.includes(opt.src)) {
@@ -322,27 +326,29 @@ class Quiz extends React.Component {
                       <List>
                         { questions.map(q => {
                           switch(q.type) {
-                            case 'multi-single':
+                            case 'truefalse':
+                              return (<TrueFalseQuestion q={q} key={q.uid} onChanges={e => this.onSingleChanged(q.uid, e.target.value)} />);
+                            case 'multisingle':
                               return (<MultiSingleQuestion q={q} key={q.uid} onChanged={e => this.onSingleChanged(q.uid, e.target.value)} />);
-                            case 'multi-multi':
+                            case 'multimulti':
                               return (<MultiMultiQuestion q={q} key={q.uid} updateLists={ this.updateLists } onChanged={e => this.onMultiChecked(q.uid, e.target.value)} />);
-                            case 'short-string':
+                            case 'shortstring':
                               return (<ShortStringQuestion q={q} key={q.uid} onChanged={e => this.onSingleChanged(q.uid, e.target.value)} />);
                             case 'sort':
                               return (<SortQuestion q={q} key={q.uid} onChanged={ this.onSortChanged } />);
-                            case 'sort-image':
+                            case 'sortimage':
                               return (<SortImageQuestion q={q} key={q.uid} onChanged={ this.onSortChanged } />);
-                            case 'sort-bucket':
+                            case 'sortbucket':
                               return (<BucketQuestion q={q} key={q.uid} onChanged={ this.onSortChanged } />);
-                            case 'sort-bucket-image':
+                            case 'sortbucketimage':
                               return (<BucketImageQuestion q={q} key={q.uid} onChanged={ this.onSortChanged } />);
-                            case 'imagemap-single':
+                            case 'imagemapsingle':
                               return (<ImageMapQuestion q={q} key={q.uid} onChanged={ this.onMultiChecked } single />);
-                            case 'imagemap-multi':
+                            case 'imagemapmulti':
                               return (<ImageMapQuestion q={q} key={q.uid} onChanged={ this.onMultiChecked } />);
-                            case 'imageselect-single':
+                            case 'imageselectsingle':
                               return (<ImageSelectSingleQuestion q={q} key={q.uid} onChanged={ e => this.onSingleChanged(q.uid, e.target.value) } />);
-                            case 'imageselect-multi':
+                            case 'imageselectmulti':
                               return (<ImageSelectMultiQuestion q={q} key={q.uid} updateLists={ this.updateLists } onChanged={e => this.onMultiChecked(q.uid, e.target.value)} />);
                             default:
                               return (<div key={q.uid}>{q.question}</div>);

@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 
 import { BrowserRouter as Router, Route, Link, Switch, withRouter, } from "react-router-dom";
-import { auth } from '../config/firebase';
+import { auth, constRef, } from '../config/firebase';
 import { connect } from 'react-redux';
 
 import PropTypes from 'prop-types';
@@ -97,6 +97,7 @@ const TrainingModule = lazy(() => import('./training/TrainingModule'));
 // import Method from './methods/Method';
 const Method = lazy(() => import('./methods/Method'));
 const Quizzes = lazy(() => import('./quizzes/Quizzes'));
+const Questions = lazy(() => import('./quizzes/Questions'));
 const Quiz = lazy(() => import('./quizzes/Quiz'));
 //
 // import Quizzes from './quizzes/Quizzes';
@@ -152,7 +153,7 @@ class MainScreen extends React.Component {
   componentWillMount() {
     this.props.fetchMe();
     this.props.initConstants();
-    // constRef.set(this.props.state.const);
+    constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // this.props.copyStaff('KiaXpWa5P8fd3FToIV0w','RF7LDcg1d5RlpHx1ccjkh9dJrZo1');
   }
@@ -527,6 +528,7 @@ class MainScreen extends React.Component {
                             <Route exact path="/training/modules" render={() => <div>Training Modules</div>} />
                             <Route path="/method" render={() => <div>Method</div>} />
                             <Route path="/quizzes" render={() => <div>Quizzes</div>} />
+                            <Route path="/questions" render={() => <div>Questions</div>} />
                             <Route path="/quiz/" render={() => <div>Quiz</div>} />
                             <Route path="/tools" render={() => <div>Tools</div>} />
                             <Route path="/library" render={() => <div>Library</div>} />
@@ -535,7 +537,7 @@ class MainScreen extends React.Component {
                             <Route path="/updates" render={() => <div>Version Updates</div>} />
                           </Switch>
                         </Typography>
-                        <Route exact path="/(library|training/modules|lab|tools|noticeboard|help|staff|vehicles)" render={() =>
+                        <Route exact path="/(library|training|modules|lab|tools|noticeboard|help|staff|vehicles|quizzes|questions)" render={() =>
                           <div className={classes.search}>
                             <div className={classes.searchIcon}>
                               <SearchIcon />
@@ -597,6 +599,7 @@ class MainScreen extends React.Component {
                           <Route path="/training/:module/:stage" component={TrainingModule} />
                           <Route path="/method/:uid" component={Method} />
                           <Route exact path="/quizzes" component={Quizzes} />
+                          <Route exact path="/questions" component={Questions} />
                           <Route path="/quiz/:quiz" component={Quiz} />
                           <Route path="/tools" component={Tools} />
                           <Route path="/library" component={Library} />

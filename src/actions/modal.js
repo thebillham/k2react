@@ -23,7 +23,7 @@ export const showModal = ({ modalType, modalProps }) => dispatch => {
   });
 }
 
-export const onUploadFile = ({ file, storagePath }) => async dispatch => {
+export const onUploadFile = ({ file, storagePath, }) => async dispatch => {
   dispatch({
     type: EDIT_MODAL,
     payload: {
@@ -72,11 +72,9 @@ export const setModalError = error => dispatch => {
 }
 
 export const handleModalChange = target => dispatch => {
-  let val;
-  if (target.id === 'course' || target.id === 'unit' || target.id === 'class' ) val = target.value.split(','); else val = target.value;
   dispatch({
     type: EDIT_MODAL_DOC,
-    payload: {[target.id]: val,}
+    payload: {[target.id]: target.value,}
   });
 }
 

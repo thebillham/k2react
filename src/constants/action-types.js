@@ -7,6 +7,7 @@ export const GET_AIRANALYSTS = "GET_AIRANALYSTS";
 export const GET_BULKANALYSTS = "GET_BULKANALYSTS";
 export const GET_DOCUMENTS = "GET_DOCUMENTS";
 export const GET_QUIZZES = "GET_QUIZZES";
+export const GET_QUESTIONS = "GET_QUESTIONS";
 export const GET_TOOLS = "GET_TOOLS";
 export const ADD_DOCUMENT = "ADD_DOCUMENT";
 export const GET_COCS = "GET_COCS";

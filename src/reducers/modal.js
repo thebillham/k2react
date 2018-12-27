@@ -82,10 +82,13 @@ export default function modalReducer(state = modalInit, action){
         ...state,
         modalProps: {
           ...state.modalProps,
-          tags: [
-            ...state.modalProps.tags,
-            action.payload,
-          ]
+          doc: {
+            ...state.modalProps.doc,
+            tags: [
+              ...state.modalProps.doc.tags,
+              action.payload,
+            ],
+          },
         },
       }
     case DELETE_TAG:
@@ -93,10 +96,13 @@ export default function modalReducer(state = modalInit, action){
         ...state,
         modalProps: {
           ...state.modalProps,
-          tags: {
-            ...state.modalProps.tags.filter((tag, index) => index !== action.payload)
-          }
-        }
+          doc: {
+            ...state.modalProps.doc,
+            tags: [
+              ...state.modalProps.doc.tags.filter((tag, index) => index !== action.payload)
+            ]
+          },
+        },
       }
     case SET_MODAL_ERROR:
       return {

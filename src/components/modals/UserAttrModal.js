@@ -148,7 +148,7 @@ class UserAttrModal extends React.Component {
                 defaultValue={doc && doc.course && doc.course.join(', ')}
                 className={classes.dialogField}
                 helperText="The name of the course as written on your card. If more than one course, separate each one with a comma."
-                onChange={e => {this.props.handleModalChange(e.target)}}
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split(',')})}}
               />}
 
               { this.props.qualificationtypes[doc.type].abbrev &&
@@ -168,7 +168,7 @@ class UserAttrModal extends React.Component {
                 defaultValue={doc && doc.unit && doc.unit.join(', ')}
                 className={classes.dialogField}
                 helperText="If more than one unit standard, seperate each one with a comma"
-                onChange={e => {this.props.handleModalChange(e.target)}}
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split(',')})}}
               />}
 
               { this.props.qualificationtypes[doc.type].class &&
@@ -178,7 +178,7 @@ class UserAttrModal extends React.Component {
                 defaultValue={doc && doc.class && doc.class.join(', ')}
                 className={classes.dialogField}
                 helperText="1 = Car Full, 1L = Car Learner, 1R = Car Restricted etc. If more than one class, separate each one with a comma."
-                onChange={e => {this.props.handleModalChange(e.target)}}
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split(',')})}}
               />}
 
               { this.props.qualificationtypes[doc.type].issuer &&

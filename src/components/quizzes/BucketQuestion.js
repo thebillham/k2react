@@ -140,7 +140,7 @@ class BucketQuestion extends React.Component {
                     >
                     <div style={{ marginBottom: 8, marginLeft: 8, }}><b>{ bucket.label }</b></div>
                       {bucket.answers.map((item, index) => (
-                        <Draggable key={item} draggableId={item} index={index}>
+                        <Draggable key={item.text} draggableId={item.text} index={index}>
                           {(provided, snapshot) => (
                             <div
                               ref={provided.innerRef}
@@ -151,7 +151,7 @@ class BucketQuestion extends React.Component {
                                 provided.draggableProps.style
                               )}
                             >
-                              {item}
+                              {item.text}
                             </div>
                           )}
                         </Draggable>
