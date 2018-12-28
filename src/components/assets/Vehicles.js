@@ -127,7 +127,6 @@ class Vehicles extends React.Component {
   }
 
   render() {
-    console.log('Render!');
     const { vehicles } = this.props;
     const filter = (
       <ExpansionPanel style={{ marginBottom: 16, }}>

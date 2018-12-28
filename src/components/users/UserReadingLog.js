@@ -32,7 +32,6 @@ class UserReadingLog extends React.Component {
   }
 
   render() {
-    console.log('Render!');
     const { logs } = this.props;
     console.log(logs);
     return(

@@ -3,14 +3,17 @@ import React from 'react';
 import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import Grid from '@material-ui/core/Grid';
-import { QUESTION } from '../../constants/modal-types';
+import { QUESTION, ADDTOQUIZ } from '../../constants/modal-types';
 
 import { connect } from 'react-redux';
-import { onSearchChange, onCatChange, fetchQuestions, } from '../../actions/local';
+import { onSearchChange, onCatChange, fetchQuestions, fetchQuizzes, } from '../../actions/local';
 import { showModal } from '../../actions/modal';
 import store from '../../store';
 import QuestionList from './QuestionList';
 import QuestionModal from '../modals/QuestionModal';
+import AddToQuizModal from '../modals/AddToQuizModal';
+import { questionsRef } from '../../config/firebase';
+import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 
 const mapStateToProps = state => {
   return {
@@ -25,6 +28,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     fetchQuestions: () => dispatch(fetchQuestions()),
+    fetchQuizzes: () => dispatch(fetchQuizzes()),
     showModal: modal => dispatch(showModal(modal)),
   }
 }
@@ -35,13 +39,12 @@ class Questions extends React.Component {
 
     this.state = {
       listselect: null,
-
     }
-
   }
 
   componentWillMount(){
     this.props.fetchQuestions();
+    this.props.fetchQuizzes();
     store.dispatch(onSearchChange(null));
     store.dispatch(onCatChange(null));
   }
@@ -67,11 +70,15 @@ class Questions extends React.Component {
     return (
       <div style = {{ marginTop: 80 }}>
         <QuestionModal />
+        <AddToQuizModal />
         { this.props.me.auth['Quiz Editor'] &&
           <Button variant='outlined' style={{ marginBottom: 16, }} onClick={() => {this.props.showModal({ modalType: QUESTION, modalProps: { title: 'Add New Question', doc: { type: 'truefalse', tags: [], truefalse: 'True', } } })}}>
             Add New Question
           </Button>
         }
+        <Button variant='outlined' style={{ marginLeft: 16, marginBottom: 16, }} onClick={() => {this.props.history.push('../quizzes/')}}>
+          Back to Quizzes
+        </Button>
         <Grid container spacing={8}>
           { this.props.quiztags.map(tag => {
             return (
@@ -100,9 +107,18 @@ class Questions extends React.Component {
             return(
               <div key={doc.uid}>
                 <QuestionList question={doc} showModal={() => {
-                  if (!doc.tags) doc.tags=[];
-                  this.props.showModal({ modalType: QUESTION, modalProps: { title: 'Edit Question', doc: doc, } });
-                }} />
+                    if (!doc.tags) doc.tags=[];
+                    this.props.showModal({ modalType: QUESTION, modalProps: { title: 'Edit Question', doc: doc, } });
+                  }}
+                  deleteQuestion={() => {
+                    if (window.confirm(`Are you sure you wish to delete the question '${doc.question}'?`))
+                      questionsRef.doc(doc.uid).delete();
+                  }}
+                  addToQuiz={() => {
+                    this.props.showModal({ modalType: ADDTOQUIZ, modalProps: { title: 'Add To Quiz', doc: doc, } });
+                  }}
+                  editor={this.props.me.auth['Quiz Editor']}
+                />
               </div>
             )
           })}
@@ -112,4 +128,4 @@ class Questions extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Questions);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Questions));

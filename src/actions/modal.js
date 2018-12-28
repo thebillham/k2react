@@ -97,7 +97,9 @@ export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
     uid = doc.uid;
     pathRef.doc(doc.uid).set(doc);
   } else {
+    console.log(doc.type);
     uid = doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)));
+    console.log(uid);
     pathRef.doc(uid).set({ ...doc, uid: uid, });
   }
   dispatch({type: RESET_MODAL});

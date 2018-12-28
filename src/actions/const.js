@@ -3,7 +3,7 @@ import { INIT_CONSTANTS,
 import { constRef } from '../config/firebase';
 
 export const initConstants = () => dispatch => {
-  constRef.get().then(doc => {
+  constRef.onSnapshot(doc => {
     dispatch({
       type: INIT_CONSTANTS,
       payload: doc.data(),

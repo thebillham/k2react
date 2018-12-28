@@ -3,6 +3,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter, } from "react-router-dom";
 import { auth, constRef, } from '../config/firebase';
 import { connect } from 'react-redux';
+import { APPSETTINGS } from '../constants/modal-types';
 
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
@@ -53,12 +54,13 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
+import AppSettings from './settings/AppSettings';
 import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
 import { sendSlackMessage } from '../Slack';
 
 import { fetchMe, resetLocal, copyStaff } from '../actions/local';
-import { resetModal } from '../actions/modal';
+import { resetModal, showModal } from '../actions/modal';
 import { resetDisplay } from '../actions/display';
 import { initConstants } from '../actions/const';
 
@@ -131,6 +133,7 @@ const mapDispatchToProps = dispatch => {
     resetDisplay: () => dispatch(resetDisplay()),
     copyStaff: (oldId, newId) => dispatch(copyStaff(oldId, newId)),
     initConstants: () => dispatch(initConstants()),
+    showModal: modal => dispatch(showModal(modal)),
   };
 };
 
@@ -153,7 +156,7 @@ class MainScreen extends React.Component {
   componentWillMount() {
     this.props.fetchMe();
     this.props.initConstants();
-    constRef.set(this.props.state.const);
+    // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // this.props.copyStaff('KiaXpWa5P8fd3FToIV0w','RF7LDcg1d5RlpHx1ccjkh9dJrZo1');
   }
@@ -449,6 +452,13 @@ class MainScreen extends React.Component {
                   </ListItemIcon>
                   <ListItemText primary="Library" />
                 </ListItem>
+
+                <ListItem button onClick={() => {this.props.showModal({ modalType: APPSETTINGS, modalProps: { doc: this.props.state.const } })}} className={classes.nested}>
+                  <ListItemIcon>
+                    <LibraryIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="App Settings" />
+                </ListItem>
               </List>
             </Collapse>
           </List>
@@ -575,6 +585,7 @@ class MainScreen extends React.Component {
                     </AppBar>
                     {drawer}
                     <main className={classes.content}>
+                      <AppSettings />
                       {/* All locations are matched to their components here */}
                       <Suspense fallback={<div style={{ marginTop: 80, display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200,}}><CircularProgress /></div>}>
                         <Switch>

@@ -41,10 +41,11 @@ const helpRef = firestore.collection("help");
 const updateRef = firestore.collection("updates");
 const asbestosAnalysisRef = firestore.collection("analysisasbestos");
 const constRef = firestore.collection("appsettings").doc("constants");
+const appSettingsRef = firestore.collection("appsettings");
 
 export { app, provider, auth, firestore, storage, firebase };
 export { usersRef, docsRef, modulesRef, toolsRef,
   noticesRef, quizzesRef, questionsRef, trainingPathsRef,
   methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef,
-  cocsRef, vehiclesRef, asbestosAnalysisRef, constRef };
+  cocsRef, vehiclesRef, asbestosAnalysisRef, constRef, appSettingsRef, };
 export default firebase;

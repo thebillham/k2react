@@ -11,3 +11,6 @@ export const WAANALYSIS = "WAANALYSIS";
 export const QCANALYSIS = "QCANALYSIS";
 export const TRAINING = "TRAINING";
 export const QUESTION = "QUESTION";
+export const ADDTOQUIZ = "ADDTOQUIZ";
+export const QUIZ = "QUIZ";
+export const APPSETTINGS = "APPSETTINGS";

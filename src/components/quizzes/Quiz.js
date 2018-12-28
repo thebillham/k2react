@@ -51,6 +51,7 @@ class Quiz extends React.Component {
   componentWillMount(){
     quizzesRef.doc(this.props.match.params.quiz).get().then((quiz) => {
       usersRef.doc(auth.currentUser.uid).collection("quizlog").doc(quiz.id).get().then((log) => {
+        console.log(`Log part done`);
         // get required questions first
         let questions = [];
         const shuffled = quiz.data().optional
@@ -63,7 +64,7 @@ class Quiz extends React.Component {
             let question = q.data();
             question.uid = q.id;
             questions.push(question);
-            if (questions.length === quiz.data().numberofquestions) {
+            if (questions.length == quiz.data().numberofquestions) {
             // if (questions.length == uidlist.length) {
               this.setState({
                 quiz: quiz.data(),
@@ -235,13 +236,13 @@ class Quiz extends React.Component {
 
       if (q.tags) {
         q.tags.forEach(tag => {
-          if (tagScores[tag]) {
-            tagScores[tag] = {
-              score: tagScores[tag].score + score,
-              num: tagScores[tag].num + 1,
+          if (tagScores[tag.text]) {
+            tagScores[tag.text] = {
+              score: tagScores[tag.text].score + score,
+              num: tagScores[tag.text].num + 1,
             }
           } else {
-            tagScores[tag] = {
+            tagScores[tag.text] = {
               score: score,
               num: 1,
             }
@@ -327,7 +328,7 @@ class Quiz extends React.Component {
                         { questions.map(q => {
                           switch(q.type) {
                             case 'truefalse':
-                              return (<TrueFalseQuestion q={q} key={q.uid} onChanges={e => this.onSingleChanged(q.uid, e.target.value)} />);
+                              return (<TrueFalseQuestion q={q} key={q.uid} onChanged={e => this.onSingleChanged(q.uid, e.target.value)} />);
                             case 'multisingle':
                               return (<MultiSingleQuestion q={q} key={q.uid} onChanged={e => this.onSingleChanged(q.uid, e.target.value)} />);
                             case 'multimulti':
