@@ -24,7 +24,6 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import IconButton from '@material-ui/core/IconButton';
 import Chip from '@material-ui/core/Chip';
-import Slider from '@material-ui/lab/Slider';
 import Paper from '@material-ui/core/Paper'
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';

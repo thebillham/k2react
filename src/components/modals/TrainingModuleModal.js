@@ -4,6 +4,8 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 // import store from '../../store';
 import { TRAINING } from '../../constants/modal-types';
 import { trainingPathsRef, storage } from '../../config/firebase';
@@ -56,6 +58,13 @@ const mapDispatchToProps = dispatch => {
 };
 
 class TrainingModuleModal extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      page: 1,
+    }
+  }
+
   sendNewAttrSlack = () => {
     let message = {
       text: `${this.props.modalProps.staffName} has added a new module.\n${this.props.qualificationtypes[this.props.doc.type].name}`,
@@ -76,8 +85,119 @@ class TrainingModuleModal extends React.Component {
     storage.ref(file).delete();
   }
 
+  getPage = () => {
+    const { modalProps, doc, classes } = this.props;
+
+    const page1 = (
+      <form>
+        <FormGroup>
+          <TextField
+            id="title"
+            label="Title"
+            defaultValue={doc && doc.title}
+            className={classes.dialogField}
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
+          <TextField
+            id="subtitle"
+            label="Subtitle"
+            defaultValue={doc && doc.subtitle}
+            className={classes.dialogField}
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
+
+          { doc.fileUrl &&
+            <div>
+              <img src={doc.fileUrl} alt='' width="200px" style={{ opacity: "0.5", borderStyle: "solid", borderWidth: "2px" }} />
+              <IconButton style={{ position: 'relative', top: '2px', left: "-120px", borderStyle: "solid", borderWidth: "2px", fontSize: 8, }} onClick={() => { if (window.confirm('Are you sure you wish to delete the image?')) this.deleteImage(doc.fileRef, doc.uid)}}>
+                <Close />
+              </IconButton>
+            </div>
+          }
+
+          <InputLabel style={{ fontSize: 12, marginTop: 4 }}>Title Photo</InputLabel>
+          <label>
+            <UploadIcon className={classes.accentButton} />
+            <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e =>
+            {
+              if (doc.fileUrl) {
+                storage.ref(doc.fileRef).delete();
+              }
+              this.props.onUploadFile({
+              file: e.currentTarget.files[0],
+              storagePath: 'training/coverphotos/' + doc.title.replace(/\s+/g, ''),
+              });
+            }
+            } />
+            <LinearProgress style={{ marginTop: 4, }} variant="determinate" value={modalProps.uploadProgress} />
+          </label>
+        </FormGroup>
+      </form>
+    );
+
+    const page2 = (
+      <form>
+        Outline
+        <ReactQuill value={doc.steps[0].rows[0].left[0].text}
+          onChange={value => { doc.steps[0].rows[0].left[0].text = value }} />
+      </form>
+    );
+
+    const page3 = (
+      <form>
+        <FormGroup>
+        </FormGroup>
+      </form>
+    );
+
+    const page4 = (
+      <form>
+        <FormGroup>
+        </FormGroup>
+      </form>
+    );
+
+    const page5 = (
+      <form>
+        <FormGroup>
+        </FormGroup>
+      </form>
+    );
+
+    const page6 = (
+      <form>
+        <FormGroup>
+        </FormGroup>
+      </form>
+    );
+
+    switch (this.state.page) {
+      case 1:
+        return page1;
+        break;
+      case 2:
+        return page2;
+        break;
+      case 3:
+        return page3;
+        break;
+      case 4:
+        return page4;
+        break;
+      case 5:
+        return page5;
+        break;
+      case 6:
+        return page6;
+        break;
+      default:
+        return page1;
+    }
+  }
+
   render() {
     const { modalProps, doc, classes } = this.props;
+
     return(
       <Dialog
         open={ this.props.modalType === TRAINING }
@@ -85,55 +205,13 @@ class TrainingModuleModal extends React.Component {
         >
         <DialogTitle>{ modalProps.title ? modalProps.title : 'Add New Training Module' }</DialogTitle>
         <DialogContent>
-          <form>
-            <FormGroup>
-              <TextField
-                id="title"
-                label="Title"
-                defaultValue={doc && doc.title}
-                className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange(e.target)}}
-              />
-              <TextField
-                id="subtitle"
-                label="Subtitle"
-                defaultValue={doc && doc.subtitle}
-                className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange(e.target)}}
-              />
-
-              { doc.fileUrl &&
-                <div>
-                  <img src={doc.fileUrl} alt='' width="200px" style={{ opacity: "0.5", borderStyle: "solid", borderWidth: "2px" }} />
-                  <IconButton style={{ position: 'relative', top: '2px', left: "-120px", borderStyle: "solid", borderWidth: "2px", fontSize: 8, }} onClick={() => { if (window.confirm('Are you sure you wish to delete the image?')) this.deleteImage(doc.fileRef, doc.uid)}}>
-                    <Close />
-                  </IconButton>
-                </div>
-              }
-
-              {/*Always allow file upload*/}
-              <InputLabel style={{ fontSize: 12, marginTop: 4 }}>Title Photo</InputLabel>
-              <label>
-                <UploadIcon className={classes.accentButton} />
-                <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e =>
-                {
-                  if (doc.fileUrl) {
-                    storage.ref(doc.fileRef).delete();
-                  }
-                  this.props.onUploadFile({
-                  file: e.currentTarget.files[0],
-                  storagePath: 'training/coverphotos/' + doc.title.replace(/\s+/g, ''),
-                  });
-                }
-                } />
-                <LinearProgress style={{ marginTop: 4, }} variant="determinate" value={modalProps.uploadProgress} />
-              </label>
-            </FormGroup>
-          </form>
+         { this.getPage() }
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { this.props.hideModal() }} color="secondary">Cancel</Button>
-          {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
+          <Button disabled={this.state.page === 1} onClick={() => { this.setState({ page: this.state.page - 1}) }} color="default">Back</Button>
+          <Button disabled={this.state.page === 6} onClick={() => { this.setState({ page: this.state.page + 1}) }} color="default">Forward</Button>
+          {modalProps.isUploading ? <Button color="primary" disabled >Save</Button>
           : <Button onClick={() => {
             if (!doc.uid) {
               if (doc.title) {

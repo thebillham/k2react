@@ -36,8 +36,46 @@ class Training extends React.Component {
     return (
         <div style = {{ marginTop: 80 }}>
           { this.props.me.auth['Training Editor'] &&
-            <Button variant='outlined' style={{ marginBottom: 16, }} onClick={() => {this.props.showModal({ modalType: TRAINING, modalProps: { title: 'Add New Training Module', } })}}>
-              Add New Training Module
+            <Button variant='outlined' style={{ marginBottom: 16, }} onClick={() => {
+              let doc = [
+                {
+                  label: 'Outline',
+                  rows: [
+                    {
+                      key: 'outline1',
+                      left: [
+                        {
+                          title: 'Training Outline',
+                          text: '<p>By the end of this module you will be able to complete X.</p>This covers: <ul><li>Point 1</li><li>Point 2</li></ul><p>If at any time you need assistance with the content in this module please speak to a trained team member.</p>'
+                        },
+                      ],
+                      right: [
+                        {
+                          title: 'Training Staff',
+                          text: '<b>Trainers</b><br/><br /><br /><b>KTP</b><br />',
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  label: 'Background Reading',
+                },
+                {
+                  label: 'Practical Training',
+                },
+                {
+                  label: 'In-House Training',
+                },
+                {
+                  label: 'Supervised Site Visits',
+                },
+                {
+                  label: 'Review and Sign-Off',
+                },
+              ]
+              this.props.showModal({ modalType: TRAINING, modalProps: { title: 'Add New Training Path', doc: doc, } })}}>
+              Add New Training Path
             </Button>
           }
           <TrainingModuleModal />
