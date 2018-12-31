@@ -44,9 +44,10 @@ import DevIcon from '@material-ui/icons/HourglassEmpty';
 import TrainingIcon from '@material-ui/icons/School';
 import QuizIcon from '@material-ui/icons/ContactSupport';
 import ToolsIcon from '@material-ui/icons/Build';
-import LibraryIcon from '@material-ui/icons/Info';
+import LibraryIcon from '@material-ui/icons/LibraryBooks';
 import HelpIcon from '@material-ui/icons/Help';
 import UpdatesIcon from '@material-ui/icons/Update';
+import SettingsIcon from '@material-ui/icons/Settings';
 
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
@@ -88,8 +89,8 @@ const UserReadingLog = lazy(() => import('./users/UserReadingLog'));
 //
 const Training = lazy(() => import('./training/Training'));
 const TrainingPath = lazy(() => import('./training/TrainingPath'));
-const TrainingModules = lazy(() => import('./training/TrainingModules'));
-const TrainingModule = lazy(() => import('./training/TrainingModule'));
+// const TrainingModules = lazy(() => import('./training/TrainingModules'));
+// const TrainingModule = lazy(() => import('./training/TrainingModule'));
 
 // import Training from './training/Training';
 // import TrainingPath from './training/TrainingPath';
@@ -455,7 +456,7 @@ class MainScreen extends React.Component {
 
                 <ListItem button onClick={() => {this.props.showModal({ modalType: APPSETTINGS, modalProps: { doc: this.props.state.const } })}} className={classes.nested}>
                   <ListItemIcon>
-                    <LibraryIcon className={classes.accentButton} />
+                    <SettingsIcon className={classes.accentButton} />
                   </ListItemIcon>
                   <ListItemText primary="App Settings" />
                 </ListItem>
@@ -605,9 +606,7 @@ class MainScreen extends React.Component {
                           <Route exact path="/mydetails/training" component={UserTraining} key="mytraining" />
                           <Route exact path="/mydetails/readinglog" component={UserReadingLog} key="myreadinglog" />
                           <Route exact path="/training" component={Training} />
-                          <Route exact path="/training/modules" component={TrainingModules} />
                           <Route path="/training/:uid" component={TrainingPath} />
-                          <Route path="/training/:module/:stage" component={TrainingModule} />
                           <Route path="/method/:uid" component={Method} />
                           <Route exact path="/quizzes" component={Quizzes} />
                           <Route exact path="/questions" component={Questions} />

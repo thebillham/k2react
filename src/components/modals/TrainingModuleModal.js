@@ -4,8 +4,13 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
+
 import ReactQuill from 'react-quill';
+// import ImageResize from 'quill-image-resize-module';
+// import { ImageResize } from 'quill-image-resize-module';
+// import { ImageDrop } from 'quill-image-drop-module';
 import 'react-quill/dist/quill.snow.css';
+
 // import store from '../../store';
 import { TRAINING } from '../../constants/modal-types';
 import { trainingPathsRef, storage } from '../../config/firebase';
@@ -25,36 +30,75 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import IconButton from '@material-ui/core/IconButton';
+import Chip from '@material-ui/core/Chip';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import UploadIcon from '@material-ui/icons/CloudUpload';
 import Close from '@material-ui/icons/Close';
 import {
-  hideModal, handleModalChange, handleModalSubmit, onUploadFile } from '../../actions/modal';
+  hideModal, handleModalChange, handleModalChangeStep, handleModalSubmit, onUploadFile } from '../../actions/modal';
 import { getUserAttrs } from '../../actions/local';
 import _ from 'lodash';
 
+// Quill.register('modules/imageResize', ImageResize);
+// Quill.register('modules/imageDrop', ImageDrop);
+
+
 const mapStateToProps = state => {
   return {
-    modalType: state.modal.modalType,
-    modalProps: state.modal.modalProps,
+    delimiters: state.const.tagDelimiters,
     doc: state.modal.modalProps.doc,
-    userRefName: state.local.userRefName,
+    me: state.local.me,
+    modalProps: state.modal.modalProps,
+    modalType: state.modal.modalType,
+    qualificationtypes: state.const.qualificationtypes,
+    staff: state.local.staff,
     tags: state.modal.modalProps.tags,
     tagSuggestions: state.const.docTagSuggestions,
-    qualificationtypes: state.const.qualificationtypes,
-    delimiters: state.const.tagDelimiters,
+    userRefName: state.local.userRefName,
    };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
+    getUserAttrs: _.debounce(userPath => dispatch(getUserAttrs(userPath)), 1000),
+    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
+    handleModalChangeStep: target => dispatch(handleModalChangeStep(target)),
+    handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
+    handleSelectChange: target => dispatch(handleModalChange(target)),
     hideModal: () => dispatch(hideModal()),
     onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
-    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
-    handleSelectChange: target => dispatch(handleModalChange(target)),
-    handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
-    getUserAttrs: _.debounce(userPath => dispatch(getUserAttrs(userPath)), 1000),
   };
+};
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+    ['blockquote', 'code-block'],
+
+    [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+    [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+    // [{ 'direction': 'rtl' }],                         // text direction
+
+    [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+    [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+    // [{ 'font': [] }],
+    [{ 'align': [] }],
+
+    ['image'],
+
+    ['clean']                                         // remove formatting button
+  ],
+  // imageResize: {
+  //   parchment: Quill.import('parchment'),
+  // },
+  // imageDrop: true,
 };
 
 class TrainingModuleModal extends React.Component {
@@ -63,6 +107,15 @@ class TrainingModuleModal extends React.Component {
     this.state = {
       page: 1,
     }
+  }
+
+  getStyles = (uid, list) => {
+    return {
+      fontWeight:
+        list && list.indexOf(uid) > -1
+          ? 600
+          : 200
+    };
   }
 
   sendNewAttrSlack = () => {
@@ -87,6 +140,7 @@ class TrainingModuleModal extends React.Component {
 
   getPage = () => {
     const { modalProps, doc, classes } = this.props;
+    const staff = { ...this.props.staff, [this.props.me.uid]: this.props.me };
 
     const page1 = (
       <form>
@@ -120,7 +174,7 @@ class TrainingModuleModal extends React.Component {
             <UploadIcon className={classes.accentButton} />
             <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e =>
             {
-              if (doc.fileUrl) {
+              if (doc.fileUrl && e.currentTarget.files[0]) {
                 storage.ref(doc.fileRef).delete();
               }
               this.props.onUploadFile({
@@ -137,9 +191,82 @@ class TrainingModuleModal extends React.Component {
 
     const page2 = (
       <form>
-        Outline
-        <ReactQuill value={doc.steps[0].rows[0].left[0].text}
-          onChange={value => { doc.steps[0].rows[0].left[0].text = value }} />
+        <h5>Outline</h5>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={doc.steps && doc.steps.outline && doc.steps.outline.enabled || false}
+              onChange={e => {this.props.handleModalChangeStep({step: 'outline', id: 'enabled', value: e.target.checked})}}
+              value="enabled"
+            />}
+            label="Show this section"
+          />
+        <ReactQuill
+          value={doc.steps && doc.steps.outline && doc.steps.outline.outline || ''}
+          modules={quillModules}
+          theme='snow'
+          onChange={value => {this.props.handleModalChangeStep({step: 'outline', id: 'outline', value: value})}}
+          />
+        <FormGroup>
+          <FormControl className={classes.dialogField}>
+            <InputLabel>Trainers</InputLabel>
+            <Select
+             multiple
+             value={doc.trainers ? doc.trainers : []}
+             onChange={e => {this.props.handleSelectChange({id: 'trainers', value: e.target.value})}}
+             input={<Input id="trainers" />}
+             renderValue={selected => (
+               <div style={{ display: 'flex', flexWrap: 'wrap', }}>
+                 {selected.map(value => (
+                   <Chip key={value} label={staff[value] && staff[value].name} style={{ margin: 5}} />
+                 ))}
+               </div>)
+             }
+             MenuProps={{
+               PaperProps: {
+                 style: {
+                   maxHeight: 48 * 4.5 + 8,
+                   width: 500,
+                  }}
+             }}
+            >
+             {Object.values(staff).sort((a, b) => a.name.localeCompare(b.name)).map(staff => (
+               <MenuItem key={staff.uid} value={staff.uid} style={this.getStyles(staff.uid, doc.trainers)}>
+                 {staff.name}
+               </MenuItem>
+             ))}
+            </Select>
+          </FormControl>
+          <FormControl className={classes.dialogField}>
+            <InputLabel>KTPs</InputLabel>
+            <Select
+             multiple
+             value={doc.ktp ? doc.ktp : []}
+             onChange={e => {this.props.handleSelectChange({id: 'ktp', value: e.target.value})}}
+             input={<Input id="ktp" />}
+             renderValue={selected => (
+               <div style={{ display: 'flex', flexWrap: 'wrap', }}>
+                 {selected.map(value => (
+                   <Chip key={value} label={staff[value] && staff[value].name} style={{ margin: 5}} />
+                 ))}
+               </div>)
+             }
+             MenuProps={{
+               PaperProps: {
+                 style: {
+                   maxHeight: 48 * 4.5 + 8,
+                   width: 500,
+                  }}
+             }}
+            >
+             {Object.values(staff).sort((a, b) => a.name.localeCompare(b.name)).map(staff => (
+               <MenuItem key={staff.uid} value={staff.uid} style={this.getStyles(staff.uid, doc.ktp)}>
+                 {staff.name}
+               </MenuItem>
+             ))}
+            </Select>
+          </FormControl>
+        </FormGroup>
       </form>
     );
 
@@ -200,8 +327,11 @@ class TrainingModuleModal extends React.Component {
 
     return(
       <Dialog
+        key='trainingmodulemodal'
         open={ this.props.modalType === TRAINING }
         onClose = {() => this.props.hideModal}
+        maxWidth='lg'
+        fullWidth
         >
         <DialogTitle>{ modalProps.title ? modalProps.title : 'Add New Training Module' }</DialogTitle>
         <DialogContent>

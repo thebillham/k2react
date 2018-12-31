@@ -1,6 +1,13 @@
-import { SHOW_MODAL, EDIT_MODAL, EDIT_MODAL_DOC,
-  ADD_TAG, DELETE_TAG, RESET_MODAL, SET_MODAL_ERROR,
+import {
+  ADD_TAG,
+  DELETE_TAG,
+  EDIT_MODAL_DOC,
+  EDIT_MODAL_DOC_STEPS,
   EDIT_MODAL_SAMPLE,
+  EDIT_MODAL,
+  RESET_MODAL,
+  SET_MODAL_ERROR,
+  SHOW_MODAL,
  } from "../constants/action-types";
 
 import { storage, cocsRef, asbestosSamplesRef } from "../config/firebase";
@@ -24,6 +31,7 @@ export const showModal = ({ modalType, modalProps }) => dispatch => {
 }
 
 export const onUploadFile = ({ file, storagePath, }) => async dispatch => {
+  if (!file) return;
   dispatch({
     type: EDIT_MODAL,
     payload: {
@@ -75,6 +83,13 @@ export const handleModalChange = target => dispatch => {
   dispatch({
     type: EDIT_MODAL_DOC,
     payload: {[target.id]: target.value,}
+  });
+}
+
+export const handleModalChangeStep = target => dispatch => {
+  dispatch({
+    type: EDIT_MODAL_DOC_STEPS,
+    payload: target,
   });
 }
 

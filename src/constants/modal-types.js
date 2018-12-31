@@ -1,16 +1,15 @@
-export const DOCUMENT = "DOCUMENT";
-export const USERATTR = "USERATTR";
-export const UPLOADFILE = "UPLOADFILE";
-export const VEHICLE = "VEHICLE";
-
+export const ADDTOQUIZ = "ADDTOQUIZ";
+export const APPSETTINGS = "APPSETTINGS";
 export const COC = "COC";
 export const COCLOG = "COCLOG";
-export const UPDATECERTIFICATEVERSION = "UPDATECERTIFICATEVERSION";
-export const SAMPLEHISTORY = "SAMPLEHISTORY";
-export const WAANALYSIS = "WAANALYSIS";
+export const DOCUMENT = "DOCUMENT";
 export const QCANALYSIS = "QCANALYSIS";
-export const TRAINING = "TRAINING";
 export const QUESTION = "QUESTION";
-export const ADDTOQUIZ = "ADDTOQUIZ";
 export const QUIZ = "QUIZ";
-export const APPSETTINGS = "APPSETTINGS";
+export const SAMPLEHISTORY = "SAMPLEHISTORY";
+export const TRAINING = "TRAINING";
+export const UPDATECERTIFICATEVERSION = "UPDATECERTIFICATEVERSION";
+export const UPLOADFILE = "UPLOADFILE";
+export const USERATTR = "USERATTR";
+export const VEHICLE = "VEHICLE";
+export const WAANALYSIS = "WAANALYSIS";

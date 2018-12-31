@@ -1,42 +1,58 @@
-import { GET_STAFF,
-        GET_DOCUMENTS,
-        GET_AIRANALYSTS,
-        GET_BULKANALYSTS,
-        GET_USER,
-        GET_QUIZZES,
-        GET_QUESTIONS,
-        GET_WFM,
-        GET_TRAININGS,
-        GET_MODULES,
-        SEARCH_CHANGE,
-        CAT_CHANGE,
-        GET_TOOLS,
-        GET_NOTICES,
-        GET_READINGLOG,
-        GET_METHODLOG,
-        GET_ME,
-        DELETE_NOTICE,
-        READ_NOTICE,
-        FAV_NOTICE,
-        SET_STEPPER,
-        GET_ASBESTOS_SAMPLES,
-        GET_HELP,
-        GET_UPDATES,
-        GET_COCS,
-        GET_SAMPLES,
+import {
         APP_HAS_LOADED,
-        RESET_LOCAL,
-        UPDATE_STAFF,
+        CAT_CHANGE,
+        DELETE_NOTICE,
+        FAV_NOTICE,
+        GET_AIRANALYSTS,
+        GET_ASBESTOS_SAMPLES,
+        GET_BULKANALYSTS,
+        GET_COCS,
+        GET_DOCUMENTS,
+        GET_HELP,
+        GET_ME,
+        GET_METHODLOG,
+        GET_MODULES,
+        GET_NOTICES,
+        GET_QUESTIONS,
+        GET_QUIZZES,
+        GET_READINGLOG,
+        GET_SAMPLES,
+        GET_STAFF,
+        GET_TOOLS,
+        GET_TRAININGS,
+        GET_UPDATES,
+        GET_USER,
         GET_VEHICLES,
-        SET_MODAL_ERROR,
+        GET_WFM,
         GET_WFMJOB,
-        SET_ANALYST,
+        READ_NOTICE,
+        RESET_LOCAL,
+        SEARCH_CHANGE,
         SET_ANALYSIS_MODE,
+        SET_ANALYST,
+        SET_MODAL_ERROR,
+        SET_STEPPER,
+        UPDATE_STAFF,
       } from "../constants/action-types";
 import firebase from '../config/firebase';
-import { auth, usersRef, docsRef, modulesRef, toolsRef, noticesRef, quizzesRef,
-    trainingPathsRef, methodsRef, asbestosSamplesRef, jobsRef, helpRef, questionsRef,
-    updateRef, cocsRef, vehiclesRef, } from "../config/firebase";
+import {
+  asbestosSamplesRef,
+  auth,
+  cocsRef,
+  docsRef,
+  helpRef,
+  jobsRef,
+  methodsRef,
+  modulesRef,
+  noticesRef,
+  questionsRef,
+  quizzesRef,
+  toolsRef,
+  trainingPathsRef,
+  updateRef,
+  usersRef,
+  vehiclesRef,
+} from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 
 export const resetLocal = () => dispatch => {
@@ -326,43 +342,6 @@ export const fetchTrainingPaths = () => async dispatch => {
       });
     });
 };
-//
-// export const fetchAsbestosSamples = () => async dispatch => {
-//   asbestosSamplesRef.orderBy("jobnumber", "desc").orderBy("samplenumber").limit(50)
-//     .onSnapshot((querySnapshot) => {
-//       var samples = [];
-//       querySnapshot.forEach((doc) => {
-//         let sample = doc.data();
-//         sample.uid = doc.id;
-//         samples.push(sample);
-//       });
-//       let samplemap = {};
-//       samples.forEach(sample => {
-//         if (samplemap[sample.jobnumber]) {
-//           samplemap[sample.jobnumber]['samples'].push(sample);
-//         } else {
-//           samplemap[sample.jobnumber] = {samples: [sample], clientname: '', address: '', type: '',};
-//         }
-//       });
-//       Object.keys(samplemap).forEach(job => {
-//         jobsRef.where("jobnumber", "==", job).limit(1)
-//         .get().then(doc => {
-//           doc.forEach(jobheader => {
-//             samplemap[job]['uid'] = jobheader.id;
-//             samplemap[job]['jobnumber'] = job;
-//             samplemap[job]['clientname'] = jobheader.data().clientname;
-//             samplemap[job]['address'] = jobheader.data().address;
-//             samplemap[job]['type'] = jobheader.data().type;
-//             samplemap[job]['reportversion'] = jobheader.data().reportversion ? jobheader.data().reportversion : 0;
-//           });
-//           dispatch({
-//             type: GET_ASBESTOS_SAMPLES,
-//             payload: samplemap,
-//           });
-//         });
-//       });
-//     });
-// };
 
 export const fetchModules = () => async dispatch => {
   modulesRef.orderBy('title')

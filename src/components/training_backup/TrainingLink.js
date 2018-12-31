@@ -20,7 +20,7 @@ function TrainingLink(props) {
   else if (link.type === 'reading') path = '/document/' + link.link;
 
   return (
-    <div>
+    <Paper style={{ borderRadius: 12, marginTop: 12, width: '100%' }}>
       <div style={{ padding: 12, backgroundColor: color, color: 'white', fontWeight: 500, fontSize: 18, display: 'flex', justifyContent: 'space-between', flexDirection: 'row',}}>
         { link.title }
         <Link to={path} style={{ textDecoration: 'none', }}><OpenIcon style={{ color: 'white' }} /></Link>
@@ -34,7 +34,7 @@ function TrainingLink(props) {
           <QuizWidget quiz={{ link: link.quiz, required: link.required, }} />
         )
       }
-    </div>
+    </Paper>
   );
 }
 

@@ -1,13 +1,14 @@
 import {
-          SHOW_MODAL,
-          HIDE_MODAL,
-          EDIT_MODAL,
-          EDIT_MODAL_DOC,
           ADD_TAG,
           DELETE_TAG,
+          EDIT_MODAL_DOC,
+          EDIT_MODAL_DOC_STEPS,
+          EDIT_MODAL_SAMPLE,
+          EDIT_MODAL,
+          HIDE_MODAL,
           RESET_MODAL,
           SET_MODAL_ERROR,
-          EDIT_MODAL_SAMPLE
+          SHOW_MODAL,
         } from "../constants/action-types"
 
 export const modalInit = {
@@ -46,7 +47,24 @@ export default function modalReducer(state = modalInit, action){
             ...state.modalProps.doc,
             ...action.payload,
            },
-         }
+         },
+      }
+    case EDIT_MODAL_DOC_STEPS:
+      if (state.modalProps.doc && state.modalProps.doc.steps) return {
+        ...state,
+        modalProps: {
+          ...state.modalProps,
+          doc: {
+            ...state.modalProps.doc,
+            steps: {
+              ...state.modalProps.doc.steps,
+              [action.payload.step]: {
+                ...state.modalProps.doc.steps[action.payload.step],
+                [action.payload.id]: action.payload.value,
+              },
+            },
+          },
+        },
       }
     case EDIT_MODAL_SAMPLE:
       return {
