@@ -9,7 +9,7 @@ import ReadingLogList from './ReadingLogList';
 
 const mapStateToProps = state => {
   return {
-    logs: state.local.readingLog,
+    logs: state.local.me.readingLog,
   };
 };
 
@@ -28,7 +28,7 @@ class UserReadingLog extends React.Component {
   }
 
   componentWillMount() {
-    if (this.props.logs.length < 1) this.props.fetchReadingLog();
+    if (this.props.logs && this.props.logs.length < 1) this.props.fetchReadingLog();
   }
 
   render() {
@@ -36,7 +36,7 @@ class UserReadingLog extends React.Component {
     console.log(logs);
     return(
       <div style = {{ marginTop: 80 }}>
-        { logs.map(log => {
+        { logs && logs.map(log => {
           console.log('Read log: ' + log.title)
           return(
             <ReadingLogList log={log} key={log.uid} />

@@ -11,10 +11,11 @@ import {
         GET_HELP,
         GET_ME,
         GET_METHODLOG,
-        GET_MODULES,
+        GET_METHODS,
         GET_NOTICES,
         GET_QUESTIONS,
         GET_QUIZZES,
+        GET_QUIZLOG,
         GET_READINGLOG,
         GET_SAMPLES,
         GET_STAFF,
@@ -67,12 +68,13 @@ export const fetchMe = () => async dispatch => {
     console.log("Read a doc (fetchMe)!");
     if (doc.exists) {
       let user = doc.data();
+      user.uid = doc.id;
       if (user.auth && user.auth['Asbestos Air Analysis']) {
-        dispatch({ type: GET_AIRANALYSTS, payload: [{uid: auth.currentUser.uid, name: user.name}] });
+        dispatch({ type: GET_AIRANALYSTS, payload: [{uid: user.uid, name: user.name}] });
         dispatch({ type: SET_ANALYST, payload: user.name, });
       }
       if (user.auth && user.auth['Asbestos Bulk Analysis']) {
-        dispatch({ type: GET_BULKANALYSTS, payload: [{uid: auth.currentUser.uid, name: user.name}] });
+        dispatch({ type: GET_BULKANALYSTS, payload: [{uid: user.uid, name: user.name}] });
         dispatch({ type: SET_ANALYST, payload: user.name, });
       }
       dispatch({ type: GET_ME, payload: user});
@@ -343,18 +345,18 @@ export const fetchTrainingPaths = () => async dispatch => {
     });
 };
 
-export const fetchModules = () => async dispatch => {
-  modulesRef.orderBy('title')
+export const fetchMethods = () => async dispatch => {
+  methodsRef.orderBy('title')
     .onSnapshot((querySnapshot) => {
-      var modules = [];
+      var methods = [];
       querySnapshot.forEach((doc) => {
-        let mod = doc.data();
-        mod.uid = doc.id;
-        modules.push(mod);
+        let method = doc.data();
+        method.uid = doc.id;
+        methods.push(method);
       });
       dispatch({
-        type: GET_MODULES,
-        payload: modules
+        type: GET_METHODS,
+        payload: methods
       });
     });
 };
@@ -413,16 +415,62 @@ export const fetchReadingLog = () => async dispatch => {
       var logs = [];
       querySnapshot.forEach((doc) => {
         let log = doc.data();
+        console.log(log);
         log.uid = doc.id;
-        docsRef.doc(doc.id).get().then((doc) => {
-          log.title = doc.data().title;
-          log.updatedate = doc.data().updatedate;
+        docsRef.doc(doc.id).get().then((doc2) => {
+          log.title = doc2.data().title;
+          log.updatedate = doc2.data().updatedate ? doc2.data().updatedate : doc2.data().date;
           logs.push(log);
           dispatch({
             type: GET_READINGLOG,
             payload: logs
           });
         });
+      });
+    });
+};
+
+export const fetchQuizLog = () => async dispatch => {
+  usersRef.doc(auth.currentUser.uid).collection('quizlog').orderBy('latestSubmit','desc')
+    .onSnapshot((querySnapshot) => {
+      var logs = [];
+      querySnapshot.forEach((doc) => {
+        let log = doc.data();
+        log.uid = doc.id;
+        quizzesRef.doc(doc.id).get().then((doc2) => {
+          if (doc2.exists) {
+            log.title = doc2.data().title;
+            logs.push(log);
+            dispatch({
+              type: GET_QUIZLOG,
+              payload: logs
+            });
+          } else {
+            usersRef.doc(auth.currentUser.uid).collection('quizlog').doc(doc.id).delete();
+          }
+        });
+      });
+    });
+};
+
+export const fetchMethodLog = () => async dispatch => {
+  usersRef.doc(auth.currentUser.uid).collection('methodlog').orderBy('methodCompleted','desc')
+    .onSnapshot((querySnapshot) => {
+      var logs = [];
+      querySnapshot.forEach((doc) => {
+        let log = doc.data();
+        log.uid = doc.id;
+        methodsRef.doc(doc.id).get().then((doc2) => {
+          log.title = doc2.data().title;
+          log.subtitle = doc2.data().subtitle;
+          log.sectionlength = doc2.data().sections.length;
+          log.updatedate = doc2.data().updateDate;
+          logs.push(log);
+        });
+      });
+      dispatch({
+        type: GET_METHODLOG,
+        payload: logs
       });
     });
 };
@@ -451,28 +499,6 @@ export const fetchUpdates = () => async dispatch => {
       dispatch({
         type: GET_UPDATES,
         payload: updates,
-      });
-    });
-};
-
-export const fetchMethodLog = () => async dispatch => {
-  usersRef.doc(auth.currentUser.uid).collection('methodlog').orderBy('methodCompleted','desc')
-    .onSnapshot((querySnapshot) => {
-      var logs = [];
-      querySnapshot.forEach((doc) => {
-        let log = doc.data();
-        log.uid = doc.id;
-        methodsRef.doc(doc.id).get().then((doc) => {
-          log.title = doc.data().title;
-          log.subtitle = doc.data().subtitle;
-          log.sectionlength = doc.data().sections.length;
-          log.updatedate = doc.data().updateDate;
-          logs.push(log);
-        });
-      });
-      dispatch({
-        type: GET_METHODLOG,
-        payload: logs
       });
     });
 };

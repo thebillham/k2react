@@ -7,11 +7,12 @@ import {
           GET_WFM,
           GET_WFMJOB,
           GET_QUIZZES,
+          GET_QUIZLOG,
           GET_QUESTIONS,
           GET_TRAININGS,
           GET_COCS,
           GET_SAMPLES,
-          GET_MODULES,
+          GET_METHODS,
           SEARCH_CHANGE,
           CAT_CHANGE,
           GET_TOOLS,
@@ -35,35 +36,35 @@ import {
         } from "../constants/action-types"
 
 const localInit = {
-  auth: [],
-  me: {},
-  bulkanalysts: [],
   airanalysts: [],
+  analysismode: 'normal',
+  analyst: '',
+  auth: [],
+  bulkanalysts: [],
+  category: 'gen',
+  cocs: {},
+  documents: [],
+  helps: [],
+  me: {},
+  methodLog: [],
+  methods: [],
+  notices: [],
+  questions: [],
+  quizzes: [],
+  readingLog: [],
+  samples: {},
+  search: null,
+  staff: {},
+  steppers: [],
+  tools: [],
+  trainingpaths: [],
+  updates: [],
+  user: {},
   userRef: null,
   userRefName: null,
-  documents: [],
-  quizzes: [],
-  questions: [],
-  staff: {},
-  tools: [],
-  user: {},
-  wfmJobs: [],
-  wfmJob: null,
-  modules: [],
-  trainingpaths: [],
-  notices: [],
-  readingLog: [],
-  methodLog: [],
-  search: null,
-  category: 'gen',
-  steppers: [],
-  cocs: {},
-  samples: {},
-  helps: [],
-  updates: [],
   vehicles: [],
-  analyst: '',
-  analysismode: 'normal',
+  wfmJob: null,
+  wfmJobs: [],
 };
 
 // Properties related to local data retrieved from firebase
@@ -150,10 +151,10 @@ export default function localReducer(state = localInit, action) {
         ...state,
         trainingpaths: action.payload,
       }
-    case GET_MODULES:
+    case GET_METHODS:
       return {
         ...state,
-        modules: action.payload,
+        methods: action.payload,
       }
     case SEARCH_CHANGE:
       return {
@@ -188,12 +189,26 @@ export default function localReducer(state = localInit, action) {
     case GET_READINGLOG:
       return {
         ...state,
-        readingLog: action.payload,
+        me: {
+          ...state.me,
+          readingLog: action.payload,
+        }
       }
     case GET_METHODLOG:
       return {
         ...state,
-        methodLog: action.payload,
+        me: {
+          ...state.me,
+          methodLog: action.payload,
+        }
+      }
+    case GET_QUIZLOG:
+      return {
+        ...state,
+        me: {
+          ...state.me,
+          quizLog: action.payload,
+        }
       }
     case DELETE_NOTICE:
       return {

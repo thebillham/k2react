@@ -50,21 +50,45 @@ export default function modalReducer(state = modalInit, action){
          },
       }
     case EDIT_MODAL_DOC_STEPS:
-      if (state.modalProps.doc && state.modalProps.doc.steps) return {
-        ...state,
-        modalProps: {
-          ...state.modalProps,
-          doc: {
-            ...state.modalProps.doc,
-            steps: {
-              ...state.modalProps.doc.steps,
-              [action.payload.step]: {
-                ...state.modalProps.doc.steps[action.payload.step],
-                [action.payload.id]: action.payload.value,
+      if (state.modalProps.doc && state.modalProps.doc.steps) {
+        if (action.payload.object) {
+          return {
+            ...state,
+            modalProps: {
+              ...state.modalProps,
+              doc: {
+                ...state.modalProps.doc,
+                steps: {
+                  ...state.modalProps.doc.steps,
+                  [action.payload.step]: {
+                    ...state.modalProps.doc.steps[action.payload.step],
+                    [action.payload.id]: {
+                      ...state.modalProps.doc.steps[action.payload.step][action.payload.id],
+                      ...action.payload.value,
+                    },
+                  },
+                },
               },
             },
-          },
-        },
+          }
+        } else {
+          return {
+            ...state,
+            modalProps: {
+              ...state.modalProps,
+              doc: {
+                ...state.modalProps.doc,
+                steps: {
+                  ...state.modalProps.doc.steps,
+                  [action.payload.step]: {
+                    ...state.modalProps.doc.steps[action.payload.step],
+                    [action.payload.id]: action.payload.value,
+                  },
+                },
+              },
+            },
+          }
+        }
       }
     case EDIT_MODAL_SAMPLE:
       return {

@@ -19,10 +19,13 @@ import Lock from '@material-ui/icons/Lock';
 import LockOpen from '@material-ui/icons/LockOpen';
 
 import { trainingPathsRef } from '../../config/firebase';
-import { fetchStaff, } from '../../actions/local';
+import { fetchStaff, fetchQuizLog, fetchMethodLog, fetchReadingLog,
+  fetchQuizzes, fetchDocuments, fetchMethods,
+ } from '../../actions/local';
 import QuizWidget from './QuizWidget';
 import TrainingNode from './TrainingNode';
 import TrainingLink from './TrainingLink';
+import TrainingReview from './TrainingReview';
 
 const iconStyle = {
   color: '#FF2D00',
@@ -33,12 +36,22 @@ const mapStateToProps = state => {
   return {
     me: state.local.me,
     staff: state.local.staff,
+    quizzes: state.local.quizzes,
+    methods: state.local.methods,
+    documents: state.local.documents,
    };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     fetchStaff: () => dispatch(fetchStaff()),
+    fetchReadingLog: () => dispatch(fetchReadingLog()),
+    fetchStaff: () => dispatch(fetchStaff()),
+    fetchDocuments: () => dispatch(fetchDocuments()),
+    fetchMethods: () => dispatch(fetchMethods()),
+    fetchQuizzes: () => dispatch(fetchQuizzes()),
+    fetchQuizLog: () => dispatch(fetchQuizLog()),
+    fetchMethodLog: () => dispatch(fetchMethodLog()),
   }
 }
 
@@ -57,6 +70,12 @@ class TrainingPath extends React.Component {
 
   componentWillMount(){
     this.props.fetchStaff();
+    this.props.fetchDocuments();
+    this.props.fetchMethods();
+    this.props.fetchQuizzes();
+    this.props.fetchReadingLog();
+    this.props.fetchMethodLog();
+    this.props.fetchQuizLog();
     trainingPathsRef.doc(this.props.match.params.uid).get().then((doc) => {
       this.setState({
         totalSteps: doc.data().steps.length,
@@ -178,6 +197,8 @@ class TrainingPath extends React.Component {
         return (<TrainingLink link={node} />);
       case 'method':
         return (<TrainingLink link={node} />);
+      case 'review':
+        return (<TrainingReview path={this.state.path} />)
       case 'ArrowBack':
         return (<ArrowBack style={iconStyle} />);
       case 'ArrowDownward':
@@ -220,11 +241,83 @@ class TrainingPath extends React.Component {
   }
 
   getStageProgress = stage => {
-    return 'You have completed 3 of 5 required readings. You have completed one supplementary reading.';
+    const { path } = this.state;
+    const { me } = this.props;
+    if (stage === 'bgreading') {
+      let totalReadings = path.steps.bgreading && path.steps.bgreading.requiredreadings && path.steps.bgreading.requiredreadings.length;
+      let readingsCompleted = me.readingLog && me.readingLog.filter(log => path.steps.bgreading && path.steps.bgreading.requiredreadings && path.steps.bgreading.requiredreadings.includes(log.uid));
+      let suppTotalReadings = path.steps.bgreading && path.steps.bgreading.supplementaryreadings && path.steps.bgreading.supplementaryreadings.length;
+      let suppReadingsCompleted = me.readingLog && me.readingLog.filter(log => path.steps.bgreading && path.steps.bgreading.supplementaryreadings && path.steps.bgreading.supplementaryreadings.includes(log.uid));
+      let quiztext = '';
+      let quizlog = me.quizLog && me.quizLog.filter(log => log.uid === path.steps.bgreading.quiz)[0];
+      if (!path.steps.bgreading.quiz) {
+        quiztext = 'There is no quiz for this section.';
+      } else if (!quizlog) {
+        quiztext = 'You have not completed the quiz.';
+      } else {
+        let hiScore = 0;
+        let totalScore = 0;
+        let totalTries = 0;
+        quizlog.scores && quizlog.scores.forEach(score => {
+          totalTries = totalTries + 1;
+          totalScore = totalScore + score.score;
+          if (score.score > hiScore) hiScore = score.score;
+        });
+        let latestScore = quizlog.scores[totalTries - 1].score;
+        let averageScore = Math.round(10 * totalScore / totalTries) / 10;
+
+        quiztext = `Your latest score in the quiz is ${latestScore}%, your highest score is ${hiScore}% and your average score from ${totalTries} attempts is ${averageScore}%`;
+      }
+
+      let readingsUpdated = readingsCompleted && readingsCompleted.filter(reading => reading.date < reading.updatedate);
+      let suppReadingsUpdated = suppReadingsCompleted && suppReadingsCompleted.filter(reading => reading.date < reading.updatedate);
+      let updatetext = '';
+      if (readingsUpdated && readingsUpdated.length > 0) updatetext = `<li>${readingsUpdated.length} required readings have had important updates since they were last read.</li>`;
+      if (suppReadingsUpdated && suppReadingsUpdated.length > 0) updatetext = updatetext + `<li>${suppReadingsUpdated} supplementary readings have had important updates since they were last read.</li>`;
+
+      return `<ul><li>You have completed ${readingsCompleted && readingsCompleted.length} of ${totalReadings} required readings.</li><li>You have completed ${suppReadingsCompleted && suppReadingsCompleted.length} of ${suppTotalReadings} supplementary readings.</li><li>${quiztext}</li>${updatetext}`;
+    } else if (stage === 'practical') {
+      let totalMethods = 5;
+      let methodsRead = [{}, {}, {}];
+      let suppTotalMethods = 2;
+      let suppMethodsRead = 2;
+      let methodsQuiz = 1;
+      let suppMethodsQuiz = 2;
+      return `<ul><li>You have read ${methodsRead && methodsRead.length} of ${totalMethods} required methods</li></ul>`
+    } else if (stage === 'inhouse') {
+      let totalCheck = 21;
+      let checkComplete = 11;
+      return `You have completed ${checkComplete} tasks out of ${totalCheck}.`
+    } else if (stage === 'sitevisits') {
+      let jobTypes = [
+        {
+          name: 'Job type 1',
+          completed: 2,
+          total: 3,
+        },
+        {
+          name: 'Job type 2',
+          completed: 1,
+          total: 3,
+        },
+        {
+          name: 'Job type 3',
+          completed: 0,
+          total: 3,
+        },
+      ];
+      let html = '<ul>';
+      html = html + jobTypes.map(type => (`<li>You have completed ${type.completed} of ${type.total} site visits for ${type.name}</li>`));
+      html = html + '</ul';
+      return html;
+    } else {
+      return 'No data.';
+    }
   }
 
   renderPage = page => {
     const { path } = this.state;
+    const { quizzes } = this.props;
 
     const outline = (
       <Grid item>
@@ -256,7 +349,9 @@ class TrainingPath extends React.Component {
                 { this.renderNode({ title: 'Background Reading', text: path.steps.bgreading.outline }) }
               </Grid>
               <Grid item style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                { this.renderNode({ title: 'Background Readings', text: path.steps.bgreading.outline, links: path.steps.bgreading.requiredreadings }) }
+                { this.renderNode({ title: 'Background Readings', text: path.steps.bgreading.requiredcaption, links:
+                  path.steps.bgreading.requiredreadings.map(uid => this.props.documents.filter(doc => doc.uid === uid)[0])
+                  .concat(quizzes.filter(quiz => (quiz.uid === path.steps.bgreading.quiz))[0]) }) }
               </Grid>
             </Grid>
           </Grid>
@@ -266,7 +361,7 @@ class TrainingPath extends React.Component {
                 { this.renderNode({ title: 'Stage Progress', text: this.getStageProgress('bgreading')}) }
               </Grid>
               <Grid item style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                { this.renderNode({ title: 'Supplementary Readings', text: path.steps.bgreading.outline, links: path.steps.bgreading.supplementaryreadings }) }
+                { this.renderNode({ title: 'Supplementary Readings', text: path.steps.bgreading.supplementarycaption, links: path.steps.bgreading.supplementaryreadings.map(uid => this.props.documents.filter(doc => doc.uid === uid)[0]) }) }
               </Grid>
             </Grid>
           </Grid>
@@ -283,7 +378,8 @@ class TrainingPath extends React.Component {
                 { this.renderNode({ title: 'Practical Training', text: path.steps.practical.outline }) }
               </Grid>
               <Grid item style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                { this.renderNode({ title: 'Required Methods', text: 'The following methods must be read before starting in-house training. A short quiz follows each one to assess comprehension.', links: path.steps.practical.requiredmethods }) }
+                { this.renderNode({ title: 'Required Methods', text: path.steps.practical.requiredcaption, links:
+                  path.steps.practical.requiredmethods.map(uid => this.props.methods.filter(doc => doc.uid === uid)[0]) }) }
               </Grid>
             </Grid>
           </Grid>
@@ -293,7 +389,8 @@ class TrainingPath extends React.Component {
                 { this.renderNode({ title: 'Stage Progress', text: this.getStageProgress('practical')}) }
               </Grid>
               <Grid item style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                { this.renderNode({ title: 'Additional Training', text: 'The following methods detail less common sampling techniques and procedures.', links: path.steps.practical.supplementarymethods }) }
+                { this.renderNode({ title: 'Additional Training', text: path.steps.practical.supplementarycaption, links:
+                  path.steps.practical.supplementarymethods.map(uid => this.props.methods.filter(doc => doc.uid === uid)[0]) }) }
               </Grid>
             </Grid>
           </Grid>
@@ -343,9 +440,6 @@ class TrainingPath extends React.Component {
               <Grid item style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                 { this.renderNode({ title: 'Stage Progress', text: this.getStageProgress('sitevisits')}) }
               </Grid>
-              <Grid item style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                { this.renderNode({ title: 'Additional Training', text: 'The following methods detail less common sampling techniques and procedures.', links: path.steps.sitevisits.supplementarymethods }) }
-              </Grid>
             </Grid>
           </Grid>
         </Grid>
@@ -353,24 +447,7 @@ class TrainingPath extends React.Component {
     );
 
     const review = (
-      <Grid item>
-        <Grid container direction='row'>
-          <Grid item xs={12} lg={6}>
-            <Grid container direction='column' justify='center' alignItems='center'>
-              <Grid item style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                { this.renderNode({ title: 'Training Outline', text: this.state.path.steps.outline.outline }) }
-              </Grid>
-            </Grid>
-          </Grid>
-          <Grid item xs={12} lg={6}>
-            <Grid container direction='column' justify='center' alignItems='center'>
-              <Grid item style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                { this.renderNode({ title: 'Training Staff', text: this.getTrainingHtml()}) }
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
+      this.renderNode({ type: 'review'})
     );
 
     switch (page) {
@@ -400,7 +477,6 @@ class TrainingPath extends React.Component {
   render() {
     const { path, activeStep, totalSteps, steps } = this.state;
 
-    console.log(steps);
     return (
         <div style = {{ marginTop: 80 }}>
           { this.state.isLoading ?
