@@ -89,6 +89,7 @@ const UserReadingLog = lazy(() => import('./users/UserReadingLog'));
 //
 const Training = lazy(() => import('./training/Training'));
 const TrainingPath = lazy(() => import('./training/TrainingPath'));
+const TrainingOverview = lazy(() => import('./training/TrainingOverview'));
 // const TrainingModules = lazy(() => import('./training/TrainingModules'));
 // const TrainingModule = lazy(() => import('./training/TrainingModule'));
 
@@ -149,7 +150,7 @@ class MainScreen extends React.Component {
       // openRef: false,
       // openStaff: false,
       // openMyDetails: false,
-      // openTraining: false,
+      openTraining: true,
       // openHelp: false,
     };
   }
@@ -355,19 +356,38 @@ class MainScreen extends React.Component {
           </List>
         <Divider />
           <List>
-            <ListItem button component={Link} to="/help">
+            <ListItem button onClick={this.handleTrainingClick}>
               <ListItemIcon>
-                <HelpIcon className={classes.accentButton} />
+                <TrainingIcon className={classes.accentButton} />
               </ListItemIcon>
-              <ListItemText primary="Help" />
+              <ListItemText primary="Training" />
+              {this.state.openTraining ? <ExpandLess /> : <ExpandMore /> }
             </ListItem>
-            <ListItem button component={Link} to="/updates">
+            <Collapse in={this.state.openTraining} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItem button component={Link} to="/trainingoverview" className={classes.nested}>
+                  <ListItemText primary="Overview" />
+                </ListItem>
+                <ListItem button component={Link} to="/training" className={classes.nested}>
+                  <ListItemText primary="Training Paths" />
+                </ListItem>
+              </List>
+            </Collapse>
+            <ListItem button component={Link} to="/quizzes">
               <ListItemIcon>
-                <UpdatesIcon className={classes.accentButton} />
+                <QuizIcon className={classes.accentButton} />
               </ListItemIcon>
-              <ListItemText primary="Version Updates" />
+              <ListItemText primary="Quizzes" />
+            </ListItem>
+
+            <ListItem button component={Link} to="/library">
+              <ListItemIcon>
+                <LibraryIcon className={classes.accentButton} />
+              </ListItemIcon>
+              <ListItemText primary="Library" />
             </ListItem>
           </List>
+
         <Divider />
           <List>
             <ListItem button onClick={this.handleDevClick}>
@@ -426,20 +446,6 @@ class MainScreen extends React.Component {
                   <ListItemText primary="Reading Log" className={classes.subitem} />
                 </ListItem>
 
-                <ListItem button component={Link} to="/training" className={classes.nested}>
-                  <ListItemIcon>
-                    <TrainingIcon className={classes.accentButton} />
-                  </ListItemIcon>
-                  <ListItemText primary="Training" />
-                </ListItem>
-
-                <ListItem button component={Link} to="/quizzes" className={classes.nested}>
-                  <ListItemIcon>
-                    <QuizIcon className={classes.accentButton} />
-                  </ListItemIcon>
-                  <ListItemText primary="Quizzes" />
-                </ListItem>
-
                 <ListItem button component={Link} to="/tools" className={classes.nested}>
                   <ListItemIcon>
                     <ToolsIcon className={classes.accentButton} />
@@ -447,18 +453,24 @@ class MainScreen extends React.Component {
                   <ListItemText primary="Tools" />
                 </ListItem>
 
-                <ListItem button component={Link} to="/library" className={classes.nested}>
-                  <ListItemIcon>
-                    <LibraryIcon className={classes.accentButton} />
-                  </ListItemIcon>
-                  <ListItemText primary="Library" />
-                </ListItem>
-
                 <ListItem button onClick={() => {this.props.showModal({ modalType: APPSETTINGS, modalProps: { doc: this.props.state.const } })}} className={classes.nested}>
                   <ListItemIcon>
                     <SettingsIcon className={classes.accentButton} />
                   </ListItemIcon>
                   <ListItemText primary="App Settings" />
+                </ListItem>
+
+                <ListItem button component={Link} to="/help">
+                  <ListItemIcon>
+                    <HelpIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Help" />
+                </ListItem>
+                <ListItem button component={Link} to="/updates">
+                  <ListItemIcon>
+                    <UpdatesIcon className={classes.accentButton} />
+                  </ListItemIcon>
+                  <ListItemText primary="Version Updates" />
                 </ListItem>
               </List>
             </Collapse>
@@ -536,7 +548,6 @@ class MainScreen extends React.Component {
                             <Route exact path="/mydetails/readinglog" render={() => <div>My Reading Log</div>} />
                             <Route exact path="/mydetails/preferences" render={() => <div>App Preferences</div>} />
                             <Route path="/training" render={() => <div>Training</div>} />
-                            <Route exact path="/training/modules" render={() => <div>Training Modules</div>} />
                             <Route path="/method" render={() => <div>Method</div>} />
                             <Route path="/quizzes" render={() => <div>Quizzes</div>} />
                             <Route path="/questions" render={() => <div>Questions</div>} />
@@ -606,6 +617,7 @@ class MainScreen extends React.Component {
                           <Route exact path="/mydetails/training" component={UserTraining} key="mytraining" />
                           <Route exact path="/mydetails/readinglog" component={UserReadingLog} key="myreadinglog" />
                           <Route exact path="/training" component={Training} />
+                          <Route exact path="/trainingoverview" component={TrainingOverview} />
                           <Route path="/training/:uid" component={TrainingPath} />
                           <Route path="/method/:uid" component={Method} />
                           <Route exact path="/quizzes" component={Quizzes} />

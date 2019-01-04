@@ -36,8 +36,8 @@ const formStyles = theme => ({
 
   note: {
     marginLeft: theme.spacing.unit,
-    fontSize: 12,
-    color: '#888',
+    fontSize: 14,
+    color: '#444',
     // marginBottom: theme.spacing.unit * 2,
   },
   labels: {

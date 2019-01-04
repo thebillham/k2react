@@ -37,7 +37,7 @@ const mapDispatchToProps = dispatch => {
   }
 }
 
-class Training extends React.Component {
+class TrainingOverview extends React.Component {
   componentWillMount() {
     this.props.fetchTrainingPaths();
   }
@@ -160,4 +160,4 @@ class Training extends React.Component {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Training);
+export default connect(mapStateToProps, mapDispatchToProps)(TrainingOverview);

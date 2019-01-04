@@ -3,10 +3,16 @@ import { WithContext as ReactTags } from 'react-tag-input';
 import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
-import store from '../../store';
+
+import ReactQuill, {Quill} from 'react-quill';
+import QuillTable from 'quill-table';
+import 'react-quill/dist/quill.snow.css';
+
+// import store from '../../store';
 import { DOCUMENT } from '../../constants/modal-types';
-import { docsRef } from '../../config/firebase';
+import { docsRef, storage } from '../../config/firebase';
 import '../../config/tags.css';
+import { sendSlackMessage } from '../../Slack';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -16,96 +22,376 @@ import DialogActions from '@material-ui/core/DialogActions';
 import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import FormControl from '@material-ui/core/FormControl';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import IconButton from '@material-ui/core/IconButton';
+import Chip from '@material-ui/core/Chip';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
+import Grid from '@material-ui/core/Grid';
+
 import UploadIcon from '@material-ui/icons/CloudUpload';
+import Close from '@material-ui/icons/Close';
 import {
-  hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,
-  handleTagAddition,
-} from '../../actions/modal';
+  hideModal, showModal, handleModalChange, handleModalChangeStep, handleModalSubmit, onUploadFile, handleTagAddition, handleTagDelete, } from '../../actions/modal';
+import { getUserAttrs } from '../../actions/local';
+import _ from 'lodash';
+
+Quill.register(QuillTable.TableCell);
+Quill.register(QuillTable.TableRow);
+Quill.register(QuillTable.Table);
+Quill.register(QuillTable.Contain);
+Quill.register('modules/table', QuillTable.TableModule);
 
 const mapStateToProps = state => {
   return {
-    modalType: state.modal.modalType,
-    modalProps: state.modal.modalProps,
+    delimiters: state.const.tagDelimiters,
     doc: state.modal.modalProps.doc,
-    userRefName: state.local.userRefName,
+    documents: state.local.documents,
+    methods: state.local.methods,
+    me: state.local.me,
+    quizzes: state.local.quizzes,
+    modalProps: state.modal.modalProps,
+    modalType: state.modal.modalType,
+    qualificationtypes: state.const.qualificationtypes,
+    staff: state.local.staff,
     tags: state.modal.modalProps.tags,
     tagSuggestions: state.const.docTagSuggestions,
-    delimiters: state.const.tagDelimiters
+    userRefName: state.local.userRefName,
+    categories: state.const.documentcategories,
    };
 };
 
-function DocumentModal (props) {
-  return(
-    <Dialog
-      open={ props.modalType === DOCUMENT }
-      onClose = {() => store.dispatch(hideModal)}
-      >
-      <DialogTitle>Add New Document</DialogTitle>
-      <DialogContent>
-        <form>
-          <FormGroup>
-            <TextField
-              id="title"
-              label="Title"
-              value={props.doc && props.doc.title}
-              className={props.classes.dialogField}
-              onChange={e => {store.dispatch(handleModalChange(e.target))}}
-            />
-            <TextField
-              id="desc"
-              label="Description"
-              value={props.doc && props.doc.desc}
-              className={props.classes.dialogField}
-              multiline
-              rows={4}
-              onChange={e => {store.dispatch(handleModalChange(e.target))}}
-            />
-            <TextField
-              id="version_date"
-              label="Version Date"
-              type="date"
-              value={props.doc && props.doc.date_acquired}
-              className={props.classes.dialogField}
-              onChange={e => {store.dispatch(handleModalChange(e.target))}}
-              InputLabelProps = {{ shrink: true }}
-            />
-            <div>
-              <ReactTags tags={props.tags}
-                suggestions={props.tagSuggestions}
-                handleDelete={i => {store.dispatch(handleTagDelete(i))}}
-                handleAddition={tag => {store.dispatch(handleTagAddition(tag))}}
-                delimiters={props.delimiters}
-                minQueryLength='1'
-                inline='true'
-                autocomplete='true'
-               />
-            </div>
-            <label>
-              <UploadIcon className={props.classes.accentButton} />
-              <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e => {store.dispatch(onUploadFile({
+const mapDispatchToProps = dispatch => {
+  return {
+    getUserAttrs: _.debounce(userPath => dispatch(getUserAttrs(userPath)), 1000),
+    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
+    handleModalChangeStep: target => dispatch(handleModalChangeStep(target)),
+    handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
+    handleSelectChange: target => dispatch(handleModalChange(target)),
+    hideModal: () => dispatch(hideModal()),
+    showModal: modal => dispatch(showModal(modal)),
+    handleTagDelete: tag => dispatch(handleTagDelete(tag)),
+    handleTagAddition: tag => dispatch(handleTagAddition(tag)),
+    onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
+  };
+};
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+    ['blockquote', 'code-block'],
+
+    [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+    [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+    // [{ 'direction': 'rtl' }],                         // text direction
+
+    [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+    [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+    // [{ 'font': [] }],
+    [{ 'align': [] }],
+
+    ['image'],
+
+    ['clean']                                         // remove formatting button
+  ],
+  table: true,
+  // imageResize: {
+  //   parchment: Quill.import('parchment'),
+  // },
+  // imageDrop: true,
+};
+
+class DocumentModal extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      page: 1,
+    }
+  }
+
+  getStyles = (uid, list) => {
+    return {
+      fontWeight:
+        list && (list.constructor === Array) && list.indexOf(uid) > -1
+          ? 600
+          : 200
+    };
+  }
+
+  sendNewAttrSlack = () => {
+    let message = {
+      text: `${this.props.modalProps.staffName} has added a new module.\n${this.props.qualificationtypes[this.props.doc.type].name}`,
+    };
+    sendSlackMessage(message, true);
+  }
+
+  getPage = () => {
+    const { modalProps, doc, classes } = this.props;
+    const staff = { ...this.props.staff, [this.props.me.uid]: this.props.me };
+
+    const headerpage = (
+      <form>
+        <FormGroup>
+          <FormControl className={classes.dialogField}>
+            <InputLabel shrink>Document Type</InputLabel>
+            <Select
+              onChange={e => {
+                if (e.target.value === 'Multi Page' && !doc.steps) doc.steps = {};
+                this.props.handleModalChange({id: 'docType', value: e.target.value});
+              }}
+              value={doc && doc.docType || 'Single Page'}
+              input={<Input name='docType' id='docType' />}
+            >
+              { ['Link','PDF','Single Page','Multi Page',].map((type) => {
+                return(
+                  <option key={type} value={type}>{type}</option>
+                );
+              })}
+            </Select>
+          </FormControl>
+            <FormControl className={classes.dialogField}>
+              <InputLabel shrink>Document Category</InputLabel>
+              <Select
+                onChange={e => {this.props.handleModalChange({id: 'category', value: e.target.value})}}
+                value={doc && doc.category || 'gen'}
+                input={<Input name='category' id='category' />}
+              >
+                { this.props.categories && this.props.categories.map((cat) => {
+                  return(
+                    <option key={cat.key} value={cat.key}>{cat.desc}</option>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          <TextField
+            id="title"
+            label="Title"
+            className={classes.dialogField}
+            defaultValue={doc && doc.title || ''}
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
+          <TextField
+            id="subtitle"
+            label="Subtitle"
+            className={classes.dialogField}
+            defaultValue={doc && doc.subtitle || ''}
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
+          <TextField
+            id="code"
+            label="Code"
+            className={classes.dialogField}
+            defaultValue={doc && doc.code || ''}
+            helperText='Code or reference number (e.g. AS/NZS 1715:2009)'
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
+          { this.state.type === 'Link' &&
+          <TextField
+            id="link"
+            label="Link"
+            multiline
+            className={classes.dialogField}
+            defaultValue={doc && doc.link || ''}
+            helperText='Enter the full web link.'
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />}
+          <TextField
+            id="author"
+            label="Author"
+            className={classes.dialogField}
+            defaultValue={doc && doc.author || ''}
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
+          <TextField
+            id="publisher"
+            label="Publisher"
+            className={classes.dialogField}
+            defaultValue={doc && doc.publisher || ''}
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
+          <TextField
+            id="date"
+            label="Date Published"
+            type="date"
+            value={doc && doc.date}
+            className={classes.dialogField}
+            helperText='Enter the date of first publishing.'
+            onChange={e => {this.props.handleModalChange(e.target)}}
+            InputLabelProps = {{ shrink: true }}
+          />
+          <TextField
+            id="updateDate"
+            label="Date of Last Update"
+            type="date"
+            value={doc && doc.updateDate}
+            className={classes.dialogField}
+            helperText='Enter the date of the last update.'
+            onChange={e => {this.props.handleModalChange(e.target)}}
+            InputLabelProps = {{ shrink: true }}
+          />
+          { doc.docType === 'Single Page' &&
+          <div>
+            <InputLabel shrink>Page Content</InputLabel>
+            <ReactQuill
+              value={doc.content || ''}
+              modules={quillModules}
+              theme='snow'
+              onChange={(content, delta, source) => {if (source === 'user') this.props.handleModalChange({id: 'content', value: content})}}
+              style={{ marginBottom: 16, }}
+              />
+          </div>}
+          <TextField
+            id="source"
+            label="Source"
+            multiline
+            className={classes.dialogField}
+            defaultValue={doc && doc.source}
+            helperText='Enter the source of the document, e.g. the website address.'
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
+          <TextField
+            id="references"
+            label="References"
+            multiline
+            className={classes.dialogField}
+            defaultValue={doc && doc.references || ''}
+            helperText='List any links or references this document is based on.'
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
+          <div style={{ marginBottom: 12, }}>
+          <InputLabel shrink>Tags</InputLabel>
+          {this.props.tagSuggestions && doc.tags &&
+            <ReactTags tags={doc.tags}
+              suggestions={this.props.tagSuggestions}
+              handleDelete={this.props.handleTagDelete}
+              handleAddition={this.props.handleTagAddition}
+              delimiters={this.props.delimiters}
+              handleFilterSuggestions={(textInputValue, possibleSuggestionsArray) => {
+                var lowerCaseQuery = textInputValue.toLowerCase();
+                return possibleSuggestionsArray.filter(suggestion => {
+                  return suggestion.text.toLowerCase().includes(lowerCaseQuery);
+                });
+              }}
+              minQueryLength={1}
+              inline={true}
+              allowDragDrop={false}
+              allowDeleteFromEmptyInput={false}
+              autofocus={false}
+              autocomplete={true}
+             />}
+          </div>
+          {doc.docType === 'PDF' &&
+          <label>
+            <UploadIcon className={classes.accentButton} />
+            <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e => {
+              if (doc.fileUrl) {
+                storage.ref(doc.fileRef).delete();
+              }
+              this.props.onUploadFile({
                 file: e.currentTarget.files[0],
                 storagePath: 'documents/',
-              }))
+                })
               }} />
-              <LinearProgress variant="determinate" value={props.modalProps.uploadProgress} />
-            </label>
-          </FormGroup>
-        </form>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => store.dispatch(hideModal)} color="secondary">Cancel</Button>
-        {props.modalProps.isUploading ? <Button color="primary" disabled >Submit</Button>
-        : <Button onClick={() => {
-          props.doc.tags = props.tags.map(tag => tag.text);
-          store.dispatch(handleModalSubmit({
-          doc: props.doc,
-          pathRef: docsRef,
-          }))
-        }
-      } color="primary" >Submit</Button>}
-      </DialogActions>
-    </Dialog>
-  )
+            <LinearProgress variant="determinate" value={modalProps.uploadProgress} />
+          </label>}
+        </FormGroup>
+      </form>
+    );
+
+    const contentpage = (
+      <form>
+        <h5>Page {this.state.page-1}</h5>
+        <TextField
+          id="title"
+          label="Title"
+          style={{ marginBottom: 12, }}
+          value={doc.steps && doc.steps[this.state.page-2] && doc.steps[this.state.page-2].title || ''}
+          onChange={e => this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'title', value: e.target.value})}
+        />
+        <ReactQuill
+          value={doc.steps && doc.steps[this.state.page-2] && doc.steps[this.state.page-2].content || ''}
+          modules={quillModules}
+          theme='snow'
+          onChange={(content, delta, source) => {if (source === 'user') this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'content', value: content})}}
+          style={{ marginBottom: 16, }}
+          />
+      </form>
+    );
+
+    switch (this.state.page) {
+      case 1:
+        return headerpage;
+        break;
+      default:
+        return contentpage;
+    }
+  }
+
+  render() {
+    const { modalProps, doc, classes } = this.props;
+
+    return(
+      <Dialog
+        key='documentmodal'
+        open={ this.props.modalType === DOCUMENT }
+        onEnter={() => this.setState({ page: 1, })}
+        onClose = {() => this.props.hideModal}
+        >
+        <DialogTitle>{ modalProps.title ? modalProps.title : 'Add New Document' }</DialogTitle>
+        <DialogContent>
+         { this.getPage() }
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { this.props.hideModal() }} color="secondary">Cancel</Button>
+          { (doc.docType === 'Multi Page') &&
+            <div>
+              <Button disabled={this.state.page === 1} onClick={() => { this.setState({ page: this.state.page - 1}) }} color="default">Back</Button>
+              <Button onClick={() => { this.setState({ page: this.state.page + 1}) }} color="default">Forward</Button>
+            </div>
+          }
+          {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button> :
+            <Button onClick={() => {
+              if (!doc.date) {
+                doc.date = new Date();
+              }
+              if (doc.steps) {
+                // fill in missing labels, remove missing pages
+                let pages = {};
+                let i = 1;
+                Object.values(doc.steps).forEach(step => {
+                  if (!step.title) step.title = 'Page ' + i;
+                  pages[i-1] = step;
+                  i = i + 1;
+                });
+                doc.steps = pages;
+              }
+              if (!doc.uid) {
+                if (doc.title) {
+                  doc.uid = doc.title.replace(/\s+/g, '-').toLowerCase();
+                } else {
+                  doc.uid = doc.docType + Math.round(Math.random() * 1000000).toString();
+                }
+              }
+              if (doc.fileUrl) doc.link = doc.fileUrl;
+              this.props.handleModalSubmit({
+                doc: doc,
+                pathRef: docsRef,
+              });
+              // this.sendNewAttrSlack();
+            }
+          } color="primary" >Submit</Button>}
+        </DialogActions>
+      </Dialog>
+    )
+  }
 }
 
-export default withStyles(modalStyles)(connect(mapStateToProps)(DocumentModal));
+export default withStyles(modalStyles)(connect(mapStateToProps, mapDispatchToProps)(DocumentModal));

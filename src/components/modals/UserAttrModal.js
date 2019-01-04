@@ -242,12 +242,10 @@ class UserAttrModal extends React.Component {
                     storage.ref(doc.fileRef).delete();
                   }
                   this.props.onUploadFile({
-                  file: e.currentTarget.files[0],
-                  storagePath: 'attr/' + modalProps.staffName.replace(/\s+/g, '') + '/' + doc.type + '_',
-                  });
-
-                }
-                } />
+                    file: e.currentTarget.files[0],
+                    storagePath: 'attr/' + modalProps.staffName.replace(/\s+/g, '') + '/' + doc.type + '_',
+                    });
+                }} />
                 <LinearProgress style={{ marginTop: 4, }} variant="determinate" value={modalProps.uploadProgress} />
               </label>
             </FormGroup>

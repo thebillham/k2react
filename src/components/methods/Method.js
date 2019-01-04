@@ -51,7 +51,7 @@ class Method extends React.Component {
     });
     methodsRef.doc(this.props.match.params.uid).get().then((doc) => {
       this.setState({
-        totalSteps: doc.data().sections.length,
+        totalSteps: Object.keys(doc.data().steps).length,
         method: doc.data(),
         isLoading: false,
         completed: completed,
@@ -60,14 +60,6 @@ class Method extends React.Component {
         activeStep: step,
       });
     });
-  }
-
-  getSteps = () => {
-    let steps = [];
-    this.state.method.sections.forEach(step => {
-      steps.push(step.label);
-    });
-    return steps;
   }
 
   handleNext = () => {
@@ -142,13 +134,13 @@ class Method extends React.Component {
 
     usersRef.doc(auth.currentUser.uid).collection("methodlog").doc(this.props.match.params.uid).get().then((doc) => {
       let sections = {};
-      if (doc.exists) sections = doc.data().sections;
+      if (doc.exists) sections = doc.data().steps;
       if (sections === undefined) sections = {};
       sections[step] = new Date();
       if (this.allStepsCompleted()) methodCompletedDate = sections[step];
       usersRef.doc(auth.currentUser.uid).collection("methodlog").doc(this.props.match.params.uid).set({
           methodCompleted: methodCompletedDate,
-          sections: sections,
+          steps: sections,
       });
     });
   }
@@ -165,16 +157,17 @@ class Method extends React.Component {
           :
             <div>
               <div style={{ textAlign: 'center', fontSize: 24, color: 'white', backgroundColor: '#006D44', padding: 12, }}>{ method.title }</div>
+                <div style={{ textAlign: 'center', fontSize: 24, color: 'white', backgroundColor: '#006D44', padding: 12, }}>{ method.tmCode }</div>
               <div style={{ textAlign: 'center', fontSize: 18, color: 'white', backgroundColor: '#006D44', padding: 12, }}>{ method.subtitle }</div>
               <Stepper nonLinear activeStep={activeStep}>
-                { method.sections.map((section, index) => {
+                { Object.keys(method.steps).map((key, index) => {
                   return(
-                    <Step key={section.title}>
+                    <Step key={key}>
                       <StepButton
                         onClick={this.handleStep(index)}
                         completed={this.state.completed.has(index)}
                         >
-                        {section.title}
+                        {method.steps[key].title}
                       </StepButton>
                     </Step>
                   );
@@ -223,13 +216,7 @@ class Method extends React.Component {
                 margin: 20,
                 maxWidth: 800,
               }}>
-                <div style={{ fontSize: 26, fontWeight: 600, color: '#004c2f', }} dangerouslySetInnerHTML={{ __html: method.sections[activeStep].title}} />
-                <div style={{ color: '#444', marginBottom: 12, }} dangerouslySetInnerHTML={{ __html: method.sections[activeStep].text}} />
-                { method.sections[activeStep].sections && method.sections[activeStep].sections.map(node => {
-                  return(
-                    <MethodNode key={node.title} node={node} />
-                  );
-                })}
+                <div style={{ fontSize: 26, fontWeight: 600, color: '#004c2f', }} dangerouslySetInnerHTML={{ __html: method.steps[activeStep] && method.steps[activeStep].content}} />
               </Paper>
             </div>
         }
