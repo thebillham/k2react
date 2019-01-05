@@ -4,15 +4,15 @@ import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 
-import ReactQuill, {Quill} from 'react-quill';
-import QuillTable from 'quill-table';
-import 'react-quill/dist/quill.snow.css';
-
-// import store from '../../store';
 import { DOCUMENT } from '../../constants/modal-types';
 import { docsRef, storage } from '../../config/firebase';
 import '../../config/tags.css';
 import { sendSlackMessage } from '../../Slack';
+
+import { RichEditor } from '../editor/RichEditor';
+import { EditorState, ContentState, convertToRaw, } from 'draft-js';
+import draftToHtml from 'draftjs-to-html';
+import htmlToDraft from 'html-to-draftjs';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -35,16 +35,11 @@ import Grid from '@material-ui/core/Grid';
 
 import UploadIcon from '@material-ui/icons/CloudUpload';
 import Close from '@material-ui/icons/Close';
+
 import {
   hideModal, showModal, handleModalChange, handleModalChangeStep, handleModalSubmit, onUploadFile, handleTagAddition, handleTagDelete, } from '../../actions/modal';
 import { getUserAttrs } from '../../actions/local';
 import _ from 'lodash';
-
-Quill.register(QuillTable.TableCell);
-Quill.register(QuillTable.TableRow);
-Quill.register(QuillTable.Table);
-Quill.register(QuillTable.Contain);
-Quill.register('modules/table', QuillTable.TableModule);
 
 const mapStateToProps = state => {
   return {
@@ -80,40 +75,33 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const quillModules = {
-  toolbar: [
-    ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-    ['blockquote', 'code-block'],
-
-    [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-    [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
-    [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-    // [{ 'direction': 'rtl' }],                         // text direction
-
-    [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-    [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-    // [{ 'font': [] }],
-    [{ 'align': [] }],
-
-    ['image'],
-
-    ['clean']                                         // remove formatting button
-  ],
-  table: true,
-  // imageResize: {
-  //   parchment: Quill.import('parchment'),
-  // },
-  // imageDrop: true,
-};
-
 class DocumentModal extends React.Component {
   constructor(props){
     super(props);
     this.state = {
       page: 1,
+      editorState: {},
+    }
+  }
+
+  componentWillMount = () => {
+    if (this.props.doc.content) {
+      this.setState({editorState: {
+        ...this.state.editorState,
+        ['single']: this.convertToDraft(this.props.doc.content),
+        }
+      });
+    }
+  }
+
+  convertToDraft = html => {
+    const contentBlock = htmlToDraft(html);
+    if (contentBlock) {
+      const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
+      console.log(EditorState.createWithContent(contentState))
+      return EditorState.createWithContent(contentState);
+    } else {
+      return EditorState.createEmpty();
     }
   }
 
@@ -135,6 +123,7 @@ class DocumentModal extends React.Component {
 
   getPage = () => {
     const { modalProps, doc, classes } = this.props;
+    const { editorState, page } = this.state;
     const staff = { ...this.props.staff, [this.props.me.uid]: this.props.me };
 
     const headerpage = (
@@ -171,6 +160,26 @@ class DocumentModal extends React.Component {
                 })}
               </Select>
             </FormControl>
+          <InputLabel shrink>Tags</InputLabel>
+          {this.props.tagSuggestions && doc.tags &&
+            <ReactTags tags={doc.tags}
+              suggestions={this.props.tagSuggestions}
+              handleDelete={this.props.handleTagDelete}
+              handleAddition={this.props.handleTagAddition}
+              delimiters={this.props.delimiters}
+              handleFilterSuggestions={(textInputValue, possibleSuggestionsArray) => {
+                var lowerCaseQuery = textInputValue.toLowerCase();
+                return possibleSuggestionsArray.filter(suggestion => {
+                  return suggestion.text.toLowerCase().includes(lowerCaseQuery);
+                });
+              }}
+              minQueryLength={1}
+              inline={true}
+              allowDragDrop={false}
+              allowDeleteFromEmptyInput={false}
+              autofocus={false}
+              autocomplete={true}
+             />}
           <TextField
             id="title"
             label="Title"
@@ -221,7 +230,7 @@ class DocumentModal extends React.Component {
             id="date"
             label="Date Published"
             type="date"
-            value={doc && doc.date}
+            defaultValue={doc && doc.date}
             className={classes.dialogField}
             helperText='Enter the date of first publishing.'
             onChange={e => {this.props.handleModalChange(e.target)}}
@@ -231,23 +240,21 @@ class DocumentModal extends React.Component {
             id="updateDate"
             label="Date of Last Update"
             type="date"
-            value={doc && doc.updateDate}
+            defaultValue={doc && doc.updateDate}
             className={classes.dialogField}
             helperText='Enter the date of the last update.'
             onChange={e => {this.props.handleModalChange(e.target)}}
             InputLabelProps = {{ shrink: true }}
           />
-          { doc.docType === 'Single Page' &&
-          <div>
-            <InputLabel shrink>Page Content</InputLabel>
-            <ReactQuill
-              value={doc.content || ''}
-              modules={quillModules}
-              theme='snow'
-              onChange={(content, delta, source) => {if (source === 'user') this.props.handleModalChange({id: 'content', value: content})}}
-              style={{ marginBottom: 16, }}
-              />
-          </div>}
+          <TextField
+            id="desc"
+            label="Description"
+            multiline
+            className={classes.dialogField}
+            defaultValue={doc && doc.desc || ''}
+            helperText='Give a description of the purpose of the document.'
+            onChange={e => {this.props.handleModalChange(e.target)}}
+          />
           <TextField
             id="source"
             label="Source"
@@ -266,63 +273,52 @@ class DocumentModal extends React.Component {
             helperText='List any links or references this document is based on.'
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
-          <div style={{ marginBottom: 12, }}>
-          <InputLabel shrink>Tags</InputLabel>
-          {this.props.tagSuggestions && doc.tags &&
-            <ReactTags tags={doc.tags}
-              suggestions={this.props.tagSuggestions}
-              handleDelete={this.props.handleTagDelete}
-              handleAddition={this.props.handleTagAddition}
-              delimiters={this.props.delimiters}
-              handleFilterSuggestions={(textInputValue, possibleSuggestionsArray) => {
-                var lowerCaseQuery = textInputValue.toLowerCase();
-                return possibleSuggestionsArray.filter(suggestion => {
-                  return suggestion.text.toLowerCase().includes(lowerCaseQuery);
-                });
-              }}
-              minQueryLength={1}
-              inline={true}
-              allowDragDrop={false}
-              allowDeleteFromEmptyInput={false}
-              autofocus={false}
-              autocomplete={true}
+          <InputLabel shrink>Content</InputLabel>
+           { doc.docType === 'Single Page' &&
+             <RichEditor
+               editorState={editorState['single']}
+               onEditorStateChange={changedState => {
+                 this.setState({editorState: {
+                   ...editorState,
+                   ['single']: changedState,
+                   }
+                 });
+                 let html = draftToHtml(convertToRaw(changedState.getCurrentContent()));
+                 this.props.handleModalChange({id: 'content', value: html})
+               }}
              />}
-          </div>
-          {doc.docType === 'PDF' &&
-          <label>
-            <UploadIcon className={classes.accentButton} />
-            <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e => {
-              if (doc.fileUrl) {
-                storage.ref(doc.fileRef).delete();
-              }
-              this.props.onUploadFile({
-                file: e.currentTarget.files[0],
-                storagePath: 'documents/',
-                })
-              }} />
-            <LinearProgress variant="determinate" value={modalProps.uploadProgress} />
-          </label>}
         </FormGroup>
       </form>
     );
 
     const contentpage = (
       <form>
-        <h5>Page {this.state.page-1}</h5>
+        <h5>Page {page-1}</h5>
         <TextField
           id="title"
           label="Title"
           style={{ marginBottom: 12, }}
-          value={doc.steps && doc.steps[this.state.page-2] && doc.steps[this.state.page-2].title || ''}
-          onChange={e => this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'title', value: e.target.value})}
+          value={doc.steps && doc.steps[page-2] && doc.steps[page-2].title || ''}
+          onChange={e => this.props.handleModalChangeStep({step: (page-2).toString(), id: 'title', value: e.target.value})}
         />
-        <ReactQuill
-          value={doc.steps && doc.steps[this.state.page-2] && doc.steps[this.state.page-2].content || ''}
-          modules={quillModules}
-          theme='snow'
-          onChange={(content, delta, source) => {if (source === 'user') this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'content', value: content})}}
-          style={{ marginBottom: 16, }}
-          />
+        <RichEditor
+          editorState={editorState[page-2]}
+          onEditorStateChange={changedState => {
+            this.setState({editorState: {
+              ...editorState,
+              [page-2]: changedState,
+              }
+            });
+            let html = draftToHtml(convertToRaw(changedState.getCurrentContent()));
+            console.log(html);
+            this.props.handleModalChangeStep({step: page-2, id: 'content', value: html})
+          }}
+        />
+        <textarea
+          readOnly
+          style={{ width: 800, }}
+          value={editorState[page-2] && draftToHtml(convertToRaw(editorState[page-2].getCurrentContent()))}
+        />
       </form>
     );
 
@@ -341,6 +337,8 @@ class DocumentModal extends React.Component {
     return(
       <Dialog
         key='documentmodal'
+        maxWidth = "md"
+        fullWidth = { true }
         open={ this.props.modalType === DOCUMENT }
         onEnter={() => this.setState({ page: 1, })}
         onClose = {() => this.props.hideModal}
@@ -354,7 +352,23 @@ class DocumentModal extends React.Component {
           { (doc.docType === 'Multi Page') &&
             <div>
               <Button disabled={this.state.page === 1} onClick={() => { this.setState({ page: this.state.page - 1}) }} color="default">Back</Button>
-              <Button onClick={() => { this.setState({ page: this.state.page + 1}) }} color="default">Forward</Button>
+              <Button onClick={() => {
+                if (!this.state.editorState[this.state.page-1]) {
+                  if (doc.steps && doc.steps[this.state.page-1] && doc.steps[this.state.page-1].content) {
+                    this.setState({editorState: {
+                      ...this.state.editorState,
+                      [this.state.page-1]: this.convertToDraft(doc.steps[this.state.page-1].content),
+                      }
+                    })
+                  } else {
+                    this.setState({editorState: {
+                      ...this.state.editorState,
+                      [this.state.page-1]: EditorState.createEmpty(),
+                      }
+                    })
+                  }
+                }
+                this.setState({ page: this.state.page + 1}) }} color="default">Forward</Button>
             </div>
           }
           {modalProps.isUploading ? <Button color="primary" disabled >Submit</Button> :

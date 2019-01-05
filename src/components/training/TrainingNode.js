@@ -8,7 +8,7 @@ import QuizWidget from './QuizWidget';
 
 function TrainingNode(props) {
   const { node } = props;
-
+  console.log(node);
   return (
     <Paper style={{
       borderRadius: 0,
@@ -20,8 +20,16 @@ function TrainingNode(props) {
       <div style={{ color: '#444', }} dangerouslySetInnerHTML={{ __html: node.text}} />
       { node.links && node.links.map(link => {
         return(
+          <div>
+          { link ?
           <div key={link.title}>
             { link.type === 'quiz' ? (<QuizWidget quiz={link} />) : (<TrainingReading link={link} />) }
+          </div>
+          :
+          <div key='missing'>
+            Link missing.
+          </div>
+          }
           </div>
         );
       })}

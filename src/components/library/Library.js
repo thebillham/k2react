@@ -124,7 +124,7 @@ class Library extends React.Component {
         { library.filter(doc => {
             if (this.props.search) {
               if (doc.tags) {
-                return [...doc.tags, doc.title].find(tag => tag.toLowerCase().includes(this.props.search.toLowerCase()));
+                return [...doc.tags.map(tag => tag.text ? tag.text : tag), doc.title].find(tag => tag.toLowerCase().includes(this.props.search.toLowerCase()));
               } else {
                 return doc.title.toLowerCase().includes(this.props.search.toLowerCase());
               }

@@ -5,23 +5,11 @@ import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 
-import ReactQuill from 'react-quill';
-// import ImageResize from 'quill-image-resize-module';
-// import { ImageResize } from 'quill-image-resize-module';
-// import { ImageDrop } from 'quill-image-drop-module';
-import 'react-quill/dist/quill.snow.css';
-
-// Require Editor JS files.
-import 'froala-editor/js/froala_editor.pkgd.min.js';
-
-// Require Editor CSS files.
-import 'froala-editor/css/froala_style.min.css';
-import 'froala-editor/css/froala_editor.pkgd.min.css';
-
-// Require Font Awesome.
-import 'font-awesome/css/font-awesome.css';
-
-import FroalaEditor from 'react-froala-wysiwyg';
+import { RichEditor } from '../editor/RichEditor';
+import { EditorState, ContentState, convertToRaw, } from 'draft-js';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import draftToHtml from 'draftjs-to-html';
+import htmlToDraft from 'html-to-draftjs';
 
 // import store from '../../store';
 import { METHOD, UPDATEMETHODVERSION } from '../../constants/modal-types';
@@ -55,10 +43,6 @@ import {
 import { getUserAttrs } from '../../actions/local';
 import _ from 'lodash';
 
-// Quill.register('modules/imageResize', ImageResize);
-// Quill.register('modules/imageDrop', ImageDrop);
-
-
 const mapStateToProps = state => {
   return {
     delimiters: state.const.tagDelimiters,
@@ -90,39 +74,23 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const quillModules = {
-  toolbar: [
-    ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-    ['blockquote', 'code-block'],
-
-    [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-    [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
-    [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-    // [{ 'direction': 'rtl' }],                         // text direction
-
-    [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-    [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-    // [{ 'font': [] }],
-    [{ 'align': [] }],
-
-    ['image'],
-
-    ['clean']                                         // remove formatting button
-  ],
-  // imageResize: {
-  //   parchment: Quill.import('parchment'),
-  // },
-  // imageDrop: true,
-};
-
 class MethodModal extends React.Component {
   constructor(props){
     super(props);
     this.state = {
       page: 1,
+      editorState: {},
+    }
+  }
+
+  convertToDraft = html => {
+    const contentBlock = htmlToDraft(html);
+    if (contentBlock) {
+      const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
+      console.log(EditorState.createWithContent(contentState))
+      return EditorState.createWithContent(contentState);
+    } else {
+      return EditorState.createEmpty();
     }
   }
 
@@ -144,7 +112,7 @@ class MethodModal extends React.Component {
 
   getPage = () => {
     const { modalProps, doc, classes } = this.props;
-    const staff = { ...this.props.staff, [this.props.me.uid]: this.props.me };
+    const staff = Object.values({ ...this.props.staff, [this.props.me.uid]: this.props.me }).map(staff => staff.name).sort();
 
     const headerpage = (
       <form>
@@ -179,9 +147,9 @@ class MethodModal extends React.Component {
               input={<Input name='preparedBy' id='preparedBy' />}
             >
               <option value='' />
-              { staff && Object.values(staff).map((staff) => {
+              { staff && staff.map(staff => {
                 return(
-                  <option key={staff.uid} value={staff.name}>{staff.name}</option>
+                  <option key={staff} value={staff}>{staff}</option>
                 );
               })}
             </Select>
@@ -194,9 +162,9 @@ class MethodModal extends React.Component {
               input={<Input name='checkedBy' id='checkedBy' />}
             >
               <option value='' />
-              { staff && Object.values(staff).map((staff) => {
+              { staff && staff.map(staff => {
                 return(
-                  <option key={staff.uid} value={staff.name}>{staff.name}</option>
+                  <option key={staff} value={staff}>{staff}</option>
                 );
               })}
             </Select>
@@ -209,9 +177,9 @@ class MethodModal extends React.Component {
               input={<Input name='documentController' id='documentController' />}
             >
               <option value='' />
-              { staff && Object.values(staff).map((staff) => {
+              { staff && staff.map(staff => {
                 return(
-                  <option key={staff.uid} value={staff.name}>{staff.name}</option>
+                  <option key={staff} value={staff}>{staff}</option>
                 );
               })}
             </Select>
@@ -233,22 +201,20 @@ class MethodModal extends React.Component {
           value={doc.steps && doc.steps[this.state.page-2] && doc.steps[this.state.page-2].title || ''}
           onChange={e => this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'title', value: e.target.value})}
         />
-        {/*<FroalaEditor
-          config={{
-            placeholderText: 'Edit Your Content Here!',
-            charCounterCount: false
-          }}
-          model={doc.steps && doc.steps[this.state.page-2] && doc.steps[this.state.page-2].content || ''}
-          onModelChange={value => this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'content', value: value})}
-        />*/}
 
-        <ReactQuill
-          value={doc.steps && doc.steps[this.state.page-2] && doc.steps[this.state.page-2].content || ''}
-          modules={quillModules}
-          theme='snow'
-          onChange={(content, delta, source) => {if (source === 'user') this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'content', value: content})}}
-          style={{ marginBottom: 16, }}
-          />
+        <RichEditor
+          editorState={this.state.editorState[this.state.page-2]}
+          onEditorStateChange={changedState => {
+            this.setState({editorState: {
+              ...this.state.editorState,
+              [this.state.page-2]: changedState,
+              }
+            });
+            let html = draftToHtml(convertToRaw(changedState.getCurrentContent()));
+            this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'content', value: html})
+          }}
+        />
+
         <TextField
           id="html"
           label="HTML"
@@ -276,6 +242,8 @@ class MethodModal extends React.Component {
     return(
       <Dialog
         key='methodmodal'
+        maxWidth = "md"
+        fullWidth = { true }
         open={ this.props.modalType === METHOD }
         onEnter={() => this.setState({ page: 1, })}
         onClose = {() => this.props.hideModal}
@@ -287,7 +255,23 @@ class MethodModal extends React.Component {
         <DialogActions>
           <Button onClick={() => { this.props.hideModal() }} color="secondary">Cancel</Button>
           <Button disabled={this.state.page === 1} onClick={() => { this.setState({ page: this.state.page - 1}) }} color="default">Back</Button>
-          <Button onClick={() => { this.setState({ page: this.state.page + 1}) }} color="default">Forward</Button>
+          <Button onClick={() => {
+            if (!this.state.editorState[this.state.page-1]) {
+              if (doc.steps && doc.steps[this.state.page-1] && doc.steps[this.state.page-1].content) {
+                this.setState({editorState: {
+                  ...this.state.editorState,
+                  [this.state.page-1]: this.convertToDraft(doc.steps[this.state.page-1].content),
+                  }
+                })
+              } else {
+                this.setState({editorState: {
+                  ...this.state.editorState,
+                  [this.state.page-1]: EditorState.createEmpty(),
+                  }
+                })
+              }
+            }
+            this.setState({ page: this.state.page + 1}) }} color="default">Forward</Button>
           <Button onClick={() => {
             let i = 1;
             doc.steps && Object.values(doc.steps).forEach(step => {

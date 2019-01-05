@@ -50,6 +50,7 @@ export default function modalReducer(state = modalInit, action){
          },
       }
     case EDIT_MODAL_DOC_STEPS:
+      console.log(`handling step ${action.payload.step}`);
       if (state.modalProps.doc && state.modalProps.doc.steps) {
         if (action.payload.object) {
           return {

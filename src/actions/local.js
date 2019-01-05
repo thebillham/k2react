@@ -461,11 +461,15 @@ export const fetchMethodLog = () => async dispatch => {
         let log = doc.data();
         log.uid = doc.id;
         methodsRef.doc(doc.id).get().then((doc2) => {
-          log.title = doc2.data().title;
-          log.subtitle = doc2.data().subtitle;
-          log.sectionlength = doc2.data().sections.length;
-          log.updatedate = doc2.data().updateDate;
-          logs.push(log);
+          if (doc2.exists) {
+            log.title = doc2.data().title;
+            log.subtitle = doc2.data().subtitle;
+            log.sectionlength = doc2.data().sections.length;
+            log.updatedate = doc2.data().updateDate;
+            logs.push(log);
+          } else {
+            usersRef.doc(auth.currentUser.uid).collection('methodlog').doc(doc.id).delete();
+          }
         });
       });
       dispatch({

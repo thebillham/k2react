@@ -52,32 +52,12 @@ class DocumentViewer extends React.Component {
       }
     });
   }
-  //
-  // handleNext = () => {
-  //   this.setState({
-  //     activeStep: this.state.activeStep + 1;,
-  //   });
-  // };
-  //
-  // handleBack = () => {
-  //   this.setState(state => ({
-  //     activeStep: state.activeStep - 1,
-  //   }));
-  // };
 
   handleStep = step => () => {
     this.setState({
       activeStep: step,
     });
   };
-
-  // isLastStep() {
-  //   return this.state.activeStep === this.state.totalSteps - 1;
-  // }
-
-  // onDocumentLoadSuccess = ({ numPages }) => {
-  //   this.setState({ numPages });
-  // }
 
   openLink = url => {
     window.open(url, '_blank');
@@ -113,6 +93,14 @@ class DocumentViewer extends React.Component {
   render() {
     const { classes } = this.props;
     const { doc, activeStep } = this.state;
+    let publishDate = doc.date;
+    let updateDate = doc.updateDate;
+
+    console.log(publishDate);
+    console.log(updateDate);
+    //
+    // let formatPublishDate = (!(publishDate instanceof Date) && publishDate) ? publishDate.toDate() : publishDate;
+    // let formatUpdateDate = (!(updateDate instanceof Date) && updateDate) ? updateDate.toDate() : updateDate;
 
     return (
       <div style = {{ marginTop: 80 }}>
@@ -133,10 +121,10 @@ class DocumentViewer extends React.Component {
                   {doc.source && <Typography className={classes.note}><b>Source: </b>{doc.source}</Typography>}
                   {doc.references && <Typography className={classes.note}><b>References: </b>{doc.references}</Typography>}
                   <Typography className={classes.note} style={{ marginTop: 12, }}><b>Date published: </b>
-                    {doc.date ? <FormattedDate value={doc.date.toDate()} month='long' day='numeric' year='numeric' /> : 'Unknown' }
+                    {doc.date ? <FormattedDate value={new Date(doc.date)} month='long' day='numeric' year='numeric' /> : 'Unknown' }
                   </Typography>
                   <Typography className={classes.note}><b>Last updated: </b>
-                    {doc.updateDate ? <FormattedDate value={doc.updateDate.toDate()} month='long' day='numeric' year='numeric' /> : 'Unknown' }
+                    {doc.updateDate ? <FormattedDate value={new Date(doc.updateDate)} month='long' day='numeric' year='numeric' /> : 'Unknown' }
                   </Typography>
                   <Typography className={classes.note}><b>Date read: </b>
                     {this.state.read ? <FormattedDate value={this.state.read} month='long' day='numeric' year='numeric' /> : 'N/A' }
