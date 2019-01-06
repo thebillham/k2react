@@ -4,6 +4,8 @@ import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 
+import SlateEditor from '../editor/SlateEditor';
+
 import { DOCUMENT } from '../../constants/modal-types';
 import { docsRef, storage } from '../../config/firebase';
 import '../../config/tags.css';
@@ -275,6 +277,8 @@ class DocumentModal extends React.Component {
           />
           <InputLabel shrink>Content</InputLabel>
            { doc.docType === 'Single Page' &&
+           <div>
+            <SlateEditor />
              <RichEditor
                editorState={editorState['single']}
                onEditorStateChange={changedState => {
@@ -286,7 +290,19 @@ class DocumentModal extends React.Component {
                  let html = draftToHtml(convertToRaw(changedState.getCurrentContent()));
                  this.props.handleModalChange({id: 'content', value: html})
                }}
-             />}
+             />
+
+             <TextField
+               id="html"
+               label="HTML"
+               multiline
+               fullWidth
+               style={{ marginBottom: 12, }}
+               value={doc.content || ''}
+               onChange={e => this.props.handleModalChange({id: 'content', value: e.target.value})}
+             />
+           </div>
+           }
         </FormGroup>
       </form>
     );
