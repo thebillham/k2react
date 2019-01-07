@@ -275,10 +275,10 @@ class DocumentModal extends React.Component {
             helperText='List any links or references this document is based on.'
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
-          <InputLabel shrink>Content</InputLabel>
            { doc.docType === 'Single Page' &&
            <div>
-            <SlateEditor />
+            <InputLabel shrink>Content</InputLabel>
+            {/*<SlateEditor />*/}
              <RichEditor
                editorState={editorState['single']}
                onEditorStateChange={changedState => {
@@ -292,7 +292,7 @@ class DocumentModal extends React.Component {
                }}
              />
 
-             <TextField
+             {/*<TextField
                id="html"
                label="HTML"
                multiline
@@ -300,9 +300,24 @@ class DocumentModal extends React.Component {
                style={{ marginBottom: 12, }}
                value={doc.content || ''}
                onChange={e => this.props.handleModalChange({id: 'content', value: e.target.value})}
-             />
+             />*/}
            </div>
            }
+
+          {doc.docType === 'PDF' &&
+          <label>
+            <UploadIcon className={classes.accentButton} />
+            <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e => {
+              if (doc.fileUrl) {
+                storage.ref(doc.fileRef).delete();
+              }
+              this.props.onUploadFile({
+                file: e.currentTarget.files[0],
+                storagePath: 'documents/',
+                })
+              }} />
+            <LinearProgress variant="determinate" value={modalProps.uploadProgress} />
+          </label>}
         </FormGroup>
       </form>
     );

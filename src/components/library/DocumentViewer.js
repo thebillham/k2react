@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 // import { Document, Page } from 'react-pdf';
 import { withStyles } from '@material-ui/core/styles';
 import { formStyles } from '../../config/styles';
+import { DOCUMENT } from '../../constants/modal-types';
 
 import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -14,12 +15,20 @@ import Step from '@material-ui/core/Step';
 import StepButton from '@material-ui/core/StepButton';
 
 import { auth, docsRef, usersRef } from '../../config/firebase';
+import { showModal } from '../../actions/modal';
+import DocumentModal from '../modals/DocumentModal';
 import { FormattedDate } from 'react-intl';
 // import 'react-pdf/dist/Page/AnnotationLayer.css';
 
 const mapStateToProps = state => {
   return {
     me: state.local.me,
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    showModal: modal => dispatch(showModal(modal)),
   };
 };
 
@@ -36,6 +45,7 @@ class DocumentViewer extends React.Component {
       activeStep: 0,
     }
   }
+
 
   componentWillMount(){
     docsRef.doc(this.props.match.params.uid).get().then((doc) => {
@@ -93,17 +103,11 @@ class DocumentViewer extends React.Component {
   render() {
     const { classes } = this.props;
     const { doc, activeStep } = this.state;
-    let publishDate = doc.date;
-    let updateDate = doc.updateDate;
-
-    console.log(publishDate);
-    console.log(updateDate);
-    //
-    // let formatPublishDate = (!(publishDate instanceof Date) && publishDate) ? publishDate.toDate() : publishDate;
-    // let formatUpdateDate = (!(updateDate instanceof Date) && updateDate) ? updateDate.toDate() : updateDate;
+    const editor = this.props.me.auth['Document Editor'];
 
     return (
       <div style = {{ marginTop: 80 }}>
+        <DocumentModal />
         <Card className={classes.card}>
           <CardContent>
             { this.state.isLoading ?
@@ -121,24 +125,34 @@ class DocumentViewer extends React.Component {
                   {doc.source && <Typography className={classes.note}><b>Source: </b>{doc.source}</Typography>}
                   {doc.references && <Typography className={classes.note}><b>References: </b>{doc.references}</Typography>}
                   <Typography className={classes.note} style={{ marginTop: 12, }}><b>Date published: </b>
-                    {doc.date ? <FormattedDate value={new Date(doc.date)} month='long' day='numeric' year='numeric' /> : 'Unknown' }
+                    {doc.date ? <FormattedDate value={doc.date instanceof Date ? doc.date : new Date(doc.date)} month='long' day='numeric' year='numeric' /> : 'Unknown' }
                   </Typography>
                   <Typography className={classes.note}><b>Last updated: </b>
-                    {doc.updateDate ? <FormattedDate value={new Date(doc.updateDate)} month='long' day='numeric' year='numeric' /> : 'Unknown' }
+                    {doc.updateDate ? <FormattedDate value={doc.date instanceof Date ? doc.date : new Date(doc.updateDate)} month='long' day='numeric' year='numeric' /> : 'Unknown' }
                   </Typography>
                   <Typography className={classes.note}><b>Date read: </b>
-                    {this.state.read ? <FormattedDate value={this.state.read} month='long' day='numeric' year='numeric' /> : 'N/A' }
+                    {this.state.read ? <FormattedDate value={doc.date instanceof Date ? doc.date : this.state.read} month='long' day='numeric' year='numeric' /> : 'N/A' }
                   </Typography>
                   <Button variant="outlined" color={this.state.read ? "secondary" : "primary"} onClick={() => this.markAsRead(this.state.docID)} style={{marginTop: 16, height: 40, width: 160 }}>
                     {this.state.isReading ? <CircularProgress size={24} color={this.state.read ? "secondary" : "primary"} /> : [(this.state.read ? 'Mark as Unread' : 'Mark as Read')] }
                   </Button>
                   { doc.link && (
-                      <Button variant="outlined" color={"primary"} onClick={() => this.openLink(doc.link)} style={{marginTop: 16, height: 40, width: 160 }}>
+                      <Button variant="outlined" color={"primary"} onClick={() => this.openLink(doc.link)} style={{marginTop: 16, marginLeft: 16, height: 40, width: 160 }}>
                         { doc.docType === 'PDF' ? 'Open PDF' : 'Follow Link' }
                       </Button>
                   )}
+                  { editor && (
+                      <Button variant="outlined" color={"primary"} style={{marginTop: 16, marginLeft: 16, height: 40, width: 160 }}
+                        onClick={() => this.props.showModal({ modalType: DOCUMENT, modalProps: { title: 'Edit Document', doc: doc, } })}>
+                        Edit Document
+                      </Button>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'center', width: "100%"}}>
                   { doc.content && (
                     <div style={{ color: '#444', }} dangerouslySetInnerHTML={{ __html: doc.content}} />
+                  )}
+                  { doc.docType === 'PDF' && (
+                    <div style={{ color: '#444', width: "90%" }} dangerouslySetInnerHTML={{ __html: `<p></p><iframe width="90%" height="1132" src="${doc.fileUrl}" frameBorder="0"></iframe><p></p>`}} />
                   )}
                   { doc.steps && (
                     <div>
@@ -158,6 +172,7 @@ class DocumentViewer extends React.Component {
                       <div dangerouslySetInnerHTML={{ __html: doc.steps[this.state.activeStep].content}} />
                     </div>
                   )}
+                  </div>
               </div>
             )}
           </CardContent>
@@ -167,4 +182,4 @@ class DocumentViewer extends React.Component {
   }
 }
 
-export default withStyles(formStyles)(connect(mapStateToProps)(DocumentViewer));
+export default withStyles(formStyles)(connect(mapStateToProps, mapDispatchToProps)(DocumentViewer));
