@@ -91,6 +91,7 @@ class Library extends React.Component {
                 patch: 0,
                 steps: {},
                 category: 'k2methods',
+                glossary: {},
               }
               this.props.showModal({ modalType: METHOD, modalProps: { title: 'Add New K2 Method', doc: doc, } })
             }}>

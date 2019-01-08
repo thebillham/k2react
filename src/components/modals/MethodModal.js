@@ -37,9 +37,10 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Grid from '@material-ui/core/Grid';
 
 import UploadIcon from '@material-ui/icons/CloudUpload';
+import Add from '@material-ui/icons/Add';
 import Close from '@material-ui/icons/Close';
 import {
-  hideModal, showModal, handleModalChange, handleModalChangeStep, handleModalSubmit, onUploadFile } from '../../actions/modal';
+  hideModal, showModal, handleModalChange, handleModalChangeStep, handleModalSubmit, onUploadFile, handleGlossaryChange, } from '../../actions/modal';
 import { getUserAttrs } from '../../actions/local';
 import _ from 'lodash';
 
@@ -67,6 +68,7 @@ const mapDispatchToProps = dispatch => {
     handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
     handleModalChangeStep: target => dispatch(handleModalChangeStep(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
+    handleGlossaryChange: (number, type, value) => dispatch(handleGlossaryChange(number, type, value)),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     hideModal: () => dispatch(hideModal()),
     showModal: modal => dispatch(showModal(modal)),
@@ -184,34 +186,91 @@ class MethodModal extends React.Component {
               })}
             </Select>
           </FormControl>
+          <TextField
+            id="referencemethod"
+            label="Reference Method"
+            fullWidth
+            multiline
+            style={{ marginBottom: 12, }}
+            value={doc && doc.referencemethod || ''}
+              onChange={e => {this.props.handleModalChange({id: 'referencemethod', value: e.target.value})}}
+          />
+          <TextField
+            id="deviations"
+            label="Deviations"
+            fullWidth
+            multiline
+            style={{ marginBottom: 12, }}
+            value={doc && doc.deviations || ''}
+              onChange={e => {this.props.handleModalChange({id: 'deviations', value: e.target.value})}}
+          />
           <InputLabel style={{ fontSize: 12, marginTop: 4 }}>Current Version</InputLabel>
           { `${doc.version}.${doc.patch}`}
         </FormGroup>
       </form>
     );
 
+    const glossarypage = (
+      <form>
+        <h5>Glossary</h5>
+        { Array.from(Array(doc.numberInGlossary ? doc.numberInGlossary : 10),(x, i) => i).map(i => {
+        return(<Grid container key={i}>
+        <Grid item xs={4}>
+          <TextField
+            id={`glossaryterm${i+1}`}
+            style={{ width: '100%' }}
+            defaultValue={doc && doc.glossary && doc.glossary[i+1] && doc.glossary[i+1].term}
+            onChange={e => {this.props.handleGlossaryChange(i, 'term', e.target.value);
+            }}
+          />
+        </Grid>
+        <Grid item xs={8} style={{ paddingLeft: 12, paddingRight: 12, }}>
+          <TextField
+            id={`glossarydefinition{i+1}`}
+            multiline
+            style={{ width: '100%' }}
+            defaultValue={doc && doc.glossary && doc.glossary[i+1] && doc.glossary[i+1].definition}
+            onChange={e => {this.props.handleGlossaryChange(i, 'definition', e.target.value);
+            }}
+          />
+        </Grid>
+      </Grid>
+      )
+    })
+  }
+    <Grid container>
+      <Grid item xs={12} justify='center' alignItems='center'>
+        <Button
+          style={{ marginTop: 24, marginLeft: 128, }}
+          onClick={ () => { this.props.handleModalChange({ id: 'numberInGlossary', value: doc.numberInGlossary ? doc.numberInGlossary + 10 : 20 }) }}>
+          <Add style={{ marginRight: 12, }}/> Add More Terms
+        </Button>
+      </Grid>
+    </Grid>
+  </form>);
+
     const contentpage = (
       <form>
-        <h5>Section {this.state.page-1}</h5>
+        <h5>Section {this.state.page-2}</h5>
         <TextField
           id="title"
           label="Title"
           fullWidth
           style={{ marginBottom: 12, }}
-          value={doc.steps && doc.steps[this.state.page-2] && doc.steps[this.state.page-2].title || ''}
-          onChange={e => this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'title', value: e.target.value})}
+          value={doc.steps && doc.steps[this.state.page-3] && doc.steps[this.state.page-3].title || ''}
+          onChange={e => this.props.handleModalChangeStep({step: (this.state.page-3).toString(), id: 'title', value: e.target.value})}
         />
 
         <RichEditor
-          editorState={this.state.editorState[this.state.page-2]}
+          editorState={this.state.editorState[this.state.page-3]}
           onEditorStateChange={changedState => {
             this.setState({editorState: {
               ...this.state.editorState,
-              [this.state.page-2]: changedState,
+              [this.state.page-3]: changedState,
               }
             });
             let html = draftToHtml(convertToRaw(changedState.getCurrentContent()));
-            this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'content', value: html})
+            this.props.handleModalChangeStep({step: (this.state.page-3).toString(), id: 'content', value: html})
           }}
         />
 
@@ -221,8 +280,8 @@ class MethodModal extends React.Component {
           multiline
           fullWidth
           style={{ marginBottom: 12, }}
-          value={doc.steps && doc.steps[this.state.page-2] && doc.steps[this.state.page-2].content || ''}
-          onChange={e => this.props.handleModalChangeStep({step: (this.state.page-2).toString(), id: 'content', value: e.target.value})}
+          value={doc.steps && doc.steps[this.state.page-3] && doc.steps[this.state.page-3].content || ''}
+          onChange={e => this.props.handleModalChangeStep({step: (this.state.page-3).toString(), id: 'content', value: e.target.value})}
         />
       </form>
     );
@@ -231,6 +290,8 @@ class MethodModal extends React.Component {
       case 1:
         return headerpage;
         break;
+      case 2:
+        return glossarypage;
       default:
         return contentpage;
     }

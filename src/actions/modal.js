@@ -3,6 +3,7 @@ import {
   DELETE_TAG,
   EDIT_MODAL_DOC,
   EDIT_MODAL_DOC_STEPS,
+  EDIT_MODAL_GLOSSARY,
   EDIT_MODAL_SAMPLE,
   EDIT_MODAL,
   RESET_MODAL,
@@ -90,6 +91,17 @@ export const handleModalChangeStep = target => dispatch => {
   dispatch({
     type: EDIT_MODAL_DOC_STEPS,
     payload: target,
+  });
+}
+
+export const handleGlossaryChange = (number, type, value) => dispatch => {
+  dispatch({
+    type: EDIT_MODAL_GLOSSARY,
+    payload: {
+      number: number + 1,
+      type: type,
+      value: value,
+    }
   });
 }
 

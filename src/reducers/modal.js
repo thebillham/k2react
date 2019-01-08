@@ -3,6 +3,7 @@ import {
           DELETE_TAG,
           EDIT_MODAL_DOC,
           EDIT_MODAL_DOC_STEPS,
+          EDIT_MODAL_GLOSSARY,
           EDIT_MODAL_SAMPLE,
           EDIT_MODAL,
           HIDE_MODAL,
@@ -50,7 +51,6 @@ export default function modalReducer(state = modalInit, action){
          },
       }
     case EDIT_MODAL_DOC_STEPS:
-      console.log(`handling step ${action.payload.step}`);
       if (state.modalProps.doc && state.modalProps.doc.steps) {
         if (action.payload.object) {
           return {
@@ -90,6 +90,23 @@ export default function modalReducer(state = modalInit, action){
             },
           }
         }
+      }
+    case EDIT_MODAL_GLOSSARY:
+      return {
+        ...state,
+        modalProps: {
+          ...state.modalProps,
+          doc: {
+            ...state.modalProps.doc,
+            glossary: {
+              ...state.modalProps.doc.glossary,
+              [action.payload.number]: {
+                ...state.modalProps.doc.glossary[action.payload.number],
+                [action.payload.type]: action.payload.value,
+              }
+           },
+         },
+       },
       }
     case EDIT_MODAL_SAMPLE:
       return {

@@ -53,9 +53,28 @@ const mapDispatchToProps = dispatch => {
 };
 
 class AppSettings extends React.Component {
+  state = {
+    setting: 'asbestosmaterials',
+  }
+
   render() {
     const { doc, classes } = this.props;
-    console.log(doc);
+    const { setting } = this.state;
+    const settingTypes = [
+      'Asbestos Materials',
+      'Building Materials',
+      'Asbestos Types',
+      'Document Tag Suggestions',
+      'Quiz Tag Suggestions',
+      'Document Categories',
+      'Notice Categories',
+      'Tool Categories',
+      'Training Categories',
+      'Job Descriptions',
+      'Offices',
+      'Office Contacts',
+      'Permissions',
+    ]
     return(
       <Dialog
         open={ this.props.modalType === APPSETTINGS }
@@ -65,7 +84,23 @@ class AppSettings extends React.Component {
         <DialogContent>
           <form>
             <FormGroup>
-              <TextField
+              <FormControl className={classes.dialogField}>
+                <InputLabel shrink>App Setting</InputLabel>
+                <Select
+                  onChange={e => {
+                    this.setState({ setting: e.target.value })
+                  }}
+                  value={setting}
+                  input={<Input name='setting' id='setting' />}
+                >
+                  { settingTypes.map(setting => {
+                    return(
+                      <option key={setting} value={setting}>{setting}</option>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+              { setting === 'Asbestos Materials' && <TextField
                 id="asbestosmaterials"
                 label="Asbestos Materials"
                 multiline
@@ -73,9 +108,9 @@ class AppSettings extends React.Component {
                 helperText='Put each material on a new line.'
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Building Materials' && <TextField
                 id="buildingmaterials"
                 label="Building Materials"
                 multiline
@@ -83,9 +118,9 @@ class AppSettings extends React.Component {
                 helperText='Put each material on a new line.'
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Asbestos Types' && <TextField
                 disabled
                 id="asbestostypes"
                 label="Asbestos Types"
@@ -94,11 +129,11 @@ class AppSettings extends React.Component {
                 helperText='Put each type on a new line.'
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean)})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Document Tag Suggestions' && <TextField
                 id="docTagSuggestions"
-                label="Doc Tag Suggestions"
+                label="Document Tag Suggestions"
                 multiline
                 defaultValue={doc && doc.docTagSuggestions && doc.docTagSuggestions.map(obj => { return `${obj.text}|${obj.id}` }).join('\n')}
                 helperText='Put each tag on a new line in the form "tag name|tag id".'
@@ -106,9 +141,9 @@ class AppSettings extends React.Component {
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
                   let list = option.split('|');
                   return {id: list[1] ? list[1] : list[0], text: list[0], }})})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Document Categories' && <TextField
                 id="documentcategories"
                 label="Document Categories"
                 multiline
@@ -118,9 +153,9 @@ class AppSettings extends React.Component {
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
                   let list = option.split('|');
                   return {key: list[1] ? list[1] : list[0], desc: list[0], }})})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Notice Categories' && <TextField
                 id="noticecategories"
                 label="Notice Categories"
                 multiline
@@ -130,9 +165,9 @@ class AppSettings extends React.Component {
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
                   let list = option.split('|');
                   return {key: list[1] ? list[1] : list[0], desc: list[0], }})})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Tool Categories' && <TextField
                 id="toolcategories"
                 label="Tool Categories"
                 multiline
@@ -142,9 +177,9 @@ class AppSettings extends React.Component {
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
                   let list = option.split('|');
                   return {key: list[1] ? list[1] : list[0], desc: list[0], }})})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Training Categories' && <TextField
                 id="trainingcategories"
                 label="Training Categories"
                 multiline
@@ -154,9 +189,9 @@ class AppSettings extends React.Component {
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
                   let list = option.split('|');
                   return {key: list[1] ? list[1] : list[0], desc: list[0], }})})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Job Descriptions' && <TextField
                 id="jobdescriptions"
                 label="Job Descriptions"
                 multiline
@@ -164,9 +199,9 @@ class AppSettings extends React.Component {
                 helperText='Put each job description on a new line.'
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort()})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Office Contacts' && <TextField
                 id="officecontacts"
                 label="Office Contacts"
                 multiline
@@ -176,9 +211,9 @@ class AppSettings extends React.Component {
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
                   let list = option.split('|');
                   return {workphone: list[1] ? list[1] : list[0], name: list[0], }})})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Offices' && <TextField
                 id="offices"
                 label="Offices"
                 multiline
@@ -186,9 +221,9 @@ class AppSettings extends React.Component {
                 helperText='Put each office on a new line.'
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort()})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Permissions' && <TextField
                 id="permissions"
                 label="Permissions"
                 multiline
@@ -198,11 +233,11 @@ class AppSettings extends React.Component {
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).map(option => {
                   let list = option.split('|');
                   return {desc: list[1] ? list[1] : list[0], name: list[0], }})})}}
-              />
+              />}
 
-              <TextField
+              { setting === 'Quiz Tag Suggestions' && <TextField
                 id="quiztags"
-                label="Quiz Tags"
+                label="Quiz Tag Suggestions"
                 multiline
                 defaultValue={doc && doc.quiztags && doc.quiztags.map(obj => { return `${obj.text}|${obj.id}` }).join('\n')}
                 helperText='Put each tag on a new line in the form "tag name|tag id".'
@@ -210,7 +245,7 @@ class AppSettings extends React.Component {
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
                   let list = option.split('|');
                   return {id: list[1] ? list[1] : list[0], text: list[0], }})})}}
-              />
+              />}
             </FormGroup>
           </form>
         </DialogContent>
