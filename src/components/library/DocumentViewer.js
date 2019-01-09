@@ -100,6 +100,17 @@ class DocumentViewer extends React.Component {
     });
   }
 
+  getLinkName = docType => {
+    switch (docType) {
+      case 'PDF':
+        return 'Open PDF'
+      case 'File':
+        return 'Download File'
+      default:
+        return 'Open Link'
+    }
+  }
+
   render() {
     const { classes } = this.props;
     const { doc, activeStep } = this.state;
@@ -138,7 +149,7 @@ class DocumentViewer extends React.Component {
                   </Button>
                   { doc.link && (
                       <Button variant="outlined" color={"primary"} onClick={() => this.openLink(doc.link)} style={{marginTop: 16, marginLeft: 16, height: 40, width: 160 }}>
-                        { doc.docType === 'PDF' ? 'Open PDF' : 'Follow Link' }
+                        { this.getLinkName(doc.docType) }
                       </Button>
                   )}
                   { editor && (

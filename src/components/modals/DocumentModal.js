@@ -138,10 +138,10 @@ class DocumentModal extends React.Component {
                 if (e.target.value === 'Multi Page' && !doc.steps) doc.steps = {};
                 this.props.handleModalChange({id: 'docType', value: e.target.value});
               }}
-              value={doc && doc.docType || 'Single Page'}
+              value={doc && doc.docType || 'PDF'}
               input={<Input name='docType' id='docType' />}
             >
-              { ['Link','PDF','Single Page','Multi Page',].map((type) => {
+              { ['Link','PDF','File','Single Page','Multi Page',].map((type) => {
                 return(
                   <option key={type} value={type}>{type}</option>
                 );
@@ -182,6 +182,16 @@ class DocumentModal extends React.Component {
               autofocus={false}
               autocomplete={true}
              />}
+           { doc.docType === 'Link' &&
+           <TextField
+             id="link"
+             label="Link"
+             multiline
+             className={classes.dialogField}
+             defaultValue={doc && doc.link || ''}
+             helperText='Enter the full web link.'
+             onChange={e => {this.props.handleModalChange(e.target)}}
+           />}
           <TextField
             id="title"
             label="Title"
@@ -204,16 +214,6 @@ class DocumentModal extends React.Component {
             helperText='Code or reference number (e.g. AS/NZS 1715:2009)'
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
-          { this.state.type === 'Link' &&
-          <TextField
-            id="link"
-            label="Link"
-            multiline
-            className={classes.dialogField}
-            defaultValue={doc && doc.link || ''}
-            helperText='Enter the full web link.'
-            onChange={e => {this.props.handleModalChange(e.target)}}
-          />}
           <TextField
             id="author"
             label="Author"
@@ -304,7 +304,7 @@ class DocumentModal extends React.Component {
            </div>
            }
 
-          {doc.docType === 'PDF' &&
+          {(doc.docType === 'PDF' || doc.docType === 'File') &&
           <label>
             <UploadIcon className={classes.accentButton} />
             <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e => {
@@ -420,7 +420,7 @@ class DocumentModal extends React.Component {
               }
               if (!doc.uid) {
                 if (doc.title) {
-                  doc.uid = doc.title.replace(/\s+/g, '-').toLowerCase();
+                  doc.uid = doc.title.replace(/\s+|\/+|\\+/g, '-').toLowerCase();
                 } else {
                   doc.uid = doc.docType + Math.round(Math.random() * 1000000).toString();
                 }

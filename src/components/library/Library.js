@@ -101,7 +101,7 @@ class Library extends React.Component {
           <Grid item>
             { this.props.me.auth['Document Editor'] && <Button variant="outlined" color="default" onClick={() => {
               let doc = {
-                docType: 'Single Page',
+                docType: 'PDF',
                 tags: [],
               }
               this.props.showModal({ modalType: DOCUMENT, modalProps: { title: 'Add New Document', doc: doc, } })

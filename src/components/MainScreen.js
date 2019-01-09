@@ -160,7 +160,7 @@ class MainScreen extends React.Component {
     this.props.initConstants();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
-    // this.props.copyStaff('KiaXpWa5P8fd3FToIV0w','RF7LDcg1d5RlpHx1ccjkh9dJrZo1');
+    // this.props.copyStaff('2krDTwuNAmmfhLOu5hV3','atzHtINMzORORCbUzazqyxtdEh32');
   }
 
   handleLogOut = () => {
@@ -452,13 +452,15 @@ class MainScreen extends React.Component {
                   </ListItemIcon>
                   <ListItemText primary="Tools" />
                 </ListItem>
-
-                <ListItem button onClick={() => {this.props.showModal({ modalType: APPSETTINGS, modalProps: { doc: this.props.state.const } })}} className={classes.nested}>
-                  <ListItemIcon>
-                    <SettingsIcon className={classes.accentButton} />
-                  </ListItemIcon>
-                  <ListItemText primary="App Settings" />
-                </ListItem>
+                {
+                  this.props.state.local.me.auth && this.props.state.local.me.auth['Admin'] &&
+                  <ListItem button onClick={() => {this.props.showModal({ modalType: APPSETTINGS, modalProps: { doc: this.props.state.const } })}} className={classes.nested}>
+                    <ListItemIcon>
+                      <SettingsIcon className={classes.accentButton} />
+                    </ListItemIcon>
+                    <ListItemText primary="App Settings" />
+                  </ListItem>
+                }
 
                 <ListItem button component={Link} to="/help">
                   <ListItemIcon>
