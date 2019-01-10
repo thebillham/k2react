@@ -141,7 +141,7 @@ class DocumentModal extends React.Component {
               value={doc && doc.docType || 'PDF'}
               input={<Input name='docType' id='docType' />}
             >
-              { ['Link','PDF','File','Single Page','Multi Page',].map((type) => {
+              { ['Link','PDF','Image','File','Single Page','Multi Page',].map((type) => {
                 return(
                   <option key={type} value={type}>{type}</option>
                 );
@@ -304,7 +304,7 @@ class DocumentModal extends React.Component {
            </div>
            }
 
-          {(doc.docType === 'PDF' || doc.docType === 'File') &&
+          {(doc.docType === 'PDF' || doc.docType === 'File' || doc.docType === "Image") &&
           <label>
             <UploadIcon className={classes.accentButton} />
             <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e => {

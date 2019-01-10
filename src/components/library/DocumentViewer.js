@@ -104,6 +104,8 @@ class DocumentViewer extends React.Component {
     switch (docType) {
       case 'PDF':
         return 'Open PDF'
+      case 'Image':
+        return 'Open Image'
       case 'File':
         return 'Download File'
       default:
@@ -162,7 +164,7 @@ class DocumentViewer extends React.Component {
                   { doc.content && (
                     <div style={{ color: '#444', }} dangerouslySetInnerHTML={{ __html: doc.content}} />
                   )}
-                  { doc.docType === 'PDF' && (
+                  { (doc.docType === 'PDF' || doc.docType === 'Image') && (
                     <div style={{ color: '#444', width: "90%" }} dangerouslySetInnerHTML={{ __html: `<p></p><iframe width="90%" height="1132" src="${doc.fileUrl}" frameBorder="0"></iframe><p></p>`}} />
                   )}
                   { doc.steps && (

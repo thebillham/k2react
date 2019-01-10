@@ -124,11 +124,18 @@ class Library extends React.Component {
         <List style={{paddingTop: 30}}>
         { library.filter(doc => {
             if (this.props.search) {
+              let search = [];
               if (doc.tags) {
-                return [...doc.tags.map(tag => tag.text ? tag.text : tag), doc.title].find(tag => tag.toLowerCase().includes(this.props.search.toLowerCase()));
+                search = [...doc.tags.map(tag => tag.text ? tag.text : tag), doc.title, doc.publisher, doc.author, doc.subtitle, doc.code]
               } else {
-                return doc.title.toLowerCase().includes(this.props.search.toLowerCase());
+                search = [doc.title, doc.publisher, doc.author, doc.subtitle, doc.code]
               }
+              let searchterm = this.props.search.toLowerCase().split(' ');
+              let res = true;
+              searchterm.forEach(term => {
+                if (search.find(tag => tag && tag.toLowerCase().includes(term)) === undefined) res = false;
+              });
+              return res;
             } else if (this.props.category) {
               return doc.category === this.props.category;
             } else {
