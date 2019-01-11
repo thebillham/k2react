@@ -150,7 +150,7 @@ class AppSettings extends React.Component {
                 defaultValue={doc && doc.documentcategories && doc.documentcategories.map(obj => { return `${obj.desc}|${obj.key}` }).join('\n')}
                 helperText='Put each category on a new line in the form "category description|category id".'
                 className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).map(option => {
                   let list = option.split('|');
                   return {key: list[1] ? list[1] : list[0], desc: list[0], }})})}}
               />}
@@ -162,7 +162,7 @@ class AppSettings extends React.Component {
                 defaultValue={doc && doc.noticecategories && doc.noticecategories.map(obj => { return `${obj.desc}|${obj.key}` }).join('\n')}
                 helperText='Put each category on a new line in the form "category description|category id".'
                 className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).map(option => {
                   let list = option.split('|');
                   return {key: list[1] ? list[1] : list[0], desc: list[0], }})})}}
               />}
@@ -174,7 +174,7 @@ class AppSettings extends React.Component {
                 defaultValue={doc && doc.toolcategories && doc.toolcategories.map(obj => { return `${obj.desc}|${obj.key}` }).join('\n')}
                 helperText='Put each category on a new line in the form "category description|category id".'
                 className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).map(option => {
                   let list = option.split('|');
                   return {key: list[1] ? list[1] : list[0], desc: list[0], }})})}}
               />}
@@ -186,7 +186,7 @@ class AppSettings extends React.Component {
                 defaultValue={doc && doc.trainingcategories && doc.trainingcategories.map(obj => { return `${obj.desc}|${obj.key}` }).join('\n')}
                 helperText='Put each category on a new line in the form "category description|category id".'
                 className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).map(option => {
                   let list = option.split('|');
                   return {key: list[1] ? list[1] : list[0], desc: list[0], }})})}}
               />}
@@ -208,7 +208,7 @@ class AppSettings extends React.Component {
                 defaultValue={doc && doc.officecontacts && doc.officecontacts.map(obj => { return `${obj.name}|${obj.workphone}` }).join('\n')}
                 helperText='Put each contact on a new line in the form "contact name|contact phone".'
                 className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).map(option => {
                   let list = option.split('|');
                   return {workphone: list[1] ? list[1] : list[0], name: list[0], }})})}}
               />}

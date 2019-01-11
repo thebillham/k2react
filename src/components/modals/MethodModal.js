@@ -238,8 +238,8 @@ class MethodModal extends React.Component {
       )
     })
   }
-    <Grid container>
-      <Grid item xs={12} justify='center' alignItems='center'>
+    <Grid container justify='center' alignItems='center'>
+      <Grid item xs={12}>
         <Button
           style={{ marginTop: 24, marginLeft: 128, }}
           onClick={ () => { this.props.handleModalChange({ id: 'numberInGlossary', value: doc.numberInGlossary ? doc.numberInGlossary + 10 : 20 }) }}>

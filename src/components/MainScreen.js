@@ -3,7 +3,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Link, Switch, withRouter, } from "react-router-dom";
 import { auth, constRef, } from '../config/firebase';
 import { connect } from 'react-redux';
-import { APPSETTINGS } from '../constants/modal-types';
+import { APPSETTINGS, UPDATEDATA } from '../constants/modal-types';
 
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
@@ -48,6 +48,7 @@ import LibraryIcon from '@material-ui/icons/LibraryBooks';
 import HelpIcon from '@material-ui/icons/Help';
 import UpdatesIcon from '@material-ui/icons/Update';
 import SettingsIcon from '@material-ui/icons/Settings';
+import UpdateIcon from '@material-ui/icons/Cached';
 
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
@@ -56,6 +57,8 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
 import AppSettings from './settings/AppSettings';
+import UpdateData from './settings/UpdateData';
+
 import store from '../store';
 import { onSearchChange, onCatChange } from '../actions/local';
 import { sendSlackMessage } from '../Slack';
@@ -454,12 +457,20 @@ class MainScreen extends React.Component {
                 </ListItem>
                 {
                   this.props.state.local.me.auth && this.props.state.local.me.auth['Admin'] &&
-                  <ListItem button onClick={() => {this.props.showModal({ modalType: APPSETTINGS, modalProps: { doc: this.props.state.const } })}} className={classes.nested}>
-                    <ListItemIcon>
-                      <SettingsIcon className={classes.accentButton} />
-                    </ListItemIcon>
-                    <ListItemText primary="App Settings" />
-                  </ListItem>
+                  <div>
+                    <ListItem button onClick={() => {this.props.showModal({ modalType: APPSETTINGS, modalProps: { doc: this.props.state.const } })}} className={classes.nested}>
+                      <ListItemIcon>
+                        <SettingsIcon className={classes.accentButton} />
+                      </ListItemIcon>
+                      <ListItemText primary="App Settings" />
+                    </ListItem>
+                    <ListItem button onClick={() => {this.props.showModal({ modalType: UPDATEDATA, })}} className={classes.nested}>
+                      <ListItemIcon>
+                        <UpdateIcon className={classes.accentButton} />
+                      </ListItemIcon>
+                      <ListItemText primary="Update Data" />
+                    </ListItem>
+                  </div>
                 }
 
                 <ListItem button component={Link} to="/help">
@@ -600,6 +611,7 @@ class MainScreen extends React.Component {
                     {drawer}
                     <main className={classes.content}>
                       <AppSettings />
+                      <UpdateData />
                       {/* All locations are matched to their components here */}
                       <Suspense fallback={<div style={{ marginTop: 80, display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200,}}><CircularProgress /></div>}>
                         <Switch>

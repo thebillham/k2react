@@ -35,6 +35,8 @@ import {
           SET_ANALYSIS_MODE,
         } from "../constants/action-types"
 
+import { stateRef, } from "../config/firebase";
+
 const localInit = {
   airanalysts: [],
   analysismode: 'normal',
@@ -70,22 +72,34 @@ const localInit = {
 // Properties related to local data retrieved from firebase
 export default function localReducer(state = localInit, action) {
   switch (action.type) {
-    case RESET_LOCAL:
-      return localInit;
-    case GET_STAFF:
-      console.log('Fired get staff');
-      return { ...state, staff: action.payload };
-    case GET_DOCUMENTS:
-      return { ...state, documents: action.payload };
-    case GET_COCS:
-      return { ...state, cocs: action.payload };
-    case GET_SAMPLES:
+    case GET_AIRANALYSTS:
+    if (action.update) stateRef.doc("airanalysts").set({ payload: state.airanalysts.concat(action.payload)});
       return {
         ...state,
-        samples: {
-          ...state.samples,
-          [action.cocUid]: action.payload,
-        }
+        airanalysts: state.airanalysts.concat(action.payload),
+      }
+    case GET_ASBESTOS_SAMPLES:
+    if (action.update) stateRef.doc("asbestossamples").set(action.payload);
+      return {
+        ...state,
+        samplesasbestos: action.payload,
+      }
+    case GET_BULKANALYSTS:
+    if (action.update) stateRef.doc("bulkanalysts").set({ payload: state.bulkanalysts.concat(action.payload)});
+      return {
+        ...state,
+        bulkanalysts: state.bulkanalysts.concat(action.payload),
+      }
+    case GET_COCS:
+      if (action.update) stateRef.doc("cocs").set(action.payload);
+      return { ...state, cocs: action.payload };
+    case GET_DOCUMENTS:
+      if (action.update) stateRef.doc("documents").set({ payload: action.payload });
+      return { ...state, documents: action.payload };
+    case GET_HELP:
+      return {
+        ...state,
+        helps: action.payload,
       }
     case GET_ME:
       return {
@@ -95,31 +109,92 @@ export default function localReducer(state = localInit, action) {
           ...action.payload,
         },
       }
+    case GET_METHODLOG:
+      return {
+        ...state,
+        me: {
+          ...state.me,
+          methodLog: action.payload,
+        }
+      }
+    case GET_METHODS:
+    if (action.update) stateRef.doc("methods").set({ payload: action.payload });
+      return {
+        ...state,
+        methods: action.payload,
+      }
+    case GET_NOTICES:
+    if (action.update) stateRef.doc("notices").set({ payload: action.payload });
+      return {
+        ...state,
+        notices: action.payload,
+      }
+    case GET_QUESTIONS:
+    if (action.update) stateRef.doc("questions").set({ payload: action.payload });
+      return {
+        ...state,
+        questions: action.payload,
+      }
+    case GET_QUIZLOG:
+      return {
+        ...state,
+        me: {
+          ...state.me,
+          quizLog: action.payload,
+        }
+      }
+    case GET_QUIZZES:
+    if (action.update) stateRef.doc("quizzes").set({ payload: action.payload });
+      return {
+        ...state,
+        quizzes: action.payload,
+      }
+    case GET_READINGLOG:
+      return {
+        ...state,
+        me: {
+          ...state.me,
+          readingLog: action.payload,
+        }
+      }
+    case GET_SAMPLES:
+      if (action.update) {
+        stateRef.doc("samples").set({ payload: {
+          ...state.samples,
+          [action.cocUid]: action.payload
+          }
+        });
+      }
+    case GET_STAFF:
+      if (action.update) stateRef.doc("staff").set(action.payload);
+      return { ...state, staff: action.payload };
+    case GET_TOOLS:
+    if (action.update) stateRef.doc("tools").set({ payload: action.payload });
+      return {
+        ...state,
+        tools: action.payload,
+      }
+    case GET_TRAININGS:
+    if (action.update) stateRef.doc("trainings").set({ payload: action.payload });
+      return {
+        ...state,
+        trainingpaths: action.payload,
+      }
+    case GET_UPDATES:
+      return {
+        ...state,
+        updates: action.payload,
+      }
     case GET_USER:
       return {
         ...state,
         user: action.payload,
       }
-    case UPDATE_STAFF:
+    case GET_VEHICLES:
+    if (action.update) stateRef.doc("vehicles").set({ payload: action.payload });
       return {
         ...state,
-        staff: {
-          ...state.staff,
-          [action.userPath]: {
-            ...state.staff[action.userPath],
-            ...action.payload,
-          }
-        }
-      }
-    case GET_AIRANALYSTS:
-      return {
-        ...state,
-        airanalysts: state.airanalysts.concat(action.payload),
-      }
-    case GET_BULKANALYSTS:
-      return {
-        ...state,
-        bulkanalysts: state.bulkanalysts.concat(action.payload),
+        vehicles: action.payload,
       }
     case GET_WFM:
       return {
@@ -131,84 +206,10 @@ export default function localReducer(state = localInit, action) {
         ...state,
         wfmJob: action.payload,
       }
-    case GET_VEHICLES:
-      return {
-        ...state,
-        vehicles: action.payload,
-      }
-    case GET_QUIZZES:
-      return {
-        ...state,
-        quizzes: action.payload,
-      }
-    case GET_QUESTIONS:
-      return {
-        ...state,
-        questions: action.payload,
-      }
-    case GET_TRAININGS:
-      return {
-        ...state,
-        trainingpaths: action.payload,
-      }
-    case GET_METHODS:
-      return {
-        ...state,
-        methods: action.payload,
-      }
-    case SEARCH_CHANGE:
-      return {
-        ...state,
-        search: action.payload,
-      }
     case CAT_CHANGE:
       return {
         ...state,
         category: action.payload,
-      }
-    case GET_TOOLS:
-      return {
-        ...state,
-        tools: action.payload,
-      }
-    case GET_NOTICES:
-      return {
-        ...state,
-        notices: action.payload,
-      }
-    case GET_HELP:
-      return {
-        ...state,
-        helps: action.payload,
-      }
-    case GET_UPDATES:
-      return {
-        ...state,
-        updates: action.payload,
-      }
-    case GET_READINGLOG:
-      return {
-        ...state,
-        me: {
-          ...state.me,
-          readingLog: action.payload,
-        }
-      }
-    case GET_METHODLOG:
-      return {
-        ...state,
-        me: {
-          ...state.me,
-          methodLog: action.payload,
-        }
-      }
-    case GET_QUIZLOG:
-      return {
-        ...state,
-        me: {
-          ...state.me,
-          quizLog: action.payload,
-        }
       }
     case DELETE_NOTICE:
       return {
@@ -226,6 +227,31 @@ export default function localReducer(state = localInit, action) {
           favnotices: action.payload,
         }
       }
+    case RESET_LOCAL:
+      return localInit;
+      return {
+        ...state,
+        samples: {
+          ...state.samples,
+          [action.cocUid]: action.payload,
+        }
+      }
+    case SEARCH_CHANGE:
+      return {
+        ...state,
+        search: action.payload,
+      }
+    case UPDATE_STAFF:
+      return {
+        ...state,
+        staff: {
+          ...state.staff,
+          [action.userPath]: {
+            ...state.staff[action.userPath],
+            ...action.payload,
+          }
+        }
+      }
     case READ_NOTICE:
       return {
         ...state,
@@ -238,11 +264,6 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         stepper: action.payload,
-      }
-    case GET_ASBESTOS_SAMPLES:
-      return {
-        ...state,
-        samplesasbestos: action.payload,
       }
     case SET_ANALYST:
       return {

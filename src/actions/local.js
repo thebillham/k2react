@@ -48,6 +48,7 @@ import {
   noticesRef,
   questionsRef,
   quizzesRef,
+  stateRef,
   toolsRef,
   trainingPathsRef,
   updateRef,
@@ -97,44 +98,70 @@ export const fetchMe = () => async dispatch => {
   });
 };
 
-export const fetchStaff = () => async dispatch => {
-  var users = {};
-  auth.currentUser &&
-    usersRef
-      .where(firebase.firestore.FieldPath.documentId(), ">", auth.currentUser.uid)
-      .get().then((querySnapshot) => {
-        let airanalysts = [];
-        let bulkanalysts = [];
-        querySnapshot.forEach((doc) => {
-          console.log("Read a doc (Greater than User)! " + doc.data().name);
-          let user = doc.data();
-          user.uid = doc.id;
-          users[doc.id] = user;
-          if (user.auth && user.auth['Asbestos Air Analysis']) airanalysts.push({uid: user.uid, name: user.name});
-          if (user.auth && user.auth['Asbestos Bulk Analysis']) bulkanalysts.push({uid: user.uid, name: user.name});
-        });
-        dispatch({ type: GET_STAFF, payload: users });
-        dispatch({ type: GET_AIRANALYSTS, payload: airanalysts });
-        dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts });
+export const fetchStaff = update => async dispatch => {
+  if (update) {
+    console.log("Running fetch staff to update")
+    var users = {};
+      auth.currentUser &&
+        usersRef
+          .where(firebase.firestore.FieldPath.documentId(), ">", auth.currentUser.uid)
+          .get()
+          .then((querySnapshot) => {
+            let airanalysts = [];
+            let bulkanalysts = [];
+            querySnapshot.forEach((doc) => {
+
+              let user = doc.data();
+              user.uid = doc.id;
+              users[doc.id] = user;
+              if (user.auth && user.auth['Asbestos Air Analysis']) airanalysts.push({uid: user.uid, name: user.name});
+              if (user.auth && user.auth['Asbestos Bulk Analysis']) bulkanalysts.push({uid: user.uid, name: user.name});
+            });
+            dispatch({ type: GET_STAFF, payload: users, update: true, });
+            dispatch({ type: GET_AIRANALYSTS, payload: airanalysts, update: true, });
+            dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts, update: true, });
+          });
+      auth.currentUser &&
+        usersRef
+          .where(firebase.firestore.FieldPath.documentId(), "<", auth.currentUser.uid)
+          .get().then((querySnapshot) => {
+            let airanalysts = [];
+            let bulkanalysts = [];
+            querySnapshot.forEach((doc) => {
+              console.log("Read a doc (LT user)! " + doc.data().name);
+              let user = doc.data();
+              user.uid = doc.id;
+              users[doc.id] = user;
+              if (user.auth && user.auth['Asbestos Air Analysis']) airanalysts.push({uid: user.uid, name: user.name});
+              if (user.auth && user.auth['Asbestos Bulk Analysis']) bulkanalysts.push({uid: user.uid, name: user.name});
+            });
+            dispatch({ type: GET_STAFF, payload: users, update: true, });
+            dispatch({ type: GET_AIRANALYSTS, payload: airanalysts, update: true, });
+            dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts, update: true, });
+          });
+  } else {
+    console.log("Fetching staff from cache");
+    stateRef.doc("staff")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_STAFF, payload: doc.data() });
+        } else {
+          console.log("Doc doesn't exist");
+        }
       });
-  auth.currentUser &&
-    usersRef
-      .where(firebase.firestore.FieldPath.documentId(), "<", auth.currentUser.uid)
-      .get().then((querySnapshot) => {
-        let airanalysts = [];
-        let bulkanalysts = [];
-        querySnapshot.forEach((doc) => {
-          console.log("Read a doc (LT user)! " + doc.data().name);
-          let user = doc.data();
-          user.uid = doc.id;
-          users[doc.id] = user;
-          if (user.auth && user.auth['Asbestos Air Analysis']) airanalysts.push({uid: user.uid, name: user.name});
-          if (user.auth && user.auth['Asbestos Bulk Analysis']) bulkanalysts.push({uid: user.uid, name: user.name});
-        });
-        dispatch({ type: GET_STAFF, payload: users });
-        dispatch({ type: GET_AIRANALYSTS, payload: airanalysts });
-        dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts });
+    stateRef.doc("airanalysts")
+      .get().then(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_AIRANALYSTS, payload: doc.data().payload });
+        }
       });
+    stateRef.doc("bulkanalysts")
+      .get().then(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_BULKANALYSTS, payload: doc.data().payload });
+        }
+      });
+  }
 }
 
 export const getUserAttrs = userPath => async dispatch => {
@@ -245,52 +272,257 @@ export const getUserAttrs = userPath => async dispatch => {
       });
 }
 
-export const fetchDocuments = () => async dispatch => {
-  docsRef.orderBy('title')
-    .onSnapshot((querySnapshot) => {
-      var docs = [];
-      querySnapshot.forEach((doc) => {
-        let ref = doc.data();
-        ref.uid = doc.id;
-        docs.push(ref);
+export const fetchCocs = update => async dispatch => {
+  if (update) {
+    cocsRef
+      .where('deleted', '==', false)
+      .orderBy('dueDate', 'desc')
+      .onSnapshot((querySnapshot) => {
+        var cocs = {};
+        querySnapshot.forEach((doc) => {
+          cocs[doc.id] = doc.data();
+        });
+        dispatch({
+          type: GET_COCS,
+          payload: cocs,
+          update: true,
+        });
       });
-      dispatch({
-        type: GET_DOCUMENTS,
-        payload: docs
-      });
-    });
+  } else {
+    stateRef.doc("cocs")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_COCS, payload: doc.data() });
+        } else {
+          console.log("Coc doesn't exist");
+        }
+      })
+  }
 };
 
-export const fetchCocs = () => async dispatch => {
-  cocsRef
-    .where('deleted', '==', false)
-    .orderBy('dueDate', 'desc')
-    .onSnapshot((querySnapshot) => {
-      var cocs = {};
-      querySnapshot.forEach((doc) => {
-        cocs[doc.id] = doc.data();
+export const fetchDocuments = update => async dispatch => {
+  if (update) {
+    docsRef.orderBy('title')
+      .onSnapshot((querySnapshot) => {
+        var docs = [];
+        querySnapshot.forEach((doc) => {
+          let ref = doc.data();
+          ref.uid = doc.id;
+          docs.push(ref);
+        });
+        dispatch({
+          type: GET_DOCUMENTS,
+          payload: docs,
+          update: true,
+        });
       });
-      dispatch({
-        type: GET_COCS,
-        payload: cocs
+  } else {
+    stateRef.doc("documents")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_DOCUMENTS, payload: doc.data().payload });
+        } else {
+          console.log("Documents doesn't exist");
+        }
       });
-    });
+  }
 };
 
-export const fetchVehicles = () => async dispatch => {
-  vehiclesRef
-    .get().then((querySnapshot) => {
-      var vehicles = [];
-      querySnapshot.forEach((doc) => {
-        var vehicle = doc.data();
-        vehicle.number = doc.id;
-        vehicles.push(vehicle);
+
+export const fetchMethods = update => async dispatch => {
+  if (update) {
+    methodsRef.orderBy('title')
+      .onSnapshot((querySnapshot) => {
+        var methods = [];
+        querySnapshot.forEach((doc) => {
+          let method = doc.data();
+          method.uid = doc.id;
+          methods.push(method);
+        });
+        dispatch({
+          type: GET_METHODS,
+          payload: methods,
+          update: true,
+        });
       });
-      dispatch({
-        type: GET_VEHICLES,
-        payload: vehicles,
+  } else {
+    stateRef.doc("methods")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_METHODS, payload: doc.data().payload });
+        } else {
+          console.log("Methods doesn't exist");
+        }
       });
-    })
+  }
+};
+
+export const fetchNotices = update => async dispatch => {
+  if (update) {
+    noticesRef.orderBy('date','desc').limit(100)
+      .onSnapshot((querySnapshot) => {
+        var notices = [];
+        querySnapshot.forEach((doc) => {
+          let notice = doc.data();
+          notice.uid = doc.id;
+          notices.push(notice);
+        });
+        dispatch({
+          type: GET_NOTICES,
+          payload: notices,
+          update: true,
+        });
+      });
+  } else {
+    stateRef.doc("notices")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_NOTICES, payload: doc.data().payload });
+        } else {
+          console.log("Notices doesn't exist");
+        }
+      });
+  }
+};
+
+export const fetchQuestions = update => async dispatch => {
+  if (update) {
+    questionsRef.orderBy('question')
+      .onSnapshot((querySnapshot) => {
+        var questions = [];
+        querySnapshot.forEach((doc) => {
+          let question = doc.data();
+          question.uid = doc.id;
+          questions.push(question);
+        });
+        dispatch({
+          type: GET_QUESTIONS,
+          payload: questions,
+          update: true,
+        });
+      });
+  } else {
+    stateRef.doc("questions")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_QUESTIONS, payload: doc.data().payload });
+        } else {
+          console.log("Questions doesn't exist");
+        }
+      });
+  }
+};
+
+export const fetchQuizzes = update => async dispatch => {
+  if (update) {
+    quizzesRef.orderBy('title')
+      .onSnapshot((querySnapshot) => {
+        var quizzes = [];
+        querySnapshot.forEach((doc) => {
+          let quiz = doc.data();
+          quiz.uid = doc.id;
+          quizzes.push(quiz);
+        });
+        dispatch({
+          type: GET_QUIZZES,
+          payload: quizzes,
+          update: true,
+        });
+      });
+  } else {
+    stateRef.doc("quizzes")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_QUIZZES, payload: doc.data().payload });
+        } else {
+          console.log("Quizzes doesn't exist");
+        }
+      });
+  }
+};
+
+export const fetchTools = update => async dispatch => {
+  if (update) {
+    toolsRef.orderBy('title')
+      .onSnapshot((querySnapshot) => {
+        var tools = [];
+        querySnapshot.forEach((doc) => {
+          let tool = doc.data();
+          tool.uid = doc.id;
+          tools.push(tool);
+        });
+        dispatch({
+          type: GET_TOOLS,
+          payload: tools,
+          update: true,
+        });
+      });
+  } else {
+    stateRef.doc("tools")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_TOOLS, payload: doc.data().payload });
+        } else {
+          console.log("Tools doesn't exist");
+        }
+      });
+  }
+};
+
+export const fetchTrainingPaths = update => async dispatch => {
+  if (update) {
+    trainingPathsRef.orderBy('title')
+      .onSnapshot((querySnapshot) => {
+        var trainings = [];
+        querySnapshot.forEach((doc) => {
+          let training = doc.data();
+          training.uid = doc.id;
+          trainings.push(training);
+        });
+        dispatch({
+          type: GET_TRAININGS,
+          payload: trainings,
+          update: true,
+        });
+      });
+  } else {
+    stateRef.doc("trainings")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_TRAININGS, payload: doc.data().payload });
+        } else {
+          console.log("Trainings doesn't exist");
+        }
+      });
+  }
+};
+
+export const fetchVehicles = update => async dispatch => {
+  if (update) {
+    vehiclesRef
+      .get().then((querySnapshot) => {
+        var vehicles = [];
+        querySnapshot.forEach((doc) => {
+          var vehicle = doc.data();
+          vehicle.number = doc.id;
+          vehicles.push(vehicle);
+        });
+        dispatch({
+          type: GET_VEHICLES,
+          payload: vehicles,
+          update: true,
+        });
+      })
+  } else {
+    stateRef.doc("vehicles")
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          dispatch({ type: GET_VEHICLES, payload: doc.data().payload });
+        } else {
+          console.log("Vehicles doesn't exist");
+        }
+      });
+  }
 }
 
 export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
@@ -311,102 +543,6 @@ export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
           });
         });
       });
-};
-
-export const fetchTools = () => async dispatch => {
-  toolsRef.orderBy('title')
-    .onSnapshot((querySnapshot) => {
-      var tools = [];
-      querySnapshot.forEach((doc) => {
-        let tool = doc.data();
-        tool.uid = doc.id;
-        tools.push(tool);
-      });
-      dispatch({
-        type: GET_TOOLS,
-        payload: tools
-      });
-    });
-};
-
-export const fetchTrainingPaths = () => async dispatch => {
-  trainingPathsRef.orderBy('title')
-    .onSnapshot((querySnapshot) => {
-      var trainings = [];
-      querySnapshot.forEach((doc) => {
-        let training = doc.data();
-        training.uid = doc.id;
-        trainings.push(training);
-      });
-      dispatch({
-        type: GET_TRAININGS,
-        payload: trainings
-      });
-    });
-};
-
-export const fetchMethods = () => async dispatch => {
-  methodsRef.orderBy('title')
-    .onSnapshot((querySnapshot) => {
-      var methods = [];
-      querySnapshot.forEach((doc) => {
-        let method = doc.data();
-        method.uid = doc.id;
-        methods.push(method);
-      });
-      dispatch({
-        type: GET_METHODS,
-        payload: methods
-      });
-    });
-};
-
-export const fetchQuizzes = () => async dispatch => {
-  quizzesRef.orderBy('title')
-    .onSnapshot((querySnapshot) => {
-      var quizzes = [];
-      querySnapshot.forEach((doc) => {
-        let quiz = doc.data();
-        quiz.uid = doc.id;
-        quizzes.push(quiz);
-      });
-      dispatch({
-        type: GET_QUIZZES,
-        payload: quizzes
-      });
-    });
-};
-
-export const fetchQuestions = () => async dispatch => {
-  questionsRef.orderBy('question')
-    .onSnapshot((querySnapshot) => {
-      var questions = [];
-      querySnapshot.forEach((doc) => {
-        let question = doc.data();
-        question.uid = doc.id;
-        questions.push(question);
-      });
-      dispatch({
-        type: GET_QUESTIONS,
-        payload: questions
-      });
-    });
-};
-
-export const fetchNotices = () => async dispatch => {
-  noticesRef.orderBy('date','desc').limit(100)
-    .onSnapshot((querySnapshot) => {
-      var notices = [];
-      querySnapshot.forEach((doc) => {
-        let notice = doc.data();
-        notice.uid = doc.id;
-        notices.push(notice);
-      });
-      dispatch({
-        type: GET_NOTICES,
-        payload: notices
-      });
-    });
 };
 
 export const fetchReadingLog = () => async dispatch => {

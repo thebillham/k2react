@@ -19,33 +19,60 @@ p.setCustomParameters({
 });
 p.addScope('https://www.googleapis.com/auth/calendar');
 
+const firestore = firebase.firestore();
+firestore.settings({timestampsInSnapshots: true})
+
 const provider = p;
 const auth = firebase.auth();
 const storage = firebase.storage();
-const firestore = firebase.firestore();
-firestore.settings({timestampsInSnapshots: true})
-const usersRef = firestore.collection("users");
-const asbestosSamplesRef = firestore.collection("samplesasbestos");
-const jobsRef = firestore.collection("jobheaders");
-const cocsRef = firestore.collection("cocs");
-const vehiclesRef = firestore.collection("vehicles");
-const docsRef = firestore.collection("documents");
-const modulesRef = firestore.collection("modules");
-const toolsRef = firestore.collection("tools");
-const noticesRef = firestore.collection("notices");
-const quizzesRef = firestore.collection("quizzes");
-const questionsRef = firestore.collection("questions");
-const trainingPathsRef = firestore.collection("trainingpaths");
-const methodsRef = firestore.collection("methods");
-const helpRef = firestore.collection("help");
-const updateRef = firestore.collection("updates");
-const asbestosAnalysisRef = firestore.collection("analysisasbestos");
-const constRef = firestore.collection("appsettings").doc("constants");
-const appSettingsRef = firestore.collection("appsettings");
 
-export { app, provider, auth, firestore, storage, firebase };
-export { usersRef, docsRef, modulesRef, toolsRef,
-  noticesRef, quizzesRef, questionsRef, trainingPathsRef,
-  methodsRef, asbestosSamplesRef, jobsRef, helpRef, updateRef,
-  cocsRef, vehiclesRef, asbestosAnalysisRef, constRef, appSettingsRef, };
+const appSettingsRef = firestore.collection("appsettings");
+const asbestosAnalysisRef = firestore.collection("analysisasbestos");
+const asbestosSamplesRef = firestore.collection("samplesasbestos");
+const cocsRef = firestore.collection("cocs");
+const constRef = firestore.collection("appsettings").doc("constants");
+const docsRef = firestore.collection("documents");
+const helpRef = firestore.collection("help");
+const jobsRef = firestore.collection("jobheaders");
+const methodsRef = firestore.collection("methods");
+const modulesRef = firestore.collection("modules");
+const noticesRef = firestore.collection("notices");
+const questionsRef = firestore.collection("questions");
+const quizzesRef = firestore.collection("quizzes");
+const stateRef = firestore.collection("state");
+const toolsRef = firestore.collection("tools");
+const trainingPathsRef = firestore.collection("trainingpaths");
+const updateRef = firestore.collection("updates");
+const usersRef = firestore.collection("users");
+const vehiclesRef = firestore.collection("vehicles");
+
+export {
+  app,
+  auth,
+  firebase,
+  firestore,
+  provider,
+  storage,
+};
+export {
+  appSettingsRef,
+  asbestosAnalysisRef,
+  asbestosSamplesRef,
+  cocsRef,
+  constRef,
+  docsRef,
+  helpRef,
+  jobsRef,
+  methodsRef,
+  modulesRef,
+  noticesRef,
+  questionsRef,
+  quizzesRef,
+  stateRef,
+  toolsRef,
+  trainingPathsRef,
+  updateRef,
+  usersRef,
+  vehiclesRef,
+};
 export default firebase;
