@@ -62,7 +62,12 @@ class AppSettings extends React.Component {
     const { setting } = this.state;
     const settingTypes = [
       'Asbestos Materials',
+      'Building Items',
       'Building Materials',
+      'Extent Suggestions',
+      'Damage Suggestions',
+      'Surface Suggestions',
+      'Why Not Sampled Suggestions',
       'Asbestos Types',
       'Document Tag Suggestions',
       'Quiz Tag Suggestions',
@@ -116,6 +121,56 @@ class AppSettings extends React.Component {
                 multiline
                 defaultValue={doc && doc.buildingmaterials && doc.buildingmaterials.map(obj => { return obj.label }).join('\n')}
                 helperText='Put each material on a new line.'
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
+              />}
+
+              { setting === 'Building Items' && <TextField
+                id="buildingitems"
+                label="Building Items"
+                multiline
+                defaultValue={doc && doc.buildingitems && doc.buildingitems.map(obj => { return obj.label }).join('\n')}
+                helperText='Put each item on a new line.'
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
+              />}
+
+              { setting === 'Extent Suggestions' && <TextField
+                id="extentsuggestions"
+                label="Extent Suggestions"
+                multiline
+                defaultValue={doc && doc.extentsuggestions && doc.extentsuggestions.map(obj => { return obj.label }).join('\n')}
+                helperText='Put each suggestion on a new line.'
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
+              />}
+
+              { setting === 'Damage Suggestions' && <TextField
+                id="damagesuggestions"
+                label="Damage Suggestions"
+                multiline
+                defaultValue={doc && doc.damagesuggestions && doc.damagesuggestions.map(obj => { return obj.label }).join('\n')}
+                helperText='Put each suggestion on a new line.'
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
+              />}
+
+              { setting === 'Surface Suggestions' && <TextField
+                id="surfacesuggestions"
+                label="Surface Suggestions"
+                multiline
+                defaultValue={doc && doc.surfacesuggestions && doc.surfacesuggestions.map(obj => { return obj.label }).join('\n')}
+                helperText='Put each suggestion on a new line.'
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
+              />}
+
+              { setting === 'Why Not Sampled Suggestions' && <TextField
+                id="whynotsampledsuggestions"
+                label="Why Not Sampled Suggestions"
+                multiline
+                defaultValue={doc && doc.whynotsampledsuggestions && doc.whynotsampledsuggestions.map(obj => { return obj.label }).join('\n')}
+                helperText='Put each suggestion on a new line.'
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
               />}
