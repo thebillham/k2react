@@ -64,6 +64,7 @@ class AppSettings extends React.Component {
       'Asbestos Materials',
       'Building Items',
       'Building Materials',
+      'Room Suggestions',
       'Extent Suggestions',
       'Damage Suggestions',
       'Surface Suggestions',
@@ -133,6 +134,18 @@ class AppSettings extends React.Component {
                 helperText='Put each item on a new line.'
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
+              />}
+
+              { setting === 'Room Suggestions' && <TextField
+                id="roomsuggestions"
+                label="Room Suggestions"
+                multiline
+                defaultValue={doc && doc.roomsuggestions && doc.roomsuggestions.map(obj => { return `${obj.label}|${obj.code}` }).join('\n')}
+                helperText='Put each tag on a new line in the form "room name|room code".'
+                className={classes.dialogField}
+                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => {
+                  let list = option.split('|');
+                  return {code: list[1] ? list[1] : list[0], label: list[0], }})})}}
               />}
 
               { setting === 'Extent Suggestions' && <TextField
