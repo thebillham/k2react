@@ -4,8 +4,9 @@ import {
           GET_BULKANALYSTS,
           GET_DOCUMENTS,
           GET_USER,
-          GET_WFM,
-          GET_WFMJOB,
+          GET_WFM_JOBS,
+          GET_WFM_JOB,
+          GET_WFM_LEADS,
           GET_QUIZZES,
           GET_QUIZLOG,
           GET_QUESTIONS,
@@ -196,15 +197,20 @@ export default function localReducer(state = localInit, action) {
         ...state,
         vehicles: action.payload,
       }
-    case GET_WFM:
+    case GET_WFM_JOBS:
       return {
         ...state,
         wfmJobs: action.payload,
       }
-    case GET_WFMJOB:
+    case GET_WFM_JOB:
       return {
         ...state,
         wfmJob: action.payload,
+      }
+    case GET_WFM_LEADS:
+      return {
+        ...state,
+        wfmLeads: action.payload,
       }
     case CAT_CHANGE:
       return {

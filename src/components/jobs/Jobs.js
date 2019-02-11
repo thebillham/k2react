@@ -4,128 +4,109 @@ import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 // import { FormattedDate } from 'react-intl';
 import ReactTable from 'react-table';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import List from '@material-ui/core/List';
 import 'react-table/react-table.css'
 import treeTableHOC from 'react-table/lib/hoc/treeTable';
 import JobCard from './JobCard';
-import { fetchWFM } from '../../actions/local';
+import { FormattedDate } from 'react-intl';
+
+import { fetchWFMJobs, fetchWFMLeads } from '../../actions/local';
 
 const mapStateToProps = state => {
   return {
     wfmJobs: state.local.wfmJobs,
+    wfmLeads: state.local.wfmLeads,
    };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchWFM: () => dispatch(fetchWFM()),
+    fetchWFMJobs: () => dispatch(fetchWFMJobs()),
+    fetchWFMLeads: () => dispatch(fetchWFMLeads()),
   }
 }
 
 class Jobs extends React.Component {
 
   componentWillMount() {
-    this.props.fetchWFM();
+    this.props.fetchWFMJobs();
+    this.props.fetchWFMLeads();
+  }
+
+  displayTimeDifference = (date) => {
+    var timeDifference = new Date() - new Date(date);
+    var divideBy = {
+      d: 86400000,
+      m: 2629800000,
+      y: 31557600000,
+    };
+    var years = Math.floor(timeDifference/divideBy['y']);
+    timeDifference = timeDifference % divideBy['y'];
+    var months = Math.floor(timeDifference/divideBy['m']);
+    timeDifference = timeDifference % divideBy['m'];
+    var days = Math.floor(timeDifference/divideBy['d']);
+    let y = years + ' years ';
+    let m = months + ' months ';
+    let d = days + ' days';
+    if (years === 1) y = years + ' year ';
+    if (months === 1) m = months + ' month ';
+    if (days === 1) d = days + ' day';
+    if (years === 0) y = '';
+    if (months === 0) m = '';
+    return (y + m + d);
   }
 
   render() {
-    const TreeTable = treeTableHOC(ReactTable);
+    const { wfmJobs, wfmLeads } = this.props;
+
     return (
       <div style = {{ marginTop: 80 }}>
-        {/* <Grid container spacing={8}>
-          <Grid item>
-            <Button color="secondary" variant="outlined">
-              Asbestos
-            </Button>
-          </Grid>
-            <Grid item>
-              <Button color="secondary" variant="outlined">
-                Biological
-              </Button>
-            </Grid>
-        </Grid> */}
-        <div>
-          <TreeTable
-            // filterable
-            // defaultFilterMethod={(filter, row, column) => {
-            //   const id = filter.pivotId || filter.id;
-            //   return row[id] !== undefined
-            //     ? String(row[id])
-            //       .toLowerCase()
-            //       .includes(filter.value.toLowerCase())
-            //     : true;
-            // }}
-            data={this.props.wfmJobs}
-            showPagination={false}
-            pivotBy={['type', 'client']}
-            columns={[
-              {
-                accessor: 'type',
-                show: false
-              },
-              {
-                accessor: 'client',
-                show: false
-              },
-              {
-                accessor: 'description',
-                show: false
-              },
-              {
-                accessor: 'clientID',
-                show: false
-              },
-              {
-                accessor: 'clientOrderNumber',
-                show: false
-              },
-              {
-                accessor: 'contact',
-                show: false
-              },
-              {
-                accessor: 'contactID',
-                show: false
-              },
-              {
-                accessor: 'manager',
-                show: false
-              },
-              {
-                accessor: 'managerID',
-                show: false
-              },
-              {
-                accessor: 'dueDate',
-                show: false
-              },
-              {
-                accessor: 'startDate',
-                show: false
-              },
-              {
-                accessor: 'jobNumber',
-                // show: false
-              },
-              {
-                accessor: 'address',
-                show: false
-              },
-              {
-                accessor: 'state',
-                show: false
-              }
-            ]}
-            SubComponent={row => {
-              // a SubComponent just for the final detail
-              return (
-                <JobCard job={row.row} />
-              );
-            }}
+        {wfmLeads &&
+        <ReactTable
+          data={wfmLeads}
+          columns={[
+            {
+              Header: "Name",
+              accessor: "name"
+            },
+            {
+              Header: "Category",
+              accessor: "category"
+            },
+            {
+              Header: "Client",
+              accessor: "client"
+            },
+            {
+              Header: "Owner",
+              accessor: "owner"
+            },
+            {
+              Header: "Date",
+              id: "date",
+              accessor: d => <FormattedDate value={d.date instanceof Date ? d.date : new Date(d.date)} month='long' day='numeric' year='numeric' />
+            },
+            {
+              Header: "How Old",
+              id: "howold",
+              accessor: d => d.date instanceof Date ? this.displayTimeDifference(d.date) : this.displayTimeDifference(new Date(d.date))
+            }
+          ]}
+          defaultSorted={[
+            {
+              id: "ID",
+              desc: true,
+            }
+          ]}
+          defaultPageSize={25}
+          className="-striped -highlight"
           />
-        </div>
+        }
       </div>
     );
   }
 }
 
-export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(Jobs));
+export default connect(mapStateToProps, mapDispatchToProps)(Jobs);
