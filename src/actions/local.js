@@ -670,6 +670,7 @@ export const fetchWFMJobs = () => async dispatch => {
     json.Response.Jobs.Job.forEach(wfmJob => {
       let job = {};
       job.jobNumber = wfmJob.ID ? wfmJob.ID : 'No job number';
+      job.wfmID = wfmJob.InternalID;
       job.address = wfmJob.Name ? wfmJob.Name: 'No address';
       job.description = wfmJob.Description ? wfmJob.Description : 'No description';
       if (wfmJob.Client) {
@@ -688,11 +689,11 @@ export const fetchWFMJobs = () => async dispatch => {
         job.contactID = 'No contact ID';
       }
       if (wfmJob.Manager) {
-        job.manager = wfmJob.Manager.Name ? wfmJob.Manager.Name : 'No contact name';
-        job.managerID = wfmJob.Manager.ID ? wfmJob.Manager.ID : 'No contact ID';
+        job.manager = wfmJob.Manager.Name ? wfmJob.Manager.Name : 'No manager name';
+        job.managerID = wfmJob.Manager.ID ? wfmJob.Manager.ID : 'No manager ID';
       } else {
-        job.manager = 'No contact name';
-        job.managerID = 'No contact ID';
+        job.manager = 'No manager name';
+        job.managerID = 'No manager ID';
       }
       job.dueDate = wfmJob.DueDate ? wfmJob.DueDate : '';
       job.startDate = wfmJob.StartDate ? wfmJob.StartDate : '';
@@ -711,14 +712,14 @@ export const fetchWFMLeads = () => async dispatch => {
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
   let path = `${process.env.REACT_APP_WFM_ROOT}lead.api/current?detailed=true&apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   fetch(path).then(results => results.text()).then(data =>{
-    console.log(data);
+    // console.log(data);
     var xmlDOM = new DOMParser().parseFromString(data, 'text/xml')
     var json = xmlToJson(xmlDOM);
     let leads = [];
     // Map WFM jobs to a single level job object we can use
     json.Response.Leads.Lead.forEach(wfmLead => {
       let lead = {};
-      lead.ID = wfmLead.ID ? wfmLead.ID : 'No ID';
+      lead.wfmID = wfmLead.ID;
       lead.name = wfmLead.Name ? wfmLead.Name: 'No name';
       lead.description = wfmLead.Description ? wfmLead.Description : 'No description';
       if (wfmLead.Client) {
@@ -757,7 +758,7 @@ export const fetchWFMLeads = () => async dispatch => {
             let activity = {};
             activity.date = wfmActivity.Date;
             activity.subject = wfmActivity.Subject;
-            activity.complete = wfmActivity.Completed;
+            activity.completed = wfmActivity.Completed;
             if (wfmActivity.Responsible) {
               activity.responsible = wfmActivity.Responsible.Name;
               activity.responsibleID = wfmActivity.Responsible.ID;
