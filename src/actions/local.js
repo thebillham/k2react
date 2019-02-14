@@ -8,6 +8,7 @@ import {
         GET_BULKANALYSTS,
         GET_COCS,
         GET_DOCUMENTS,
+        GET_GEOCODES,
         GET_HELP,
         GET_ME,
         GET_METHODLOG,
@@ -27,6 +28,7 @@ import {
         GET_WFM_JOBS,
         GET_WFM_JOB,
         GET_WFM_LEADS,
+        GET_WFM_CLIENTS,
         READ_NOTICE,
         RESET_LOCAL,
         SEARCH_CHANGE,
@@ -42,6 +44,7 @@ import {
   auth,
   cocsRef,
   docsRef,
+  geocodesRef,
   helpRef,
   jobsRef,
   methodsRef,
@@ -722,6 +725,7 @@ export const fetchWFMLeads = () => async dispatch => {
       lead.wfmID = wfmLead.ID;
       lead.name = wfmLead.Name ? wfmLead.Name: 'No name';
       lead.description = wfmLead.Description ? wfmLead.Description : 'No description';
+      lead.value = wfmLead.EstimatedValue ? wfmLead.EstimatedValue : 0;
       if (wfmLead.Client) {
         lead.client = wfmLead.Client.Name ? wfmLead.Client.Name : 'No client name';
         lead.clientID = wfmLead.Client.ID ? wfmLead.Client.ID : 'No client ID';
@@ -804,10 +808,37 @@ export const fetchWFMLeads = () => async dispatch => {
       }
       leads.push(lead);
     });
-    console.log(leads);
+    // console.log(leads);
     dispatch({
       type: GET_WFM_LEADS,
       payload: leads
+    });
+  });
+};
+
+export const fetchWFMClients = () => async dispatch => {
+  // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
+  let path = `${process.env.REACT_APP_WFM_ROOT}client.api/list?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+  fetch(path).then(results => results.text()).then(data =>{
+    var xmlDOM = new DOMParser().parseFromString(data, 'text/xml')
+    var json = xmlToJson(xmlDOM);
+    let clients = [];
+    // Map WFM jobs to a single level job object we can use
+    json.Response.Clients.Client.forEach(wfmClient => {
+      // console.log(wfmClient);
+      let client = {};
+      client.wfmID = wfmClient.ID;
+      client.name = wfmClient.Name;
+      client.email = wfmClient.Email;
+      client.address = wfmClient.Address instanceof Object ? '' : wfmClient.Address;
+      client.city = wfmClient.City instanceof Object ? '' : wfmClient.City;
+      // client.postalAddress = wfmClient.postalAddress;
+      clients.push(client);
+    });
+    // console.log(clients);
+    dispatch({
+      type: GET_WFM_CLIENTS,
+      payload: clients
     });
   });
 };
@@ -962,5 +993,29 @@ export const setAnalysisMode = mode => dispatch => {
   dispatch({
     type: SET_ANALYSIS_MODE,
     payload: mode,
+  })
+}
+
+export const saveGeocodes = geocodes => dispatch => {
+  stateRef.doc("geocodes").set({ payload: geocodes });
+}
+
+export const fetchGeocodes = () => dispatch => {
+  stateRef.doc("geocodes").get().then(
+    doc => {
+      if (doc.data()) {
+        dispatch({
+          type: GET_GEOCODES,
+          payload: doc.data().payload,
+        });
+      }
+    }
+  )
+}
+
+export const updateGeocodes = geocodes => dispatch => {
+  dispatch({
+    type: GET_GEOCODES,
+    payload: geocodes,
   })
 }

@@ -32,6 +32,7 @@ const asbestosSamplesRef = firestore.collection("samplesasbestos");
 const cocsRef = firestore.collection("cocs");
 const constRef = firestore.collection("appsettings").doc("constants");
 const docsRef = firestore.collection("documents");
+const geocodesRef = firestore.collection("state").doc("geocodes");
 const helpRef = firestore.collection("help");
 const jobsRef = firestore.collection("jobheaders");
 const methodsRef = firestore.collection("methods");

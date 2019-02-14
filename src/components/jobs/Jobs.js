@@ -4,6 +4,7 @@ import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
 // import { FormattedDate } from 'react-intl';
 import ReactTable from 'react-table';
+import StaffIcon from '@material-ui/icons/People';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List';
@@ -11,13 +12,22 @@ import 'react-table/react-table.css'
 import treeTableHOC from 'react-table/lib/hoc/treeTable';
 import JobCard from './JobCard';
 import { FormattedDate } from 'react-intl';
+// import GoogleMapReact from 'google-map-react';
+import { Map, GoogleApiWrapper, Marker } from 'google-maps-react';
 
-import { fetchWFMJobs, fetchWFMLeads } from '../../actions/local';
+import { fetchWFMJobs, fetchWFMLeads, fetchWFMClients, saveGeocodes, fetchGeocodes, updateGeocodes } from '../../actions/local';
+
+const mapStyles = {
+  width: '100%',
+  height: '100%',
+}
 
 const mapStateToProps = state => {
   return {
     wfmJobs: state.local.wfmJobs,
     wfmLeads: state.local.wfmLeads,
+    wfmClients: state.local.wfmClients,
+    geocodes: state.local.geocodes,
    };
 };
 
@@ -25,6 +35,10 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchWFMJobs: () => dispatch(fetchWFMJobs()),
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
+    fetchWFMClients: () => dispatch(fetchWFMClients()),
+    saveGeocodes: (g) => dispatch(saveGeocodes(g)),
+    fetchGeocodes: () => dispatch(fetchGeocodes()),
+    updateGeocodes: (g) => dispatch(updateGeocodes(g)),
   }
 }
 
@@ -41,6 +55,7 @@ class Jobs extends React.Component {
       'completedActions': 0,
       'overdueActions': 0,
       'upcomingActions': 0,
+      'valueTotal': 0,
 
       // Averages
       'averageActionOverdueDays': [0, 0, 0],
@@ -57,17 +72,25 @@ class Jobs extends React.Component {
     };
 
     this.state = {
-      leadsData: [],
+      leads: [],
       statSheet: statSheet,
       staffStats: {
         'K2': statSheet,
       },
+      clientStats: {},
     }
   }
 
   componentWillMount() {
     this.props.fetchWFMJobs();
     this.props.fetchWFMLeads();
+    this.props.fetchWFMClients();
+    this.props.fetchGeocodes();
+  }
+
+  componentWillUnmount() {
+    console.log(this.props.geocodes);
+    if (this.props.geocodes) this.props.saveGeocodes(this.props.geocodes);
   }
 
   processActivityStats = (activities) => {
@@ -75,9 +98,8 @@ class Jobs extends React.Component {
       // Check if activity is completed
       if (a.completed == 'Yes') {
         this.addStaffStat(a.responsible, 'completedActions');
-        var overdueDays = this.getDaysBetweenDates(a.completeDate, a.date);
-        this.listStaffStat(a.responsible, 'completedActionOverdueDays', overdueDays);
-        this.averageStaffStat(a.responsible, 'averageCompletedActionOverdueDays', overdueDays);
+        this.listStaffStat(a.responsible, 'completedActionOverdueDays', a.completedOverdueBy);
+        this.averageStaffStat(a.responsible, 'averageCompletedActionOverdueDays', a.completedOverdueBy);
       } else {
         var overdueDays = this.getDaysSinceDate(a.date);
         if (overdueDays > 0) {
@@ -151,17 +173,123 @@ class Jobs extends React.Component {
 
     if (actions.length > 0) {
       activity.completeDate = actions[0].date;
+      activity.completedOverdueBy = this.getDaysBetweenDates(activity.completeDate, activity.date);
     }
     return activity;
   }
 
+  getAddressFromClient = (clientID) => {
+    var client = this.props.wfmClients.filter(client => client.wfmID == clientID);
+    if (client.length > 0) {
+      var address = client[0].city == '' ? client[0].address : client[0].address + ', ' + client[0].city;
+      return address;
+    } else {
+      return '';
+    }
+  }
+
+  handleGeocode = (address, clientAddress, lead) => {
+    lead.clientAddress = clientAddress;
+    // Pick either name or clientAddress to use as the geolocation
+    var address = this.checkAddress(address);
+    if (address == 'NULL') {
+      address = this.checkAddress(clientAddress);
+    }
+
+    if (this.props.geocodes[address] != null) {
+      console.log('Already there');
+      lead.geocode = this.props.geocodes[address];
+      this.state.leads = [...this.state.leads, lead,];
+    } else {
+      let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_API_KEY}`;
+      fetch(path).then(response => response.json()).then(response => {
+        var gc = this.props.geocodes;
+        gc[address] = this.simplifiedGeocode(response.results[0]);
+        this.props.updateGeocodes(gc);
+        lead.geocode = gc[address];
+        console.log(lead);
+        this.setState({
+          leads: [
+            ...this.state.leads,
+            lead,
+          ],
+        });
+        return lead;
+      });
+    }
+  }
+
+  checkAddress = (address) => {
+    if (address == '') return "NULL";
+    // if (address.trim().split(/\s+/).length < 2) return "NULL";
+
+    var geo = this.props.geocodes[encodeURI(address)];
+
+    // ignore all addresses that just return the country
+    if (geo != null && geo.address == 'New Zealand') return "NULL";
+
+    // ignore all addresses with blackListed words
+    var blacklist = [
+      'acoustic',
+      'air quality',
+      'testing',
+      'asbestos',
+      'samples',
+      'website',
+      'query',
+      'analysis',
+      'pricing',
+      'biological',
+      'assessment',
+      'dust',
+      'monitoring',
+      'lead',
+      'asbetsos',
+      'survey',
+      'silica',
+      'consulting',
+      'biologial',
+      'emission',
+      'mould',
+      'noise',
+      'stack',
+      'welding',
+    ];
+
+    var blackListed = false;
+
+    blacklist.forEach(w => {
+      if (address.toLowerCase().includes(w)) blackListed = true;
+    });
+
+    if (blackListed) return "NULL";
+
+    return encodeURI(address);
+  }
+
+  simplifiedGeocode = g => {
+    return {
+      address: g.formatted_address,
+      location: [g.geometry.location.lat, g.geometry.location.lng],
+      locationType: g.geometry.location_type,
+      place: g.place_id,
+    }
+  }
+
   getCompletedActivities = (activities) => {
     var completedActivities = activities.filter(activity => activity.completed == 'Yes');
-    completedActivities.sort((a, b) => {
+    return completedActivities.sort((a, b) => {
       return new Date(a.completeDate).getTime() -
         new Date(b.completeDate).getTime()
     }).reverse();
-    return completedActivities;
+  }
+
+  getUncompletedActivities = (activities) => {
+    var uncompletedActivities = activities.filter(activity => activity.completed == 'No');
+    return uncompletedActivities.sort((a, b) => {
+      return new Date(a.date).getTime() -
+        new Date(b.date).getTime()
+    }).reverse();
   }
 
   getLastActionDateFromActivities = (completedActivities, defaultDate) => {
@@ -174,13 +302,50 @@ class Jobs extends React.Component {
     return completedActivities[0].subject;
   }
 
-  getAverageActionOverdueDays = (completedActivities) => {
-    return 0;
-  };
+  getAverageCompletedActionOverdueDays = (completedActivities) => {
+    if (completedActivities.length === 0) return 0;
+    var sum = 0;
+    var total = 0;
+    completedActivities.forEach((a) => {
+      total = total + 1;
+      sum = sum + a.completedOverdueBy;
+    });
+    return Math.floor(sum/total);
+  }
+
+  getNextActionType = (activities) => {
+    var todo = this.getUncompletedActivities(activities);
+    if (todo.length > 0) {
+      return todo[0].subject;
+    } else {
+      return 'Convert to job or add new action';
+    }
+  }
 
   getNextActionOverdueBy = (activities) => {
-    return 0;
-  };
+    var todo = this.getUncompletedActivities(activities);
+    if (todo.length > 0) {
+      return this.getDaysSinceDate(todo[0].date);
+    } else {
+      return 0;
+    }
+  }
+
+  addClientStat = (name, stat) => {
+    // Add to client stats
+    if (this.state.clientStats[name]) {
+      this.state.clientStats[name] = {
+        ...this.state.clientStats[name],
+        [stat]: this.state.clientStats[name][stat] + 1,
+      };
+    } else {
+      this.state.clientStats = {
+        ...this.state.clientStats,
+        [name]: this.state.clientStatSheet,
+      };
+      this.state.clientStats[name][stat] = 1;
+    }
+  }
 
   addStaffStat = (name, stat) => {
     // Add to total stats
@@ -213,7 +378,7 @@ class Jobs extends React.Component {
     if (average[0] > 0) {
       average[0] = average[0] + 1;
       average[1] = average[1] + value;
-      average[2] = average[1]/average[0];
+      average[2] = Math.floor(average[1]/average[0]);
     } else {
       average = [1, value, value];
     }
@@ -230,7 +395,7 @@ class Jobs extends React.Component {
       if (average[0] > 0) {
         average[0] = average[0] + 1;
         average[1] = average[1] + value;
-        average[2] = average[1]/average[0];
+        average[2] = Math.floor(average[1]/average[0]);
       } else {
         average = [1, value, value];
       }
@@ -272,16 +437,19 @@ class Jobs extends React.Component {
 
 // Collate Jobs (need booking) and Leads into a set of data that can be displayed nicely
   collateLeadsData = () => {
+    // this.geocodeAddress('aljflasdfj;l','199 Centaurus Road, Christchurch');
+
     // Filter only jobs that need booking
     var jobsNeedBooking = this.props.wfmJobs.filter(job => {
       return job.state == 'Needs Booking';
     });
 
     // Convert jobs into a 'lead' type object
-    var jobs = jobsNeedBooking.map(job => {
+    jobsNeedBooking.forEach(job => {
       var lead = {};
       lead.wfmID = job.wfmID;
       lead.client = job.client;
+      lead.clientID = job.clientID;
       lead.name = job.address;
       lead.owner = job.manager;
       lead.jobNumber = job.jobNumber;
@@ -291,18 +459,23 @@ class Jobs extends React.Component {
       lead.urgentAction = '';
       lead.lastActionDate = job.startDate;
       lead.lastActionType = 'Converted into job';
+      lead.nextActionType = 'Book job';
       lead.daysOld = this.getDaysSinceDate(lead.creationDate);
       lead.isJob = true;
+
+      // Get extra client information
+      // lead.clientAddress = this.getAddressFromClient(lead);
+      // lead.geoCode = this.handleGeocode(job.address);
 
       // Add stats
       this.addStaffStat(lead.owner, 'jobNeedsBookingTotal', 'sum');
       this.averageStaffStat(lead.owner, 'averageJobNeedsBookingAge', this.getDaysSinceDate(lead.creationDate));
       this.listStaffStat(lead.owner, 'jobNeedsBookingAges', this.getDaysSinceDate(lead.creationDate));
 
-      return lead;
+      this.handleGeocode(job.address, this.getAddressFromClient(job.clientID), lead);
     });
 
-    var leads = this.props.wfmLeads.map(wfmLead => {
+    this.props.wfmLeads.forEach(wfmLead => {
       var lead = {};
       lead.wfmID = wfmLead.wfmID;
       lead.client = wfmLead.client;
@@ -313,6 +486,7 @@ class Jobs extends React.Component {
       lead.category = wfmLead.category;
       lead.currentStatus = wfmLead.currentStatus;
       lead.urgentAction = '';
+      lead.value = wfmLead.value;
 
       // Map actions to history to get completion date of each action
       if (wfmLead.activities[0] == 'NO PLAN!') {
@@ -329,30 +503,64 @@ class Jobs extends React.Component {
       lead.completedActivities = this.getCompletedActivities(lead.activities);
 
       lead.lastActionDate = this.getLastActionDateFromActivities(lead.completedActivities, lead.creationDate);
+      lead.daysSinceLastAction = this.getDaysSinceDate(lead.lastActionDate);
       lead.lastActionType = this.getLastActionTypeFromActivities(lead.completedActivities);
 
       lead.daysOld = this.getDaysSinceDate(lead.creationDate);
-      lead.averageActionOverdueDays = this.getAverageActionOverdueDays(lead.completedActivities);
+      lead.averageCompletedActionOverdueDays = this.getAverageCompletedActionOverdueDays(lead.completedActivities);
+      lead.nextActionType = this.getNextActionType(lead.activities);
       lead.nextActionOverdueBy = this.getNextActionOverdueBy(lead.activities);
 
       lead.isJob = false;
+
+      // Get extra client information
+      // lead.clientAddress = this.getAddressFromClient(wfmLead.clientID);
+      // lead.geoCode = this.handleGeocode(wfmLead.name);
 
       // Add stats
       this.addStaffStat(lead.owner, 'leadTotal');
       this.averageStaffStat(lead.owner, 'averageLeadAge', this.getDaysSinceDate(lead.creationDate));
       this.listStaffStat(lead.owner, 'leadAges', this.getDaysSinceDate(lead.creationDate));
 
-      return lead;
+      this.handleGeocode(wfmLead.name, this.getAddressFromClient(wfmLead.clientID), lead);
     });
-    console.log(jobs);
-    console.log(leads);
-    console.log(this.state.staffStats);
   }
 
   render() {
-    const { wfmJobs, wfmLeads } = this.props;
+    const K_WIDTH = 40;
+    const K_HEIGHT = 40;
+    const { wfmJobs, wfmLeads, wfmClients, geocodes, } = this.props;
+    if (wfmJobs.length > 0 && wfmLeads.length > 0 && wfmClients.length > 0 && geocodes && this.state.leads.length === 0) this.collateLeadsData();
+    console.log(this.state.leads);
+    return (
+      <div style={{ height: '100vh', width: '100%', }}>
+          <Map
+            google={this.props.google}
+            zoom={6.27}
+            style={mapStyles}
+            initialCenter={{
+              lat: -40.9261681,
+              lng: 174.4070603
+            }}
+          >
+            {
+              this.state.leads.map(m => {
+                if (m && m.geocode.address != 'New Zealand')
+                return(
+                  <Marker
+                    key={m.geocode.location[0] + m.name}
+                    position={{ lat: m.geocode.location[0], lng: m.geocode.location[1] }}
+                    title={m.client}
+                    />
+                  );
+              })
+            }
+          </Map>
+      </div>
 
-    if (wfmJobs && wfmLeads && !this.leadsData) this.collateLeadsData();
+    );
+
+{/*
 
     return (
       <div style = {{ marginTop: 80 }}>
@@ -399,7 +607,8 @@ class Jobs extends React.Component {
         }
       </div>
     );
+*/}
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Jobs);
+export default connect(mapStateToProps, mapDispatchToProps)(GoogleApiWrapper({apiKey: process.env.REACT_APP_GOOGLE_API_KEY})(Jobs));

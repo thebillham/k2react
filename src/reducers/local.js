@@ -3,10 +3,12 @@ import {
           GET_AIRANALYSTS,
           GET_BULKANALYSTS,
           GET_DOCUMENTS,
+          GET_GEOCODES,
           GET_USER,
           GET_WFM_JOBS,
           GET_WFM_JOB,
           GET_WFM_LEADS,
+          GET_WFM_CLIENTS,
           GET_QUIZZES,
           GET_QUIZLOG,
           GET_QUESTIONS,
@@ -47,6 +49,7 @@ const localInit = {
   category: 'gen',
   cocs: {},
   documents: [],
+  geocodes: {},
   helps: [],
   me: {},
   methodLog: [],
@@ -68,6 +71,8 @@ const localInit = {
   vehicles: [],
   wfmJob: null,
   wfmJobs: [],
+  wfmLeads: [],
+  wfmClients: [],
 };
 
 // Properties related to local data retrieved from firebase
@@ -211,6 +216,16 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         wfmLeads: action.payload,
+      }
+    case GET_WFM_CLIENTS:
+      return {
+        ...state,
+        wfmClients: action.payload,
+      }
+    case GET_GEOCODES:
+      return {
+        ...state,
+        geocodes: action.payload,
       }
     case CAT_CHANGE:
       return {

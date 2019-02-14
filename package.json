@@ -28,6 +28,8 @@
     "firebase-tools": "^6.3.0",
     "firestore": "^1.1.6",
     "froala-editor": "^2.9.1",
+    "google-map-react": "^1.1.2",
+    "google-maps-react": "^2.0.2",
     "html-to-draftjs": "^1.4.0",
     "image-extensions": "^1.1.0",
     "imagemagick": "^0.1.3",
