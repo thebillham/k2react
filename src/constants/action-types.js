@@ -40,6 +40,8 @@ export const SET_ANALYSIS_MODE = "SET_ANALYSIS_MODE";
 export const SET_ANALYST = "SET_ANALYST";
 export const SET_STEPPER = "SET_STEPPER";
 export const UPDATE_STAFF = "UPDATE_STAFF";
+export const SAVE_WFM_ITEMS = "SAVE_WFM_ITEMS";
+export const SAVE_WFM_STATS = "SAVE_WFM_STATS";
 
 // Modal
 export const EDIT_MODAL = "EDIT_MODAL";

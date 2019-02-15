@@ -29,6 +29,8 @@ import {
         GET_WFM_JOB,
         GET_WFM_LEADS,
         GET_WFM_CLIENTS,
+        SAVE_WFM_ITEMS,
+        SAVE_WFM_STATS,
         READ_NOTICE,
         RESET_LOCAL,
         SEARCH_CHANGE,
@@ -39,6 +41,7 @@ import {
         UPDATE_STAFF,
       } from "../constants/action-types";
 import firebase from '../config/firebase';
+import moment from 'moment';
 import {
   asbestosSamplesRef,
   auth,
@@ -1018,4 +1021,24 @@ export const updateGeocodes = geocodes => dispatch => {
     type: GET_GEOCODES,
     payload: geocodes,
   })
+}
+
+export const saveWFMItems = items => dispatch => {
+  var date = moment().format('YYYY-MM-DD');
+  stateRef.doc("wfmstate").collection("states").doc(date).set({ state: items });
+  dispatch({
+    type: SAVE_WFM_ITEMS,
+    payload: items,
+  });
+}
+
+export const saveStats = stats => dispatch => {
+  var date = moment().format('YYYY-MM-DD');
+  console.log(stats);
+  stateRef.doc("stats").collection("clientsjobs").doc(date).set({ state: stats['clients'] });
+  stateRef.doc("stats").collection("staffjobs").doc(date).set({ state: stats['staff'] });
+  dispatch({
+    type: SAVE_WFM_STATS,
+    payload: stats,
+  });
 }

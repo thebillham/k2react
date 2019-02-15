@@ -36,6 +36,8 @@ import {
           SET_MODAL_ERROR,
           SET_ANALYST,
           SET_ANALYSIS_MODE,
+          SAVE_WFM_ITEMS,
+          SAVE_WFM_STATS,
         } from "../constants/action-types"
 
 import { stateRef, } from "../config/firebase";
@@ -70,9 +72,11 @@ const localInit = {
   userRefName: null,
   vehicles: [],
   wfmJob: null,
+  wfmItems: [],
   wfmJobs: [],
   wfmLeads: [],
   wfmClients: [],
+  wfmStats: {},
 };
 
 // Properties related to local data retrieved from firebase
@@ -221,6 +225,16 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         wfmClients: action.payload,
+      }
+    case SAVE_WFM_ITEMS:
+      return {
+        ...state,
+        wfmItems: action.payload,
+      }
+    case SAVE_WFM_STATS:
+      return {
+        ...state,
+        wfmStats: action.payload,
       }
     case GET_GEOCODES:
       return {

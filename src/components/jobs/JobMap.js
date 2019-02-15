@@ -6,16 +6,24 @@ import { connect } from 'react-redux';
 import ReactTable from 'react-table';
 import StaffIcon from '@material-ui/icons/People';
 import ListItem from '@material-ui/core/ListItem';
+import Divider from '@material-ui/core/Divider';
 import ListItemText from '@material-ui/core/ListItemText';
+import Grid from '@material-ui/core/Grid';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
+import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import 'react-table/react-table.css'
 import treeTableHOC from 'react-table/lib/hoc/treeTable';
 import JobCard from './JobCard';
 import { FormattedDate } from 'react-intl';
 // import GoogleMapReact from 'google-map-react';
-import { Map, GoogleApiWrapper, Marker } from 'google-maps-react';
+import { Map, GoogleApiWrapper, Marker, InfoWindow } from 'google-maps-react';
+import _ from 'lodash';
 
-import { fetchWFMJobs, fetchWFMLeads, fetchWFMClients, saveGeocodes, fetchGeocodes, updateGeocodes } from '../../actions/local';
+import { fetchWFMJobs, fetchWFMLeads, fetchWFMClients, saveGeocodes, fetchGeocodes, updateGeocodes, saveWFMItems, saveStats, } from '../../actions/local';
 
 const mapStyles = {
   width: '100%',
@@ -28,6 +36,8 @@ const mapStateToProps = state => {
     wfmLeads: state.local.wfmLeads,
     wfmClients: state.local.wfmClients,
     geocodes: state.local.geocodes,
+    wfmItems: state.local.wfmItems,
+    wfmStats: state.local.wfmStats,
    };
 };
 
@@ -39,16 +49,40 @@ const mapDispatchToProps = dispatch => {
     saveGeocodes: (g) => dispatch(saveGeocodes(g)),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
     updateGeocodes: (g) => dispatch(updateGeocodes(g)),
+    saveWFMItems: (items) => dispatch(saveWFMItems(items)),
+    saveStats: (stats) => dispatch(saveStats(stats)),
   }
 }
 
+{/*
+  Marker types needed
+
+  Job Booked today - in progress & start date is today
+  Lead
+  New lead (last week)
+  Planned
+  In Progress
+  Job Needs Booking
+  Other stages
+
+  Colours/icons
+
+  Asbestos
+  Meth
+  Stack
+  Noise
+  Biological
+  Workplace
+
+
+*/}
 {/*
   const sharing = `)]}'[[[["116014827704053718107","https://lh6.googleusercontent.com/-ACxOv5b8G5o/AAAAAAAAAAI/AAAAAAAAAAA/ACevoQM8MeUWGyV10IYoIT3EGeCL8Cx1Zg/mo/photo.jpg",null,"Kelly Hutchinson",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgIDSgA"],[null,[null,172.6840079,-43.5591395],1550179646944,14,"24/105 Bamford St, Woolston, Christchurch 8023, Nouvelle-Zélande",null,"NZ",46800000],null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCAwoCg",null,["116014827704053718107","https://lh6.googleusercontent.com/-ACxOv5b8G5o/AAAAAAAAAAI/AAAAAAAAAAA/ACevoQM8MeUWGyV10IYoIT3EGeCL8Cx1Zg/mo/photo.jpg","Kelly Hutchinson","Kelly"],0,null,null,null,null,null,[1,100],3],[["113507006967434942504","https://lh3.googleusercontent.com/a-/AAuE7mAPYmoZVX4q9mqW_y1CBS7ob5sqnra6v-9ZCLSz",null,"Maree Pierce",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgIHigA"],[null,[null,172.6839364,-43.5592242],1550179335715,16,"105 Bamford St, Woolston, Christchurch 8023, Nouvelle-Zélande",null,"NZ",46800000],null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCB0oCw",null,["113507006967434942504","https://lh3.googleusercontent.com/a-/AAuE7mAPYmoZVX4q9mqW_y1CBS7ob5sqnra6v-9ZCLSz","Maree Pierce","Maree"],1,null,null,null,null,null,[0,56],1],[["105912023859982624237","https://lh3.googleusercontent.com/a-/AAuE7mCaxzo5FZJ5NooypYWoPyngTvBHdSPBP3qd4Okh",null,"James Piesse",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgILygA"],[null,[null,172.6839793,-43.5592335],1550179503334,18,"105 Bamford St, Woolston, Christchurch 8023, Nouvelle-Zélande",null,"NZ",46800000],null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCC4oDA",null,["105912023859982624237","https://lh3.googleusercontent.com/a-/AAuE7mCaxzo5FZJ5NooypYWoPyngTvBHdSPBP3qd4Okh","James Piesse","James"],1,null,null,null,null,null,[0,63],1],[["114788267360977829808","https://lh3.googleusercontent.com/a-/AAuE7mBsqIzdWgYzhRFWAL-Bv112GohpHqMxrfehBrnt",null,"Max Gallagher",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgIQCgA"],[null,[null,172.6839407,-43.5592415],1550178003014,22,"24/105 Bamford St, Woolston, Christchurch 8023, Nouvelle-Zélande",null,"NZ",46800000],null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCD8oDQ",null,["114788267360977829808","https://lh3.googleusercontent.com/a-/AAuE7mBsqIzdWgYzhRFWAL-Bv112GohpHqMxrfehBrnt","Max Gallagher","Max"],1,null,null,null,null,null,[0,39],1],[["108182579219510128981","https://lh3.googleusercontent.com/a-/AAuE7mD4E0Hu2CGN2L4f8zsECwy01jMuDz8u1-IJmMz7",null,"Reagan Solodi",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgIUCgA"],null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCE8oDg",null,["108182579219510128981","https://lh3.googleusercontent.com/a-/AAuE7mD4E0Hu2CGN2L4f8zsECwy01jMuDz8u1-IJmMz7","Reagan Solodi","Reagan"],1]],null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQ8ZABCAE","Z91lXOHWEMvtvgTiyJTIDA",null,null,"GvoEAN3tZxiI+V6MU6jCZ6kvJ5tVf4TvC+GsZhuxSNyn1XBEVf3UOg8WRQnsvuViwh2fxbaASV2HVYtZQha+YBRb3NBnwMORsiaW3DZixa57whNBCtP19DKhKKe2R7LAdv728x9wgyrMfFqa0ztOp7DnBQq+dI0PbD0amQPDvgXxC3AulZIIXlsrMf0hTslq6n06EiOiC1Ga1rfhcF+AheAPF0EvMoOyC7pQpWnKVUzERjuzokCJUJwxe10La+PjY69K9x6MSzSp+CEfmGgrqwSbuhorPR8+qGfVgkTQEyKPTA84vhB09H5Fb1bGYTZM9pIiM6j6HunfQEcGv0XtlWr9wN3RrEPby18n3JLFYB+j8oj9Ds6yNin9Mq2SJU8dk50l2oVGN3F89iRPNo6oHKfeth0X1GiD7cWymB+Pj9IGuZaWQnb6d7sOJCpBbTK76kQoxAweiqfqNyotmm10n6zlrS9LXPS2MKXvyF+cfNeO+C2G9Ry337tF4xIWZyWTNwpgK+isZMQYi5RRqUAwsEaGdsqiocGSg/eU6aknmddCKC6Ijjsx6XOjaRqgUbRmUrlvFc0RrQ4pMDBO3k+/+YOcpal5SbL4yW+rPFMBZFmNDjdL9jTlPfp9erUdVCsPFh7wHLsU19m1ytzAB7pdvCOudYcv1IYtzAEeNgqaf93e4EyFBVjNila+0OqyHjK0dTrg+3ox82opRvyWZIZOZ/QgIUGY36W7w3JdNWPb5GgCCazbitcFYtkvSJGeuyHcatZWK5F0ILQbT1yXnW6P0qkB1QiybGHc91kjEROqmXFYZ7U2INxagYHgpC/Ab5QZwXUjZJ7kL8/gk+nAQ",4,1550179688202,[null,[null,[null,172.6792273,-43.5555654],1550179140628,1600,"Woolston, Christchurch, Nouvelle-Zélande",null,"NZ",46800000],"ILfzhtOroM3gbA"]]`;
 
 const proxyURL = 'https://cors-anywhere.herokuapp.com/';
 const locationSharingAddress = 'https://www.google.com/maps/preview/locationsharing/read?authuser=0&hl=en&gl=en&pb=';}*/}
 
-class Jobs extends React.Component {
+class JobMap extends React.Component {
   constructor(props) {
     super(props);
 
@@ -83,19 +117,29 @@ class Jobs extends React.Component {
       staffStats: {
         'K2': statSheet,
       },
+      stage: 'Show All',
+      category: 'Show All',
       clientStats: {},
+      activeMarker: {},
+      showingInfoWindow: false,
+      m: {},
     }
   }
 
   componentWillMount() {
-    this.props.fetchWFMJobs();
-    this.props.fetchWFMLeads();
-    this.props.fetchWFMClients();
-    this.props.fetchGeocodes();
+    if (this.props.wfmItems.length === 0) {
+      this.props.fetchWFMJobs();
+      this.props.fetchWFMLeads();
+      this.props.fetchWFMClients();
+      this.props.fetchGeocodes();
+    } else {
+      this.state.leads = this.props.wfmItems;
+    }
   }
 
   componentWillUnmount() {
-    console.log(this.props.geocodes);
+    this.props.saveWFMItems(this.state.leads);
+    this.props.saveStats({ 'staff': this.state.staffStats, 'clients': this.state.clientStats });
     if (this.props.geocodes) this.props.saveGeocodes(this.props.geocodes);
   }
 
@@ -208,6 +252,7 @@ class Jobs extends React.Component {
       this.state.leads = [...this.state.leads, lead,];
     } else {
       let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_API_KEY}`;
+      console.log('Getting GEOCODE for ' + address);
       fetch(path).then(response => response.json()).then(response => {
         var gc = this.props.geocodes;
         gc[address] = this.simplifiedGeocode(response.results[0]);
@@ -443,6 +488,7 @@ class Jobs extends React.Component {
 
 // Collate Jobs (need booking) and Leads into a set of data that can be displayed nicely
   collateLeadsData = () => {
+    console.log('COLLATING LEADS AND JOBS');
     // this.geocodeAddress('aljflasdfj;l','199 Centaurus Road, Christchurch');
 
     // Filter only jobs that need booking
@@ -461,7 +507,8 @@ class Jobs extends React.Component {
       lead.jobNumber = job.jobNumber;
       lead.creationDate = job.startDate;
       lead.category = job.type;
-      lead.currentStatus = job.currentStatus;
+      // lead.currentStatus = job.currentStatus;
+      lead.state = job.state;
       lead.urgentAction = '';
       lead.lastActionDate = job.startDate;
       lead.lastActionType = 'Converted into job';
@@ -496,8 +543,10 @@ class Jobs extends React.Component {
       lead.jobNumber = job.jobNumber;
       lead.creationDate = job.startDate;
       lead.category = job.type;
-      lead.currentStatus = job.currentStatus;
+      // lead.currentStatus = job.currentStatus;
+      lead.state = job.state;
       lead.urgentAction = '';
+      lead.daysOld = this.getDaysSinceDate(lead.creationDate);
       // lead.lastActionDate = job.startDate;
       // lead.lastActionType = 'Converted into job';
       // lead.nextActionType = 'Book job';
@@ -512,10 +561,10 @@ class Jobs extends React.Component {
       lead.client = wfmLead.client;
       lead.name = wfmLead.name;
       lead.owner = wfmLead.owner;
-      lead.jobNumber = '-';
+      lead.jobNumber = 'Lead';
       lead.creationDate = wfmLead.date;
       lead.category = wfmLead.category;
-      lead.currentStatus = wfmLead.currentStatus;
+      // lead.currentStatus = wfmLead.currentStatus;
       lead.urgentAction = '';
       lead.value = wfmLead.value;
 
@@ -557,6 +606,124 @@ class Jobs extends React.Component {
     });
   }
 
+  filterLabels = (m) => {
+    if (m && m.geocode.address != 'New Zealand') {
+      if (this.filterCategory(m) && this.filterStage(m)) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  filterCategory = (m) => {
+    if (m.category.includes(this.state.category) || this.state.category == 'Show All') return true;
+      else return false;
+  }
+
+  filterStage = (m) => {
+    if (this.state.stage == 'Show All') return true;
+    if (this.state.stage == 'All Jobs' && m.isJob) return true;
+    if (this.state.stage == 'All Job Leads' && !m.isJob) return true;
+    if (this.state.stage == 'New Lead' && !m.isJob && m.daysOld < 8) return true;
+    if (this.state.stage == 'Job Needs Booking' && m.state == 'Needs Booking') return true;
+    if (this.state.stage == 'Planned' && m.state == 'Planned') return true;
+    if (this.state.stage == 'In Progress' && m.state == 'In Progress') return true;
+    if (this.state.stage == 'Job Start Today' && m.state == 'In Progress' && m.daysOld == 0) return true;
+    if (this.state.stage == 'Post-Site Work Jobs' && m.isJob && !'NeedsBookingPlannedIn Progress'.includes(m.state)) return true;
+    return false;
+  }
+
+  switchCategory = cat => {
+    this.setState({
+      category: cat,
+    });
+  }
+
+  switchStage = cat => {
+    this.setState({
+      stage: cat,
+    });
+  }
+
+  getWfmUrl = () => {
+    var path;
+    if (this.state.m.isJob) {
+      path = `https://my.workflowmax.com/job/jobview.aspx?id=${this.state.m.wfmID}`;
+    } else {
+      path = `https://my.workflowmax.com/lead/view.aspx?id=${this.state.m.wfmID}`;
+    }
+    return path;
+  }
+
+  // gotoWFM = () => {
+  //   console.log('GoTO');
+  //   var path;
+  //   if (this.state.m.isJob) {
+  //     path = `https://my.workflowmax.com/job/jobview.aspx?id=${this.state.m.wfmID}`;
+  //   } else {
+  //     path = `https://my.workflowmax.com/lead/view.aspx?id=${this.state.m.wfmID}`;
+  //   }
+  //   var win = window.open(path, '_blank');
+  //   win.focus();
+  // }
+
+  onMarkerClick = (marker, m) => {
+    this.setState({
+      activeMarker: marker,
+      m: m,
+      showingInfoWindow: true,
+    })
+  }
+
+  onMouseover = () => {
+    this.setState({
+      showInfoBox: true,
+    })
+  }
+
+  onMouseout = () => {
+    this.setState({
+      showInfoBox: false,
+    });
+  }
+
+  getIcon = cat => {
+    var img = 'other';
+    ['asbestos','meth','stack','bio','noise','workplace',].map(i => {
+      if (cat.toLowerCase().includes(i)) img = i;
+    });
+    var url = 'http://my.k2.co.nz/icons/' + img + '.png';
+    return url;
+  }
+
+  getColour = cat => {
+    var col = 'other';
+    ['show all','asbestos','meth','stack','bio','noise','workplace',].map(i => {
+      if (cat.toLowerCase().includes(i)) col = i;
+    });
+    switch(col) {
+      case 'show all':
+        return '#555';
+      case 'asbestos':
+        return '#7d6d26';
+      case 'meth':
+        return '#ff0065';
+      case 'stack':
+        return '#e33714';
+      case 'bio':
+        return '#87cc14';
+      case 'noise':
+        return '#995446';
+      case 'workplace':
+        return '#a2539c';
+      default:
+        return '#6fa1b6';
+    }
+  }
+
   render() {
     const K_WIDTH = 40;
     const K_HEIGHT = 40;
@@ -564,7 +731,32 @@ class Jobs extends React.Component {
     if (wfmJobs.length > 0 && wfmLeads.length > 0 && wfmClients.length > 0 && geocodes && this.state.leads.length === 0) this.collateLeadsData();
     // console.log(this.state.leads);
     return (
-      <div style={{ height: '100vh', width: '100%', }}>
+      <div style = {{ marginTop: 80 }}>
+          <Grid container spacing={8}>
+            { ['Show All','All Job Leads','New Lead','Job Needs Booking','All Jobs','Planned','In Progress','Job Start Today','Post-Site Work Jobs',].map(cat => {
+              return (
+                <Grid item key={cat}>
+                  <Button variant="outlined" color={this.state.stage === cat ? "secondary" : "primary"} onClick={() => this.switchStage(cat)}>
+                    {cat}
+                  </Button>
+                </Grid>
+              );
+            })}
+          </Grid>
+          <Divider style = {{ marginTop: 20, marginBottom: 20, }} />
+          <Grid container spacing={8} style={{ marginBottom: 20 }}>
+            { ['Show All','Asbestos','Meth','Stack','Noise','Bio','Workplace','Other',].map(cat => {
+              var colour = this.getColour(cat);
+              return (
+                <Grid item key={cat}>
+                  <Button variant="outlined" color={this.state.category === cat ? "secondary" : "primary"} onClick={() => this.switchCategory(cat)}>
+                    <span style={{ color: colour }}>{cat}</span>
+                  </Button>
+                </Grid>
+              );
+            })}
+          </Grid>
+          <Divider />
           <Map
             google={this.props.google}
             zoom={6.27}
@@ -576,70 +768,39 @@ class Jobs extends React.Component {
           >
             {
               this.state.leads.map(m => {
-                if (m && m.geocode.address != 'New Zealand')
-                return(
-                  <Marker
-                    key={m.wfmID}
-                    position={{ lat: m.geocode.location[0], lng: m.geocode.location[1] }}
-                    title={m.client}
-                    />
-                  );
+                if (this.filterLabels(m)) {
+                  var url = this.getIcon(m.category);
+                  return(
+                    <Marker
+                      key={m.wfmID}
+                      onClick={(props, marker, e) => { this.onMarkerClick(marker, m) }}
+                      position={{ lat: m.geocode.location[0], lng: m.geocode.location[1] }}
+                      title={`${m.jobNumber}: ${m.client}`}
+                      icon={{
+                        url: url,
+                        anchor: new this.props.google.maps.Point(16,16),
+                        scaledSize: new this.props.google.maps.Size(32,32)
+                      }}
+                      />
+                    );
+                  }
               })
             }
+            <InfoWindow
+              style={{ borderRadius: 80, opacity: 0.5 }}
+              marker={this.state.activeMarker}
+              visible={this.state.showingInfoWindow}>
+                <div style={{ borderRadius: 80, }}>
+                  <h4>{this.state.m.name}</h4>
+                  <Button variant="outlined" color="primary" href={ this.state.m.isJob ? `https://my.workflowmax.com/job/jobview.aspx?id=${this.state.m.wfmID}` : `https://my.workflowmax.com/lead/view.aspx?id=${this.state.m.wfmID}` }>
+                    View on WorkflowMax
+                  </Button>
+                </div>
+            </InfoWindow>
           </Map>
       </div>
-
     );
-
-{/*
-
-    return (
-      <div style = {{ marginTop: 80 }}>
-        {wfmLeads &&
-        <ReactTable
-          data={wfmLeads}
-          columns={[
-            {
-              Header: "Name",
-              accessor: "name"
-            },
-            {
-              Header: "Category",
-              accessor: "category"
-            },
-            {
-              Header: "Client",
-              accessor: "client"
-            },
-            {
-              Header: "Owner",
-              accessor: "owner"
-            },
-            {
-              Header: "Date",
-              id: "date",
-              accessor: d => <FormattedDate value={d.date instanceof Date ? d.date : new Date(d.date)} month='long' day='numeric' year='numeric' />
-            },
-            {
-              Header: "How Old",
-              id: "howold",
-              accessor: d => d.date instanceof Date ? this.displayTimeDifference(d.date) : this.displayTimeDifference(new Date(d.date))
-            }
-          ]}
-          defaultSorted={[
-            {
-              id: "ID",
-              desc: true,
-            }
-          ]}
-          defaultPageSize={25}
-          className="-striped -highlight"
-          />
-        }
-      </div>
-    );
-*/}
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GoogleApiWrapper({apiKey: process.env.REACT_APP_GOOGLE_API_KEY})(Jobs));
+export default connect(mapStateToProps, mapDispatchToProps)(GoogleApiWrapper({apiKey: process.env.REACT_APP_GOOGLE_API_KEY})(JobMap));

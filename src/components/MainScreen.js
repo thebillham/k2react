@@ -36,6 +36,7 @@ import Collapse from '@material-ui/core/Collapse';
 // import DashboardIcon from '@material-ui/icons/Dashboard';
 import NoticeboardIcon from '@material-ui/icons/SpeakerNotes';
 import JobsIcon from '@material-ui/icons/Assignment';
+import MapIcon from '@material-ui/icons/Map';
 import LabIcon from '@material-ui/icons/Colorize';
 import StaffIcon from '@material-ui/icons/People';
 import MyDetailsIcon from '@material-ui/icons/Person';
@@ -74,6 +75,7 @@ const Vehicles = lazy(() => import('./assets/Vehicles'));
 const Noticeboard = lazy(() => import('./noticeboard/Noticeboard'));
 const AsbestosLab = lazy(() => import('./asbestoslab/AsbestosLab'));
 const Jobs = lazy(() => import('./jobs/Jobs'));
+const JobMap = lazy(() => import('./jobs/JobMap'));
 // import Noticeboard from './noticeboard/Noticeboard';
 // import Jobs from './jobs/Jobs';
 // import AsbestosLab from './asbestoslab/AsbestosLab'
@@ -359,35 +361,12 @@ class MainScreen extends React.Component {
           </List>
         <Divider />
           <List>
-            <ListItem button onClick={this.handleTrainingClick}>
-              <ListItemIcon>
-                <TrainingIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Training" />
-              {this.state.openTraining ? <ExpandLess /> : <ExpandMore /> }
-            </ListItem>
-            <Collapse in={this.state.openTraining} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItem button component={Link} to="/trainingoverview" className={classes.nested}>
-                  <ListItemText primary="Overview" />
-                </ListItem>
-                <ListItem button component={Link} to="/training" className={classes.nested}>
-                  <ListItemText primary="Training Paths" />
-                </ListItem>
-              </List>
-            </Collapse>
-            <ListItem button component={Link} to="/quizzes">
-              <ListItemIcon>
-                <QuizIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Quizzes" />
-            </ListItem>
 
-            <ListItem button component={Link} to="/library">
+            <ListItem button component={Link} to="/jobs/map">
               <ListItemIcon>
-                <LibraryIcon className={classes.accentButton} />
+                <MapIcon className={classes.accentButton} />
               </ListItemIcon>
-              <ListItemText primary="Library" />
+              <ListItemText primary="Jobs Map" />
             </ListItem>
           </List>
 
@@ -401,6 +380,37 @@ class MainScreen extends React.Component {
               {this.state.openDev ? <ExpandLess /> : <ExpandMore /> }
             </ListItem>
             <Collapse in={this.state.openDev} timeout="auto" unmountOnExit>
+              <ListItem button onClick={this.handleTrainingClick} className={classes.nested}>
+                <ListItemIcon>
+                  <TrainingIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Training" />
+                {this.state.openTraining ? <ExpandLess /> : <ExpandMore /> }
+              </ListItem>
+              <Collapse in={this.state.openTraining} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  <ListItem button component={Link} to="/trainingoverview" className={classes.nested}>
+                    <ListItemText primary="Overview" />
+                  </ListItem>
+                  <ListItem button component={Link} to="/training" className={classes.nested}>
+                    <ListItemText primary="Training Paths" />
+                  </ListItem>
+                </List>
+              </Collapse>
+
+              <ListItem button component={Link} to="/quizzes" className={classes.nested}>
+                <ListItemIcon>
+                  <QuizIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Quizzes" />
+              </ListItem>
+
+              <ListItem button component={Link} to="/library" className={classes.nested}>
+                <ListItemIcon>
+                  <LibraryIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Library" />
+              </ListItem>
               <List component="div" disablePadding>
                 <ListItem button component={Link} to="/vehicles" className={classes.nested}>
                   <ListItemIcon>
@@ -473,13 +483,13 @@ class MainScreen extends React.Component {
                   </div>
                 }
 
-                <ListItem button component={Link} to="/help">
+                <ListItem button component={Link} to="/help" className={classes.nested}>
                   <ListItemIcon>
                     <HelpIcon className={classes.accentButton} />
                   </ListItemIcon>
                   <ListItemText primary="Help" />
                 </ListItem>
-                <ListItem button component={Link} to="/updates">
+                <ListItem button component={Link} to="/updates" className={classes.nested}>
                   <ListItemIcon>
                     <UpdatesIcon className={classes.accentButton} />
                   </ListItemIcon>
@@ -548,7 +558,8 @@ class MainScreen extends React.Component {
                             <Route exact path="/" render={() => <div>My Details</div>} />
                             <Route path="/dashboard" render={() => <div>Dashboard</div>} />
                             <Route path="/noticeboard" render={() => <div>Noticeboard</div>} />
-                            <Route path="/jobs" render={() => <div>Jobs</div>} />
+                            <Route exact path="/jobs" render={() => <div>Jobs</div>} />
+                            <Route path="/jobs/map" render={() => <div>Jobs Map</div>} />
                             <Route path="/lab" render={() => <div>Asbestos Lab</div>} />
                             <Route exact path="/staff" render={() => <div>Staff</div>} />
                             <Route exact path="/vehicles" render={() => <div>Vehicles</div>} />
@@ -624,7 +635,8 @@ class MainScreen extends React.Component {
                           <Route path="/updates" component={Updates} />
                           <Route path="/dashboard" component={Dashboard} />
                           <Route path="/noticeboard" component={Noticeboard} />
-                          <Route path="/jobs" component={Jobs} />
+                          <Route exact path="/jobs" component={Jobs} />
+                          <Route path = "/jobs/map" component={JobMap} />
                           <Route path="/lab" component={AsbestosLab} />
                           <Route exact path="/staff/training/:user" component={UserTraining} key="stafftraining" />
                           <Route exact path="/staff/readinglog/:user" component={UserReadingLog} key="staffreadinglog" />

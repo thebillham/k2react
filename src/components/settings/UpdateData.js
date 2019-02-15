@@ -119,7 +119,7 @@ class UpdateData extends React.Component {
         <DialogTitle>Update Cached Data</DialogTitle>
         <DialogContent>
           { updateTypes.map(update => (
-            <div>
+            <div key={update}>
               <Button variant="outlined" color="default" style={{ marginTop: 16, }} onClick={update.event}>
               { update.title }
               </Button>
