@@ -251,10 +251,11 @@ class JobMap extends React.Component {
       lead.geocode = this.props.geocodes[address];
       this.state.leads = [...this.state.leads, lead,];
     } else {
-      let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_API_KEY}`;
+      let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY}`;
       console.log('Getting GEOCODE for ' + address);
       fetch(path).then(response => response.json()).then(response => {
         var gc = this.props.geocodes;
+        // TODO response error
         gc[address] = this.simplifiedGeocode(response.results[0]);
         this.props.updateGeocodes(gc);
         lead.geocode = gc[address];
@@ -319,6 +320,7 @@ class JobMap extends React.Component {
   }
 
   simplifiedGeocode = g => {
+    console.log(g);
     return {
       address: g.formatted_address,
       location: [g.geometry.location.lat, g.geometry.location.lng],
@@ -803,4 +805,4 @@ class JobMap extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GoogleApiWrapper({apiKey: process.env.REACT_APP_GOOGLE_API_KEY})(JobMap));
+export default connect(mapStateToProps, mapDispatchToProps)(GoogleApiWrapper({apiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY})(JobMap));
