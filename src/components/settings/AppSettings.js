@@ -111,7 +111,7 @@ class AppSettings extends React.Component {
                 label="Asbestos Materials"
                 multiline
                 defaultValue={doc && doc.asbestosmaterials && doc.asbestosmaterials.map(obj => { return obj.label }).join('\n')}
-                helperText='Put each material on a new line.'
+                helperText='Put each material on a new line in the form "material name|product score|asbestos score.'
                 className={classes.dialogField}
                 onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
               />}

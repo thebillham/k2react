@@ -803,4 +803,4 @@ class JobMap extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GoogleApiWrapper({apiKey: process.env.REACT_APP_GOOGLE_API_KEY})(JobMap));
+export default connect(mapStateToProps, mapDispatchToProps)(GoogleApiWrapper({apiKey: process.env.REACT_APP_GOOGLE_MAP_KEY})(JobMap));
