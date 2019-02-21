@@ -1,6 +1,7 @@
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
+import { formStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 // import { FormattedDate } from 'react-intl';
 import ReactTable from 'react-table';
@@ -113,6 +114,8 @@ class JobMap extends React.Component {
 
     this.state = {
       leads: [],
+      noLocationJobs: [],
+      noLocationLeads: [],
       statSheet: statSheet,
       staffStats: {
         'K2': statSheet,
@@ -250,6 +253,8 @@ class JobMap extends React.Component {
       console.log('Already there');
       lead.geocode = this.props.geocodes[address];
       this.state.leads = [...this.state.leads, lead,];
+      if (lead.geocode.address == "New Zealand" && !lead.isJob) this.setState({ noLocationLeads: [...this.state.noLocationLeads, lead,] });
+      if (lead.geocode.address == "New Zealand" && lead.isJob) this.setState({ noLocationJobs: [...this.state.noLocationJobs, lead,] });
     } else {
       let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY}`;
       console.log('Getting GEOCODE for ' + address);
@@ -259,6 +264,11 @@ class JobMap extends React.Component {
         gc[address] = this.simplifiedGeocode(response.results[0]);
         this.props.updateGeocodes(gc);
         lead.geocode = gc[address];
+        if (lead.geocode.address == "New Zealand" && !lead.isJob) this.setState({ noLocationLeads: [...this.state.noLocationLeads, lead,] });
+        if (lead.geocode.address == "New Zealand" && lead.isJob) this.setState({ noLocationJobs: [...this.state.noLocationJobs, lead,] });
+
+        //Find any items with same geocode
+
         // console.log(lead);
         this.setState({
           leads: [
@@ -488,6 +498,18 @@ class JobMap extends React.Component {
     }
   }
 
+  openNoLocationLeads = () => {
+    this.setState({
+      modal: 'leads',
+    })
+  }
+
+  openNoLocationJobs = () => {
+    this.setState({
+      modal: 'jobs',
+    })
+  }
+
 // Collate Jobs (need booking) and Leads into a set of data that can be displayed nicely
   collateLeadsData = () => {
     console.log('COLLATING LEADS AND JOBS');
@@ -514,7 +536,9 @@ class JobMap extends React.Component {
       lead.urgentAction = '';
       lead.lastActionDate = job.startDate;
       lead.lastActionType = 'Converted into job';
+      lead.daysSinceLastAction = this.getDaysSinceDate(job.startDate);
       lead.nextActionType = 'Book job';
+      lead.nextActionOverdueBy = lead.daysSinceLastAction - 30; // Arbitrarily added 30 days as how long between converting to job and booking
       lead.daysOld = this.getDaysSinceDate(lead.creationDate);
       lead.isJob = true;
 
@@ -630,6 +654,8 @@ class JobMap extends React.Component {
     if (this.state.stage == 'All Jobs' && m.isJob) return true;
     if (this.state.stage == 'All Job Leads' && !m.isJob) return true;
     if (this.state.stage == 'New Lead' && !m.isJob && m.daysOld < 8) return true;
+    if (this.state.stage == 'Leads with Overdue Actions' && !m.isJob && m.nextActionOverdueBy > 0) return true;
+    if (this.state.stage == 'Jobs with Overdue Actions' && m.isJob && m.nextActionOverdueBy > 0) return true;
     if (this.state.stage == 'Job Needs Booking' && m.state == 'Needs Booking') return true;
     if (this.state.stage == 'Planned' && m.state == 'Planned') return true;
     if (this.state.stage == 'In Progress' && m.state == 'In Progress') return true;
@@ -650,27 +676,28 @@ class JobMap extends React.Component {
     });
   }
 
-  getWfmUrl = () => {
+  getWfmUrl = (m) => {
     var path;
-    if (this.state.m.isJob) {
-      path = `https://my.workflowmax.com/job/jobview.aspx?id=${this.state.m.wfmID}`;
+    if (m.isJob) {
+      path = `https://my.workflowmax.com/job/jobview.aspx?id=${m.wfmID}`;
     } else {
-      path = `https://my.workflowmax.com/lead/view.aspx?id=${this.state.m.wfmID}`;
+      path = `https://my.workflowmax.com/lead/view.aspx?id=${m.wfmID}`;
     }
+    console.log(path);
     return path;
   }
 
-  // gotoWFM = () => {
-  //   console.log('GoTO');
-  //   var path;
-  //   if (this.state.m.isJob) {
-  //     path = `https://my.workflowmax.com/job/jobview.aspx?id=${this.state.m.wfmID}`;
-  //   } else {
-  //     path = `https://my.workflowmax.com/lead/view.aspx?id=${this.state.m.wfmID}`;
-  //   }
-  //   var win = window.open(path, '_blank');
-  //   win.focus();
-  // }
+  gotoWFM = (m) => {
+    console.log('GoTO');
+    var path;
+    if (m.isJob) {
+      path = `https://my.workflowmax.com/job/jobview.aspx?id=${m.wfmID}`;
+    } else {
+      path = `https://my.workflowmax.com/lead/view.aspx?id=${m.wfmID}`;
+    }
+    var win = window.open(path, '_blank');
+    win.focus();
+  }
 
   onMarkerClick = (marker, m) => {
     this.setState({
@@ -703,6 +730,7 @@ class JobMap extends React.Component {
 
   getColour = cat => {
     var col = 'other';
+    if (!cat) return '#6fa1b6';
     ['show all','asbestos','meth','stack','bio','noise','workplace',].map(i => {
       if (cat.toLowerCase().includes(i)) col = i;
     });
@@ -726,19 +754,93 @@ class JobMap extends React.Component {
     }
   }
 
+  getOffset = (n) => {
+    var o = 20;
+    var s = Math.floor((n - 1)/8) + 1;
+    var mod = (n % 9) + (s - 1);
+    if (n == 0) mod = 0;
+    // if (n>0) console.log('n: ' + n + ', s: ' + s + ', mod: ' + mod);
+    switch(mod) {
+      case 0:
+        return [0, 0];
+      case 1:
+        return [s*o, 0];
+      case 2:
+        return [0, -s*o];
+      case 3:
+        return [-s*o, 0];
+      case 4:
+        return [0, s*o];
+      case 5:
+        return [s*o, s*o];
+      case 6:
+        return [s*o, -s*o];
+      case 7:
+        return [-s*o, -s*o];
+      case 8:
+        return [-s*o, s*o];
+
+      default:
+        return [0, 0];
+    }
+  }
+
   render() {
     const K_WIDTH = 40;
     const K_HEIGHT = 40;
-    const { wfmJobs, wfmLeads, wfmClients, geocodes, } = this.props;
+    const { wfmJobs, wfmLeads, wfmClients, geocodes, classes } = this.props;
     if (wfmJobs.length > 0 && wfmLeads.length > 0 && wfmClients.length > 0 && geocodes && this.state.leads.length === 0) this.collateLeadsData();
     // console.log(this.state.leads);
+
+    const noLocationModal = (
+      <Dialog
+        maxWidth = "sm"
+        fullWidth = { true }
+        open={ this.state.modal != null }
+        onClose = {() => this.setState({ modal: null })}
+      >
+      <DialogTitle>{ this.state.modal == 'jobs' ? 'Jobs with No Location Data' : 'Leads with No Location Data' }</DialogTitle>
+      <DialogContent>
+       { this.state.modal == 'jobs' ?
+        this.state.leads && this.state.leads.filter((m) => m.geocode.address == 'New Zealand' && m.isJob).map((m) => {
+          return (
+            <ListItem
+              dense
+              className={classes.hoverItem}
+              style={{ color: this.getColour(m.category) }}
+              onClick={() => { this.gotoWFM(m)}}>
+              {m.name} : {m.client}<br />
+              {m.category}<br />
+            </ListItem>
+          )
+        })
+       :
+        this.state.leads && this.state.leads.filter((m) => m.geocode.address == 'New Zealand' && !m.isJob).map((m) => {
+          return (
+            <ListItem
+              dense
+              className={classes.hoverItem}
+              style={{ color: this.getColour(m.category) }}
+              onClick={() => { this.gotoWFM(m)}}>
+              {m.name} : {m.client}
+            </ListItem>
+          )
+        })
+      }
+      </DialogContent>
+      </Dialog>
+    );
+
+    var addresses = {};
+
     return (
       <div style = {{ marginTop: 80 }}>
+          { this.state.modal && noLocationModal }
           <Grid container spacing={8}>
-            { ['Show All','All Job Leads','New Lead','Job Needs Booking','All Jobs','Planned','In Progress','Job Start Today','Post-Site Work Jobs',].map(cat => {
+            { ['Show All','All Job Leads','New Lead','Leads with Overdue Actions','All Jobs','Jobs with Overdue Actions','Job Needs Booking','Planned','In Progress','Job Start Today','Post-Site Work Jobs',].map(cat => {
               return (
                 <Grid item key={cat}>
-                  <Button variant="outlined" color={this.state.stage === cat ? "secondary" : "primary"} onClick={() => this.switchStage(cat)}>
+                  <Button style={{ fontSize: 12 }} variant="outlined" color={this.state.stage === cat ? "secondary" : "primary"} onClick={() => this.switchStage(cat)}>
                     {cat}
                   </Button>
                 </Grid>
@@ -752,11 +854,21 @@ class JobMap extends React.Component {
               return (
                 <Grid item key={cat}>
                   <Button variant="outlined" color={this.state.category === cat ? "secondary" : "primary"} onClick={() => this.switchCategory(cat)}>
-                    <span style={{ color: colour }}>{cat}</span>
+                    <span style={{ fontSize: 12, color: colour }}>{cat}</span>
                   </Button>
                 </Grid>
               );
             })}
+            {this.state.noLocationJobs && <Grid item>
+              <Button onClick={this.openNoLocationJobs}>
+                <span style={{ fontSize: 12 }}>View Jobs With No Location Data ({this.state.leads && this.state.leads.filter((m) => m.geocode.address == 'New Zealand' && m.isJob).length})</span>
+              </Button>
+            </Grid>}
+            {this.state.noLocationLeads && <Grid item>
+              <Button onClick={this.openNoLocationLeads}>
+                <span style={{ fontSize: 12 }}>View Leads With No Location Data ({this.state.leads && this.state.leads.filter((m) => m.geocode.address == 'New Zealand' && !m.isJob).length})</span>
+              </Button>
+            </Grid>}
           </Grid>
           <Divider />
           <Map
@@ -771,6 +883,12 @@ class JobMap extends React.Component {
             {
               this.state.leads.map(m => {
                 if (this.filterLabels(m)) {
+                  if (addresses[m.geocode.address] >= 0) {
+                    addresses[m.geocode.address] = addresses[m.geocode.address] + 1;
+                    console.log(m.jobNumber + ': ' + m.geocode.address + ' (' + addresses[m.geocode.address] + ')');
+                  } else {
+                    addresses[m.geocode.address] = 0;
+                  }
                   var url = this.getIcon(m.category);
                   return(
                     <Marker
@@ -780,7 +898,7 @@ class JobMap extends React.Component {
                       title={`${m.jobNumber}: ${m.client}`}
                       icon={{
                         url: url,
-                        anchor: new this.props.google.maps.Point(16,16),
+                        anchor: new this.props.google.maps.Point(16 + this.getOffset(addresses[m.geocode.address])[0], 16 + this.getOffset(addresses[m.geocode.address])[1]),
                         scaledSize: new this.props.google.maps.Size(32,32)
                       }}
                       />
@@ -789,14 +907,24 @@ class JobMap extends React.Component {
               })
             }
             <InfoWindow
-              style={{ borderRadius: 80, opacity: 0.5 }}
               marker={this.state.activeMarker}
               visible={this.state.showingInfoWindow}>
-                <div style={{ borderRadius: 80, }}>
-                  <h4>{this.state.m.name}</h4>
-                  <Button variant="outlined" color="primary" href={ this.state.m.isJob ? `https://my.workflowmax.com/job/jobview.aspx?id=${this.state.m.wfmID}` : `https://my.workflowmax.com/lead/view.aspx?id=${this.state.m.wfmID}` }>
-                    View on WorkflowMax
+                <div style={{ width: 300, lineHeight: 2, fontSize: 14, padding: 20, }}>
+                  <div><h5 style={{ color: this.getColour(this.state.m.category) }}>{this.state.m.jobNumber}: {this.state.m.client}</h5></div>
+                  <div style={{ color: this.getColour(this.state.m.category)}}><h6>{this.state.m.category}</h6></div>
+                  {this.state.m.geocode && <div><i>{this.state.m.geocode.address}</i></div>}
+                  {this.state.m.state && <div><b>State:</b> {this.state.m.state}</div>}
+                  <div><b>Owner:</b> {this.state.m.owner}</div>
+                  {this.state.m.lastActionType &&
+                    <div><b>Last Action:</b> {this.state.m.lastActionType} ({this.state.m.daysSinceLastAction} days ago)</div>
+                  }
+                  {this.state.m.nextActionType && <div><b>Next Action:</b> {this.state.m.nextActionType} {this.state.m.nextActionOverdueBy > 0 ? <span style={{ fontColor: '#ff0000', textDecoration: 'underline', }}>(Overdue by {this.state.m.nextActionOverdueBy} days)</span> : <span>(Due in {this.state.m.nextActionOverdueBy * -1} days)</span>}</div>}
+                  {this.state.m.value > 0 && <div><b>Estimated Value:</b> ${this.state.m.value} </div>}
+                  <div style={{ padding: 16, textAlign: 'center', }}>
+                  <Button variant="outlined" style={{ borderRadius: 20, }}>
+                    <a style={{ textDecoration: 'none', color: '#FF2D00'}} target="_blank" href={this.getWfmUrl(this.state.m)}>View on WorkflowMax</a>
                   </Button>
+                  </div>
                 </div>
             </InfoWindow>
           </Map>
@@ -805,4 +933,4 @@ class JobMap extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GoogleApiWrapper({apiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY})(JobMap));
+export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(GoogleApiWrapper({apiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY})(JobMap)));
