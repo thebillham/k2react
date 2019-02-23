@@ -1,33 +1,46 @@
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
-import { formStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 // import { FormattedDate } from 'react-intl';
-import ReactTable from 'react-table';
-import StaffIcon from '@material-ui/icons/People';
+// import ReactTable from 'react-table';
 import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider';
-import ListItemText from '@material-ui/core/ListItemText';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import Grid from '@material-ui/core/Grid';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
+import LineChart from 'recharts/lib/chart/LineChart';
+import Line from 'recharts/lib/cartesian/Line';
+import XAxis from 'recharts/lib/cartesian/XAxis';
+import YAxis from 'recharts/lib/cartesian/YAxis';
+import Legend from 'recharts/lib/component/Legend';
+import ZAxis from 'recharts/lib/cartesian/ZAxis';
+import Tooltip from 'recharts/lib/component/Tooltip';
+import Scatter from 'recharts/lib/cartesian/Scatter';
+import CartesianGrid from 'recharts/lib/cartesian/CartesianGrid';
+// import DialogActions from '@material-ui/core/DialogActions';
+import ExpandMore from '@material-ui/icons/ExpandMore';
 import Button from '@material-ui/core/Button';
-import List from '@material-ui/core/List';
-import 'react-table/react-table.css'
-import treeTableHOC from 'react-table/lib/hoc/treeTable';
+// import 'react-table/react-table.css'
+// import treeTableHOC from 'react-table/lib/hoc/treeTable';
 import JobCard from './JobCard';
 import { FormattedDate } from 'react-intl';
 // import GoogleMapReact from 'google-map-react';
 import { Map, GoogleApiWrapper, Marker, InfoWindow } from 'google-maps-react';
-import _ from 'lodash';
 
 import { fetchWFMJobs, fetchWFMLeads, fetchWFMClients, saveGeocodes, fetchGeocodes, updateGeocodes, saveWFMItems, saveStats, } from '../../actions/local';
 
 const mapStyles = {
-  width: '100%',
+  marginTop: 20,
+  flexGrow: 1,
+  overflow: 'auto',
+  // width: '90%',
   height: '100%',
 }
 
@@ -75,9 +88,6 @@ const mapDispatchToProps = dispatch => {
   Biological
   Workplace
 
-
-*/}
-{/*
   const sharing = `)]}'[[[["116014827704053718107","https://lh6.googleusercontent.com/-ACxOv5b8G5o/AAAAAAAAAAI/AAAAAAAAAAA/ACevoQM8MeUWGyV10IYoIT3EGeCL8Cx1Zg/mo/photo.jpg",null,"Kelly Hutchinson",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgIDSgA"],[null,[null,172.6840079,-43.5591395],1550179646944,14,"24/105 Bamford St, Woolston, Christchurch 8023, Nouvelle-Zélande",null,"NZ",46800000],null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCAwoCg",null,["116014827704053718107","https://lh6.googleusercontent.com/-ACxOv5b8G5o/AAAAAAAAAAI/AAAAAAAAAAA/ACevoQM8MeUWGyV10IYoIT3EGeCL8Cx1Zg/mo/photo.jpg","Kelly Hutchinson","Kelly"],0,null,null,null,null,null,[1,100],3],[["113507006967434942504","https://lh3.googleusercontent.com/a-/AAuE7mAPYmoZVX4q9mqW_y1CBS7ob5sqnra6v-9ZCLSz",null,"Maree Pierce",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgIHigA"],[null,[null,172.6839364,-43.5592242],1550179335715,16,"105 Bamford St, Woolston, Christchurch 8023, Nouvelle-Zélande",null,"NZ",46800000],null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCB0oCw",null,["113507006967434942504","https://lh3.googleusercontent.com/a-/AAuE7mAPYmoZVX4q9mqW_y1CBS7ob5sqnra6v-9ZCLSz","Maree Pierce","Maree"],1,null,null,null,null,null,[0,56],1],[["105912023859982624237","https://lh3.googleusercontent.com/a-/AAuE7mCaxzo5FZJ5NooypYWoPyngTvBHdSPBP3qd4Okh",null,"James Piesse",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgILygA"],[null,[null,172.6839793,-43.5592335],1550179503334,18,"105 Bamford St, Woolston, Christchurch 8023, Nouvelle-Zélande",null,"NZ",46800000],null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCC4oDA",null,["105912023859982624237","https://lh3.googleusercontent.com/a-/AAuE7mCaxzo5FZJ5NooypYWoPyngTvBHdSPBP3qd4Okh","James Piesse","James"],1,null,null,null,null,null,[0,63],1],[["114788267360977829808","https://lh3.googleusercontent.com/a-/AAuE7mBsqIzdWgYzhRFWAL-Bv112GohpHqMxrfehBrnt",null,"Max Gallagher",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgIQCgA"],[null,[null,172.6839407,-43.5592415],1550178003014,22,"24/105 Bamford St, Woolston, Christchurch 8023, Nouvelle-Zélande",null,"NZ",46800000],null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCD8oDQ",null,["114788267360977829808","https://lh3.googleusercontent.com/a-/AAuE7mBsqIzdWgYzhRFWAL-Bv112GohpHqMxrfehBrnt","Max Gallagher","Max"],1,null,null,null,null,null,[0,39],1],[["108182579219510128981","https://lh3.googleusercontent.com/a-/AAuE7mD4E0Hu2CGN2L4f8zsECwy01jMuDz8u1-IJmMz7",null,"Reagan Solodi",null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQvDgIUCgA"],null,null,null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQu4IBCE8oDg",null,["108182579219510128981","https://lh3.googleusercontent.com/a-/AAuE7mD4E0Hu2CGN2L4f8zsECwy01jMuDz8u1-IJmMz7","Reagan Solodi","Reagan"],1]],null,"0ahUKEwihpuSslbzgAhXLto8KHWIkBckQ8ZABCAE","Z91lXOHWEMvtvgTiyJTIDA",null,null,"GvoEAN3tZxiI+V6MU6jCZ6kvJ5tVf4TvC+GsZhuxSNyn1XBEVf3UOg8WRQnsvuViwh2fxbaASV2HVYtZQha+YBRb3NBnwMORsiaW3DZixa57whNBCtP19DKhKKe2R7LAdv728x9wgyrMfFqa0ztOp7DnBQq+dI0PbD0amQPDvgXxC3AulZIIXlsrMf0hTslq6n06EiOiC1Ga1rfhcF+AheAPF0EvMoOyC7pQpWnKVUzERjuzokCJUJwxe10La+PjY69K9x6MSzSp+CEfmGgrqwSbuhorPR8+qGfVgkTQEyKPTA84vhB09H5Fb1bGYTZM9pIiM6j6HunfQEcGv0XtlWr9wN3RrEPby18n3JLFYB+j8oj9Ds6yNin9Mq2SJU8dk50l2oVGN3F89iRPNo6oHKfeth0X1GiD7cWymB+Pj9IGuZaWQnb6d7sOJCpBbTK76kQoxAweiqfqNyotmm10n6zlrS9LXPS2MKXvyF+cfNeO+C2G9Ry337tF4xIWZyWTNwpgK+isZMQYi5RRqUAwsEaGdsqiocGSg/eU6aknmddCKC6Ijjsx6XOjaRqgUbRmUrlvFc0RrQ4pMDBO3k+/+YOcpal5SbL4yW+rPFMBZFmNDjdL9jTlPfp9erUdVCsPFh7wHLsU19m1ytzAB7pdvCOudYcv1IYtzAEeNgqaf93e4EyFBVjNila+0OqyHjK0dTrg+3ox82opRvyWZIZOZ/QgIUGY36W7w3JdNWPb5GgCCazbitcFYtkvSJGeuyHcatZWK5F0ILQbT1yXnW6P0qkB1QiybGHc91kjEROqmXFYZ7U2INxagYHgpC/Ab5QZwXUjZJ7kL8/gk+nAQ",4,1550179688202,[null,[null,[null,172.6792273,-43.5555654],1550179140628,1600,"Woolston, Christchurch, Nouvelle-Zélande",null,"NZ",46800000],"ILfzhtOroM3gbA"]]`;
 
 const proxyURL = 'https://cors-anywhere.herokuapp.com/';
@@ -93,6 +103,7 @@ class JobMap extends React.Component {
       // Totals
       'jobNeedsBookingTotal': 0,
       'leadTotal': 0,
+      'jobTotal': 0,
       'completedActions': 0,
       'overdueActions': 0,
       'upcomingActions': 0,
@@ -103,10 +114,12 @@ class JobMap extends React.Component {
       'averageCompletedActionOverdueDays': [0, 0, 0],
       'averageCurrentOverdueDays': [0, 0, 0],
       'averageLeadAge': [0, 0, 0],
+      'averageJobAge': [0, 0, 0],
       'averageJobNeedsBookingAge': [0, 0, 0],
 
       // List of ages to be graphed
       'leadAges': [],
+      'jobAges': [],
       'jobNeedsBookingAges': [],
       'actionOverdueDays': [],
       'completedActionOverdueDays': [],
@@ -114,6 +127,7 @@ class JobMap extends React.Component {
 
     this.state = {
       leads: [],
+      tabValue: 0,
       noLocationJobs: [],
       noLocationLeads: [],
       statSheet: statSheet,
@@ -146,25 +160,100 @@ class JobMap extends React.Component {
     if (this.props.geocodes) this.props.saveGeocodes(this.props.geocodes);
   }
 
-  processActivityStats = (activities) => {
-    activities.forEach(a => {
-      // Check if activity is completed
-      if (a.completed == 'Yes') {
-        this.addStaffStat(a.responsible, 'completedActions');
-        this.listStaffStat(a.responsible, 'completedActionOverdueDays', a.completedOverdueBy);
-        this.averageStaffStat(a.responsible, 'averageCompletedActionOverdueDays', a.completedOverdueBy);
-      } else {
-        var overdueDays = this.getDaysSinceDate(a.date);
-        if (overdueDays > 0) {
-          // Overdue Action
-          this.addStaffStat(a.responsible, 'overdueActions');
-          this.listStaffStat(a.responsible, 'actionOverdueDays', overdueDays);
-          this.averageStaffStat(a.responsible, 'averageActionOverdueDays', overdueDays);
-        } else {
-          // Action on target
-          this.addStaffStat(a.responsible, 'upcomingActions');
-        }
+  handleTabChange = (event, value) => {
+    this.setState({ tabValue: value });
+    if (value === 3) this.computeStats();
+  };
+
+  computeStats = () => {
+    var template = this.state.statSheet;
+    var client = {};
+    var staff = {};
+    staff['K2'] = {...this.state.statSheet};
+
+    this.state.leads.forEach((m) => {
+      var age = this.getDaysSinceDate(m.creationDate);
+      if (staff[m.owner] === undefined) staff[m.owner] = {...this.state.statSheet};
+      if (client[m.client] === undefined) client[m.client] = {...this.state.statSheet};
+      if(m.state === 'Needs Booking') {
+        staff['K2']['jobNeedsBookingTotal'] += 1;
+        staff['K2']['jobNeedsBookingTotal'] = staff['K2']['jobNeedsBookingTotal'] + 1;
+        staff[m.owner]['jobNeedsBookingTotal'] += 1;
+        client[m.client]['jobNeedsBookingTotal'] += 1;
+        staff['K2']['averageJobNeedsBookingAge'] = this.averageStaffStat(age, staff['K2']['averageJobNeedsBookingAge']);
+        staff[m.owner]['averageJobNeedsBookingAge'] = this.averageStaffStat(age, staff[m.owner]['averageJobNeedsBookingAge']);
+        client[m.client]['averageJobNeedsBookingAge'] = this.averageStaffStat(age, client[m.client]['averageJobNeedsBookingAge']);
+        staff['K2']['jobNeedsBookingAges'].push(age);
+        staff[m.owner]['jobNeedsBookingAges'].push(age);
+        client[m.client]['jobNeedsBookingAges'].push(age);
       }
+
+      if (m.isJob) {
+        staff['K2']['jobTotal'] += 1;
+        staff[m.owner]['jobTotal'] += 1;
+        client[m.client]['jobTotal'] += 1;
+        staff['K2']['averageJobAge'] = this.averageStaffStat(age, staff['K2']['averageJobAge']);
+        staff[m.owner]['averageJobAge'] = this.averageStaffStat(age, staff[m.owner]['averageJobAge']);
+        client[m.client]['averageJobAge'] = this.averageStaffStat(age, client[m.client]['averageJobAge']);
+        staff['K2']['jobAges'].push(age);
+        staff[m.owner]['jobAges'].push(age);
+        client[m.client]['jobAges'].push(age);
+      }
+
+      if (!m.isJob) {
+        staff['K2']['leadTotal'] += 1;
+        staff[m.owner]['leadTotal'] += 1;
+        client[m.client]['leadTotal'] += 1;
+        staff['K2']['averageLeadAge'] = this.averageStaffStat(age, staff['K2']['averageLeadAge']);
+        staff[m.owner]['averageLeadAge'] = this.averageStaffStat(age, staff[m.owner]['averageLeadAge']);
+        client[m.client]['averageLeadAge'] = this.averageStaffStat(age, client[m.client]['averageLeadAge']);
+        staff['K2']['leadAges'].push(age);
+        staff[m.owner]['leadAges'].push(age);
+        client[m.client]['leadAges'].push(age);
+      }
+
+      m.activities && m.activities.forEach(a => {
+        if (staff[a.responsible] === undefined) staff[a.responsible] = this.state.statSheet;
+        // Check if activity is completed
+        if (a.completed === 'Yes') {
+          staff['K2']['completedActions'] += 1;
+          staff[a.responsible]['completedActions'] += 1;
+          client[m.client]['completedActions'] += 1;
+          staff['K2']['averageCompletedActionOverdueDays'] = this.averageStaffStat(a.completedOverdueBy, staff['K2']['averageCompletedActionOverdueDays']);
+          staff[a.responsible]['averageCompletedActionOverdueDays'] = this.averageStaffStat(a.completedOverdueBy, staff[a.responsible]['averageCompletedActionOverdueDays']);
+          client[m.client]['averageCompletedActionOverdueDays'] = this.averageStaffStat(a.completedOverdueBy, client[m.client]['averageCompletedActionOverdueDays']);
+          staff['K2']['completedActionOverdueDays'].push(a.completedOverdueBy);
+          staff[a.responsible]['completedActionOverdueDays'].push(a.completedOverdueBy);
+          client[m.client]['completedActionOverdueDays'].push(a.completedOverdueBy);
+        } else {
+          var overdueDays = this.getDaysSinceDate(a.date);
+          if (overdueDays > 0) {
+            // Overdue Action
+            staff['K2']['overdueActions'] += 1;
+            staff[a.responsible]['overdueActions'] += 1;
+            client[m.client]['overdueActions'] += 1;
+            staff['K2']['averageActionOverdueDays'] = this.averageStaffStat(overdueDays, staff['K2']['averageActionOverdueDays']);
+            staff[a.responsible]['averageActionOverdueDays'] = this.averageStaffStat(overdueDays, staff[a.responsible]['averageActionOverdueDays']);
+            client[m.client]['averageActionOverdueDays'] = this.averageStaffStat(overdueDays, client[m.client]['averageActionOverdueDays']);
+            staff['K2']['leadAges'].push(overdueDays);
+            staff[a.responsible]['leadAges'].push(overdueDays);
+            client[m.client]['leadAges'].push(overdueDays);
+          } else {
+            // Action on target
+            staff['K2']['upcomingActions'] += 1;
+            staff[a.responsible]['upcomingActions'] += 1;
+            client[m.client]['upcomingActions'] += 1;
+          }
+        }
+      });
+    });
+    console.log('Computed stats');
+    console.log(client);
+    console.log(staff);
+
+    this.setState({
+      clientStats: client,
+      staffStats: staff,
     });
   }
 
@@ -218,11 +307,9 @@ class JobMap extends React.Component {
   }
 
   getCompletionDateFromHistory = (activity, history) => {
-    if (activity.completed == 'No') return activity;
-    var name = activity.subject;
-    var activities = [];
+    if (activity.completed === 'No') return activity;
     // Get only actions that are of activities being completed
-    var actions = history.filter(item => item.type == 'Activity' && item.detail.includes(activity.subject));
+    var actions = history.filter(item => item.type === 'Activity' && item.detail.includes(activity.subject));
 
     if (actions.length > 0) {
       activity.completeDate = actions[0].date;
@@ -232,9 +319,9 @@ class JobMap extends React.Component {
   }
 
   getAddressFromClient = (clientID) => {
-    var client = this.props.wfmClients.filter(client => client.wfmID == clientID);
+    var client = this.props.wfmClients.filter(client => client.wfmID === clientID);
     if (client.length > 0) {
-      var address = client[0].city == '' ? client[0].address : client[0].address + ', ' + client[0].city;
+      var address = client[0].city === '' ? client[0].address : client[0].address + ', ' + client[0].city;
       return address;
     } else {
       return '';
@@ -244,28 +331,29 @@ class JobMap extends React.Component {
   handleGeocode = (address, clientAddress, lead) => {
     lead.clientAddress = clientAddress;
     // Pick either name or clientAddress to use as the geolocation
-    var address = this.checkAddress(address);
-    if (address == 'NULL') {
-      address = this.checkAddress(clientAddress);
+    var add = this.checkAddress(address);
+    if (add === 'NULL') {
+      add = this.checkAddress(clientAddress);
     }
 
-    if (this.props.geocodes[address] != null) {
+    if (this.props.geocodes[add] != undefined) {
       console.log('Already there');
-      lead.geocode = this.props.geocodes[address];
+      lead.geocode = this.props.geocodes[add];
       this.state.leads = [...this.state.leads, lead,];
-      if (lead.geocode.address == "New Zealand" && !lead.isJob) this.setState({ noLocationLeads: [...this.state.noLocationLeads, lead,] });
-      if (lead.geocode.address == "New Zealand" && lead.isJob) this.setState({ noLocationJobs: [...this.state.noLocationJobs, lead,] });
+      if (lead.geocode && lead.geocode.address === "New Zealand" && !lead.isJob) this.setState({ noLocationLeads: [...this.state.noLocationLeads, lead,] });
+      if (lead.geocode && lead.geocode.address === "New Zealand" && lead.isJob) this.setState({ noLocationJobs: [...this.state.noLocationJobs, lead,] });
     } else {
-      let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY}`;
-      console.log('Getting GEOCODE for ' + address);
+      // let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY}`;
+      let path = `https://www.google.com`;
+      console.log('Getting GEOCODE for ' + add);
       fetch(path).then(response => response.json()).then(response => {
         var gc = this.props.geocodes;
         // TODO response error
-        gc[address] = this.simplifiedGeocode(response.results[0]);
+        gc[add] = this.simplifiedGeocode(response.results[0]);
         this.props.updateGeocodes(gc);
-        lead.geocode = gc[address];
-        if (lead.geocode.address == "New Zealand" && !lead.isJob) this.setState({ noLocationLeads: [...this.state.noLocationLeads, lead,] });
-        if (lead.geocode.address == "New Zealand" && lead.isJob) this.setState({ noLocationJobs: [...this.state.noLocationJobs, lead,] });
+        lead.geocode = gc[add];
+        if (lead.geocode && lead.geocode.address === "New Zealand" && !lead.isJob) this.setState({ noLocationLeads: [...this.state.noLocationLeads, lead,] });
+        if (lead.geocode && lead.geocode.address === "New Zealand" && lead.isJob) this.setState({ noLocationJobs: [...this.state.noLocationJobs, lead,] });
 
         //Find any items with same geocode
 
@@ -282,13 +370,13 @@ class JobMap extends React.Component {
   }
 
   checkAddress = (address) => {
-    if (address == '') return "NULL";
+    if (address === '') return "NULL";
     // if (address.trim().split(/\s+/).length < 2) return "NULL";
 
     var geo = this.props.geocodes[encodeURI(address)];
 
     // ignore all addresses that just return the country
-    if (geo != null && geo.address == 'New Zealand') return "NULL";
+    if (geo !== undefined && geo.address === 'New Zealand') return "NULL";
 
     // ignore all addresses with blackListed words
     var blacklist = [
@@ -340,7 +428,7 @@ class JobMap extends React.Component {
   }
 
   getCompletedActivities = (activities) => {
-    var completedActivities = activities.filter(activity => activity.completed == 'Yes');
+    var completedActivities = activities.filter(activity => activity.completed === 'Yes');
     return completedActivities.sort((a, b) => {
       return new Date(a.completeDate).getTime() -
         new Date(b.completeDate).getTime()
@@ -348,7 +436,7 @@ class JobMap extends React.Component {
   }
 
   getUncompletedActivities = (activities) => {
-    var uncompletedActivities = activities.filter(activity => activity.completed == 'No');
+    var uncompletedActivities = activities.filter(activity => activity.completed === 'No');
     return uncompletedActivities.sort((a, b) => {
       return new Date(a.date).getTime() -
         new Date(b.date).getTime()
@@ -394,49 +482,8 @@ class JobMap extends React.Component {
     }
   }
 
-  addClientStat = (name, stat) => {
-    // Add to client stats
-    if (this.state.clientStats[name]) {
-      this.state.clientStats[name] = {
-        ...this.state.clientStats[name],
-        [stat]: this.state.clientStats[name][stat] + 1,
-      };
-    } else {
-      this.state.clientStats = {
-        ...this.state.clientStats,
-        [name]: this.state.clientStatSheet,
-      };
-      this.state.clientStats[name][stat] = 1;
-    }
-  }
-
-  addStaffStat = (name, stat) => {
-    // Add to total stats
-    this.state.staffStats['K2'] = {
-      ...this.state.staffStats['K2'],
-      [stat]: this.state.staffStats['K2'][stat] + 1,
-    };
-
-    // Add to staff stats
-    if (this.state.staffStats[name]) {
-      this.state.staffStats[name] = {
-        ...this.state.staffStats[name],
-        [stat]: this.state.staffStats[name][stat] + 1,
-      };
-    } else {
-      this.state.staffStats = {
-        ...this.state.staffStats,
-        [name]: this.state.statSheet,
-      };
-      this.state.staffStats[name][stat] = 1;
-    }
-  }
-
-  averageStaffStat = (name, stat, value) => {
+  averageStaffStat = (value, average) => {
     // Averages in form { number of items, sum, average }
-
-    // Add to total stats
-    var average = this.state.staffStats['K2'][stat];
 
     if (average[0] > 0) {
       average[0] = average[0] + 1;
@@ -446,56 +493,7 @@ class JobMap extends React.Component {
       average = [1, value, value];
     }
 
-    this.state.staffStats['K2'] = {
-      ...this.state.staffStats['K2'],
-      [stat]: average,
-    };
-
-    // Add to staff stats
-    if (this.state.staffStats[name]) {
-      var average = this.state.staffStats[name][stat];
-
-      if (average[0] > 0) {
-        average[0] = average[0] + 1;
-        average[1] = average[1] + value;
-        average[2] = Math.floor(average[1]/average[0]);
-      } else {
-        average = [1, value, value];
-      }
-
-      this.state.staffStats[name] = {
-        ...this.state.staffStats[name],
-        [stat]: average,
-      };
-    } else {
-      this.state.staffStats = {
-        ...this.state.staffStats,
-        [name]: this.state.statSheet,
-      };
-      this.state.staffStats[name][stat] = [1, value, value];
-    }
-  }
-
-  listStaffStat = (name, stat, value) => {
-    // Add to total stats
-    this.state.staffStats['K2'] = {
-      ...this.state.staffStats['K2'],
-      [stat]: [...this.state.staffStats[name][stat], value],
-    };
-
-    // Add to staff stats
-    if (this.state.staffStats[name]) {
-      this.state.staffStats[name] = {
-        ...this.state.staffStats[name],
-        [stat]: [...this.state.staffStats[name][stat], value],
-      };
-    } else {
-      this.state.staffStats = {
-        ...this.state.staffStats,
-        [name]: this.state.statSheet,
-      };
-      this.state.staffStats[name][stat] = [value];
-    }
+    return average;
   }
 
   openNoLocationLeads = () => {
@@ -512,12 +510,16 @@ class JobMap extends React.Component {
 
 // Collate Jobs (need booking) and Leads into a set of data that can be displayed nicely
   collateLeadsData = () => {
+
+    var staffStats = { 'K2': this.state.statSheet }
+    var clientStats = {};
+
     console.log('COLLATING LEADS AND JOBS');
     // this.geocodeAddress('aljflasdfj;l','199 Centaurus Road, Christchurch');
 
     // Filter only jobs that need booking
     var jobsNeedBooking = this.props.wfmJobs.filter(job => {
-      return job.state == 'Needs Booking';
+      return job.state === 'Needs Booking';
     });
 
     // Convert jobs into a 'lead' type object
@@ -546,16 +548,11 @@ class JobMap extends React.Component {
       // lead.clientAddress = this.getAddressFromClient(lead);
       // lead.geoCode = this.handleGeocode(job.address);
 
-      // Add stats
-      this.addStaffStat(lead.owner, 'jobNeedsBookingTotal', 'sum');
-      this.averageStaffStat(lead.owner, 'averageJobNeedsBookingAge', this.getDaysSinceDate(lead.creationDate));
-      this.listStaffStat(lead.owner, 'jobNeedsBookingAges', this.getDaysSinceDate(lead.creationDate));
-
       this.handleGeocode(job.address, this.getAddressFromClient(job.clientID), lead);
     });
 
     var otherJobs = this.props.wfmJobs.filter(job => {
-      return job.state != 'Needs Booking';
+      return job.state !== 'Needs Booking';
     });
 
     // Convert other jobs
@@ -595,16 +592,14 @@ class JobMap extends React.Component {
       lead.value = wfmLead.value;
 
       // Map actions to history to get completion date of each action
-      if (wfmLead.activities[0] == 'NO PLAN!') {
+      if (wfmLead.activities[0] === 'NO PLAN!') {
         lead.urgentAction = 'Add Milestones to Lead';
         lead.activities = [];
-      } else if (wfmLead.history[0] == 'No History') {
+      } else if (wfmLead.history[0] === 'No History') {
         lead.activities = [];
       } else {
         lead.activities = wfmLead.activities.map(activity => this.getCompletionDateFromHistory(activity, wfmLead.history));
       }
-
-      this.processActivityStats(lead.activities);
 
       lead.completedActivities = this.getCompletedActivities(lead.activities);
 
@@ -623,17 +618,12 @@ class JobMap extends React.Component {
       // lead.clientAddress = this.getAddressFromClient(wfmLead.clientID);
       // lead.geoCode = this.handleGeocode(wfmLead.name);
 
-      // Add stats
-      this.addStaffStat(lead.owner, 'leadTotal');
-      this.averageStaffStat(lead.owner, 'averageLeadAge', this.getDaysSinceDate(lead.creationDate));
-      this.listStaffStat(lead.owner, 'leadAges', this.getDaysSinceDate(lead.creationDate));
-
       this.handleGeocode(wfmLead.name, this.getAddressFromClient(wfmLead.clientID), lead);
     });
   }
 
   filterLabels = (m) => {
-    if (m && m.geocode.address != 'New Zealand') {
+    if (m && m.geocode && m.geocode.address !== 'New Zealand') {
       if (this.filterCategory(m) && this.filterStage(m)) {
         return true;
       } else {
@@ -645,22 +635,22 @@ class JobMap extends React.Component {
   }
 
   filterCategory = (m) => {
-    if (m.category.includes(this.state.category) || this.state.category == 'Show All') return true;
+    if (m.category.includes(this.state.category) || this.state.category === 'Show All') return true;
       else return false;
   }
 
   filterStage = (m) => {
-    if (this.state.stage == 'Show All') return true;
-    if (this.state.stage == 'All Jobs' && m.isJob) return true;
-    if (this.state.stage == 'All Job Leads' && !m.isJob) return true;
-    if (this.state.stage == 'New Lead' && !m.isJob && m.daysOld < 8) return true;
-    if (this.state.stage == 'Leads with Overdue Actions' && !m.isJob && m.nextActionOverdueBy > 0) return true;
-    if (this.state.stage == 'Jobs with Overdue Actions' && m.isJob && m.nextActionOverdueBy > 0) return true;
-    if (this.state.stage == 'Job Needs Booking' && m.state == 'Needs Booking') return true;
-    if (this.state.stage == 'Planned' && m.state == 'Planned') return true;
-    if (this.state.stage == 'In Progress' && m.state == 'In Progress') return true;
-    if (this.state.stage == 'Job Start Today' && m.state == 'In Progress' && m.daysOld == 0) return true;
-    if (this.state.stage == 'Post-Site Work Jobs' && m.isJob && !'NeedsBookingPlannedIn Progress'.includes(m.state)) return true;
+    if (this.state.stage === 'Show All') return true;
+    if (this.state.stage === 'All Jobs' && m.isJob) return true;
+    if (this.state.stage === 'All Job Leads' && !m.isJob) return true;
+    if (this.state.stage === 'New Lead' && !m.isJob && m.daysOld < 8) return true;
+    if (this.state.stage === 'Leads with Overdue Actions' && !m.isJob && m.nextActionOverdueBy > 0) return true;
+    if (this.state.stage === 'Jobs with Overdue Actions' && m.isJob && m.nextActionOverdueBy > 0) return true;
+    if (this.state.stage === 'Job Needs Booking' && m.state === 'Needs Booking') return true;
+    if (this.state.stage === 'Planned' && m.state === 'Planned') return true;
+    if (this.state.stage === 'In Progress' && m.state === 'In Progress') return true;
+    if (this.state.stage === 'Job Start Today' && m.state === 'In Progress' && m.daysOld === 0) return true;
+    if (this.state.stage === 'Post-Site Work Jobs' && m.isJob && !'NeedsBookingPlannedIn Progress'.includes(m.state)) return true;
     return false;
   }
 
@@ -758,7 +748,7 @@ class JobMap extends React.Component {
     var o = 20;
     var s = Math.floor((n - 1)/8) + 1;
     var mod = (n % 9) + (s - 1);
-    if (n == 0) mod = 0;
+    if (n === 0) mod = 0;
     // if (n>0) console.log('n: ' + n + ', s: ' + s + ', mod: ' + mod);
     switch(mod) {
       case 0:
@@ -786,25 +776,39 @@ class JobMap extends React.Component {
   }
 
   render() {
-    const K_WIDTH = 40;
-    const K_HEIGHT = 40;
+    // const K_WIDTH = 40;
+    // const K_HEIGHT = 40;
     const { wfmJobs, wfmLeads, wfmClients, geocodes, classes } = this.props;
     if (wfmJobs.length > 0 && wfmLeads.length > 0 && wfmClients.length > 0 && geocodes && this.state.leads.length === 0) this.collateLeadsData();
     // console.log(this.state.leads);
-
+    if (Object.keys(this.state.staffStats).length > 1) {
+      var daysMap = {};
+      console.log(this.state.staffStats['K2']['completedActionOverdueDays'])
+      this.state.staffStats['K2']['completedActionOverdueDays'].forEach((i) => {
+        if (daysMap[i] === undefined) daysMap[i] = { 'days': i, 'K2': 1, 'Shona': 0, };
+          else daysMap[i]['K2'] = daysMap[i]['K2'] + 1;
+      });
+      this.state.staffStats['Shona Huffadine']['completedActionOverdueDays'].forEach((i) => {
+        if (daysMap[i] === undefined) daysMap[i] = { 'days': i, 'K2': 0, 'Shona': 1, };
+          else daysMap[i]['Shona'] = daysMap[i]['Shona'] + 1;
+      });
+      var daysData = Object.values(daysMap);
+      console.log(daysData);
+    }
     const noLocationModal = (
       <Dialog
         maxWidth = "sm"
         fullWidth = { true }
-        open={ this.state.modal != null }
+        open={ this.state.modal !== null }
         onClose = {() => this.setState({ modal: null })}
       >
-      <DialogTitle>{ this.state.modal == 'jobs' ? 'Jobs with No Location Data' : 'Leads with No Location Data' }</DialogTitle>
+      <DialogTitle>{ this.state.modal === 'jobs' ? 'Jobs with No Location Data' : 'Leads with No Location Data' }</DialogTitle>
       <DialogContent>
-       { this.state.modal == 'jobs' ?
-        this.state.leads && this.state.leads.filter((m) => m.geocode.address == 'New Zealand' && m.isJob).map((m) => {
+       { this.state.modal === 'jobs' ?
+        this.state.leads && this.state.leads.filter((m) => m.geocode && m.geocode.address === 'New Zealand' && m.isJob).map((m) => {
           return (
             <ListItem
+              key={m.wfmID}
               dense
               className={classes.hoverItem}
               style={{ color: this.getColour(m.category) }}
@@ -815,9 +819,10 @@ class JobMap extends React.Component {
           )
         })
        :
-        this.state.leads && this.state.leads.filter((m) => m.geocode.address == 'New Zealand' && !m.isJob).map((m) => {
+        this.state.leads && this.state.leads.filter((m) => m.geocode && m.geocode.address === 'New Zealand' && !m.isJob).map((m) => {
           return (
             <ListItem
+              key={m.wfmID}
               dense
               className={classes.hoverItem}
               style={{ color: this.getColour(m.category) }}
@@ -835,99 +840,171 @@ class JobMap extends React.Component {
 
     return (
       <div style = {{ marginTop: 80 }}>
-          { this.state.modal && noLocationModal }
-          <Grid container spacing={8}>
-            { ['Show All','All Job Leads','New Lead','Leads with Overdue Actions','All Jobs','Jobs with Overdue Actions','Job Needs Booking','Planned','In Progress','Job Start Today','Post-Site Work Jobs',].map(cat => {
-              return (
-                <Grid item key={cat}>
-                  <Button style={{ fontSize: 12 }} variant="outlined" color={this.state.stage === cat ? "secondary" : "primary"} onClick={() => this.switchStage(cat)}>
-                    {cat}
-                  </Button>
-                </Grid>
-              );
-            })}
-          </Grid>
-          <Divider style = {{ marginTop: 20, marginBottom: 20, }} />
-          <Grid container spacing={8} style={{ marginBottom: 20 }}>
-            { ['Show All','Asbestos','Meth','Stack','Noise','Bio','Workplace','Other',].map(cat => {
-              var colour = this.getColour(cat);
-              return (
-                <Grid item key={cat}>
-                  <Button variant="outlined" color={this.state.category === cat ? "secondary" : "primary"} onClick={() => this.switchCategory(cat)}>
-                    <span style={{ fontSize: 12, color: colour }}>{cat}</span>
-                  </Button>
-                </Grid>
-              );
-            })}
-            {this.state.noLocationJobs && <Grid item>
-              <Button onClick={this.openNoLocationJobs}>
-                <span style={{ fontSize: 12 }}>View Jobs With No Location Data ({this.state.leads && this.state.leads.filter((m) => m.geocode.address == 'New Zealand' && m.isJob).length})</span>
-              </Button>
-            </Grid>}
-            {this.state.noLocationLeads && <Grid item>
-              <Button onClick={this.openNoLocationLeads}>
-                <span style={{ fontSize: 12 }}>View Leads With No Location Data ({this.state.leads && this.state.leads.filter((m) => m.geocode.address == 'New Zealand' && !m.isJob).length})</span>
-              </Button>
-            </Grid>}
-          </Grid>
-          <Divider />
-          <Map
-            google={this.props.google}
-            zoom={6.27}
-            style={mapStyles}
-            initialCenter={{
-              lat: -40.9261681,
-              lng: 174.4070603
-            }}
+        <div style={{ marginBottom: 20, }}>
+          <Tabs
+            value = { this.state.tabValue }
+            onChange = { this.handleTabChange }
+            indicatorColor = "secondary"
+            textColor = "secondary"
+            centered
           >
-            {
-              this.state.leads.map(m => {
-                if (this.filterLabels(m)) {
-                  if (addresses[m.geocode.address] >= 0) {
-                    addresses[m.geocode.address] = addresses[m.geocode.address] + 1;
-                    console.log(m.jobNumber + ': ' + m.geocode.address + ' (' + addresses[m.geocode.address] + ')');
-                  } else {
-                    addresses[m.geocode.address] = 0;
-                  }
-                  var url = this.getIcon(m.category);
-                  return(
-                    <Marker
-                      key={m.wfmID}
-                      onClick={(props, marker, e) => { this.onMarkerClick(marker, m) }}
-                      position={{ lat: m.geocode.location[0], lng: m.geocode.location[1] }}
-                      title={`${m.jobNumber}: ${m.client}`}
-                      icon={{
-                        url: url,
-                        anchor: new this.props.google.maps.Point(16 + this.getOffset(addresses[m.geocode.address])[0], 16 + this.getOffset(addresses[m.geocode.address])[1]),
-                        scaledSize: new this.props.google.maps.Size(32,32)
-                      }}
-                      />
-                    );
-                  }
-              })
-            }
-            <InfoWindow
-              marker={this.state.activeMarker}
-              visible={this.state.showingInfoWindow}>
-                <div style={{ width: 300, lineHeight: 2, fontSize: 14, padding: 20, }}>
-                  <div><h5 style={{ color: this.getColour(this.state.m.category) }}>{this.state.m.jobNumber}: {this.state.m.client}</h5></div>
-                  <div style={{ color: this.getColour(this.state.m.category)}}><h6>{this.state.m.category}</h6></div>
-                  {this.state.m.geocode && <div><i>{this.state.m.geocode.address}</i></div>}
-                  {this.state.m.state && <div><b>State:</b> {this.state.m.state}</div>}
-                  <div><b>Owner:</b> {this.state.m.owner}</div>
-                  {this.state.m.lastActionType &&
-                    <div><b>Last Action:</b> {this.state.m.lastActionType} ({this.state.m.daysSinceLastAction} days ago)</div>
-                  }
-                  {this.state.m.nextActionType && <div><b>Next Action:</b> {this.state.m.nextActionType} {this.state.m.nextActionOverdueBy > 0 ? <span style={{ fontColor: '#ff0000', textDecoration: 'underline', }}>(Overdue by {this.state.m.nextActionOverdueBy} days)</span> : <span>(Due in {this.state.m.nextActionOverdueBy * -1} days)</span>}</div>}
-                  {this.state.m.value > 0 && <div><b>Estimated Value:</b> ${this.state.m.value} </div>}
-                  <div style={{ padding: 16, textAlign: 'center', }}>
-                  <Button variant="outlined" style={{ borderRadius: 20, }}>
-                    <a style={{ textDecoration: 'none', color: '#FF2D00'}} target="_blank" href={this.getWfmUrl(this.state.m)}>View on WorkflowMax</a>
-                  </Button>
-                  </div>
+            <Tab label="Current Jobs" />
+            <Tab label="Leads" />
+            <Tab label="Map" />
+            <Tab label="Stats" />
+            <Tab label="Permissions" />
+          </Tabs>
+        </div>
+        { this.state.tabValue === 2 &&
+          <div>
+              { this.state.modal && noLocationModal }
+              <ExpansionPanel>
+                <ExpansionPanelSummary expandIcon={<ExpandMore />}>
+                  Filter View
+                </ExpansionPanelSummary>
+                <ExpansionPanelDetails>
+                <div>
+                  <Grid container spacing={8}>
+                    { ['Show All','All Job Leads','New Lead','Leads with Overdue Actions','All Jobs','Jobs with Overdue Actions','Job Needs Booking','Planned','In Progress','Job Start Today','Post-Site Work Jobs',].map(cat => {
+                      return (
+                        <Grid item key={cat}>
+                          <Button style={{ fontSize: 12 }} variant="outlined" color={this.state.stage === cat ? "secondary" : "primary"} onClick={() => this.switchStage(cat)}>
+                            {cat}
+                          </Button>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
+                  <Divider style = {{ marginTop: 20, marginBottom: 20, }} />
+                  <Grid container spacing={8} style={{ marginBottom: 20 }}>
+                    { ['Show All','Asbestos','Meth','Stack','Noise','Bio','Workplace','Other',].map(cat => {
+                      var colour = this.getColour(cat);
+                      return (
+                        <Grid item key={cat}>
+                          <Button variant="outlined" color={this.state.category === cat ? "secondary" : "primary"} onClick={() => this.switchCategory(cat)}>
+                            <span style={{ fontSize: 12, color: colour }}>{cat}</span>
+                          </Button>
+                        </Grid>
+                      );
+                    })}
+                    {this.state.noLocationJobs && <Grid item>
+                      <Button onClick={this.openNoLocationJobs}>
+                        <span style={{ fontSize: 12 }}>View Jobs With No Location Data ({this.state.leads && this.state.leads.filter((m) => m.geocode && m.geocode.address == 'New Zealand' && m.isJob).length})</span>
+                      </Button>
+                    </Grid>}
+                    {this.state.noLocationLeads && <Grid item>
+                      <Button onClick={this.openNoLocationLeads}>
+                        <span style={{ fontSize: 12 }}>View Leads With No Location Data ({this.state.leads && this.state.leads.filter((m) => m.geocode && m.geocode.address == 'New Zealand' && !m.isJob).length})</span>
+                      </Button>
+                    </Grid>}
+                  </Grid>
                 </div>
-            </InfoWindow>
-          </Map>
+                </ExpansionPanelDetails>
+              </ExpansionPanel>
+              <Map
+                google={this.props.google}
+                zoom={6.27}
+                style={mapStyles}
+                initialCenter={{
+                  lat: -40.9261681,
+                  lng: 174.4070603
+                }}
+              >
+                {
+                  this.state.leads.map(m => {
+                    if (this.filterLabels(m)) {
+                      if (addresses[m.geocode.address] >= 0) {
+                        addresses[m.geocode.address] = addresses[m.geocode.address] + 1;
+                        // console.log(m.jobNumber + ': ' + m.geocode.address + ' (' + addresses[m.geocode.address] + ')');
+                      } else {
+                        addresses[m.geocode.address] = 0;
+                      }
+                      var url = this.getIcon(m.category);
+                      return(
+                        <Marker
+                          key={m.wfmID}
+                          onClick={(props, marker, e) => { this.onMarkerClick(marker, m) }}
+                          position={{ lat: m.geocode.location[0], lng: m.geocode.location[1] }}
+                          title={`${m.jobNumber}: ${m.client}`}
+                          icon={{
+                            url: url,
+                            anchor: new this.props.google.maps.Point(16 + this.getOffset(addresses[m.geocode.address])[0], 16 + this.getOffset(addresses[m.geocode.address])[1]),
+                            scaledSize: new this.props.google.maps.Size(32,32)
+                          }}
+                          />
+                        );
+                      }
+                  })
+                }
+                <InfoWindow
+                  marker={this.state.activeMarker}
+                  visible={this.state.showingInfoWindow}>
+                    <div style={{ width: 300, lineHeight: 2, fontSize: 14, padding: 20, }}>
+                      <div><h5 style={{ color: this.getColour(this.state.m.category) }}>{this.state.m.jobNumber}: {this.state.m.client}</h5></div>
+                      <div style={{ color: this.getColour(this.state.m.category)}}><h6>{this.state.m.category}</h6></div>
+                      {this.state.m.geocode && <div><i>{this.state.m.geocode.address}</i></div>}
+                      {this.state.m.state && <div><b>State:</b> {this.state.m.state}</div>}
+                      <div><b>Owner:</b> {this.state.m.owner}</div>
+                      {this.state.m.lastActionType &&
+                        <div><b>Last Action:</b> {this.state.m.lastActionType} ({this.state.m.daysSinceLastAction} days ago)</div>
+                      }
+                      {this.state.m.nextActionType && <div><b>Next Action:</b> {this.state.m.nextActionType} {this.state.m.nextActionOverdueBy > 0 ? <span style={{ fontColor: '#ff0000', textDecoration: 'underline', }}>(Overdue by {this.state.m.nextActionOverdueBy} days)</span> : <span>(Due in {this.state.m.nextActionOverdueBy * -1} days)</span>}</div>}
+                      {this.state.m.value > 0 && <div><b>Estimated Value:</b> ${this.state.m.value} </div>}
+                      <div style={{ padding: 16, textAlign: 'center', }}>
+                      <Button variant="outlined" style={{ borderRadius: 20, }}>
+                        <a style={{ textDecoration: 'none', color: '#FF2D00'}} target="_blank" rel="noopener nonreferrer" href={this.getWfmUrl(this.state.m)}>View on WorkflowMax</a>
+                      </Button>
+                      </div>
+                    </div>
+                </InfoWindow>
+              </Map>
+          </div>
+        }
+        { this.state.tabValue === 3 &&
+          <div>
+          <LineChart width={730} height={250} data={daysData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="days" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="K2" stroke="#8884d8" />
+            <Line type="monotone" dataKey="Shona" stroke="#82ca9d" />
+          </LineChart>
+            <div>
+              <ListItem>
+                <Grid container style={{ fontWeight: 600}}>
+                  <Grid item xs={2}>Name</Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>Total Jobs</div></Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>Total Leads</div></Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>Jobs Need Booking</div></Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>Average Days Completed Actions Overdue By</div></Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>Average Days Current Actions Overdue By</div></Grid>
+                  <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>Average Lead Age</div></Grid>
+                </Grid>
+              </ListItem>
+
+                {this.state.staffStats &&
+                  Object.keys(this.state.staffStats).map((s) => {
+                    var stats = this.state.staffStats[s];
+                return(
+                  <ListItem className={classes.hoverItem} key={s}>
+                    <Grid container>
+                      <Grid item xs={2}>{ s }</Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>{ stats['jobTotal'] }</div></Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>{ stats['leadTotal'] }</div></Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>{ stats['jobNeedsBookingTotal'] }</div></Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>{ stats['averageCompletedActionOverdueDays'][2] }</div></Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>{ stats['averageActionOverdueDays'][2] }</div></Grid>
+                      <Grid item xs={1}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', }}>{ stats['averageLeadAge'][2] }</div></Grid>
+                    </Grid>
+                  </ListItem>
+                )
+              })}
+            </div>
+          </div>
+        }
       </div>
     );
   }

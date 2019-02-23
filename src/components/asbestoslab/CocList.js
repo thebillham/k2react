@@ -2,7 +2,7 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
-import { cocsRef, asbestosAnalysisRef, firestore, firebase, auth, asbestosSamplesRef } from '../../config/firebase';
+import { cocsRef, asbestosAnalysisRef, firebase, auth, asbestosSamplesRef } from '../../config/firebase';
 import { fetchCocs, fetchSamples, syncJobWithWFM } from '../../actions/local';
 import { showModal } from '../../actions/modal';
 import { COC, UPDATECERTIFICATEVERSION, WAANALYSIS, SAMPLEHISTORY, COCLOG,} from '../../constants/modal-types';
@@ -12,17 +12,10 @@ import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
-import Select from '@material-ui/core/Select';
-import FormControl from '@material-ui/core/FormControl';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
 import Menu from '@material-ui/core/Menu';
-import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
 import Divider from '@material-ui/core/Divider';
 
@@ -81,7 +74,7 @@ class CocList extends React.Component {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-    }).format(now);
+    }).format(new Date());
     let uid = `${this.props.job.uid}-${this.props.me.name}-${now}`;
 
     this.setState({
@@ -498,7 +491,7 @@ class CocList extends React.Component {
   }
 
   render() {
-    const { classes, job, samples, bulkanalysts, airanalysts } = this.props;
+    const { classes, job, samples, } = this.props;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     let analysts = this.getAnalysts(false);

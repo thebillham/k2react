@@ -2,7 +2,6 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { styles } from '../../config/styles';
 import { connect } from 'react-redux';
-import { jobsRef, cocsRef, asbestosSamplesRef } from '../../config/firebase';
 import { fetchCocs, fetchSamples, setAnalyst, setAnalysisMode, } from '../../actions/local';
 
 //Modals
@@ -17,29 +16,12 @@ import CocLog from '../modals/CocLog';
 
 import CocList from './CocList';
 
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Input from '@material-ui/core/Input';
 import Select from '@material-ui/core/Select';
-
-import ExpandMore from '@material-ui/icons/ExpandMore';
-import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
-import Edit from '@material-ui/icons/Edit';
-import Inbox from '@material-ui/icons/Inbox';
-import CameraAlt from '@material-ui/icons/CameraAlt';
-import Print from '@material-ui/icons/Print';
-import Send from '@material-ui/icons/Send';
-import Popup from 'reactjs-popup';
 
 const mapStateToProps = state => {
   return {
@@ -81,7 +63,7 @@ class AsbestosLab extends React.Component {
   }
 
   render() {
-    const { classes, cocs } = this.props;
+    const { cocs } = this.props;
 
     return (
       <div style = {{ marginTop: 80 }}>

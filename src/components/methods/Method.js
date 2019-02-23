@@ -11,7 +11,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 // import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 import { connect } from 'react-redux';
 import { methodsRef, usersRef, auth } from '../../config/firebase';
-import MethodNode from './MethodNode';
+// import MethodNode from './MethodNode';
 import store from '../../store';
 import { setStepper } from '../../actions/local';
 

@@ -5,10 +5,9 @@ import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 // import store from '../../store';
 import { COC } from '../../constants/modal-types';
-import { cocsRef, storage, auth } from '../../config/firebase';
+import { auth } from '../../config/firebase';
 import '../../config/tags.css';
-import { sendSlackMessage } from '../../Slack';
-import ReactAutocomplete from 'react-autocomplete';
+// import { sendSlackMessage } from '../../Slack';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -18,7 +17,6 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
-import LinearProgress from '@material-ui/core/LinearProgress';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -34,15 +32,12 @@ import parse from 'autosuggest-highlight/parse';
 import DayPicker, { DateUtils } from 'react-day-picker';
 import 'react-day-picker/lib/style.css';
 
-import UploadIcon from '@material-ui/icons/CloudUpload';
 import Add from '@material-ui/icons/Add';
-import Close from '@material-ui/icons/Close';
 import Sync from '@material-ui/icons/Sync';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, handleSampleChange, handleCocSubmit } from '../../actions/modal';
 import { fetchStaff, syncJobWithWFM, resetWfmJob, fetchSamples } from '../../actions/local';
 import _ from 'lodash';
 import deburr from 'lodash/deburr';
-import { injectIntl, IntlProvider,  } from 'react-intl';
 
 const mapStateToProps = state => {
   return {
@@ -140,7 +135,6 @@ class CocModal extends React.Component {
       this.props.setModalError('Asbestos job numbers must begin with "AS"');
     } else {
       this.props.setModalError(null);
-      jobNumber = jobNumber;
       this.props.syncJobWithWFM(jobNumber);
       let uid = this.props.doc.uid;
       if (!uid) {
@@ -167,9 +161,8 @@ class CocModal extends React.Component {
   }
 
   render() {
-    const { modalProps, doc, wfmJob, classes, staff, } = this.props;
+    const { modalProps, doc, wfmJob, classes, } = this.props;
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name)));
-    let today = new Date();
     const autosuggestProps = {
       renderInputComponent,
       suggestions: this.state.suggestions,
@@ -502,14 +495,14 @@ class CocModal extends React.Component {
               if (!doc.dateSubmit) doc.dateSubmit = now;
               doc.lastModified = now;
               doc.versionUpToDate = false;
-              let datestring = new Intl.DateTimeFormat('en-GB', {
-                year: '2-digit',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              }).format(now).replace(/[.:/,\s]/g, '_');
+              // let datestring = new Intl.DateTimeFormat('en-GB', {
+              //   year: '2-digit',
+              //   month: '2-digit',
+              //   day: '2-digit',
+              //   hour: '2-digit',
+              //   minute: '2-digit',
+              //   second: '2-digit',
+              // }).format(now).replace(/[.:/,\s]/g, '_');
               this.props.resetWfmJob();
               console.log(`Doc UID exists it is ${doc.uid}`);
               let log = {};

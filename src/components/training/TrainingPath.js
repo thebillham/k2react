@@ -46,7 +46,6 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchStaff: () => dispatch(fetchStaff()),
     fetchReadingLog: () => dispatch(fetchReadingLog()),
-    fetchStaff: () => dispatch(fetchStaff()),
     fetchDocuments: () => dispatch(fetchDocuments()),
     fetchMethods: () => dispatch(fetchMethods()),
     fetchQuizzes: () => dispatch(fetchQuizzes()),
@@ -453,22 +452,16 @@ class TrainingPath extends React.Component {
     switch (page) {
       case 'outline':
         return outline;
-        break;
       case 'bgreading':
         return bgreading;
-        break;
       case 'practical':
         return practical;
-        break;
       case 'inhouse':
         return inhouse;
-        break;
       case 'sitevisits':
         return sitevisits;
-        break;
       case 'review':
         return review;
-        break;
       default:
         return outline;
     }

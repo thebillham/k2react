@@ -90,7 +90,7 @@ export default function modalReducer(state = modalInit, action){
             },
           }
         }
-      }
+      } else return state;
     case EDIT_MODAL_GLOSSARY:
       return {
         ...state,
