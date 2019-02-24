@@ -7,7 +7,7 @@ import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import GridListTileBar from '@material-ui/core/GridListTileBar';
 import ListItem from '@material-ui/core/ListItem';
-import Paper from '@material-ui/core/Paper';
+// import Paper from '@material-ui/core/Paper';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Chip from '@material-ui/core/Chip';
@@ -314,7 +314,7 @@ class Staff extends React.Component {
 
     return (
       <div style = {{ marginTop: 80 }}>
-      <Paper style={{ padding: 20, }}>
+      {/* <Paper style={{ padding: 20, }}>*/}
         <div style={{ marginBottom: 20, }}>
           <Tabs
             value = { tabValue }
@@ -491,7 +491,7 @@ class Staff extends React.Component {
             </div>
           }
         </div>
-        </Paper>
+        {/* </Paper>*/}
       </div>
     )
   }

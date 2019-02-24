@@ -7,9 +7,9 @@ import { connect } from 'react-redux';
 import { WithContext as ReactTags } from 'react-tag-input';
 // import store from '../../store';
 import { QUESTION } from '../../constants/modal-types';
-import { questionsRef, storage } from '../../config/firebase';
+import { questionsRef } from '../../config/firebase';
 import '../../config/tags.css';
-import { sendSlackMessage } from '../../Slack';
+// import { sendSlackMessage } from '../../Slack';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -18,15 +18,11 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
-import LinearProgress from '@material-ui/core/LinearProgress';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
-import IconButton from '@material-ui/core/IconButton';
 
-import UploadIcon from '@material-ui/icons/CloudUpload';
-import Close from '@material-ui/icons/Close';
 import {
   hideModal, handleModalChange, handleModalSubmit, onUploadFile, handleTagDelete,
   handleTagAddition, } from '../../actions/modal';
@@ -74,7 +70,7 @@ class QuestionModal extends React.Component {
   // }
 
   render() {
-    const { modalProps, doc, classes, questiontypes, tags } = this.props;
+    const { modalProps, doc, classes, questiontypes } = this.props;
     return(
       <Dialog
         open={ this.props.modalType === QUESTION }

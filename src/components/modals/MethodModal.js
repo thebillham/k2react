@@ -24,21 +24,13 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
-import LinearProgress from '@material-ui/core/LinearProgress';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
-import IconButton from '@material-ui/core/IconButton';
-import Chip from '@material-ui/core/Chip';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
 import Grid from '@material-ui/core/Grid';
 
-import UploadIcon from '@material-ui/icons/CloudUpload';
 import Add from '@material-ui/icons/Add';
-import Close from '@material-ui/icons/Close';
 import {
   hideModal, showModal, handleModalChange, handleModalChangeStep, handleModalSubmit, onUploadFile, handleGlossaryChange, } from '../../actions/modal';
 import { getUserAttrs } from '../../actions/local';
@@ -113,7 +105,7 @@ class MethodModal extends React.Component {
   }
 
   getPage = () => {
-    const { modalProps, doc, classes } = this.props;
+    const { doc, classes } = this.props;
     const staff = Object.values({ ...this.props.staff, [this.props.me.uid]: this.props.me }).map(staff => staff.name).sort();
 
     const headerpage = (
@@ -192,7 +184,7 @@ class MethodModal extends React.Component {
             fullWidth
             multiline
             style={{ marginBottom: 12, }}
-            value={doc && doc.referencemethod || ''}
+            value={(doc && doc.referencemethod) || ''}
               onChange={e => {this.props.handleModalChange({id: 'referencemethod', value: e.target.value})}}
           />
           <TextField

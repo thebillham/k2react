@@ -1,13 +1,7 @@
 import React from 'react';
 
-import Paper from '@material-ui/core/Paper';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
-import OpenIcon from '@material-ui/icons/OpenInNew';
-import QuizWidget from './QuizWidget';
-
 
 function TrainingReading(props) {
   const { link } = props;

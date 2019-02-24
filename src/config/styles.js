@@ -86,7 +86,7 @@ const styles = theme => ({
     width: 500,
   },
   hoverItem: {
-      backgroundColor: "#fff",
+      // backgroundColor: "#fff",
       "&:hover": {
           backgroundColor: "#eee"
       }
@@ -199,12 +199,14 @@ const styles = theme => ({
     },
   },
   appBarSpacer: theme.mixins.toolbar,
+
   content: {
     flexGrow: 1,
     padding: theme.spacing.unit * 3,
     height: '100vh',
     overflow: 'auto',
   },
+
   chartContainer: {
     marginLeft: -22,
   },

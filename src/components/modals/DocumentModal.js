@@ -4,8 +4,6 @@ import { withStyles } from '@material-ui/core/styles';
 import { modalStyles } from '../../config/styles';
 import { connect } from 'react-redux';
 
-import SlateEditor from '../editor/SlateEditor';
-
 import { DOCUMENT } from '../../constants/modal-types';
 import { docsRef, storage } from '../../config/firebase';
 import '../../config/tags.css';
@@ -28,15 +26,8 @@ import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
-import IconButton from '@material-ui/core/IconButton';
-import Chip from '@material-ui/core/Chip';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Grid from '@material-ui/core/Grid';
 
 import UploadIcon from '@material-ui/icons/CloudUpload';
-import Close from '@material-ui/icons/Close';
 
 import {
   hideModal, showModal, handleModalChange, handleModalChangeStep, handleModalSubmit, onUploadFile, handleTagAddition, handleTagDelete, } from '../../actions/modal';
@@ -90,7 +81,7 @@ class DocumentModal extends React.Component {
     if (this.props.doc.content) {
       this.setState({editorState: {
         ...this.state.editorState,
-        ['single']: this.convertToDraft(this.props.doc.content),
+        'single': this.convertToDraft(this.props.doc.content),
         }
       });
     }
@@ -126,7 +117,7 @@ class DocumentModal extends React.Component {
   getPage = () => {
     const { modalProps, doc, classes } = this.props;
     const { editorState, page } = this.state;
-    const staff = { ...this.props.staff, [this.props.me.uid]: this.props.me };
+    // const staff = { ...this.props.staff, [this.props.me.uid]: this.props.me };
 
     const headerpage = (
       <form>
@@ -138,7 +129,7 @@ class DocumentModal extends React.Component {
                 if (e.target.value === 'Multi Page' && !doc.steps) doc.steps = {};
                 this.props.handleModalChange({id: 'docType', value: e.target.value});
               }}
-              value={doc && doc.docType || 'PDF'}
+              value={(doc && doc.docType) || 'PDF'}
               input={<Input name='docType' id='docType' />}
             >
               { ['Link','PDF','Image','File','Single Page','Multi Page',].map((type) => {
@@ -152,7 +143,7 @@ class DocumentModal extends React.Component {
               <InputLabel shrink>Document Category</InputLabel>
               <Select
                 onChange={e => {this.props.handleModalChange({id: 'category', value: e.target.value})}}
-                value={doc && doc.category || 'gen'}
+                value={(doc && doc.category) || 'gen'}
                 input={<Input name='category' id='category' />}
               >
                 { this.props.categories && this.props.categories.map((cat) => {
@@ -188,7 +179,7 @@ class DocumentModal extends React.Component {
              label="Link"
              multiline
              className={classes.dialogField}
-             defaultValue={doc && doc.link || ''}
+             defaultValue={(doc && doc.link) || ''}
              helperText='Enter the full web link.'
              onChange={e => {this.props.handleModalChange(e.target)}}
            />}
@@ -196,21 +187,21 @@ class DocumentModal extends React.Component {
             id="title"
             label="Title"
             className={classes.dialogField}
-            defaultValue={doc && doc.title || ''}
+            defaultValue={(doc && doc.title) || ''}
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
           <TextField
             id="subtitle"
             label="Subtitle"
             className={classes.dialogField}
-            defaultValue={doc && doc.subtitle || ''}
+            defaultValue={(doc && doc.subtitle) || ''}
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
           <TextField
             id="code"
             label="Code"
             className={classes.dialogField}
-            defaultValue={doc && doc.code || ''}
+            defaultValue={(doc && doc.code) || ''}
             helperText='Code or reference number (e.g. AS/NZS 1715:2009)'
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
@@ -218,14 +209,14 @@ class DocumentModal extends React.Component {
             id="author"
             label="Author"
             className={classes.dialogField}
-            defaultValue={doc && doc.author || ''}
+            defaultValue={(doc && doc.author) || ''}
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
           <TextField
             id="publisher"
             label="Publisher"
             className={classes.dialogField}
-            defaultValue={doc && doc.publisher || ''}
+            defaultValue={(doc && doc.publisher) || ''}
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
           <TextField
@@ -253,7 +244,7 @@ class DocumentModal extends React.Component {
             label="Description"
             multiline
             className={classes.dialogField}
-            defaultValue={doc && doc.desc || ''}
+            defaultValue={(doc && doc.desc) || ''}
             helperText='Give a description of the purpose of the document.'
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
@@ -271,7 +262,7 @@ class DocumentModal extends React.Component {
             label="References"
             multiline
             className={classes.dialogField}
-            defaultValue={doc && doc.references || ''}
+            defaultValue={(doc && doc.references) || ''}
             helperText='List any links or references this document is based on.'
             onChange={e => {this.props.handleModalChange(e.target)}}
           />
@@ -284,7 +275,7 @@ class DocumentModal extends React.Component {
                onEditorStateChange={changedState => {
                  this.setState({editorState: {
                    ...editorState,
-                   ['single']: changedState,
+                   'single': changedState,
                    }
                  });
                  let html = draftToHtml(convertToRaw(changedState.getCurrentContent()));
@@ -329,7 +320,7 @@ class DocumentModal extends React.Component {
           id="title"
           label="Title"
           style={{ marginBottom: 12, }}
-          value={doc.steps && doc.steps[page-2] && doc.steps[page-2].title || ''}
+          value={(doc.steps && doc.steps[page-2] && doc.steps[page-2].title) || ''}
           onChange={e => this.props.handleModalChangeStep({step: (page-2).toString(), id: 'title', value: e.target.value})}
         />
         <RichEditor
@@ -356,14 +347,13 @@ class DocumentModal extends React.Component {
     switch (this.state.page) {
       case 1:
         return headerpage;
-        break;
       default:
         return contentpage;
     }
   }
 
   render() {
-    const { modalProps, doc, classes } = this.props;
+    const { modalProps, doc, } = this.props;
 
     return(
       <Dialog

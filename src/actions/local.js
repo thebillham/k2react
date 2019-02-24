@@ -4,7 +4,6 @@ import {
         DELETE_NOTICE,
         FAV_NOTICE,
         GET_AIRANALYSTS,
-        GET_ASBESTOS_SAMPLES,
         GET_BULKANALYSTS,
         GET_COCS,
         GET_DOCUMENTS,
@@ -47,11 +46,8 @@ import {
   auth,
   cocsRef,
   docsRef,
-  geocodesRef,
   helpRef,
-  jobsRef,
   methodsRef,
-  modulesRef,
   noticesRef,
   questionsRef,
   quizzesRef,
@@ -1025,6 +1021,7 @@ export const updateGeocodes = geocodes => dispatch => {
 
 export const saveWFMItems = items => dispatch => {
   var date = moment().format('YYYY-MM-DD');
+  console.log(items);
   stateRef.doc("wfmstate").collection("states").doc(date).set({ state: items });
   dispatch({
     type: SAVE_WFM_ITEMS,

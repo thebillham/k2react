@@ -2,7 +2,6 @@ import React from 'react';
 
 import Paper from '@material-ui/core/Paper';
 
-import TrainingLink from './TrainingLink';
 import TrainingReading from './TrainingReading';
 import QuizWidget from './QuizWidget';
 

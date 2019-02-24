@@ -6,9 +6,6 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
-import { QUESTION } from '../../constants/modal-types';
-
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
 
 function QuestionList(props) {
   const { question } = props;

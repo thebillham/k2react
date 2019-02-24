@@ -4,7 +4,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: rgba(0, 0, 0, 0.8500);
-  background-color: #f6f6f6;
+  background-color: #fbfbfb;
 }
 
 .App .baseFont * { /* Base font style override for UI framework components */

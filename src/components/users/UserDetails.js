@@ -5,7 +5,7 @@ import { formStyles } from '../../config/styles';
 
 import Grid from '@material-ui/core/Grid';
 import ListItem from '@material-ui/core/ListItem';
-import Paper from '@material-ui/core/Paper';
+// import Paper from '@material-ui/core/Paper';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -160,7 +160,7 @@ class UserDetails extends React.Component {
     return (
       <div style={{ marginTop: 80, }}>
         <UserAttrModal />
-        <Paper style={{ padding: 20, }}>
+        {/* <Paper style={{ padding: 20, }}>*/}
           <div style={{ marginBottom: 20, }}>
             <Tabs
               value = { tabValue }
@@ -706,7 +706,7 @@ class UserDetails extends React.Component {
             }
 
           </div>
-        </Paper>
+          {/* </Paper>*/}
       </div>
     );
   }

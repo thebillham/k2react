@@ -64,7 +64,7 @@ class Quiz extends React.Component {
             let question = q.data();
             question.uid = q.id;
             questions.push(question);
-            if (questions.length == quiz.data().numberofquestions) {
+            if (questions.length === quiz.data().numberofquestions) {
             // if (questions.length == uidlist.length) {
               this.setState({
                 quiz: quiz.data(),

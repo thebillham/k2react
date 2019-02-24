@@ -1,8 +1,5 @@
 import React from 'react';
-
-import Paper from '@material-ui/core/Paper';
-
-import { BrowserRouter as Router, Route, Link, Switch, withRouter } from "react-router-dom";
+import { BrowserRouter as Link } from "react-router-dom";
 import OpenIcon from '@material-ui/icons/OpenInNew';
 import QuizWidget from './QuizWidget';
 
