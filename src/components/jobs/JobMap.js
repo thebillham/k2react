@@ -183,9 +183,9 @@ class JobMap extends React.Component {
         staff['K2']['averageJobNeedsBookingAge'] = this.averageStaffStat(age, staff['K2']['averageJobNeedsBookingAge']);
         staff[m.owner]['averageJobNeedsBookingAge'] = this.averageStaffStat(age, staff[m.owner]['averageJobNeedsBookingAge']);
         client[m.client]['averageJobNeedsBookingAge'] = this.averageStaffStat(age, client[m.client]['averageJobNeedsBookingAge']);
-        staff['K2']['jobNeedsBookingAges'].push(age);
-        staff[m.owner]['jobNeedsBookingAges'].push(age);
-        client[m.client]['jobNeedsBookingAges'].push(age);
+        staff['K2']['jobNeedsBookingAges'] = [...staff['K2']['jobNeedsBookingAges'], age];
+        staff[m.owner]['jobNeedsBookingAges'] = [...staff[m.owner]['jobNeedsBookingAges'], age];
+        client[m.client]['jobNeedsBookingAges'] = [...client[m.client]['jobNeedsBookingAges'], age];
       }
 
       if (m.isJob) {
@@ -195,9 +195,9 @@ class JobMap extends React.Component {
         staff['K2']['averageJobAge'] = this.averageStaffStat(age, staff['K2']['averageJobAge']);
         staff[m.owner]['averageJobAge'] = this.averageStaffStat(age, staff[m.owner]['averageJobAge']);
         client[m.client]['averageJobAge'] = this.averageStaffStat(age, client[m.client]['averageJobAge']);
-        staff['K2']['jobAges'].push(age);
-        staff[m.owner]['jobAges'].push(age);
-        client[m.client]['jobAges'].push(age);
+        staff['K2']['jobAges'] = [...staff['K2']['jobAges'], age];
+        staff[m.owner]['jobAges'] = [...staff[m.owner]['jobAges'], age];
+        client[m.client]['jobAges'] = [...client[m.client]['jobAges'], age];
       }
 
       if (!m.isJob) {
@@ -207,9 +207,9 @@ class JobMap extends React.Component {
         staff['K2']['averageLeadAge'] = this.averageStaffStat(age, staff['K2']['averageLeadAge']);
         staff[m.owner]['averageLeadAge'] = this.averageStaffStat(age, staff[m.owner]['averageLeadAge']);
         client[m.client]['averageLeadAge'] = this.averageStaffStat(age, client[m.client]['averageLeadAge']);
-        staff['K2']['leadAges'].push(age);
-        staff[m.owner]['leadAges'].push(age);
-        client[m.client]['leadAges'].push(age);
+        staff['K2']['leadAges'] = [...staff['K2']['leadAges'], age];
+        staff[m.owner]['leadAges'] = [...staff[m.owner]['leadAges'], age];
+        client[m.client]['leadAges'] = [...client[m.client]['leadAges'], age];
       }
 
       m.activities && m.activities.forEach(a => {
@@ -222,9 +222,9 @@ class JobMap extends React.Component {
           staff['K2']['averageCompletedActionOverdueDays'] = this.averageStaffStat(a.completedOverdueBy, staff['K2']['averageCompletedActionOverdueDays']);
           staff[a.responsible]['averageCompletedActionOverdueDays'] = this.averageStaffStat(a.completedOverdueBy, staff[a.responsible]['averageCompletedActionOverdueDays']);
           client[m.client]['averageCompletedActionOverdueDays'] = this.averageStaffStat(a.completedOverdueBy, client[m.client]['averageCompletedActionOverdueDays']);
-          staff['K2']['completedActionOverdueDays'].push(a.completedOverdueBy);
-          staff[a.responsible]['completedActionOverdueDays'].push(a.completedOverdueBy);
-          client[m.client]['completedActionOverdueDays'].push(a.completedOverdueBy);
+          staff['K2']['completedActionOverdueDays'] = [...staff['K2']['completedActionOverdueDays'], a.completedOverdueBy];
+          staff[a.responsible]['completedActionOverdueDays'] = [...staff[a.responsible]['completedActionOverdueDays'], a.completedOverdueBy];
+          client[m.client]['completedActionOverdueDays'] = [...client[m.client]['completedActionOverdueDays'], a.completedOverdueBy];
         } else {
           var overdueDays = this.getDaysSinceDate(a.date);
           if (overdueDays > 0) {
@@ -235,9 +235,9 @@ class JobMap extends React.Component {
             staff['K2']['averageActionOverdueDays'] = this.averageStaffStat(overdueDays, staff['K2']['averageActionOverdueDays']);
             staff[a.responsible]['averageActionOverdueDays'] = this.averageStaffStat(overdueDays, staff[a.responsible]['averageActionOverdueDays']);
             client[m.client]['averageActionOverdueDays'] = this.averageStaffStat(overdueDays, client[m.client]['averageActionOverdueDays']);
-            staff['K2']['leadAges'].push(overdueDays);
-            staff[a.responsible]['leadAges'].push(overdueDays);
-            client[m.client]['leadAges'].push(overdueDays);
+            staff['K2']['actionOverdueDays'] = [...staff['K2']['actionOverdueDays'], overdueDays];
+            staff[m.owner]['actionOverdueDays'] = [...staff[m.owner]['actionOverdueDays'], overdueDays];
+            client[m.client]['actionOverdueDays'] = [...client[m.client]['actionOverdueDays'], overdueDays];
           } else {
             // Action on target
             staff['K2']['upcomingActions'] += 1;
@@ -793,6 +793,7 @@ class JobMap extends React.Component {
           else daysMap[i]['Shona'] = daysMap[i]['Shona'] + 1;
       });
       var daysData = Object.values(daysMap);
+      var sortedDays = [].concat(daysData).sort((a, b) => a.days > b.days);
       console.log(daysData);
     }
     const noLocationModal = (
@@ -962,7 +963,7 @@ class JobMap extends React.Component {
         }
         { this.state.tabValue === 3 &&
           <div>
-          <LineChart width={730} height={250} data={daysData}
+          <LineChart width={1200} height={350} data={daysData}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="days" />
