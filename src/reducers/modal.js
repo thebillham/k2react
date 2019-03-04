@@ -19,6 +19,7 @@ export const modalInit = {
       personnel: [],
       dates: [],
       samples: {},
+      type: '',
     },
     isUploading: false,
     uploadProgress: 0,

@@ -83,10 +83,10 @@ const localInit = {
 export default function localReducer(state = localInit, action) {
   switch (action.type) {
     case GET_AIRANALYSTS:
-    if (action.update) stateRef.doc("airanalysts").set({ payload: state.airanalysts.concat(action.payload)});
+    if (action.update) stateRef.doc("airanalysts").set({ payload: action.payload});
       return {
         ...state,
-        airanalysts: state.airanalysts.concat(action.payload),
+        airanalysts: action.payload,
       }
     case GET_ASBESTOS_SAMPLES:
     if (action.update) stateRef.doc("asbestossamples").set(action.payload);
@@ -95,10 +95,10 @@ export default function localReducer(state = localInit, action) {
         samplesasbestos: action.payload,
       }
     case GET_BULKANALYSTS:
-    if (action.update) stateRef.doc("bulkanalysts").set({ payload: state.bulkanalysts.concat(action.payload)});
+    if (action.update) stateRef.doc("bulkanalysts").set({ payload: action.payload});
       return {
         ...state,
-        bulkanalysts: state.bulkanalysts.concat(action.payload),
+        bulkanalysts: action.payload,
       }
     case GET_COCS:
       if (action.update) stateRef.doc("cocs").set(action.payload);
@@ -168,13 +168,14 @@ export default function localReducer(state = localInit, action) {
         }
       }
     case GET_SAMPLES:
-      if (action.update) {
-        stateRef.doc("samples").set({ payload: {
-          ...state.samples,
-          [action.cocUid]: action.payload
-          }
-        });
-      }
+      // if (action.update) {
+      //   stateRef.doc("samples").set({ payload: {
+      //     ...state.samples,
+      //     [action.cocUid]: action.payload
+      //     }
+      //   });
+      // }
+      return { ...state, samples: { ...state.samples, [action.cocUid]: action.payload, }};
     case GET_STAFF:
       if (action.update) stateRef.doc("staff").set(action.payload);
       return { ...state, staff: action.payload };

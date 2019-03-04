@@ -66,7 +66,7 @@ const mapDispatchToProps = dispatch => {
     setModalError: error => dispatch(setModalError(error)),
     syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
     resetWfmJob: () => dispatch(resetWfmJob()),
-    fetchSamples: (cocUid, jobNumber) => dispatch(fetchSamples(cocUid, jobNumber)),
+    fetchSamples: (cocUid, jobNumber, modalDoc ) => dispatch(fetchSamples(cocUid, jobNumber, modalDoc )),
   };
 };
 
@@ -149,7 +149,7 @@ class CocModal extends React.Component {
         uid = `${jobNumber.toUpperCase()}_${datestring}`;
         this.props.handleModalChange({id: 'uid', value: uid});
       }
-      this.props.fetchSamples(uid, jobNumber);
+      this.props.fetchSamples(uid, jobNumber, true);
     }
   }
 
@@ -161,8 +161,8 @@ class CocModal extends React.Component {
   }
 
   render() {
-    const { modalProps, doc, wfmJob, classes, } = this.props;
-    const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name)));
+    const { modalProps, doc, wfmJob, classes, samples } = this.props;
+    const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
     const autosuggestProps = {
       renderInputComponent,
       suggestions: this.state.suggestions,
@@ -215,11 +215,11 @@ class CocModal extends React.Component {
                         { wfmJob.address }<br />
                       </div>
                       :
-                      <div>
+                      <div>{doc.type !== 'bulk' && <div>
                         <b>{ doc.type}</b><br />
                         { doc.client }<br />
                         { doc.address }<br />
-                      </div>
+                      </div>}</div>
                     }
                   </div>
                 )
@@ -417,7 +417,7 @@ class CocModal extends React.Component {
                         id={`description${i+1}`}
                         disabled={disabled}
                         style={{ width: '100%' }}
-                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description}
+                        value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
                         onChange={e => {
                           this.setState({ modified: true, });
                           this.props.handleSampleChange(i, 'reported', false);

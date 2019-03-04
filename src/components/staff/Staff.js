@@ -260,7 +260,8 @@ class Staff extends React.Component {
 
   render() {
     // const TreeTable = treeTableHOC(ReactTable);
-    const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
+    // const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
+    const staff = Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name));
     var { tabValue } = this.state;
     const { classes } = this.props;
     const docs = this.getDocs();

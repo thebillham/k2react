@@ -343,8 +343,8 @@ class JobMap extends React.Component {
       if (lead.geocode && lead.geocode.address === "New Zealand" && !lead.isJob) this.setState({ noLocationLeads: [...this.state.noLocationLeads, lead,] });
       if (lead.geocode && lead.geocode.address === "New Zealand" && lead.isJob) this.setState({ noLocationJobs: [...this.state.noLocationJobs, lead,] });
     } else {
-      // let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY}`;
-      let path = `https://www.google.com`;
+      let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY}`;
+      // let path = `https://www.google.com`;
       console.log('Getting GEOCODE for ' + add);
       fetch(path).then(response => response.json()).then(response => {
         var gc = this.props.geocodes;
@@ -841,7 +841,7 @@ class JobMap extends React.Component {
 
     return (
       <div style = {{ marginTop: 80 }}>
-        <div style={{ marginBottom: 20, }}>
+        {/*<div style={{ marginBottom: 20, }}>
           <Tabs
             value = { this.state.tabValue }
             onChange = { this.handleTabChange }
@@ -857,7 +857,7 @@ class JobMap extends React.Component {
           </Tabs>
         </div>
         { this.state.tabValue === 2 &&
-          <div>
+          <div>*/}
               { this.state.modal && noLocationModal }
               <ExpansionPanel>
                 <ExpansionPanelSummary expandIcon={<ExpandMore />}>
@@ -959,7 +959,8 @@ class JobMap extends React.Component {
                     </div>
                 </InfoWindow>
               </Map>
-          </div>
+          {/*</div>
+
         }
         { this.state.tabValue === 3 &&
           <div>
@@ -1005,7 +1006,7 @@ class JobMap extends React.Component {
               })}
             </div>
           </div>
-        }
+        }*/}
       </div>
     );
   }

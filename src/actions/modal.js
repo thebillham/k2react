@@ -133,6 +133,7 @@ export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
 }
 
 export const handleCocSubmit = ({ doc, docid}) => dispatch => {
+  console.log(doc.samples);
   let samplelist = [];
   if (doc.samples) {
     Object.keys(doc.samples).forEach(sample => {
@@ -152,7 +153,7 @@ export const handleCocSubmit = ({ doc, docid}) => dispatch => {
       } else {
         samplelist.push(doc.samples[sample].uid);
       }
-      if((doc.samples[sample].description || doc.samples[sample].material) && !doc.samples[sample].disabled){
+      if((doc.samples[sample].description || doc.samples[sample].material) && !doc.samples[sample].disabled && (doc.samples[sample].cocUid === undefined || doc.samples[sample].cocUid === doc.uid)){
         console.log(`Submitting sample ${sample} to ${docid}`);
         let sample2 = doc.samples[sample];
         if (sample2.description) sample2.description = sample2.description.charAt(0).toUpperCase() + sample2.description.slice(1);
@@ -164,6 +165,7 @@ export const handleCocSubmit = ({ doc, docid}) => dispatch => {
         sample2.cocUid = docid;
         sample2.samplenumber = parseInt(sample,10);
         if ("disabled" in sample2) delete sample2.disabled;
+        console.log('Sample 2');
         console.log(sample2);
         asbestosSamplesRef.doc(doc.samples[sample].uid).set(sample2);
       }

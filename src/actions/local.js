@@ -38,6 +38,7 @@ import {
         SET_MODAL_ERROR,
         SET_STEPPER,
         UPDATE_STAFF,
+        EDIT_MODAL_DOC,
       } from "../constants/action-types";
 import firebase from '../config/firebase';
 import moment from 'moment';
@@ -74,11 +75,11 @@ export const fetchMe = () => async dispatch => {
       let user = doc.data();
       user.uid = doc.id;
       if (user.auth && user.auth['Asbestos Air Analysis']) {
-        dispatch({ type: GET_AIRANALYSTS, payload: [{uid: user.uid, name: user.name}] });
+        // dispatch({ type: GET_AIRANALYSTS, payload: [{uid: user.uid, name: user.name}] });
         dispatch({ type: SET_ANALYST, payload: user.name, });
       }
       if (user.auth && user.auth['Asbestos Bulk Analysis']) {
-        dispatch({ type: GET_BULKANALYSTS, payload: [{uid: user.uid, name: user.name}] });
+        // dispatch({ type: GET_BULKANALYSTS, payload: [{uid: user.uid, name: user.name}] });
         dispatch({ type: SET_ANALYST, payload: user.name, });
       }
       dispatch({ type: GET_ME, payload: user});
@@ -105,33 +106,12 @@ export const fetchStaff = update => async dispatch => {
   if (update) {
     console.log("Running fetch staff to update")
     var users = {};
-      auth.currentUser &&
-        usersRef
-          .where(firebase.firestore.FieldPath.documentId(), ">", auth.currentUser.uid)
-          .get()
-          .then((querySnapshot) => {
+      usersRef.get().then((querySnapshot) => {
             let airanalysts = [];
             let bulkanalysts = [];
             querySnapshot.forEach((doc) => {
+              console.log("Read a doc! " + doc.data().name);
 
-              let user = doc.data();
-              user.uid = doc.id;
-              users[doc.id] = user;
-              if (user.auth && user.auth['Asbestos Air Analysis']) airanalysts.push({uid: user.uid, name: user.name});
-              if (user.auth && user.auth['Asbestos Bulk Analysis']) bulkanalysts.push({uid: user.uid, name: user.name});
-            });
-            dispatch({ type: GET_STAFF, payload: users, update: true, });
-            dispatch({ type: GET_AIRANALYSTS, payload: airanalysts, update: true, });
-            dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts, update: true, });
-          });
-      auth.currentUser &&
-        usersRef
-          .where(firebase.firestore.FieldPath.documentId(), "<", auth.currentUser.uid)
-          .get().then((querySnapshot) => {
-            let airanalysts = [];
-            let bulkanalysts = [];
-            querySnapshot.forEach((doc) => {
-              console.log("Read a doc (LT user)! " + doc.data().name);
               let user = doc.data();
               user.uid = doc.id;
               users[doc.id] = user;
@@ -147,6 +127,8 @@ export const fetchStaff = update => async dispatch => {
     stateRef.doc("staff")
       .onSnapshot(doc => {
         if (doc.exists) {
+          console.log(doc.data());
+          // .filter((m) => m.uid !== auth.currentUser.uid)
           dispatch({ type: GET_STAFF, payload: doc.data() });
         } else {
           console.log("Doc doesn't exist");
@@ -262,20 +244,21 @@ export const getUserAttrs = userPath => async dispatch => {
               type: GET_ME,
               payload: user,
             });
-          } else {
-            console.log('Updating other staff');
-            console.log(user);
-            dispatch({
-              type: UPDATE_STAFF,
-              userPath: userPath,
-              payload: user,
-            });
           }
+          console.log('Updating other staff');
+          console.log(user);
+          dispatch({
+            type: UPDATE_STAFF,
+            userPath: userPath,
+            payload: user,
+          });
         }
       });
 }
 
 export const fetchCocs = update => async dispatch => {
+  // Make all calls update for now
+  update = true;
   if (update) {
     cocsRef
       .where('deleted', '==', false)
@@ -528,7 +511,7 @@ export const fetchVehicles = update => async dispatch => {
   }
 }
 
-export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
+export const fetchSamples = (cocUid, jobNumber, modalDoc) => async dispatch => {
     let samples = {};
     asbestosSamplesRef.
       where('jobNumber','==',jobNumber)
@@ -537,8 +520,14 @@ export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
           let sample = sampleDoc.data();
           sample.uid = sampleDoc.id;
           samples[sample.samplenumber] = sample;
-          console.log(`Ran fetch Samples`);
-          console.log(samples);
+          // console.log(`Ran fetch Samples`);
+          // console.log(samples);
+          if (modalDoc) {
+            dispatch({
+              type: EDIT_MODAL_DOC,
+              payload: { samples },
+            });
+          }
           dispatch({
             type: GET_SAMPLES,
             cocUid: cocUid,
