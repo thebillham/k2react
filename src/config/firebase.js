@@ -1,7 +1,7 @@
-import firebase from 'firebase/app';
-import 'firebase/auth';
-import 'firebase/storage';
-import 'firebase/firestore';
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/storage";
+import "firebase/firestore";
 
 const FirebaseConfig = {
   apiKey: process.env.REACT_APP_GOOGLE_API_KEY,
@@ -15,12 +15,12 @@ const FirebaseConfig = {
 const app = firebase.initializeApp(FirebaseConfig);
 var p = new firebase.auth.GoogleAuthProvider();
 p.setCustomParameters({
-  prompt: 'select_account'
+  prompt: "select_account"
 });
-p.addScope('https://www.googleapis.com/auth/calendar');
+p.addScope("https://www.googleapis.com/auth/calendar");
 
 const firestore = firebase.firestore();
-firestore.settings({timestampsInSnapshots: true})
+firestore.settings({ timestampsInSnapshots: true });
 
 const provider = p;
 const auth = firebase.auth();
@@ -47,14 +47,7 @@ const updateRef = firestore.collection("updates");
 const usersRef = firestore.collection("users");
 const vehiclesRef = firestore.collection("vehicles");
 
-export {
-  app,
-  auth,
-  firebase,
-  firestore,
-  provider,
-  storage,
-};
+export { app, auth, firebase, firestore, provider, storage };
 export {
   appSettingsRef,
   asbestosAnalysisRef,
@@ -74,6 +67,6 @@ export {
   trainingPathsRef,
   updateRef,
   usersRef,
-  vehiclesRef,
+  vehiclesRef
 };
 export default firebase;

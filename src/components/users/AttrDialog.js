@@ -1,11 +1,8 @@
 function AttrDialog(props) {
-  <Dialog
-  open={this.state.attrDialogOpen}
-  onClose={this.handleAttrDialogClose}
-  >
+  <Dialog open={this.state.attrDialogOpen} onClose={this.handleAttrDialogClose}>
     <DialogTitle>Add New Attribute</DialogTitle>
     <DialogContent>
-      <DialogContentText></DialogContentText>
+      <DialogContentText />
       <form>
         <FormGroup>
           <TextField
@@ -33,15 +30,26 @@ function AttrDialog(props) {
           />
           <label>
             <UploadIcon className={classes.accentButton} />
-            <input id='attr_upload_file' type='file' className={classes.hidden} onChange={e => {this.onAttrUploadFile(e.currentTarget.files[0])}} />
+            <input
+              id="attr_upload_file"
+              type="file"
+              className={classes.hidden}
+              onChange={e => {
+                this.onAttrUploadFile(e.currentTarget.files[0]);
+              }}
+            />
             <LinearProgress variant="determinate" value={this.state.progress} />
           </label>
         </FormGroup>
       </form>
     </DialogContent>
     <DialogActions>
-      <Button onClick={this.handleAttrDialogClose} color="secondary">Cancel</Button>
-      <Button onClick={this.handleAttrDialogAdd} color="primary">Add</Button>
+      <Button onClick={this.handleAttrDialogClose} color="secondary">
+        Cancel
+      </Button>
+      <Button onClick={this.handleAttrDialogAdd} color="primary">
+        Add
+      </Button>
     </DialogActions>
-</Dialog>
+  </Dialog>;
 }

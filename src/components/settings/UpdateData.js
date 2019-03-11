@@ -1,18 +1,18 @@
-import React from 'react';
+import React from "react";
 // import ReactDOM from 'react-dom';
 // import { WithContext as ReactTags } from 'react-tag-input';
-import { withStyles } from '@material-ui/core/styles';
-import { modalStyles } from '../../config/styles';
-import { connect } from 'react-redux';
+import { withStyles } from "@material-ui/core/styles";
+import { modalStyles } from "../../config/styles";
+import { connect } from "react-redux";
 // import store from '../../store';
-import { UPDATEDATA } from '../../constants/modal-types';
-import '../../config/tags.css';
+import { UPDATEDATA } from "../../constants/modal-types";
+import "../../config/tags.css";
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogActions from "@material-ui/core/DialogActions";
 
 import {
   fetchCocs,
@@ -25,15 +25,15 @@ import {
   fetchStaff,
   fetchTools,
   fetchTrainingPaths,
-  fetchVehicles,
-  } from '../../actions/local';
-import { hideModal } from '../../actions/modal';
+  fetchVehicles
+} from "../../actions/local";
+import { hideModal } from "../../actions/modal";
 
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
-    doc: state.modal.modalProps.doc,
-   };
+    doc: state.modal.modalProps.doc
+  };
 };
 
 const mapDispatchToProps = dispatch => {
@@ -49,76 +49,92 @@ const mapDispatchToProps = dispatch => {
     fetchTools: () => dispatch(fetchTools(true)),
     fetchTrainingPaths: () => dispatch(fetchTrainingPaths(true)),
     fetchVehicles: () => dispatch(fetchVehicles(true)),
-    hideModal: modal => dispatch(hideModal(modal)),
-  }
-}
+    hideModal: modal => dispatch(hideModal(modal))
+  };
+};
 
 class UpdateData extends React.Component {
   render() {
     const updateTypes = [
       {
         event: this.props.fetchCocs,
-        title: 'Chains of Custody',
+        title: "Chains of Custody"
       },
       {
         event: this.props.fetchDocuments,
-        title: 'Documents',
+        title: "Documents"
       },
       {
         event: this.props.fetchMethods,
-        title: 'Methods',
+        title: "Methods"
       },
       {
         event: this.props.fetchNotices,
-        title: 'Notices',
+        title: "Notices"
       },
       {
         event: this.props.fetchQuestions,
-        title: 'Questions',
+        title: "Questions"
       },
       {
         event: this.props.fetchQuizzes,
-        title: 'Quizzes',
+        title: "Quizzes"
       },
       {
         event: this.props.fetchStaff,
-        title: 'Staff',
+        title: "Staff"
       },
       {
         event: this.props.fetchTools,
-        title: 'Tools',
+        title: "Tools"
       },
       {
         event: this.props.fetchTrainingPaths,
-        title: 'Training Paths',
+        title: "Training Paths"
       },
       {
         event: this.props.fetchVehicles,
-        title: 'Vehicles',
-      },
-    ]
-    return(
+        title: "Vehicles"
+      }
+    ];
+    return (
       <Dialog
-        open={ this.props.modalType === UPDATEDATA }
-        onClose = {() => this.props.hideModal}
-        >
+        open={this.props.modalType === UPDATEDATA}
+        onClose={() => this.props.hideModal}
+      >
         <DialogTitle>Update Cached Data</DialogTitle>
         <DialogContent>
-          { updateTypes.map(update => (
+          {updateTypes.map(update => (
             <div key={update}>
-              <Button variant="outlined" color="default" style={{ marginTop: 16, }} onClick={update.event}>
-              { update.title }
+              <Button
+                variant="outlined"
+                color="default"
+                style={{ marginTop: 16 }}
+                onClick={update.event}
+              >
+                {update.title}
               </Button>
             </div>
-            )
-          )}
+          ))}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { this.props.hideModal() }} color="secondary">Close</Button>
+          <Button
+            onClick={() => {
+              this.props.hideModal();
+            }}
+            color="secondary"
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
-    )
+    );
   }
 }
 
-export default withStyles(modalStyles)(connect(mapStateToProps, mapDispatchToProps)(UpdateData));
+export default withStyles(modalStyles)(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(UpdateData)
+);

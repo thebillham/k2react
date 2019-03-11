@@ -1,16 +1,16 @@
-import React, { Component } from 'react';
-import MainScreen from './components/MainScreen';
-import K2SignInScreen from './components/K2SignInScreen';
-import { auth } from './config/firebase';
-import { withRouter } from 'react-router-dom';
-require('dotenv').config();
+import React, { Component } from "react";
+import MainScreen from "./components/MainScreen";
+import K2SignInScreen from "./components/K2SignInScreen";
+import { auth } from "./config/firebase";
+import { withRouter } from "react-router-dom";
+require("dotenv").config();
 
 class App extends Component {
   constructor() {
     super();
     this.state = {
-      user: null,
-    }
+      user: null
+    };
 
     this.logIn = this.logIn.bind(this);
     this.logOut = this.logOut.bind(this);
@@ -21,14 +21,13 @@ class App extends Component {
   }
 
   logOut() {
-    auth.signOut()
-      .then(() => {
-        this.setState({});
-      });
-    }
+    auth.signOut().then(() => {
+      this.setState({});
+    });
+  }
 
   componentWillMount() {
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(user => {
       if (user) {
         this.setState({ user });
       }
@@ -37,12 +36,12 @@ class App extends Component {
 
   render() {
     return (
-      <div className='wrapper'>
-        { auth.currentUser ?
-          < MainScreen key='mainscreen' />
-          :
-          < K2SignInScreen />
-        }
+      <div className="wrapper">
+        {auth.currentUser ? (
+          <MainScreen key="mainscreen" />
+        ) : (
+          <K2SignInScreen />
+        )}
       </div>
     );
   }

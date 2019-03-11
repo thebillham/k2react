@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 
-import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
+import FormControl from "@material-ui/core/FormControl";
+import FormLabel from "@material-ui/core/FormLabel";
 
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
@@ -17,22 +17,22 @@ const grid = 8;
 
 const getItemStyle = (isDragging, draggableStyle) => ({
   borderRadius: 24,
-  userSelect: 'none',
+  userSelect: "none",
   margin: `0 ${grid}px 0 0`,
-  background: isDragging ? '#fafafa' : 'white',
+  background: isDragging ? "#fafafa" : "white",
   ...draggableStyle
 });
 
 const getListStyle = isDraggingOver => ({
   borderRadius: 24,
-  background: isDraggingOver ? '#FFD5CC' : '#FFEAE5',
-  display: 'flex',
+  background: isDraggingOver ? "#FFD5CC" : "#FFEAE5",
+  display: "flex",
   padding: grid,
-  overflow: 'auto',
+  overflow: "auto"
 });
 
 class SortImageQuestion extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.onDragEnd = this.onDragEnd.bind(this);
@@ -40,10 +40,13 @@ class SortImageQuestion extends React.Component {
     // this.onChanged = this.onChanged.bind(this);
   }
 
-  componentWillMount(){
+  componentWillMount() {
     var answerList = this.props.q.answers.slice();
-    this.props.onChanged(this.props.q.uid, answerList.sort(() => .5 - Math.random()));
-  };
+    this.props.onChanged(
+      this.props.q.uid,
+      answerList.sort(() => 0.5 - Math.random())
+    );
+  }
 
   onDragEnd(result) {
     // dropped outside the list
@@ -64,10 +67,17 @@ class SortImageQuestion extends React.Component {
     const { q } = this.props;
 
     return (
-      <div style = {{ marginTop: 24 }}>
+      <div style={{ marginTop: 24 }}>
         <FormControl component="fieldset">
-          { q.image && <img src={q.image} alt='' height='300' style={{ borderRadius: 16 }}/> }
-          <FormLabel component="legend"> { q.question }</FormLabel>
+          {q.image && (
+            <img
+              src={q.image}
+              alt=""
+              height="300"
+              style={{ borderRadius: 16 }}
+            />
+          )}
+          <FormLabel component="legend"> {q.question}</FormLabel>
           <DragDropContext onDragEnd={this.onDragEnd}>
             <Droppable droppableId="droppable" direction="horizontal">
               {(provided, snapshot) => (
@@ -90,7 +100,8 @@ class SortImageQuestion extends React.Component {
                           src={item}
                           height={q.height}
                           width={q.width}
-                          alt='option' />
+                          alt="option"
+                        />
                       )}
                     </Draggable>
                   ))}
@@ -102,8 +113,7 @@ class SortImageQuestion extends React.Component {
         </FormControl>
         <hr />
       </div>
-    )
-
+    );
   }
 }
 

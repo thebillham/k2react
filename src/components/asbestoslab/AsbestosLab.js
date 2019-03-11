@@ -1,27 +1,32 @@
-import React from 'react';
-import { withStyles } from '@material-ui/core/styles';
-import { styles } from '../../config/styles';
-import { connect } from 'react-redux';
-import { fetchCocs, fetchSamples, setAnalyst, setAnalysisMode, } from '../../actions/local';
+import React from "react";
+import { withStyles } from "@material-ui/core/styles";
+import { styles } from "../../config/styles";
+import { connect } from "react-redux";
+import {
+  fetchCocs,
+  fetchSamples,
+  setAnalyst,
+  setAnalysisMode
+} from "../../actions/local";
 
 //Modals
-import { COC, } from '../../constants/modal-types';
-import { showModal } from '../../actions/modal';
-import CocModal from '../modals/CocModal';
-import UpdateCertificateVersion from '../modals/UpdateCertificateVersion';
-import QCAnalysis from '../modals/QCAnalysis';
-import WAAnalysis from '../modals/WAAnalysis';
-import SampleHistoryModal from '../modals/SampleHistoryModal';
-import CocLog from '../modals/CocLog';
+import { COC } from "../../constants/modal-types";
+import { showModal } from "../../actions/modal";
+import CocModal from "../modals/CocModal";
+import UpdateCertificateVersion from "../modals/UpdateCertificateVersion";
+import QCAnalysis from "../modals/QCAnalysis";
+import WAAnalysis from "../modals/WAAnalysis";
+import SampleHistoryModal from "../modals/SampleHistoryModal";
+import CocLog from "../modals/CocLog";
 
-import CocList from './CocList';
+import CocList from "./CocList";
 
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Button from '@material-ui/core/Button';
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
-import Input from '@material-ui/core/Input';
-import Select from '@material-ui/core/Select';
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Button from "@material-ui/core/Button";
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import Input from "@material-ui/core/Input";
+import Select from "@material-ui/core/Select";
 
 const mapStateToProps = state => {
   return {
@@ -32,8 +37,8 @@ const mapStateToProps = state => {
     bulkanalysts: state.local.bulkanalysts,
     airanalysts: state.local.airanalysts,
     analyst: state.local.analyst,
-    analysismode: state.local.analysismode,
-   };
+    analysismode: state.local.analysismode
+  };
 };
 
 const mapDispatchToProps = dispatch => {
@@ -42,64 +47,94 @@ const mapDispatchToProps = dispatch => {
     showModal: modal => dispatch(showModal(modal)),
     fetchSamples: jobnumber => dispatch(fetchSamples(jobnumber)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
-    setAnalysisMode: analysismode => dispatch(setAnalysisMode(analysismode)),
-  }
-}
+    setAnalysisMode: analysismode => dispatch(setAnalysisMode(analysismode))
+  };
+};
 
 class AsbestosLab extends React.Component {
   state = {
-    analyst: false,
-  }
+    analyst: false
+  };
 
   componentWillMount = () => {
     this.props.fetchCocs();
     if (this.props.me && this.props.me.auth) {
-      if (this.props.me.auth['Asbestos Air Analysis'] || this.props.me.auth['Asbestos Admin'] || this.props.me.auth['Asbestos Bulk Analysis']) {
+      if (
+        this.props.me.auth["Asbestos Air Analysis"] ||
+        this.props.me.auth["Asbestos Admin"] ||
+        this.props.me.auth["Asbestos Bulk Analysis"]
+      ) {
         this.setState({
-          analyst: true,
+          analyst: true
         });
       }
     }
-  }
+  };
 
   render() {
     const { cocs } = this.props;
 
     return (
-      <div style = {{ marginTop: 80 }}>
+      <div style={{ marginTop: 80 }}>
         <CocModal />
         <UpdateCertificateVersion />
         <SampleHistoryModal />
         <QCAnalysis />
         <WAAnalysis />
         <CocLog />
-        <Button variant='outlined' style={{ marginBottom: 16 }} onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody', doc: {dates: [], samples: {}, personnel: [], type: 'bulk',} } })}}>
+        <Button
+          variant="outlined"
+          style={{ marginBottom: 16 }}
+          onClick={() => {
+            this.props.showModal({
+              modalType: COC,
+              modalProps: {
+                title: "Add New Chain of Custody",
+                doc: { dates: [], samples: {}, personnel: [], type: "bulk" }
+              }
+            });
+          }}
+        >
           New Chain of Custody (Bulk)
         </Button>
         {/*<Button variant='outlined' style={{ marginBottom: 16, marginLeft: 16, }} onClick={() => {this.props.showModal({ modalType: COC, modalProps: { title: 'Add New Chain of Custody', doc: {dates: [], samples: {}, personnel: [], type: 'air',} } })}}>
           New Chain of Custody (Air)
         </Button>*/}
-        { this.state.analyst && <div style = {{ borderRadius: 4, borderStyle: 'solid', borderWidth: 1, borderColor: '#ccc', width: 220, marginBottom: 12, padding: 12, }}><div style = {{ marginBottom: 12, }}>
-          <InputLabel style={{ marginLeft: 12, }}>
-            Report Analysis As:
-          </InputLabel>
-          </div>
-          <div>
-          <FormControl style={{ width: 200, }}>
-            <InputLabel shrink>Analyst</InputLabel>
-            <Select
-              value={this.props.analyst}
-              onChange={e => this.props.setAnalyst(e.target.value)}
-              input={<Input name='analyst' id='analyst' />}
-            >
-              { this.props.bulkanalysts.map((analyst) => {
-                return(
-                  <option key={analyst.uid} value={analyst.name}>{analyst.name}</option>
-                );
-              })}
-            </Select>
-          </FormControl>
-          {/*<FormControl style={{ width: 180, }}>
+        {this.state.analyst && (
+          <div
+            style={{
+              borderRadius: 4,
+              borderStyle: "solid",
+              borderWidth: 1,
+              borderColor: "#ccc",
+              width: 220,
+              marginBottom: 12,
+              padding: 12
+            }}
+          >
+            <div style={{ marginBottom: 12 }}>
+              <InputLabel style={{ marginLeft: 12 }}>
+                Report Analysis As:
+              </InputLabel>
+            </div>
+            <div>
+              <FormControl style={{ width: 200 }}>
+                <InputLabel shrink>Analyst</InputLabel>
+                <Select
+                  value={this.props.analyst}
+                  onChange={e => this.props.setAnalyst(e.target.value)}
+                  input={<Input name="analyst" id="analyst" />}
+                >
+                  {this.props.bulkanalysts.map(analyst => {
+                    return (
+                      <option key={analyst.uid} value={analyst.name}>
+                        {analyst.name}
+                      </option>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+              {/*<FormControl style={{ width: 180, }}>
             <InputLabel shrink>Mode</InputLabel>
             <Select
               value={this.props.analysismode}
@@ -113,42 +148,58 @@ class AsbestosLab extends React.Component {
               })}
             </Select>
           </FormControl>*/}
-        </div></div>}
-        { Object.keys(cocs).length < 1 ?
-            <div style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <CircularProgress style={{
-                margin: 40,
-              }}/>
             </div>
-        :
-        (<div>{ Object.keys(cocs).filter(job => {
-          if (this.props.search) {
-            let terms = this.props.search.split(' ');
-            let search = job + ' ' + cocs[job].client + ' ' + cocs[job].address;
-            let result = true;
-            terms.forEach(term => {
-              if (!search.toLowerCase().includes(term.toLowerCase())) result = false;
-            });
-            return result;
-          } else {
-            return true;
-          }
-        }).map(job => {
-          let version = 1;
-          if (cocs[job].reportversion) version = cocs[job].reportversion + 1;
-          return (
-            <CocList key={job} job={cocs[job]} />
-          );
-        })
-      }</div>)}
+          </div>
+        )}
+        {Object.keys(cocs).length < 1 ? (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+          >
+            <CircularProgress
+              style={{
+                margin: 40
+              }}
+            />
+          </div>
+        ) : (
+          <div>
+            {Object.keys(cocs)
+              .filter(job => {
+                if (this.props.search) {
+                  let terms = this.props.search.split(" ");
+                  let search =
+                    job + " " + cocs[job].client + " " + cocs[job].address;
+                  let result = true;
+                  terms.forEach(term => {
+                    if (!search.toLowerCase().includes(term.toLowerCase()))
+                      result = false;
+                  });
+                  return result;
+                } else {
+                  return true;
+                }
+              })
+              .map(job => {
+                let version = 1;
+                if (cocs[job].reportversion)
+                  version = cocs[job].reportversion + 1;
+                return <CocList key={job} job={cocs[job]} />;
+              })}
+          </div>
+        )}
       </div>
     );
   }
 }
 
-export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(AsbestosLab));
+export default withStyles(styles)(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(AsbestosLab)
+);
