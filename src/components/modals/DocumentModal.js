@@ -545,7 +545,7 @@ class DocumentModal extends React.Component {
                 if (!doc.uid) {
                   if (doc.title) {
                     doc.uid = doc.title
-                      .replace(/\s+|\/+|\\+/g, "-")
+                      .replace(/\s+|\/+|\\+\:+\;+\.+/g, "-")
                       .toLowerCase();
                   } else {
                     doc.uid =
