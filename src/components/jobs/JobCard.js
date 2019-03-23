@@ -1,28 +1,28 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import Typography from '@material-ui/core/Typography';
+import React from "react";
+import PropTypes from "prop-types";
+import { withStyles } from "@material-ui/core/styles";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import Typography from "@material-ui/core/Typography";
 
 const styles = {
   card: {
     minWidth: 500,
-    minHeight: 50,
+    minHeight: 50
   },
   bullet: {
-    display: 'inline-block',
-    margin: '0 2px',
-    transform: 'scale(0.8)',
+    display: "inline-block",
+    margin: "0 2px",
+    transform: "scale(0.8)"
   },
   name: {
     marginBottom: 4,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold"
   },
   details: {
-    fontSize: 14,
-  },
+    fontSize: 14
+  }
 };
 
 function JobCard(props) {
@@ -32,28 +32,26 @@ function JobCard(props) {
     <Card className={classes.card}>
       <CardContent>
         <Typography className={classes.name} color="textSecondary">
-          { job.jobNumber + ' (' + job.type + ')'}
+          {job.jobNumber + " (" + job.type + ")"}
         </Typography>
-        <Typography className={classes.name}>
-          { job.client }
+        <Typography className={classes.name}>{job.client}</Typography>
+        <Typography className={classes.details} color="textSecondary">
+          <i>{job.state}</i>
         </Typography>
         <Typography className={classes.details} color="textSecondary">
-          <i>{ job.state }</i>
+          {job.address}
         </Typography>
         <Typography className={classes.details} color="textSecondary">
-          { job.address }
-        </Typography>
-        <Typography className={classes.details} color="textSecondary">
-          { job.description }
+          {job.description}
           <br />
         </Typography>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 JobCard.propTypes = {
-  classes: PropTypes.object.isRequired,
+  classes: PropTypes.object.isRequired
 };
 
 export default withStyles(styles)(JobCard);

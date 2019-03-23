@@ -1,61 +1,64 @@
-import React from 'react';
-import { WithContext as ReactTags } from 'react-tag-input';
-import { withStyles } from '@material-ui/core/styles';
-import { modalStyles } from '../../config/styles';
-import { connect } from 'react-redux';
-import store from '../../store';
-import { WAANALYSIS } from '../../constants/modal-types';
-import { cocsRef } from '../../config/firebase';
-import '../../config/tags.css';
+import React from "react";
+import { WithContext as ReactTags } from "react-tag-input";
+import { withStyles } from "@material-ui/core/styles";
+import { modalStyles } from "../../config/styles";
+import { connect } from "react-redux";
+import store from "../../store";
+import { WAANALYSIS } from "../../constants/modal-types";
+import { cocsRef } from "../../config/firebase";
+import "../../config/tags.css";
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import Grid from '@material-ui/core/Grid';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
-import FormGroup from '@material-ui/core/FormGroup';
-import TextField from '@material-ui/core/TextField';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import UploadIcon from '@material-ui/icons/CloudUpload';
-import { hideModal, handleModalChange, } from '../../actions/modal';
-import _ from 'lodash';
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import Grid from "@material-ui/core/Grid";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogActions from "@material-ui/core/DialogActions";
+import FormGroup from "@material-ui/core/FormGroup";
+import TextField from "@material-ui/core/TextField";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import UploadIcon from "@material-ui/icons/CloudUpload";
+import { hideModal, handleModalChange } from "../../actions/modal";
+import _ from "lodash";
 
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
-    modalProps: state.modal.modalProps,
-   };
+    modalProps: state.modal.modalProps
+  };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     hideModal: () => dispatch(hideModal()),
-    handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 300),
+    handleModalChange: _.debounce(
+      target => dispatch(handleModalChange(target)),
+      300
+    )
   };
 };
 
 class WAAnalysis extends React.Component {
   state = {
-    sample: {},
-  }
+    sample: {}
+  };
 
   componentWillMount = () => {
     this.setState({
-      sample: this.props.modalProps.sample,
+      sample: this.props.modalProps.sample
     });
-  }
+  };
 
-  render(){
+  render() {
     const { classes, modalProps, modalType } = this.props;
     const { sample } = this.state;
-    return(
+    return (
       <Dialog
-        open={ modalType === WAANALYSIS }
-        onClose = {() => this.props.hideModal()}
-        maxWidth = "lg"
-        fullWidth = { true }
-        >
+        open={modalType === WAANALYSIS}
+        onClose={() => this.props.hideModal()}
+        maxWidth="lg"
+        fullWidth={true}
+      >
         <DialogTitle>{modalProps.title}</DialogTitle>
         <DialogContent>
           <Grid container>
@@ -71,15 +74,31 @@ class WAAnalysis extends React.Component {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => this.props.hideModal()} color="secondary">Cancel</Button>
-          <Button onClick={() => {
-            cocsRef.doc(modalProps.docid).collection('samples').doc(sample.uid).set(sample);
+          <Button onClick={() => this.props.hideModal()} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              cocsRef
+                .doc(modalProps.docid)
+                .collection("samples")
+                .doc(sample.uid)
+                .set(sample);
+            }}
+            color="primary"
+          >
+            Submit
+          </Button>
           }
-        } color="primary" >Submit</Button>}
         </DialogActions>
       </Dialog>
-    )
+    );
   }
 }
 
-export default withStyles(modalStyles)(connect(mapStateToProps, mapDispatchToProps)(WAAnalysis));
+export default withStyles(modalStyles)(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(WAAnalysis)
+);

@@ -1,6 +1,4 @@
-import { APP_HAS_LOADED,
-        RESET_DISPLAY,
-      } from "../constants/action-types";
+import { APP_HAS_LOADED, RESET_DISPLAY } from "../constants/action-types";
 
 export const resetDisplay = () => dispatch => {
   dispatch({ type: RESET_DISPLAY });
@@ -8,6 +6,6 @@ export const resetDisplay = () => dispatch => {
 
 export const appHasLoaded = () => dispatch => {
   dispatch({
-    type: APP_HAS_LOADED,
+    type: APP_HAS_LOADED
   });
 };

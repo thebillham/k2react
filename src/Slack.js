@@ -3,10 +3,10 @@
 
 export const sendSlackMessage = (message, json) => {
   let text;
-  if (json) text = message
-    else text = { text: message };
+  if (json) text = message;
+  else text = { text: message };
   fetch(process.env.REACT_APP_SLACK_WEBHOOK, {
-    method: 'POST',
-    body: JSON.stringify(text),
+    method: "POST",
+    body: JSON.stringify(text)
   });
-}
+};

@@ -1,16 +1,16 @@
 import {
-          ADD_TAG,
-          DELETE_TAG,
-          EDIT_MODAL_DOC,
-          EDIT_MODAL_DOC_STEPS,
-          EDIT_MODAL_GLOSSARY,
-          EDIT_MODAL_SAMPLE,
-          EDIT_MODAL,
-          HIDE_MODAL,
-          RESET_MODAL,
-          SET_MODAL_ERROR,
-          SHOW_MODAL,
-        } from "../constants/action-types"
+  ADD_TAG,
+  DELETE_TAG,
+  EDIT_MODAL_DOC,
+  EDIT_MODAL_DOC_STEPS,
+  EDIT_MODAL_GLOSSARY,
+  EDIT_MODAL_SAMPLE,
+  EDIT_MODAL,
+  HIDE_MODAL,
+  RESET_MODAL,
+  SET_MODAL_ERROR,
+  SHOW_MODAL
+} from "../constants/action-types";
 
 export const modalInit = {
   modalType: null,
@@ -19,15 +19,16 @@ export const modalInit = {
       personnel: [],
       dates: [],
       samples: {},
+      type: ""
     },
     isUploading: false,
     uploadProgress: 0,
-    tags: [],
-  },
+    tags: []
+  }
 };
 
 // All properties related to dialog boxes etc.
-export default function modalReducer(state = modalInit, action){
+export default function modalReducer(state = modalInit, action) {
   switch (action.type) {
     case RESET_MODAL:
       return modalInit;
@@ -35,10 +36,10 @@ export default function modalReducer(state = modalInit, action){
       return {
         modalProps: {
           ...state.modalProps,
-          ...action.modalProps,
+          ...action.modalProps
         },
         modalType: action.modalType
-      }
+      };
     case EDIT_MODAL_DOC:
       return {
         ...state,
@@ -46,10 +47,10 @@ export default function modalReducer(state = modalInit, action){
           ...state.modalProps,
           doc: {
             ...state.modalProps.doc,
-            ...action.payload,
-           },
-         },
-      }
+            ...action.payload
+          }
+        }
+      };
     case EDIT_MODAL_DOC_STEPS:
       if (state.modalProps.doc && state.modalProps.doc.steps) {
         if (action.payload.object) {
@@ -64,14 +65,16 @@ export default function modalReducer(state = modalInit, action){
                   [action.payload.step]: {
                     ...state.modalProps.doc.steps[action.payload.step],
                     [action.payload.id]: {
-                      ...state.modalProps.doc.steps[action.payload.step][action.payload.id],
-                      ...action.payload.value,
-                    },
-                  },
-                },
-              },
-            },
-          }
+                      ...state.modalProps.doc.steps[action.payload.step][
+                        action.payload.id
+                      ],
+                      ...action.payload.value
+                    }
+                  }
+                }
+              }
+            }
+          };
         } else {
           return {
             ...state,
@@ -83,12 +86,12 @@ export default function modalReducer(state = modalInit, action){
                   ...state.modalProps.doc.steps,
                   [action.payload.step]: {
                     ...state.modalProps.doc.steps[action.payload.step],
-                    [action.payload.id]: action.payload.value,
-                  },
-                },
-              },
-            },
-          }
+                    [action.payload.id]: action.payload.value
+                  }
+                }
+              }
+            }
+          };
         }
       } else return state;
     case EDIT_MODAL_GLOSSARY:
@@ -102,12 +105,12 @@ export default function modalReducer(state = modalInit, action){
               ...state.modalProps.doc.glossary,
               [action.payload.number]: {
                 ...state.modalProps.doc.glossary[action.payload.number],
-                [action.payload.type]: action.payload.value,
+                [action.payload.type]: action.payload.value
               }
-           },
-         },
-       },
-      }
+            }
+          }
+        }
+      };
     case EDIT_MODAL_SAMPLE:
       return {
         ...state,
@@ -119,23 +122,24 @@ export default function modalReducer(state = modalInit, action){
               ...state.modalProps.doc.samples,
               [action.payload.number]: {
                 ...state.modalProps.doc.samples[action.payload.number],
-                [action.payload.type]: action.payload.value,
+                [action.payload.type]: action.payload.value
               }
-           },
-         },
-       },
-      }
+            }
+          }
+        }
+      };
     case EDIT_MODAL:
       return {
         ...state,
         modalProps: {
           ...state.modalProps,
-          ...action.payload}
+          ...action.payload
         }
+      };
     case HIDE_MODAL:
       return {
         ...state,
-        modalType: null,
+        modalType: null
       };
     case ADD_TAG:
       return {
@@ -144,13 +148,10 @@ export default function modalReducer(state = modalInit, action){
           ...state.modalProps,
           doc: {
             ...state.modalProps.doc,
-            tags: [
-              ...state.modalProps.doc.tags,
-              action.payload,
-            ],
-          },
-        },
-      }
+            tags: [...state.modalProps.doc.tags, action.payload]
+          }
+        }
+      };
     case DELETE_TAG:
       return {
         ...state,
@@ -159,11 +160,13 @@ export default function modalReducer(state = modalInit, action){
           doc: {
             ...state.modalProps.doc,
             tags: [
-              ...state.modalProps.doc.tags.filter((tag, index) => index !== action.payload)
+              ...state.modalProps.doc.tags.filter(
+                (tag, index) => index !== action.payload
+              )
             ]
-          },
-        },
-      }
+          }
+        }
+      };
     case SET_MODAL_ERROR:
       return {
         ...state,
@@ -171,7 +174,7 @@ export default function modalReducer(state = modalInit, action){
           ...state.modalProps,
           error: action.payload
         }
-      }
+      };
     default:
       return state;
   }

@@ -1,80 +1,86 @@
-import React, { Component } from 'react';
-import FirebaseAuth from 'react-firebaseui/FirebaseAuth';
-import firebase, { auth } from '../config/firebase.js';
-import Button from '@material-ui/core/Button';
-import '../App.css';
-import img_Logo from '../images/logo.png';
-import ApiCalendar from 'react-google-calendar-api';
-import { sendSlackMessage } from '../Slack';
+import React, { Component } from "react";
+import FirebaseAuth from "react-firebaseui/FirebaseAuth";
+import firebase, { auth } from "../config/firebase.js";
+import Button from "@material-ui/core/Button";
+import "../App.css";
+import img_Logo from "../images/logo.png";
+import ApiCalendar from "react-google-calendar-api";
+import { sendSlackMessage } from "../Slack";
 
 export default class K2SignInScreen extends Component {
-
   constructor(props) {
     super(props);
 
-    this.error = '';
+    this.error = "";
     //
     // firebase.auth.GoogleAuthProvider.setCustomParameters({
     //   prompt: 'select_account'
     // });
 
     this.firebaseUIConfig = {
-      signInFlow: 'popup',
-      signInOptions: [
-        firebase.auth.GoogleAuthProvider.PROVIDER_ID
-      ],
+      signInFlow: "popup",
+      signInOptions: [firebase.auth.GoogleAuthProvider.PROVIDER_ID],
       callbacks: {
         signInSuccessWithAuthResult: (authResult, redirectUrl) => {
-            this.props.app.logIn();
-            ApiCalendar.handleAuthClick();
-            return false;
+          this.props.app.logIn();
+          ApiCalendar.handleAuthClick();
+          return false;
         },
-        signInFailure: (error) => {
+        signInFailure: error => {
           console.error("** Firebase sign-in failed: ", error);
           this.loginFailed(error);
           return false;
-        },
+        }
       }
     };
   }
 
   loginFailed(error) {
-    this.setState(( error ));
+    this.setState(error);
   }
 
   render() {
     const style_background = {
-      width: '100%',
-      height: '100%',
+      width: "100%",
+      height: "100%"
     };
     const style_background_outer = {
-        backgroundColor: '#f6f6f6',
-        pointerEvents: 'none',
-     };
+      backgroundColor: "#f6f6f6",
+      pointerEvents: "none"
+    };
     const style_image = {
-        height: 'auto',
-        pointerEvents: 'none',
-     };
+      height: "auto",
+      pointerEvents: "none"
+    };
 
     return (
       <div className="AppScreen K2SignInScreen">
         <div className="background">
-          <div className='appBg containerMinHeight elBackground' style={style_background_outer}>
+          <div
+            className="appBg containerMinHeight elBackground"
+            style={style_background_outer}
+          >
             <div style={style_background} />
-
           </div>
-
         </div>
         <div className="screenFgContainer">
           <div className="foreground">
-            <img className='elImage' style={style_image} src={img_Logo} alt=""  />
-            <div className='elFirebaseLogin'>
+            <img
+              className="elImage"
+              style={style_image}
+              src={img_Logo}
+              alt=""
+            />
+            <div className="elFirebaseLogin">
               {/* <Button onClick='handleSignIn()'>Sign In</Button> */}
-              <FirebaseAuth uiConfig={this.firebaseUIConfig} firebaseAuth={auth}/>
+              <FirebaseAuth
+                uiConfig={this.firebaseUIConfig}
+                firebaseAuth={auth}
+              />
             </div>
           </div>
         </div>
       </div>
-    )
+    );
   }
 }
