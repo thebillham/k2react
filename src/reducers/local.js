@@ -28,6 +28,7 @@ import {
   FAV_NOTICE,
   SET_STEPPER,
   GET_ASBESTOS_SAMPLES,
+  GET_CURRENT_JOB_STATE,
   GET_HELP,
   GET_UPDATES,
   RESET_LOCAL,
@@ -50,6 +51,7 @@ const localInit = {
   bulkanalysts: [],
   category: "gen",
   cocs: {},
+  currentJobState: {},
   documents: [],
   geocodes: {},
   helps: [],
@@ -253,6 +255,11 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         geocodes: action.payload
+      };
+    case GET_CURRENT_JOB_STATE:
+      return {
+        ...state,
+        currentJobState: action.payload
       };
     case CAT_CHANGE:
       return {

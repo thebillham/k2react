@@ -35,7 +35,7 @@ import _ from "lodash";
 
 const mapStateToProps = state => {
   return {
-    staff: state.local.staff,
+    editstaff: state.local.editstaff,
     me: state.local.me,
     offices: state.const.offices,
     jobdescriptions: state.const.jobdescriptions,
@@ -46,6 +46,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     showModal: modal => dispatch(showModal(modal)),
+    // getEditStaff: user => dispatch(getEditStaff(user)),
     getUserAttrs: userPath => dispatch(getUserAttrs(userPath))
   };
 };

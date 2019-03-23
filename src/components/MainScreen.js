@@ -70,7 +70,7 @@ import store from "../store";
 import { onSearchChange, onCatChange } from "../actions/local";
 import { sendSlackMessage } from "../Slack";
 
-import { fetchMe, resetLocal, copyStaff } from "../actions/local";
+import { fetchMe, resetLocal, copyStaff, fetchGeocodes, } from "../actions/local";
 import { resetModal, showModal } from "../actions/modal";
 import { resetDisplay } from "../actions/display";
 import { initConstants } from "../actions/const";
@@ -142,6 +142,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     fetchMe: () => dispatch(fetchMe()),
+    fetchGeocodes: () => dispatch(fetchGeocodes()),
     resetLocal: () => dispatch(resetLocal()),
     resetModal: () => dispatch(resetModal()),
     resetDisplay: () => dispatch(resetDisplay()),
@@ -171,6 +172,7 @@ class MainScreen extends React.Component {
   componentWillMount() {
     this.props.fetchMe();
     this.props.initConstants();
+    this.props.fetchGeocodes();
     // this.props.fixIds();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
