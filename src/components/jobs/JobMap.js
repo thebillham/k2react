@@ -659,6 +659,8 @@ class JobMap extends React.Component {
     var clientStats = {};
 
     console.log("COLLATING LEADS AND JOBS");
+    var mappedJobs = [];
+    var today = moment(job['creationDate']).format('YYYY-MM-DD');
 
     // Convert jobs into a 'lead' type object
     this.props.wfmJobs.forEach(job => {
@@ -667,7 +669,7 @@ class JobMap extends React.Component {
         // Add all mapped jobs and lead to an array and then set state
         // Then go ahead with sorting the new jobs and leads
         // Update state history of job
-          _.debounce((mappedJob) => this.addLeadToState(mappedJob), 50);
+        mappedJobs.add(mappedJob);
       } else {
         var newJob = {};
         newJob.wfmID = job.wfmID;
@@ -680,15 +682,22 @@ class JobMap extends React.Component {
         newJob.category = job.type;
         // lead.currentStatus = job.currentStatus;
         newJob.state = job.state;
+        newJob.dueDate = job.dueDate;
         newJob.urgentAction = "";
+        newJob.lastActionType = job.state;
+        newJob.lastActionDate = today;
+        newJob.nextActionType = "";
+        newJob.nextActionDate = moment(today).add(1, "days");
         if (job.state === "Needs Booking") {
           newJob.lastActionDate = job.startDate;
           newJob.lastActionType = "Converted into job";
-          newJob.daysSinceLastAction = this.getDaysSinceDate(job.startDate);
           newJob.nextActionType = "Book job";
+          newJob.nextActionDate = moment(job.startDate).add(1, 'M');
           newJob.nextActionOverdueBy = newJob.daysSinceLastAction - 30; // Arbitrarily added 30 days as how long between converting to job and booking
         }
-        newJob.daysOld = this.getDaysSinceDate(job.startDate);
+        newJob.stateHistory = {
+          [today]: job.state,
+        };
         newJob.isJob = true;
 
         this.handleGeocode(
@@ -703,7 +712,10 @@ class JobMap extends React.Component {
       var mappedJob = this.props.currentJobState[wfmLead['wfmID']];
       if (mappedJob != undefined) {
         // Update state history of job
-          _.debounce((mappedJob) => this.addLeadToState(mappedJob), 50);
+        if(mappedJob.nextActionDate == undefined) {
+          mappedJob.nextActionDate = this.getNextActionDate(lead.activities);
+        }
+        mappedJobs.add(mappedJob);
       } else {
         var lead = {};
         lead.wfmID = wfmLead.wfmID;
@@ -735,12 +747,10 @@ class JobMap extends React.Component {
           lead.completedActivities,
           lead.creationDate
         );
-        lead.daysSinceLastAction = this.getDaysSinceDate(lead.lastActionDate);
         lead.lastActionType = this.getLastActionTypeFromActivities(
           lead.completedActivities
         );
 
-        lead.daysOld = this.getDaysSinceDate(lead.creationDate);
         lead.averageCompletedActionOverdueDays = this.getAverageCompletedActionOverdueDays(
           lead.completedActivities
         );
@@ -759,6 +769,12 @@ class JobMap extends React.Component {
           lead
         );
       }
+    });
+    this.setState({
+      leads: [
+        ...this.state.leads,
+        ...mappedJobs,
+      ],
     });
   };
 
@@ -1267,24 +1283,24 @@ class JobMap extends React.Component {
                   {this.state.m.lastActionType && (
                     <div>
                       <b>Last Action:</b> {this.state.m.lastActionType} (
-                      {this.state.m.daysSinceLastAction} days ago)
+                      {getDaysSinceDate(this.state.m.lastActionDate)} days ago)
                     </div>
                   )}
                   {this.state.m.nextActionType && (
                     <div>
-                      <b>Next Action:</b> {this.state.m.nextActionType}{" "}
-                      {this.state.m.nextActionOverdueBy > 0 ? (
+                      <b>Next Action:</b> {this.getNextActionType(this.state.m.activities)}{" "}
+                      {this.getNextActionOverdueBy(this.state.m.activities) > 0 ? (
                         <span
                           style={{
                             fontColor: "#ff0000",
                             textDecoration: "underline"
                           }}
                         >
-                          (Overdue by {this.state.m.nextActionOverdueBy} days)
+                          (Overdue by {this.getNextActionOverdueBy(this.state.m.activities)} days)
                         </span>
                       ) : (
                         <span>
-                          (Due in {this.state.m.nextActionOverdueBy * -1} days)
+                          (Due in {this.getNextActionOverdueBy(this.state.m.activities) * -1} days)
                         </span>
                       )}
                     </div>
