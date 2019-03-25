@@ -1214,7 +1214,6 @@ export const analyseJobHistory = () => dispatch => {
                 if (jobTypes[job['state']] != undefined) jobTypes[job['state']][bucket] = ''; else jobTypes[job['state']] = {[bucket]: ''};
                 if (stateChangeDates[doc.id] != undefined) stateChangeDates[doc.id][bucket] = ''; else stateChangeDates[doc.id] = {[bucket]: ''};
                 mappedJob['currentState'] = job['state'] ? job['state']: '';
-                mappedJob['daysStagnant'] = getDaysSinceDate(doc.id);
                 mappedJob['lastActionDate'] = doc.id;
                 mappedJob['stateHistory'] = {
                   ...mappedJob['stateHistory'],
@@ -1229,8 +1228,8 @@ export const analyseJobHistory = () => dispatch => {
               }
               // Add new job to map
               var creationDate = moment(job['creationDate']).format('YYYY-MM-DD');
-              job['daysStagnant'] = getDaysSinceDate(doc.id);
               job['lastActionDate'] = doc.id;
+              job['nextActionDate'] =
               job['currentState'] = job['state'];
               job['stateHistory'] = {
                 [creationDate]: 'Job Created',
