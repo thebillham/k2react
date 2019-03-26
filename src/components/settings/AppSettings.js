@@ -110,17 +110,6 @@ class AppSettings extends React.Component {
                   })}
                 </Select>
               </FormControl>
-<<<<<<< HEAD
-              { setting === 'Asbestos Materials' && <TextField
-                id="asbestosmaterials"
-                label="Asbestos Materials"
-                multiline
-                defaultValue={doc && doc.asbestosmaterials && doc.asbestosmaterials.map(obj => { return obj.label }).join('\n')}
-                helperText='Put each material on a new line in the form "material name|product score|asbestos score.'
-                className={classes.dialogField}
-                onChange={e => {this.props.handleModalChange({id: e.target.id, value: e.target.value.split('\n').filter(Boolean).sort().map(option => { return {label: option}})})}}
-              />}
-=======
               {setting === "Asbestos Materials" && (
                 <TextField
                   id="asbestosmaterials"
@@ -151,7 +140,6 @@ class AppSettings extends React.Component {
                   }}
                 />
               )}
->>>>>>> 5a1a79c11bf15c33b56ce7a49617a49f5ca63007
 
               {setting === "Building Materials" && (
                 <TextField

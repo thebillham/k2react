@@ -32,6 +32,7 @@ import Button from "@material-ui/core/Button";
 import JobCard from "./JobCard";
 import { FormattedDate } from "react-intl";
 // import GoogleMapReact from 'google-map-react';
+import moment from "moment";
 import { Map, GoogleApiWrapper, Marker, InfoWindow } from "google-maps-react";
 import _ from "lodash";
 
@@ -123,8 +124,6 @@ class JobMap extends React.Component {
     this.state = {
       leads: [],
       tabValue: 0,
-      noLocationJobs: [],
-      noLocationLeads: [],
       statSheet: statSheet,
       staffStats: {
         K2: statSheet
@@ -442,12 +441,6 @@ class JobMap extends React.Component {
       console.log("Already there");
       lead.geocode = this.props.geocodes[add];
       this.state.leads = [...this.state.leads, lead];
-      if (lead.geocode && lead.geocode.address === "New Zealand" && !lead.isJob)
-        this.setState({
-          noLocationLeads: [...this.state.noLocationLeads, lead]
-        });
-      if (lead.geocode && lead.geocode.address === "New Zealand" && lead.isJob)
-        this.setState({ noLocationJobs: [...this.state.noLocationJobs, lead] });
     } else if (this.state.geocodeCount < 20) {
       this.setState({
         geocodeCount: this.state.geocodeCount + 1,
@@ -461,10 +454,13 @@ class JobMap extends React.Component {
         .then(response => response.json())
         .then(response => {
           var gc = this.props.geocodes;
-          // TODO response error
-          gc[add] = this.simplifiedGeocode(response.results[0]);
-          this.props.updateGeocodes(gc);
-          lead.geocode = gc[add];
+          if (response.status = "ZERO_RESULTS") {
+            lead.geocode = { address: "New Zealand" };
+          } else {
+            gc[add] = this.simplifiedGeocode(response.results[0]);
+            this.props.updateGeocodes(gc);
+            lead.geocode = gc[add];
+          }
           this.addLeadToState(lead);
           return lead;
         });
@@ -474,30 +470,9 @@ class JobMap extends React.Component {
   addLeadToState = lead => {
     console.log('Add lead');
     console.log(lead);
-    if (
-      lead.geocode &&
-      lead.geocode.address === "New Zealand" &&
-      !lead.isJob
-    )
-      this.setState({
-        noLocationLeads: [...this.state.noLocationLeads, lead]
-      });
-    if (
-      lead.geocode &&
-      lead.geocode.address === "New Zealand" &&
-      lead.isJob
-    )
-      this.setState({
-        noLocationJobs: [...this.state.noLocationJobs, lead]
-      });
-
-    //Find any items with same geocode
-
-    // console.log(lead);
     this.setState({
       leads: [...this.state.leads, lead]
     });
-    console.log(this.state.leads);
   }
 
   checkAddress = address => {
@@ -573,14 +548,18 @@ class JobMap extends React.Component {
   };
 
   getUncompletedActivities = activities => {
-    var uncompletedActivities = activities.filter(
-      activity => activity.completed === "No"
-    );
-    return uncompletedActivities
-      .sort((a, b) => {
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      })
-      .reverse();
+    if (activities != undefined) {
+      var uncompletedActivities = activities.filter(
+        activity => activity.completed === "No"
+      );
+      return uncompletedActivities
+        .sort((a, b) => {
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        })
+        .reverse();
+    } else {
+      return [];
+    }
   };
 
   getLastActionDateFromActivities = (completedActivities, defaultDate) => {
@@ -610,6 +589,15 @@ class JobMap extends React.Component {
       return todo[0].subject;
     } else {
       return "Convert to job or add new action";
+    }
+  };
+
+  getNextActionDate = activities => {
+    var todo = this.getUncompletedActivities(activities);
+    if (todo.length > 0) {
+      return todo[0].date;
+    } else {
+      return 0;
     }
   };
 
@@ -660,17 +648,18 @@ class JobMap extends React.Component {
 
     console.log("COLLATING LEADS AND JOBS");
     var mappedJobs = [];
-    var today = moment(job['creationDate']).format('YYYY-MM-DD');
 
     // Convert jobs into a 'lead' type object
     this.props.wfmJobs.forEach(job => {
+      var today = moment(job['creationDate']).format('YYYY-MM-DD');
       var mappedJob = this.props.currentJobState[job['wfmID']];
       if (mappedJob != undefined) {
         // Add all mapped jobs and lead to an array and then set state
         // Then go ahead with sorting the new jobs and leads
         // Update state history of job
-        mappedJobs.add(mappedJob);
+        mappedJobs = [...mappedJobs, mappedJob];
       } else {
+        console.log('Making new job: ' + job['wfmID']);
         var newJob = {};
         newJob.wfmID = job.wfmID;
         newJob.client = job.client;
@@ -713,10 +702,11 @@ class JobMap extends React.Component {
       if (mappedJob != undefined) {
         // Update state history of job
         if(mappedJob.nextActionDate == undefined) {
-          mappedJob.nextActionDate = this.getNextActionDate(lead.activities);
+          mappedJob.nextActionDate = this.getNextActionDate(wfmLead.activities);
         }
-        mappedJobs.add(mappedJob);
+        mappedJobs = [...mappedJobs, mappedJob];
       } else {
+        console.log('Making new job: ' + wfmLead['wfmID']);
         var lead = {};
         lead.wfmID = wfmLead.wfmID;
         lead.client = wfmLead.client;
@@ -789,6 +779,22 @@ class JobMap extends React.Component {
       return false;
     }
   };
+
+  filterNoLocations = (m, isJob) => {
+    if (m.isJob == isJob) {
+      if (m && m.geocode && m.geocode.address === "New Zealand") {
+        if (this.filterCategory(m) && this.filterStage(m)) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
 
   filterCategory = m => {
     if (
@@ -1007,7 +1013,7 @@ class JobMap extends React.Component {
               this.state.leads
                 .filter(
                   m =>
-                    m.geocode && m.geocode.address === "New Zealand" && m.isJob
+                    this.filterNoLocations(m,true)
                 )
                 .map(m => {
                   return (
@@ -1031,7 +1037,7 @@ class JobMap extends React.Component {
               this.state.leads
                 .filter(
                   m =>
-                    m.geocode && m.geocode.address === "New Zealand" && !m.isJob
+                    this.filterNoLocations(m,false)
                 )
                 .map(m => {
                   return (
@@ -1165,40 +1171,32 @@ class JobMap extends React.Component {
                         </Grid>
                       );
                     })}
-                    {this.state.noLocationJobs && (
-                      <Grid item>
-                        <Button onClick={this.openNoLocationJobs}>
-                          <span style={{ fontSize: 12 }}>
-                            View Jobs With No Location Data (
-                            {this.state.leads &&
-                              this.state.leads.filter(
-                                m =>
-                                  m.geocode &&
-                                  m.geocode.address == "New Zealand" &&
-                                  m.isJob
-                              ).length}
-                            )
-                          </span>
-                        </Button>
-                      </Grid>
-                    )}
-                    {this.state.noLocationLeads && (
-                      <Grid item>
-                        <Button onClick={this.openNoLocationLeads}>
-                          <span style={{ fontSize: 12 }}>
-                            View Leads With No Location Data (
-                            {this.state.leads &&
-                              this.state.leads.filter(
-                                m =>
-                                  m.geocode &&
-                                  m.geocode.address == "New Zealand" &&
-                                  !m.isJob
-                              ).length}
-                            )
-                          </span>
-                        </Button>
-                      </Grid>
-                    )}
+                    <Grid item>
+                      <Button onClick={this.openNoLocationJobs}>
+                        <span style={{ fontSize: 12 }}>
+                          View Jobs With No Location Data (
+                          {this.state.leads &&
+                            this.state.leads.filter(
+                              m =>
+                                this.filterNoLocations(m, true)
+                            ).length}
+                          )
+                        </span>
+                      </Button>
+                    </Grid>
+                    <Grid item>
+                      <Button onClick={this.openNoLocationLeads}>
+                        <span style={{ fontSize: 12 }}>
+                          View Leads With No Location Data (
+                          {this.state.leads &&
+                            this.state.leads.filter(
+                              m =>
+                                this.filterNoLocations(m, false)
+                            ).length}
+                          )
+                        </span>
+                      </Button>
+                    </Grid>
                   </Grid>
                 </div>
               </ExpansionPanelDetails>
@@ -1251,7 +1249,7 @@ class JobMap extends React.Component {
               >
                 <div
                   style={{
-                    width: 300,
+                    width: 350,
                     lineHeight: 2,
                     fontSize: 14,
                     padding: 20
@@ -1280,10 +1278,22 @@ class JobMap extends React.Component {
                   <div>
                     <b>Owner:</b> {this.state.m.owner}
                   </div>
-                  {this.state.m.lastActionType && (
+                  {this.state.m.lastActionDate && (
                     <div>
-                      <b>Last Action:</b> {this.state.m.lastActionType} (
-                      {getDaysSinceDate(this.state.m.lastActionDate)} days ago)
+                      {this.state.m.lastActionType && (<span><b>Last Action:</b> {this.state.m.lastActionType} </span>)}
+                      {this.state.m.currentState && (<span><b>Last Action:</b> State changed to {this.state.m.currentState} </span>) }
+                       ({this.getDaysSinceDate(this.state.m.lastActionDate)} days ago)
+                    </div>
+                  )}
+                  {this.state.m.stateHistory && (
+                    <div><br /><h6 style={{ color: this.getColour(this.state.m.category) }}>State History</h6>
+                    { Object.keys(this.state.m.stateHistory).map((key) => {
+                      return (
+                        <span>
+                          <b>{key}:</b> {this.state.m.stateHistory[key]}<br/>
+                        </span>
+                      )
+                    }) }
                     </div>
                   )}
                   {this.state.m.nextActionType && (
