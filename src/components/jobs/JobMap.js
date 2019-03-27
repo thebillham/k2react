@@ -13,6 +13,9 @@ import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import Grid from "@material-ui/core/Grid";
 import Dialog from "@material-ui/core/Dialog";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
+import Input from "@material-ui/core/Input";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import LineChart from "recharts/lib/chart/LineChart";
@@ -135,6 +138,22 @@ class JobMap extends React.Component {
       showingInfoWindow: false,
       m: {},
       geocodeCount: 0,
+      filterViewCompleted: false,
+      filterJobLead: '',
+      filterOnJobLead: false,
+      filterCategory: '',
+      filterOnCategory: false,
+      filterState: '',
+      filterOnState: false,
+
+      filterCreatedInTheLast: false,
+      createdInTheLast: 7,
+      filterCompletedInTheLast: false,
+      completedInTheLast: 7,
+      filterUpdatedInTheLast: false,
+      updatedInTheLast: 7,
+      filterActionsOverdueBy: false,
+      actionsOverdueBy: 7,
     };
   }
 
@@ -143,16 +162,14 @@ class JobMap extends React.Component {
       this.props.fetchWFMJobs();
       this.props.fetchWFMLeads();
       this.props.fetchWFMClients();
-      this.props.fetchCurrentJobState(true);
+      this.props.fetchCurrentJobState(false);
       if(this.props.geocodes == undefined) this.props.fetchGeocodes();
       // this.props.analyseJobHistory();
-    } else {
-      this.state.leads = this.props.wfmItems;
     }
   }
 
   componentWillUnmount() {
-    this.props.saveWFMItems(this.state.leads);
+    this.props.saveWFMItems(this.state.leads.filter((lead) => lead.state != 'Completed'));
     this.props.saveCurrentJobState(this.state.leads);
     this.props.saveStats({
       staff: this.state.staffStats,
@@ -649,14 +666,24 @@ class JobMap extends React.Component {
     console.log("COLLATING LEADS AND JOBS");
     var mappedJobs = [];
 
+    var completedJobs = Object.values(this.props.currentJobState).filter((job) => job.state == 'Completed');
+
     // Convert jobs into a 'lead' type object
     this.props.wfmJobs.forEach(job => {
-      var today = moment(job['creationDate']).format('YYYY-MM-DD');
-      var mappedJob = this.props.currentJobState[job['wfmID']];
+      var today = moment().format('YYYY-MM-DD');
+      var mappedJob = this.props.currentJobState[job.wfmID];
       if (mappedJob != undefined) {
         // Add all mapped jobs and lead to an array and then set state
         // Then go ahead with sorting the new jobs and leads
         // Update state history of job
+        if (mappedJob.nextActionType != undefined) delete mappedJob.nextActionType;
+        if (mappedJob.nextActionDate != undefined) delete mappedJob.nextActionDate;
+        if (mappedJob.nextActionOverdueBy != undefined) delete mappedJob.nextActionOverdueBy;
+        if (mappedJob.lastActionType != undefined) delete mappedJob.lastActionType;
+        if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory)[0] < mappedJob.creationDate) {
+          mappedJob.creationDate = Object.keys(mappedJob.stateHistory)[0];
+          mappedJob.stateHistory[mappedJob.creationDate] = 'Job Started';
+        }
         mappedJobs = [...mappedJobs, mappedJob];
       } else {
         console.log('Making new job: ' + job['wfmID']);
@@ -667,24 +694,15 @@ class JobMap extends React.Component {
         newJob.name = job.address;
         newJob.owner = job.manager;
         newJob.jobNumber = job.jobNumber;
-        // newJob.creationDate = job.startDate;
+        newJob.creationDate = today;
         newJob.category = job.type;
         // lead.currentStatus = job.currentStatus;
         newJob.state = job.state;
         newJob.dueDate = job.dueDate;
-        newJob.urgentAction = "";
         newJob.lastActionType = job.state;
         newJob.lastActionDate = today;
-        newJob.nextActionType = "";
-        newJob.nextActionDate = moment(today).add(1, "days");
-        if (job.state === "Needs Booking") {
-          newJob.lastActionDate = job.startDate;
-          newJob.lastActionType = "Converted into job";
-          newJob.nextActionType = "Book job";
-          newJob.nextActionDate = moment(job.startDate).add(1, 'M');
-          newJob.nextActionOverdueBy = newJob.daysSinceLastAction - 30; // Arbitrarily added 30 days as how long between converting to job and booking
-        }
         newJob.stateHistory = {
+          [today]: 'Job created',
           [today]: job.state,
         };
         newJob.isJob = true;
@@ -715,7 +733,6 @@ class JobMap extends React.Component {
         lead.jobNumber = "Lead";
         lead.creationDate = wfmLead.date;
         lead.category = wfmLead.category;
-        // lead.currentStatus = wfmLead.currentStatus;
         lead.urgentAction = "";
         lead.value = wfmLead.value;
 
@@ -731,21 +748,22 @@ class JobMap extends React.Component {
           );
         }
 
-        lead.completedActivities = this.getCompletedActivities(lead.activities);
+        var completedActivities = this.getCompletedActivities(lead.activities);
 
         lead.lastActionDate = this.getLastActionDateFromActivities(
-          lead.completedActivities,
+          completedActivities,
           lead.creationDate
         );
         lead.lastActionType = this.getLastActionTypeFromActivities(
-          lead.completedActivities
+          completedActivities
         );
 
-        lead.averageCompletedActionOverdueDays = this.getAverageCompletedActionOverdueDays(
-          lead.completedActivities
-        );
+        // lead.averageCompletedActionOverdueDays = this.getAverageCompletedActionOverdueDays(
+        //   lead.completedActivities
+        // );
         lead.nextActionType = this.getNextActionType(lead.activities);
-        lead.nextActionOverdueBy = this.getNextActionOverdueBy(lead.activities);
+        lead.nextActionDate = this.getNextActionDate(lead.activities);
+        // lead.nextActionOverdueBy = this.getNextActionOverdueBy(lead.activities);
 
         lead.isJob = false;
 
@@ -764,13 +782,30 @@ class JobMap extends React.Component {
       leads: [
         ...this.state.leads,
         ...mappedJobs,
+        ...completedJobs,
       ],
     });
   };
 
+  filterSet = (chip, type) => {
+    var filterVar = 'filter' + type;
+    var filterOnVar = 'filterOn' + type;
+    let filter = chip;
+    let filterOn = true;
+    if (this.state[filterVar] == chip) {
+      filter = '';
+      filterOn = false;
+    }
+
+    this.setState({
+      [filterVar]: filter,
+      [filterOnVar]: filterOn
+    });
+  }
+
   filterLabels = m => {
     if (m && m.geocode && m.geocode.address !== "New Zealand") {
-      if (this.filterCategory(m) && this.filterStage(m)) {
+      if (this.applyFilters(m)) {
         return true;
       } else {
         return false;
@@ -783,7 +818,7 @@ class JobMap extends React.Component {
   filterNoLocations = (m, isJob) => {
     if (m.isJob == isJob) {
       if (m && m.geocode && m.geocode.address === "New Zealand") {
-        if (this.filterCategory(m) && this.filterStage(m)) {
+        if (this.applyFilters(m)) {
           return true;
         } else {
           return false;
@@ -796,52 +831,65 @@ class JobMap extends React.Component {
     }
   }
 
-  filterCategory = m => {
-    if (
-      m.category.includes(this.state.category) ||
-      this.state.category === "Show All"
-    )
-      return true;
-    else return false;
-  };
+  applyFilters = m => {
+    if (!this.state.filterViewCompleted && m.state == 'Completed') return false;
 
-  filterStage = m => {
-    if (this.state.stage === "Show All") return true;
-    if (this.state.stage === "All Jobs" && m.isJob) return true;
-    if (this.state.stage === "All Job Leads" && !m.isJob) return true;
-    if (this.state.stage === "New Lead" && !m.isJob && m.daysOld < 8)
-      return true;
+    // Simplify categories and states
+    var category = m.category.toLowerCase();
+    if (category.includes('asbestos')) category = 'Asbestos';
+      else if (category.includes('meth')) category = 'Meth';
+      else if (category.includes('stack')) category = 'Stack';
+      else if (category.includes('noise')) category = 'Noise';
+      else if (category.includes('bio')) category = 'Bio';
+      else if (category.includes('workplace')) category = 'Workplace';
+      else category = 'Other';
+
+    var state = m.state != undefined ? m.state.toLowerCase() : 'Lead';
+    if (!m.isJob) state = 'Lead';
+      else if (state == 'completed') state = 'Completed';
+      else if (state == 'needs booking') state = 'Needs Booking';
+      else if (state == 'planned') state = 'Planned';
+      else if (state == 'in progress') state = 'Site Work';
+      else if ("waiting for resultswaiting on lab unbundlewaiting on lab amendment".includes(state)) state = 'Lab';
+      else if ("needs writingneeds finishingbeing writtenready to be checkedbeing checkedbeen checked, needs fixingready for ktpbeing ktp'dktped, actions needed".includes(state)) state = 'Report';
+      else state = 'Admin';
+
+    // Category
     if (
-      this.state.stage === "Leads with Overdue Actions" &&
-      !m.isJob &&
-      m.nextActionOverdueBy > 0
+      this.state.filterOnCategory &&
+      this.state.filterCategory != category
     )
-      return true;
+      return false;
+
+    // Job state
     if (
-      this.state.stage === "Jobs with Overdue Actions" &&
-      m.isJob &&
-      m.nextActionOverdueBy > 0
+      this.state.filterOnState &&
+      this.state.filterState != state
     )
-      return true;
-    if (this.state.stage === "Job Needs Booking" && m.state === "Needs Booking")
-      return true;
-    if (this.state.stage === "Planned" && m.state === "Planned") return true;
-    if (this.state.stage === "In Progress" && m.state === "In Progress")
-      return true;
+      return false;
+
+    // Job or lead
     if (
-      this.state.stage === "Job Start Today" &&
-      m.state === "In Progress" &&
-      m.daysOld === 0
+      this.state.filterOnJobLead &&
+      ((this.state.filterJobLead == 'Jobs' && !m.isJob) ||
+      (this.state.filterJobLead == 'Leads' && m.isJob))
     )
-      return true;
-    if (
-      this.state.stage === "Post-Site Work Jobs" &&
-      m.isJob &&
-      !"NeedsBookingPlannedIn Progress".includes(m.state)
-    )
-      return true;
-    return false;
-  };
+      return false;
+
+    // Creation date
+    if (this.state.filterCreatedInTheLast && this.getDaysSinceDate(m.creationDate) >= this.state.createdInTheLast) return false;
+
+    // Completion date
+    if (this.state.filterCompletedInTheLast && (m.state != 'Completed' || this.getDaysSinceDate(m.completeDate) >= this.state.completedInTheLast)) return false;
+
+    // Days since last update
+    if (this.state.filterUpdatedInTheLast && this.getDaysSinceDate(m.lastActionDate) < this.state.updatedInTheLast) return false;
+
+    // Actions overdue by
+    if (this.state.filterActionsOverdueBy && (m.isJob || this.getNextActionOverdueBy(m.activities) < this.state.actionsOverdueBy)) return false;
+
+    return true;
+  }
 
   switchCategory = cat => {
     this.setState({
@@ -1113,28 +1161,63 @@ class JobMap extends React.Component {
                 <div>
                   <Grid container spacing={8}>
                     {[
-                      "Show All",
-                      "All Job Leads",
-                      "New Lead",
-                      "Leads with Overdue Actions",
-                      "All Jobs",
-                      "Jobs with Overdue Actions",
-                      "Job Needs Booking",
-                      "Planned",
-                      "In Progress",
-                      "Post-Site Work Jobs"
-                    ].map(cat => {
+                      "Leads",
+                      "Jobs",
+                    ].map(chip => {
                       return (
-                        <Grid item key={cat}>
+                        <Grid item key={chip}>
                           <Button
                             style={{ fontSize: 12 }}
                             variant="outlined"
                             color={
-                              this.state.stage === cat ? "secondary" : "primary"
+                              this.state.filterJobLead == chip ? "secondary" : "default"
                             }
-                            onClick={() => this.switchStage(cat)}
+                            onClick={() => this.filterSet(chip,"JobLead")}
                           >
-                            {cat}
+                            {chip}
+                          </Button>
+                        </Grid>
+                      )
+                    })}
+                    <Grid>
+                      <FormControlLabel
+                        style={{ marginLeft: 1, }}
+                        control={
+                          <Checkbox
+                            checked={this.state.filterViewCompleted}
+                            onChange={(event) => { this.setState({ filterViewCompleted: event.target.checked })}}
+                            value='filterViewCompleted'
+                            color='secondary'
+                          />
+                        }
+                        label="Show Completed Jobs and Leads"
+                      />
+                    </Grid>
+                  </Grid>
+                  <Divider style={{ marginTop: 20, marginBottom: 20 }} />
+                  <Grid container spacing={8}>
+                    {[
+                      "Lead",
+                      "On Hold",
+                      "Needs Booking",
+                      "Planned",
+                      "Site Work",
+                      "Lab",
+                      "Report",
+                      "Admin",
+                      "Completed",
+                    ].map(chip => {
+                      return (
+                        <Grid item key={chip}>
+                          <Button
+                            style={{ fontSize: 12 }}
+                            variant="outlined"
+                            color={
+                              this.state.filterState == chip ? "secondary" : "default"
+                            }
+                            onClick={() => this.filterSet(chip,"State")}
+                          >
+                            {chip}
                           </Button>
                         </Grid>
                       );
@@ -1143,7 +1226,6 @@ class JobMap extends React.Component {
                   <Divider style={{ marginTop: 20, marginBottom: 20 }} />
                   <Grid container spacing={8} style={{ marginBottom: 20 }}>
                     {[
-                      "Show All",
                       "Asbestos",
                       "Meth",
                       "Stack",
@@ -1151,56 +1233,134 @@ class JobMap extends React.Component {
                       "Bio",
                       "Workplace",
                       "Other"
-                    ].map(cat => {
-                      var colour = this.getColour(cat);
+                    ].map(chip => {
+                      var colour = this.getColour(chip);
                       return (
-                        <Grid item key={cat}>
+                        <Grid item key={chip}>
                           <Button
+                            style={{ fontSize: 12, color: colour }}
                             variant="outlined"
                             color={
-                              this.state.category === cat
+                              this.state.filterCategory == chip
                                 ? "secondary"
-                                : "primary"
+                                : "default"
                             }
-                            onClick={() => this.switchCategory(cat)}
+                            onClick={() => this.filterSet(chip,"Category")}
                           >
-                            <span style={{ fontSize: 12, color: colour }}>
-                              {cat}
-                            </span>
+                            {chip}
                           </Button>
                         </Grid>
                       );
                     })}
-                    <Grid item>
-                      <Button onClick={this.openNoLocationJobs}>
-                        <span style={{ fontSize: 12 }}>
-                          View Jobs With No Location Data (
-                          {this.state.leads &&
-                            this.state.leads.filter(
-                              m =>
-                                this.filterNoLocations(m, true)
-                            ).length}
-                          )
-                        </span>
-                      </Button>
+                  </Grid>
+                  <Divider style={{ marginTop: 20, marginBottom: 20 }} />
+                  <Grid container spacing={8}>
+                    <Grid style={{ fontSize: 14 }}>
+                      <Checkbox
+                        checked={this.state.filterUpdatedInTheLast}
+                        onChange={(event) => { this.setState({ filterUpdatedInTheLast: event.target.checked })}}
+                        value='filterUpdatedInTheLast'
+                        color='secondary'
+                      />
+
+                      Only show jobs/leads that haven't been updated for
+                      <Input
+                        style={{ width: 50, marginLeft: 12, marginRight: 12, }}
+                        type='number'
+                        value={this.state.updatedInTheLast}
+                        onChange={(event) => this.setState({ updatedInTheLast: event.target.value })}
+                      />
+                      days or more
                     </Grid>
-                    <Grid item>
-                      <Button onClick={this.openNoLocationLeads}>
-                        <span style={{ fontSize: 12 }}>
-                          View Leads With No Location Data (
-                          {this.state.leads &&
-                            this.state.leads.filter(
-                              m =>
-                                this.filterNoLocations(m, false)
-                            ).length}
-                          )
-                        </span>
-                      </Button>
+                  </Grid>
+                  <Grid container spacing={8}>
+                    <Grid style={{ fontSize: 14 }}>
+                      <Checkbox
+                        checked={this.state.filterCreatedInTheLast}
+                        onChange={(event) => { this.setState({ filterCreatedInTheLast: event.target.checked })}}
+                        value='filterCreatedInTheLast'
+                        color='secondary'
+                      />
+
+                      Only show jobs/leads that were created in the last
+                      <Input
+                        style={{ width: 50, marginLeft: 12, marginRight: 12, }}
+                        type='number'
+                        value={this.state.createdInTheLast}
+                        onChange={(event) => this.setState({ createdInTheLast: event.target.value })}
+                      />
+                      days or less
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={8}>
+                    <Grid style={{ fontSize: 14 }}>
+                      <Checkbox
+                        checked={this.state.filterCompletedInTheLast}
+                        onChange={(event) => { this.setState({ filterCompletedInTheLast: event.target.checked })}}
+                        value='filterCompletedInTheLast'
+                        color='secondary'
+                      />
+
+                      Only show jobs/leads that were completed in the last
+                      <Input
+                        style={{ width: 50, marginLeft: 12, marginRight: 12, }}
+                        type='number'
+                        value={this.state.completedInTheLast}
+                        onChange={(event) => this.setState({ completedInTheLast: event.target.value })}
+                      />
+                      days or less
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={8}>
+                    <Grid style={{ fontSize: 14 }}>
+                      <Checkbox
+                        checked={this.state.filterActionsOverdueBy}
+                        onChange={(event) => { this.setState({ filterActionsOverdueBy: event.target.checked })}}
+                        value='filterActionsOverdueBy'
+                        color='secondary'
+                      />
+
+                      Only show leads that have actions overdue by
+                      <Input
+                        style={{ width: 50, marginLeft: 12, marginRight: 12, }}
+                        type='number'
+                        value={this.state.actionsOverdueBy}
+                        onChange={(event) => this.setState({ actionsOverdueBy: event.target.value })}
+                      />
+                      days or more
                     </Grid>
                   </Grid>
                 </div>
               </ExpansionPanelDetails>
             </ExpansionPanel>
+            <Grid container spacing={8} style={{ marginTop: 12}}>
+              <Grid item>
+                <Button onClick={this.openNoLocationJobs} variant='outlined'>
+                  <span style={{ fontSize: 12 }}>
+                    View Jobs With No Location Data (
+                    {this.state.leads &&
+                      this.state.leads.filter(
+                        m =>
+                          this.filterNoLocations(m, true)
+                      ).length}
+                    )
+                  </span>
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button onClick={this.openNoLocationLeads} variant='outlined'>
+                  <span style={{ fontSize: 12 }}>
+                    View Leads With No Location Data (
+                    {this.state.leads &&
+                      this.state.leads.filter(
+                        m =>
+                          this.filterNoLocations(m, false)
+                      ).length}
+                    )
+                  </span>
+                </Button>
+              </Grid>
+            </Grid>
             <Map
               google={this.props.google}
               zoom={6.27}
@@ -1222,6 +1382,7 @@ class JobMap extends React.Component {
                   var url = this.getIcon(m.category);
                   return (
                     <Marker
+                      // animation={this.props.google.maps.Animation.DROP}
                       key={m.wfmID}
                       onClick={(props, marker, e) => {
                         this.onMarkerClick(marker, m);
@@ -1281,15 +1442,15 @@ class JobMap extends React.Component {
                   {this.state.m.lastActionDate && (
                     <div>
                       {this.state.m.lastActionType && (<span><b>Last Action:</b> {this.state.m.lastActionType} </span>)}
-                      {this.state.m.currentState && (<span><b>Last Action:</b> State changed to {this.state.m.currentState} </span>) }
-                       ({this.getDaysSinceDate(this.state.m.lastActionDate)} days ago)
+                      {this.state.m.state && (<span><b>Last Action:</b> State changed to <i>{this.state.m.state}</i> </span>) }
+                       ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) == 1 ? 'day' : 'days'} ago)
                     </div>
                   )}
                   {this.state.m.stateHistory && (
                     <div><br /><h6 style={{ color: this.getColour(this.state.m.category) }}>State History</h6>
                     { Object.keys(this.state.m.stateHistory).map((key) => {
                       return (
-                        <span>
+                        <span key={key}>
                           <b>{key}:</b> {this.state.m.stateHistory[key]}<br/>
                         </span>
                       )

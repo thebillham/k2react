@@ -1152,7 +1152,9 @@ export const saveStats = stats => dispatch => {
   });
 };
 
+// This function looks through all the daily states from the states collection and creates an up-to-date picture of the job state
 export const analyseJobHistory = () => dispatch => {
+  // vars
   const buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
   var jobMap = {};
   buckets.forEach((bucket) => {
@@ -1164,15 +1166,19 @@ export const analyseJobHistory = () => dispatch => {
   var stateChangeDates = {};
   var complete = 0;
   var incomplete = 0;
+
+  var completionMap = {};
+  var creationMap = {};
+
+  // get all wfm daily states from firebase
   stateRef
     .doc("wfmstate")
     .collection("states")
     .get()
     .then(querySnapshot => {
       querySnapshot.forEach(doc => {
-        // console.log(doc.id);
+      // Loop through each day of the saved states
         var state = doc.data()['state'];
-        // console.log(buckets);
         // Loop through current job map and check if any are missing from this state (e.g. they have been completed since the last state)
         const buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
         if (state.length > 0) {
@@ -1180,16 +1186,31 @@ export const analyseJobHistory = () => dispatch => {
             if (jobMap[bucket] != undefined) {
               Object.values(jobMap[bucket]).forEach((job) => {
                 if (job.state !== 'Completed' && state.filter((stateJob) => stateJob.wfmID == job.wfmID).length == 0) {
-                  // console.log(job);
+                  // Job or lead has been completed
                   jobMap[bucket][job.wfmID]['state'] = 'Completed';
-                  jobMap[bucket][job.wfmID]['currentState'] = 'Completed';
+                  jobMap[bucket][job.wfmID]['completionDate'] = doc.id;
                   jobMap[bucket][job.wfmID]['stateHistory'] = {
                     ...jobMap[bucket][job.wfmID]['stateHistory'],
                     [doc.id]: 'Completed',
                   };
-                  complete = complete + 1;
-                } else {
-                  incomplete = incomplete + 1;
+
+                  // Add to calendar of when jobs were completed
+                  var completionDoc = {
+                    category: jobMap[bucket][job.wfmID]['category'],
+                    client: jobMap[bucket][job.wfmID]['client'],
+                    geocode: jobMap[bucket][job.wfmID]['geocode'],
+                    isJob: jobMap[bucket][job.wfmID]['isJob'],
+                    jobNumber: jobMap[bucket][job.wfmID]['jobNumber'],
+                    name: jobMap[bucket][job.wfmID]['name'],
+                    wfmID: jobMap[bucket][job.wfmID]['wfmID'],
+                  };
+                  if (jobMap[bucket][job.wfmID]['stateHistory'] != undefined) completionDoc.stateHistory = jobMap[bucket][job.wfmID]['stateHistory'];
+                  if (jobMap[bucket][job.wfmID]['completedActivities'] != undefined)
+                  if (completionMap[doc.id] != undefined) {
+                    completionMap[doc.id] = [...completionMap[doc.id], completionDoc];
+                  } else {
+                    completionMap[doc.id] = [completionDoc];
+                  }
                 }
               });
             }
@@ -1197,68 +1218,91 @@ export const analyseJobHistory = () => dispatch => {
         }
 
         // Loop through each job/lead in the state
+        // This will not loop through any completed jobs
         state.forEach(job => {
-          if (job['isJob']) {
-            // Split job Maps into Workplace, Asbestos and Other
+          if (job.isJob) {
+            // Split job Maps into Workplace, Asbestos and Other to prevent firebase documents being too large
             var bucket = 'jobs';
-            if (job['category'].toLowerCase().includes('asbestos')) bucket = 'asbestos';
-            if (job['category'].toLowerCase().includes('meth')) bucket = 'meth';
-            if (job['category'] == 'Workplace') bucket = 'workplace';
-            if (job['category'] == 'Biological') bucket = 'bio';
-            if (job['category'] == 'Stack Testing') bucket = 'stack';
-            if (job['category'] == 'Noise') bucket = 'noise';
+            if (job.category.toLowerCase().includes('asbestos')) bucket = 'asbestos';
+            if (job.category.toLowerCase().includes('meth')) bucket = 'meth';
+            if (job.category == 'Workplace') bucket = 'workplace';
+            if (job.category == 'Biological') bucket = 'bio';
+            if (job.category == 'Stack Testing') bucket = 'stack';
+            if (job.category == 'Noise') bucket = 'noise';
 
-            var mappedJob = jobMap[bucket][job['wfmID']];
+            var mappedJob = jobMap[bucket][job.wfmID];
             if (mappedJob != undefined) {
-              if (job['state'] != mappedJob['currentState']) {
-                if (jobTypes[job['state']] != undefined) jobTypes[job['state']][bucket] = ''; else jobTypes[job['state']] = {[bucket]: ''};
+            // Update current job (Check if state has been updated)
+              if (job.state != mappedJob.state) {
+                // State has been updated
+
+                // Create a list of all job states/change dates (not necessary)
+                if (jobTypes[job.state] != undefined) jobTypes[job.state][bucket] = ''; else jobTypes[job.state] = {[bucket]: ''};
                 if (stateChangeDates[doc.id] != undefined) stateChangeDates[doc.id][bucket] = ''; else stateChangeDates[doc.id] = {[bucket]: ''};
-                mappedJob['currentState'] = job['state'] ? job['state']: '';
-                mappedJob['lastActionDate'] = doc.id;
-                mappedJob['stateHistory'] = {
-                  ...mappedJob['stateHistory'],
-                  [doc.id]: job['state'],
+
+                // Update mapped job
+                mappedJob.state = job.state;
+                mappedJob.lastActionDate = doc.id;
+                mappedJob.stateHistory = {
+                  ...mappedJob.stateHistory,
+                  [doc.id]: job.state,
                 };
               }
             } else {
-              if (jobCategorys[job['category']] != undefined) {
-                jobCategorys[job['category']] = jobCategorys[job['category']] + 1;
+              // Talley how many jobs in each category (not necessary)
+              if (jobCategorys[job.category] != undefined) {
+                jobCategorys[job.category] = jobCategorys[job.category] + 1;
               } else {
-                jobCategorys[job['category']] = 1;
+                jobCategorys[job.category] = 1;
               }
+
               // Add new job to map
-              var creationDate = moment(job['creationDate']).format('YYYY-MM-DD');
-              job['lastActionDate'] = doc.id;
-              job['nextActionDate'] =
-              job['currentState'] = job['state'];
-              job['stateHistory'] = {
-                [creationDate]: 'Job Created',
+              job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
+              job.lastActionDate = doc.id;
+              if (job.daysOld != undefined) delete job.daysOld;
+              job.stateHistory = {
+                [job.creationDate]: 'Job Created',
                 [doc.id]: job['state'],
               };
-              jobMap[bucket][job['wfmID']] = job;
+
+              // Add to mapped jobs
+              jobMap[bucket][job.wfmID] = job;
+
+              // Add to calendar of when jobs were created
+              var creationDoc = {
+                category: job.category,
+                client: job.client,
+                geocode: job.geocode,
+                isJob: job.isJob,
+                jobNumber: job.jobNumber,
+                name: job.name,
+                wfmID: job.wfmID,
+              };
+              if (creationMap[doc.id] != undefined) {
+                creationMap[doc.id] = [...creationMap[doc.id], creationDoc];
+              } else {
+                creationMap[doc.id] = [creationDoc];
+              }
             }
           } else {
-            jobMap['leads'][job['wfmID']] = job;
+            // Leads have their state history in already (activities)
+            if (job.averageCompletedActionOverdueDays != undefined) delete job.averageCompletedActionOverdueDays;
+            job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
+            if (job.daysOld != undefined) delete job.daysOld;
+            if (job.daysSinceLastAction != undefined) delete job.daysSinceLastAction;
+            if (job.urgentAction != undefined) delete job.urgentAction;
+            if (job.completedActivities != undefined) delete job.completedActivities;
+
+            jobMap['leads'][job.wfmID] = job;
           }
         });
       });
       var buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
       buckets.forEach((bucket) => {
-        console.log('Updating bucket ' + bucket);
-        console.log(jobMap[bucket]);
         stateRef.doc("wfmstate").collection("current").doc(bucket).set(jobMap[bucket]);
       });
-      console.log(complete);
-      console.log(incomplete);
-      // console.log(jobMap);
-      // console.log(jobCategorys);
-      // dispatch({
-      //   type: GET_JOB_HISTORY_ANALYSIS,
-      //   payload: jobMap,
-      // });
-      // console.log(stateChangeDates);
-      // console.log(jobTypes);
-      // console.log(leadTypes);
+      stateRef.doc("wfmstate").collection("timeline").doc('completion').set(completionMap);
+      stateRef.doc("wfmstate").collection("timeline").doc('creation').set(creationMap);
     });
 };
 
@@ -1267,7 +1311,6 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
   // Put all the buckets back together in one map
   stateRef.doc("wfmstate").collection("current").get().then((querySnapshot) => {
     querySnapshot.forEach((doc) => {
-      console.log(doc.data());
       if(ignoreCompleted) {
         Object.values(doc.data()).forEach((job) => {
           if (job['state'] != "Completed") currentJobState[job['wfmID']] = job;
@@ -1280,7 +1323,6 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
       }
     });
     console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
-    console.log(currentJobState);
     dispatch({
       type: GET_CURRENT_JOB_STATE,
       payload: currentJobState,
@@ -1313,9 +1355,9 @@ export const saveCurrentJobState = state => dispatch => {
 
   console.log(sortedState);
 
-  // buckets.forEach((bucket) => {
-  //   stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket], { merge: true });
-  // });
+  buckets.forEach((bucket) => {
+    stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket], { merge: true });
+  });
 };
 
 function getDaysSinceDate(date) {
