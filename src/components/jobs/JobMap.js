@@ -572,8 +572,8 @@ class JobMap extends React.Component {
       return uncompletedActivities
         .sort((a, b) => {
           return new Date(a.date).getTime() - new Date(b.date).getTime();
-        })
-        .reverse();
+        });
+        // .reverse();
     } else {
       return [];
     }
@@ -650,6 +650,24 @@ class JobMap extends React.Component {
   openNoLocationJobs = () => {
     this.setState({
       modal: "jobs"
+    });
+  };
+
+  openUrgentJobs = () => {
+    this.setState({
+      modal: "urgentjobs"
+    });
+  };
+
+  openUrgentLeads = () => {
+    this.setState({
+      modal: "urgentleads"
+    });
+  };
+
+  openJobModal = m => {
+    this.setState({
+      jobModal: m
     });
   };
 
@@ -1043,7 +1061,147 @@ class JobMap extends React.Component {
       var sortedDays = [].concat(daysData).sort((a, b) => a.days > b.days);
       console.log(daysData);
     }
-    const noLocationModal = (
+
+    const jobModal = (
+      <Dialog
+        maxWidth="sm"
+        fullWidth={true}
+        open={this.state.jobModal !== null}
+        onClose={() => this.setState({ jobModal: null })}
+      >
+        <DialogTitle>
+        </DialogTitle>
+        <DialogContent>
+        {this.state.jobModal && (
+          <div
+            style={{
+              width: 350,
+              lineHeight: 2,
+              fontSize: 14,
+              padding: 20
+            }}
+          >
+            <div>
+              <h5
+                style={{ color: this.getColour(this.state.jobModal.category) }}
+              >
+                {this.state.jobModal.jobNumber}: {this.state.jobModal.client}
+              </h5>
+            </div>
+            <div style={{ color: this.getColour(this.state.jobModal.category) }}>
+              <h6>{this.state.jobModal.category}</h6>
+            </div>
+            {this.state.jobModal.geocode && (
+              <div>
+                <i>{this.state.jobModal.geocode.address}</i>
+              </div>
+            )}
+            {this.state.jobModal.state && (
+              <div>
+                <b>State:</b> {this.state.jobModal.state}
+              </div>
+            )}
+            <div>
+              <b>Owner:</b> {this.state.jobModal.owner}
+            </div>
+
+            {this.state.jobModal.isJob && (
+              <div>
+              {this.state.jobModal.lastActionDate && (
+                <div>
+                  {this.state.jobModal.state && (<span><b>Last Action:</b> State changed to <i>{this.state.jobModal.state}</i> </span>) }
+                   ({this.getDaysSinceDate(this.state.jobModal.lastActionDate)} {this.getDaysSinceDate(this.state.jobModal.lastActionDate) == 1 ? 'day' : 'days'} ago)
+                </div>
+              )}
+              {this.state.jobModal.stateHistory && (
+                <div><br /><h6 style={{ color: this.getColour(this.state.jobModal.category) }}>State History</h6>
+                { Object.keys(this.state.jobModal.stateHistory).map((key) => {
+                  return (
+                    <span key={key}>
+                      <b>{key}:</b> {this.state.jobModal.stateHistory[key]}<br/>
+                    </span>
+                  )
+                }) }
+                </div>
+              )}
+            </div>
+            )}
+
+            {!this.state.jobModal.isJob && (
+              <div>
+              {this.state.jobModal.value > 0 && (
+                <div>
+                  <b>Estimated Value:</b> ${this.state.jobModal.value}{" "}
+                </div>
+              )}
+              {this.state.jobModal.lastActionDate && (
+                <div>
+                  {this.state.jobModal.lastActionType && (<span><b>Last Action:</b> {this.state.jobModal.lastActionType} </span>)}
+                   ({this.getDaysSinceDate(this.state.jobModal.lastActionDate)} {this.getDaysSinceDate(this.state.jobModal.lastActionDate) == 1 ? 'day' : 'days'} ago)
+                </div>
+              )}
+              {this.state.jobModal.nextActionType && (
+                <div>
+                  <b>Next Action:</b> {this.getNextActionType(this.state.jobModal.activities)}{" "}
+                  {this.getNextActionOverdueBy(this.state.jobModal.activities) > 0 ? (
+                    <span
+                      style={{
+                        fontColor: "#ff0000",
+                        textDecoration: "underline"
+                      }}
+                    >
+                      (Overdue by {this.getNextActionOverdueBy(this.state.jobModal.activities)} days)
+                    </span>
+                  ) : (
+                    <span>
+                      (Due in {this.getNextActionOverdueBy(this.state.jobModal.activities) * -1} days)
+                    </span>
+                  )}
+                </div>
+              )}
+              {this.state.jobModal.activities && this.state.jobModal.activities.length > 0 && (
+                <div><br /><h6 style={{ color: this.getColour(this.state.jobModal.category) }}>Activities</h6>
+                { this.state.jobModal.activities.map((activity) => {
+                  if(activity.completed == 'Yes') {
+                    return (
+                      <span key={activity.date} style={{ textDecoration: 'line-through'}}>
+                        <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
+                        <br/>
+                      </span>
+                    )
+                  } else {
+                    return (
+                      <span key={activity.date}>
+                        <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
+                        <br/>
+                      </span>
+                    )
+                  }
+                }) }
+                </div>
+              )}
+              </div>
+            )}
+
+            <div style={{ padding: 16, textAlign: "center" }}>
+              <Button variant="outlined" style={{ borderRadius: 20 }}>
+                <a
+                  style={{ textDecoration: "none", color: "#FF2D00" }}
+                  target="_blank"
+                  rel="noopener nonreferrer"
+                  href={this.getWfmUrl(this.state.m)}
+                >
+                  View on WorkflowMax
+                </a>
+              </Button>
+            </div>
+          </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    );
+
+    const jobListModal = (
       <Dialog
         maxWidth="sm"
         fullWidth={true}
@@ -1071,7 +1229,7 @@ class JobMap extends React.Component {
                       className={classes.hoverItem}
                       style={{ color: this.getColour(m.category) }}
                       onClick={() => {
-                        this.gotoWFM(m);
+                        this.openJobModal(m);
                       }}
                     >
                       {m.name} : {m.client}
@@ -1095,7 +1253,7 @@ class JobMap extends React.Component {
                       className={classes.hoverItem}
                       style={{ color: this.getColour(m.category) }}
                       onClick={() => {
-                        this.gotoWFM(m);
+                        this.openJobModal(m);
                       }}
                     >
                       {m.name} : {m.client}
@@ -1152,7 +1310,8 @@ class JobMap extends React.Component {
         )}
         {this.state.tabValue === 2 && (
           <div>*/}
-            {this.state.modal && noLocationModal}
+            {this.state.jobModal && jobModal}
+            {this.state.modal && jobListModal}
             <ExpansionPanel>
               <ExpansionPanelSummary expandIcon={<ExpandMore />}>
                 Filter View
@@ -1265,7 +1424,7 @@ class JobMap extends React.Component {
 
                       Only show jobs/leads that haven't been updated for
                       <Input
-                        style={{ width: 50, marginLeft: 12, marginRight: 12, }}
+                        style={{ width: 30, marginLeft: 12, marginRight: 12, }}
                         type='number'
                         value={this.state.updatedInTheLast}
                         onChange={(event) => this.setState({ updatedInTheLast: event.target.value })}
@@ -1284,7 +1443,7 @@ class JobMap extends React.Component {
 
                       Only show jobs/leads that were created in the last
                       <Input
-                        style={{ width: 50, marginLeft: 12, marginRight: 12, }}
+                        style={{ width: 30, marginLeft: 12, marginRight: 12, }}
                         type='number'
                         value={this.state.createdInTheLast}
                         onChange={(event) => this.setState({ createdInTheLast: event.target.value })}
@@ -1303,7 +1462,7 @@ class JobMap extends React.Component {
 
                       Only show jobs/leads that were completed in the last
                       <Input
-                        style={{ width: 50, marginLeft: 12, marginRight: 12, }}
+                        style={{ width: 30, marginLeft: 12, marginRight: 12, }}
                         type='number'
                         value={this.state.completedInTheLast}
                         onChange={(event) => this.setState({ completedInTheLast: event.target.value })}
@@ -1322,7 +1481,7 @@ class JobMap extends React.Component {
 
                       Only show leads that have actions overdue by
                       <Input
-                        style={{ width: 50, marginLeft: 12, marginRight: 12, }}
+                        style={{ width: 30, marginLeft: 12, marginRight: 12, }}
                         type='number'
                         value={this.state.actionsOverdueBy}
                         onChange={(event) => this.setState({ actionsOverdueBy: event.target.value })}
@@ -1439,48 +1598,85 @@ class JobMap extends React.Component {
                   <div>
                     <b>Owner:</b> {this.state.m.owner}
                   </div>
-                  {this.state.m.lastActionDate && (
+
+                  {this.state.m.isJob && (
                     <div>
-                      {this.state.m.lastActionType && (<span><b>Last Action:</b> {this.state.m.lastActionType} </span>)}
-                      {this.state.m.state && (<span><b>Last Action:</b> State changed to <i>{this.state.m.state}</i> </span>) }
-                       ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) == 1 ? 'day' : 'days'} ago)
-                    </div>
+                    {this.state.m.lastActionDate && (
+                      <div>
+                        {this.state.m.state && (<span><b>Last Action:</b> State changed to <i>{this.state.m.state}</i> </span>) }
+                         ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) == 1 ? 'day' : 'days'} ago)
+                      </div>
+                    )}
+                    {this.state.m.stateHistory && (
+                      <div><br /><h6 style={{ color: this.getColour(this.state.m.category) }}>State History</h6>
+                      { Object.keys(this.state.m.stateHistory).map((key) => {
+                        return (
+                          <span key={key}>
+                            <b>{key}:</b> {this.state.m.stateHistory[key]}<br/>
+                          </span>
+                        )
+                      }) }
+                      </div>
+                    )}
+                  </div>
                   )}
-                  {this.state.m.stateHistory && (
-                    <div><br /><h6 style={{ color: this.getColour(this.state.m.category) }}>State History</h6>
-                    { Object.keys(this.state.m.stateHistory).map((key) => {
-                      return (
-                        <span key={key}>
-                          <b>{key}:</b> {this.state.m.stateHistory[key]}<br/>
-                        </span>
-                      )
-                    }) }
-                    </div>
-                  )}
-                  {this.state.m.nextActionType && (
+
+                  {!this.state.m.isJob && (
                     <div>
-                      <b>Next Action:</b> {this.getNextActionType(this.state.m.activities)}{" "}
-                      {this.getNextActionOverdueBy(this.state.m.activities) > 0 ? (
-                        <span
-                          style={{
-                            fontColor: "#ff0000",
-                            textDecoration: "underline"
-                          }}
-                        >
-                          (Overdue by {this.getNextActionOverdueBy(this.state.m.activities)} days)
-                        </span>
-                      ) : (
-                        <span>
-                          (Due in {this.getNextActionOverdueBy(this.state.m.activities) * -1} days)
-                        </span>
-                      )}
+                    {this.state.m.value > 0 && (
+                      <div>
+                        <b>Estimated Value:</b> ${this.state.m.value}{" "}
+                      </div>
+                    )}
+                    {this.state.m.lastActionDate && (
+                      <div>
+                        {this.state.m.lastActionType && (<span><b>Last Action:</b> {this.state.m.lastActionType} </span>)}
+                         ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) == 1 ? 'day' : 'days'} ago)
+                      </div>
+                    )}
+                    {this.state.m.nextActionType && (
+                      <div>
+                        <b>Next Action:</b> {this.getNextActionType(this.state.m.activities)}{" "}
+                        {this.getNextActionOverdueBy(this.state.m.activities) > 0 ? (
+                          <span
+                            style={{
+                              fontColor: "#ff0000",
+                              textDecoration: "underline"
+                            }}
+                          >
+                            (Overdue by {this.getNextActionOverdueBy(this.state.m.activities)} days)
+                          </span>
+                        ) : (
+                          <span>
+                            (Due in {this.getNextActionOverdueBy(this.state.m.activities) * -1} days)
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {this.state.m.activities && this.state.m.activities.length > 0 && (
+                      <div><br /><h6 style={{ color: this.getColour(this.state.m.category) }}>Activities</h6>
+                      { this.state.m.activities.map((activity) => {
+                        if(activity.completed == 'Yes') {
+                          return (
+                            <span key={activity.date} style={{ textDecoration: 'line-through'}}>
+                              <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
+                              <br/>
+                            </span>
+                          )
+                        } else {
+                          return (
+                            <span key={activity.date}>
+                              <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
+                              <br/>
+                            </span>
+                          )
+                        }
+                      }) }
+                      </div>
+                    )}
                     </div>
                   )}
-                  {this.state.m.value > 0 && (
-                    <div>
-                      <b>Estimated Value:</b> ${this.state.m.value}{" "}
-                    </div>
-                  )}
+
                   <div style={{ padding: 16, textAlign: "center" }}>
                     <Button variant="outlined" style={{ borderRadius: 20 }}>
                       <a
