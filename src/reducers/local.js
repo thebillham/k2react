@@ -3,6 +3,8 @@ import {
   GET_AIRANALYSTS,
   GET_BULKANALYSTS,
   GET_DOCUMENTS,
+  GET_EDIT_STAFF,
+  GET_EDIT_STAFF_ATTR,
   GET_GEOCODES,
   GET_USER,
   GET_WFM_JOBS,
@@ -53,6 +55,7 @@ const localInit = {
   cocs: {},
   currentJobState: {},
   documents: [],
+  editstaff: {},
   geocodes: {},
   helps: [],
   me: {},
@@ -191,6 +194,14 @@ export default function localReducer(state = localInit, action) {
     case GET_STAFF:
       if (action.update) stateRef.doc("staff").set(action.payload);
       return { ...state, staff: action.payload };
+    case GET_EDIT_STAFF:
+      return {
+        ...state,
+        editstaff: {
+          ...state.editstaff,
+          ...action.payload,
+        }
+      };
     case GET_TOOLS:
       if (action.update) stateRef.doc("tools").set({ payload: action.payload });
       return {

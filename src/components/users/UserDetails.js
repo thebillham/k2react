@@ -28,9 +28,9 @@ import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 
 import UserAttrModal from "../modals/UserAttrModal";
 import AttrList from "./AttrList";
-import { USERATTR } from "../../constants/modal-types";
+import { USERATTR, EDITSTAFF } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
-import { getUserAttrs } from "../../actions/local";
+import { getUserAttrs, getEditStaff } from "../../actions/local";
 import _ from "lodash";
 
 const mapStateToProps = state => {
@@ -46,7 +46,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     showModal: modal => dispatch(showModal(modal)),
-    // getEditStaff: user => dispatch(getEditStaff(user)),
+    getEditStaff: user => dispatch(getEditStaff(user)),
     getUserAttrs: userPath => dispatch(getUserAttrs(userPath))
   };
 };
@@ -59,7 +59,7 @@ class UserDetails extends React.Component {
     this.state = {
       tabValue: 0,
       userPath: userPath,
-      isLoading: false
+      isLoading: true
     };
     this.onEditUser = _.debounce(this.onEditUser, 300);
   }
@@ -69,15 +69,8 @@ class UserDetails extends React.Component {
   };
 
   componentWillMount = () => {
-    if (this.props.match.params.user) {
-      if (
-        !(
-          this.props.staff[this.props.match.params.user] &&
-          this.props.staff[this.props.match.params.user].attrs
-        )
-      ) {
-        this.props.getUserAttrs(this.props.match.params.user);
-      }
+    if (this.props.match.params.user && this.props.me.auth && this.props.me.auth["Admin"]) {
+      this.props.getEditStaff(this.props.match.params.user);
     } else if (!this.props.match.params.user && !this.props.me.attrs) {
       this.props.getUserAttrs(auth.currentUser.uid);
     }
@@ -115,7 +108,7 @@ class UserDetails extends React.Component {
   displayTimeAtK2 = () => {
     var user = {};
     if (this.props.match.params.user) {
-      user = this.props.staff[this.props.match.params.user];
+      user = this.props.editstaff;
     } else {
       user = this.props.me;
     }
@@ -147,10 +140,12 @@ class UserDetails extends React.Component {
     const { classes } = this.props;
     var { tabValue } = this.state;
 
+    if (this.state.isLoading && ((this.props.match.params.user && this.props.editstaff != undefined) || (!this.props.match.params.user && this.props.me != undefined))) this.setState({ isLoading: false, });
+
     // User variable is assigned at this stage so that attributes are immediately updated when changed.
     var user = {};
     if (this.props.match.params.user) {
-      user = this.props.staff[this.props.match.params.user];
+      user = this.props.editstaff;
     } else {
       user = this.props.me;
     }

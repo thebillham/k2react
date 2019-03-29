@@ -7,6 +7,7 @@ import {
   GET_BULKANALYSTS,
   GET_COCS,
   GET_DOCUMENTS,
+  GET_EDIT_STAFF,
   GET_GEOCODES,
   GET_HELP,
   GET_ME,
@@ -154,7 +155,7 @@ export const fetchStaff = update => async dispatch => {
   }
 };
 
-export const getUserAttrs = userPath => async dispatch => {
+export const getUserAttrs = (userPath, editStaff) => async dispatch => {
   console.log("Calling update staff for " + userPath);
   let user = {};
   auth.currentUser &&
@@ -272,9 +273,27 @@ export const getUserAttrs = userPath => async dispatch => {
             userPath: userPath,
             payload: user
           });
+          if (editStaff) {
+            dispatch({
+              type: GET_EDIT_STAFF,
+              payload: user,
+            })
+          }
         }
       });
 };
+
+export const getEditStaff = userPath => async dispatch => {
+  auth.currentUser &&
+    usersRef
+      .doc(userPath)
+      .onSnapshot((doc) =>
+        dispatch({
+          type: GET_EDIT_STAFF,
+          payload: doc.data(),
+        })
+    );
+}
 
 export const fetchCocs = update => async dispatch => {
   // Make all calls update for now
@@ -1322,6 +1341,7 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
         }
       }
     });
+    console.log(currentJobState);
     console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
     dispatch({
       type: GET_CURRENT_JOB_STATE,

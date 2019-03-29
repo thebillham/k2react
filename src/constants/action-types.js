@@ -13,6 +13,7 @@ export const GET_BULKANALYSTS = "GET_BULKANALYSTS";
 export const GET_COCS = "GET_COCS";
 export const GET_CURRENT_JOB_STATE = "GET_CURRENT_JOB_STATE";
 export const GET_DOCUMENTS = "GET_DOCUMENTS";
+export const GET_EDIT_STAFF = "GET_EDIT_STAFF";
 export const GET_GEOCODES = "GET_GEOCODES";
 export const GET_HELP = "GET_HELP";
 export const GET_ME = "GET_ME";
