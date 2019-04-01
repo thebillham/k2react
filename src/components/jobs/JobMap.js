@@ -697,7 +697,6 @@ class JobMap extends React.Component {
         if (mappedJob.nextActionType != undefined) delete mappedJob.nextActionType;
         if (mappedJob.nextActionDate != undefined) delete mappedJob.nextActionDate;
         if (mappedJob.nextActionOverdueBy != undefined) delete mappedJob.nextActionOverdueBy;
-        if (mappedJob.lastActionType != undefined) delete mappedJob.lastActionType;
 
         if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory)[0] < mappedJob.creationDate) {
           mappedJob.creationDate = Object.keys(mappedJob.stateHistory)[0];
@@ -707,8 +706,8 @@ class JobMap extends React.Component {
         // Check state has changed
         if (job.state != mappedJob.state) {
           // console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
-          mappedJob.lastActionType = job.state;
           mappedJob.lastActionDate = today;
+          mappedJob.state = job.state;
           mappedJob.stateHistory[today] = job.state;
         }
 
