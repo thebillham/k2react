@@ -707,6 +707,8 @@ class JobMap extends React.Component {
         // Check state has changed
         if (job.state != mappedJob.state) {
           // console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
+          mappedJob.lastActionType = job.state;
+          mappedJob.lastActionDate = today;
           mappedJob.stateHistory[today] = job.state;
         }
 
