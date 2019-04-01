@@ -698,10 +698,18 @@ class JobMap extends React.Component {
         if (mappedJob.nextActionDate != undefined) delete mappedJob.nextActionDate;
         if (mappedJob.nextActionOverdueBy != undefined) delete mappedJob.nextActionOverdueBy;
         if (mappedJob.lastActionType != undefined) delete mappedJob.lastActionType;
+
         if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory)[0] < mappedJob.creationDate) {
           mappedJob.creationDate = Object.keys(mappedJob.stateHistory)[0];
           mappedJob.stateHistory[mappedJob.creationDate] = 'Job Started';
         }
+
+        // Check state has changed
+        if (job.state != mappedJob.state) {
+          // console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
+          mappedJob.stateHistory[today] = job.state;
+        }
+
         // Check if address has changed
         if (mappedJob.name !== job.address) {
           console.log(job.address + ' is new, get new geocode');
@@ -745,13 +753,48 @@ class JobMap extends React.Component {
     });
 
     this.props.wfmLeads.forEach(wfmLead => {
-      var mappedJob = this.props.currentJobState[wfmLead['wfmID']];
-      if (mappedJob != undefined) {
+      var lead = this.props.currentJobState[wfmLead['wfmID']];
+      if (lead != undefined) {
         // Update state history of job
-        if(mappedJob.nextActionDate == undefined) {
-          mappedJob.nextActionDate = this.getNextActionDate(wfmLead.activities);
+        // if(mappedJob.nextActionDate == undefined) {
+        //   mappedJob.nextActionDate = this.getNextActionDate(wfmLead.activities);
+        // }
+
+        // Map actions to history to get completion date of each action
+        if (wfmLead.activities[0] === "NO PLAN!") {
+          lead.urgentAction = "Add Milestones to Lead";
+          lead.activities = [];
+        } else if (wfmLead.history[0] === "No History") {
+          lead.activities = [];
+        } else {
+          lead.activities = wfmLead.activities.map(activity =>
+            this.getCompletionDateFromHistory(activity, wfmLead.history)
+          );
         }
-        mappedJobs = [...mappedJobs, mappedJob];
+        var completedActivities = this.getCompletedActivities(lead.activities);
+        lead.lastActionDate = this.getLastActionDateFromActivities(
+          completedActivities,
+          lead.creationDate
+        );
+        lead.lastActionType = this.getLastActionTypeFromActivities(
+          completedActivities
+        );
+
+        lead.nextActionType = this.getNextActionType(lead.activities);
+        lead.nextActionDate = this.getNextActionDate(lead.activities);
+
+        // Check if address has changed
+        if (lead.name !== wfmLead.name) {
+          console.log(wfmLead.address + ' is new, get new geocode');
+          lead.name = wfmLead.name;
+          this.handleGeocode(
+            wfmLead.name,
+            this.getAddressFromClient(wfmLead.clientID),
+            lead,
+          );
+        } else {
+          mappedJobs = [...mappedJobs, lead];
+        }
       } else {
         console.log('Making new job: ' + wfmLead['wfmID']);
         var lead = {};
@@ -1071,6 +1114,12 @@ class JobMap extends React.Component {
         onClose={() => this.setState({ jobModal: null })}
       >
         <DialogTitle>
+        {this.state.jobModal && (
+          <h5
+            style={{ color: this.getColour(this.state.jobModal.category) }}
+          >
+            {this.state.jobModal.jobNumber}: {this.state.jobModal.client}
+          </h5>)}
         </DialogTitle>
         <DialogContent>
         {this.state.jobModal && (
@@ -1082,13 +1131,6 @@ class JobMap extends React.Component {
               padding: 20
             }}
           >
-            <div>
-              <h5
-                style={{ color: this.getColour(this.state.jobModal.category) }}
-              >
-                {this.state.jobModal.jobNumber}: {this.state.jobModal.client}
-              </h5>
-            </div>
             <div style={{ color: this.getColour(this.state.jobModal.category) }}>
               <h6>{this.state.jobModal.category}</h6>
             </div>
@@ -1204,7 +1246,7 @@ class JobMap extends React.Component {
 
     const jobListModal = (
       <Dialog
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth={true}
         open={this.state.modal !== null}
         onClose={() => this.setState({ modal: null })}
@@ -1219,11 +1261,13 @@ class JobMap extends React.Component {
                 .filter(
                   m => this.applyModalFilters(m, false)
                 )
-                // .sort((a, b) => {
-                //   var metricA = a.isJob ? this.getDaysSinceDate(a.lastActionDate) : this.getNextActionOverdueBy(a.activities);
-                //   var metricB = b.isJob ? this.getDaysSinceDate(b.lastActionDate) : this.getNextActionOverdueBy(b.activities);
-                //   return metricA > metricB;
-                // })
+                .sort((a, b) => {
+                  var metricA = a.isJob ? this.getDaysSinceDate(a.lastActionDate) : this.getNextActionOverdueBy(a.activities);
+                  var metricB = b.isJob ? this.getDaysSinceDate(b.lastActionDate) : this.getNextActionOverdueBy(b.activities);
+                  return metricB - metricA;
+                  // this.getDaysSinceDate(a.lastActionDate) - this.getDaysSinceDate(b.lastActionDate))
+                })
+                // .sort((a, b) => b.isJob - a.isJob)
                 .map(m => {
                   return (
                     <ListItem
@@ -1516,19 +1560,6 @@ class JobMap extends React.Component {
             </ExpansionPanel>
             <Grid container spacing={8} style={{ marginTop: 12}}>
               <Grid item>
-                <Button onClick={this.openNoLocation} variant='outlined'>
-                  <span style={{ fontSize: 12 }}>
-                    View Jobs/Leads With No Location Data (
-                    {this.state.leads &&
-                      this.state.leads.filter(
-                        m =>
-                          this.applyModalFilters(m, true)
-                      ).length}
-                    )
-                  </span>
-                </Button>
-              </Grid>
-              <Grid item>
                 <Button onClick={this.openLeadsModal} variant='outlined'>
                   <span style={{ fontSize: 12 }}>
                     View As List (
@@ -1536,6 +1567,19 @@ class JobMap extends React.Component {
                       this.state.leads.filter(
                         m =>
                           this.applyFilters(m)
+                      ).length}
+                    )
+                  </span>
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button onClick={this.openNoLocation} variant='outlined'>
+                  <span style={{ fontSize: 12 }}>
+                    View Jobs/Leads With No Location Data (
+                    {this.state.leads &&
+                      this.state.leads.filter(
+                        m =>
+                          this.applyModalFilters(m, true)
                       ).length}
                     )
                   </span>
