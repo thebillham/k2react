@@ -15,6 +15,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 
 import {
+  analyseJobHistory,
   fetchCocs,
   fetchDocuments,
   fetchMethods,
@@ -49,7 +50,8 @@ const mapDispatchToProps = dispatch => {
     fetchTools: () => dispatch(fetchTools(true)),
     fetchTrainingPaths: () => dispatch(fetchTrainingPaths(true)),
     fetchVehicles: () => dispatch(fetchVehicles(true)),
-    hideModal: modal => dispatch(hideModal(modal))
+    hideModal: modal => dispatch(hideModal(modal)),
+    analyseJobHistory: () => dispatch(analyseJobHistory()),
   };
 };
 
@@ -95,7 +97,11 @@ class UpdateData extends React.Component {
       {
         event: this.props.fetchVehicles,
         title: "Vehicles"
-      }
+      },
+      {
+        event: this.props.analyseJobHistory,
+        title: "Job Map"
+      },
     ];
     return (
       <Dialog
@@ -105,7 +111,7 @@ class UpdateData extends React.Component {
         <DialogTitle>Update Cached Data</DialogTitle>
         <DialogContent>
           {updateTypes.map(update => (
-            <div key={update}>
+            <div key={update.title}>
               <Button
                 variant="outlined"
                 color="default"

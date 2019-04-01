@@ -86,7 +86,6 @@ const mapDispatchToProps = dispatch => {
     updateGeocodes: g => dispatch(updateGeocodes(g)),
     saveWFMItems: items => dispatch(saveWFMItems(items)),
     saveStats: stats => dispatch(saveStats(stats)),
-    analyseJobHistory: () => dispatch(analyseJobHistory()),
   };
 };
 
@@ -174,8 +173,6 @@ class JobMap extends React.Component {
       staff: this.state.staffStats,
       clients: this.state.clientStats
     });
-    // if (this.props.geocodes) this.props.saveGeocodes(this.props.geocodes);
-    // this.props.jobHistoryAnalysis && this.props.saveJobHistoryAnalysis(this.props.jobHistoryAnalysis);
   }
 
   handleTabChange = (event, value) => {
@@ -657,12 +654,6 @@ class JobMap extends React.Component {
       modal: "jobleads"
     });
   }
-  //
-  // openUrgent = () => {
-  //   this.setState({
-  //     modal: "urgentjobs"
-  //   });
-  // };
 
   openJobModal = m => {
     this.setState({
@@ -681,14 +672,19 @@ class JobMap extends React.Component {
     var clientStats = {};
 
     console.log("COLLATING LEADS AND JOBS");
+    console.log(this.props.wfmJobs);
+    console.log(this.props.wfmLeads);
+    console.log(this.props.currentJobState);
     var mappedJobs = [];
 
     var completedJobs = Object.values(this.props.currentJobState).filter((job) => job.state == 'Completed');
+    var currentState = {...this.props.currentJobState};
 
     // Convert jobs into a 'lead' type object
     this.props.wfmJobs.forEach(job => {
       var today = moment().format('YYYY-MM-DD');
-      var mappedJob = this.props.currentJobState[job.wfmID];
+      var mappedJob = currentState[job.wfmID];
+      delete currentState[job.wfmID];
       if (mappedJob != undefined) {
         // Add all mapped jobs and lead to an array and then set state
         // Then go ahead with sorting the new jobs and leads
@@ -713,7 +709,7 @@ class JobMap extends React.Component {
 
         // Check if address has changed
         if (mappedJob.name !== job.address) {
-          console.log(job.address + ' is new, get new geocode');
+          console.log(mappedJob.name + '->' + job.address + ' is new, get new geocode');
           mappedJob.name = job.address;
           this.handleGeocode(
             job.address,
@@ -754,7 +750,8 @@ class JobMap extends React.Component {
     });
 
     this.props.wfmLeads.forEach(wfmLead => {
-      var lead = this.props.currentJobState[wfmLead['wfmID']];
+      var lead = currentState[wfmLead.wfmID];
+      delete currentState[wfmLead.wfmID];
       if (lead != undefined) {
         // Update state history of job
         // if(mappedJob.nextActionDate == undefined) {
@@ -786,7 +783,7 @@ class JobMap extends React.Component {
 
         // Check if address has changed
         if (lead.name !== wfmLead.name) {
-          console.log(wfmLead.address + ' is new, get new geocode');
+          console.log(wfmLead.name + ' is new, get new geocode');
           lead.name = wfmLead.name;
           this.handleGeocode(
             wfmLead.name,
@@ -820,7 +817,6 @@ class JobMap extends React.Component {
             this.getCompletionDateFromHistory(activity, wfmLead.history)
           );
         }
-
         var completedActivities = this.getCompletedActivities(lead.activities);
 
         lead.lastActionDate = this.getLastActionDateFromActivities(
@@ -851,11 +847,24 @@ class JobMap extends React.Component {
         );
       }
     });
+
+    var recentlyCompleted = Object.values(currentState).filter((job) => job.state !== 'Completed');
+    var today = moment().format('YYYY-MM-DD');
+    recentlyCompleted.forEach((job) => {
+      console.log('Recently completed');
+      console.log(job);
+      job.lastActionDate = today;
+      job.state = 'Completed';
+      job.stateHistory[today] = 'Completed';
+      job.recentlyCompleted = true;
+    });
+
     this.setState({
       leads: [
         ...this.state.leads,
         ...mappedJobs,
         ...completedJobs,
+        ...recentlyCompleted,
       ],
     });
   };
@@ -1077,8 +1086,6 @@ class JobMap extends React.Component {
   };
 
   render() {
-    // const K_WIDTH = 40;
-    // const K_HEIGHT = 40;
     const { wfmJobs, wfmLeads, wfmClients, geocodes, classes, currentJobState } = this.props;
     if (
       wfmJobs.length > 0 &&
@@ -1270,6 +1277,33 @@ class JobMap extends React.Component {
                 })
                 // .sort((a, b) => b.isJob - a.isJob)
                 .map(m => {
+                  var stateStr = '';
+                  if (m.isJob) {
+                    var days = this.getDaysSinceDate(m.lastActionDate);
+                    if (days < 1) {
+                      stateStr = 'Changed state to ' + m.state + ' today';
+                    } else if (days == 1) {
+                      stateStr = 'Changed state to ' + m.state + ' yesterday';
+                    } else if (days < 7) {
+                      stateStr = 'Changed state to ' + m.state + ' ' + days + ' days ago';
+                    } else {
+                      stateStr = 'Has not changed state in ' + days + ' days';
+                    }
+                  } else {
+                    var days = this.getNextActionOverdueBy(m.activities);
+                    if (days > 1) {
+                      stateStr = 'Actions overdue by ' + days + ' days';
+                    } else if (days == 1) {
+                      stateStr = 'Actions overdue by 1 day';
+                    } else if (days == 0) {
+                      stateStr = 'Actions due today';
+                    } else if (days == -1) {
+                      stateStr = 'Actions due tomorrow';
+                    } else {
+                      stateStr = 'Actions due in ' + (days*-1) + ' days';
+                    }
+                  }
+
                   return (
                     <ListItem
                       key={m.wfmID}
@@ -1290,12 +1324,7 @@ class JobMap extends React.Component {
                         <Grid item xs={1}>
                         </Grid>
                         <Grid item xs={3}>
-                        {m.isJob && (
-                          <span>Has not changed state in <b>{this.getDaysSinceDate(m.lastActionDate)}</b> {this.getDaysSinceDate(m.lastActionDate) == 1 ? <span>day</span> : <span>days</span> }<br /></span>
-                        )}
-                        {!m.isJob && (
-                          <span>Actions {this.getNextActionOverdueBy(m.activities) > 0 ? <span>overdue by </span> : <span>due in </span> }<b>{Math.abs(this.getNextActionOverdueBy(m.activities))}</b> {Math.abs(this.getNextActionOverdueBy(m.activities)) == 1 ? <span>day</span> : <span>days</span> }<br /></span>
-                        )}
+                          <span>{stateStr}</span>
                         </Grid>
                       </Grid>
                     </ListItem>
@@ -1354,16 +1383,6 @@ class JobMap extends React.Component {
           <div>*/}
             {this.state.jobModal && jobModal}
             {this.state.modal && jobListModal}
-            {this.props.me && this.props.me.name === "Ben Dodd" && (
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  this.props.analyseJobHistory();
-                }}
-              >
-                Analyse Job History
-              </Button>
-            )}
 
             <ExpansionPanel>
               <ExpansionPanelSummary expandIcon={<ExpandMore />}>
@@ -1590,6 +1609,7 @@ class JobMap extends React.Component {
             <Map
               google={this.props.google}
               zoom={6.27}
+              mapType='terrain'
               style={mapStyles}
               initialCenter={{
                 lat: -40.9261681,

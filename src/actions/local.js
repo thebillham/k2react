@@ -1208,6 +1208,7 @@ export const analyseJobHistory = () => dispatch => {
                   // Job or lead has been completed
                   jobMap[bucket][job.wfmID]['state'] = 'Completed';
                   jobMap[bucket][job.wfmID]['completionDate'] = doc.id;
+                  jobMap[bucket][job.wfmID]['lastActionDate'] = doc.id;
                   jobMap[bucket][job.wfmID]['stateHistory'] = {
                     ...jobMap[bucket][job.wfmID]['stateHistory'],
                     [doc.id]: 'Completed',
