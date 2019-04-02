@@ -84,6 +84,13 @@ class Noticeboard extends React.Component {
   render() {
     return (
       <div style={{ marginTop: 80 }}>
+        <Button
+          variant="outlined"
+          style={{ marginBottom: 16 }}
+          onClick={() => {}}
+          >
+          Add New Notice
+        </Button>
         <Grid container spacing={8}>
           {this.props.categories.map(cat => {
             return (

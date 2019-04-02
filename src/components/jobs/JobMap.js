@@ -672,9 +672,6 @@ class JobMap extends React.Component {
     var clientStats = {};
 
     console.log("COLLATING LEADS AND JOBS");
-    console.log(this.props.wfmJobs);
-    console.log(this.props.wfmLeads);
-    console.log(this.props.currentJobState);
     var mappedJobs = [];
 
     var completedJobs = Object.values(this.props.currentJobState).filter((job) => job.state == 'Completed');
@@ -855,8 +852,11 @@ class JobMap extends React.Component {
       console.log(job);
       job.lastActionDate = today;
       job.state = 'Completed';
-      job.stateHistory[today] = 'Completed';
-      job.recentlyCompleted = true;
+      if (job.stateHistory != undefined) {
+        job.stateHistory[today] = 'Completed';
+      } else {
+        job.stateHistory = {[today]: 'Completed'};
+      }
     });
 
     this.setState({
