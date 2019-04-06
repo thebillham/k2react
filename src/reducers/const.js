@@ -411,12 +411,20 @@ const constInit = {
       desc: "Job Leads"
     },
     {
-      key: "jqfmeth",
-      desc: "Meth Quality Feedback"
+      key: "has",
+      desc: "Health and Safety"
+    },
+    {
+      key: "jqfocc",
+      desc: "Occ Health JQF"
     },
     {
       key: "jqfasb",
-      desc: "Asbestos Quality Feedback"
+      desc: "Asbestos JQF"
+    },
+    {
+      key: "jqfmeth",
+      desc: "Meth JQF"
     },
     {
       key: "eq",

@@ -48,7 +48,7 @@ const localInit = {
   analyst: "",
   auth: [],
   bulkanalysts: [],
-  category: "gen",
+  category: "",
   cocs: {},
   currentJobState: {},
   documents: [],

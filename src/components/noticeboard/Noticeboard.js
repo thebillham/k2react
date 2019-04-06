@@ -5,15 +5,18 @@ import Grid from "@material-ui/core/Grid";
 
 import { connect } from "react-redux";
 import NoticeCard from "./NoticeCard";
+import NoticeModal from "../modals/NoticeModal";
+import { NOTICES } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
-import { auth, usersRef } from "../../config/firebase";
+import { auth, usersRef, noticesRef } from "../../config/firebase";
 import store from "../../store";
 import {
   onFavNotice,
   onReadNotice,
   onDeleteNotice,
-  fetchNotices
+  fetchNotices,
 } from "../../actions/local";
+import { showModal } from "../../actions/modal";
 
 const mapStateToProps = state => {
   return {
@@ -28,9 +31,10 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchNotices: () => dispatch(fetchNotices()),
     onSearchChange: search => dispatch(onSearchChange(search)),
     onCatChange: cat => dispatch(onCatChange(cat)),
+    showModal: modal => dispatch(showModal(modal)),
+    fetchNotices: (update) => dispatch(fetchNotices(update)),
   };
 };
 
@@ -55,40 +59,102 @@ class Noticeboard extends React.Component {
     });
   };
 
-  onChangeNotice = (action, uid) => {
-    let notices = [];
-    if (this.props.me[action] !== undefined) notices = [...this.props.me[action]];
-    console.log(notices);
+  onReadNotice = notice => {
     let newArray = [];
-    if (notices === undefined) {
-      newArray = [uid];
-    } else if (notices.includes(uid)) {
-      newArray = notices.filter(item => item !== uid);
+    if (notice.staff === undefined) {
+      newArray = [auth.currentUser.uid];
     } else {
-    notices.push(uid);
-      newArray = notices;
+      let staff = [...notice.staff];
+      if (staff.includes(auth.currentUser.uid)) {
+        newArray = staff.filter(item => item !== auth.currentUser.uid);
+      } else {
+        staff.push(auth.currentUser.uid);
+        newArray = staff;
+      }
     }
+    noticesRef.doc(notice.uid).set(
+      {
+        staff: newArray,
+      },
+      { merge: true }
+    );
+    this.props.fetchNotices(true);
+  }
 
+  onFavNotice = uid => {
+    let newArray = [];
+    if (this.props.me.favnotices === undefined) {
+      newArray = [uid];
+    } else {
+      let notices = [...this.props.me.favnotices];
+      if (notices.includes(uid)) {
+        newArray = notices.filter(item => item !== uid);
+      } else {
+        notices.push(uid);
+        newArray = notices;
+      }
+    }
     usersRef.doc(auth.currentUser.uid).set(
         {
-          [action]: newArray
+          favnotices: newArray
         },
         { merge: true }
       );
-  };
+  }
+
+  onDeleteNotice = (notice) => {
+    if (window.confirm("Are you sure you wish to delete this notice?")) {
+      noticesRef.doc(notice.uid).delete();
+      this.props.fetchNotices(true);
+    }
+  }
+
+  onEditNotice = note => {
+    this.props.showModal({
+      modalType: NOTICES,
+      modalProps: {
+        title: "Edit Notice",
+        doc: note,
+      }
+    });
+  }
 
   render() {
     return (
       <div style={{ marginTop: 80 }}>
+        <NoticeModal />
         <Button
           variant="outlined"
           style={{ marginBottom: 16 }}
-          onClick={() => {}}
+          onClick={() => {
+            this.props.showModal({
+              modalType: NOTICES,
+              modalProps: {
+                title: "Add New Notice",
+                doc: {
+                  message: '',
+                  category: 'gen',
+                  author: this.props.me.name,
+                  auth: '',
+                  date: new Date(),
+                }
+              }
+            });
+          }}
           >
           Add New Notice
         </Button>
         <Grid container spacing={8}>
-          {this.props.categories.map(cat => {
+          {[
+            {
+              key: "fav",
+              desc: "Favourite",
+            },
+            {
+              key: "imp",
+              desc: "Important",
+            },
+            ...this.props.categories].map(cat => {
             return (
               <Grid item key={cat.key}>
                 <Button
@@ -109,7 +175,8 @@ class Noticeboard extends React.Component {
             .filter(notice => {
               if (
                 notice.auth !== undefined &&
-                this.props.me.auth.includes(notice.auth) === false
+                this.props.me.auth &&
+                this.props.me.auth[notice.auth] === false
               ) {
                 return false;
               }
@@ -147,10 +214,14 @@ class Noticeboard extends React.Component {
                 <Grid item xs={12} sm={6} md={4} lg={3} xl={2} key={notice.uid}>
                   <NoticeCard
                     notice={notice}
-                    fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)} read={this.props.me.readnotices && this.props.me.readnotices.includes(notice.uid)}
-                    onFavNotice={() => this.onChangeNotice('favnotices', notice.uid)}
-                    onDeleteNotice={() => this.onChangeNotice('deletednotices', notice.uid)}
-                    onReadNotice={() => this.onChangeNotice('readnotices', notice.uid)}
+                    staff={this.props.staff}
+                    fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)}
+                    read={notice.staff && notice.staff.includes(auth.currentUser.uid)}
+                    edit={notice.author === this.props.me.name || this.props.me.auth['Admin']}
+                    onFavNotice={() => this.onFavNotice(notice.uid)}
+                    onReadNotice={() => this.onReadNotice(notice)}
+                    onEditNotice={() => this.onEditNotice(notice)}
+                    onDeleteNotice={() => this.onDeleteNotice(notice)}
                   />
                 </Grid>
               );

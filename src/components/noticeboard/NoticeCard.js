@@ -12,6 +12,7 @@ import Typography from "@material-ui/core/Typography";
 import PinIcon from "@material-ui/icons/Star";
 import ReadIcon from "@material-ui/icons/CheckBox";
 import DiscardIcon from "@material-ui/icons/Delete";
+import EditIcon from '@material-ui/icons/Edit';
 import { FormattedDate } from "react-intl";
 
 const styles = {
@@ -36,6 +37,9 @@ const styles = {
   details: {
     fontSize: 14
   },
+  whosRead: {
+    fontSize: 10
+  },
   formIcon: {
     color: "black",
     fontSize: 14
@@ -44,6 +48,27 @@ const styles = {
 
 function NoticeCard(props) {
   const { classes, notice } = props;
+  let readlist = "no one";
+  var count = 0;
+
+  if (notice.staff !== undefined && notice.staff.length > 0) {
+    readlist = "";
+    notice.staff.forEach(staff => {
+      count = count + 1;
+      console.log(notice.staff.length);
+      console.log(props.staff && props.staff[staff]);
+      console.log(readlist);
+      if (notice.staff.length === 1) {
+        readlist = props.staff && props.staff[staff] && props.staff[staff]['name'];
+      } else if (count === notice.staff.length) {
+        readlist = props.staff && props.staff[staff] && readlist + "and " + props.staff[staff]['name'];
+      } else if (count === notice.staff.length - 1) {
+        readlist = props.staff && props.staff[staff] && readlist + props.staff[staff]['name'] + " ";
+      } else {
+        readlist = props.staff && props.staff[staff] && readlist + props.staff[staff]['name'] + ", ";
+      }
+    });
+  }
 
   return (
     <Card className={classes.card} style={{ borderRadius: 20 }}>
@@ -51,7 +76,7 @@ function NoticeCard(props) {
         title={
           <Typography className={classes.title} color="textSecondary">
             <FormattedDate
-              value={notice.date.toDate()}
+              value={notice.date}
               month="long"
               day="numeric"
               weekday="short"
@@ -68,27 +93,40 @@ function NoticeCard(props) {
         <hr />
         <Typography className={classes.details} color="textSecondary">
           {notice.text}
+        </Typography><br />
+        <Typography className={classes.whosRead} color="textPrimary">
+          Read by {readlist}
         </Typography>
       </CardContent>
       <CardActions>
         <IconButton
           aira-label="Pin notice"
-          onClick={() => props.onFavNotice(notice.uid)}
+          onClick={props.onFavNotice}
         >
           <PinIcon color={props.fav ? "secondary" : "action"} />
         </IconButton>
         <IconButton
           aira-label="Mark as read"
-          onClick={() => props.onReadNotice(notice.uid)}
+          onClick={props.onReadNotice}
         >
           <ReadIcon color={props.read ? "secondary" : "action"} />
         </IconButton>
-        <IconButton
-          aira-label="Discard notice"
-          onClick={() => props.onDeleteNotice(notice.uid)}
-        >
-          <DiscardIcon color="action" />
-        </IconButton>
+        { props.edit &&
+          <span>
+          <IconButton
+            aira-label="Edit notice"
+            onClick={props.onEditNotice}
+          >
+            <EditIcon color="action" />
+          </IconButton>
+          <IconButton
+            aira-label="Discard notice"
+            onClick={props.onDeleteNotice}
+          >
+            <DiscardIcon color="action" />
+          </IconButton>
+          </span>
+        }
       </CardActions>
     </Card>
   );
