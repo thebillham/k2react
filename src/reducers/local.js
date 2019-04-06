@@ -25,9 +25,6 @@ import {
   GET_READINGLOG,
   GET_METHODLOG,
   GET_ME,
-  DELETE_NOTICE,
-  READ_NOTICE,
-  FAV_NOTICE,
   SET_STEPPER,
   GET_ASBESTOS_SAMPLES,
   GET_CURRENT_JOB_STATE,
@@ -277,22 +274,6 @@ export default function localReducer(state = localInit, action) {
         ...state,
         category: action.payload
       };
-    case DELETE_NOTICE:
-      return {
-        ...state,
-        me: {
-          ...state.me,
-          deletednotices: action.payload
-        }
-      };
-    case FAV_NOTICE:
-      return {
-        ...state,
-        me: {
-          ...state.me,
-          favnotices: action.payload
-        }
-      };
     case RESET_LOCAL:
       return localInit;
       return {
@@ -316,14 +297,6 @@ export default function localReducer(state = localInit, action) {
             ...state.staff[action.userPath],
             ...action.payload
           }
-        }
-      };
-    case READ_NOTICE:
-      return {
-        ...state,
-        me: {
-          ...state.me,
-          readnotices: action.payload
         }
       };
     case SET_STEPPER:

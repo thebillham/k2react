@@ -111,15 +111,17 @@ export const fetchStaff = update => async dispatch => {
       let airanalysts = [];
       let bulkanalysts = [];
       querySnapshot.forEach(doc => {
-        console.log("Read a doc! " + doc.data().name);
+        if (doc.data.key !== undefined) {
+          console.log("Read a doc! " + doc.data().name);
 
-        let user = doc.data();
-        user.uid = doc.id;
-        users[doc.id] = user;
-        if (user.auth && user.auth["Asbestos Air Analysis"])
-          airanalysts.push({ uid: user.uid, name: user.name });
-        if (user.auth && user.auth["Asbestos Bulk Analysis"])
-          bulkanalysts.push({ uid: user.uid, name: user.name });
+          let user = doc.data();
+          user.uid = doc.id;
+          users[doc.id] = user;
+          if (user.auth && user.auth["Asbestos Air Analysis"])
+            airanalysts.push({ uid: user.uid, name: user.name });
+          if (user.auth && user.auth["Asbestos Bulk Analysis"])
+            bulkanalysts.push({ uid: user.uid, name: user.name });
+        }
       });
       dispatch({ type: GET_STAFF, payload: users, update: true });
       dispatch({ type: GET_AIRANALYSTS, payload: airanalysts, update: true });
@@ -685,15 +687,6 @@ export const fetchUpdates = () => async dispatch => {
   });
 };
 
-export const editUser = ({ userRef, target }) => dispatch => {
-  usersRef.doc(userRef).set(
-    {
-      [target.id]: target.value
-    },
-    { merge: true }
-  );
-};
-
 export const getUser = userRef => async dispatch => {
   usersRef.doc(userRef).onSnapshot(doc => {
     dispatch({
@@ -1023,48 +1016,6 @@ export const onCatChange = value => dispatch => {
   dispatch({
     type: CAT_CHANGE,
     payload: value
-  });
-};
-
-export const onFavNotice = (favnotices, uid) => dispatch => {
-  let newArray = [];
-  if (favnotices.includes(uid)) {
-    newArray = favnotices.filter(item => item !== uid);
-  } else {
-    favnotices.push(uid);
-    newArray = favnotices;
-  }
-  dispatch({
-    type: FAV_NOTICE,
-    payload: newArray
-  });
-};
-
-export const onDeleteNotice = (deletednotices, uid) => dispatch => {
-  let newArray = [];
-  if (deletednotices.includes(uid)) {
-    newArray = deletednotices.filter(item => item !== uid);
-  } else {
-    deletednotices.push(uid);
-    newArray = deletednotices;
-  }
-  dispatch({
-    type: DELETE_NOTICE,
-    payload: newArray
-  });
-};
-
-export const onReadNotice = (readnotices, uid) => dispatch => {
-  let newArray = [];
-  if (readnotices.includes(uid)) {
-    newArray = readnotices.filter(item => item !== uid);
-  } else {
-    readnotices.push(uid);
-    newArray = readnotices;
-  }
-  dispatch({
-    type: READ_NOTICE,
-    payload: newArray
   });
 };
 

@@ -75,13 +75,13 @@ function NoticeCard(props) {
           aira-label="Pin notice"
           onClick={() => props.onFavNotice(notice.uid)}
         >
-          <PinIcon color={props.fav ? "secondary" : "primary"} />
+          <PinIcon color={props.fav ? "secondary" : "action"} />
         </IconButton>
         <IconButton
           aira-label="Mark as read"
           onClick={() => props.onReadNotice(notice.uid)}
         >
-          <ReadIcon color={props.read ? "primary" : "secondary"} />
+          <ReadIcon color={props.read ? "secondary" : "action"} />
         </IconButton>
         <IconButton
           aira-label="Discard notice"

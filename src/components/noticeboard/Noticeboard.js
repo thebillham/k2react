@@ -6,6 +6,7 @@ import Grid from "@material-ui/core/Grid";
 import { connect } from "react-redux";
 import NoticeCard from "./NoticeCard";
 import { onCatChange, onSearchChange } from "../../actions/local";
+import { auth, usersRef } from "../../config/firebase";
 import store from "../../store";
 import {
   onFavNotice,
@@ -27,31 +28,22 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchNotices: () => dispatch(fetchNotices())
+    fetchNotices: () => dispatch(fetchNotices()),
+    onSearchChange: search => dispatch(onSearchChange(search)),
+    onCatChange: cat => dispatch(onCatChange(cat)),
   };
 };
 
 class Noticeboard extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.select = this.select.bind(this);
-    this.onFavNotice = this.onFavNotice.bind(this);
-    this.onReadNotice = this.onReadNotice.bind(this);
-    this.onDeleteNotice = this.onDeleteNotice.bind(this);
-  }
-
   componentWillMount() {
     this.props.fetchNotices();
-    store.dispatch(onSearchChange(null));
-    store.dispatch(onCatChange(null));
   }
 
   switch = category => {
     this.props.category === category
-      ? store.dispatch(onCatChange(null))
-      : store.dispatch(onCatChange(category));
-    store.dispatch(onSearchChange(null));
+      ? this.props.onCatChange(null)
+      : this.props.onCatChange(category);
+    this.props.onSearchChange(null);
     this.setState({
       modPath: null
     });
@@ -63,22 +55,26 @@ class Noticeboard extends React.Component {
     });
   };
 
-  onFavNotice = uid => {
-    var favnotices = [];
-    favnotices.push(this.props.me.favnotices);
-    store.dispatch(onFavNotice(favnotices, uid));
-  };
+  onChangeNotice = (action, uid) => {
+    let notices = [];
+    if (this.props.me[action] !== undefined) notices = [...this.props.me[action]];
+    console.log(notices);
+    let newArray = [];
+    if (notices === undefined) {
+      newArray = [uid];
+    } else if (notices.includes(uid)) {
+      newArray = notices.filter(item => item !== uid);
+    } else {
+    notices.push(uid);
+      newArray = notices;
+    }
 
-  onReadNotice = uid => {
-    var readnotices = [];
-    readnotices.push(this.props.me.readnotices);
-    store.dispatch(onReadNotice(readnotices, uid));
-  };
-
-  onDeleteNotice = uid => {
-    var deletednotices = [];
-    deletednotices.push(this.props.me.deletednotices);
-    store.dispatch(onDeleteNotice(deletednotices, uid));
+    usersRef.doc(auth.currentUser.uid).set(
+        {
+          [action]: newArray
+        },
+        { merge: true }
+      );
   };
 
   render() {
@@ -148,13 +144,13 @@ class Noticeboard extends React.Component {
             })
             .map(notice => {
               return (
-                <Grid item xs={12} s={6} m={4} l={3} xl={2} key={notice.uid}>
+                <Grid item xs={12} sm={6} md={4} lg={3} xl={2} key={notice.uid}>
                   <NoticeCard
                     notice={notice}
-                    // fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)} read={this.props.me.readnotices && this.props.me.readnotices.includes(notice.uid)}
-                    onFavNotice={() => this.onFavNotice(notice.uid)}
-                    onDeleteNotice={() => this.onDeleteNotice(notice.uid)}
-                    onReadNotice={() => this.onReadNotice(notice.uid)}
+                    fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)} read={this.props.me.readnotices && this.props.me.readnotices.includes(notice.uid)}
+                    onFavNotice={() => this.onChangeNotice('favnotices', notice.uid)}
+                    onDeleteNotice={() => this.onChangeNotice('deletednotices', notice.uid)}
+                    onReadNotice={() => this.onChangeNotice('readnotices', notice.uid)}
                   />
                 </Grid>
               );

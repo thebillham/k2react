@@ -4,9 +4,7 @@
 export const ADD_DOCUMENT = "ADD_DOCUMENT";
 export const AUTH_USER = "AUTH_USER";
 export const CAT_CHANGE = "CAT_CHANGE";
-export const DELETE_NOTICE = "DELETE_NOTICE";
 export const EDIT_USER = "EDIT_USER";
-export const FAV_NOTICE = "FAV_NOTICE";
 export const GET_AIRANALYSTS = "GET_AIRANALYSTS";
 export const GET_ASBESTOS_SAMPLES = "GET_ASBESTOS_SAMPLES";
 export const GET_BULKANALYSTS = "GET_BULKANALYSTS";
@@ -35,7 +33,6 @@ export const GET_WFM_JOBS = "GET_WFM_JOBS";
 export const GET_WFM_JOB = "GET_WFM_JOB";
 export const GET_WFM_LEADS = "GET_WFM_LEADS";
 export const GET_WFM_CLIENTS = "GET_WFM_CLIENTS";
-export const READ_NOTICE = "READ_NOTICE";
 export const RESET_LOCAL = "RESET_LOCAL";
 export const SEARCH_CHANGE = "SEARCH_CHANGE";
 export const SET_ANALYSIS_MODE = "SET_ANALYSIS_MODE";
