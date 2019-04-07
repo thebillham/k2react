@@ -213,10 +213,10 @@ class MainScreen extends React.Component {
   };
 
   handleRefClick = () => {
-    this.setState({
-      openDrawer: true,
-      openRef: !this.state.openRef
-    });
+    // this.setState({
+    //   // openDrawer: true,
+    //   openRef: !this.state.openRef
+    // });
   };
 
   handleDevClick = () => {
@@ -227,24 +227,24 @@ class MainScreen extends React.Component {
   };
 
   handleStaffClick = () => {
-    this.setState({
-      openDrawer: true,
-      openStaff: !this.state.openStaff
-    });
+    // this.setState({
+    //   // openDrawer: true,
+    //   openStaff: !this.state.openStaff
+    // });
   };
 
   handleMyDetailsClick = () => {
-    this.setState({
-      openDrawer: true,
-      openMyDetails: !this.state.openMyDetails
-    });
+    // this.setState({
+    //   // openDrawer: true,
+    //   openMyDetails: !this.state.openMyDetails
+    // });
   };
 
   handleTrainingClick = () => {
-    this.setState({
-      openDrawer: true,
-      openTraining: !this.state.openTraining
-    });
+    // this.setState({
+    //   openDrawer: true,
+    //   openTraining: !this.state.openTraining
+    // });
   };
 
   render() {

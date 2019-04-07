@@ -30,7 +30,7 @@ import UserAttrModal from "../modals/UserAttrModal";
 import AttrList from "./AttrList";
 import { USERATTR, EDITSTAFF } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
-import { getUserAttrs, getEditStaff } from "../../actions/local";
+import { getUserAttrs, getEditStaff, fetchStaff, } from "../../actions/local";
 import _ from "lodash";
 
 const mapStateToProps = state => {
@@ -39,7 +39,7 @@ const mapStateToProps = state => {
     me: state.local.me,
     offices: state.const.offices,
     jobdescriptions: state.const.jobdescriptions,
-    permissions: state.const.permissions
+    permissions: state.const.permissions,
   };
 };
 
@@ -47,6 +47,7 @@ const mapDispatchToProps = dispatch => {
   return {
     showModal: modal => dispatch(showModal(modal)),
     getEditStaff: user => dispatch(getEditStaff(user)),
+    fetchStaff: update => dispatch(fetchStaff(update)),
     getUserAttrs: userPath => dispatch(getUserAttrs(userPath))
   };
 };
@@ -57,9 +58,10 @@ class UserDetails extends React.Component {
     var userPath = auth.currentUser.uid;
     if (props.match.params.user) userPath = props.match.params.user;
     this.state = {
-      tabValue: 0,
+      tabValue: this.props.me.tabUserDetails ? this.props.me.tabUserDetails : 0,
       userPath: userPath,
-      isLoading: true
+      isLoading: true,
+      edited: false,
     };
     this.onEditUser = _.debounce(this.onEditUser, 300);
   }
@@ -68,13 +70,18 @@ class UserDetails extends React.Component {
     this.setState({ tabValue: value });
   };
 
-  componentWillMount = () => {
+  componentWillMount() {
     if (this.props.match.params.user && this.props.me.auth && this.props.me.auth["Admin"]) {
       this.props.getEditStaff(this.props.match.params.user);
     } else if (!this.props.match.params.user && !this.props.me.attrs) {
       this.props.getUserAttrs(auth.currentUser.uid);
     }
   };
+
+  componentWillUnmount() {
+    if (this.state.edited) this.props.fetchStaff(true);
+    usersRef.doc(auth.currentUser.uid).update({ tabUserDetails: this.state.tabValue });
+  }
 
   onEditUser = (target, select) => {
     let change = {};
@@ -88,6 +95,7 @@ class UserDetails extends React.Component {
       });
     }
     usersRef.doc(this.state.userPath).update(change);
+    if (!this.state.edited) this.setState({ edited: true });
   };
 
   onEditAuth = (target, auth) => {
@@ -102,6 +110,7 @@ class UserDetails extends React.Component {
         }
       });
       usersRef.doc(this.state.userPath).update({ auth: change });
+      if (!this.state.edited) this.setState({ edited: true });
     }
   };
 
@@ -361,6 +370,7 @@ class UserDetails extends React.Component {
                     <Button
                       variant="outlined"
                       onClick={() => {
+                        if (!this.state.edited) this.setState({ edited: true });
                         this.props.showModal({
                           modalType: USERATTR,
                           modalProps: {

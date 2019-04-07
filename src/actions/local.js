@@ -108,11 +108,13 @@ export const fetchStaff = update => async dispatch => {
     console.log("Running fetch staff to update");
     var users = {};
     usersRef.get().then(querySnapshot => {
+      console.log(querySnapshot);
       let airanalysts = [];
       let bulkanalysts = [];
       querySnapshot.forEach(doc => {
-        if (doc.data.key !== undefined) {
-          console.log("Read a doc! " + doc.data().name);
+        // console.log(doc.data());
+        if (doc.data().key !== undefined) {
+          // console.log("Read a doc! " + doc.data().name);
 
           let user = doc.data();
           user.uid = doc.id;
@@ -123,6 +125,7 @@ export const fetchStaff = update => async dispatch => {
             bulkanalysts.push({ uid: user.uid, name: user.name });
         }
       });
+      // console.log(users);
       dispatch({ type: GET_STAFF, payload: users, update: true });
       dispatch({ type: GET_AIRANALYSTS, payload: airanalysts, update: true });
       dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts, update: true });

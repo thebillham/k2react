@@ -76,6 +76,10 @@ class NoticeModal extends React.Component {
 
   render() {
     const { modalProps, doc, classes, categories, questions } = this.props;
+    let categorymap = {};
+    categories.forEach(cat => {
+      categorymap[cat.key] = cat.desc;
+    });
     // let max = 0;
     // if (doc.optional) max = max + doc.optional.length;
     // if (doc.required) max = max + doc.required.length;
@@ -98,6 +102,10 @@ class NoticeModal extends React.Component {
                       id: "category",
                       value: e.target.value
                     });
+                    this.props.handleSelectChange({
+                      id: "categorydesc",
+                      value: categorymap[e.target.value]
+                    });
                   }}
                   value={doc.category}
                   input={<Input name="category" id="category" />}
@@ -115,7 +123,7 @@ class NoticeModal extends React.Component {
               </FormControl>
               <TextField
                 id="date"
-                label="Date"
+                label={doc.category === 'has' ? "Incident Date" : "Date"}
                 defaultValue={doc && doc.date && moment(doc.date).format('YYYY-MM-DD')}
                 className={classes.dialogField}
                 type="date"
@@ -126,13 +134,55 @@ class NoticeModal extends React.Component {
                   this.props.handleModalChange(e.target);
                 }}
               />
+              {!'geneq'.includes(doc.category) && <TextField
+                id="job"
+                label="Job Number/Site Address"
+                defaultValue={doc && doc.job}
+                className={classes.dialogField}
+                onChange={e => {
+                  this.props.handleModalChange(e.target);
+                }}
+              />}
+              {doc.category === 'has' &&
+                <div>
+                  <TextField
+                    id="incidentno"
+                    label="Incident No."
+                    defaultValue={doc && doc.incidentno}
+                    className={classes.dialogField}
+                    onChange={e => {
+                      this.props.handleModalChange(e.target);
+                    }}
+                  />
+                  <TextField
+                    id="incidentstaff"
+                    label="Staff Involved"
+                    defaultValue={doc && doc.incidentstaff}
+                    className={classes.dialogField}
+                    onChange={e => {
+                      this.props.handleModalChange(e.target);
+                    }}
+                  />
+                  <TextField
+                    id="incidentdesc"
+                    label="Incident Description"
+                    defaultValue={doc && doc.incidentdesc}
+                    className={classes.dialogField}
+                    multiline
+                    rows={3}
+                    onChange={e => {
+                      this.props.handleModalChange(e.target);
+                    }}
+                  />
+                </div>
+              }
               <TextField
                 id="text"
-                label="Message"
+                label={'genleadseq'.includes(doc.category) ? "Message" : "Learnings" }
                 defaultValue={doc && doc.text}
                 className={classes.dialogField}
                 multiline
-                rows={10}
+                rows={3}
                 onChange={e => {
                   this.props.handleModalChange(e.target);
                 }}
@@ -158,7 +208,7 @@ class NoticeModal extends React.Component {
               onClick={() => {
                 if (doc.category && doc.text) {
                   doc.type = doc.category +
-                  "-" +
+                  "-" + doc.date + "-"
                   doc.author.replace(/\s+/g, "_");
                   this.props.handleModalSubmit({
                     doc: doc,

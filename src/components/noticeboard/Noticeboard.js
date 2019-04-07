@@ -144,6 +144,7 @@ class Noticeboard extends React.Component {
                 doc: {
                   message: '',
                   category: 'gen',
+                  categorydesc: 'General',
                   author: this.props.me.name,
                   auth: '',
                   date: moment().format('YYYY-MM-DD'),
@@ -171,11 +172,7 @@ class Noticeboard extends React.Component {
           {[
             {
               key: "fav",
-              desc: "Favourite",
-            },
-            {
-              key: "imp",
-              desc: "Important",
+              desc: "Favourites",
             },
             ...this.props.categories].map(cat => {
             return (
@@ -196,6 +193,13 @@ class Noticeboard extends React.Component {
         <Grid container spacing={16} style={{ paddingTop: 30 }}>
           {this.props.notices
             .filter(notice => {
+              if (
+                this.props.me.favnotices &&
+                this.props.category === "fav" &&
+                this.props.me.favnotices.includes(notice.uid)
+              ) {
+                return true;
+              }
               if (!this.state.hideRead && notice.staff && notice.staff.includes(auth.currentUser.uid)) return false;
               if (
                 notice.auth !== undefined &&
@@ -209,13 +213,6 @@ class Noticeboard extends React.Component {
                 this.props.me.deletednotices.includes(notice.uid)
               ) {
                 return false;
-              }
-              if (
-                this.props.me.favnotices &&
-                this.props.category === "fav" &&
-                this.props.me.favnotices.includes(notice.uid)
-              ) {
-                return true;
               }
               if (this.props.category === "imp" && notice.important) return true;
               if (this.props.search) {

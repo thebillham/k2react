@@ -26,11 +26,12 @@ const styles = {
     transform: "scale(0.8)"
   },
   title: {
-    marginBottom: 16,
+    marginTop: 4,
     fontSize: 16,
     fontWeight: 600
   },
-  author: {
+  subtitle: {
+    marginBottom: 0,
     fontSize: 14,
     fontStyle: "italic"
   },
@@ -73,8 +74,14 @@ function NoticeCard(props) {
   return (
     <Card className={classes.card} style={{ borderRadius: 20 }}>
       <CardHeader
+        style={{height: '4vw'}}
         title={
           <Typography className={classes.title} color="textSecondary">
+          {notice.categorydesc}
+          </Typography>
+        }
+        subheader={
+          <Typography className={classes.subtitle} color="textSecondary">
             <FormattedDate
               value={notice.date}
               month="long"
@@ -83,17 +90,21 @@ function NoticeCard(props) {
             />
           </Typography>
         }
-        subheader={
-          <Typography className={classes.author} color="textSecondary">
-            {notice.author}
-          </Typography>
-        }
       />
       <CardContent>
-        <hr />
+        <hr/>
         <Typography className={classes.details} color="textSecondary">
-          {notice.text}
+          {notice.category === 'has' ? <div>
+          {notice.incidentno && <div><b>Incident No.: </b>{notice.incidentno}</div>}
+          {notice.incidentstaff && <div><b>Staff: </b>{notice.incidentstaff}</div>}
+          {notice.incidentdesc && <div><b>Incident Desc.: </b>{notice.incidentdesc}</div>}
+          {notice.text && <div><b>Learnings: </b>{notice.text}</div>}
+          </div> :
+          notice.text}
         </Typography><br />
+        <Typography className={classes.whosRead} color="textPrimary">
+          Submitted by {notice.author}
+        </Typography>
         <Typography className={classes.whosRead} color="textPrimary">
           Read by {readlist}
         </Typography>

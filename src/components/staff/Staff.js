@@ -36,6 +36,7 @@ import ApiCalendar from "react-google-calendar-api";
 import StaffCard from "./StaffCard.js";
 import { connect } from "react-redux";
 import { getUserAttrs, fetchStaff } from "../../actions/local";
+import { auth, usersRef } from "../../config/firebase";
 
 const mapStateToProps = state => {
   return {
@@ -61,18 +62,18 @@ class Staff extends React.Component {
     super(props);
 
     this.state = {
-      tabValue: 0,
+      tabValue: this.props.me.tabStaff ? this.props.me.tabStaff : 0,
       admin: false,
-      officeFilters: {},
-      officeFilterOn: false,
-      attrFilters: {},
-      attrFilterOn: false,
-      authFilters: {},
-      authFilterOn: false,
-      signedFilter: undefined,
-      signedFilterOn: false,
+      filterStaff: this.props.me.filterStaff ? this.props.me.filterStaff : {
+        officeFilters: {},
+        officeFilterOn: false,
+        attrFilters: {},
+        attrFilterOn: false,
+        authFilters: {},
+        authFilterOn: false,
+        docview: "none",
+      },
       events: {},
-      docview: "none"
     };
   }
 
@@ -80,14 +81,21 @@ class Staff extends React.Component {
     if (!this.state.staff) this.props.fetchStaff();
   }
 
+  componentWillUnmount() {
+    usersRef.doc(auth.currentUser.uid).update({
+      tabStaff: this.state.tabValue,
+      filterStaff: this.state.filterStaff,
+    });
+  }
+
   filterOffice = chip => {
     let state = true;
-    if (this.state.officeFilters[chip]) state = false;
+    if (this.state.filterStaff.officeFilters[chip]) state = false;
 
     let filterOn = false;
 
     let newFilters = {
-      ...this.state.officeFilters,
+      ...this.state.filterStaff.officeFilters,
       [chip]: state
     };
 
@@ -96,19 +104,22 @@ class Staff extends React.Component {
     });
 
     this.setState({
-      officeFilters: newFilters,
-      officeFilterOn: filterOn
+      filterStaff: {
+        ...this.state.filterStaff,
+        officeFilters: newFilters,
+        officeFilterOn: filterOn,
+      }
     });
   };
 
   filterAttr = chip => {
     let state = true;
-    if (this.state.attrFilters[chip]) state = false;
+    if (this.state.filterStaff.attrFilters[chip]) state = false;
 
     let filterOn = state;
 
     let newFilters = {
-      ...this.state.attrFilters,
+      ...this.state.filterStaff.attrFilters,
       [chip]: state
     };
 
@@ -117,19 +128,22 @@ class Staff extends React.Component {
     });
 
     this.setState({
-      attrFilters: newFilters,
-      attrFilterOn: filterOn
+      filterStaff: {
+        ...this.state.filterStaff,
+        attrFilters: newFilters,
+        attrFilterOn: filterOn,
+      }
     });
   };
 
   filterAuth = chip => {
     let state = true;
-    if (this.state.authFilters[chip]) state = false;
+    if (this.state.filterStaff.authFilters[chip]) state = false;
 
     let filterOn = state;
 
     let newFilters = {
-      ...this.state.authFilters,
+      ...this.state.filterStaff.authFilters,
       [chip]: state
     };
 
@@ -141,20 +155,6 @@ class Staff extends React.Component {
       authFilters: newFilters,
       authFilterOn: filterOn
     });
-  };
-
-  filterSigned = chip => {
-    if (this.state.signedFilter === chip) {
-      this.setState({
-        signedFilter: undefined,
-        signedFilterOn: false
-      });
-    } else {
-      this.setState({
-        signedFilter: chip,
-        signedFilterOn: true
-      });
-    }
   };
 
   handleTabChange = (event, value) => {
@@ -190,7 +190,11 @@ class Staff extends React.Component {
   };
 
   setDocView = type => {
-    this.setState({ docview: type });
+    this.setState({ filterStaff: {
+      ...this.state.filterStaff,
+      docview: type,
+      }
+    });
   };
 
   email = who => {
@@ -213,39 +217,34 @@ class Staff extends React.Component {
   filterUser = user => {
     let filter = false;
     if (
-      this.state.officeFilterOn === false ||
-      this.state.officeFilters[user.office]
+      this.state.filterStaff.officeFilterOn === false ||
+      this.state.filterStaff.officeFilters[user.office]
     )
       filter = true;
-    if (this.state.attrFilterOn) {
-      if (this.state.attrFilters["IP402"] && !user.ip402) filter = false;
-      if (this.state.attrFilters["Asbestos Assessor"] && !user.aanumber)
+    if (this.state.filterStaff.attrFilterOn) {
+      if (this.state.filterStaff.attrFilters["IP402"] && !user.ip402) filter = false;
+      if (this.state.filterStaff.attrFilters["Asbestos Assessor"] && !user.aanumber)
         filter = false;
-      if (this.state.attrFilters["Tertiary Degree"] && !user.tertiary)
+      if (this.state.filterStaff.attrFilters["Tertiary Degree"] && !user.tertiary)
         filter = false;
       if (
-        this.state.attrFilters["Science Degree"] &&
+        this.state.filterStaff.attrFilters["Science Degree"] &&
         !(user.tertiary && user.tertiary.includes("Sc"))
       )
         filter = false;
-      if (this.state.attrFilters["Mask Fit Tested"] && user.maskfit !== "OK")
+      if (this.state.filterStaff.attrFilters["Mask Fit Tested"] && user.maskfit !== "OK")
         filter = false;
-      if (this.state.attrFilters["First Aid"] && !user.firstaid) filter = false;
+      if (this.state.filterStaff.attrFilters["First Aid"] && !user.firstaid) filter = false;
     }
-    if (this.state.authFilterOn) {
+    if (this.state.filterStaff.authFilterOn) {
       this.props.permissions.forEach(permission => {
         if (!user.auth) filter = false;
         else if (
-          this.state.authFilters[permission.name] &&
+          this.state.filterStaff.authFilters[permission.name] &&
           !user.auth[permission.name]
         )
           filter = false;
       });
-    }
-    if (this.state.signedFilterOn) {
-      if (this.state.signedFilter === "MyK2 User" && !user.key) filter = false;
-      if (this.state.signedFilter === "Not Signed Up" && user.key)
-        filter = false;
     }
     if (this.props.search) {
       if (
@@ -260,10 +259,9 @@ class Staff extends React.Component {
 
   getDocs = () => {
     const staff = Object.values(this.props.staff)
-      .concat([this.props.me])
       .sort((a, b) => a.name.localeCompare(b.name));
     let docs = [];
-    if (this.state.docview !== "none") {
+    if (this.state.filterStaff.docview !== "none") {
       staff.forEach(e => {
         if (e.docimages && e.docimages.length > 0) {
           if (
@@ -273,7 +271,7 @@ class Staff extends React.Component {
               .includes(this.props.search.toLowerCase())
           ) {
             e.docimages.forEach(attr => {
-              if (attr.type === this.state.docview) {
+              if (attr.type === this.state.filterStaff.docview) {
                 docs.push({
                   url: attr.url,
                   name: e.name
@@ -317,7 +315,7 @@ class Staff extends React.Component {
                       icon={<LocationCity />}
                       variant="outlined"
                       color={
-                        this.state.officeFilters[chip] ? "secondary" : "default"
+                        this.state.filterStaff.officeFilters[chip] ? "secondary" : "default"
                       }
                       onClick={() => this.filterOffice(chip)}
                       label={chip}
@@ -341,7 +339,7 @@ class Staff extends React.Component {
                       icon={<School />}
                       variant="outlined"
                       color={
-                        this.state.attrFilters[chip] ? "secondary" : "default"
+                        this.state.filterStaff.attrFilters[chip] ? "secondary" : "default"
                       }
                       onClick={() => this.filterAttr(chip)}
                       label={chip}
@@ -358,30 +356,12 @@ class Staff extends React.Component {
                       icon={<Https />}
                       variant="outlined"
                       color={
-                        this.state.authFilters[chip.name]
+                        this.state.filterStaff.authFilters[chip.name]
                           ? "secondary"
                           : "default"
                       }
                       onClick={() => this.filterAuth(chip.name)}
                       label={chip.name}
-                    />
-                  </div>
-                );
-              })}
-            </Grid>
-            <Grid item xs={6} md={3}>
-              {["MyK2 User", "Not Signed Up"].map(chip => {
-                return (
-                  <div key={chip} style={{ padding: 5 }}>
-                    <Chip
-                      variant="outlined"
-                      color={
-                        this.state.signedFilter === chip
-                          ? "secondary"
-                          : "default"
-                      }
-                      onClick={() => this.filterSigned(chip)}
-                      label={chip}
                     />
                   </div>
                 );
@@ -594,16 +574,6 @@ class Staff extends React.Component {
           )}
           {tabValue === 2 && (
             <div style={{ position: "relative", width: "80vw" }}>
-              {this.props.me.name === "Ben Dodd" && (
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    this.updateAllStaff();
-                  }}
-                >
-                  Refresh
-                </Button>
-              )}
               {filter}
               <ListItem>
                 <Grid container style={{ fontWeight: 600 }}>
@@ -744,7 +714,7 @@ class Staff extends React.Component {
               <FormControl style={{ width: 500, marginBottom: 10 }}>
                 <InputLabel shrink>Document Type</InputLabel>
                 <Select
-                  value={this.state.docview}
+                  value={this.state.filterStaff.docview}
                   onChange={e => this.setDocView(e.target.value)}
                   input={<Input name="docview" id="docview" />}
                 >
@@ -766,24 +736,24 @@ class Staff extends React.Component {
                     "https://api.k2.co.nz/v1/doc/scripts/staff/qualification_documents.php?images=" +
                     docs.map(doc => encodeURIComponent(doc.url)).join(";") +
                     "&doctype=" +
-                    this.props.qualificationtypes[this.state.docview].name +
+                    this.props.qualificationtypes[this.state.filterStaff.docview].name +
                     "&format=A5";
                   window.open(url);
                 }}
               >
                 Printable Version
               </Button>
-              {this.state.docview !== "none" && (
+              {this.state.filterStaff.docview !== "none" && (
                 <GridList
                   cellHeight={
-                    this.state.docview
-                      ? this.props.qualificationtypes[this.state.docview]
+                    this.state.filterStaff.docview
+                      ? this.props.qualificationtypes[this.state.filterStaff.docview]
                           .cellHeight
                       : 420
                   }
                   cols={
-                    this.state.docview
-                      ? this.props.qualificationtypes[this.state.docview].cols
+                    this.state.filterStaff.docview
+                      ? this.props.qualificationtypes[this.state.filterStaff.docview].cols
                       : 6
                   }
                 >

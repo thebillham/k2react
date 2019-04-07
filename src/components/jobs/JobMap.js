@@ -36,6 +36,7 @@ import JobCard from "./JobCard";
 import { FormattedDate } from "react-intl";
 // import GoogleMapReact from 'google-map-react';
 import moment from "moment";
+import { auth, usersRef } from "../../config/firebase";
 import { Map, GoogleApiWrapper, Marker, InfoWindow } from "google-maps-react";
 import _ from "lodash";
 
@@ -128,31 +129,35 @@ class JobMap extends React.Component {
       staffStats: {
         K2: statSheet
       },
-      stage: "Show All",
-      category: "Show All",
       clientStats: {},
       activeMarker: {},
       showingInfoWindow: false,
       m: {},
       geocodeCount: 0,
-      filterViewCompleted: false,
-      filterJobLead: '',
-      filterOnJobLead: false,
-      filterCategory: '',
-      filterOnCategory: false,
-      filterState: '',
-      filterOnState: false,
 
-      filterK2Jobs: false,
+      filterJobMap: this.props.me.filterJobMap ? this.props.me.filterJobMap : {
+        stage: "Show All",
+        category: "Show All",
 
-      filterCreatedInTheLast: false,
-      createdInTheLast: 7,
-      filterCompletedInTheLast: false,
-      completedInTheLast: 7,
-      filterUpdatedInTheLast: false,
-      updatedInTheLast: 7,
-      filterActionsOverdueBy: false,
-      actionsOverdueBy: 7,
+        filterViewCompleted: false,
+        filterJobLead: '',
+        filterOnJobLead: false,
+        filterCategory: '',
+        filterOnCategory: false,
+        filterState: '',
+        filterOnState: false,
+
+        filterK2Jobs: false,
+
+        filterCreatedInTheLast: false,
+        createdInTheLast: 7,
+        filterCompletedInTheLast: false,
+        completedInTheLast: 7,
+        filterUpdatedInTheLast: false,
+        updatedInTheLast: 7,
+        filterActionsOverdueBy: false,
+        actionsOverdueBy: 7,
+      },
     };
   }
 
@@ -167,6 +172,7 @@ class JobMap extends React.Component {
   }
 
   componentWillUnmount() {
+    usersRef.doc(auth.currentUser.uid).update({ filterJobMap: this.state.filterJobMap });
     this.props.saveWFMItems(this.state.leads.filter((lead) => lead.state != 'Completed'));
     this.props.saveCurrentJobState(this.state.leads);
     this.props.saveStats({
@@ -880,8 +886,11 @@ class JobMap extends React.Component {
     }
 
     this.setState({
-      [filterVar]: filter,
-      [filterOnVar]: filterOn
+      filterJobMap: {
+        ...this.state.filterJobMap,
+        [filterVar]: filter,
+        [filterOnVar]: filterOn,
+      }
     });
   }
 
@@ -903,8 +912,8 @@ class JobMap extends React.Component {
   }
 
   applyFilters = m => {
-    if (!this.state.filterViewCompleted && m.state == 'Completed') return false;
-    if (!this.state.filterK2Jobs && m.client == 'K2 Environmental Ltd') return false;
+    if (!this.state.filterJobMap.filterViewCompleted && m.state == 'Completed') return false;
+    if (!this.state.filterJobMap.filterK2Jobs && m.client == 'K2 Environmental Ltd') return false;
 
     // Simplify categories and states
     var category = m.category.toLowerCase();
@@ -928,37 +937,41 @@ class JobMap extends React.Component {
 
     // Category
     if (
-      this.state.filterOnCategory &&
-      this.state.filterCategory != category
+      this.state.filterJobMap.filterOnCategory &&
+      this.state.filterJobMap.filterCategory != category
     )
       return false;
 
     // Job state
     if (
-      this.state.filterOnState &&
-      this.state.filterState != state
+      this.state.filterJobMap.filterOnState &&
+      this.state.filterJobMap.filterState != state
     )
       return false;
 
     // Job or lead
     if (
-      this.state.filterOnJobLead &&
-      ((this.state.filterJobLead == 'Jobs' && !m.isJob) ||
-      (this.state.filterJobLead == 'Leads' && m.isJob))
+      this.state.filterJobMap.filterOnJobLead &&
+      ((this.state.filterJobMap.filterJobLead == 'Jobs' && !m.isJob) ||
+      (this.state.filterJobMap.filterJobLead == 'Leads' && m.isJob))
     )
       return false;
 
     // Creation date
-    if (this.state.filterCreatedInTheLast && this.getDaysSinceDate(m.creationDate) >= this.state.createdInTheLast) return false;
+    if (this.state.filterJobMap.filterCreatedInTheLast &&
+      this.getDaysSinceDate(m.creationDate) >= this.state.filterJobMap.createdInTheLast) return false;
 
     // Completion date
-    if (this.state.filterCompletedInTheLast && (m.state != 'Completed' || this.getDaysSinceDate(m.completeDate) >= this.state.completedInTheLast)) return false;
+    if (this.state.filterJobMap.filterCompletedInTheLast &&
+      (m.state != 'Completed' || this.getDaysSinceDate(m.completeDate) >= this.state.filterJobMap.completedInTheLast)) return false;
 
     // Days since last update
-    if (this.state.filterUpdatedInTheLast && this.getDaysSinceDate(m.lastActionDate) < this.state.updatedInTheLast) return false;
+    if (this.state.filterJobMap.filterUpdatedInTheLast &&
+      this.getDaysSinceDate(m.lastActionDate) < this.state.filterJobMap.updatedInTheLast) return false;
 
     // Actions overdue by
-    if (this.state.filterActionsOverdueBy && (m.isJob || this.getNextActionOverdueBy(m.activities) < this.state.actionsOverdueBy)) return false;
+    if (this.state.filterJobMap.filterActionsOverdueBy &&
+      (m.isJob || this.getNextActionOverdueBy(m.activities) < this.state.filterJobMap.actionsOverdueBy)) return false;
 
     return true;
   }
@@ -1096,23 +1109,23 @@ class JobMap extends React.Component {
       this.state.leads.length === 0
     )
       this.collateLeadsData();
-    if (Object.keys(this.state.staffStats).length > 1) {
-      var daysMap = {};
-      console.log(this.state.staffStats["K2"]["completedActionOverdueDays"]);
-      this.state.staffStats["K2"]["completedActionOverdueDays"].forEach(i => {
-        if (daysMap[i] === undefined) daysMap[i] = { days: i, K2: 1, Shona: 0 };
-        else daysMap[i]["K2"] = daysMap[i]["K2"] + 1;
-      });
-      this.state.staffStats["Shona Huffadine"][
-        "completedActionOverdueDays"
-      ].forEach(i => {
-        if (daysMap[i] === undefined) daysMap[i] = { days: i, K2: 0, Shona: 1 };
-        else daysMap[i]["Shona"] = daysMap[i]["Shona"] + 1;
-      });
-      var daysData = Object.values(daysMap);
-      var sortedDays = [].concat(daysData).sort((a, b) => a.days > b.days);
-      console.log(daysData);
-    }
+    // if (Object.keys(this.state.staffStats).length > 1) {
+    //   var daysMap = {};
+    //   console.log(this.state.staffStats["K2"]["completedActionOverdueDays"]);
+    //   this.state.staffStats["K2"]["completedActionOverdueDays"].forEach(i => {
+    //     if (daysMap[i] === undefined) daysMap[i] = { days: i, K2: 1, Shona: 0 };
+    //     else daysMap[i]["K2"] = daysMap[i]["K2"] + 1;
+    //   });
+    //   this.state.staffStats["Shona Huffadine"][
+    //     "completedActionOverdueDays"
+    //   ].forEach(i => {
+    //     if (daysMap[i] === undefined) daysMap[i] = { days: i, K2: 0, Shona: 1 };
+    //     else daysMap[i]["Shona"] = daysMap[i]["Shona"] + 1;
+    //   });
+    //   var daysData = Object.values(daysMap);
+    //   var sortedDays = [].concat(daysData).sort((a, b) => a.days > b.days);
+    //   console.log(daysData);
+    // }
 
     const jobModal = (
       <Dialog
@@ -1401,7 +1414,7 @@ class JobMap extends React.Component {
                             style={{ fontSize: 12 }}
                             variant="outlined"
                             color={
-                              this.state.filterJobLead == chip ? "secondary" : "default"
+                              this.state.filterJobMap.filterJobLead == chip ? "secondary" : "default"
                             }
                             onClick={() => this.filterSet(chip,"JobLead")}
                           >
@@ -1415,8 +1428,13 @@ class JobMap extends React.Component {
                         style={{ marginLeft: 1, }}
                         control={
                           <Checkbox
-                            checked={this.state.filterViewCompleted}
-                            onChange={(event) => { this.setState({ filterViewCompleted: event.target.checked })}}
+                            checked={this.state.filterJobMap.filterViewCompleted}
+                            onChange={(event) => { this.setState({
+                              filterJobMap: {
+                                ...this.state.filterJobMap,
+                                filterViewCompleted: event.target.checked
+                              }
+                            })}}
                             value='filterViewCompleted'
                             color='secondary'
                           />
@@ -1429,8 +1447,13 @@ class JobMap extends React.Component {
                         style={{ marginLeft: 1, }}
                         control={
                           <Checkbox
-                            checked={this.state.filterK2Jobs}
-                            onChange={(event) => { this.setState({ filterK2Jobs: event.target.checked })}}
+                            checked={this.state.filterJobMap.filterK2Jobs}
+                            onChange={(event) => { this.setState({
+                              filterJobMap: {
+                                ...this.state.filterJobMap,
+                                filterK2Jobs: event.target.checked,
+                              }
+                            })}}
                             value='filterK2Jobs'
                             color='secondary'
                           />
@@ -1458,7 +1481,7 @@ class JobMap extends React.Component {
                             style={{ fontSize: 12 }}
                             variant="outlined"
                             color={
-                              this.state.filterState == chip ? "secondary" : "default"
+                              this.state.filterJobMap.filterState == chip ? "secondary" : "default"
                             }
                             onClick={() => this.filterSet(chip,"State")}
                           >
@@ -1486,7 +1509,7 @@ class JobMap extends React.Component {
                             style={{ fontSize: 12, color: colour }}
                             variant="outlined"
                             color={
-                              this.state.filterCategory == chip
+                              this.state.filterJobMap.filterCategory == chip
                                 ? "secondary"
                                 : "default"
                             }
@@ -1502,8 +1525,13 @@ class JobMap extends React.Component {
                   <Grid container spacing={8}>
                     <Grid style={{ fontSize: 14 }}>
                       <Checkbox
-                        checked={this.state.filterUpdatedInTheLast}
-                        onChange={(event) => { this.setState({ filterUpdatedInTheLast: event.target.checked })}}
+                        checked={this.state.filterJobMap.filterUpdatedInTheLast}
+                        onChange={(event) => { this.setState({
+                          filterJobMap: {
+                            ...this.state.filterJobMap,
+                            filterUpdatedInTheLast: event.target.checked,
+                          }
+                        })}}
                         value='filterUpdatedInTheLast'
                         color='secondary'
                       />
@@ -1512,8 +1540,13 @@ class JobMap extends React.Component {
                       <Input
                         style={{ width: 45, marginLeft: 12, marginRight: 12, }}
                         type='number'
-                        value={this.state.updatedInTheLast}
-                        onChange={(event) => this.setState({ updatedInTheLast: event.target.value })}
+                        value={this.state.filterJobMap.updatedInTheLast}
+                        onChange={(event) => this.setState({
+                          filterJobMap: {
+                            ...this.state.filterJobMap,
+                            updatedInTheLast: event.target.value
+                          }
+                        })}
                       />
                       days or more
                     </Grid>
@@ -1521,8 +1554,13 @@ class JobMap extends React.Component {
                   <Grid container spacing={8}>
                     <Grid style={{ fontSize: 14 }}>
                       <Checkbox
-                        checked={this.state.filterCreatedInTheLast}
-                        onChange={(event) => { this.setState({ filterCreatedInTheLast: event.target.checked })}}
+                        checked={this.state.filterJobMap.filterCreatedInTheLast}
+                        onChange={(event) => { this.setState({
+                          filterJobMap: {
+                            ...this.state.filterJobMap,
+                            filterCreatedInTheLast: event.target.checked
+                          }
+                        })}}
                         value='filterCreatedInTheLast'
                         color='secondary'
                       />
@@ -1531,8 +1569,13 @@ class JobMap extends React.Component {
                       <Input
                         style={{ width: 45, marginLeft: 12, marginRight: 12, }}
                         type='number'
-                        value={this.state.createdInTheLast}
-                        onChange={(event) => this.setState({ createdInTheLast: event.target.value })}
+                        value={this.state.filterJobMap.createdInTheLast}
+                        onChange={(event) => { this.setState({
+                          filterJobMap: {
+                            ...this.state.filterJobMap,
+                            createdInTheLast: event.target.value,
+                          }
+                        })}}
                       />
                       days or less
                     </Grid>
@@ -1540,8 +1583,13 @@ class JobMap extends React.Component {
                   <Grid container spacing={8}>
                     <Grid style={{ fontSize: 14 }}>
                       <Checkbox
-                        checked={this.state.filterCompletedInTheLast}
-                        onChange={(event) => { this.setState({ filterCompletedInTheLast: event.target.checked })}}
+                        checked={this.state.filterJobMap.filterCompletedInTheLast}
+                        onChange={(event) => { this.setState({
+                          filterJobMap: {
+                            ...this.state.filterJobMap,
+                            filterCompletedInTheLast: event.target.checked,
+                          }
+                        })}}
                         value='filterCompletedInTheLast'
                         color='secondary'
                       />
@@ -1550,8 +1598,13 @@ class JobMap extends React.Component {
                       <Input
                         style={{ width: 45, marginLeft: 12, marginRight: 12, }}
                         type='number'
-                        value={this.state.completedInTheLast}
-                        onChange={(event) => this.setState({ completedInTheLast: event.target.value })}
+                        value={this.state.filterJobMap.completedInTheLast}
+                        onChange={(event) => this.setState({
+                          filterJobMap: {
+                            ...this.state.filterJobMap,
+                            completedInTheLast: event.target.value,
+                          }
+                        })}
                       />
                       days or less
                     </Grid>
@@ -1559,8 +1612,13 @@ class JobMap extends React.Component {
                   <Grid container spacing={8}>
                     <Grid style={{ fontSize: 14 }}>
                       <Checkbox
-                        checked={this.state.filterActionsOverdueBy}
-                        onChange={(event) => { this.setState({ filterActionsOverdueBy: event.target.checked })}}
+                        checked={this.state.filterJobMap.filterActionsOverdueBy}
+                        onChange={(event) => { this.setState({
+                          filterJobMap: {
+                            ...this.state.filterJobMap,
+                            filterActionsOverdueBy: event.target.checked,
+                          }
+                        })}}
                         value='filterActionsOverdueBy'
                         color='secondary'
                       />
@@ -1569,8 +1627,13 @@ class JobMap extends React.Component {
                       <Input
                         style={{ width: 45, marginLeft: 12, marginRight: 12, }}
                         type='number'
-                        value={this.state.actionsOverdueBy}
-                        onChange={(event) => this.setState({ actionsOverdueBy: event.target.value })}
+                        value={this.state.filterJobMap.actionsOverdueBy}
+                        onChange={(event) => this.setState({
+                          filterJobMap: {
+                            ...this.state.filterJobMap,
+                            actionsOverdueBy: event.target.value,
+                          }
+                        })}
                       />
                       days or more
                     </Grid>
