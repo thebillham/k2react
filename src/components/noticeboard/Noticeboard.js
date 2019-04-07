@@ -2,6 +2,8 @@ import React from "react";
 
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
 
 import { connect } from "react-redux";
 import NoticeCard from "./NoticeCard";
@@ -10,6 +12,7 @@ import { NOTICES } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
 import { auth, usersRef, noticesRef } from "../../config/firebase";
 import store from "../../store";
+import moment from "moment";
 import {
   onFavNotice,
   onReadNotice,
@@ -39,6 +42,13 @@ const mapDispatchToProps = dispatch => {
 };
 
 class Noticeboard extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hideRead: false
+    };
+  }
+
   componentWillMount() {
     this.props.fetchNotices();
   }
@@ -136,7 +146,8 @@ class Noticeboard extends React.Component {
                   category: 'gen',
                   author: this.props.me.name,
                   auth: '',
-                  date: new Date(),
+                  date: moment().format('YYYY-MM-DD'),
+                  staff: [auth.currentUser.uid]
                 }
               }
             });
@@ -144,6 +155,18 @@ class Noticeboard extends React.Component {
           >
           Add New Notice
         </Button>
+        <FormControlLabel
+          style={{ marginLeft: 1, }}
+          control={
+            <Checkbox
+              checked={this.state.hideRead}
+              onChange={(event) => { this.setState({ hideRead: event.target.checked })}}
+              value='hideRead'
+              color='secondary'
+            />
+          }
+          label="Show Read Notices"
+        />
         <Grid container spacing={8}>
           {[
             {
@@ -173,6 +196,7 @@ class Noticeboard extends React.Component {
         <Grid container spacing={16} style={{ paddingTop: 30 }}>
           {this.props.notices
             .filter(notice => {
+              if (!this.state.hideRead && notice.staff && notice.staff.includes(auth.currentUser.uid)) return false;
               if (
                 notice.auth !== undefined &&
                 this.props.me.auth &&
@@ -193,16 +217,24 @@ class Noticeboard extends React.Component {
               ) {
                 return true;
               }
+              if (this.props.category === "imp" && notice.important) return true;
               if (this.props.search) {
-                if (notice.tags) {
-                  return [...notice.tags, notice.text].find(tag =>
-                    tag.toLowerCase().includes(this.props.search.toLowerCase())
-                  );
-                } else {
-                  return notice.text
-                    .toLowerCase()
-                    .includes(this.props.search.toLowerCase());
-                }
+                let search = [
+                    notice.category,
+                    notice.text,
+                    notice.author,
+                  ];
+                let searchterm = this.props.search.toLowerCase().split(" ");
+                let res = true;
+                searchterm.forEach(term => {
+                  if (
+                    search.find(
+                      tag => tag && tag.toLowerCase().includes(term)
+                    ) === undefined
+                  )
+                    res = false;
+                });
+                return res;
               } else if (this.props.category) {
                 return notice.category === this.props.category;
               } else {

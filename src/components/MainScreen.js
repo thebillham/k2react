@@ -70,7 +70,7 @@ import store from "../store";
 import { onSearchChange, onCatChange } from "../actions/local";
 import { sendSlackMessage } from "../Slack";
 
-import { fetchMe, resetLocal, copyStaff, fetchGeocodes, } from "../actions/local";
+import { fetchMe, resetLocal, copyStaff, fetchGeocodes, fetchStaff, } from "../actions/local";
 import { resetModal, showModal } from "../actions/modal";
 import { resetDisplay } from "../actions/display";
 import { initConstants } from "../actions/const";
@@ -148,7 +148,8 @@ const mapDispatchToProps = dispatch => {
     resetDisplay: () => dispatch(resetDisplay()),
     copyStaff: (oldId, newId) => dispatch(copyStaff(oldId, newId)),
     initConstants: () => dispatch(initConstants()),
-    showModal: modal => dispatch(showModal(modal))
+    showModal: modal => dispatch(showModal(modal)),
+    fetchStaff: () => dispatch(fetchStaff()),
     // fixIds: () => dispatch(fixIds())
   };
 };
@@ -173,6 +174,7 @@ class MainScreen extends React.Component {
     this.props.fetchMe();
     this.props.initConstants();
     this.props.fetchGeocodes();
+    if (!this.state.staff) this.props.fetchStaff();
     // this.props.fixIds();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
@@ -306,6 +308,17 @@ class MainScreen extends React.Component {
               </ListItemIcon>
               <ListItemText primary="Asbestos Lab" />
             </ListItem>*/}
+
+          <ListItem
+            button
+            component={Link}
+            to="/noticeboard"
+          >
+            <ListItemIcon>
+              <NoticeboardIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="Noticeboard" />
+          </ListItem>
 
           <ListItem
             button
@@ -478,18 +491,6 @@ class MainScreen extends React.Component {
                   <VehiclesIcon className={classes.accentButton} />
                 </ListItemIcon>
                 <ListItemText primary="Vehicles" className={classes.subitem} />
-              </ListItem>
-
-              <ListItem
-                button
-                component={Link}
-                to="/noticeboard"
-                className={classes.nested}
-              >
-                <ListItemIcon>
-                  <NoticeboardIcon className={classes.accentButton} />
-                </ListItemIcon>
-                <ListItemText primary="Noticeboard" />
               </ListItem>
 
               <ListItem
@@ -682,7 +683,7 @@ class MainScreen extends React.Component {
                         <Route
                           exact
                           path="/"
-                          render={() => <div>My Details</div>}
+                          render={() => <div>Noticeboard</div>}
                         />
                         <Route
                           path="/dashboard"
@@ -789,7 +790,7 @@ class MainScreen extends React.Component {
                     </Typography>
                     <Route
                       exact
-                      path="/(library|training|modules|lab|tools|noticeboard|help|staff|vehicles|quizzes|questions)"
+                      path="/(library|training|modules|noticeboard||lab|tools|noticeboard|help|staff|vehicles|quizzes|questions)"
                       render={() => (
                         <div className={classes.search}>
                           <div className={classes.searchIcon}>
@@ -859,8 +860,8 @@ class MainScreen extends React.Component {
                       <Route
                         exact
                         path="/"
-                        component={UserDetails}
-                        key="mydetails"
+                        component={Noticeboard}
+                        key="noticeboard"
                       />
                       <Route exact path="/staff" component={Staff} />
                       <Route
