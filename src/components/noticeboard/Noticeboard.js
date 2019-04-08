@@ -246,7 +246,8 @@ class Noticeboard extends React.Component {
                     staff={this.props.staff}
                     fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)}
                     read={notice.staff && notice.staff.includes(auth.currentUser.uid)}
-                    edit={notice.author === this.props.me.name || this.props.me.auth['Admin']}
+                    edit={true}
+                    // edit={notice.author === this.props.me.name || this.props.me.auth['Admin']}
                     onFavNotice={() => this.onFavNotice(notice.uid)}
                     onReadNotice={() => this.onReadNotice(notice)}
                     onEditNotice={() => this.onEditNotice(notice)}
