@@ -90,7 +90,7 @@ class AsbestosLab extends React.Component {
               modalType: COC,
               modalProps: {
                 title: "Add New Chain of Custody",
-                doc: { dates: [], samples: {}, personnel: [], type: "bulk" }
+                doc: { dates: [], samples: {}, personnel: [], type: "bulk", deleted: false, }
               }
             });
           }}

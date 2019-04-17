@@ -8,7 +8,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 import { connect } from "react-redux";
 import NoticeCard from "./NoticeCard";
 import NoticeModal from "../modals/NoticeModal";
-import { NOTICES } from "../../constants/modal-types";
+import { NOTICES, INCIDENT } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
 import { auth, usersRef, noticesRef } from "../../config/firebase";
 import store from "../../store";
@@ -135,7 +135,7 @@ class Noticeboard extends React.Component {
         <NoticeModal />
         <Button
           variant="outlined"
-          style={{ marginBottom: 16 }}
+          style={{ marginBottom: 16, marginRight: 8, }}
           onClick={() => {
             this.props.showModal({
               modalType: NOTICES,
@@ -155,6 +155,29 @@ class Noticeboard extends React.Component {
           }}
           >
           Add New Notice
+        </Button>
+        <Button
+          variant="outlined"
+          style={{ marginBottom: 16 }}
+          onClick={() => {
+            this.props.showModal({
+              modalType: INCIDENT,
+              modalProps: {
+                title: "Submit New Incident Report",
+                doc: {
+                  message: '',
+                  category: 'incident',
+                  categorydesc: 'General',
+                  author: this.props.me.name,
+                  auth: '',
+                  date: moment().format('YYYY-MM-DD'),
+                  staff: [auth.currentUser.uid]
+                }
+              }
+            });
+          }}
+          >
+          Submit Incident Report
         </Button>
         <FormControlLabel
           style={{ marginLeft: 1, }}

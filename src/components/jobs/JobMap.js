@@ -880,7 +880,7 @@ class JobMap extends React.Component {
     var filterOnVar = 'filterOn' + type;
     let filter = chip;
     let filterOn = true;
-    if (this.state[filterVar] == chip) {
+    if (this.state.filterJobMap[filterVar] == chip) {
       filter = '';
       filterOn = false;
     }
@@ -1672,7 +1672,6 @@ class JobMap extends React.Component {
             <Map
               google={this.props.google}
               zoom={6.27}
-              mapType='terrain'
               style={mapStyles}
               initialCenter={{
                 lat: -40.9261681,
