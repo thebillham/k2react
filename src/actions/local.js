@@ -306,7 +306,7 @@ export const fetchCocs = update => async dispatch => {
   if (update) {
     cocsRef
       .where("deleted", "==", false)
-      .orderBy("dueDate", "desc")
+      // .orderBy("dueDate", "desc")
       .onSnapshot(querySnapshot => {
         var cocs = {};
         querySnapshot.forEach(doc => {

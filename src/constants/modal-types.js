@@ -9,6 +9,7 @@ export const QCANALYSIS = "QCANALYSIS";
 export const QUESTION = "QUESTION";
 export const QUIZ = "QUIZ";
 export const NOTICES = "NOTICES";
+export const SAMPLE = "SAMPLE";
 export const SAMPLEHISTORY = "SAMPLEHISTORY";
 export const TRAINING = "TRAINING";
 export const UPDATECERTIFICATEVERSION = "UPDATECERTIFICATEVERSION";

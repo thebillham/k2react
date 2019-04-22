@@ -9,6 +9,8 @@ import { auth } from '../../config/firebase';
 import '../../config/tags.css';
 // import { sendSlackMessage } from '../../Slack';
 
+import AsbestosSampleCard from "./AsbestosSampleCard";
+
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import Grid from '@material-ui/core/Grid';
@@ -406,55 +408,65 @@ class CocModal extends React.Component {
                   </Grid>
                   { Array.from(Array(doc.numberOfSamples ? doc.numberOfSamples : 10),(x, i) => i).map(i => {
                     let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
-                    return(<Grid container key={i}>
-                    <Grid item xs={1}>
-                      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: 3,}}>
-                        {i+1}
+                    return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && !disabled ?
+                      <div style={{ marginLeft: 12, marginRight: 12, }}>
+                        <Grid container key={i}>
+                          <Grid item xs={12}>
+                            <AsbestosSampleCard sample={doc.samples[i+1]} />
+                          </Grid>
+                        </Grid>
                       </div>
+                        :
+                        <Grid container key={i}>
+                          <Grid item xs={1}>
+                            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: 3,}}>
+                              {i+1}
+                            </div>
+                          </Grid>
+                          <Grid item xs={6} style={{ paddingLeft: 12, paddingRight: 12, }}>
+                            <TextField
+                              id={`description${i+1}`}
+                              disabled={disabled}
+                              style={{ width: '100%' }}
+                              value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleSampleChange(i, 'reported', false);
+                                this.props.handleSampleChange(i, 'description', e.target.value);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={4} style={{ paddingLeft: 12, }}>
+                            <Autosuggest
+                              {...autosuggestProps}
+                              onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
+                                this.setState({ modified: true, });
+                                this.props.handleSampleChange(i, 'reported', false);
+                                this.props.handleSampleChange(i, 'material', suggestionValue); }}
+                              inputProps={{
+                                disabled: disabled,
+                                value: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
+                                onChange: e => {
+                                  this.setState({ modified: true, });
+                                  this.props.handleSampleChange(i, 'reported', false);
+                                  this.props.handleSampleChange(i, 'material', e.target.value)
+                                },
+                              }}
+                              theme={{
+                                container: { position: 'relative',},
+                                suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
+                                suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
+                                suggestion: {display: 'block', },
+                              }}
+                              renderSuggestionsContainer={options => (
+                                <Paper {...options.containerProps} square>
+                                  {options.children}
+                                </Paper>
+                              )}
+                            />
+                          </Grid>
                     </Grid>
-                    <Grid item xs={6} style={{ paddingLeft: 12, paddingRight: 12, }}>
-                      <TextField
-                        id={`description${i+1}`}
-                        disabled={disabled}
-                        style={{ width: '100%' }}
-                        value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
-                        onChange={e => {
-                          this.setState({ modified: true, });
-                          this.props.handleSampleChange(i, 'reported', false);
-                          this.props.handleSampleChange(i, 'description', e.target.value);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={4} style={{ paddingLeft: 12, }}>
-                      <Autosuggest
-                        {...autosuggestProps}
-                        onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
-                          this.setState({ modified: true, });
-                          this.props.handleSampleChange(i, 'reported', false);
-                          this.props.handleSampleChange(i, 'material', suggestionValue); }}
-                        inputProps={{
-                          disabled: disabled,
-                          value: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
-                          onChange: e => {
-                            this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, 'reported', false);
-                            this.props.handleSampleChange(i, 'material', e.target.value)
-                          },
-                        }}
-                        theme={{
-                          container: { position: 'relative',},
-                          suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
-                          suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
-                          suggestion: {display: 'block', },
-                        }}
-                        renderSuggestionsContainer={options => (
-                          <Paper {...options.containerProps} square>
-                            {options.children}
-                          </Paper>
-                        )}
-                      />
-                    </Grid>
-                  </Grid>)
+                        )
                   })}
                   <Grid container>
                     <Grid item xs={12} justify='center' alignItems='center'>
@@ -495,14 +507,6 @@ class CocModal extends React.Component {
               if (!doc.dateSubmit) doc.dateSubmit = now;
               doc.lastModified = now;
               doc.versionUpToDate = false;
-              // let datestring = new Intl.DateTimeFormat('en-GB', {
-              //   year: '2-digit',
-              //   month: '2-digit',
-              //   day: '2-digit',
-              //   hour: '2-digit',
-              //   minute: '2-digit',
-              //   second: '2-digit',
-              // }).format(now).replace(/[.:/,\s]/g, '_');
               this.props.resetWfmJob();
               console.log(`Doc UID exists it is ${doc.uid}`);
               let log = {};

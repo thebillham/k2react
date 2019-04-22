@@ -9,15 +9,6 @@ import CardActions from "@material-ui/core/CardActions";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 
-import HealthAndSafetyIcon from "@material-ui/icons/LocalHospital";
-import MethIcon from "@material-ui/icons/Highlight";
-import OccHealthIcon from "@material-ui/icons/LocationCity";
-import AsbestosIcon from "@material-ui/icons/Whatshot";
-import BioIcon from "@material-ui/icons/LocalFlorist";
-import GeneralIcon from "@material-ui/icons/Info";
-import LeadsIcon from "@material-ui/icons/LocalPhone";
-import EquipmentIcon from "@material-ui/icons/Build";
-
 import PinIcon from "@material-ui/icons/Star";
 import ReadIcon from "@material-ui/icons/CheckBox";
 import DiscardIcon from "@material-ui/icons/Delete";
@@ -48,7 +39,7 @@ const styles = {
     fontSize: 14
   },
   whosRead: {
-    fontSize: 12
+    fontSize: 10
   },
   formIcon: {
     color: "black",
@@ -83,17 +74,6 @@ function NoticeCard(props) {
   return (
     <Card className={classes.card} style={{ borderRadius: 20 }}>
       <CardHeader
-        avatar={
-          <div>
-            {notice.category === 'gen' && <GeneralIcon color="secondary" />}
-            {notice.category === 'leads' && <LeadsIcon color="secondary" />}
-            {notice.category === 'has' && <HealthAndSafetyIcon color="secondary" />}
-            {notice.category === 'jqfasb' && <AsbestosIcon color="secondary" />}
-            {notice.category === 'jqfmeth' && <MethIcon color="secondary" />}
-            {notice.category === 'occjqf' && <OccHealthIcon color="secondary" />}
-            {notice.category === 'eq' && <EquipmentIcon color="secondary" />}
-          </div>
-        }
         style={{height: '4vw'}}
         title={
           <Typography className={classes.title} color="textSecondary">
