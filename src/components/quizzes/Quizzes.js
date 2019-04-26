@@ -14,7 +14,7 @@ import {
 } from "../../actions/local";
 import { showModal } from "../../actions/modal";
 import store from "../../store";
-import QuizModal from "../modals/QuizModal";
+import QuizModal from "./QuizModal";
 import QuizList from "./QuizList";
 import { quizzesRef } from "../../config/firebase";
 import {

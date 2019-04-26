@@ -7,7 +7,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 
 import { connect } from "react-redux";
 import NoticeCard from "./NoticeCard";
-import NoticeModal from "../modals/NoticeModal";
+import NoticeModal from "./NoticeModal";
 import { NOTICES, INCIDENT } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
 import { auth, usersRef, noticesRef } from "../../config/firebase";

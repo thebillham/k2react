@@ -39,11 +39,7 @@ const styles = {
     fontSize: 14
   },
   whosRead: {
-<<<<<<< HEAD
     fontSize: 14
-=======
-    fontSize: 10
->>>>>>> e75d3f0bf6d8e1c4533899c818bb9e5b8227f069
   },
   formIcon: {
     color: "black",

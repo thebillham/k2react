@@ -20,7 +20,7 @@ import { connect } from "react-redux";
 import { fetchVehicles } from "../../actions/local";
 import { showModal } from "../../actions/modal";
 import VehicleList from "./VehicleList";
-import VehicleModal from "../modals/VehicleModal";
+import VehicleModal from "./VehicleModal";
 import { VEHICLE } from "../../constants/modal-types";
 
 const mapStateToProps = state => {

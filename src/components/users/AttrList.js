@@ -9,7 +9,7 @@ import Edit from "@material-ui/icons/Edit";
 import Image from "@material-ui/icons/Image";
 import Delete from "@material-ui/icons/Delete";
 
-import UserAttrModal from "../modals/UserAttrModal";
+import UserAttrModal from "./UserAttrModal";
 import { USERATTR } from "../../constants/modal-types";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";

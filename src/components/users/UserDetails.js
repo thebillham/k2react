@@ -26,7 +26,7 @@ import { auth, usersRef } from "../../config/firebase";
 import Error from "@material-ui/icons/Error";
 import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 
-import UserAttrModal from "../modals/UserAttrModal";
+import UserAttrModal from "./UserAttrModal";
 import AttrList from "./AttrList";
 import { USERATTR, EDITSTAFF } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";

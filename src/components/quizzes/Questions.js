@@ -15,8 +15,8 @@ import {
 import { showModal } from "../../actions/modal";
 import store from "../../store";
 import QuestionList from "./QuestionList";
-import QuestionModal from "../modals/QuestionModal";
-import AddToQuizModal from "../modals/AddToQuizModal";
+import QuestionModal from "./QuestionModal";
+import AddToQuizModal from "./AddToQuizModal";
 import { questionsRef } from "../../config/firebase";
 import {
   BrowserRouter as Router,

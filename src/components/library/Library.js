@@ -6,9 +6,9 @@ import Button from "@material-ui/core/Button";
 import { connect } from "react-redux";
 import { auth, methodsRef, docsRef } from "../../config/firebase";
 import { METHOD, DOCUMENT } from "../../constants/modal-types";
-import MethodModal from "../modals/MethodModal";
-import UpdateMethodVersion from "../modals/UpdateMethodVersion";
-import DocumentModal from "../modals/DocumentModal";
+import MethodModal from "./MethodModal";
+import UpdateMethodVersion from "./UpdateMethodVersion";
+import DocumentModal from "./DocumentModal";
 import {
   onSearchChange,
   onCatChange,

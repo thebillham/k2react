@@ -31,10 +31,10 @@ import {
   fetchQuizzes
 } from "../../actions/local";
 import { showModal } from "../../actions/modal";
-import TrainingModuleModal from "../modals/TrainingModuleModal";
-import QuizModal from "../modals/QuizModal";
-import QuestionModal from "../modals/QuestionModal";
-import DocumentModal from "../modals/DocumentModal";
+import TrainingModuleModal from "./TrainingModuleModal";
+import QuizModal from "../quizzes/QuizModal";
+import QuestionModal from "../quizzes/QuestionModal";
+import DocumentModal from "../library/DocumentModal";
 
 const mapStateToProps = state => {
   return {
