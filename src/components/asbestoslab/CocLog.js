@@ -110,7 +110,6 @@ class CocLog extends React.Component {
           >
             Close
           </Button>
-          }
         </DialogActions>
       </Dialog>
     );

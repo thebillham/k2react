@@ -455,7 +455,7 @@ class TrainingModuleModal extends React.Component {
                 console.log(selected);
                 return (
                   <div style={{ display: "flex", flexWrap: "wrap" }}>
-                    {selected.map(value => (
+                    {selected && selected.map(value => (
                       <Chip
                         key={value}
                         label={

@@ -40,6 +40,7 @@ import CameraAlt from "@material-ui/icons/CameraAlt";
 import Print from "@material-ui/icons/Print";
 import Send from "@material-ui/icons/Send";
 import More from "@material-ui/icons/MoreVert";
+import Colorize from "@material-ui/icons/Colorize";
 
 import Popup from "reactjs-popup";
 
@@ -110,6 +111,7 @@ class CocList extends React.Component {
             sample.material
           }) unchecked as being received.`,
       user: auth.currentUser.uid,
+      sample: sample.uid,
       username: this.props.me.name,
       date: new Date()
     };
@@ -123,6 +125,38 @@ class CocList extends React.Component {
         receivedbylab: !sample.receivedbylab,
         receiveduser: auth.currentUser.uid,
         receiveddate: receiveddate
+      },
+      { merge: true }
+    );
+  };
+
+  startAnalysis = sample => {
+    let analysisstart = null;
+    if (!sample.analysisstart) analysisstart = new Date();
+    let log = {
+      type: "Analysis",
+      log: analysisstart
+        ? `Analysis begun on Sample ${sample.samplenumber} (${sample.description} ${
+            sample.material
+          }).`
+        : `Analysis stopped for Sample ${sample.samplenumber} (${sample.description} ${
+            sample.material
+          }).`,
+      user: auth.currentUser.uid,
+      sample: sample.uid,
+      username: this.props.me.name,
+      date: new Date()
+    };
+    let cocLog = this.props.job.cocLog;
+    cocLog ? cocLog.push(log) : (cocLog = [log]);
+    cocsRef
+      .doc(this.props.job.uid)
+      .update({ versionUpToDate: false, cocLog: cocLog });
+    asbestosSamplesRef.doc(sample.uid).set(
+      {
+        analysisstart: !sample.analysisstart,
+        analysisstartedby: auth.currentUser.uid,
+        analysisstartdate: analysisstart
       },
       { merge: true }
     );
@@ -150,6 +184,7 @@ class CocList extends React.Component {
                 sample.material
               }) result unchecked.`,
           user: auth.currentUser.uid,
+          sample: sample.uid,
           username: this.props.me.name,
           date: new Date()
         };
@@ -203,6 +238,7 @@ class CocList extends React.Component {
             } ${sample.material}) overridden.`,
             user: auth.currentUser.uid,
             username: this.props.me.name,
+            sample: sample.uid,
             date: new Date()
           });
         } else {
@@ -246,6 +282,7 @@ class CocList extends React.Component {
         } ${sample.material}): ${this.writeResult(newmap)}`,
         user: auth.currentUser.uid,
         username: this.props.me.name,
+        sample: sample.uid,
         date: new Date()
       });
 
@@ -792,6 +829,8 @@ class CocList extends React.Component {
                     if (sample.path_remote) cameracolor = "green";
                     let receivedcolor = "#ddd";
                     if (sample.receivedbylab) receivedcolor = "green";
+                    let analysiscolor = "#ddd";
+                    if (sample.analysisstart) analysiscolor = "green";
                     let reportcolor = "#ddd";
                     if (sample.reported) reportcolor = "green";
                     let chcolor = "#ddd";
@@ -831,56 +870,7 @@ class CocList extends React.Component {
                       nocolor = "green";
                       nodivcolor = "lightgreen";
                     }
-
-                    menu[sample.samplenumber.toString()] = (
-                      <Menu
-                        id={`${
-                          job.jobNumber
-                        }-${sample.samplenumber.toString()}`}
-                        anchorEl={this.state.sampleAnchorEl}
-                        open={Boolean(this.state.sampleAnchorEl)}
-                        onClose={() => {
-                          this.setState({ sampleAnchorEl: null });
-                        }}
-                        style={{ padding: 0 }}
-                      >
-                        <MenuItem
-                          key={`${
-                            job.jobNumber
-                          }-${sample.samplenumber.toString()}-WA`}
-                          onClick={() => {
-                            this.props.showModal({
-                              modalType: WAANALYSIS,
-                              modalProps: {
-                                title: "Add WA Analysis",
-                                doc: { sample: sample }
-                              }
-                            });
-                          }}
-                        >
-                          Add WA Analysis
-                        </MenuItem>
-                        <MenuItem
-                          key={`${
-                            job.jobNumber
-                          }-${sample.samplenumber.toString()}-SampleHistory`}
-                          onClick={() => {
-                            this.props.showModal({
-                              modalType: SAMPLEHISTORY,
-                              modalProps: {
-                                title: `Sample History for ${
-                                  job.jobNumber
-                                }-${sample.samplenumber.toString()}`,
-                                doc: { sample: sample }
-                              }
-                            });
-                          }}
-                        >
-                          View Sample History
-                        </MenuItem>
-                      </Menu>
-                    );
-
+                    
                     return (
                       <ListItem
                         dense
@@ -976,6 +966,19 @@ class CocList extends React.Component {
                                 }}
                               />
                             </IconButton>
+                              <IconButton
+                                onClick={() => {
+                                  this.startAnalysis(sample);
+                                }}
+                              >
+                                <Colorize
+                                  style={{
+                                    fontSize: 24,
+                                    margin: 10,
+                                    color: analysiscolor
+                                  }}
+                                />
+                              </IconButton>
                             <div
                               style={{ display: "flex", flexDirection: "row" }}
                             >
@@ -1145,10 +1148,11 @@ class CocList extends React.Component {
                                       title: `Sample History for ${
                                         job.jobNumber
                                       }-${sample.samplenumber.toString()}`,
-                                      doc: { sample: sample }
-                                    }
-                                  });
-                                }}
+                                      uid: sample.uid,
+                                      cocLog: job.cocLog,
+                                  }
+                                })
+                              }}
                               >
                                 View Sample History
                               </MenuItem>
@@ -1165,14 +1169,11 @@ class CocList extends React.Component {
                   display: "flex",
                   flexDirection: "row",
                   alignItems: "center",
-                  justifyContent: "center"
+                  justifyContent: "center",
+                  height: 80.0,
                 }}
               >
-                <CircularProgress
-                  style={{
-                    margin: 40
-                  }}
-                />
+                No samples
               </div>
             )}
           </List>
