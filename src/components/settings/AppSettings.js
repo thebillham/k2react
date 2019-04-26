@@ -182,11 +182,11 @@ class AppSettings extends React.Component {
                     doc.buildingitems &&
                     doc.buildingitems
                       .map(obj => {
-                        return obj.label;
+                        return obj.hint == undefined ? `${obj.label}` : `${obj.label}|${obj.hint}`;
                       })
                       .join("\n")
                   }
-                  helperText="Put each item on a new line."
+                  helperText='Put each item on a new line in the form "item name|hint text".'
                   className={classes.dialogField}
                   onChange={e => {
                     this.props.handleModalChange({
@@ -195,6 +195,13 @@ class AppSettings extends React.Component {
                         .split("\n")
                         .filter(Boolean)
                         .sort()
+                        .map(option => {
+                          let list = option.split("|");
+                          return {
+                            hint: list[1] ? list[1] : list[0],
+                            label: list[0]
+                          };
+                        })
                         .map(option => {
                           return { label: option };
                         })
