@@ -69,6 +69,7 @@ class AppSettings extends React.Component {
       "Room Suggestions",
       "Extent Suggestions",
       "Damage Suggestions",
+      "Incident Categories",
       "Surface Suggestions",
       "Why Not Sampled Suggestions",
       "Asbestos Types",
@@ -473,6 +474,40 @@ class AppSettings extends React.Component {
                     doc &&
                     doc.noticecategories &&
                     doc.noticecategories
+                      .map(obj => {
+                        return `${obj.desc}|${obj.key}`;
+                      })
+                      .join("\n")
+                  }
+                  helperText='Put each category on a new line in the form "category description|category id".'
+                  className={classes.dialogField}
+                  onChange={e => {
+                    this.props.handleModalChange({
+                      id: e.target.id,
+                      value: e.target.value
+                        .split("\n")
+                        .filter(Boolean)
+                        .map(option => {
+                          let list = option.split("|");
+                          return {
+                            key: list[1] ? list[1] : list[0],
+                            desc: list[0]
+                          };
+                        })
+                    });
+                  }}
+                />
+              )}
+
+              {setting === "Incident Categories" && (
+                <TextField
+                  id="incidentcategories"
+                  label="Incident Categories"
+                  multiline
+                  defaultValue={
+                    doc &&
+                    doc.incidentcategories &&
+                    doc.incidentcategories
                       .map(obj => {
                         return `${obj.desc}|${obj.key}`;
                       })

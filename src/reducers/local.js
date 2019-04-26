@@ -4,7 +4,6 @@ import {
   GET_BULKANALYSTS,
   GET_DOCUMENTS,
   GET_EDIT_STAFF,
-  GET_EDIT_STAFF_ATTR,
   GET_GEOCODES,
   GET_USER,
   GET_WFM_JOBS,
@@ -21,6 +20,7 @@ import {
   SEARCH_CHANGE,
   CAT_CHANGE,
   GET_TOOLS,
+  GET_INCIDENTS,
   GET_NOTICES,
   GET_READINGLOG,
   GET_METHODLOG,
@@ -33,7 +33,6 @@ import {
   RESET_LOCAL,
   UPDATE_STAFF,
   GET_VEHICLES,
-  SET_MODAL_ERROR,
   SET_ANALYST,
   SET_ANALYSIS_MODE,
   SAVE_WFM_ITEMS,
@@ -54,6 +53,7 @@ const localInit = {
   documents: [],
   editstaff: {},
   geocodes: {},
+  incidents: [],
   helps: [],
   me: {},
   methodLog: [],
@@ -145,6 +145,13 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         notices: action.payload
+      };
+    case GET_INCIDENTS:
+      if (action.update)
+        stateRef.doc("incidents").set({ payload: action.payload });
+      return {
+        ...state,
+        incidents: action.payload
       };
     case GET_QUESTIONS:
       if (action.update)
@@ -276,13 +283,6 @@ export default function localReducer(state = localInit, action) {
       };
     case RESET_LOCAL:
       return localInit;
-      return {
-        ...state,
-        samples: {
-          ...state.samples,
-          [action.cocUid]: action.payload
-        }
-      };
     case SEARCH_CHANGE:
       return {
         ...state,

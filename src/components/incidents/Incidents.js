@@ -6,10 +6,9 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 
 import { connect } from "react-redux";
-import NoticeCard from "./NoticeCard";
-import NoticeModal from "./NoticeModal";
-import IncidentModal from "../incidents/IncidentModal";
-import { NOTICES, INCIDENT } from "../../constants/modal-types";
+import IncidentCard from "./IncidentCard";
+import IncidentModal from "./IncidentModal";
+import { INCIDENT } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
 import { auth, usersRef, noticesRef } from "../../config/firebase";
 import store from "../../store";
@@ -18,7 +17,7 @@ import {
   onFavNotice,
   onReadNotice,
   onDeleteNotice,
-  fetchNotices,
+  fetchIncidents,
 } from "../../actions/local";
 import { showModal } from "../../actions/modal";
 
@@ -26,8 +25,8 @@ const mapStateToProps = state => {
   return {
     staff: state.local.staff,
     me: state.local.me,
-    notices: state.local.notices,
-    categories: state.const.noticecategories,
+    incidents: state.local.incidents,
+    categories: state.const.incidentcategories,
     search: state.local.search,
     category: state.local.category
   };
@@ -38,11 +37,11 @@ const mapDispatchToProps = dispatch => {
     onSearchChange: search => dispatch(onSearchChange(search)),
     onCatChange: cat => dispatch(onCatChange(cat)),
     showModal: modal => dispatch(showModal(modal)),
-    fetchNotices: (update) => dispatch(fetchNotices(update)),
+    fetchIncidents: (update) => dispatch(fetchIncidents(update)),
   };
 };
 
-class Noticeboard extends React.Component {
+class Incidents extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -51,7 +50,7 @@ class Noticeboard extends React.Component {
   }
 
   componentWillMount() {
-    this.props.fetchNotices();
+    this.props.fetchIncidents();
   }
 
   switch = category => {
@@ -122,9 +121,9 @@ class Noticeboard extends React.Component {
 
   onEditNotice = note => {
     this.props.showModal({
-      modalType: NOTICES,
+      modalType: INCIDENT,
       modalProps: {
-        title: "Edit Notice",
+        title: "Edit Incident",
         doc: note,
       }
     });
@@ -133,53 +132,29 @@ class Noticeboard extends React.Component {
   render() {
     return (
       <div style={{ marginTop: 80 }}>
-        <NoticeModal />
         <IncidentModal />
         <Button
           variant="outlined"
           style={{ marginBottom: 16, marginRight: 8, }}
           onClick={() => {
             this.props.showModal({
-              modalType: NOTICES,
+              modalType: INCIDENT,
               modalProps: {
-                title: "Add New Notice",
+                title: "Submit New Incident",
                 doc: {
                   message: '',
                   category: 'gen',
                   categorydesc: 'General',
                   author: this.props.me.name,
                   auth: '',
-                  date: moment().format('YYYY-MM-DD'),
+                  submit_date: moment().format('YYYY-MM-DD'),
                   staff: [auth.currentUser.uid]
                 }
               }
             });
           }}
           >
-          Add New Notice
-        </Button>
-        <Button
-          variant="outlined"
-          style={{ marginBottom: 16 }}
-          onClick={() => {
-            this.props.showModal({
-              modalType: INCIDENT,
-              modalProps: {
-                title: "Submit New Incident Report",
-                doc: {
-                  message: '',
-                  category: 'incident',
-                  categorydesc: 'General',
-                  author: this.props.me.name,
-                  auth: '',
-                  date: moment().format('YYYY-MM-DD'),
-                  staff: [auth.currentUser.uid]
-                }
-              }
-            });
-          }}
-          >
-          Submit Incident Report
+          Submit New Incident
         </Button>
         <FormControlLabel
           style={{ marginLeft: 1, }}
@@ -194,12 +169,7 @@ class Noticeboard extends React.Component {
           label="Show Read Notices"
         />
         <Grid container spacing={8}>
-          {[
-            {
-              key: "fav",
-              desc: "Favourites",
-            },
-            ...this.props.categories].map(cat => {
+          {this.props.categories.map(cat => {
             return (
               <Grid item key={cat.key}>
                 <Button
@@ -216,7 +186,7 @@ class Noticeboard extends React.Component {
           })}
         </Grid>
         <Grid container spacing={16} style={{ paddingTop: 30 }}>
-          {this.props.notices
+          {this.props.incidents
             .filter(notice => {
               if (
                 this.props.me.favnotices &&
@@ -266,7 +236,7 @@ class Noticeboard extends React.Component {
             .map(notice => {
               return (
                 <Grid item xs={12} sm={6} md={4} lg={3} xl={2} key={notice.uid}>
-                  <NoticeCard
+                  <IncidentCard
                     notice={notice}
                     staff={this.props.staff}
                     fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)}
@@ -290,4 +260,4 @@ class Noticeboard extends React.Component {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Noticeboard);
+)(Incidents);

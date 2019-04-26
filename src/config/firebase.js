@@ -34,6 +34,7 @@ const constRef = firestore.collection("appsettings").doc("constants");
 const docsRef = firestore.collection("documents");
 const geocodesRef = firestore.collection("state").doc("geocodes");
 const helpRef = firestore.collection("help");
+const incidentsRef = firestore.collection("incidents");
 const jobsRef = firestore.collection("jobheaders");
 const methodsRef = firestore.collection("methods");
 const modulesRef = firestore.collection("modules");
@@ -56,6 +57,7 @@ export {
   constRef,
   docsRef,
   helpRef,
+  incidentsRef,
   jobsRef,
   methodsRef,
   modulesRef,

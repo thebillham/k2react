@@ -3,42 +3,40 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
 import { connect } from "react-redux";
 // import { FormattedDate } from 'react-intl';
-import ReactTable from 'react-table';
+// import ReactTable from 'react-table';
 import ListItem from "@material-ui/core/ListItem";
 import Divider from "@material-ui/core/Divider";
-import Tab from "@material-ui/core/Tab";
-import Tabs from "@material-ui/core/Tabs";
+// import Tab from "@material-ui/core/Tab";
+// import Tabs from "@material-ui/core/Tabs";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import Grid from "@material-ui/core/Grid";
-import Dialog from "@material-ui/core/Dialog";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import Input from "@material-ui/core/Input";
+import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
-import LineChart from "recharts/lib/chart/LineChart";
-import Line from "recharts/lib/cartesian/Line";
-import XAxis from "recharts/lib/cartesian/XAxis";
-import YAxis from "recharts/lib/cartesian/YAxis";
-import Legend from "recharts/lib/component/Legend";
-import ZAxis from "recharts/lib/cartesian/ZAxis";
-import Tooltip from "recharts/lib/component/Tooltip";
-import Scatter from "recharts/lib/cartesian/Scatter";
-import CartesianGrid from "recharts/lib/cartesian/CartesianGrid";
+// import LineChart from "recharts/lib/chart/LineChart";
+// import Line from "recharts/lib/cartesian/Line";
+// import XAxis from "recharts/lib/cartesian/XAxis";
+// import YAxis from "recharts/lib/cartesian/YAxis";
+// import Legend from "recharts/lib/component/Legend";
+// import ZAxis from "recharts/lib/cartesian/ZAxis";
+// import Tooltip from "recharts/lib/component/Tooltip";
+// import Scatter from "recharts/lib/cartesian/Scatter";
+// import CartesianGrid from "recharts/lib/cartesian/CartesianGrid";
 // import DialogActions from '@material-ui/core/DialogActions';
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import Button from "@material-ui/core/Button";
 // import 'react-table/react-table.css'
 // import treeTableHOC from 'react-table/lib/hoc/treeTable';
-import JobCard from "./JobCard";
 import { FormattedDate } from "react-intl";
 // import GoogleMapReact from 'google-map-react';
 import moment from "moment";
 import { auth, usersRef } from "../../config/firebase";
 import { Map, GoogleApiWrapper, Marker, InfoWindow } from "google-maps-react";
-import _ from "lodash";
 
 import {
   fetchWFMJobs,
@@ -51,7 +49,6 @@ import {
   fetchGeocodes,
   updateGeocodes,
   saveStats,
-  analyseJobHistory,
 } from "../../actions/local";
 
 const mapStyles = {
@@ -167,13 +164,13 @@ class JobMap extends React.Component {
       this.props.fetchWFMLeads();
       this.props.fetchWFMClients();
       this.props.fetchCurrentJobState(false);
-      if(this.props.geocodes == undefined) this.props.fetchGeocodes();
+      if(this.props.geocodes === undefined) this.props.fetchGeocodes();
     }
   }
 
   componentWillUnmount() {
     usersRef.doc(auth.currentUser.uid).update({ filterJobMap: this.state.filterJobMap });
-    this.props.saveWFMItems(this.state.leads.filter((lead) => lead.state != 'Completed'));
+    this.props.saveWFMItems(this.state.leads.filter((lead) => lead.state !== 'Completed'));
     this.props.saveCurrentJobState(this.state.leads);
     this.props.saveStats({
       staff: this.state.staffStats,
@@ -187,7 +184,6 @@ class JobMap extends React.Component {
   };
 
   computeStats = () => {
-    var template = this.state.statSheet;
     var client = {};
     var staff = {};
     staff["K2"] = { ...this.state.statSheet };
@@ -573,7 +569,7 @@ class JobMap extends React.Component {
   };
 
   getUncompletedActivities = activities => {
-    if (activities != undefined) {
+    if (activities !== undefined) {
       var uncompletedActivities = activities.filter(
         activity => activity.completed === "No"
       );
@@ -674,13 +670,13 @@ class JobMap extends React.Component {
     console.log('Jobs: ' + this.props.wfmJobs.length);
     console.log('Leads: ' + this.props.wfmLeads.length)
     console.log(this.props.wfmJobs.length + this.props.wfmLeads.length);
-    var staffStats = { K2: this.state.statSheet };
-    var clientStats = {};
+    // var staffStats = { K2: this.state.statSheet };
+    // var clientStats = {};
 
     console.log("COLLATING LEADS AND JOBS");
     var mappedJobs = [];
 
-    var completedJobs = Object.values(this.props.currentJobState).filter((job) => job.state == 'Completed');
+    var completedJobs = Object.values(this.props.currentJobState).filter((job) => job.state === 'Completed');
     var currentState = {...this.props.currentJobState};
 
     // Convert jobs into a 'lead' type object
@@ -688,14 +684,14 @@ class JobMap extends React.Component {
       var today = moment().format('YYYY-MM-DD');
       var mappedJob = currentState[job.wfmID];
       delete currentState[job.wfmID];
-      if (mappedJob != undefined) {
+      if (mappedJob !== undefined) {
         // Add all mapped jobs and lead to an array and then set state
         // Then go ahead with sorting the new jobs and leads
         // Update state history of job
 
-        if (mappedJob.nextActionType != undefined) delete mappedJob.nextActionType;
-        if (mappedJob.nextActionDate != undefined) delete mappedJob.nextActionDate;
-        if (mappedJob.nextActionOverdueBy != undefined) delete mappedJob.nextActionOverdueBy;
+        if (mappedJob.nextActionType !== undefined) delete mappedJob.nextActionType;
+        if (mappedJob.nextActionDate !== undefined) delete mappedJob.nextActionDate;
+        if (mappedJob.nextActionOverdueBy !== undefined) delete mappedJob.nextActionOverdueBy;
 
         if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory)[0] < mappedJob.creationDate) {
           mappedJob.creationDate = Object.keys(mappedJob.stateHistory)[0];
@@ -703,7 +699,7 @@ class JobMap extends React.Component {
         }
 
         // Check state has changed
-        if (job.state != mappedJob.state) {
+        if (job.state !== mappedJob.state) {
           // console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
           mappedJob.lastActionDate = today;
           mappedJob.state = job.state;
@@ -755,7 +751,7 @@ class JobMap extends React.Component {
     this.props.wfmLeads.forEach(wfmLead => {
       var lead = currentState[wfmLead.wfmID];
       delete currentState[wfmLead.wfmID];
-      if (lead != undefined) {
+      if (lead !== undefined) {
         // Update state history of job
         // if(mappedJob.nextActionDate == undefined) {
         //   mappedJob.nextActionDate = this.getNextActionDate(wfmLead.activities);
@@ -798,7 +794,7 @@ class JobMap extends React.Component {
         }
       } else {
         console.log('Making new job: ' + wfmLead['wfmID']);
-        var lead = {};
+        lead = {};
         lead.wfmID = wfmLead.wfmID;
         lead.client = wfmLead.client;
         lead.name = wfmLead.name;
@@ -820,7 +816,7 @@ class JobMap extends React.Component {
             this.getCompletionDateFromHistory(activity, wfmLead.history)
           );
         }
-        var completedActivities = this.getCompletedActivities(lead.activities);
+        completedActivities = this.getCompletedActivities(lead.activities);
 
         lead.lastActionDate = this.getLastActionDateFromActivities(
           completedActivities,
@@ -858,7 +854,7 @@ class JobMap extends React.Component {
       console.log(job);
       job.lastActionDate = today;
       job.state = 'Completed';
-      if (job.stateHistory != undefined) {
+      if (job.stateHistory !== undefined) {
         job.stateHistory[today] = 'Completed';
       } else {
         job.stateHistory = {[today]: 'Completed'};
@@ -880,7 +876,7 @@ class JobMap extends React.Component {
     var filterOnVar = 'filterOn' + type;
     let filter = chip;
     let filterOn = true;
-    if (this.state.filterJobMap[filterVar] == chip) {
+    if (this.state.filterJobMap[filterVar] === chip) {
       filter = '';
       filterOn = false;
     }
@@ -912,8 +908,8 @@ class JobMap extends React.Component {
   }
 
   applyFilters = m => {
-    if (!this.state.filterJobMap.filterViewCompleted && m.state == 'Completed') return false;
-    if (!this.state.filterJobMap.filterK2Jobs && m.client == 'K2 Environmental Ltd') return false;
+    if (!this.state.filterJobMap.filterViewCompleted && m.state === 'Completed') return false;
+    if (!this.state.filterJobMap.filterK2Jobs && m.client === 'K2 Environmental Ltd') return false;
 
     // Simplify categories and states
     var category = m.category.toLowerCase();
@@ -925,12 +921,12 @@ class JobMap extends React.Component {
       else if (category.includes('workplace')) category = 'Workplace';
       else category = 'Other';
 
-    var state = m.state != undefined ? m.state.toLowerCase() : 'Lead';
+    var state = m.state !== undefined ? m.state.toLowerCase() : 'Lead';
     if (!m.isJob) state = 'Lead';
-      else if (state == 'completed') state = 'Completed';
-      else if (state == 'needs booking') state = 'Needs Booking';
-      else if (state == 'planned') state = 'Planned';
-      else if (state == 'in progress') state = 'Site Work';
+      else if (state === 'completed') state = 'Completed';
+      else if (state === 'needs booking') state = 'Needs Booking';
+      else if (state === 'planned') state = 'Planned';
+      else if (state === 'in progress') state = 'Site Work';
       else if ("waiting for resultswaiting on lab unbundlewaiting on lab amendment".includes(state)) state = 'Lab';
       else if ("needs writingneeds finishingbeing writtenready to be checkedbeing checkedbeen checked, needs fixingready for ktpbeing ktp'dktped, actions needed".includes(state)) state = 'Report';
       else state = 'Admin';
@@ -938,22 +934,22 @@ class JobMap extends React.Component {
     // Category
     if (
       this.state.filterJobMap.filterOnCategory &&
-      this.state.filterJobMap.filterCategory != category
+      this.state.filterJobMap.filterCategory !== category
     )
       return false;
 
     // Job state
     if (
       this.state.filterJobMap.filterOnState &&
-      this.state.filterJobMap.filterState != state
+      this.state.filterJobMap.filterState !== state
     )
       return false;
 
     // Job or lead
     if (
       this.state.filterJobMap.filterOnJobLead &&
-      ((this.state.filterJobMap.filterJobLead == 'Jobs' && !m.isJob) ||
-      (this.state.filterJobMap.filterJobLead == 'Leads' && m.isJob))
+      ((this.state.filterJobMap.filterJobLead === 'Jobs' && !m.isJob) ||
+      (this.state.filterJobMap.filterJobLead === 'Leads' && m.isJob))
     )
       return false;
 
@@ -963,7 +959,7 @@ class JobMap extends React.Component {
 
     // Completion date
     if (this.state.filterJobMap.filterCompletedInTheLast &&
-      (m.state != 'Completed' || this.getDaysSinceDate(m.completeDate) >= this.state.filterJobMap.completedInTheLast)) return false;
+      (m.state !== 'Completed' || this.getDaysSinceDate(m.completeDate) >= this.state.filterJobMap.completedInTheLast)) return false;
 
     // Days since last update
     if (this.state.filterJobMap.filterUpdatedInTheLast &&
@@ -1099,12 +1095,12 @@ class JobMap extends React.Component {
   };
 
   render() {
-    const { wfmJobs, wfmLeads, wfmClients, geocodes, classes, currentJobState } = this.props;
+    const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState } = this.props;
     if (
       wfmJobs.length > 0 &&
       wfmLeads.length > 0 &&
       wfmClients.length > 0 &&
-      currentJobState != undefined &&
+      currentJobState !== undefined &&
       Object.values(currentJobState).length > 0 &&
       this.state.leads.length === 0
     )
@@ -1174,7 +1170,7 @@ class JobMap extends React.Component {
               {this.state.jobModal.lastActionDate && (
                 <div>
                   {this.state.jobModal.state && (<span><b>Last Action:</b> State changed to <i>{this.state.jobModal.state}</i> </span>) }
-                   ({this.getDaysSinceDate(this.state.jobModal.lastActionDate)} {this.getDaysSinceDate(this.state.jobModal.lastActionDate) == 1 ? 'day' : 'days'} ago)
+                   ({this.getDaysSinceDate(this.state.jobModal.lastActionDate)} {this.getDaysSinceDate(this.state.jobModal.lastActionDate) === 1 ? 'day' : 'days'} ago)
                 </div>
               )}
               {this.state.jobModal.stateHistory && (
@@ -1201,7 +1197,7 @@ class JobMap extends React.Component {
               {this.state.jobModal.lastActionDate && (
                 <div>
                   {this.state.jobModal.lastActionType && (<span><b>Last Action:</b> {this.state.jobModal.lastActionType} </span>)}
-                   ({this.getDaysSinceDate(this.state.jobModal.lastActionDate)} {this.getDaysSinceDate(this.state.jobModal.lastActionDate) == 1 ? 'day' : 'days'} ago)
+                   ({this.getDaysSinceDate(this.state.jobModal.lastActionDate)} {this.getDaysSinceDate(this.state.jobModal.lastActionDate) === 1 ? 'day' : 'days'} ago)
                 </div>
               )}
               {this.state.jobModal.nextActionType && (
@@ -1226,7 +1222,7 @@ class JobMap extends React.Component {
               {this.state.jobModal.activities && this.state.jobModal.activities.length > 0 && (
                 <div><br /><h6 style={{ color: this.getColour(this.state.jobModal.category) }}>Activities</h6>
                 { this.state.jobModal.activities.map((activity) => {
-                  if(activity.completed == 'Yes') {
+                  if(activity.completed === 'Yes') {
                     return (
                       <span key={activity.date} style={{ textDecoration: 'line-through'}}>
                         <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
@@ -1252,7 +1248,7 @@ class JobMap extends React.Component {
                 <a
                   style={{ textDecoration: "none", color: "#FF2D00" }}
                   target="_blank"
-                  rel="noopener nonreferrer"
+                  rel="noopener noreferrer"
                   href={this.getWfmUrl(this.state.jobModal)}
                 >
                   View on WorkflowMax
@@ -1295,7 +1291,7 @@ class JobMap extends React.Component {
                     var days = this.getDaysSinceDate(m.lastActionDate);
                     if (days < 1) {
                       stateStr = 'Changed state to ' + m.state + ' today';
-                    } else if (days == 1) {
+                    } else if (days === 1) {
                       stateStr = 'Changed state to ' + m.state + ' yesterday';
                     } else if (days < 7) {
                       stateStr = 'Changed state to ' + m.state + ' ' + days + ' days ago';
@@ -1303,14 +1299,14 @@ class JobMap extends React.Component {
                       stateStr = 'Has not changed state in ' + days + ' days';
                     }
                   } else {
-                    var days = this.getNextActionOverdueBy(m.activities);
+                    days = this.getNextActionOverdueBy(m.activities);
                     if (days > 1) {
                       stateStr = 'Actions overdue by ' + days + ' days';
-                    } else if (days == 1) {
+                    } else if (days === 1) {
                       stateStr = 'Actions overdue by 1 day';
-                    } else if (days == 0) {
+                    } else if (days === 0) {
                       stateStr = 'Actions due today';
-                    } else if (days == -1) {
+                    } else if (days === -1) {
                       stateStr = 'Actions due tomorrow';
                     } else {
                       stateStr = 'Actions due in ' + (days*-1) + ' days';
@@ -1414,7 +1410,7 @@ class JobMap extends React.Component {
                             style={{ fontSize: 12 }}
                             variant="outlined"
                             color={
-                              this.state.filterJobMap.filterJobLead == chip ? "secondary" : "default"
+                              this.state.filterJobMap.filterJobLead === chip ? "secondary" : "default"
                             }
                             onClick={() => this.filterSet(chip,"JobLead")}
                           >
@@ -1481,7 +1477,7 @@ class JobMap extends React.Component {
                             style={{ fontSize: 12 }}
                             variant="outlined"
                             color={
-                              this.state.filterJobMap.filterState == chip ? "secondary" : "default"
+                              this.state.filterJobMap.filterState === chip ? "secondary" : "default"
                             }
                             onClick={() => this.filterSet(chip,"State")}
                           >
@@ -1509,7 +1505,7 @@ class JobMap extends React.Component {
                             style={{ fontSize: 12, color: colour }}
                             variant="outlined"
                             color={
-                              this.state.filterJobMap.filterCategory == chip
+                              this.state.filterJobMap.filterCategory === chip
                                 ? "secondary"
                                 : "default"
                             }
@@ -1710,6 +1706,8 @@ class JobMap extends React.Component {
                       }}
                     />
                   );
+                } else {
+                  return false;
                 }
               })}
               <InfoWindow
@@ -1753,7 +1751,7 @@ class JobMap extends React.Component {
                     {this.state.m.lastActionDate && (
                       <div>
                         {this.state.m.state && (<span><b>Last Action:</b> State changed to <i>{this.state.m.state}</i> </span>) }
-                         ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) == 1 ? 'day' : 'days'} ago)
+                         ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
                       </div>
                     )}
                     {this.state.m.stateHistory && (
@@ -1780,7 +1778,7 @@ class JobMap extends React.Component {
                     {this.state.m.lastActionDate && (
                       <div>
                         {this.state.m.lastActionType && (<span><b>Last Action:</b> {this.state.m.lastActionType} </span>)}
-                         ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) == 1 ? 'day' : 'days'} ago)
+                         ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
                       </div>
                     )}
                     {this.state.m.nextActionType && (
@@ -1805,7 +1803,7 @@ class JobMap extends React.Component {
                     {this.state.m.activities && this.state.m.activities.length > 0 && (
                       <div><br /><h6 style={{ color: this.getColour(this.state.m.category) }}>Activities</h6>
                       { this.state.m.activities.map((activity) => {
-                        if(activity.completed == 'Yes') {
+                        if(activity.completed === 'Yes') {
                           return (
                             <span key={activity.date} style={{ textDecoration: 'line-through'}}>
                               <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
@@ -1831,7 +1829,7 @@ class JobMap extends React.Component {
                       <a
                         style={{ textDecoration: "none", color: "#FF2D00" }}
                         target="_blank"
-                        rel="noopener nonreferrer"
+                        rel="noopener noreferrer"
                         href={this.getWfmUrl(this.state.m)}
                       >
                         View on WorkflowMax

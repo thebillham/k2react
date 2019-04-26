@@ -1,8 +1,6 @@
 import {
   APP_HAS_LOADED,
   CAT_CHANGE,
-  DELETE_NOTICE,
-  FAV_NOTICE,
   GET_AIRANALYSTS,
   GET_BULKANALYSTS,
   GET_COCS,
@@ -10,6 +8,7 @@ import {
   GET_EDIT_STAFF,
   GET_GEOCODES,
   GET_HELP,
+  GET_INCIDENTS,
   GET_ME,
   GET_METHODLOG,
   GET_METHODS,
@@ -32,7 +31,6 @@ import {
   GET_CURRENT_JOB_STATE,
   SAVE_WFM_ITEMS,
   SAVE_WFM_STATS,
-  READ_NOTICE,
   RESET_LOCAL,
   SEARCH_CHANGE,
   SET_ANALYSIS_MODE,
@@ -42,7 +40,6 @@ import {
   UPDATE_STAFF,
   EDIT_MODAL_DOC
 } from "../constants/action-types";
-import firebase from "../config/firebase";
 import moment from "moment";
 import {
   asbestosSamplesRef,
@@ -50,6 +47,7 @@ import {
   cocsRef,
   docsRef,
   helpRef,
+  incidentsRef,
   methodsRef,
   noticesRef,
   questionsRef,
@@ -405,6 +403,35 @@ export const fetchNotices = update => async dispatch => {
         dispatch({ type: GET_NOTICES, payload: doc.data().payload });
       } else {
         console.log("Notices doesn't exist");
+      }
+    });
+  }
+};
+
+export const fetchIncidents = update => async dispatch => {
+  if (update) {
+    incidentsRef
+      // .orderBy("date", "desc")
+      // .limit(100)
+      .onSnapshot(querySnapshot => {
+        var incidents = [];
+        querySnapshot.forEach(doc => {
+          let incident = doc.data();
+          incident.uid = doc.id;
+          incidents.push(incident);
+        });
+        dispatch({
+          type: GET_INCIDENTS,
+          payload: incidents,
+          update: true
+        });
+      });
+  } else {
+    stateRef.doc("incidents").onSnapshot(doc => {
+      if (doc.exists) {
+        dispatch({ type: GET_INCIDENTS, payload: doc.data().payload });
+      } else {
+        console.log("Incidents doesn't exist");
       }
     });
   }
@@ -1031,7 +1058,6 @@ export const setStepper = (steppers, uid, step) => dispatch => {
 };
 
 export const copyStaff = (oldId, newId) => dispatch => {
-  let user = {};
   usersRef
     .doc(oldId)
     .get()
@@ -1133,12 +1159,9 @@ export const analyseJobHistory = () => dispatch => {
   buckets.forEach((bucket) => {
     jobMap[bucket] = {};
   });
-  var leadTypes = {};
   var jobTypes = {};
   var jobCategorys = {};
   var stateChangeDates = {};
-  var complete = 0;
-  var incomplete = 0;
 
   var completionMap = {};
   var creationMap = {};
@@ -1156,9 +1179,9 @@ export const analyseJobHistory = () => dispatch => {
         const buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
         if (state.length > 0) {
           buckets.forEach((bucket) => {
-            if (jobMap[bucket] != undefined) {
+            if (jobMap[bucket] !== undefined) {
               Object.values(jobMap[bucket]).forEach((job) => {
-                if (job.state !== 'Completed' && state.filter((stateJob) => stateJob.wfmID == job.wfmID).length == 0) {
+                if (job.state !== 'Completed' && state.filter((stateJob) => stateJob.wfmID === job.wfmID).length === 0) {
                   // Job or lead has been completed
                   jobMap[bucket][job.wfmID]['state'] = 'Completed';
                   jobMap[bucket][job.wfmID]['completionDate'] = doc.id;
@@ -1178,9 +1201,9 @@ export const analyseJobHistory = () => dispatch => {
                     name: jobMap[bucket][job.wfmID]['name'],
                     wfmID: jobMap[bucket][job.wfmID]['wfmID'],
                   };
-                  if (jobMap[bucket][job.wfmID]['stateHistory'] != undefined) completionDoc.stateHistory = jobMap[bucket][job.wfmID]['stateHistory'];
-                  if (jobMap[bucket][job.wfmID]['completedActivities'] != undefined)
-                  if (completionMap[doc.id] != undefined) {
+                  if (jobMap[bucket][job.wfmID]['stateHistory'] !== undefined) completionDoc.stateHistory = jobMap[bucket][job.wfmID]['stateHistory'];
+                  if (jobMap[bucket][job.wfmID]['completedActivities'] !== undefined)
+                  if (completionMap[doc.id] !== undefined) {
                     completionMap[doc.id] = [...completionMap[doc.id], completionDoc];
                   } else {
                     completionMap[doc.id] = [completionDoc];
@@ -1199,20 +1222,20 @@ export const analyseJobHistory = () => dispatch => {
             var bucket = 'jobs';
             if (job.category.toLowerCase().includes('asbestos')) bucket = 'asbestos';
             if (job.category.toLowerCase().includes('meth')) bucket = 'meth';
-            if (job.category == 'Workplace') bucket = 'workplace';
-            if (job.category == 'Biological') bucket = 'bio';
-            if (job.category == 'Stack Testing') bucket = 'stack';
-            if (job.category == 'Noise') bucket = 'noise';
+            if (job.category === 'Workplace') bucket = 'workplace';
+            if (job.category === 'Biological') bucket = 'bio';
+            if (job.category === 'Stack Testing') bucket = 'stack';
+            if (job.category === 'Noise') bucket = 'noise';
 
             var mappedJob = jobMap[bucket][job.wfmID];
-            if (mappedJob != undefined) {
+            if (mappedJob !== undefined) {
             // Update current job (Check if state has been updated)
-              if (job.state != mappedJob.state) {
+              if (job.state !== mappedJob.state) {
                 // State has been updated
 
                 // Create a list of all job states/change dates (not necessary)
-                if (jobTypes[job.state] != undefined) jobTypes[job.state][bucket] = ''; else jobTypes[job.state] = {[bucket]: ''};
-                if (stateChangeDates[doc.id] != undefined) stateChangeDates[doc.id][bucket] = ''; else stateChangeDates[doc.id] = {[bucket]: ''};
+                if (jobTypes[job.state] !== undefined) jobTypes[job.state][bucket] = ''; else jobTypes[job.state] = {[bucket]: ''};
+                if (stateChangeDates[doc.id] !== undefined) stateChangeDates[doc.id][bucket] = ''; else stateChangeDates[doc.id] = {[bucket]: ''};
 
                 // Update mapped job
                 mappedJob.state = job.state;
@@ -1224,7 +1247,7 @@ export const analyseJobHistory = () => dispatch => {
               }
             } else {
               // Talley how many jobs in each category (not necessary)
-              if (jobCategorys[job.category] != undefined) {
+              if (jobCategorys[job.category] !== undefined) {
                 jobCategorys[job.category] = jobCategorys[job.category] + 1;
               } else {
                 jobCategorys[job.category] = 1;
@@ -1233,7 +1256,7 @@ export const analyseJobHistory = () => dispatch => {
               // Add new job to map
               job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
               job.lastActionDate = doc.id;
-              if (job.daysOld != undefined) delete job.daysOld;
+              if (job.daysOld !== undefined) delete job.daysOld;
               job.stateHistory = {
                 [job.creationDate]: 'Job Created',
                 [doc.id]: job['state'],
@@ -1252,7 +1275,7 @@ export const analyseJobHistory = () => dispatch => {
                 name: job.name,
                 wfmID: job.wfmID,
               };
-              if (creationMap[doc.id] != undefined) {
+              if (creationMap[doc.id] !== undefined) {
                 creationMap[doc.id] = [...creationMap[doc.id], creationDoc];
               } else {
                 creationMap[doc.id] = [creationDoc];
@@ -1260,12 +1283,12 @@ export const analyseJobHistory = () => dispatch => {
             }
           } else {
             // Leads have their state history in already (activities)
-            if (job.averageCompletedActionOverdueDays != undefined) delete job.averageCompletedActionOverdueDays;
+            if (job.averageCompletedActionOverdueDays !== undefined) delete job.averageCompletedActionOverdueDays;
             job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
-            if (job.daysOld != undefined) delete job.daysOld;
-            if (job.daysSinceLastAction != undefined) delete job.daysSinceLastAction;
-            if (job.urgentAction != undefined) delete job.urgentAction;
-            if (job.completedActivities != undefined) delete job.completedActivities;
+            if (job.daysOld !== undefined) delete job.daysOld;
+            if (job.daysSinceLastAction !== undefined) delete job.daysSinceLastAction;
+            if (job.urgentAction !== undefined) delete job.urgentAction;
+            if (job.completedActivities !== undefined) delete job.completedActivities;
 
             jobMap['leads'][job.wfmID] = job;
           }
@@ -1287,7 +1310,7 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
     querySnapshot.forEach((doc) => {
       if(ignoreCompleted) {
         Object.values(doc.data()).forEach((job) => {
-          if (job['state'] != "Completed") currentJobState[job['wfmID']] = job;
+          if (job['state'] !== "Completed") currentJobState[job['wfmID']] = job;
         });
       } else {
         currentJobState = {
@@ -1318,10 +1341,10 @@ export const saveCurrentJobState = state => dispatch => {
       var bucket = 'jobs';
       if (job.category.toLowerCase().includes('asbestos')) bucket = 'asbestos';
       if (job.category.toLowerCase().includes('meth')) bucket = 'meth';
-      if (job.category == 'Workplace') bucket = 'workplace';
-      if (job.category == 'Biological') bucket = 'bio';
-      if (job.category == 'Stack Testing') bucket = 'stack';
-      if (job.category == 'Noise') bucket = 'noise';
+      if (job.category === 'Workplace') bucket = 'workplace';
+      if (job.category === 'Biological') bucket = 'bio';
+      if (job.category === 'Stack Testing') bucket = 'stack';
+      if (job.category === 'Noise') bucket = 'noise';
       sortedState[bucket][job.wfmID] = job;
     } else {
       sortedState['leads'][job.wfmID] = job;
@@ -1334,11 +1357,11 @@ export const saveCurrentJobState = state => dispatch => {
     stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket], { merge: true });
   });
 };
-
-function getDaysSinceDate(date) {
-  var timeDifference = new Date() - new Date(date);
-  var divideBy = 86400000;
-  var days = Math.floor(timeDifference / divideBy);
-
-  return days;
-};
+//
+// function getDaysSinceDate(date) {
+//   var timeDifference = new Date() - new Date(date);
+//   var divideBy = 86400000;
+//   var days = Math.floor(timeDifference / divideBy);
+//
+//   return days;
+// };

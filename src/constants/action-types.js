@@ -14,6 +14,7 @@ export const GET_DOCUMENTS = "GET_DOCUMENTS";
 export const GET_EDIT_STAFF = "GET_EDIT_STAFF";
 export const GET_GEOCODES = "GET_GEOCODES";
 export const GET_HELP = "GET_HELP";
+export const GET_INCIDENTS = "GET_INCIDENTS";
 export const GET_ME = "GET_ME";
 export const GET_METHODLOG = "GET_METHODLOG";
 export const GET_METHODS = "GET_METHODS";

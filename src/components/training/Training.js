@@ -19,9 +19,6 @@ import Edit from "@material-ui/icons/Edit";
 
 import {
   TRAINING,
-  QUIZ,
-  QUESTION,
-  DOCUMENT
 } from "../../constants/modal-types";
 import {
   fetchTrainingPaths,

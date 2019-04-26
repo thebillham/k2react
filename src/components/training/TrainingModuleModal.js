@@ -955,7 +955,6 @@ class TrainingModuleModal extends React.Component {
             <Grid item xs={3}>
               <TextField
                 id={"number" + i}
-                id="checklist"
                 type="number"
                 defaultValue={
                   doc.steps &&
@@ -1024,32 +1023,25 @@ class TrainingModuleModal extends React.Component {
     switch (this.state.page) {
       case 1:
         return page1;
-        break;
       case 2:
         return page2;
-        break;
       case 3:
         return page3;
-        break;
       case 4:
         return page4;
-        break;
       case 5:
         return page5;
-        break;
       case 6:
         return page6;
-        break;
       case 7:
         return page7;
-        break;
       default:
         return page1;
     }
   };
 
   render() {
-    const { modalProps, doc, classes } = this.props;
+    const { modalProps, doc } = this.props;
 
     return (
       <Dialog

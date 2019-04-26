@@ -363,6 +363,20 @@ const constInit = {
       desc: "Admin"
     }
   ],
+  incidentcategories: [
+    {
+      key: "injury",
+      desc: "Injury",
+    },
+    {
+      key: "damage",
+      desc: "Damage to Property",
+    },
+    {
+      key: "nearmiss",
+      desc: "Near Miss",
+    },
+  ],
   documentcategories: [
     {
       key: "gen",

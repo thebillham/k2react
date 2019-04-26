@@ -56,6 +56,7 @@ import HelpIcon from "@material-ui/icons/Help";
 import UpdatesIcon from "@material-ui/icons/Update";
 import SettingsIcon from "@material-ui/icons/Settings";
 import UpdateIcon from "@material-ui/icons/Cached";
+import IncidentIcon from '@material-ui/icons/LocalHospital';
 
 import MenuIcon from "@material-ui/icons/Menu";
 import SearchIcon from "@material-ui/icons/Search";
@@ -77,9 +78,10 @@ import { initConstants } from "../actions/const";
 import { fixIds } from "../actions/temp";
 
 // Pages
-const Dashboard = lazy(() => import("./dashboard/Dashboard"));
-const Vehicles = lazy(() => import("./assets/Vehicles"));
+// const Dashboard = lazy(() => import("./dashboard/Dashboard"));
+// const Vehicles = lazy(() => import("./assets/Vehicles"));
 const Noticeboard = lazy(() => import("./noticeboard/Noticeboard"));
+const Incidents = lazy(() => import("./incidents/Incidents"));
 const AsbestosLab = lazy(() => import("./asbestoslab/AsbestosLab"));
 const Jobs = lazy(() => import("./jobs/Jobs"));
 const JobMap = lazy(() => import("./jobs/JobMap"));
@@ -241,10 +243,10 @@ class MainScreen extends React.Component {
   };
 
   handleTrainingClick = () => {
-    // this.setState({
-    //   openDrawer: true,
-    //   openTraining: !this.state.openTraining
-    // });
+    this.setState({
+      openDrawer: true,
+      openTraining: !this.state.openTraining
+    });
   };
 
   render() {
@@ -318,6 +320,17 @@ class MainScreen extends React.Component {
               <NoticeboardIcon className={classes.accentButton} />
             </ListItemIcon>
             <ListItemText primary="Noticeboard" />
+          </ListItem>
+
+          <ListItem
+            button
+            component={Link}
+            to="/incidents"
+          >
+            <ListItemIcon>
+              <IncidentIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="Incidents" />
           </ListItem>
 
           <ListItem
@@ -481,7 +494,7 @@ class MainScreen extends React.Component {
               <ListItemText primary="Library" />
             </ListItem>
             <List component="div" disablePadding>
-              <ListItem
+              {/*<ListItem
                 button
                 component={Link}
                 to="/vehicles"
@@ -491,7 +504,7 @@ class MainScreen extends React.Component {
                   <VehiclesIcon className={classes.accentButton} />
                 </ListItemIcon>
                 <ListItemText primary="Vehicles" className={classes.subitem} />
-              </ListItem>
+              </ListItem>*/}
 
               <ListItem
                 button
@@ -599,7 +612,7 @@ class MainScreen extends React.Component {
                 </ListItemIcon>
                 <ListItemText primary="Help" />
               </ListItem>
-              <ListItem
+              {/*<ListItem
                 button
                 component={Link}
                 to="/updates"
@@ -609,7 +622,7 @@ class MainScreen extends React.Component {
                   <UpdatesIcon className={classes.accentButton} />
                 </ListItemIcon>
                 <ListItemText primary="Version Updates" />
-              </ListItem>
+              </ListItem>*/}
             </List>
           </Collapse>
         </List>
@@ -692,6 +705,10 @@ class MainScreen extends React.Component {
                         <Route
                           path="/noticeboard"
                           render={() => <div>Noticeboard</div>}
+                        />
+                        <Route
+                          path="/incidents"
+                          render={() => <div>Incidents</div>}
                         />
                         <Route
                           exact
@@ -790,7 +807,7 @@ class MainScreen extends React.Component {
                     </Typography>
                     <Route
                       exact
-                      path="/(library|training|modules|noticeboard||lab|tools|noticeboard|help|staff|vehicles|quizzes|questions)"
+                      path="/(library|training|modules|noticeboard||lab|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
                       render={() => (
                         <div className={classes.search}>
                           <div className={classes.searchIcon}>
@@ -876,11 +893,12 @@ class MainScreen extends React.Component {
                         component={UserDetails}
                         key="staffdetails"
                       />
-                      <Route exact path="/vehicles" component={Vehicles} />
+                      {/*<Route exact path="/vehicles" component={Vehicles} />*/}
                       <Route path="/help" component={Help} />
-                      <Route path="/updates" component={Updates} />
-                      <Route path="/dashboard" component={Dashboard} />
+                      {/*<Route path="/updates" component={Updates} />*/}
+                      {/*<Route path="/dashboard" component={Dashboard} />*/}
                       <Route path="/noticeboard" component={Noticeboard} />
+                      <Route path="/incidents" component={Incidents} />
                       <Route exact path="/jobs" component={Jobs} />
                       <Route path="/jobs/map" component={JobMap} />
                       <Route path="/lab" component={AsbestosLab} />
