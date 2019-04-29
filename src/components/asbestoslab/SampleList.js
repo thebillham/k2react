@@ -145,8 +145,8 @@ class SampleList extends React.Component {
 
   onSubmitEdit = uid => {
     var change = {};
-    if (this.state.samplenumber)
-      change["samplenumber"] = this.state.samplenumber;
+    if (this.state.sampleNumber)
+      change["sampleNumber"] = this.state.sampleNumber;
     if (this.state.description) change["description"] = this.state.description;
     if (this.state.material) change["material"] = this.state.material;
     if (Object.keys(change).length > 0) {
@@ -155,7 +155,7 @@ class SampleList extends React.Component {
       this.setState({
         material: null,
         description: null,
-        samplenumber: null
+        sampleNumber: null
       });
       asbestosSamplesRef.doc(uid).update(change);
     }
@@ -166,7 +166,7 @@ class SampleList extends React.Component {
     job.samples.forEach(sample => {
       if (sample.reported) {
         let samplemap = {};
-        samplemap["no"] = sample.samplenumber;
+        samplemap["no"] = sample.sampleNumber;
         samplemap["description"] =
           sample.description.charAt(0).toUpperCase() +
           sample.description.slice(1);
@@ -306,7 +306,7 @@ class SampleList extends React.Component {
                               className={classes.hoverItem}
                               key={
                                 sample.jobnumber +
-                                sample.samplenumber +
+                                sample.sampleNumber +
                                 sample.description
                               }
                             >
@@ -373,9 +373,9 @@ class SampleList extends React.Component {
                                       }}
                                     >
                                       <TextField
-                                        id="samplenumber"
+                                        id="sampleNumber"
                                         label="Sample number"
-                                        defaultValue={sample.samplenumber}
+                                        defaultValue={sample.sampleNumber}
                                         onChange={e =>
                                           this.onEdit(e.target, sample.uid)
                                         }
@@ -413,7 +413,7 @@ class SampleList extends React.Component {
                                       fontWeight: "bold"
                                     }}
                                   >
-                                    {sample.samplenumber}
+                                    {sample.sampleNumber}
                                   </div>
                                   {sample.description + ", " + sample.material}
                                 </div>

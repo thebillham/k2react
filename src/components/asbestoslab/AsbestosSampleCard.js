@@ -35,7 +35,7 @@ function AsbestosSampleCard(props) {
     <Grid container key={sample.uid}>
       <Grid item xs={1}>
       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: 16, marginRight: 10}}>
-        {sample.samplenumber}
+        {sample.sampleNumber}
       </div>
       </Grid>
       <Grid item xs={11}>

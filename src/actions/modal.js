@@ -186,7 +186,7 @@ export const handleCocSubmit = ({ doc, docid }) => dispatch => {
         }
         sample2.jobNumber = doc.jobNumber;
         sample2.cocUid = docid;
-        sample2.samplenumber = parseInt(sample, 10);
+        sample2.sampleNumber = parseInt(sample, 10);
         if ("disabled" in sample2) delete sample2.disabled;
         console.log("Sample 2");
         console.log(sample2);

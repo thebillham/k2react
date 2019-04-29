@@ -575,7 +575,7 @@ export const fetchSamples = (cocUid, jobNumber, modalDoc) => async dispatch => {
       sampleSnapshot.forEach(sampleDoc => {
         let sample = sampleDoc.data();
         sample.uid = sampleDoc.id;
-        samples[sample.samplenumber] = sample;
+        samples[sample.sampleNumber] = sample;
         // console.log(`Ran fetch Samples`);
         // console.log(samples);
         if (modalDoc) {

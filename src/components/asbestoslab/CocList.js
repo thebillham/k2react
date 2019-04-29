@@ -104,10 +104,10 @@ class CocList extends React.Component {
     let log = {
       type: "Received",
       log: receiveddate
-        ? `Sample ${sample.samplenumber} (${sample.description} ${
+        ? `Sample ${sample.sampleNumber} (${sample.description} ${
             sample.material
           }) received by lab.`
-        : `Sample ${sample.samplenumber} (${sample.description} ${
+        : `Sample ${sample.sampleNumber} (${sample.description} ${
             sample.material
           }) unchecked as being received.`,
       user: auth.currentUser.uid,
@@ -136,10 +136,10 @@ class CocList extends React.Component {
     let log = {
       type: "Analysis",
       log: analysisstart
-        ? `Analysis begun on Sample ${sample.samplenumber} (${sample.description} ${
+        ? `Analysis begun on Sample ${sample.sampleNumber} (${sample.description} ${
             sample.material
           }).`
-        : `Analysis stopped for Sample ${sample.samplenumber} (${sample.description} ${
+        : `Analysis stopped for Sample ${sample.sampleNumber} (${sample.description} ${
             sample.material
           }).`,
       user: auth.currentUser.uid,
@@ -177,10 +177,10 @@ class CocList extends React.Component {
         let log = {
           type: "Reported",
           log: reportdate
-            ? `Sample ${sample.samplenumber} (${sample.description} ${
+            ? `Sample ${sample.sampleNumber} (${sample.description} ${
                 sample.material
               }) result checked.`
-            : `Sample ${sample.samplenumber} (${sample.description} ${
+            : `Sample ${sample.sampleNumber} (${sample.description} ${
                 sample.material
               }) result unchecked.`,
           user: auth.currentUser.uid,
@@ -233,7 +233,7 @@ class CocList extends React.Component {
         ) {
           cocLog.push({
             type: "Analysis",
-            log: `Previous analysis of sample ${sample.samplenumber} (${
+            log: `Previous analysis of sample ${sample.sampleNumber} (${
               sample.description
             } ${sample.material}) overridden.`,
             user: auth.currentUser.uid,
@@ -277,7 +277,7 @@ class CocList extends React.Component {
 
       cocLog.push({
         type: "Analysis",
-        log: `New analysis for sample ${sample.samplenumber} (${
+        log: `New analysis for sample ${sample.sampleNumber} (${
           sample.description
         } ${sample.material}): ${this.writeResult(newmap)}`,
         user: auth.currentUser.uid,
@@ -393,7 +393,7 @@ class CocList extends React.Component {
         if (sample.reported) {
           let samplemap = {};
           if (sample.disabled) return;
-          samplemap["no"] = sample.samplenumber;
+          samplemap["no"] = sample.sampleNumber;
           samplemap["description"] =
             sample.description.charAt(0).toUpperCase() +
             sample.description.slice(1);
@@ -548,7 +548,7 @@ class CocList extends React.Component {
       Object.values(this.props.samples[job.uid]).forEach(sample => {
         let samplemap = {};
         if (sample.disabled) return;
-        samplemap["no"] = sample.samplenumber;
+        samplemap["no"] = sample.sampleNumber;
         samplemap["description"] =
           sample.description.charAt(0).toUpperCase() +
           sample.description.slice(1);
@@ -870,14 +870,14 @@ class CocList extends React.Component {
                       nocolor = "green";
                       nodivcolor = "lightgreen";
                     }
-                    
+
                     return (
                       <ListItem
                         dense
                         className={classes.hoverItem}
                         key={`${
                           job.jobNumber
-                        }-${sample.samplenumber.toString()}_${
+                        }-${sample.sampleNumber.toString()}_${
                           sample.description
                         }`}
                       >
@@ -937,7 +937,7 @@ class CocList extends React.Component {
                                 fontWeight: "bold"
                               }}
                             >
-                              {sample.samplenumber}
+                              {sample.sampleNumber}
                             </div>
                             {this.writeDescription(
                               sample.description,
@@ -1094,7 +1094,7 @@ class CocList extends React.Component {
                               onClick={event => {
                                 this.setState({
                                   sampleAnchorEl: {
-                                    [sample.samplenumber]: event.currentTarget
+                                    [sample.sampleNumber]: event.currentTarget
                                   }
                                 });
                               }}
@@ -1104,17 +1104,17 @@ class CocList extends React.Component {
                             <Menu
                               id={`${
                                 job.jobNumber
-                              }-${sample.samplenumber.toString()}`}
+                              }-${sample.sampleNumber.toString()}`}
                               anchorEl={
-                                this.state.sampleAnchorEl[sample.samplenumber]
+                                this.state.sampleAnchorEl[sample.sampleNumber]
                               }
                               open={Boolean(
-                                this.state.sampleAnchorEl[sample.samplenumber]
+                                this.state.sampleAnchorEl[sample.sampleNumber]
                               )}
                               onClose={() => {
                                 this.setState({
                                   sampleAnchorEl: {
-                                    [sample.samplenumber]: null
+                                    [sample.sampleNumber]: null
                                   }
                                 });
                               }}
@@ -1123,7 +1123,7 @@ class CocList extends React.Component {
                               <MenuItem
                                 key={`${
                                   job.jobNumber
-                                }-${sample.samplenumber.toString()}-WA`}
+                                }-${sample.sampleNumber.toString()}-WA`}
                                 onClick={() => {
                                   this.props.showModal({
                                     modalType: WAANALYSIS,
@@ -1140,14 +1140,14 @@ class CocList extends React.Component {
                               <MenuItem
                                 key={`${
                                   job.jobNumber
-                                }-${sample.samplenumber.toString()}-SampleHistory`}
+                                }-${sample.sampleNumber.toString()}-SampleHistory`}
                                 onClick={() => {
                                   this.props.showModal({
                                     modalType: SAMPLEHISTORY,
                                     modalProps: {
                                       title: `Sample History for ${
                                         job.jobNumber
-                                      }-${sample.samplenumber.toString()}`,
+                                      }-${sample.sampleNumber.toString()}`,
                                       uid: sample.uid,
                                       cocLog: job.cocLog,
                                   }

@@ -87,6 +87,27 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+const initFilterJobMap = {
+  filterViewCompleted: false,
+  filterJobLead: '',
+  filterOnJobLead: false,
+  filterCategory: '',
+  filterOnCategory: false,
+  filterState: '',
+  filterOnState: false,
+
+  filterK2Jobs: false,
+
+  filterCreatedInTheLast: false,
+  createdInTheLast: 7,
+  filterCompletedInTheLast: false,
+  completedInTheLast: 7,
+  filterUpdatedInTheLast: false,
+  updatedInTheLast: 7,
+  filterActionsOverdueBy: false,
+  actionsOverdueBy: 7,
+}
+
 class JobMap extends React.Component {
   constructor(props) {
     super(props);
@@ -132,29 +153,7 @@ class JobMap extends React.Component {
       m: {},
       geocodeCount: 0,
 
-      filterJobMap: this.props.me.filterJobMap ? this.props.me.filterJobMap : {
-        stage: "Show All",
-        category: "Show All",
-
-        filterViewCompleted: false,
-        filterJobLead: '',
-        filterOnJobLead: false,
-        filterCategory: '',
-        filterOnCategory: false,
-        filterState: '',
-        filterOnState: false,
-
-        filterK2Jobs: false,
-
-        filterCreatedInTheLast: false,
-        createdInTheLast: 7,
-        filterCompletedInTheLast: false,
-        completedInTheLast: 7,
-        filterUpdatedInTheLast: false,
-        updatedInTheLast: 7,
-        filterActionsOverdueBy: false,
-        actionsOverdueBy: 7,
-      },
+      filterJobMap: this.props.me.filterJobMap ? this.props.me.filterJobMap : initFilterJobMap,
     };
   }
 
@@ -902,6 +901,12 @@ class JobMap extends React.Component {
     }
   };
 
+  resetFilter = () => {
+    this.setState({
+      filterJobMap: initFilterJobMap
+    })
+  }
+
   applyModalFilters = (m, nolocation) => {
     if ((this.state.modal === "nolocation" || nolocation) && m && m.geocode && m.geocode.address !== "New Zealand") return false;
       else return (this.applyFilters(m));
@@ -1400,6 +1405,16 @@ class JobMap extends React.Component {
               <ExpansionPanelDetails>
                 <div>
                   <Grid container spacing={8}>
+                    <Grid item>
+                      <Button
+                        style={{ fontSize: 12 }}
+                        variant="outlined"
+                        color="default"
+                        onClick={this.resetFilter}
+                      >
+                        Reset Filter
+                      </Button>
+                    </Grid>
                     {[
                       "Leads",
                       "Jobs",
@@ -1458,8 +1473,7 @@ class JobMap extends React.Component {
                       />
                     </Grid>
                   </Grid>
-                  <Divider style={{ marginTop: 20, marginBottom: 20 }} />
-                  <Grid container spacing={8}>
+                  <Grid container spacing={8} style={{ marginBottom: 8 }}>
                     {[
                       "Lead",
                       "On Hold",
@@ -1487,8 +1501,7 @@ class JobMap extends React.Component {
                       );
                     })}
                   </Grid>
-                  <Divider style={{ marginTop: 20, marginBottom: 20 }} />
-                  <Grid container spacing={8} style={{ marginBottom: 20 }}>
+                  <Grid container spacing={8} style={{ marginBottom: 8 }}>
                     {[
                       "Asbestos",
                       "Meth",
@@ -1517,7 +1530,6 @@ class JobMap extends React.Component {
                       );
                     })}
                   </Grid>
-                  <Divider style={{ marginTop: 20, marginBottom: 20 }} />
                   <Grid container spacing={8}>
                     <Grid style={{ fontSize: 14 }}>
                       <Checkbox

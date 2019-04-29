@@ -518,7 +518,7 @@ class CocModal extends React.Component {
                   username: this.props.me.name,
                   user: auth.currentUser.uid,
                 };
-                doc.cocLog ? doc.cocLog.push(log) : doc.cocLog = [log];
+                doc.cocLog.push(log);
               } else {
                 doc.cocLog = [{
                   type: 'Edit',

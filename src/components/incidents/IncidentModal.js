@@ -334,8 +334,6 @@ class IncidentModal extends React.Component {
                       this.props.handleModalChange(e.target);
                     }}
                   />
-                </Grid>
-                <Grid xs={6}>
                   <TextField
                     id="detail"
                     label="Give details about what happened"
@@ -346,6 +344,8 @@ class IncidentModal extends React.Component {
                       this.props.handleModalChange(e.target);
                     }}
                   />
+                </Grid>
+                <Grid xs={6}>
                   <TextField
                     id="witnesses"
                     label="Names of witnesses"
