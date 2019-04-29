@@ -956,7 +956,7 @@ export const fetchWFMClients = () => async dispatch => {
     });
 };
 
-export const syncJobWithWFM = jobNumber => async dispatch => {
+export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
   let path = `${
     process.env.REACT_APP_WFM_ROOT
   }job.api/get/${jobNumber}?apiKey=${
@@ -1020,6 +1020,23 @@ export const syncJobWithWFM = jobNumber => async dispatch => {
         job.startDate = wfmJob.StartDate ? wfmJob.StartDate : "";
         job.state = wfmJob.State ? wfmJob.State : "Unknown state";
         job.type = wfmJob.Type ? wfmJob.Type : "Other";
+        if (createUid) {
+          console.log('Create UID is true');
+          let datestring = new Intl.DateTimeFormat('en-GB', {
+            year: '2-digit',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }).format(new Date()).replace(/[.:/,\s]/g, '_');
+          let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${datestring}`;
+          console.log('New uid' + uid);
+          dispatch({
+            type: EDIT_MODAL_DOC,
+            payload: { 'uid': uid }
+          });
+        }
         dispatch({
           type: GET_WFM_JOB,
           payload: job

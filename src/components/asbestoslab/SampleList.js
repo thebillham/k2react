@@ -178,7 +178,7 @@ class SampleList extends React.Component {
     });
     let report = {
       jobNumber: job.jobnumber,
-      client: job.clientname,
+      client: job.clientName,
       address: job.address,
       date: "7 November 2018",
       ktp: "Stuart Keer-Keer",
@@ -212,7 +212,7 @@ class SampleList extends React.Component {
                   let search =
                     job +
                     " " +
-                    samples[job].clientname +
+                    samples[job].clientName +
                     " " +
                     samples[job].address;
                   let result = true;
@@ -229,7 +229,7 @@ class SampleList extends React.Component {
                 return (
                   <ExpansionPanel key={job}>
                     <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                      <b>{job}</b> {samples[job].clientname} (
+                      <b>{job}</b> {samples[job].clientName} (
                       {samples[job].address})
                     </ExpansionPanelSummary>
                     <ExpansionPanelDetails>

@@ -15,17 +15,17 @@ import Edit from "@material-ui/icons/Edit";
 // Gets jobs from your job list
 const dummyList = [
   {
-    clientname: "Secure Asbestos Services",
+    clientName: "Secure Asbestos Services",
     jobnumber: "AS185151",
     address: "113 Central Park Drive, Henderson, Auckland"
   },
   {
-    clientname: "Asbestos Nelson Ltd",
+    clientName: "Asbestos Nelson Ltd",
     jobnumber: "AS182310",
     address: "Bays Boating, 15 Kind Edward Street, Motueka"
   },
   {
-    clientname: "Hamilton Paint and Plaster Ltd ",
+    clientName: "Hamilton Paint and Plaster Ltd ",
     jobnumber: "AS181738",
     address: "253 Old Hill rd Tahuna Waikato "
   }
@@ -60,7 +60,7 @@ function RecentSamples(props) {
         {dummyList.slice(0, 5).map(job => {
           return (
             <div key={job.jobnumber} className={classes.fineprint}>
-              <b>{job.clientname}</b>
+              <b>{job.clientName}</b>
               <br />
               <i>
                 {job.type} ({job.jobnumber})

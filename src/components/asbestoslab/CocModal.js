@@ -66,7 +66,7 @@ const mapDispatchToProps = dispatch => {
     handleCocSubmit: (doc, docid) => dispatch(handleCocSubmit(doc, docid)),
     handleSampleChange: (number, type, value) => dispatch(handleSampleChange(number, type, value)),
     setModalError: error => dispatch(setModalError(error)),
-    syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
+    syncJobWithWFM: (jobNumber, createUid) => dispatch(syncJobWithWFM(jobNumber, createUid)),
     resetWfmJob: () => dispatch(resetWfmJob()),
     fetchSamples: (cocUid, jobNumber, modalDoc ) => dispatch(fetchSamples(cocUid, jobNumber, modalDoc )),
   };
@@ -137,20 +137,20 @@ class CocModal extends React.Component {
       this.props.setModalError('Asbestos job numbers must begin with "AS"');
     } else {
       this.props.setModalError(null);
-      this.props.syncJobWithWFM(jobNumber);
+      this.props.syncJobWithWFM(jobNumber, true);
       let uid = this.props.doc.uid;
-      if (!uid) {
-        let datestring = new Intl.DateTimeFormat('en-GB', {
-          year: '2-digit',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        }).format(new Date()).replace(/[.:/,\s]/g, '_');
-        uid = `${jobNumber.toUpperCase()}_${datestring}`;
-        this.props.handleModalChange({id: 'uid', value: uid});
-      }
+      // if (!uid) {
+      //   let datestring = new Intl.DateTimeFormat('en-GB', {
+      //     year: '2-digit',
+      //     month: '2-digit',
+      //     day: '2-digit',
+      //     hour: '2-digit',
+      //     minute: '2-digit',
+      //     second: '2-digit',
+      //   }).format(new Date()).replace(/[.:/,\s]/g, '_');
+      //   uid = `${jobNumber.toUpperCase()}_${datestring}`;
+      //   this.props.handleModalChange({id: 'uid', value: uid});
+      // }
       this.props.fetchSamples(uid, jobNumber, true);
     }
   }

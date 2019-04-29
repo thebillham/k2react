@@ -17,21 +17,21 @@ import Edit from "@material-ui/icons/Edit";
 // Gets jobs from your job list
 const dummyList = [
   {
-    clientname: "ABB",
+    clientName: "ABB",
     jobnumber: "T1416",
     type: "Noise",
     address: "113 Central Park Drive, Henderson, Auckland",
     progress: 40
   },
   {
-    clientname: "Asbestos Nelson Ltd",
+    clientName: "Asbestos Nelson Ltd",
     jobnumber: "AS182310",
     type: "Asbestos - Clearance",
     address: "Bays Boating, 15 Kind Edward Street, Motueka",
     progress: 15
   },
   {
-    clientname: "Hamilton Paint and Plaster Ltd ",
+    clientName: "Hamilton Paint and Plaster Ltd ",
     jobnumber: "AS181738",
     type: "Asbestos - Clearance",
     address: "253 Old Hill rd Tahuna Waikato ",
@@ -71,7 +71,7 @@ function CurrentJobs(props) {
         {dummyList.slice(0, 5).map(job => {
           return (
             <div key={job.jobnumber} className={classes.fineprint}>
-              <b>{job.clientname}</b>
+              <b>{job.clientName}</b>
               <br />
               <i>
                 {job.type} ({job.jobnumber})
