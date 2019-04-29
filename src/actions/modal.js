@@ -143,7 +143,7 @@ export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
 
 export const handleCocSubmit = ({ doc, docid }) => dispatch => {
   console.log(doc.samples);
-  let samplelist = [];
+  let sampleList = [];
   if (doc.samples) {
     Object.keys(doc.samples).forEach(sample => {
       if (!doc.samples[sample].uid) {
@@ -164,9 +164,9 @@ export const handleCocSubmit = ({ doc, docid }) => dispatch => {
         )}`;
         console.log(`UID for new sample is ${uid}`);
         doc.samples[sample].uid = uid;
-        samplelist.push(uid);
+        sampleList.push(uid);
       } else {
-        samplelist.push(doc.samples[sample].uid);
+        sampleList.push(doc.samples[sample].uid);
       }
       if (
         (doc.samples[sample].description || doc.samples[sample].material) &&
@@ -197,7 +197,7 @@ export const handleCocSubmit = ({ doc, docid }) => dispatch => {
   let doc2 = doc;
   if ("samples" in doc2) delete doc2.samples;
   doc2.uid = docid;
-  doc2.samplelist = samplelist;
+  doc2.sampleList = sampleList;
   console.log(doc2);
   cocsRef.doc(docid).set(doc2);
   dispatch({ type: RESET_MODAL });
