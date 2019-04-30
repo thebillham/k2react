@@ -47,14 +47,7 @@ function AsbestosSampleCard(props) {
               <Grid item xs={1}>
                 <Button
                   size="small"
-                  onClick={() => {
-                    this.props.showModal({
-                      modalType: SAMPLE,
-                      modalProps: {
-                        doc: sample
-                      }
-                    });
-                  }}>
+                  onClick={props.onClick}>
                   Edit
                 </Button>
               </Grid>

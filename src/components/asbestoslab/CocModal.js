@@ -19,6 +19,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
+import Checkbox from '@material-ui/core/Checkbox';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -88,6 +90,11 @@ class CocModal extends React.Component {
     suggestions: [],
     syncError: null,
     modified: false,
+    sampleEditModal: null,
+    sampleEditModified: false,
+    sampleDelete: false,
+    sampleDoSwap: false,
+    sampleSwap: null,
   };
 
   componentWillMount() {
@@ -173,6 +180,189 @@ class CocModal extends React.Component {
       getSuggestionValue,
       renderSuggestion,
     };
+
+    const sampleEditModal = (
+      <Dialog
+        maxWidth="sm"
+        fullWidth={true}
+        open={this.state.sampleEditModal !== null}
+        onClose={() => this.setState({ sampleEditModal: null })}
+      >
+        <DialogTitle>
+          {this.state.sampleEditModal && (`Edit Sample ${this.state.sampleEditModal.jobNumber}: ${this.state.sampleEditModal.sampleNumber}`)}
+        </DialogTitle>
+        <DialogContent>
+        {this.state.sampleEditModal && (
+          <Grid container spacing={8}>
+            <Grid item xs={12}>
+              <TextField
+                label={'Location/Item'}
+                style={{ width: '100%' }}
+                value={this.state.sampleEditModal.description}
+                onChange={e => {
+                  this.setState({
+                    sampleEditModal: {
+                      ...this.state.sampleEditModal,
+                      description: e.target.value,
+                    },
+                    sampleEditModified: true,
+                  });
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Autosuggest
+                {...autosuggestProps}
+                onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
+                  this.setState({
+                    sampleEditModal: {
+                      ...this.state.sampleEditModal,
+                      material: suggestionValue,
+                    },
+                    sampleEditModified: true,
+                  });
+                }}
+                inputProps={{
+                  label: 'Material',
+                  value: this.state.sampleEditModal.material,
+                  onChange: e => {
+                    this.setState({
+                      sampleEditModal: {
+                        ...this.state.sampleEditModal,
+                        material: e.target.value,
+                      },
+                      sampleEditModified: true,
+                    });
+                  },
+                }}
+                theme={{
+                  container: { position: 'relative',},
+                  suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
+                  suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
+                  suggestion: {display: 'block', },
+                }}
+                renderSuggestionsContainer={options => (
+                  <Paper {...options.containerProps} square>
+                    {options.children}
+                  </Paper>
+                )}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Checkbox
+                checked={this.state.sampleDoSwap}
+                onChange={(event) => { this.setState({
+                  sampleDoSwap: event.target.checked,
+                  sampleDelete: false,
+                })}}
+                value='sampleSwap'
+                color='secondary'
+              />
+              Move this sample to number
+              <Input
+                style={{ width: 45, marginLeft: 12, marginRight: 12, }}
+                type='number'
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">{this.state.sampleEditModal.jobNumber}</InputAdornment>,
+                }}
+                value={this.state.sampleSwap}
+                onChange={(event) => this.setState({
+                  sampleSwap: event.target.value
+                })}
+              />
+              <Grid item xs={12}>
+                <Checkbox
+                  checked={this.state.sampleDelete}
+                  onChange={(event) => { this.setState({
+                    sampleDelete: event.target.checked,
+                    sampleDoSwap: false,
+                  })}}
+                  value='sampleDelete'
+                  color='secondary'
+                />
+                Delete this sample
+              </Grid>
+            </Grid>
+          </Grid>
+        )}
+        </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {
+              this.setState({
+                sampleEditModal: null,
+              })
+            }} color="secondary">Cancel</Button>
+            <Button disabled={!this.state.sampleEditModified && !this.state.sampleDoSwap && !this.state.sampleDelete} onClick={() => {
+              // Todo: Implement swapping sample numbers
+                let log = {};
+                if (this.state.sampleDelete && window.confirm("Are you sure you wish to delete this sample?")) {
+                  // Delete sample
+                  if (doc.cocLog) {
+                    log = {
+                      type: 'Edit',
+                      log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} deleted.`,
+                      date: new Date(),
+                      username: this.props.me.name,
+                      user: auth.currentUser.uid,
+                    };
+                    doc.cocLog.push(log);
+                  }
+                } else if (this.state.sampleDoSwap) {
+                  if (this.state.sampleSwap == null) {
+                    window.alert('You have not selected a sample number to move to.');
+                  } else if (doc.samples[this.state.sampleSwap] === undefined && window.confirm(`Are you sure you wish to move this sample to number ${this.state.sampleSwap}`)) {
+                    // Move to sample number
+                    if (doc.cocLog) {
+                      log = {
+                        type: 'Edit',
+                        log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} moved to sample number ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap}.`,
+                        date: new Date(),
+                        username: this.props.me.name,
+                        user: auth.currentUser.uid,
+                      };
+                      doc.cocLog.push(log);
+                    }
+                  } else if (doc.samples[this.state.sampleSwap] !== undefined && window.confirm(`There is already a sample using that sample number. Do you wish to swap sample ${this.state.sampleEditModal.sampleNumber} with sample ${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap]['description']} ${doc.samples[this.state.sampleSwap]['material']})?`)) {
+                    // Swap sample number
+                    if (doc.cocLog) {
+                      log = {
+                        type: 'Edit',
+                        log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} swapped numbers.`,
+                        date: new Date(),
+                        username: this.props.me.name,
+                        user: auth.currentUser.uid,
+                      };
+                      doc.cocLog.push(log);
+                    }
+                } else if (doc.samples[this.state.sampleSwap] !== undefined && doc.samples[this.state.sampleSwap]['cocUid'] !== doc.uid) {
+                  window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
+                } else {
+                  if (doc.cocLog) {
+                    log = {
+                      type: 'Edit',
+                      log: `Details of sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} modified.`,
+                      date: new Date(),
+                      username: this.props.me.name,
+                      user: auth.currentUser.uid,
+                    };
+                    doc.cocLog.push(log);
+                  }
+                  let i = parseInt(this.state.sampleEditModal.sampleNumber) - 1;
+                  this.props.handleSampleChange(i, 'reported', false);
+                  this.props.handleSampleChange(i, 'description', this.state.sampleEditModal.description);
+                  this.props.handleSampleChange(i, 'material', this.state.sampleEditModal.material);
+                  this.setState({
+                    modified: true,
+                    sampleEditModified: false,
+                    sampleEditModal: null,
+                  });
+                }
+              }
+          }} color="primary" >Submit</Button>
+          </DialogActions>
+      </Dialog>
+    );
+
     if (!doc.dates) doc.dates = [];
     let dates = doc.dates.map(date => {
       return (date instanceof Date) ? date : date.toDate();
@@ -187,6 +377,7 @@ class CocModal extends React.Component {
         >
         <DialogTitle>{ modalProps.title ? modalProps.title : 'Add New Chain of Custody' }</DialogTitle>
         <DialogContent>
+          {this.state.sampleEditModal && sampleEditModal}
           <Grid container spacing={40}>
             <Grid item xs={12} lg={4}>
               <div style={{ display: 'flex', flexDirection: 'row', }}>
@@ -269,132 +460,7 @@ class CocModal extends React.Component {
               </form>
             </Grid>
             <Grid item xs={12} md={8}>
-            { doc.type === 'air' ?
-              <Grid container direction='column'>
-                <Grid item>
-                  <Grid container style={{ fontWeight: 450, marginLeft: 12, }}>
-                    <Grid item xs={1}>
-                    </Grid>
-                    <Grid item xs={2}>
-                      Location
-                    </Grid>
-                    <Grid item xs={2}>
-                      Pump Time (Start)
-                    </Grid>
-                    <Grid item xs={2}>
-                      Pump Time (Finish)
-                    </Grid>
-                    <Grid item xs={1}>
-                      Total Run Time
-                    </Grid>
-                    <Grid item xs={2}>
-                      Flow Rate (Start)
-                    </Grid>
-                    <Grid item xs={2}>
-                      Flow Rate (Finish)
-                    </Grid>
-                  </Grid>
-                  { Array.from(Array(doc.numberOfSamples ? doc.numberOfSamples : 10),(x, i) => i).map(i => {
-                    let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid !== doc.uid;
-                    return(<Grid container key={i}>
-                    <Grid item xs={1}>
-                      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: 3,}}>
-                        {i+1}
-                      </div>
-                    </Grid>
-                    <Grid item xs={2}>
-                      <TextField
-                        id={`location${i+1}`}
-                        disabled={disabled}
-                        style={{ width: '100%' }}
-                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].isAirSample ? doc.samples[i+1].description : 'Bulk Sample'}
-                        onChange={e => {
-                          this.setState({ modified: true, });
-                          this.props.handleSampleChange(i, 'reported', false);
-                          this.props.handleSampleChange(i, 'description', e.target.value);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={2}>
-                      <TextField
-                        id={`pumpstarttime${i+1}`}
-                        disabled={disabled}
-                        style={{ width: '100%' }}
-                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].pumpstarttime}
-                        onChange={e => {
-                          this.setState({ modified: true, });
-                          this.props.handleSampleChange(i, 'reported', false);
-                          this.props.handleSampleChange(i, 'pumpstarttime', e.target.value);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={2}>
-                      <TextField
-                        id={`pumpfinishtime${i+1}`}
-                        disabled={disabled}
-                        style={{ width: '100%' }}
-                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].pumpfinishtime}
-                        onChange={e => {
-                          this.setState({ modified: true, });
-                          this.props.handleSampleChange(i, 'reported', false);
-                          this.props.handleSampleChange(i, 'pumpfinishtime', e.target.value);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={1}>
-                      <TextField
-                        id={`pumptotaltime${i+1}`}
-                        disabled={disabled}
-                        style={{ width: '100%' }}
-                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].pumptotaltime}
-                        onChange={e => {
-                          this.setState({ modified: true, });
-                          this.props.handleSampleChange(i, 'reported', false);
-                          this.props.handleSampleChange(i, 'pumptotaltime', e.target.value);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={2}>
-                      <TextField
-                        id={`flowratestart${i+1}`}
-                        disabled={disabled}
-                        style={{ width: '100%' }}
-                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].flowratestart}
-                        onChange={e => {
-                          this.setState({ modified: true, });
-                          this.props.handleSampleChange(i, 'reported', false);
-                          this.props.handleSampleChange(i, 'flowratestart', e.target.value);
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={2}>
-                      <TextField
-                        id={`flowratefinish${i+1}`}
-                        disabled={disabled}
-                        style={{ width: '100%' }}
-                        defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].flowratefinish}
-                        onChange={e => {
-                          this.setState({ modified: true, });
-                          this.props.handleSampleChange(i, 'reported', false);
-                          this.props.handleSampleChange(i, 'flowratefinish', e.target.value);
-                        }}
-                      />
-                    </Grid>
-                  </Grid>)
-                  })}
-                  <Grid container>
-                    <Grid item xs={12} justify='center' alignItems='center'>
-                      <Button
-                        style={{ marginTop: 24, marginLeft: 128, }}
-                        onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
-                        <Add style={{ marginRight: 12, }}/> Add More Samples
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Grid>
-            :
-              <Grid container direction='column'>
+            <Grid container direction='column'>
                 <Grid item>
                   <Grid container style={{ fontWeight: 450, marginLeft: 12, }}>
                     <Grid item xs={1}>
@@ -412,7 +478,7 @@ class CocModal extends React.Component {
                       <div style={{ marginLeft: 12, marginRight: 12, }}>
                         <Grid container key={i}>
                           <Grid item xs={12}>
-                            <AsbestosSampleCard sample={doc.samples[i+1]} />
+                            <AsbestosSampleCard sample={doc.samples[i+1]} onClick={() => {this.setState({ sampleEditModal: doc.samples[i+1] })}} />
                           </Grid>
                         </Grid>
                       </div>
@@ -469,7 +535,7 @@ class CocModal extends React.Component {
                         )
                   })}
                   <Grid container>
-                    <Grid item xs={12} justify='center' alignItems='center'>
+                    <Grid item xs={12}>
                       <Button
                         style={{ marginTop: 24, marginLeft: 128, }}
                         onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
@@ -479,7 +545,6 @@ class CocModal extends React.Component {
                   </Grid>
                 </Grid>
               </Grid>
-            }
             </Grid>
           </Grid>
         </DialogContent>

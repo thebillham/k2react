@@ -322,16 +322,7 @@ class MainScreen extends React.Component {
             <ListItemText primary="Noticeboard" />
           </ListItem>
 
-          <ListItem
-            button
-            component={Link}
-            to="/incidents"
-          >
-            <ListItemIcon>
-              <IncidentIcon className={classes.accentButton} />
-            </ListItemIcon>
-            <ListItemText primary="Incidents" />
-          </ListItem>
+          <Divider />
 
           <ListItem
             button
@@ -426,7 +417,20 @@ class MainScreen extends React.Component {
             </ListItemIcon>
             <ListItemText primary="Jobs Map" />
           </ListItem>
+          
+        <Divider />
+          <ListItem
+            button
+            component={Link}
+            to="/lab"
+          >
+            <ListItemIcon>
+              <LabIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="Asbestos Lab" />
+          </ListItem>
         </List>
+
 
         <Divider />
         <List>
@@ -434,7 +438,7 @@ class MainScreen extends React.Component {
             <ListItemIcon>
               <DevIcon className={classes.accentButton} />
             </ListItemIcon>
-            <ListItemText primary="Development" />
+            <ListItemText primary="In Development" />
             {this.state.openDev ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
           <Collapse in={this.state.openDev} timeout="auto" unmountOnExit>
@@ -521,13 +525,13 @@ class MainScreen extends React.Component {
               <ListItem
                 button
                 component={Link}
-                to="/lab"
+                to="/incidents"
                 className={classes.nested}
               >
                 <ListItemIcon>
-                  <LabIcon className={classes.accentButton} />
+                  <IncidentIcon className={classes.accentButton} />
                 </ListItemIcon>
-                <ListItemText primary="Asbestos Lab" />
+                <ListItemText primary="Incidents" />
               </ListItem>
 
               {/*<ListItem button component={Link} to="/mydetails/training" className={classes.nested}>
