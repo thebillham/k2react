@@ -567,23 +567,16 @@ export const fetchVehicles = update => async dispatch => {
   }
 };
 
-export const fetchSamples = (cocUid, jobNumber, modalDoc) => async dispatch => {
+export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
   let samples = {};
   asbestosSamplesRef
     .where("jobNumber", "==", jobNumber)
+    .where("deleted","==",false)
     .onSnapshot(sampleSnapshot => {
       sampleSnapshot.forEach(sampleDoc => {
         let sample = sampleDoc.data();
         sample.uid = sampleDoc.id;
         samples[sample.sampleNumber] = sample;
-        // console.log(`Ran fetch Samples`);
-        // console.log(samples);
-        if (modalDoc) {
-          dispatch({
-            type: EDIT_MODAL_DOC,
-            payload: { samples }
-          });
-        }
         dispatch({
           type: GET_SAMPLES,
           cocUid: cocUid,

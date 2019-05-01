@@ -41,8 +41,8 @@ const mapDispatchToProps = dispatch => {
 class SampleHistoryModal extends React.Component {
   render() {
     const { classes, modalProps, modalType } = this.props;
-    console.log('Printing modal props');
-    console.log(JSON.stringify(modalProps));
+    // console.log('Printing modal props');
+    // console.log(JSON.stringify(modalProps));
     // console.log(modalProps.uid.toString());
     return (
       <Dialog

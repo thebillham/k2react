@@ -42,6 +42,7 @@ import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModal
 import { fetchStaff, syncJobWithWFM, resetWfmJob, fetchSamples } from '../../actions/local';
 import _ from 'lodash';
 import deburr from 'lodash/deburr';
+import { asbestosSamplesRef } from "../../config/firebase";
 
 const mapStateToProps = state => {
   return {
@@ -146,18 +147,6 @@ class CocModal extends React.Component {
       this.props.setModalError(null);
       this.props.syncJobWithWFM(jobNumber, true);
       let uid = this.props.doc.uid;
-      // if (!uid) {
-      //   let datestring = new Intl.DateTimeFormat('en-GB', {
-      //     year: '2-digit',
-      //     month: '2-digit',
-      //     day: '2-digit',
-      //     hour: '2-digit',
-      //     minute: '2-digit',
-      //     second: '2-digit',
-      //   }).format(new Date()).replace(/[.:/,\s]/g, '_');
-      //   uid = `${jobNumber.toUpperCase()}_${datestring}`;
-      //   this.props.handleModalChange({id: 'uid', value: uid});
-      // }
       this.props.fetchSamples(uid, jobNumber, true);
     }
   }
@@ -297,6 +286,12 @@ class CocModal extends React.Component {
                 let log = {};
                 if (this.state.sampleDelete && window.confirm("Are you sure you wish to delete this sample?")) {
                   // Delete sample
+
+                  let newSamples = {...doc.samples};
+                  newSamples[this.state.sampleEditModal.sampleNumber] = { description: '', material: '', };
+                  this.props.handleModalChange({id: 'samples', value: newSamples});
+
+                  asbestosSamplesRef.doc(this.state.sampleEditModal.uid).update({'deleted': true});
                   if (doc.cocLog) {
                     log = {
                       type: 'Edit',
@@ -307,11 +302,25 @@ class CocModal extends React.Component {
                     };
                     doc.cocLog.push(log);
                   }
+                  this.setState({
+                    modified: true,
+                    sampleEditModified: false,
+                    sampleDelete: false,
+                    sampleDoSwap: false,
+                    sampleEditModal: null,
+                  });
                 } else if (this.state.sampleDoSwap) {
                   if (this.state.sampleSwap == null) {
                     window.alert('You have not selected a sample number to move to.');
                   } else if (doc.samples[this.state.sampleSwap] === undefined && window.confirm(`Are you sure you wish to move this sample to number ${this.state.sampleSwap}`)) {
                     // Move to sample number
+                    let newSamples = {...doc.samples};
+                    newSamples[this.state.sampleEditModal.sampleNumber] = { description: '', material: '', };
+                    this.state.sampleEditModal.sampleNumber = this.state.sampleSwap;
+                    newSamples[this.state.sampleSwap] = this.state.sampleEditModal;
+                    this.props.handleModalChange({id: 'samples', value: newSamples});
+
+                    asbestosSamplesRef.doc(this.state.sampleEditModal.uid).update({'sampleNumber': this.state.sampleSwap});
                     if (doc.cocLog) {
                       log = {
                         type: 'Edit',
@@ -321,6 +330,16 @@ class CocModal extends React.Component {
                         user: auth.currentUser.uid,
                       };
                       doc.cocLog.push(log);
+
+                      let i = parseInt(this.state.sampleEditModal.sampleNumber) - 1;
+                      this.props.handleSampleChange(i, 'reported', false);
+                      this.props.handleSampleChange(i, 'description', this.state.sampleEditModal.description);
+                      this.props.handleSampleChange(i, 'material', this.state.sampleEditModal.material);
+                      this.setState({
+                        modified: true,
+                        sampleEditModified: false,
+                        sampleEditModal: null,
+                      });
                     }
                   } else if (doc.samples[this.state.sampleSwap] !== undefined && window.confirm(`There is already a sample using that sample number. Do you wish to swap sample ${this.state.sampleEditModal.sampleNumber} with sample ${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap]['description']} ${doc.samples[this.state.sampleSwap]['material']})?`)) {
                     // Swap sample number
@@ -336,7 +355,9 @@ class CocModal extends React.Component {
                     }
                 } else if (doc.samples[this.state.sampleSwap] !== undefined && doc.samples[this.state.sampleSwap]['cocUid'] !== doc.uid) {
                   window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
-                } else {
+                }
+              } else {
+                  console.log('Else');
                   if (doc.cocLog) {
                     log = {
                       type: 'Edit',
@@ -358,7 +379,7 @@ class CocModal extends React.Component {
                   });
                 }
               }
-          }} color="primary" >Submit</Button>
+          } color="primary" >Submit</Button>
           </DialogActions>
       </Dialog>
     );
@@ -474,7 +495,7 @@ class CocModal extends React.Component {
                   </Grid>
                   { Array.from(Array(doc.numberOfSamples ? doc.numberOfSamples : 10),(x, i) => i).map(i => {
                     let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
-                    return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && !disabled ?
+                    return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && !disabled && doc.samples[i+1].deleted === false ?
                       <div style={{ marginLeft: 12, marginRight: 12, }}>
                         <Grid container key={i}>
                           <Grid item xs={12}>

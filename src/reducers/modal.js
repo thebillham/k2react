@@ -18,7 +18,6 @@ export const modalInit = {
     doc: {
       personnel: [],
       dates: [],
-      samples: {},
       type: ""
     },
     isUploading: false,
@@ -112,6 +111,10 @@ export default function modalReducer(state = modalInit, action) {
         }
       };
     case EDIT_MODAL_SAMPLE:
+    console.log('Changing sample');
+    console.log(action.payload.number)
+    console.log(action.payload.type);
+    console.log(action.payload.value);
       return {
         ...state,
         modalProps: {

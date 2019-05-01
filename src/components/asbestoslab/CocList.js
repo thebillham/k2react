@@ -678,7 +678,7 @@ class CocList extends React.Component {
                     modalType: COC,
                     modalProps: {
                       title: "Edit Chain of Custody",
-                      doc: { ...job, samples: samples[job.uid] }
+                      doc: { ...job, samples: samples[job.uid] === undefined ? {} : samples[job.uid] }
                     }
                   });
                 }}
@@ -812,7 +812,8 @@ class CocList extends React.Component {
                   <br />
                 </div>
                 {samples[job.uid] &&
-                  Object.values(samples[job.uid]).map(sample => {
+                  Object.values(samples[job.uid]).filter(el => el.deleted === false)
+                  .map(sample => {
                     if (sample.cocUid !== this.props.job.uid) return;
                     let result = "none";
                     if (

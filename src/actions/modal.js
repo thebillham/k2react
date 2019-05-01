@@ -164,6 +164,7 @@ export const handleCocSubmit = ({ doc, docid }) => dispatch => {
         )}`;
         console.log(`UID for new sample is ${uid}`);
         doc.samples[sample].uid = uid;
+        doc.samples[sample].deleted = false;
         sampleList.push(uid);
       } else {
         sampleList.push(doc.samples[sample].uid);
