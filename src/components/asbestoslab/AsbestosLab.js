@@ -4,7 +4,6 @@ import { styles } from "../../config/styles";
 import { connect } from "react-redux";
 import {
   fetchCocs,
-  fetchSamples,
   setAnalyst,
   setAnalysisMode
 } from "../../actions/local";
@@ -45,7 +44,6 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchCocs: () => dispatch(fetchCocs()),
     showModal: modal => dispatch(showModal(modal)),
-    fetchSamples: jobnumber => dispatch(fetchSamples(jobnumber)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
     setAnalysisMode: analysismode => dispatch(setAnalysisMode(analysismode))
   };

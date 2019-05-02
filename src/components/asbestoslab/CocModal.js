@@ -20,6 +20,10 @@ import DialogActions from '@material-ui/core/DialogActions';
 import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
 import Checkbox from '@material-ui/core/Checkbox';
+import FormLabel from '@material-ui/core/FormLabel';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Radio from '@material-ui/core/Radio';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
@@ -66,7 +70,7 @@ const mapDispatchToProps = dispatch => {
     handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 50),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
-    handleCocSubmit: (doc, docid) => dispatch(handleCocSubmit(doc, docid)),
+    handleCocSubmit: (doc, docid, userName, userUid) => dispatch(handleCocSubmit(doc, docid, userName, userUid)),
     handleSampleChange: (number, type, value) => dispatch(handleSampleChange(number, type, value)),
     setModalError: error => dispatch(setModalError(error)),
     syncJobWithWFM: (jobNumber, createUid) => dispatch(syncJobWithWFM(jobNumber, createUid)),
@@ -87,6 +91,7 @@ function getStyles(name, that) {
 
 class CocModal extends React.Component {
   state = {
+    analysisType: 'bulk',
     personnel: [],
     suggestions: [],
     syncError: null,
@@ -95,7 +100,7 @@ class CocModal extends React.Component {
     sampleEditModified: false,
     sampleDelete: false,
     sampleDoSwap: false,
-    sampleSwap: null,
+    sampleSwap: '',
   };
 
   componentWillMount() {
@@ -108,6 +113,16 @@ class CocModal extends React.Component {
       personnel: event.target.value,
       modified: true,
     });
+    if (this.props.doc.cocLog) {
+      let log = {
+        type: 'Edit',
+        log: 'Sampling personnel details changed.',
+        date: new Date(),
+        username: this.props.me.name,
+        user: auth.currentUser.uid,
+      };
+      this.props.doc.cocLog.push(log);
+    }
     this.props.handleSelectChange({ id: 'personnel', value: event.target.value, })
   }
 
@@ -134,6 +149,16 @@ class CocModal extends React.Component {
       dates.push(day);
     }
     this.setState({ modified: true, });
+    if (this.props.doc.cocLog) {
+      let log = {
+        type: 'Edit',
+        log: 'Sampling dates changed.',
+        date: new Date(),
+        username: this.props.me.name,
+        user: auth.currentUser.uid,
+      };
+      this.props.doc.cocLog.push(log);
+    }
     this.props.handleSelectChange({ id: 'dates', value: dates, })
   }
 
@@ -147,6 +172,7 @@ class CocModal extends React.Component {
       this.props.setModalError(null);
       this.props.syncJobWithWFM(jobNumber, true);
       let uid = this.props.doc.uid;
+      // console.log('wfmsync fetch samples');
       this.props.fetchSamples(uid, jobNumber, true);
     }
   }
@@ -251,9 +277,6 @@ class CocModal extends React.Component {
               <Input
                 style={{ width: 45, marginLeft: 12, marginRight: 12, }}
                 type='number'
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">{this.state.sampleEditModal.jobNumber}</InputAdornment>,
-                }}
                 value={this.state.sampleSwap}
                 onChange={(event) => this.setState({
                   sampleSwap: event.target.value
@@ -288,17 +311,18 @@ class CocModal extends React.Component {
                   // Delete sample
 
                   let newSamples = {...doc.samples};
-                  newSamples[this.state.sampleEditModal.sampleNumber] = { description: '', material: '', };
-                  this.props.handleModalChange({id: 'samples', value: newSamples});
+                  delete newSamples[this.state.sampleEditModal.sampleNumber];
+                  this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: doc.uid, });
 
                   asbestosSamplesRef.doc(this.state.sampleEditModal.uid).update({'deleted': true});
                   if (doc.cocLog) {
                     log = {
-                      type: 'Edit',
-                      log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} deleted.`,
+                      type: 'Delete',
+                      log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) deleted.`,
                       date: new Date(),
                       username: this.props.me.name,
                       user: auth.currentUser.uid,
+                      sample: this.state.sampleEditModal.uid,
                     };
                     doc.cocLog.push(log);
                   }
@@ -309,59 +333,102 @@ class CocModal extends React.Component {
                     sampleDoSwap: false,
                     sampleEditModal: null,
                   });
+                  // console.log(doc.samples);
                 } else if (this.state.sampleDoSwap) {
-                  if (this.state.sampleSwap == null) {
+                  if (this.state.sampleSwap == '') {
                     window.alert('You have not selected a sample number to move to.');
                   } else if (doc.samples[this.state.sampleSwap] === undefined && window.confirm(`Are you sure you wish to move this sample to number ${this.state.sampleSwap}`)) {
                     // Move to sample number
-                    let newSamples = {...doc.samples};
-                    newSamples[this.state.sampleEditModal.sampleNumber] = { description: '', material: '', };
-                    this.state.sampleEditModal.sampleNumber = this.state.sampleSwap;
-                    newSamples[this.state.sampleSwap] = this.state.sampleEditModal;
-                    this.props.handleModalChange({id: 'samples', value: newSamples});
-
-                    asbestosSamplesRef.doc(this.state.sampleEditModal.uid).update({'sampleNumber': this.state.sampleSwap});
                     if (doc.cocLog) {
                       log = {
-                        type: 'Edit',
-                        log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} moved to sample number ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap}.`,
+                        type: 'ID Change',
+                        log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) moved to sample number ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap}.`,
                         date: new Date(),
                         username: this.props.me.name,
                         user: auth.currentUser.uid,
+                        sample: this.state.sampleEditModal.uid,
                       };
                       doc.cocLog.push(log);
 
-                      let i = parseInt(this.state.sampleEditModal.sampleNumber) - 1;
+                      let i = parseInt(this.state.sampleSwap) - 1;
                       this.props.handleSampleChange(i, 'reported', false);
                       this.props.handleSampleChange(i, 'description', this.state.sampleEditModal.description);
                       this.props.handleSampleChange(i, 'material', this.state.sampleEditModal.material);
                       this.setState({
                         modified: true,
                         sampleEditModified: false,
+                        sampleDelete: false,
+                        sampleDoSwap: false,
+                        sampleSwap: '',
                         sampleEditModal: null,
                       });
                     }
+
+                    let newSamples = {...doc.samples};
+                    delete newSamples[this.state.sampleEditModal.sampleNumber];
+                    this.state.sampleEditModal.sampleNumber = this.state.sampleSwap;
+                    newSamples[this.state.sampleSwap] = this.state.sampleEditModal;
+                    // console.log(newSamples);
+                    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: doc.uid, });
+
+                    // asbestosSamplesRef.doc(this.state.sampleEditModal.uid).update({'sampleNumber': this.state.sampleSwap});
+                    // console.log(doc.samples);
                   } else if (doc.samples[this.state.sampleSwap] !== undefined && window.confirm(`There is already a sample using that sample number. Do you wish to swap sample ${this.state.sampleEditModal.sampleNumber} with sample ${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap]['description']} ${doc.samples[this.state.sampleSwap]['material']})?`)) {
                     // Swap sample number
                     if (doc.cocLog) {
                       log = {
-                        type: 'Edit',
-                        log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} swapped numbers.`,
+                        type: 'ID Change',
+                        log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
                         date: new Date(),
                         username: this.props.me.name,
                         user: auth.currentUser.uid,
+                        sample: this.state.sampleEditModal.uid,
                       };
                       doc.cocLog.push(log);
                     }
+
+                    asbestosSamplesRef.doc(this.state.sampleEditModal.uid).update({'sampleNumber': this.state.sampleSwap});
+                    asbestosSamplesRef.doc(doc.samples[this.state.sampleSwap].uid).update({'sampleNumber': this.state.sampleEditModal.sampleNumber});
+
+                    let newSamples = {...doc.samples};
+
+                    // hold sample to be swapped with and change its sample number to yours
+                    let sample = {...doc.samples[this.state.sampleSwap]};
+                    sample.sampleNumber = this.state.sampleEditModal.sampleNumber;
+
+                    // Put your sample in the new slot and the other one where your sample was
+                    newSamples[this.state.sampleSwap] = doc.samples[this.state.sampleEditModal.sampleNumber];
+                    newSamples[this.state.sampleEditModal.sampleNumber] = sample;
+
+                    // Change your samples samplenumber
+                    this.state.sampleEditModal.sampleNumber = this.state.sampleSwap;
+
+                    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: doc.uid, });
+
+                    let i = parseInt(this.state.sampleSwap) - 1;
+                    let q = parseInt(this.state.sampleEditModal.sampleNumber) - 1;
+                    this.props.handleSampleChange(i, 'reported', false);
+                    this.props.handleSampleChange(q, 'reported', false);
+                    this.props.handleSampleChange(i, 'description', this.state.sampleEditModal.description);
+                    this.props.handleSampleChange(i, 'material', this.state.sampleEditModal.material);
+                    this.setState({
+                      modified: true,
+                      sampleEditModified: false,
+                      sampleDelete: false,
+                      sampleDoSwap: false,
+                      sampleSwap: '',
+                      sampleEditModal: null,
+                    });
+                    // console.log(doc.samples);
                 } else if (doc.samples[this.state.sampleSwap] !== undefined && doc.samples[this.state.sampleSwap]['cocUid'] !== doc.uid) {
                   window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
                 }
               } else {
-                  console.log('Else');
+                  // console.log('Else');
                   if (doc.cocLog) {
                     log = {
                       type: 'Edit',
-                      log: `Details of sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} modified.`,
+                      log: `Details of sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) modified.`,
                       date: new Date(),
                       username: this.props.me.name,
                       user: auth.currentUser.uid,
@@ -375,6 +442,9 @@ class CocModal extends React.Component {
                   this.setState({
                     modified: true,
                     sampleEditModified: false,
+                    sampleDelete: false,
+                    sampleDoSwap: false,
+                    sampleSwap: '',
                     sampleEditModal: null,
                   });
                 }
@@ -401,6 +471,24 @@ class CocModal extends React.Component {
           {this.state.sampleEditModal && sampleEditModal}
           <Grid container spacing={40}>
             <Grid item xs={12} lg={4}>
+              <FormControl component="fieldset" className={classes.formControl}>
+                <FormLabel component="legend">Analysis Type</FormLabel>
+                <RadioGroup
+                  aria-label="Analysis"
+                  name="analysis1"
+                  value={this.state.analysisType}
+                  row
+                  onChange={event => {
+                    this.setState({
+                      analysisType: event.target.value
+                    })
+                  }}
+                >
+                    <FormControlLabel value="bulk" control={<Radio />} label="Bulk ID" disabled={doc.uid} />
+                    <FormControlLabel value="wa" control={<Radio />} label="Western Australia Standard" disabled={doc.uid} />
+                    <FormControlLabel value="air" control={<Radio />} label="Air Filter" disabled={doc.uid} />
+                </RadioGroup>
+              </FormControl>
               <div style={{ display: 'flex', flexDirection: 'row', }}>
                 <TextField
                   id="jobNumber"
@@ -496,7 +584,7 @@ class CocModal extends React.Component {
                   { Array.from(Array(doc.numberOfSamples ? doc.numberOfSamples : 10),(x, i) => i).map(i => {
                     let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
                     return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && !disabled && doc.samples[i+1].deleted === false ?
-                      <div style={{ marginLeft: 12, marginRight: 12, }}>
+                      <div style={{ marginLeft: 12, marginRight: 12, }} key={doc.samples[i+1].uid}>
                         <Grid container key={i}>
                           <Grid item xs={12}>
                             <AsbestosSampleCard sample={doc.samples[i+1]} onClick={() => {this.setState({ sampleEditModal: doc.samples[i+1] })}} />
@@ -596,18 +684,9 @@ class CocModal extends React.Component {
               this.props.resetWfmJob();
               console.log(`Doc UID exists it is ${doc.uid}`);
               let log = {};
-              if (doc.cocLog) {
-                log = {
-                  type: 'Edit',
-                  log: 'Details modified.',
-                  date: new Date(),
-                  username: this.props.me.name,
-                  user: auth.currentUser.uid,
-                };
-                doc.cocLog.push(log);
-              } else {
+              if (!doc.cocLog) {
                 doc.cocLog = [{
-                  type: 'Edit',
+                  type: 'Create',
                   log: `Chain of Custody created.`,
                   date: new Date(),
                   username: this.props.me.name,
@@ -618,6 +697,8 @@ class CocModal extends React.Component {
               this.props.handleCocSubmit({
                 doc: doc,
                 docid: doc.uid,
+                userName: this.props.me.name,
+                userUid: auth.currentUser.uid,
               });
             }
           }

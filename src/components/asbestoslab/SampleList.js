@@ -3,7 +3,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
 import { connect } from "react-redux";
 import { jobsRef, cocsRef, asbestosSamplesRef } from "../../config/firebase";
-import { fetchCocs, fetchSamples } from "../../actions/local";
+import { fetchCocs } from "../../actions/local";
 
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";

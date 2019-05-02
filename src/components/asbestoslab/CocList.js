@@ -95,7 +95,7 @@ class CocList extends React.Component {
     this.setState({
       sessionID: uid.replace(/[.:/,\s]/g, "_")
     });
-    console.log(uid.replace(/[.:/,\s]/g, "_"));
+    // console.log(uid.replace(/[.:/,\s]/g, "_"));
   };
 
   receiveSample = sample => {
@@ -386,7 +386,7 @@ class CocList extends React.Component {
       ? this.props.me.aanumber
       : "-";
     aanumbers["Client"] = "-";
-    console.log(aanumbers);
+    // console.log(aanumbers);
     let samples = [];
     this.props.samples[job.uid] &&
       Object.values(this.props.samples[job.uid]).forEach(sample => {
@@ -481,7 +481,7 @@ class CocList extends React.Component {
   };
 
   printLabReport = version => {
-    console.log(this.props.job.versionHistory[version]);
+    // console.log(this.props.job.versionHistory[version]);
     let report = this.props.job.versionHistory[version].data;
     let cocLog = this.props.job.cocLog;
     if (!cocLog) cocLog = [];
@@ -523,7 +523,7 @@ class CocList extends React.Component {
   };
 
   printCoc = job => {
-    console.log(job);
+    // console.log(job);
     let cocLog = this.props.job.cocLog;
     if (!cocLog) cocLog = [];
     cocLog.push({
@@ -596,6 +596,7 @@ class CocList extends React.Component {
 
   getSamples = (expanded, cocUid, jobNumber) => {
     if (expanded && cocUid) {
+      console.log('get samples frm coclist');
       this.props.fetchSamples(cocUid, jobNumber);
     }
   };
@@ -628,6 +629,17 @@ class CocList extends React.Component {
       window.confirm("Are you sure you wish to delete this Chain of Custody?")
     ) {
       let cocLog = this.props.job.cocLog;
+      this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
+        cocLog.push({
+          type: "Delete",
+          log: `Sample ${sample.sampleNumber} (${sample.description} ${sample.material}) deleted.`,
+          username: this.props.me.name,
+          user: auth.currentUser.uid,
+          date: new Date(),
+          sample: sample.uid,
+        })
+        asbestosSamplesRef.doc(sample.uid).update({ deleted: true })
+      });
       if (!cocLog) cocLog = [];
       cocLog.push({
         type: "Delete",
@@ -638,7 +650,7 @@ class CocList extends React.Component {
       });
       cocsRef
         .doc(this.props.job.uid)
-        .set({ deleted: true, cocLog: cocLog }, { merge: true });
+        .update({ deleted: true, cocLog: cocLog });
     } else return;
   };
 

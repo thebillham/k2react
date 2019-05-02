@@ -69,7 +69,7 @@ export const resetLocal = () => dispatch => {
 export const fetchMe = () => async dispatch => {
   auth.currentUser &&
     usersRef.doc(auth.currentUser.uid).onSnapshot(doc => {
-      console.log("Read a doc (fetchMe)!");
+      // console.log("Read a doc (fetchMe)!");
       if (doc.exists) {
         let user = doc.data();
         user.uid = doc.id;
@@ -103,10 +103,10 @@ export const fetchMe = () => async dispatch => {
 
 export const fetchStaff = update => async dispatch => {
   if (update) {
-    console.log("Running fetch staff to update");
+    // console.log("Running fetch staff to update");
     var users = {};
     usersRef.get().then(querySnapshot => {
-      console.log(querySnapshot);
+      // console.log(querySnapshot);
       let airanalysts = [];
       let bulkanalysts = [];
       querySnapshot.forEach(doc => {
@@ -129,14 +129,14 @@ export const fetchStaff = update => async dispatch => {
       dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts, update: true });
     });
   } else {
-    console.log("Fetching staff from cache");
+    // console.log("Fetching staff from cache");
     stateRef.doc("staff").onSnapshot(doc => {
       if (doc.exists) {
-        console.log(doc.data());
+        // console.log(doc.data());
         // .filter((m) => m.uid !== auth.currentUser.uid)
         dispatch({ type: GET_STAFF, payload: doc.data() });
       } else {
-        console.log("Doc doesn't exist");
+        // console.log("Doc doesn't exist");
       }
     });
     stateRef
@@ -159,7 +159,7 @@ export const fetchStaff = update => async dispatch => {
 };
 
 export const getUserAttrs = (userPath, editStaff) => async dispatch => {
-  console.log("Calling update staff for " + userPath);
+  // console.log("Calling update staff for " + userPath);
   let user = {};
   auth.currentUser &&
     usersRef
@@ -178,7 +178,7 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
         user.docimages = [];
         if (querySnapshot.size > 0) {
           querySnapshot.forEach(doc => {
-            console.log("Read a doc (Attr)!");
+            // console.log("Read a doc (Attr)!");
             let attr = doc.data();
             attr.uid = doc.id;
             user.attrs[doc.id] = attr;
@@ -262,15 +262,15 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
             docimages: user.docimages
           });
           if (userPath === auth.currentUser.uid) {
-            console.log("Updating user");
-            console.log(user);
+            // console.log("Updating user");
+            // console.log(user);
             dispatch({
               type: GET_ME,
               payload: user
             });
           }
-          console.log("Updating other staff");
-          console.log(user);
+          // console.log("Updating other staff");
+          // console.log(user);
           dispatch({
             type: UPDATE_STAFF,
             userPath: userPath,
@@ -568,15 +568,16 @@ export const fetchVehicles = update => async dispatch => {
 };
 
 export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
-  let samples = {};
   asbestosSamplesRef
     .where("jobNumber", "==", jobNumber)
     .where("deleted","==",false)
     .onSnapshot(sampleSnapshot => {
+      let samples = {};
       sampleSnapshot.forEach(sampleDoc => {
         let sample = sampleDoc.data();
         sample.uid = sampleDoc.id;
         samples[sample.sampleNumber] = sample;
+        // console.log('fetch samples method');
         dispatch({
           type: GET_SAMPLES,
           cocUid: cocUid,
@@ -595,7 +596,7 @@ export const fetchReadingLog = () => async dispatch => {
       var logs = [];
       querySnapshot.forEach(doc => {
         let log = doc.data();
-        console.log(log);
+        // console.log(log);
         log.uid = doc.id;
         docsRef
           .doc(doc.id)
@@ -955,13 +956,13 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
   }job.api/get/${jobNumber}?apiKey=${
     process.env.REACT_APP_WFM_API
   }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
-  console.log(path);
+  // console.log(path);
   fetch(path)
     .then(results => results.text())
     .then(data => {
       var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
       var json = xmlToJson(xmlDOM);
-      console.log(json);
+      // console.log(json);
       if (json.Response.Status === "ERROR") {
         dispatch({
           type: SET_MODAL_ERROR,
@@ -1014,7 +1015,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
         job.state = wfmJob.State ? wfmJob.State : "Unknown state";
         job.type = wfmJob.Type ? wfmJob.Type : "Other";
         if (createUid) {
-          console.log('Create UID is true');
+          // console.log('Create UID is true');
           let datestring = new Intl.DateTimeFormat('en-GB', {
             year: '2-digit',
             month: '2-digit',
@@ -1024,7 +1025,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
             second: '2-digit',
           }).format(new Date()).replace(/[.:/,\s]/g, '_');
           let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${datestring}`;
-          console.log('New uid' + uid);
+          // console.log('New uid' + uid);
           dispatch({
             type: EDIT_MODAL_DOC,
             payload: { 'uid': uid }
@@ -1130,7 +1131,7 @@ export const updateGeocodes = geocodes => dispatch => {
 
 export const saveWFMItems = items => dispatch => {
   var date = moment().format("YYYY-MM-DD");
-  console.log(items);
+  // console.log(items);
   stateRef
     .doc("wfmstate")
     .collection("states")
@@ -1144,7 +1145,7 @@ export const saveWFMItems = items => dispatch => {
 
 export const saveStats = stats => dispatch => {
   var date = moment().format("YYYY-MM-DD");
-  console.log(stats);
+  // console.log(stats);
   stateRef
     .doc("stats")
     .collection("clientsjobs")
@@ -1329,8 +1330,8 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
         }
       }
     });
-    console.log(currentJobState);
-    console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
+    // console.log(currentJobState);
+    // console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
     dispatch({
       type: GET_CURRENT_JOB_STATE,
       payload: currentJobState,
@@ -1361,7 +1362,7 @@ export const saveCurrentJobState = state => dispatch => {
     }
   });
 
-  console.log(sortedState);
+  // console.log(sortedState);
 
   buckets.forEach((bucket) => {
     stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket], { merge: true });
