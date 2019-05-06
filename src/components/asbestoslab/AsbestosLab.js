@@ -4,7 +4,6 @@ import { styles } from "../../config/styles";
 import { connect } from "react-redux";
 import {
   fetchCocs,
-  fetchSamples,
   setAnalyst,
   setAnalysisMode
 } from "../../actions/local";
@@ -16,6 +15,7 @@ import CocModal from "./CocModal";
 import UpdateCertificateVersion from "./UpdateCertificateVersion";
 import QCAnalysis from "./QCAnalysis";
 import WAAnalysis from "./WAAnalysis";
+import DownloadLabCertificateModal from "./DownloadLabCertificateModal";
 import SampleHistoryModal from "./SampleHistoryModal";
 import CocLog from "./CocLog";
 
@@ -45,7 +45,6 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchCocs: () => dispatch(fetchCocs()),
     showModal: modal => dispatch(showModal(modal)),
-    fetchSamples: jobnumber => dispatch(fetchSamples(jobnumber)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
     setAnalysisMode: analysismode => dispatch(setAnalysisMode(analysismode))
   };
@@ -81,6 +80,7 @@ class AsbestosLab extends React.Component {
         <SampleHistoryModal />
         <QCAnalysis />
         <WAAnalysis />
+        <DownloadLabCertificateModal />
         <CocLog />
         <Button
           variant="outlined"

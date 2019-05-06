@@ -13,6 +13,7 @@ import { fetchCocs, fetchSamples, syncJobWithWFM } from "../../actions/local";
 import { showModal } from "../../actions/modal";
 import {
   COC,
+  DOWNLOADLABCERTIFICATE,
   UPDATECERTIFICATEVERSION,
   WAANALYSIS,
   SAMPLEHISTORY,
@@ -513,12 +514,18 @@ class CocList extends React.Component {
       });
       report = { ...report, versionHistory: versionHistory };
     }
-    let url =
-      "http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
-      JSON.stringify(report);
-    console.log(url);
-    // this.setState({ url: url });
-    window.open(url);
+    this.props.showModal({
+      modalType: DOWNLOADLABCERTIFICATE,
+      modalProps: {
+        report: report,
+      }
+    });
+    // let url =
+    //   "http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
+    //   JSON.stringify(report);
+    // console.log(url);
+    // // this.setState({ url: url });
+    // window.open(url);
     // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
   };
 
@@ -704,7 +711,7 @@ class CocList extends React.Component {
                   // Check if any samples have not been checked off and ask the user to verify
                   let allSamplesReported = true;
                   Object.values(samples[job.uid]).forEach(sample => {
-                    if (!sample.reported) allSamplesReported = false;
+                    if (!sample.reported && sample.cocUid === job.uid) allSamplesReported = false;
                   });
                   if (
                     !allSamplesReported &&
