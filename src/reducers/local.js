@@ -191,6 +191,8 @@ export default function localReducer(state = localInit, action) {
       //     }
       //   });
       // }
+      console.log('Get samples');
+      console.log(action);
       return {
         ...state,
         samples: { ...state.samples, [action.cocUid]: action.payload }

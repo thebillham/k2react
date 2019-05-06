@@ -3,9 +3,11 @@ import {
   DELETE_TAG,
   EDIT_MODAL_DOC,
   EDIT_MODAL_DOC_STEPS,
+  EDIT_MODAL_DOC_SAMPLES,
   EDIT_MODAL_GLOSSARY,
   EDIT_MODAL_SAMPLE,
   EDIT_MODAL,
+  GET_SAMPLES,
   RESET_MODAL,
   SET_MODAL_ERROR,
   SHOW_MODAL
@@ -90,10 +92,22 @@ export const setModalError = error => dispatch => {
 };
 
 export const handleModalChange = target => dispatch => {
-  dispatch({
-    type: EDIT_MODAL_DOC,
-    payload: { [target.id]: target.value }
-  });
+  if (target.id === 'samples') {
+    dispatch({
+      type: EDIT_MODAL_DOC_SAMPLES,
+      payload: target.value
+    });
+    dispatch({
+      type: GET_SAMPLES,
+      cocUid: target.cocUid,
+      payload: target.value,
+    });
+  } else {
+    dispatch({
+      type: EDIT_MODAL_DOC,
+      payload: { [target.id]: target.value }
+    });
+  }
 };
 
 export const handleModalChangeStep = target => dispatch => {
@@ -133,19 +147,21 @@ export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
     uid = doc.uid;
     pathRef.doc(doc.uid).set(doc);
   } else {
-    console.log(doc.type);
+    // console.log(doc.type);
     uid = doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)));
-    console.log(uid);
+    // console.log(uid);
     pathRef.doc(uid).set({ ...doc, uid: uid });
   }
   dispatch({ type: RESET_MODAL });
 };
 
-export const handleCocSubmit = ({ doc, docid }) => dispatch => {
-  console.log(doc.samples);
+export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch => {
+  // console.log(doc.samples);
   let sampleList = [];
   if (doc.samples) {
+    // console.log(doc.samples);
     Object.keys(doc.samples).forEach(sample => {
+      // console.log(sample);
       if (!doc.samples[sample].uid) {
         let datestring = new Intl.DateTimeFormat("en-GB", {
           year: "2-digit",
@@ -162,11 +178,21 @@ export const handleCocSubmit = ({ doc, docid }) => dispatch => {
         }-SAMPLE-${sample}-CREATED-${datestring}-${Math.round(
           Math.random() * 1000
         )}`;
-        console.log(`UID for new sample is ${uid}`);
+        // console.log(`UID for new sample is ${uid}`);
+        let log = {
+          type: 'Create',
+          log: `Sample ${sample} (${doc.samples[sample].description} ${doc.samples[sample].material}) created.`,
+          date: new Date(),
+          username: userName,
+          user: userUid,
+          sample: uid,
+        };
+        doc.cocLog.push(log);
         doc.samples[sample].uid = uid;
         doc.samples[sample].deleted = false;
         sampleList.push(uid);
       } else {
+        // console.log(`UID for old sample is ${doc.samples[sample].uid}`);
         sampleList.push(doc.samples[sample].uid);
       }
       if (
@@ -175,7 +201,7 @@ export const handleCocSubmit = ({ doc, docid }) => dispatch => {
         (doc.samples[sample].cocUid === undefined ||
           doc.samples[sample].cocUid === doc.uid)
       ) {
-        console.log(`Submitting sample ${sample} to ${docid}`);
+        // console.log(`Submitting sample ${sample} to ${docid}`);
         let sample2 = doc.samples[sample];
         if (sample2.description)
           sample2.description =
@@ -187,10 +213,11 @@ export const handleCocSubmit = ({ doc, docid }) => dispatch => {
         }
         sample2.jobNumber = doc.jobNumber;
         sample2.cocUid = docid;
+        console.log(docid);
         sample2.sampleNumber = parseInt(sample, 10);
         if ("disabled" in sample2) delete sample2.disabled;
-        console.log("Sample 2");
-        console.log(sample2);
+        // console.log("Sample 2");
+        // console.log(sample2);
         asbestosSamplesRef.doc(doc.samples[sample].uid).set(sample2);
       }
     });
@@ -199,7 +226,7 @@ export const handleCocSubmit = ({ doc, docid }) => dispatch => {
   if ("samples" in doc2) delete doc2.samples;
   doc2.uid = docid;
   doc2.sampleList = sampleList;
-  console.log(doc2);
+  // console.log(doc2);
   cocsRef.doc(docid).set(doc2);
   dispatch({ type: RESET_MODAL });
 };
