@@ -1,6 +1,7 @@
 import {
   APP_HAS_LOADED,
   CAT_CHANGE,
+  GET_ASBESTOS_ANALYSIS,
   GET_AIRANALYSTS,
   GET_BULKANALYSTS,
   GET_COCS,
@@ -43,6 +44,7 @@ import {
 import moment from "moment";
 import {
   asbestosSamplesRef,
+  asbestosAnalysisRef,
   auth,
   cocsRef,
   docsRef,
@@ -304,6 +306,24 @@ export const fetchCocs = update => async dispatch => {
   if (update) {
     cocsRef
       .where("deleted", "==", false)
+      .where("versionUpToDate", "==", false)
+      .orderBy("lastModified")
+      .onSnapshot(querySnapshot => {
+        var cocs = {};
+        querySnapshot.forEach(doc => {
+          cocs[doc.id] = doc.data();
+        });
+        dispatch({
+          type: GET_COCS,
+          payload: cocs,
+          update: true
+        });
+      });
+    cocsRef
+      .where("deleted", "==", false)
+      .where("versionUpToDate", "==", true)
+      .where("lastModified", ">", moment().subtract(1, 'days').toDate())
+      .orderBy("lastModified")
       // .orderBy("dueDate", "desc")
       .onSnapshot(querySnapshot => {
         var cocs = {};
@@ -326,6 +346,98 @@ export const fetchCocs = update => async dispatch => {
     });
   }
 };
+
+export const fetchCocsByJobNumber = (jobNumber) => async dispatch => {
+  cocsRef
+    .where("deleted", "==", false)
+    .where("jobNumber", "==", jobNumber.toUpperCase())
+    .orderBy("lastModified")
+    .onSnapshot(querySnapshot => {
+      var cocs = {};
+      querySnapshot.forEach(doc => {
+        cocs[doc.id] = doc.data();
+      });
+      dispatch({
+        type: GET_COCS,
+        payload: cocs,
+        update: true
+      });
+    });
+};
+
+export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch => {
+  console.log(client);
+  console.log(startDate);
+  console.log(endDate);
+  if (startDate === "") startDate = moment().subtract(6, 'months').toDate(); else startDate = new Date(startDate);
+  if (endDate === "") endDate = new Date(); else endDate = new Date(endDate);
+  console.log(startDate);
+  console.log(endDate);
+  if (client !== "") {
+    cocsRef
+      .where("deleted", "==", false)
+      .where("client", "==", client)
+      .where("lastModified", ">=", startDate)
+      .where("lastModified", "<=", endDate)
+      .orderBy("lastModified")
+      .onSnapshot(querySnapshot => {
+        var cocs = {};
+        querySnapshot.forEach(doc => {
+          cocs[doc.id] = doc.data();
+        });
+        dispatch({
+          type: GET_COCS,
+          payload: cocs,
+          update: true
+        });
+      });
+  } else {
+    console.log('blank client');
+    cocsRef
+      .where("deleted", "==", false)
+      .where("lastModified", ">=", startDate)
+      .where("lastModified", "<=", endDate)
+      .orderBy("lastModified")
+      .onSnapshot(querySnapshot => {
+        var cocs = {};
+        querySnapshot.forEach(doc => {
+          cocs[doc.id] = doc.data();
+        });
+        dispatch({
+          type: GET_COCS,
+          payload: cocs,
+          update: true
+        });
+      });
+  }
+};
+
+export const fetchAsbestosAnalysis = update => async dispatch => {
+  if (update) {
+    asbestosAnalysisRef
+      .onSnapshot(querySnapshot => {
+        var analysis = [];
+        querySnapshot.forEach(doc => {
+          analysis.push(doc.data());
+        });
+        dispatch({
+          type: GET_ASBESTOS_ANALYSIS,
+          payload: { analysis },
+          update: true,
+        });
+      });
+  } else {
+    console.log('fetch analysis');
+    stateRef.doc("asbestosanalysis").onSnapshot(doc => {
+      console.log(doc.data());
+      if (doc.exists) {
+        dispatch({ type: GET_ASBESTOS_ANALYSIS, payload: doc.data() });
+      } else {
+        console.log("Asbestos Analysis doesn't exist");
+      }
+    });
+  }
+}
 
 export const fetchDocuments = update => async dispatch => {
   if (update) {

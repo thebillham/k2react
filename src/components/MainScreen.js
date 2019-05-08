@@ -57,6 +57,10 @@ import UpdatesIcon from "@material-ui/icons/Update";
 import SettingsIcon from "@material-ui/icons/Settings";
 import UpdateIcon from "@material-ui/icons/Cached";
 import IncidentIcon from '@material-ui/icons/LocalHospital';
+import CocIcon from '@material-ui/icons/TableChart';
+import LogIcon from '@material-ui/icons/ListAlt';
+import QCIcon from '@material-ui/icons/OfflinePin'
+import StatsIcon from '@material-ui/icons/InsertChart';
 
 import MenuIcon from "@material-ui/icons/Menu";
 import SearchIcon from "@material-ui/icons/Search";
@@ -82,7 +86,10 @@ import { fixIds } from "../actions/temp";
 // const Vehicles = lazy(() => import("./assets/Vehicles"));
 const Noticeboard = lazy(() => import("./noticeboard/Noticeboard"));
 const Incidents = lazy(() => import("./incidents/Incidents"));
-const AsbestosLab = lazy(() => import("./asbestoslab/AsbestosLab"));
+const AsbestosCocs = lazy(() => import("./asbestoslab/AsbestosCocs"));
+const AsbestosLog = lazy(() => import("./asbestoslab/AsbestosLog"));
+const AsbestosQualityControl = lazy(() => import("./asbestoslab/AsbestosQualityControl"));
+const AsbestosStats = lazy(() => import("./asbestoslab/AsbestosStats"));
 const Jobs = lazy(() => import("./jobs/Jobs"));
 const JobMap = lazy(() => import("./jobs/JobMap"));
 // import Noticeboard from './noticeboard/Noticeboard';
@@ -164,6 +171,7 @@ class MainScreen extends React.Component {
       anchorEl: null,
       staffUid: null,
       openDev: false,
+      openAsbestos: true,
       // openRef: false,
       // openStaff: false,
       // openMyDetails: false,
@@ -219,6 +227,13 @@ class MainScreen extends React.Component {
     //   // openDrawer: true,
     //   openRef: !this.state.openRef
     // });
+  };
+
+  handleAsbestosClick = () => {
+    this.setState({
+      // openDrawer: true,
+      openAsbestos: !this.state.openAsbestos
+    });
   };
 
   handleDevClick = () => {
@@ -408,30 +423,71 @@ class MainScreen extends React.Component {
               </ListItemIcon>
               <ListItemText primary="Library" />
             </ListItem>*/}
-        </List>
         <Divider />
-        <List>
           <ListItem button component={Link} to="/jobs/map">
             <ListItemIcon>
               <MapIcon className={classes.accentButton} />
             </ListItemIcon>
             <ListItemText primary="Jobs Map" />
           </ListItem>
-          
+
         <Divider />
-          <ListItem
-            button
-            component={Link}
-            to="/lab"
-          >
+          <ListItem button onClick={this.handleAsbestosClick}>
             <ListItemIcon>
               <LabIcon className={classes.accentButton} />
             </ListItemIcon>
             <ListItemText primary="Asbestos Lab" />
+            {this.state.openAsbestos ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
+          <Collapse in={this.state.openAsbestos} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <ListItem
+                button
+                component={Link}
+                to="/asbestoslab"
+                className={classes.nested}
+              >
+                <ListItemIcon>
+                  <CocIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Chains of Custody" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/asbestossamplelog"
+                className={classes.nested}
+              >
+                <ListItemIcon>
+                  <LogIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Sample Log" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/asbestosqc"
+                className={classes.nested}
+              >
+                <ListItemIcon>
+                  <QCIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Quality Control" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/asbestosstats"
+                className={classes.nested}
+              >
+                <ListItemIcon>
+                  <StatsIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Stats" />
+              </ListItem>
+            </List>
+          </Collapse>
         </List>
-
-
         <Divider />
         <List>
           <ListItem button onClick={this.handleDevClick}>
@@ -724,8 +780,20 @@ class MainScreen extends React.Component {
                           render={() => <div>Jobs Map</div>}
                         />
                         <Route
-                          path="/lab"
-                          render={() => <div>Asbestos Lab</div>}
+                          path="/asbestoslab"
+                          render={() => <div>Asbestos Lab: COCs</div>}
+                        />
+                        <Route
+                          path="/asbestossamplelog"
+                          render={() => <div>Asbestos Lab: Sample Log</div>}
+                        />
+                        <Route
+                          path="/asbestosqc"
+                          render={() => <div>Asbestos Lab: Quality Control</div>}
+                        />
+                        <Route
+                          path="/asbestosstats"
+                          render={() => <div>Asbestos Lab: Stats</div>}
                         />
                         <Route
                           exact
@@ -811,7 +879,7 @@ class MainScreen extends React.Component {
                     </Typography>
                     <Route
                       exact
-                      path="/(library|training|modules|noticeboard||lab|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
+                      path="/(library|training|modules|noticeboard|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
                       render={() => (
                         <div className={classes.search}>
                           <div className={classes.searchIcon}>
@@ -905,7 +973,10 @@ class MainScreen extends React.Component {
                       <Route path="/incidents" component={Incidents} />
                       <Route exact path="/jobs" component={Jobs} />
                       <Route path="/jobs/map" component={JobMap} />
-                      <Route path="/lab" component={AsbestosLab} />
+                      <Route path="/asbestoslab" component={AsbestosCocs} />
+                      <Route path="/asbestossamplelog" component={AsbestosLog} />
+                      <Route path="/asbestosqc" component={AsbestosQualityControl} />
+                      <Route path="/asbestosstats" component={AsbestosStats} />
                       <Route
                         exact
                         path="/staff/training/:user"

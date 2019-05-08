@@ -93,6 +93,8 @@ class CocModal extends React.Component {
   state = {
     analysisType: 'bulk',
     personnel: [],
+    personnelSetup: [],
+    personnelPickup: [],
     suggestions: [],
     syncError: null,
     modified: false,
@@ -108,22 +110,22 @@ class CocModal extends React.Component {
       this.props.fetchStaff();
   }
 
-  handlePersonnelChange = event => {
+  handlePersonnelChange = (event, type) => {
     this.setState({
-      personnel: event.target.value,
+      [type]: event.target.value,
       modified: true,
     });
     if (this.props.doc.cocLog) {
       let log = {
         type: 'Edit',
-        log: 'Sampling personnel details changed.',
+        log: `Sampling personnel details changed.`,
         date: new Date(),
         username: this.props.me.name,
         user: auth.currentUser.uid,
       };
       this.props.doc.cocLog.push(log);
     }
-    this.props.handleSelectChange({ id: 'personnel', value: event.target.value, })
+    this.props.handleSelectChange({ id: type, value: event.target.value, })
   }
 
   handleSuggestionsFetchRequested = ({ value }) => {
@@ -533,7 +535,7 @@ class CocModal extends React.Component {
                     <Select
                      multiple
                      value={doc.personnel}
-                     onChange={this.handlePersonnelChange}
+                     onChange={e => this.handlePersonnelChange(e, 'personnel')}
                      input={<Input id="personnel" />}
                      renderValue={selected => (
                        <div style={{ display: 'flex', flexWrap: 'wrap', }}>
@@ -558,6 +560,69 @@ class CocModal extends React.Component {
                      ))}
                     </Select>
                   </FormControl>
+                  { this.state.analysisType === "air" && <div>
+                    <FormControl className={classes.textField}>
+                      <InputLabel>Sampled By</InputLabel>
+                      <Select
+                       multiple
+                       value={doc.personnelSetup}
+                       onChange={e => this.handlePersonnelChange(e, 'personnelSetup')}
+                       input={<Input id="personnelSetup" />}
+                       renderValue={selected => (
+                         <div style={{ display: 'flex', flexWrap: 'wrap', }}>
+                           {selected.map(value => (
+                             <Chip key={value} label={value} style={{ margin: 5}} />
+                           ))}
+                         </div>)
+                       }
+                       MenuProps={{
+                         PaperProps: {
+                           style: {
+                             maxHeight: 48 * 4.5 + 8,
+                             width: 250,
+                           },
+                         },
+                       }}
+                      >
+                       {names.map(name => (
+                         <MenuItem key={name.name} value={name.name} style={getStyles(name.name, this)}>
+                           {name.name}
+                         </MenuItem>
+                       ))}
+                      </Select>
+                    </FormControl>
+
+                    <FormControl className={classes.textField}>
+                      <InputLabel>Sampled By</InputLabel>
+                      <Select
+                       multiple
+                       value={doc.personnelPickup}
+                       onChange={e => this.handlePersonnelChange(e, 'personnelPickup')}
+                       input={<Input id="personnelPickup" />}
+                       renderValue={selected => (
+                         <div style={{ display: 'flex', flexWrap: 'wrap', }}>
+                           {selected.map(value => (
+                             <Chip key={value} label={value} style={{ margin: 5}} />
+                           ))}
+                         </div>)
+                       }
+                       MenuProps={{
+                         PaperProps: {
+                           style: {
+                             maxHeight: 48 * 4.5 + 8,
+                             width: 250,
+                           },
+                         },
+                       }}
+                      >
+                       {names.map(name => (
+                         <MenuItem key={name.name} value={name.name} style={getStyles(name.name, this)}>
+                           {name.name}
+                         </MenuItem>
+                       ))}
+                      </Select>
+                    </FormControl>
+                  </div>}
                   <FormControl>
                     <InputLabel shrink>Sample Date(s)</InputLabel><br /><br />
                     <DayPicker
@@ -565,6 +630,7 @@ class CocModal extends React.Component {
                       onDayClick={this.handleDateChange}
                     />
                   </FormControl>
+
                 </FormGroup>
               </form>
             </Grid>

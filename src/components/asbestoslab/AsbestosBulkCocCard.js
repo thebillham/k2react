@@ -67,7 +67,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class CocList extends React.Component {
+class AsbestosBulkCocCard extends React.Component {
   state = {
     samples: {},
     bulkanalyst: "",
@@ -475,6 +475,7 @@ class CocList extends React.Component {
         currentVersion: version,
         versionHistory: versionHistory,
         versionUpToDate: true,
+        lastModified: new Date(),
         cocLog: cocLog
       },
       { merge: true }
@@ -603,7 +604,7 @@ class CocList extends React.Component {
 
   getSamples = (expanded, cocUid, jobNumber) => {
     if (expanded && cocUid) {
-      console.log('get samples frm coclist');
+      console.log('get samples frm AsbestosBulkCocCard');
       this.props.fetchSamples(cocUid, jobNumber);
     }
   };
@@ -1207,5 +1208,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(CocList)
+  )(AsbestosBulkCocCard)
 );
