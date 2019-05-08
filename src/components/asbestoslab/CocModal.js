@@ -530,7 +530,7 @@ class CocModal extends React.Component {
               }
               <form>
                 <FormGroup>
-                  <FormControl className={classes.textField}>
+                  { this.state.analysisType !== "air" && <FormControl className={classes.textField}>
                     <InputLabel>Sampled By</InputLabel>
                     <Select
                      multiple
@@ -559,10 +559,10 @@ class CocModal extends React.Component {
                        </MenuItem>
                      ))}
                     </Select>
-                  </FormControl>
-                  { this.state.analysisType === "air" && <div>
-                    <FormControl className={classes.textField}>
-                      <InputLabel>Sampled By</InputLabel>
+                  </FormControl>}
+                  { this.state.analysisType === "air" && <div style={{ display: 'flex'}}>
+                    <FormControl style={{ width: '50%'}}>
+                      <InputLabel>Setup By</InputLabel>
                       <Select
                        multiple
                        value={doc.personnelSetup}
@@ -592,8 +592,8 @@ class CocModal extends React.Component {
                       </Select>
                     </FormControl>
 
-                    <FormControl className={classes.textField}>
-                      <InputLabel>Sampled By</InputLabel>
+                    <FormControl style={{ width: '50%'}}>
+                      <InputLabel>Pickup By</InputLabel>
                       <Select
                        multiple
                        value={doc.personnelPickup}
@@ -635,7 +635,8 @@ class CocModal extends React.Component {
               </form>
             </Grid>
             <Grid item xs={12} md={8}>
-            <Grid container direction='column'>
+            {this.state.analysisType !== "air" ?
+              <Grid container direction='column'>
                 <Grid item>
                   <Grid container style={{ fontWeight: 450, marginLeft: 12, }}>
                     <Grid item xs={1}>
@@ -708,20 +709,32 @@ class CocModal extends React.Component {
                           </Grid>
                     </Grid>
                         )
-                  })}
-                  <Grid container>
-                    <Grid item xs={12}>
-                      <Button
-                        style={{ marginTop: 24, marginLeft: 128, }}
-                        onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
-                        <Add style={{ marginRight: 12, }}/> Add More Samples
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </Grid>
+                  })
+                }
+            <Grid container>
+              <Grid item xs={12}>
+                <Button
+                  style={{ marginTop: 24, marginLeft: 128, }}
+                  onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
+                  <Add style={{ marginRight: 12, }}/> Add More Samples
+                </Button>
               </Grid>
             </Grid>
           </Grid>
+        </Grid>
+        :
+      <Grid container>
+        <Grid item xs={12}>
+          <Button
+            style={{ marginTop: 24, marginLeft: 128, }}
+            onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
+            <Add style={{ marginRight: 12, }}/> Add Air Filter
+          </Button>
+        </Grid>
+      </Grid>
+      }
+          </Grid>
+        </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => {

@@ -119,7 +119,7 @@ class AsbestosCocs extends React.Component {
                   modalType: COC,
                   modalProps: {
                     title: "Add New Chain of Custody",
-                    doc: { dates: [], personnel: [], samples: {}, type: "bulk", deleted: false, versionUpToDate: false, }
+                    doc: { dates: [], personnel: [], personnelSetup: [], personnelPickup: [], samples: {}, type: "bulk", deleted: false, versionUpToDate: false, }
                   }
                 });
               }}
