@@ -15,6 +15,7 @@ import CocModal from "./CocModal";
 import UpdateCertificateVersion from "./UpdateCertificateVersion";
 import QCAnalysis from "./QCAnalysis";
 import WAAnalysis from "./WAAnalysis";
+import AsbestosLabDetails from "./AsbestosLabDetails";
 import DownloadLabCertificateModal from "./DownloadLabCertificateModal";
 import SampleHistoryModal from "./SampleHistoryModal";
 import CocLog from "./CocLog";
@@ -80,6 +81,7 @@ class AsbestosLab extends React.Component {
         <SampleHistoryModal />
         <QCAnalysis />
         <WAAnalysis />
+        <AsbestosLabDetails />
         <DownloadLabCertificateModal />
         <CocLog />
         <Button

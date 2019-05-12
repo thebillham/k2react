@@ -13,6 +13,7 @@ import { fetchCocs, fetchSamples, syncJobWithWFM } from "../../actions/local";
 import { showModal } from "../../actions/modal";
 import {
   COC,
+  ASBESTOSLABDETAILS,
   DOWNLOADLABCERTIFICATE,
   UPDATECERTIFICATEVERSION,
   WAANALYSIS,
@@ -779,7 +780,7 @@ class CocList extends React.Component {
                     this.props.showModal({
                       modalType: COCLOG,
                       modalProps: {
-                        jobNumber: job.jobumber,
+                        jobNumber: job.jobNumber,
                         cocLog: job.cocLog
                       }
                     });
@@ -1140,6 +1141,22 @@ class CocList extends React.Component {
                               }}
                               style={{ padding: 0 }}
                             >
+                              <MenuItem
+                                key={`${
+                                  job.jobNumber
+                                }-${sample.sampleNumber.toString()}-WA`}
+                                onClick={() => {
+                                  this.props.showModal({
+                                    modalType: ASBESTOSLABDETAILS,
+                                    modalProps: {
+                                      sample: sample,
+                                      docid: job.uid
+                                    }
+                                  });
+                                }}
+                              >
+                                Lab Details
+                              </MenuItem>
                               <MenuItem
                                 key={`${
                                   job.jobNumber
