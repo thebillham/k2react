@@ -220,7 +220,7 @@ const styles = theme => ({
     margin: 10,
   },
   nested: {
-    paddingLeft: theme.spacing.unit * 10,
+    paddingLeft: theme.spacing.unit * 5,
   },
   subitem: {
     fontSize: 8,
@@ -228,7 +228,11 @@ const styles = theme => ({
   fineprint: {
     fontSize: 12,
   },
-
+  paleLarge: {
+    fontSize: 48,
+    fontWeight: 100,
+    color: '#bbb',
+  },
   notifications: {
     fontSize: 12,
     display: 'flex',

@@ -16,6 +16,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 
 import {
   analyseJobHistory,
+  fetchAsbestosAnalysis,
   fetchCocs,
   fetchDocuments,
   fetchMethods,
@@ -38,6 +39,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
+    fetchAsbestosAnalysis: () => dispatch(fetchAsbestosAnalysis(true)),
     fetchCocs: () => dispatch(fetchCocs(true)),
     fetchDocuments: () => dispatch(fetchDocuments(true)),
     fetchMethods: () => dispatch(fetchMethods(true)),
@@ -59,6 +61,10 @@ class UpdateData extends React.Component {
       {
         event: this.props.fetchCocs,
         title: "Chains of Custody"
+      },
+      {
+        event: this.props.fetchAsbestosAnalysis,
+        title: "Asbestos Analysis Log"
       },
       {
         event: this.props.fetchDocuments,

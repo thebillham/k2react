@@ -27,9 +27,9 @@ const auth = firebase.auth();
 const storage = firebase.storage();
 
 const appSettingsRef = firestore.collection("appsettings");
-const asbestosAnalysisRef = firestore.collection("lab").doc("asbestosbulk").collection("labs").doc("k2environmental").collection("analysis");
-const asbestosSamplesRef = firestore.collection("lab").doc("asbestosbulk").collection("labs").doc("k2environmental").collection("samples");
-const cocsRef = firestore.collection("lab").doc("asbestosbulk").collection("labs").doc("k2environmental").collection("cocs");
+const asbestosAnalysisRef = firestore.collection("lab").doc("asbestos").collection("labs").doc("k2environmental").collection("analysis");
+const asbestosSamplesRef = firestore.collection("lab").doc("asbestos").collection("labs").doc("k2environmental").collection("samples");
+const cocsRef = firestore.collection("lab").doc("asbestos").collection("labs").doc("k2environmental").collection("cocs");
 const constRef = firestore.collection("appsettings").doc("constants");
 const docsRef = firestore.collection("documents");
 const geocodesRef = firestore.collection("state").doc("geocodes");

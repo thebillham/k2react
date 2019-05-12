@@ -93,6 +93,8 @@ class CocModal extends React.Component {
   state = {
     analysisType: 'bulk',
     personnel: [],
+    personnelSetup: [],
+    personnelPickup: [],
     suggestions: [],
     syncError: null,
     modified: false,
@@ -108,22 +110,22 @@ class CocModal extends React.Component {
       this.props.fetchStaff();
   }
 
-  handlePersonnelChange = event => {
+  handlePersonnelChange = (event, type) => {
     this.setState({
-      personnel: event.target.value,
+      [type]: event.target.value,
       modified: true,
     });
     if (this.props.doc.cocLog) {
       let log = {
         type: 'Edit',
-        log: 'Sampling personnel details changed.',
+        log: `Sampling personnel details changed.`,
         date: new Date(),
         username: this.props.me.name,
         user: auth.currentUser.uid,
       };
       this.props.doc.cocLog.push(log);
     }
-    this.props.handleSelectChange({ id: 'personnel', value: event.target.value, })
+    this.props.handleSelectChange({ id: type, value: event.target.value, })
   }
 
   handleSuggestionsFetchRequested = ({ value }) => {
@@ -528,12 +530,12 @@ class CocModal extends React.Component {
               }
               <form>
                 <FormGroup>
-                  <FormControl className={classes.textField}>
+                  { this.state.analysisType !== "air" && <FormControl className={classes.textField}>
                     <InputLabel>Sampled By</InputLabel>
                     <Select
                      multiple
                      value={doc.personnel}
-                     onChange={this.handlePersonnelChange}
+                     onChange={e => this.handlePersonnelChange(e, 'personnel')}
                      input={<Input id="personnel" />}
                      renderValue={selected => (
                        <div style={{ display: 'flex', flexWrap: 'wrap', }}>
@@ -557,7 +559,70 @@ class CocModal extends React.Component {
                        </MenuItem>
                      ))}
                     </Select>
-                  </FormControl>
+                  </FormControl>}
+                  { this.state.analysisType === "air" && <div style={{ display: 'flex'}}>
+                    <FormControl style={{ width: '50%'}}>
+                      <InputLabel>Setup By</InputLabel>
+                      <Select
+                       multiple
+                       value={doc.personnelSetup}
+                       onChange={e => this.handlePersonnelChange(e, 'personnelSetup')}
+                       input={<Input id="personnelSetup" />}
+                       renderValue={selected => (
+                         <div style={{ display: 'flex', flexWrap: 'wrap', }}>
+                           {selected.map(value => (
+                             <Chip key={value} label={value} style={{ margin: 5}} />
+                           ))}
+                         </div>)
+                       }
+                       MenuProps={{
+                         PaperProps: {
+                           style: {
+                             maxHeight: 48 * 4.5 + 8,
+                             width: 250,
+                           },
+                         },
+                       }}
+                      >
+                       {names.map(name => (
+                         <MenuItem key={name.name} value={name.name} style={getStyles(name.name, this)}>
+                           {name.name}
+                         </MenuItem>
+                       ))}
+                      </Select>
+                    </FormControl>
+
+                    <FormControl style={{ width: '50%'}}>
+                      <InputLabel>Pickup By</InputLabel>
+                      <Select
+                       multiple
+                       value={doc.personnelPickup}
+                       onChange={e => this.handlePersonnelChange(e, 'personnelPickup')}
+                       input={<Input id="personnelPickup" />}
+                       renderValue={selected => (
+                         <div style={{ display: 'flex', flexWrap: 'wrap', }}>
+                           {selected.map(value => (
+                             <Chip key={value} label={value} style={{ margin: 5}} />
+                           ))}
+                         </div>)
+                       }
+                       MenuProps={{
+                         PaperProps: {
+                           style: {
+                             maxHeight: 48 * 4.5 + 8,
+                             width: 250,
+                           },
+                         },
+                       }}
+                      >
+                       {names.map(name => (
+                         <MenuItem key={name.name} value={name.name} style={getStyles(name.name, this)}>
+                           {name.name}
+                         </MenuItem>
+                       ))}
+                      </Select>
+                    </FormControl>
+                  </div>}
                   <FormControl>
                     <InputLabel shrink>Sample Date(s)</InputLabel><br /><br />
                     <DayPicker
@@ -565,11 +630,13 @@ class CocModal extends React.Component {
                       onDayClick={this.handleDateChange}
                     />
                   </FormControl>
+
                 </FormGroup>
               </form>
             </Grid>
             <Grid item xs={12} md={8}>
-            <Grid container direction='column'>
+            {this.state.analysisType !== "air" ?
+              <Grid container direction='column'>
                 <Grid item>
                   <Grid container style={{ fontWeight: 450, marginLeft: 12, }}>
                     <Grid item xs={1}>
@@ -642,20 +709,32 @@ class CocModal extends React.Component {
                           </Grid>
                     </Grid>
                         )
-                  })}
-                  <Grid container>
-                    <Grid item xs={12}>
-                      <Button
-                        style={{ marginTop: 24, marginLeft: 128, }}
-                        onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
-                        <Add style={{ marginRight: 12, }}/> Add More Samples
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </Grid>
+                  })
+                }
+            <Grid container>
+              <Grid item xs={12}>
+                <Button
+                  style={{ marginTop: 24, marginLeft: 128, }}
+                  onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
+                  <Add style={{ marginRight: 12, }}/> Add More Samples
+                </Button>
               </Grid>
             </Grid>
           </Grid>
+        </Grid>
+        :
+      <Grid container>
+        <Grid item xs={12}>
+          <Button
+            style={{ marginTop: 24, marginLeft: 128, }}
+            onClick={ () => { this.props.handleModalChange({ id: 'numberOfSamples', value: doc.numberOfSamples ? doc.numberOfSamples + 10 : 20 }) }}>
+            <Add style={{ marginRight: 12, }}/> Add Air Filter
+          </Button>
+        </Grid>
+      </Grid>
+      }
+          </Grid>
+        </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => {

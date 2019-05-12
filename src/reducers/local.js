@@ -1,5 +1,6 @@
 import {
   GET_STAFF,
+  GET_ASBESTOS_ANALYSIS,
   GET_AIRANALYSTS,
   GET_BULKANALYSTS,
   GET_DOCUMENTS,
@@ -45,6 +46,7 @@ const localInit = {
   airanalysts: [],
   analysismode: "normal",
   analyst: "",
+  asbestosanalysis: [],
   auth: [],
   bulkanalysts: [],
   category: "",
@@ -106,7 +108,17 @@ export default function localReducer(state = localInit, action) {
       };
     case GET_COCS:
       if (action.update) stateRef.doc("cocs").set(action.payload);
-      return { ...state, cocs: action.payload };
+      return { ...state,
+        cocs: {
+          ...state.cocs,
+          ...action.payload
+        }
+      };
+    case GET_ASBESTOS_ANALYSIS:
+      if (action.update) stateRef.doc("asbestosanalysis").set(action.payload);
+      return { ...state,
+        asbestosanalysis: action.payload,
+      }
     case GET_DOCUMENTS:
       if (action.update)
         stateRef.doc("documents").set({ payload: action.payload });
