@@ -37,7 +37,6 @@ import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import moment from "moment";
 
-
 const mapStateToProps = state => {
   return {
     cocs: state.local.cocs,

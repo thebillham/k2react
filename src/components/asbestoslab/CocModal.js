@@ -10,6 +10,7 @@ import '../../config/tags.css';
 // import { sendSlackMessage } from '../../Slack';
 
 import AsbestosSampleCard from "./AsbestosSampleCard";
+import AirSampleCard from "./AirSampleCard";
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -98,11 +99,18 @@ class CocModal extends React.Component {
     suggestions: [],
     syncError: null,
     modified: false,
+
     sampleEditModal: null,
     sampleEditModified: false,
     sampleDelete: false,
     sampleDoSwap: false,
     sampleSwap: '',
+
+    airFilterModal: null,
+    airFilterModified: false,
+    airFilterDelete: false,
+    airFilterDoSwap: false,
+    airFilterSwap: '',
   };
 
   componentWillMount() {
@@ -456,6 +464,264 @@ class CocModal extends React.Component {
       </Dialog>
     );
 
+    const airFilterModal = (
+      <Dialog
+        maxWidth="sm"
+        fullWidth={true}
+        open={this.state.airFilterModal !== null}
+        onClose={() => this.setState({ airFilterModal: null })}
+      >
+        <DialogTitle>
+          {this.state.sampleEditModal && (`Edit Sample ${this.state.sampleEditModal.jobNumber}: ${this.state.sampleEditModal.sampleNumber}`)}
+        </DialogTitle>
+        <DialogContent>
+        {this.state.sampleEditModal && (
+          <Grid container spacing={8}>
+            <Grid item xs={12}>
+              <TextField
+                label={'Location/Item'}
+                style={{ width: '100%' }}
+                value={this.state.sampleEditModal.description}
+                onChange={e => {
+                  this.setState({
+                    sampleEditModal: {
+                      ...this.state.sampleEditModal,
+                      description: e.target.value,
+                    },
+                    sampleEditModified: true,
+                  });
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Autosuggest
+                {...autosuggestProps}
+                onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
+                  this.setState({
+                    sampleEditModal: {
+                      ...this.state.sampleEditModal,
+                      material: suggestionValue,
+                    },
+                    sampleEditModified: true,
+                  });
+                }}
+                inputProps={{
+                  label: 'Material',
+                  value: this.state.sampleEditModal.material,
+                  onChange: e => {
+                    this.setState({
+                      sampleEditModal: {
+                        ...this.state.sampleEditModal,
+                        material: e.target.value,
+                      },
+                      sampleEditModified: true,
+                    });
+                  },
+                }}
+                theme={{
+                  container: { position: 'relative',},
+                  suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
+                  suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
+                  suggestion: {display: 'block', },
+                }}
+                renderSuggestionsContainer={options => (
+                  <Paper {...options.containerProps} square>
+                    {options.children}
+                  </Paper>
+                )}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Checkbox
+                checked={this.state.sampleDoSwap}
+                onChange={(event) => { this.setState({
+                  sampleDoSwap: event.target.checked,
+                  sampleDelete: false,
+                })}}
+                value='sampleSwap'
+                color='secondary'
+              />
+              Move this sample to number
+              <Input
+                style={{ width: 45, marginLeft: 12, marginRight: 12, }}
+                type='number'
+                value={this.state.sampleSwap}
+                onChange={(event) => this.setState({
+                  sampleSwap: event.target.value
+                })}
+              />
+              <Grid item xs={12}>
+                <Checkbox
+                  checked={this.state.sampleDelete}
+                  onChange={(event) => { this.setState({
+                    sampleDelete: event.target.checked,
+                    sampleDoSwap: false,
+                  })}}
+                  value='sampleDelete'
+                  color='secondary'
+                />
+                Delete this sample
+              </Grid>
+            </Grid>
+          </Grid>
+        )}
+        </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {
+              this.setState({
+                sampleEditModal: null,
+              })
+            }} color="secondary">Cancel</Button>
+            <Button disabled={!this.state.sampleEditModified && !this.state.sampleDoSwap && !this.state.sampleDelete} onClick={() => {
+              // Todo: Implement swapping sample numbers
+                let log = {};
+                if (this.state.sampleDelete && window.confirm("Are you sure you wish to delete this sample?")) {
+                  // Delete sample
+
+                  let newSamples = {...doc.samples};
+                  delete newSamples[this.state.sampleEditModal.sampleNumber];
+                  this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: doc.uid, });
+
+                  asbestosSamplesRef.doc(this.state.sampleEditModal.uid).update({'deleted': true});
+                  if (doc.cocLog) {
+                    log = {
+                      type: 'Delete',
+                      log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) deleted.`,
+                      date: new Date(),
+                      username: this.props.me.name,
+                      user: auth.currentUser.uid,
+                      sample: this.state.sampleEditModal.uid,
+                    };
+                    doc.cocLog.push(log);
+                  }
+                  this.setState({
+                    modified: true,
+                    sampleEditModified: false,
+                    sampleDelete: false,
+                    sampleDoSwap: false,
+                    sampleEditModal: null,
+                  });
+                  // console.log(doc.samples);
+                } else if (this.state.sampleDoSwap) {
+                  if (this.state.sampleSwap == '') {
+                    window.alert('You have not selected a sample number to move to.');
+                  } else if (doc.samples[this.state.sampleSwap] === undefined && window.confirm(`Are you sure you wish to move this sample to number ${this.state.sampleSwap}`)) {
+                    // Move to sample number
+                    if (doc.cocLog) {
+                      log = {
+                        type: 'ID Change',
+                        log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) moved to sample number ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap}.`,
+                        date: new Date(),
+                        username: this.props.me.name,
+                        user: auth.currentUser.uid,
+                        sample: this.state.sampleEditModal.uid,
+                      };
+                      doc.cocLog.push(log);
+
+                      let i = parseInt(this.state.sampleSwap) - 1;
+                      this.props.handleSampleChange(i, 'reported', false);
+                      this.props.handleSampleChange(i, 'description', this.state.sampleEditModal.description);
+                      this.props.handleSampleChange(i, 'material', this.state.sampleEditModal.material);
+                      this.setState({
+                        modified: true,
+                        sampleEditModified: false,
+                        sampleDelete: false,
+                        sampleDoSwap: false,
+                        sampleSwap: '',
+                        sampleEditModal: null,
+                      });
+                    }
+
+                    let newSamples = {...doc.samples};
+                    delete newSamples[this.state.sampleEditModal.sampleNumber];
+                    this.state.sampleEditModal.sampleNumber = this.state.sampleSwap;
+                    newSamples[this.state.sampleSwap] = this.state.sampleEditModal;
+                    // console.log(newSamples);
+                    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: doc.uid, });
+
+                    // asbestosSamplesRef.doc(this.state.sampleEditModal.uid).update({'sampleNumber': this.state.sampleSwap});
+                    // console.log(doc.samples);
+                  } else if (doc.samples[this.state.sampleSwap] !== undefined && window.confirm(`There is already a sample using that sample number. Do you wish to swap sample ${this.state.sampleEditModal.sampleNumber} with sample ${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap]['description']} ${doc.samples[this.state.sampleSwap]['material']})?`)) {
+                    // Swap sample number
+                    if (doc.cocLog) {
+                      log = {
+                        type: 'ID Change',
+                        log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
+                        date: new Date(),
+                        username: this.props.me.name,
+                        user: auth.currentUser.uid,
+                        sample: this.state.sampleEditModal.uid,
+                      };
+                      doc.cocLog.push(log);
+                    }
+
+                    asbestosSamplesRef.doc(this.state.sampleEditModal.uid).update({'sampleNumber': this.state.sampleSwap});
+                    asbestosSamplesRef.doc(doc.samples[this.state.sampleSwap].uid).update({'sampleNumber': this.state.sampleEditModal.sampleNumber});
+
+                    let newSamples = {...doc.samples};
+
+                    // hold sample to be swapped with and change its sample number to yours
+                    let sample = {...doc.samples[this.state.sampleSwap]};
+                    sample.sampleNumber = this.state.sampleEditModal.sampleNumber;
+
+                    // Put your sample in the new slot and the other one where your sample was
+                    newSamples[this.state.sampleSwap] = doc.samples[this.state.sampleEditModal.sampleNumber];
+                    newSamples[this.state.sampleEditModal.sampleNumber] = sample;
+
+                    // Change your samples samplenumber
+                    this.state.sampleEditModal.sampleNumber = this.state.sampleSwap;
+
+                    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: doc.uid, });
+
+                    let i = parseInt(this.state.sampleSwap) - 1;
+                    let q = parseInt(this.state.sampleEditModal.sampleNumber) - 1;
+                    this.props.handleSampleChange(i, 'reported', false);
+                    this.props.handleSampleChange(q, 'reported', false);
+                    this.props.handleSampleChange(i, 'description', this.state.sampleEditModal.description);
+                    this.props.handleSampleChange(i, 'material', this.state.sampleEditModal.material);
+                    this.setState({
+                      modified: true,
+                      sampleEditModified: false,
+                      sampleDelete: false,
+                      sampleDoSwap: false,
+                      sampleSwap: '',
+                      sampleEditModal: null,
+                    });
+                    // console.log(doc.samples);
+                } else if (doc.samples[this.state.sampleSwap] !== undefined && doc.samples[this.state.sampleSwap]['cocUid'] !== doc.uid) {
+                  window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
+                }
+              } else {
+                  // console.log('Else');
+                  if (doc.cocLog) {
+                    log = {
+                      type: 'Edit',
+                      log: `Details of sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) modified.`,
+                      date: new Date(),
+                      username: this.props.me.name,
+                      user: auth.currentUser.uid,
+                    };
+                    doc.cocLog.push(log);
+                  }
+                  let i = parseInt(this.state.sampleEditModal.sampleNumber) - 1;
+                  this.props.handleSampleChange(i, 'reported', false);
+                  this.props.handleSampleChange(i, 'description', this.state.sampleEditModal.description);
+                  this.props.handleSampleChange(i, 'material', this.state.sampleEditModal.material);
+                  this.setState({
+                    modified: true,
+                    sampleEditModified: false,
+                    sampleDelete: false,
+                    sampleDoSwap: false,
+                    sampleSwap: '',
+                    sampleEditModal: null,
+                  });
+                }
+              }
+          } color="primary" >Submit</Button>
+          </DialogActions>
+      </Dialog>
+    );
+
     if (!doc.dates) doc.dates = [];
     let dates = doc.dates.map(date => {
       return (date instanceof Date) ? date : date.toDate();
@@ -486,9 +752,9 @@ class CocModal extends React.Component {
                     })
                   }}
                 >
-                    <FormControlLabel value="bulk" control={<Radio />} label="Bulk ID" disabled={doc.uid} />
-                    <FormControlLabel value="wa" control={<Radio />} label="Western Australia Standard" disabled={doc.uid} />
-                    <FormControlLabel value="air" control={<Radio />} label="Air Filter" disabled={doc.uid} />
+                    <FormControlLabel value="bulk" control={<Radio />} label="Bulk ID" disabled={doc.uid !== undefined} />
+                    <FormControlLabel value="wa" control={<Radio />} label="Western Australia Standard" disabled={doc.uid !== undefined} />
+                    <FormControlLabel value="air" control={<Radio />} label="Air Filter" disabled={doc.uid !== undefined} />
                 </RadioGroup>
               </FormControl>
               <div style={{ display: 'flex', flexDirection: 'row', }}>
@@ -565,7 +831,7 @@ class CocModal extends React.Component {
                       <InputLabel>Setup By</InputLabel>
                       <Select
                        multiple
-                       value={doc.personnelSetup}
+                       value={doc.personnelSetup ? doc.personnelSetup : []}
                        onChange={e => this.handlePersonnelChange(e, 'personnelSetup')}
                        input={<Input id="personnelSetup" />}
                        renderValue={selected => (
@@ -596,7 +862,7 @@ class CocModal extends React.Component {
                       <InputLabel>Pickup By</InputLabel>
                       <Select
                        multiple
-                       value={doc.personnelPickup}
+                       value={doc.personnelPickup ? doc.personnelPickup : []}
                        onChange={e => this.handlePersonnelChange(e, 'personnelPickup')}
                        input={<Input id="personnelPickup" />}
                        renderValue={selected => (
@@ -724,6 +990,16 @@ class CocModal extends React.Component {
         </Grid>
         :
       <Grid container>
+        {
+          doc && doc.samples && Object.values(doc.samples).map(i => {
+            console.log(i);
+            return (
+            <Grid item xs={12} key={i.uid}>
+              <AirSampleCard sample={i} />
+            </Grid>
+            )
+          })
+        }
         <Grid item xs={12}>
           <Button
             style={{ marginTop: 24, marginLeft: 128, }}

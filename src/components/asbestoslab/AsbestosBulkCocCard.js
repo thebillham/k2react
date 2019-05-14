@@ -794,6 +794,7 @@ class AsbestosBulkCocCard extends React.Component {
                   [...Array(job.currentVersion).keys()].map(i => {
                     return (
                       <MenuItem
+                        key={i}
                         onClick={() => {
                           this.printLabReport(i + 1);
                         }}
