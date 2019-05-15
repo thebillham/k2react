@@ -158,7 +158,7 @@ class TrainingPaths extends React.Component {
         <DocumentModal />
         <GridList cellHeight={300} cols={4}>
           {this.props.paths.map(path => {
-            const url = "/training/" + path.uid;
+            const url = "/training/path/" + path.uid;
             return (
               <GridListTile key={path.uid}>
                 <Link to={url}>

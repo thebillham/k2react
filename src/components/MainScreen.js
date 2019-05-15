@@ -723,8 +723,27 @@ class MainScreen extends React.Component {
                           render={() => <div>App Preferences</div>}
                         />
                         <Route
+                          exact
                           path="/training"
-                          render={() => <div>Training</div>}
+                          render={() => <div>Training Paths</div>}
+                        />
+                        <Route
+                          exact
+                          path="/training/paths"
+                          render={() => <div>Training Paths</div>}
+                        />
+                        <Route
+                          exact
+                          path="/training/overview"
+                          render={() => <div>Training Overview</div>}
+                        />
+                        <Route
+                          path="/training/path"
+                          render={() => <div>Training Path</div>}
+                        />
+                        <Route
+                          path="/training/readinglog"
+                          render={() => <div>Reading Log</div>}
                         />
                         <Route
                           path="/method"
@@ -884,7 +903,7 @@ class MainScreen extends React.Component {
                         path="/training/paths"
                         component={TrainingPaths}
                       />
-                      <Route path="/training/:uid" component={TrainingPath} />
+                      <Route path="/training/path/:uid" component={TrainingPath} />
                       {/*<Route path="/method/:uid" component={Method} />*/}
                       <Route exact path="/quizzes" component={Quizzes} />
                       <Route
