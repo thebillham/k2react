@@ -28,10 +28,10 @@ import {
   fetchDocuments,
   fetchMethods
 } from "../../actions/local";
-import QuizWidget from "./QuizWidget";
-import TrainingNode from "./TrainingNode";
-import TrainingLink from "./TrainingLink";
-import TrainingReview from "./TrainingReview";
+import QuizListItem from "./components/QuizListItem";
+import TrainingNode from "./components/TrainingNode";
+import TrainingLink from "./components/TrainingLink";
+import TrainingPathReview from "./components/TrainingPathReview";
 
 const iconStyle = {
   color: "#FF2D00",
@@ -201,7 +201,7 @@ class TrainingPath extends React.Component {
   renderNode(node) {
     switch (node.type) {
       case "quiz":
-        return <QuizWidget quiz={node} />;
+        return <QuizListItem quiz={node} />;
       case "link":
         return <TrainingLink link={node} />;
       case "reading":
@@ -209,7 +209,7 @@ class TrainingPath extends React.Component {
       case "method":
         return <TrainingLink link={node} />;
       case "review":
-        return <TrainingReview path={this.state.path} />;
+        return <TrainingPathReview path={this.state.path} />;
       case "ArrowBack":
         return <ArrowBack style={iconStyle} />;
       case "ArrowDownward":

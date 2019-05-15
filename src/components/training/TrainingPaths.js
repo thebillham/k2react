@@ -51,7 +51,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class TrainingOverview extends React.Component {
+class TrainingPaths extends React.Component {
   componentWillMount() {
     this.props.fetchTrainingPaths();
   }
@@ -183,7 +183,7 @@ class TrainingOverview extends React.Component {
                             this.props.showModal({
                               modalType: TRAINING,
                               modalProps: {
-                                title: "Edit Training Module",
+                                title: "Edit Training Path",
                                 doc: path
                               }
                             });
@@ -207,4 +207,4 @@ class TrainingOverview extends React.Component {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(TrainingOverview);
+)(TrainingPaths);

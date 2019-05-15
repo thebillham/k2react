@@ -16,7 +16,7 @@ import StepButton from "@material-ui/core/StepButton";
 
 import { auth, docsRef, usersRef } from "../../config/firebase";
 import { showModal } from "../../actions/modal";
-import DocumentModal from "./DocumentModal";
+import DocumentModal from "./modals/DocumentModal";
 import { FormattedDate } from "react-intl";
 // import 'react-pdf/dist/Page/AnnotationLayer.css';
 

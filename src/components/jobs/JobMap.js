@@ -5,7 +5,6 @@ import { connect } from "react-redux";
 // import { FormattedDate } from 'react-intl';
 // import ReactTable from 'react-table';
 import ListItem from "@material-ui/core/ListItem";
-import Divider from "@material-ui/core/Divider";
 // import Tab from "@material-ui/core/Tab";
 // import Tabs from "@material-ui/core/Tabs";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";

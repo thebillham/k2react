@@ -6,9 +6,11 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 
 import { connect } from "react-redux";
-import NoticeCard from "./NoticeCard";
-import NoticeModal from "./NoticeModal";
-import IncidentModal from "../incidents/IncidentModal";
+
+import NoticeCard from "./components/NoticeCard";
+import NoticeModal from "./modals/NoticeModal";
+
+// import IncidentModal from "../incidents/modals/IncidentModal";
 import { NOTICES, INCIDENT } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
 import { auth, usersRef, noticesRef } from "../../config/firebase";
@@ -134,7 +136,6 @@ class Noticeboard extends React.Component {
     return (
       <div style={{ marginTop: 80 }}>
         <NoticeModal />
-        <IncidentModal />
         <Button
           variant="outlined"
           style={{ marginBottom: 16, marginRight: 8, }}
@@ -158,7 +159,7 @@ class Noticeboard extends React.Component {
           >
           Add New Notice
         </Button>
-        <Button
+        {/*<Button
           variant="outlined"
           style={{ marginBottom: 16 }}
           onClick={() => {
@@ -180,7 +181,7 @@ class Noticeboard extends React.Component {
           }}
           >
           Submit Incident Report
-        </Button>
+        </Button>*/}
         <FormControlLabel
           style={{ marginLeft: 1, }}
           control={

@@ -10,17 +10,7 @@ import {
 } from "../../actions/local";
 
 //Modals
-import { COC } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
-import CocModal from "./CocModal";
-import UpdateCertificateVersion from "./UpdateCertificateVersion";
-import QCAnalysis from "./QCAnalysis";
-import WAAnalysis from "./WAAnalysis";
-import DownloadLabCertificateModal from "./DownloadLabCertificateModal";
-import SampleHistoryModal from "./SampleHistoryModal";
-import CocLog from "./CocLog";
-
-import CircularProgress from "@material-ui/core/CircularProgress";
 import Button from "@material-ui/core/Button";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";

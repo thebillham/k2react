@@ -6,9 +6,13 @@ import Button from "@material-ui/core/Button";
 import { connect } from "react-redux";
 import { auth, methodsRef, docsRef } from "../../config/firebase";
 import { METHOD, DOCUMENT } from "../../constants/modal-types";
-import MethodModal from "./MethodModal";
-import UpdateMethodVersion from "./UpdateMethodVersion";
-import DocumentModal from "./DocumentModal";
+
+import MethodModal from "./modals/MethodModal";
+import UpdateMethodVersionModal from "./modals/UpdateMethodVersionModal";
+import DocumentModal from "./modals/DocumentModal";
+
+import DocumentListItem from "./components/DocumentListItem";
+
 import {
   onSearchChange,
   onCatChange,
@@ -18,7 +22,6 @@ import {
 } from "../../actions/local";
 import { showModal } from "../../actions/modal";
 import store from "../../store";
-import DocList from "./DocList";
 
 const mapStateToProps = state => {
   return {
@@ -80,7 +83,7 @@ class Library extends React.Component {
       <div style={{ marginTop: 80 }}>
         <DocumentModal />
         <MethodModal />
-        <UpdateMethodVersion />
+        <UpdateMethodVersionModal />
         <Grid container spacing={8}>
           <Grid item>
             {this.props.me.auth["Method Editor"] && (
@@ -192,7 +195,7 @@ class Library extends React.Component {
             .map(doc => {
               return (
                 <div key={doc.uid}>
-                  <DocList
+                  <DocumentListItem
                     doc={doc}
                     showModal={() => {
                       if (doc.category === "k2methods") {

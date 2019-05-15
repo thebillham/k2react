@@ -708,7 +708,7 @@ export const fetchReadingLog = () => async dispatch => {
       var logs = [];
       querySnapshot.forEach(doc => {
         let log = doc.data();
-        // console.log(log);
+        console.log(log);
         log.uid = doc.id;
         docsRef
           .doc(doc.id)
@@ -719,6 +719,7 @@ export const fetchReadingLog = () => async dispatch => {
               ? doc2.data().updatedate
               : doc2.data().date;
             logs.push(log);
+            console.log(log);
             dispatch({
               type: GET_READINGLOG,
               payload: logs

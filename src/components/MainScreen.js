@@ -46,12 +46,12 @@ import MapIcon from "@material-ui/icons/Map";
 import LabIcon from "@material-ui/icons/Colorize";
 import StaffIcon from "@material-ui/icons/People";
 import MyDetailsIcon from "@material-ui/icons/Person";
-import VehiclesIcon from "@material-ui/icons/DirectionsCar";
+// import VehiclesIcon from "@material-ui/icons/DirectionsCar";
 import DevIcon from "@material-ui/icons/HourglassEmpty";
 import TrainingIcon from "@material-ui/icons/School";
 import QuizIcon from "@material-ui/icons/ContactSupport";
 import ToolsIcon from "@material-ui/icons/Build";
-import LibraryIcon from "@material-ui/icons/LibraryBooks";
+import LibraryIcon from "@material-ui/icons/LocalLibrary";
 import HelpIcon from "@material-ui/icons/Help";
 import UpdatesIcon from "@material-ui/icons/Update";
 import SettingsIcon from "@material-ui/icons/Settings";
@@ -61,6 +61,9 @@ import CocIcon from '@material-ui/icons/TableChart';
 import LogIcon from '@material-ui/icons/ListAlt';
 import QCIcon from '@material-ui/icons/OfflinePin'
 import StatsIcon from '@material-ui/icons/InsertChart';
+import TrainingPathIcon from "@material-ui/icons/DirectionsWalk";
+import TrainingOverviewIcon from "@material-ui/icons/SupervisorAccount";
+import ReadingLogIcon from "@material-ui/icons/Ballot";
 
 import MenuIcon from "@material-ui/icons/Menu";
 import SearchIcon from "@material-ui/icons/Search";
@@ -82,67 +85,29 @@ import { initConstants } from "../actions/const";
 import { fixIds } from "../actions/temp";
 
 // Pages
-// const Dashboard = lazy(() => import("./dashboard/Dashboard"));
-// const Vehicles = lazy(() => import("./assets/Vehicles"));
 const Noticeboard = lazy(() => import("./noticeboard/Noticeboard"));
-const Incidents = lazy(() => import("./incidents/Incidents"));
 const AsbestosCocs = lazy(() => import("./asbestoslab/AsbestosCocs"));
 const AsbestosLog = lazy(() => import("./asbestoslab/AsbestosLog"));
 const AsbestosQualityControl = lazy(() => import("./asbestoslab/AsbestosQualityControl"));
 const AsbestosStats = lazy(() => import("./asbestoslab/AsbestosStats"));
-const Jobs = lazy(() => import("./jobs/Jobs"));
 const JobMap = lazy(() => import("./jobs/JobMap"));
-// import Noticeboard from './noticeboard/Noticeboard';
-// import Jobs from './jobs/Jobs';
-// import AsbestosLab from './asbestoslab/AsbestosLab'
-//
-const Staff = lazy(() => import("./staff/Staff"));
-// import StaffJobs from './staff/StaffJobs';
-// import StaffTraining from './staff/StaffTraining';
-//
-const UserDetails = lazy(() => import("./users/UserDetails"));
-const UserTraining = lazy(() => import("./users/UserTraining"));
-const UserReadingLog = lazy(() => import("./users/UserReadingLog"));
-// import AppPreferences = lazy(() => import('./users/AppPreferences'));
-// import UserTraining from './users/UserTraining';
-// import UserReadingLog from './users/UserReadingLog';
-// import AppPreferences from './users/AppPreferences';
-//
-const Training = lazy(() => import("./training/Training"));
-const TrainingPath = lazy(() => import("./training/TrainingPath"));
-const TrainingOverview = lazy(() => import("./training/TrainingOverview"));
-// const TrainingModules = lazy(() => import('./training/TrainingModules'));
-// const TrainingModule = lazy(() => import('./training/TrainingModule'));
 
-// import Training from './training/Training';
-// import TrainingPath from './training/TrainingPath';
-// import TrainingModules from './training/TrainingModules';
-// import TrainingModule from './training/TrainingModule';
-//
-// import Method from './methods/Method';
-const Method = lazy(() => import("./methods/Method"));
-const Quizzes = lazy(() => import("./quizzes/Quizzes"));
-const Questions = lazy(() => import("./quizzes/Questions"));
-const Quiz = lazy(() => import("./quizzes/Quiz"));
-//
-// import Quizzes from './quizzes/Quizzes';
-// import Quiz from './quizzes/Quiz';
-const Tools = lazy(() => import("./tools/Tools"));
-//
-// import Tools from './tools/Tools';
-//
+const Staff = lazy(() => import("./personnel/Staff"));
+
+const MyDetails = lazy(() => import("./personnel/MyDetails"));
+
+const TrainingOverview = lazy(() => import("./training/TrainingOverview"));
+const TrainingPaths = lazy(() => import("./training/TrainingPaths"));
+const TrainingReadingLog = lazy(() => import("./training/TrainingReadingLog"));
+
+const TrainingPath = lazy(() => import("./training/TrainingPath"));
+
+const Quizzes = lazy(() => import("./training/quizzes/Quizzes"));
+const Questions = lazy(() => import("./training/quizzes/Questions"));
+const Quiz = lazy(() => import("./training/quizzes/Quiz"));
+
 const Library = lazy(() => import("./library/Library"));
 const DocumentViewer = lazy(() => import("./library/DocumentViewer"));
-// import Library from './library/Library';
-// import DocumentViewer from './library/DocumentViewer';
-
-// import Admin from './admin/Admin';
-// import AdminConstants from './admin/AdminConstants';
-
-const Help = lazy(() => import("./help/Help"));
-const Updates = lazy(() => import("./help/Updates"));
-
-// import { quizzesRef, questionsRef } from '../config/firebase';
 
 const mapStateToProps = state => {
   return { state };
@@ -171,11 +136,11 @@ class MainScreen extends React.Component {
       anchorEl: null,
       staffUid: null,
       openDev: false,
-      openAsbestos: true,
+      openAsbestos: false,
       // openRef: false,
       // openStaff: false,
       // openMyDetails: false,
-      openTraining: true
+      openTraining: false
       // openHelp: false,
     };
   }
@@ -298,34 +263,6 @@ class MainScreen extends React.Component {
         </div>
         <Divider />
         <List>
-          {/*<ListItem button component={Link} to="/dashboard">
-              <ListItemIcon>
-                <DashboardIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Dashboard" />
-            </ListItem>
-
-              <ListItem button component={Link} to="/noticeboard">
-                <ListItemIcon>
-                  <NoticeboardIcon className={classes.accentButton} />
-                </ListItemIcon>
-                <ListItemText primary="Noticeboard" />
-              </ListItem>
-
-            <ListItem button component={Link} to="/jobs">
-              <ListItemIcon>
-                <JobsIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Jobs" />
-            </ListItem>
-
-            <ListItem button component={Link} to="/lab">
-              <ListItemIcon>
-                <LabIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Asbestos Lab" />
-            </ListItem>*/}
-
           <ListItem
             button
             component={Link}
@@ -349,19 +286,7 @@ class MainScreen extends React.Component {
               <StaffIcon className={classes.accentButton} />
             </ListItemIcon>
             <ListItemText primary="Staff" />
-            {/*{this.state.openStaff ? <ExpandLess /> : <ExpandMore /> }*/}
           </ListItem>
-          {/*<Collapse in={this.state.openStaff} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItem button component={Link} to="/staff/training" className={classes.nested}>
-                  <ListItemText primary="Training" className={classes.subitem} />
-                </ListItem>
-                  <ListItem button component={Link} to="/staff/jobs" className={classes.nested}>
-                  <ListItemText primary="Jobs" className={classes.subitem} />
-                </ListItem>
-              </List>
-            </Collapse>*/}
-
           <ListItem
             button
             onClick={this.handleMyDetailsClick}
@@ -374,55 +299,6 @@ class MainScreen extends React.Component {
             <ListItemText primary="My Details" />
             {/*{this.state.openMyDetails ? <ExpandLess /> : <ExpandMore /> }*/}
           </ListItem>
-          {/*<Collapse in={this.state.openMyDetails} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItem button component={Link} to="/mydetails/training" className={classes.nested}>
-                  <ListItemText primary="Training" className={classes.subitem} />
-                </ListItem>
-                <ListItem button component={Link} to="/mydetails/jobs" className={classes.nested}>
-                  <ListItemText primary="Job History" className={classes.subitem} />
-                </ListItem>
-                <ListItem button component={Link} to="/mydetails/readinglog" className={classes.nested}>
-                  <ListItemText primary="Reading Log" className={classes.subitem} />
-                </ListItem>
-              </List>
-            </Collapse>*/}
-
-          {/*<ListItem button onClick={this.handleTrainingClick} component={Link} to="/training">
-              <ListItemIcon>
-                <TrainingIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Training" />
-               { this.state.openTraining ? <ExpandLess /> : <ExpandMore /> }
-            </ListItem>
-            {/*<Collapse in={this.state.openTraining} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItem button component={Link} to="/training/modules" className={classes.nested}>
-                  <ListItemText primary="All Modules" className={classes.subitem} />
-                </ListItem>
-              </List>
-            </Collapse>*/}
-
-          {/*<ListItem button component={Link} to="/quizzes">
-              <ListItemIcon>
-                <QuizIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Quizzes" />
-            </ListItem>
-
-            <ListItem button component={Link} to="/tools">
-              <ListItemIcon>
-                <ToolsIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Tools" />
-            </ListItem>
-
-            <ListItem button onClick={this.handleRefClick} component={Link} to="/library">
-              <ListItemIcon>
-                <LibraryIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Library" />
-            </ListItem>*/}
         <Divider />
           <ListItem button component={Link} to="/jobs/map">
             <ListItemIcon>
@@ -487,49 +363,42 @@ class MainScreen extends React.Component {
               </ListItem>
             </List>
           </Collapse>
-        </List>
         <Divider />
-        <List>
-          <ListItem button onClick={this.handleDevClick}>
+          <ListItem
+            button
+            onClick={this.handleTrainingClick}
+          >
             <ListItemIcon>
-              <DevIcon className={classes.accentButton} />
+              <TrainingIcon className={classes.accentButton} />
             </ListItemIcon>
-            <ListItemText primary="In Development" />
-            {this.state.openDev ? <ExpandLess /> : <ExpandMore />}
+            <ListItemText primary="Training" />
+            {this.state.openTraining ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
-          <Collapse in={this.state.openDev} timeout="auto" unmountOnExit>
-            <ListItem
-              button
-              onClick={this.handleTrainingClick}
-              className={classes.nested}
-            >
-              <ListItemIcon>
-                <TrainingIcon className={classes.accentButton} />
-              </ListItemIcon>
-              <ListItemText primary="Training" />
-              {this.state.openTraining ? <ExpandLess /> : <ExpandMore />}
-            </ListItem>
-            <Collapse in={this.state.openTraining} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItem
-                  button
-                  component={Link}
-                  to="/trainingoverview"
-                  className={classes.nested}
-                >
-                  <ListItemText primary="Overview" />
-                </ListItem>
-                <ListItem
-                  button
-                  component={Link}
-                  to="/training"
-                  className={classes.nested}
-                >
-                  <ListItemText primary="Training Paths" />
-                </ListItem>
-              </List>
-            </Collapse>
-
+          <Collapse in={this.state.openTraining} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <ListItem
+                button
+                component={Link}
+                to="/training/overview"
+                className={classes.nested}
+              >
+                <ListItemIcon>
+                  <TrainingOverviewIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Overview" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/training/paths"
+                className={classes.nested}
+              >
+                <ListItemIcon>
+                  <TrainingPathIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Training Paths" />
+              </ListItem>
+            </List>
             <ListItem
               button
               component={Link}
@@ -541,20 +410,75 @@ class MainScreen extends React.Component {
               </ListItemIcon>
               <ListItemText primary="Quizzes" />
             </ListItem>
-
             <ListItem
               button
               component={Link}
-              to="/library"
+              to="/training/readinglog"
               className={classes.nested}
             >
               <ListItemIcon>
-                <LibraryIcon className={classes.accentButton} />
+                <ReadingLogIcon className={classes.accentButton} />
               </ListItemIcon>
-              <ListItemText primary="Library" />
+              <ListItemText
+                primary="Reading Log"
+                className={classes.subitem}
+              />
             </ListItem>
+          </Collapse>
+        <Divider />
+        <ListItem
+          button
+          component={Link}
+          to="/library"
+        >
+          <ListItemIcon>
+            <LibraryIcon className={classes.accentButton} />
+          </ListItemIcon>
+          <ListItemText primary="Library" />
+        </ListItem>
+        <Divider />
+        {this.props.state.local.me.auth &&
+          this.props.state.local.me.auth["Admin"] && (
+            <div>
+              <Divider />
+              <ListItem
+                button
+                onClick={() => {
+                  this.props.showModal({
+                    modalType: APPSETTINGS,
+                    modalProps: { doc: this.props.state.const }
+                  });
+                }}
+              >
+                <ListItemIcon>
+                  <SettingsIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="App Settings" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => {
+                  this.props.showModal({ modalType: UPDATEDATA });
+                }}
+              >
+                <ListItemIcon>
+                  <UpdateIcon className={classes.accentButton} />
+                </ListItemIcon>
+                <ListItemText primary="Update Data" />
+              </ListItem>
+            </div>
+          )}
+        {/*<Divider />
+          <ListItem button onClick={this.handleDevClick}>
+            <ListItemIcon>
+              <DevIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="In Development" />
+            {this.state.openDev ? <ExpandLess /> : <ExpandMore />}
+          </ListItem>
+          <Collapse in={this.state.openDev} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {/*<ListItem
+              <ListItem
                 button
                 component={Link}
                 to="/vehicles"
@@ -566,7 +490,7 @@ class MainScreen extends React.Component {
                 <ListItemText primary="Vehicles" className={classes.subitem} />
               </ListItem>*/}
 
-              <ListItem
+              {/*<ListItem
                 button
                 component={Link}
                 to="/jobs"
@@ -588,7 +512,7 @@ class MainScreen extends React.Component {
                   <IncidentIcon className={classes.accentButton} />
                 </ListItemIcon>
                 <ListItemText primary="Incidents" />
-              </ListItem>
+              </ListItem>*/}
 
               {/*<ListItem button component={Link} to="/mydetails/training" className={classes.nested}>
                   <ListItemIcon>
@@ -601,21 +525,7 @@ class MainScreen extends React.Component {
                     <MyDetailsIcon className={classes.accentButton} />
                   </ListItemIcon>
                   <ListItemText primary="Job History" className={classes.subitem} />
-                </ListItem>*/}
-              <ListItem
-                button
-                component={Link}
-                to="/mydetails/readinglog"
-                className={classes.nested}
-              >
-                <ListItemIcon>
-                  <MyDetailsIcon className={classes.accentButton} />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Reading Log"
-                  className={classes.subitem}
-                />
-              </ListItem>
+                </ListItem>
 
               <ListItem
                 button
@@ -628,38 +538,6 @@ class MainScreen extends React.Component {
                 </ListItemIcon>
                 <ListItemText primary="Tools" />
               </ListItem>
-              {this.props.state.local.me.auth &&
-                this.props.state.local.me.auth["Admin"] && (
-                  <div>
-                    <ListItem
-                      button
-                      onClick={() => {
-                        this.props.showModal({
-                          modalType: APPSETTINGS,
-                          modalProps: { doc: this.props.state.const }
-                        });
-                      }}
-                      className={classes.nested}
-                    >
-                      <ListItemIcon>
-                        <SettingsIcon className={classes.accentButton} />
-                      </ListItemIcon>
-                      <ListItemText primary="App Settings" />
-                    </ListItem>
-                    <ListItem
-                      button
-                      onClick={() => {
-                        this.props.showModal({ modalType: UPDATEDATA });
-                      }}
-                      className={classes.nested}
-                    >
-                      <ListItemIcon>
-                        <UpdateIcon className={classes.accentButton} />
-                      </ListItemIcon>
-                      <ListItemText primary="Update Data" />
-                    </ListItem>
-                  </div>
-                )}
 
               <ListItem
                 button
@@ -682,9 +560,9 @@ class MainScreen extends React.Component {
                   <UpdatesIcon className={classes.accentButton} />
                 </ListItemIcon>
                 <ListItemText primary="Version Updates" />
-              </ListItem>*/}
+              </ListItem>
             </List>
-          </Collapse>
+          </Collapse>*/}
         </List>
       </Drawer>
     );
@@ -956,28 +834,28 @@ class MainScreen extends React.Component {
                       <Route
                         exact
                         path="/mydetails"
-                        component={UserDetails}
+                        component={MyDetails}
                         key="mydetails"
                       />
                       <Route
                         exact
                         path="/staff/details/:user"
-                        component={UserDetails}
+                        component={MyDetails}
                         key="staffdetails"
                       />
                       {/*<Route exact path="/vehicles" component={Vehicles} />*/}
-                      <Route path="/help" component={Help} />
+                      {/* <Route path="/help" component={Help} />*/}
                       {/*<Route path="/updates" component={Updates} />*/}
                       {/*<Route path="/dashboard" component={Dashboard} />*/}
                       <Route path="/noticeboard" component={Noticeboard} />
-                      <Route path="/incidents" component={Incidents} />
-                      <Route exact path="/jobs" component={Jobs} />
+                      {/*<Route path="/incidents" component={Incidents} />*/}
+                      {/*<Route exact path="/jobs" component={Jobs} />*/}
                       <Route path="/jobs/map" component={JobMap} />
                       <Route path="/asbestoslab" component={AsbestosCocs} />
                       <Route path="/asbestossamplelog" component={AsbestosLog} />
                       <Route path="/asbestosqc" component={AsbestosQualityControl} />
                       <Route path="/asbestosstats" component={AsbestosStats} />
-                      <Route
+                      {/*<Route
                         exact
                         path="/staff/training/:user"
                         component={UserTraining}
@@ -994,25 +872,36 @@ class MainScreen extends React.Component {
                         path="/mydetails/training"
                         component={UserTraining}
                         key="mytraining"
-                      />
+                      />*/}
+                      <Route exact path="/training" component={TrainingPaths} />
                       <Route
                         exact
-                        path="/mydetails/readinglog"
-                        component={UserReadingLog}
-                        key="myreadinglog"
-                      />
-                      <Route exact path="/training" component={Training} />
-                      <Route
-                        exact
-                        path="/trainingoverview"
+                        path="/training/overview"
                         component={TrainingOverview}
                       />
+                      <Route
+                        exact
+                        path="/training/paths"
+                        component={TrainingPaths}
+                      />
                       <Route path="/training/:uid" component={TrainingPath} />
-                      <Route path="/method/:uid" component={Method} />
+                      {/*<Route path="/method/:uid" component={Method} />*/}
                       <Route exact path="/quizzes" component={Quizzes} />
+                      <Route
+                        exact
+                        path="/training/readinglog"
+                        component={TrainingReadingLog}
+                        key="myreadinglog"
+                      />
+                      <Route
+                        exact
+                        path="/training/readinglog/:user"
+                        component={TrainingReadingLog}
+                        key="staffreadinglog"
+                      />
                       <Route exact path="/questions" component={Questions} />
                       <Route path="/quiz/:quiz" component={Quiz} />
-                      <Route path="/tools" component={Tools} />
+                      {/*<Route path="/tools" component={Tools} />*/}
                       <Route path="/library" component={Library} />
                       <Route path="/document/:uid" component={DocumentViewer} />
                     </Switch>
