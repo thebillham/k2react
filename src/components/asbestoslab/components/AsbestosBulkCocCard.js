@@ -408,7 +408,7 @@ class AsbestosBulkCocCard extends React.Component {
     let analysts = this.getAnalysts(true);
     let report = {
       jobNumber: job.jobNumber,
-      client: `${job.client} ${job.clientOrderNumber}`,
+      client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
       address: job.address,
       date: job.dates
         .sort((b, a) => {
@@ -543,6 +543,7 @@ class AsbestosBulkCocCard extends React.Component {
       date: new Date()
     });
     cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog }, { merge: true });
+
     let aanumbers = {};
     Object.values(this.props.staff).forEach(staff => {
       aanumbers[staff.name] = staff.aanumber ? staff.aanumber : "-";
@@ -551,7 +552,7 @@ class AsbestosBulkCocCard extends React.Component {
       ? this.props.me.aanumber
       : "-";
     aanumbers["Client"] = "-";
-    console.log(aanumbers);
+
     let samples = [];
     this.props.samples[job.uid] &&
       Object.values(this.props.samples[job.uid]).forEach(sample => {
@@ -568,7 +569,7 @@ class AsbestosBulkCocCard extends React.Component {
     let report = {
       jobNumber: job.jobNumber,
       client: job.client,
-      orderNumber: job.clientOrderNumber,
+      orderNumber: job.clientOrderNumber ? job.clientOrderNumber : '',
       address: job.address,
       type: job.type,
       jobManager: job.manager,
@@ -595,12 +596,11 @@ class AsbestosBulkCocCard extends React.Component {
       samples: samples
     };
     let url =
-      "http://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc.php?report=" +
+      "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc.php?report=" +
       JSON.stringify(report);
     console.log(url);
     this.setState({ url: url });
     window.open(url);
-    // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
   };
 
   getSamples = (expanded, cocUid, jobNumber) => {

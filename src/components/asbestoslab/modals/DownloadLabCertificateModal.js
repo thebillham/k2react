@@ -87,10 +87,10 @@ class DownloadLabCertificateModal extends React.Component {
           <Button
             onClick={() => {
               let url =
-                "http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.template + "/" + this.state.fileType +
+                "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.template + "/" + this.state.fileType +
                 ".php?report=" + JSON.stringify(modalProps.report);
               url =
-                "http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
+                "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
                 JSON.stringify(modalProps.report);
               window.open(url);
               this.props.hideModal();

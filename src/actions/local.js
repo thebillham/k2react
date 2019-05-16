@@ -679,7 +679,7 @@ export const fetchVehicles = update => async dispatch => {
   }
 };
 
-export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
+export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
   asbestosSamplesRef
     .where("jobNumber", "==", jobNumber)
     .where("deleted","==",false)
@@ -695,6 +695,12 @@ export const fetchSamples = (cocUid, jobNumber) => async dispatch => {
           cocUid: cocUid,
           payload: samples
         });
+        if (modal) {
+          dispatch({
+            type: EDIT_MODAL_DOC,
+            payload: {samples:  samples},
+          });
+        }
       });
     });
 };
@@ -1098,9 +1104,11 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
           job.client = "No client name";
           job.clientID = "No client ID";
         }
-        job.clientOrderNumber = wfmJob.ClientOrderNumber
+        console.log(wfmJob.ClientOrderNumber);
+        job.clientOrderNumber = wfmJob.ClientOrderNumber && typeof wfmJob.ClientOrderNumber !== 'object'
           ? wfmJob.ClientOrderNumber
-          : "No client order number";
+          : "";
+        if (job.clientOrderNumber)
         if (wfmJob.Contact) {
           job.contact = wfmJob.Contact.Name
             ? wfmJob.Contact.Name

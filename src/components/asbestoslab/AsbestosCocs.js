@@ -115,7 +115,7 @@ class AsbestosCocs extends React.Component {
                   modalType: COC,
                   modalProps: {
                     title: "Add New Chain of Custody",
-                    doc: { dates: [], personnel: [], personnelSetup: [], personnelPickup: [], samples: {}, type: "bulk", deleted: false, versionUpToDate: false, }
+                    doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, }
                   }
                 });
               }}
@@ -131,7 +131,7 @@ class AsbestosCocs extends React.Component {
                   borderColor: "#ccc",
                   width: 220,
                   marginBottom: 12,
-                  padding: 12
+                  padding: 14
                 }}
               >
                 <div style={{ marginBottom: 12 }}>
@@ -168,6 +168,7 @@ class AsbestosCocs extends React.Component {
                 borderWidth: 1,
                 borderColor: "#ccc",
                 width: '100%',
+                height: '100%',
                 padding: 12
               }}
             >
@@ -204,6 +205,7 @@ class AsbestosCocs extends React.Component {
                 borderWidth: 1,
                 borderColor: "#ccc",
                 width: '100%',
+                height: '100%',
                 padding: 12
               }}
             >
