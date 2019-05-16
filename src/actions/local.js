@@ -698,7 +698,7 @@ export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
         if (modal) {
           dispatch({
             type: EDIT_MODAL_DOC,
-            payload: {samples:  samples},
+            payload: {samples: samples},
           });
         }
       });
