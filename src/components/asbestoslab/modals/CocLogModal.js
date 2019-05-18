@@ -89,7 +89,7 @@ class CocLogModal extends React.Component {
                         {log.log}
                       </Grid>
                       <Grid item xs={2}>
-                        {log.username}
+                        {log.userName}
                       </Grid>
                     </Grid>
                   );

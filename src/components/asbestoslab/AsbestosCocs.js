@@ -217,7 +217,7 @@ class AsbestosCocs extends React.Component {
                 </InputLabel>
               </div>
               <Grid container spacing={8}>
-                <Grid item xs={6}>
+                <Grid item xs={12} lg={6}>
                 <FormControl style={{ width: '100%'}}>
                   <InputLabel shrink>Client</InputLabel>
                   <Select
@@ -237,7 +237,7 @@ class AsbestosCocs extends React.Component {
                   </Select>
                 </FormControl>
                 </Grid>
-                <Grid item xs={2}>
+                <Grid item xs={4} lg={2}>
                   <TextField
                     id="searchStartDate"
                     label="From"
@@ -249,7 +249,7 @@ class AsbestosCocs extends React.Component {
                     }}
                   />
                 </Grid>
-                <Grid item xs={2}>
+                <Grid item xs={4} lg={2}>
                   <TextField
                     id="searchEndDate"
                     label="To"
@@ -261,7 +261,7 @@ class AsbestosCocs extends React.Component {
                     }}
                   />
                 </Grid>
-                <Grid item xs={2}>
+                <Grid item xs={4} lg={2}>
                   <Button
                     variant="outlined"
                     style={{ marginTop: 16, marginBottom: 16 }}

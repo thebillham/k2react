@@ -114,7 +114,7 @@ class CocList extends React.Component {
           }) unchecked as being received.`,
       user: auth.currentUser.uid,
       sample: sample.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     };
     let cocLog = this.props.job.cocLog;
@@ -146,7 +146,7 @@ class CocList extends React.Component {
           }).`,
       user: auth.currentUser.uid,
       sample: sample.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     };
     let cocLog = this.props.job.cocLog;
@@ -171,14 +171,14 @@ class CocList extends React.Component {
       (this.props.me.auth["Analysis Checker"] ||
         this.props.me.auth["Asbestos Admin"])
     ) {
-      if (auth.currentUser.uid === sample.resultuser) {
+      if (auth.currentUser.uid === sample.resultUser) {
         window.alert("Samples must be checked off by a different user.");
       } else {
-        let reportdate = null;
-        if (!sample.reported) reportdate = new Date();
+        let reportDate = null;
+        if (!sample.reported) reportDate = new Date();
         let log = {
           type: "Reported",
-          log: reportdate
+          log: reportDate
             ? `Sample ${sample.sampleNumber} (${sample.description} ${
                 sample.material
               }) result checked.`
@@ -187,7 +187,7 @@ class CocList extends React.Component {
               }) result unchecked.`,
           user: auth.currentUser.uid,
           sample: sample.uid,
-          username: this.props.me.name,
+          userName: this.props.me.name,
           date: new Date()
         };
         let cocLog = this.props.job.cocLog;
@@ -198,8 +198,8 @@ class CocList extends React.Component {
         asbestosSamplesRef.doc(sample.uid).set(
           {
             reported: !sample.reported,
-            reportuser: auth.currentUser.uid,
-            reportdate: reportdate
+            reportUser: auth.currentUser.uid,
+            reportDate: reportDate
           },
           { merge: true }
         );
@@ -239,7 +239,7 @@ class CocList extends React.Component {
               sample.description
             } ${sample.material}) overridden.`,
             user: auth.currentUser.uid,
-            username: this.props.me.name,
+            userName: this.props.me.name,
             sample: sample.uid,
             date: new Date()
           });
@@ -252,7 +252,7 @@ class CocList extends React.Component {
       if (sample.reported) {
         asbestosSamplesRef
           .doc(sample.uid)
-          .set({ reported: false, reportdate: null }, { merge: true });
+          .set({ reported: false, reportDate: null }, { merge: true });
       }
       if (map === undefined) {
         newmap = { [result]: true };
@@ -270,7 +270,7 @@ class CocList extends React.Component {
       }
 
       asbestosSamplesRef.doc(sample.uid).update({
-        resultuser: auth.currentUser.uid,
+        resultUser: auth.currentUser.uid,
         sessionID: this.state.sessionID,
         analyst: this.props.analyst,
         result: newmap,
@@ -283,7 +283,7 @@ class CocList extends React.Component {
           sample.description
         } ${sample.material}): ${this.writeResult(newmap)}`,
         user: auth.currentUser.uid,
-        username: this.props.me.name,
+        userName: this.props.me.name,
         sample: sample.uid,
         date: new Date()
       });
@@ -462,7 +462,7 @@ class CocList extends React.Component {
       type: "Issue",
       log: `Version ${version} issued.`,
       user: auth.currentUser.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     });
     versionHistory[version] = {
@@ -491,7 +491,7 @@ class CocList extends React.Component {
       type: "Document",
       log: `Test Certificate (version ${version}) downloaded.`,
       user: auth.currentUser.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     });
     cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog }, { merge: true });
@@ -538,7 +538,7 @@ class CocList extends React.Component {
       type: "Document",
       log: `Chain of Custody downloaded.`,
       user: auth.currentUser.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     });
     cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog }, { merge: true });
@@ -641,7 +641,7 @@ class CocList extends React.Component {
         cocLog.push({
           type: "Delete",
           log: `Sample ${sample.sampleNumber} (${sample.description} ${sample.material}) deleted.`,
-          username: this.props.me.name,
+          userName: this.props.me.name,
           user: auth.currentUser.uid,
           date: new Date(),
           sample: sample.uid,
@@ -652,7 +652,7 @@ class CocList extends React.Component {
       cocLog.push({
         type: "Delete",
         log: "Chain of Custody deleted.",
-        username: this.props.me.name,
+        userName: this.props.me.name,
         user: auth.currentUser.uid,
         date: new Date()
       });

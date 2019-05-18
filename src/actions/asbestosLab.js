@@ -217,7 +217,7 @@ export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch =
           type: 'Create',
           log: `Sample ${sample} (${doc.samples[sample].description} ${doc.samples[sample].material}) created.`,
           date: new Date(),
-          username: userName,
+          userName: userName,
           user: userUid,
           sample: uid,
         };

@@ -7960,7 +7960,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             this._port = base._port;
             this._path = base._path.slice();
             this._query = base._query;
-            this._username = base._username;
+            this._userName = base._userName;
             this._password = base._password;
             break loop;
           } else if (c === '/' || c === '\\') {
@@ -7973,7 +7973,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             this._port = base._port;
             this._path = base._path.slice();
             this._query = '?';
-            this._username = base._username;
+            this._userName = base._userName;
             this._password = base._password;
             state = 'query';
           } else if (c === '#') {
@@ -7982,7 +7982,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             this._path = base._path.slice();
             this._query = base._query;
             this._fragment = '#';
-            this._username = base._username;
+            this._userName = base._userName;
             this._password = base._password;
             state = 'fragment';
           } else {
@@ -7991,7 +7991,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             if (this._scheme !== 'file' || !ALPHA.test(c) || nextC !== ':' && nextC !== '|' || nextNextC !== EOF && nextNextC !== '/' && nextNextC !== '\\' && nextNextC !== '?' && nextNextC !== '#') {
               this._host = base._host;
               this._port = base._port;
-              this._username = base._username;
+              this._userName = base._userName;
               this._password = base._password;
               this._path = base._path.slice();
               this._path.pop();
@@ -8014,7 +8014,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             if (this._scheme !== 'file') {
               this._host = base._host;
               this._port = base._port;
-              this._username = base._username;
+              this._userName = base._userName;
               this._password = base._password;
             }
             state = 'relative path';
@@ -8066,7 +8066,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               if (this._password !== null) {
                 this._password += tempC;
               } else {
-                this._username += tempC;
+                this._userName += tempC;
               }
             }
             buffer = '';
@@ -8210,7 +8210,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   function clear() {
     this._scheme = '';
     this._schemeData = '';
-    this._username = '';
+    this._userName = '';
     this._password = null;
     this._host = '';
     this._port = '';
@@ -8239,8 +8239,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return this._url;
       }
       var authority = '';
-      if (this._username !== '' || this._password !== null) {
-        authority = this._username + (this._password !== null ? ':' + this._password : '') + '@';
+      if (this._userName !== '' || this._password !== null) {
+        authority = this._userName + (this._password !== null ? ':' + this._password : '') + '@';
       }
       return this.protocol + (this._isRelative ? '//' + authority + this.host : '') + this.pathname + this._query + this._fragment;
     },

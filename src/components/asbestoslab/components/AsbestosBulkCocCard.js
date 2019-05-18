@@ -44,6 +44,7 @@ import Save from "@material-ui/icons/SaveAlt";
 import CameraAlt from "@material-ui/icons/CameraAlt";
 import Print from "@material-ui/icons/Print";
 import Send from "@material-ui/icons/Send";
+import Flag from "@material-ui/icons/Flag";
 import More from "@material-ui/icons/MoreVert";
 import Colorize from "@material-ui/icons/Colorize";
 
@@ -78,7 +79,8 @@ class AsbestosBulkCocCard extends React.Component {
     // sessionID creates a unique id for this refresh of the CoC. This is used as the firestore uid for any results reported
     sessionID: "",
     sampleAnchorEl: {},
-    cocAnchorEl: null
+    cocAnchorEl: null,
+    samplesExpanded: {},
   };
 
   componentWillMount = () => {
@@ -103,9 +105,82 @@ class AsbestosBulkCocCard extends React.Component {
     // console.log(uid.replace(/[.:/,\s]/g, "_"));
   };
 
+  getStats = () => {
+    let status = '';
+    let totalSamples = 0;
+    let numberReceived = 0;
+    let numberAnalysisStarted = 0;
+    let numberResult = 0;
+    let numberReported = 0;
+    let maxTurnaroundTime = 0;
+    let averageTurnaroundTime = 0;
+    let totalTurnaroundTime = 0;
+    let numTurnaroundTime = 0;
+    if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
+      Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
+        totalSamples = totalSamples + 1;
+        if (sample.receivedByLab) numberReceived = numberReceived + 1;
+        if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
+        if (sample.result) numberResult = numberResult + 1;
+        if (sample.reported) {
+          numberReported = numberReported + 1;
+          if (sample.turnaroundTime) {
+            if (sample.turnaroundTime > maxTurnaroundTime) maxTurnaroundTime = sample.turnaroundTime;
+            totalTurnaroundTime = totalTurnaroundTime + sample.turnaroundTime;
+            numTurnaroundTime = numTurnaroundTime + 1;
+            averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
+          }
+        }
+      });
+    }
+    if (this.props.job.versionUpToDate) {
+      status = 'Issued';
+    } else if (totalSamples === 0) {
+      status = 'No Samples';
+    } else if (numberReceived === 0) {
+      status = 'In Transit';
+    } else if (numberAnalysisStarted === 0) {
+      status = 'Received By Lab';
+    } else if (numberResult === 0) {
+      status = 'Analysis Begun';
+    } else if (numberResult === totalSamples && numberReported === 0) {
+      status = 'Analysis Complete';
+    } else if (numberReported === totalSamples) {
+      status = 'Ready For Issue';
+    }
+    return {
+      status,
+      totalSamples,
+      numberReceived,
+      numberAnalysisStarted,
+      numberResult,
+      numberReported,
+      maxTurnaroundTime,
+      averageTurnaroundTime,
+    };
+  }
+
+  receiveAll = () => {
+    if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
+      Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
+        if (!sample.receivedByLab) this.receiveSample(sample);
+      });
+    }
+  }
+
   receiveSample = sample => {
     let receivedDate = null;
     if (!sample.receivedByLab) receivedDate = new Date();
+    if (sample.receivedByLab && sample.analysisStart) this.startAnalysis(sample);
+    if (sample.receivedByLab && sample.reported) {
+      if (window.confirm('The sample result has already been verified. Removing from the lab will remove the analysis result and verification. Continue?')) {
+        this.removeResult(sample);
+        this.reportSample(sample);
+      }
+    } else if (sample.receivedByLab && sample.result) {
+      if (window.confirm('The sample result has already been logged. Removing from the lab will remove the analysis result. Continue?'))
+        this.removeResult(sample);
+    }
     let log = {
       type: "Received",
       log: receivedDate
@@ -125,18 +200,37 @@ class AsbestosBulkCocCard extends React.Component {
     cocsRef
       .doc(this.props.job.uid)
       .update({ versionUpToDate: false, cocLog: cocLog });
-    asbestosSamplesRef.doc(sample.uid).set(
+    if (!sample.receivedByLab) {
+      asbestosSamplesRef.doc(sample.uid).update(
       {
-        receivedByLab: !sample.receivedByLab,
+        receivedByLab: true,
         receivedUser: auth.currentUser.uid,
         receivedDate: receivedDate
-      },
-      { merge: true }
-    );
+      });
+    } else {
+      asbestosSamplesRef.doc(sample.uid).update({
+        receivedByLab: false,
+        receivedUser: firebase.firestore.FieldValue.delete(),
+        receivedDate: firebase.firestore.FieldValue.delete(),
+      });
+    }
   };
+
+  startAnalysisAll = () => {
+    if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
+      Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
+        if (!sample.analysisStart) {
+          if (!sample.receivedByLab) this.receiveSample(sample);
+          this.startAnalysis(sample);
+        }
+      });
+    }
+  }
 
   startAnalysis = sample => {
     let analysisStart = null;
+    if (!sample.receivedByLab && !sample.analysisStart) this.receiveSample(sample);
+    if (sample.reported) this.reportSample(sample);
     if (!sample.analysisStart) analysisStart = new Date();
     let log = {
       type: "Analysis",
@@ -157,31 +251,40 @@ class AsbestosBulkCocCard extends React.Component {
     cocsRef
       .doc(this.props.job.uid)
       .update({ versionUpToDate: false, cocLog: cocLog });
-    asbestosSamplesRef.doc(sample.uid).set(
+    if (!sample.analysisStart) {
+      asbestosSamplesRef.doc(sample.uid).update(
       {
-        analysisStart: !sample.analysisStart,
+        analysisStart: true,
         analysisStartedby: auth.currentUser.uid,
         analysisStartdate: analysisStart
-      },
-      { merge: true }
-    );
+      });
+    } else {
+      asbestosSamplesRef.doc(sample.uid).update(
+      {
+        analysisStart: false,
+        analysisStartedby: firebase.firestore.FieldValue.delete(),
+        analysisStartdate: firebase.firestore.FieldValue.delete(),
+      });
+    }
   };
 
   reportSample = sample => {
     if (
-      this.props.me &&
+      !sample.reported ||
+      (this.props.me &&
       this.props.me.auth &&
       (this.props.me.auth["Analysis Checker"] ||
-        this.props.me.auth["Asbestos Admin"])
+        this.props.me.auth["Asbestos Admin"]))
     ) {
-      if (auth.currentUser.uid === sample.resultuser) {
+      if (auth.currentUser.uid === sample.resultUser) {
         window.alert("Samples must be checked off by a different user.");
       } else {
-        let reportdate = null;
-        if (!sample.reported) reportdate = new Date();
+        if (!sample.analysisStart && !sample.reported) this.startAnalysis(sample);
+        let reportDate = null;
+        if (!sample.reported) reportDate = new Date();
         let log = {
           type: "Reported",
-          log: reportdate
+          log: reportDate
             ? `Sample ${sample.sampleNumber} (${sample.description} ${
                 sample.material
               }) result checked.`
@@ -198,14 +301,23 @@ class AsbestosBulkCocCard extends React.Component {
         cocsRef
           .doc(this.props.job.uid)
           .update({ versionUpToDate: false, cocLog: cocLog });
-        asbestosSamplesRef.doc(sample.uid).set(
+        if (!sample.reported) {
+          asbestosSamplesRef.doc(sample.uid).update(
           {
-            reported: !sample.reported,
-            reportuser: auth.currentUser.uid,
-            reportdate: reportdate
-          },
-          { merge: true }
-        );
+            reported: true,
+            reportUser: auth.currentUser.uid,
+            reportDate: reportDate,
+            turnaroundTime: sample.receivedDate ? moment.duration(moment(reportDate).diff(sample.receivedDate.toDate())).asMilliseconds() : null
+          });
+        } else {
+          asbestosSamplesRef.doc(sample.uid).update(
+          {
+            reported: false,
+            reportUser: firebase.firestore.FieldValue.delete(),
+            reportDate: firebase.firestore.FieldValue.delete(),
+            turnaroundTime: firebase.firestore.FieldValue.delete(),
+          });
+        }
       }
     } else {
       window.alert(
@@ -213,6 +325,19 @@ class AsbestosBulkCocCard extends React.Component {
       );
     }
   };
+
+  togglePriority = () => {
+    let cocLog = this.props.job.cocLog;
+    if (!cocLog) cocLog = [];
+    cocLog.push({
+      type: "Admin",
+      log: this.props.job.priority === 1 ? `Chain of Custody changed to normal priority.` : `Chain of Custody marked as high priority.`,
+      user: auth.currentUser.uid,
+      userName: this.props.me.name,
+      date: new Date()
+    });
+    cocsRef.doc(this.props.job.uid).update({ priority: this.props.job.priority === 0 ? 1 : 0 });
+  }
 
   toggleResult = (sample, result) => {
     if (
@@ -255,7 +380,7 @@ class AsbestosBulkCocCard extends React.Component {
       if (sample.reported) {
         asbestosSamplesRef
           .doc(sample.uid)
-          .set({ reported: false, reportdate: null }, { merge: true });
+          .set({ reported: false, reportDate: null }, { merge: true });
       }
       if (map === undefined) {
         newmap = { [result]: true };
@@ -273,7 +398,7 @@ class AsbestosBulkCocCard extends React.Component {
       }
 
       asbestosSamplesRef.doc(sample.uid).update({
-        resultuser: auth.currentUser.uid,
+        resultUser: auth.currentUser.uid,
         sessionID: this.state.sessionID,
         analyst: this.props.analyst,
         result: newmap,
@@ -302,6 +427,7 @@ class AsbestosBulkCocCard extends React.Component {
       });
 
       if (notBlankAnalysis) {
+        if (!sample.analysisStart) this.startAnalysis(sample);
         asbestosAnalysisRef.doc(`${this.state.sessionID}-${sample.uid}`).set({
           analyst: this.props.analyst,
           analystUID: auth.currentUser.uid,
@@ -319,13 +445,13 @@ class AsbestosBulkCocCard extends React.Component {
         asbestosAnalysisRef
           .doc(`${this.state.sessionID}-${sample.uid}`)
           .delete();
-        cocsRef
-          .doc(this.props.job.uid)
-          .collection("samples")
+        asbestosSamplesRef
           .doc(sample.uid)
           .update({
             result: firebase.firestore.FieldValue.delete(),
-            sessionID: firebase.firestore.FieldValue.delete()
+            resultDate: firebase.firestore.FieldValue.delete(),
+            resultUser: firebase.firestore.FieldValue.delete(),
+            sessionID: firebase.firestore.FieldValue.delete(),
           });
       }
     } else {
@@ -333,6 +459,35 @@ class AsbestosBulkCocCard extends React.Component {
         "You don't have sufficient permissions to set asbestos results."
       );
     }
+  };
+
+  removeResult = sample => {
+    let log = {
+      type: "Analysis",
+      log: `Sample ${sample.sampleNumber} (${sample.description} ${
+            sample.material
+          }) result removed.`,
+      user: auth.currentUser.uid,
+      sample: sample.uid,
+      userName: this.props.me.name,
+      date: new Date()
+    };
+    let cocLog = this.props.job.cocLog;
+    cocLog ? cocLog.push(log) : (cocLog = [log]);
+    cocsRef
+      .doc(this.props.job.uid)
+      .update({ versionUpToDate: false, cocLog: cocLog });
+    asbestosAnalysisRef
+      .doc(`${this.state.sessionID}-${sample.uid}`)
+      .delete();
+    asbestosSamplesRef
+      .doc(sample.uid)
+      .update({
+        result: firebase.firestore.FieldValue.delete(),
+        resultDate: firebase.firestore.FieldValue.delete(),
+        resultUser: firebase.firestore.FieldValue.delete(),
+        sessionID: firebase.firestore.FieldValue.delete(),
+      });
   };
 
   sortSamples = samples => {
@@ -382,7 +537,7 @@ class AsbestosBulkCocCard extends React.Component {
     return str.charAt(0).toUpperCase() + str.slice(1) + " detected";
   };
 
-  writeVersionJson = job => {
+  writeVersionJson = (job, version) => {
     let aanumbers = {};
     Object.values(this.props.staff).forEach(staff => {
       aanumbers[staff.name] = staff.aanumber ? staff.aanumber : "-";
@@ -434,7 +589,7 @@ class AsbestosBulkCocCard extends React.Component {
         return aanumbers[staff];
       }),
       analysts: analysts ? analysts : ["Not specified"],
-      version: job.currentVersion ? job.currentVersion : 1,
+      version: version ? version : 1,
       samples: samples
     };
     return report;
@@ -464,9 +619,10 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   issueLabReport = (version, changes) => {
+    console.log('issuing lab report ' + version + ' ' + changes);
     // first check all samples have been checked
     // if not version 1, prompt for reason for new version
-    let json = this.writeVersionJson(this.props.job);
+    let json = this.writeVersionJson(this.props.job, version);
     let versionHistory = this.props.job.versionHistory
       ? this.props.job.versionHistory
       : {};
@@ -512,7 +668,7 @@ class AsbestosBulkCocCard extends React.Component {
     cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog }, { merge: true });
     if (report.version && report.version > 1) {
       let versionHistory = [];
-      [...Array(report.version - 1).keys()].forEach(i => {
+      [...Array(report.version).keys()].forEach(i => {
         let formatDate =
           this.props.job.versionHistory[i + 1].issueDate instanceof Date
             ? this.props.job.versionHistory[i + 1].issueDate
@@ -692,15 +848,17 @@ class AsbestosBulkCocCard extends React.Component {
         day: "numeric"
       }).format(formatDate);
     });
+    let stats = this.getStats();
 
     return (
       <ExpansionPanel
+        style={{ width: '100%'}}
         onChange={(event, ex) => {
           if (!job.samples) this.getSamples(ex, job.uid, job.jobNumber);
         }}
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-          <b>{job.jobNumber}</b> {job.client} ({job.address})
+          <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.priority === 1 && <Flag color='secondary' />}</div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <List>
@@ -826,27 +984,79 @@ class AsbestosBulkCocCard extends React.Component {
             </div>
             {samples[job.uid] && Object.values(samples[job.uid]).length > 0 ? (
               <div>
-                <div style={{ marginTop: 12, marginBottom: 12 }}>
-                  Sampled by:{" "}
-                  <span style={{ fontWeight: 300 }}>
-                    {job.personnel && job.personnel.length > 0
-                      ? job.personnel.join(", ")
-                      : "Not specified"}
-                  </span>
-                  <br />
-                  Date(s) Sampled:{" "}
-                  <span style={{ fontWeight: 300 }}>
-                    {dates && dates.length > 0
-                      ? dates.join(", ")
-                      : "Not specified"}
-                  </span>
-                  <br />
-                  Analysis by:{" "}
-                  <span style={{ fontWeight: 300 }}>
-                    {analysts ? analysts.join(", ") : "Not specified"}
-                  </span>
-                  <br />
+                <div style={{ marginTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'row' }}>
+                  <Button
+                    variant="outlined"
+                    onClick={this.togglePriority}>
+                    <Flag color={job.priority === 1 ? 'secondary' : 'default'} style={{ fontSize: 20, margin: 5 }} />
+                    Mark As Urgent
+                  </Button>
+                  <Button
+                    style={{ marginLeft: 5 }}
+                    variant="outlined"
+                    onClick={this.receiveAll}
+                  >
+                    <Inbox style={{ fontSize: 20, margin: 5 }} />
+                    Receive All
+                  </Button>
+                  <Button
+                    style={{ marginLeft: 5 }}
+                    variant="outlined"
+                    onClick={this.startAnalysisAll}
+                  >
+                    <Colorize style={{ fontSize: 20, margin: 5 }} />
+                    Start Analysis All
+                  </Button>
                 </div>
+                <Grid container style={{ marginTop: 12, marginBottom: 12 }}>
+                  <Grid item xs={12} style={{ fontWeight: 500, fontSize: 16, marginBottom: 12, }}>
+                    STATUS: {stats && stats.status.toUpperCase()}
+                  </Grid>
+                  <Grid item xs={6}>
+                    Sampled by:{" "}
+                    <span style={{ fontWeight: 300 }}>
+                      {job.personnel && job.personnel.length > 0
+                        ? job.personnel.join(", ")
+                        : "Not specified"}
+                    </span>
+                    <br />
+                    Date(s) Sampled:{" "}
+                    <span style={{ fontWeight: 300 }}>
+                      {dates && dates.length > 0
+                        ? dates.join(", ")
+                        : "Not specified"}
+                    </span>
+                    <br />
+                    Analysis by:{" "}
+                    <span style={{ fontWeight: 300 }}>
+                      {analysts ? analysts.join(", ") : "Not specified"}
+                    </span>
+                  </Grid>
+                  <Grid item>
+                    Number of Samples:{" "}
+                    <span style={{ fontWeight: 300 }}>
+                      {stats && stats.totalSamples}
+                    </span>
+                    <br />
+                    Max Turnaround Time:{" "}
+                    { stats && stats.maxTurnaroundTime > 0 ?
+                      <span style={{ fontWeight: 300 }}>
+                        {moment.utc(stats.maxTurnaroundTime).format('HH:mm')}
+                      </span>
+                      :
+                      <span style={{ fontWeight: 300 }}>N/A</span>
+                    }
+                    <br />
+                    Avg Turnaround Time:{" "}
+                    { stats && stats.averageTurnaroundTime > 0 ?
+                      <span style={{ fontWeight: 300 }}>
+                        {moment.utc(stats.averageTurnaroundTime).format('HH:mm')}
+                      </span>
+                      :
+                      <span style={{ fontWeight: 300 }}>N/A</span>
+                    }
+                  </Grid>
+                </Grid>
                 {samples[job.uid] &&
                   Object.values(samples[job.uid]).filter(el => el.deleted === false)
                   .map(sample => {
@@ -907,6 +1117,14 @@ class AsbestosBulkCocCard extends React.Component {
                       noColor = "green";
                       noDivColor = "lightgreen";
                     }
+                    let endTime = new Date();
+                    if (sample.reportDate) endTime = sample.reportDate.toDate();
+                    let timeInLab = sample.receivedDate ? moment.duration(moment(endTime).diff(sample.receivedDate.toDate())) : null;
+                    let status = 'In Transit';
+                    if (sample.reported) status = 'Complete';
+                      else if (sample.resultDate) status = 'Waiting on Analysis Verification';
+                      else if (sample.analysisStart) status = 'Analysis Started';
+                      else if (sample.receivedByLab) status = 'Received By Lab';
 
                     return (
                       <ExpansionPanel
@@ -917,87 +1135,76 @@ class AsbestosBulkCocCard extends React.Component {
                         }-${sample.sampleNumber.toString()}_${
                           sample.description
                         }`}
-                        style={{
-                          width: '100%',
-                        }}
                       >
                         <ExpansionPanelSummary expandIcon={<ExpandMore />} className={classes.hoverItem}>
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "row",
-                              justifyContent: "space-between",
-                              width: "70vw"
-                            }}
-                          >
-                            <div
-                              style={{
-                                // width: "60vw",
-                                display: "flex",
-                                flexDirection: "row",
+                          <Grid container>
+                            <Grid item xs={12} xl={6}>
+                              <div style={{
                                 textOverflow: "ellipsis",
                                 // whiteSpace: "nowrap",
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'flex-start',
+                                alignItems: 'center',
                                 overflow: "hidden",
-                                alignItems: "center",
-                                justifyContent: "flex-start"
-                              }}
-                            >
-                              <Popup
-                                trigger={
-                                  <CameraAlt
-                                    style={{
-                                      fontSize: 24,
-                                      color: cameraColor,
-                                      margin: 10
-                                    }}
-                                  />
-                                }
-                                position="right center"
-                                on="hover"
-                                disabled={sample.imagePathRemote == null}
-                              >
-                                {sample.imagePathRemote && (
-                                  <img
-                                    alt=""
-                                    src={sample.imagePathRemote}
-                                    width={200}
-                                  />
+                              }}>
+                                <Popup
+                                  trigger={
+                                    <CameraAlt
+                                      style={{
+                                        fontSize: 24,
+                                        color: cameraColor,
+                                        margin: 10
+                                      }}
+                                    />
+                                  }
+                                  position="right center"
+                                  on="hover"
+                                  disabled={sample.imagePathRemote == null}
+                                >
+                                  {sample.imagePathRemote && (
+                                    <img
+                                      alt=""
+                                      src={sample.imagePathRemote}
+                                      width={200}
+                                    />
+                                  )}
+                                </Popup>
+                                <div
+                                  style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 20,
+                                    backgroundColor: "#aaa",
+                                    marginRight: 10,
+                                    color: "#fff",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    display: "flex",
+                                    fontWeight: "bold"
+                                  }}
+                                >
+                                  {sample.sampleNumber}
+                                </div>
+                                {this.writeDescription(
+                                  sample.genericLocation,
+                                  sample.specificLocation,
+                                  sample.description,
+                                  sample.material
                                 )}
-                              </Popup>
-                              <div
-                                style={{
-                                  width: 40,
-                                  height: 40,
-                                  borderRadius: 20,
-                                  backgroundColor: "#aaa",
-                                  marginRight: 10,
-                                  color: "#fff",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  display: "flex",
-                                  fontWeight: "bold"
-                                }}
-                              >
-                                {sample.sampleNumber}
                               </div>
-                              {this.writeDescription(
-                                sample.genericLocation,
-                                sample.specificLocation,
-                                sample.description,
-                                sample.material
-                              )}
-                            </div>
-                            <div
-                              style={{
-                                width: "40vw",
-                                display: "flex",
-                                flexDirection: "row",
-                                justifyContent: "flex-end",
-                                alignItems: "center"
-                              }}
-                            >
+                            </Grid>
+                            <Grid item xs={12} xl={6}>
+                            <div style={{
+                              justifyContent: 'flex-end',
+                              alignItems: 'center',
+                              // width: '40vw',
+                              display: 'flex',
+                              flexDirection: 'row',
+                            }}>
                               <IconButton
-                                onClick={() => {
+                                onClick={event => {
+                                  event.stopPropagation();
                                   this.receiveSample(sample);
                                 }}
                               >
@@ -1010,7 +1217,8 @@ class AsbestosBulkCocCard extends React.Component {
                                 />
                               </IconButton>
                                 <IconButton
-                                  onClick={() => {
+                                  onClick={event => {
+                                    event.stopPropagation();
                                     this.startAnalysis(sample);
                                   }}
                                 >
@@ -1033,9 +1241,9 @@ class AsbestosBulkCocCard extends React.Component {
                                 >
                                   <Button
                                     variant="outlined"
-                                    disabled={!sample.receivedByLab}
                                     style={{ margin: 5, color: chColor }}
-                                    onClick={() => {
+                                    onClick={event => {
+                                      event.stopPropagation();
                                       this.toggleResult(sample, "ch");
                                     }}
                                   >
@@ -1050,9 +1258,9 @@ class AsbestosBulkCocCard extends React.Component {
                                 >
                                   <Button
                                     variant="outlined"
-                                    disabled={!sample.receivedByLab}
                                     style={{ margin: 5, color: amColor }}
-                                    onClick={() => {
+                                    onClick={event => {
+                                      event.stopPropagation();
                                       this.toggleResult(sample, "am");
                                     }}
                                   >
@@ -1067,9 +1275,9 @@ class AsbestosBulkCocCard extends React.Component {
                                 >
                                   <Button
                                     variant="outlined"
-                                    disabled={!sample.receivedByLab}
                                     style={{ margin: 5, color: crColor }}
-                                    onClick={() => {
+                                    onClick={event => {
+                                      event.stopPropagation();
                                       this.toggleResult(sample, "cr");
                                     }}
                                   >
@@ -1084,9 +1292,9 @@ class AsbestosBulkCocCard extends React.Component {
                                 >
                                   <Button
                                     variant="outlined"
-                                    disabled={!sample.receivedByLab}
                                     style={{ margin: 5, color: umfColor }}
-                                    onClick={() => {
+                                    onClick={event => {
+                                      event.stopPropagation();
                                       this.toggleResult(sample, "umf");
                                     }}
                                   >
@@ -1103,9 +1311,9 @@ class AsbestosBulkCocCard extends React.Component {
                               >
                                 <Button
                                   variant="outlined"
-                                  disabled={!sample.receivedByLab}
                                   style={{ margin: 5, color: noColor }}
-                                  onClick={() => {
+                                  onClick={event => {
+                                    event.stopPropagation();
                                     this.toggleResult(sample, "no");
                                   }}
                                 >
@@ -1113,10 +1321,11 @@ class AsbestosBulkCocCard extends React.Component {
                                 </Button>
                               </div>
                               <IconButton
-                                disabled={!sample.receivedByLab}
-                                onClick={() => {
+                                onClick={event => {
+                                  event.stopPropagation();
                                   if (
                                     !sample.result &&
+                                    !sample.reported &&
                                     !window.confirm(
                                       "No result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
                                     )
@@ -1135,6 +1344,7 @@ class AsbestosBulkCocCard extends React.Component {
                               </IconButton>
                               <IconButton
                                 onClick={event => {
+                                  event.stopPropagation();
                                   this.setState({
                                     sampleAnchorEl: {
                                       [sample.sampleNumber]: event.currentTarget
@@ -1167,7 +1377,8 @@ class AsbestosBulkCocCard extends React.Component {
                                   key={`${
                                     job.jobNumber
                                   }-${sample.sampleNumber.toString()}-WA`}
-                                  onClick={() => {
+                                  onClick={event => {
+                                    event.stopPropagation();
                                     this.props.showModal({
                                       modalType: ASBESTOSLABDETAILS,
                                       modalProps: {
@@ -1183,7 +1394,8 @@ class AsbestosBulkCocCard extends React.Component {
                                   key={`${
                                     job.jobNumber
                                   }-${sample.sampleNumber.toString()}-WA`}
-                                  onClick={() => {
+                                  onClick={event => {
+                                    event.stopPropagation();
                                     this.props.showModal({
                                       modalType: WAANALYSIS,
                                       modalProps: {
@@ -1200,7 +1412,8 @@ class AsbestosBulkCocCard extends React.Component {
                                   key={`${
                                     job.jobNumber
                                   }-${sample.sampleNumber.toString()}-SampleHistory`}
-                                  onClick={() => {
+                                  onClick={event => {
+                                    event.stopPropagation();
                                     this.props.showModal({
                                       modalType: SAMPLEHISTORY,
                                       modalProps: {
@@ -1216,14 +1429,20 @@ class AsbestosBulkCocCard extends React.Component {
                                   View Sample History
                                 </MenuItem>
                               </Menu>
-                            </div>
-                          </div>
+                              </div>
+                            </Grid>
+                          </Grid>
                         </ExpansionPanelSummary>
                         <ExpansionPanelDetails>
                           <Grid container>
-                            <Grid item xs={1} />
-                            <Grid item xs={4} style={{ fontSize: 14 }}>
-                              <div style={{ fontWeight: 700, height: 30}}>Details</div>
+                            <Grid item xs={false} xl={1} />
+                            <Grid item xs={12} xl={5} style={{ fontSize: 14 }}>
+                              <div style={{ fontWeight: 700, height: 30}}>STATUS: {status}</div>
+                              <div style={{ fontWeight: 700, height: 25}}>Details</div>
+                              <div>
+                                <span>Created at {moment(sample.createdDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.createdBy] ? <span>{this.props.staff[sample.createdBy].name}</span>
+                                :<span>an unknown person</span>}</span>
+                              </div>
                               <div>
                                 {sample.receivedByLab ?
                                   <span>Received by lab at {moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.receivedUser] ? <span>{this.props.staff[sample.receivedUser].name}</span>
@@ -1239,9 +1458,28 @@ class AsbestosBulkCocCard extends React.Component {
                                 }
                               </div>
                               <div>
+                                {sample.resultDate ?
+                                  <span>Result logged at {moment(sample.resultDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.resultUser] ? <span>{this.props.staff[sample.resultUser].name}</span>
+                                  :<span>an unknown person</span>}</span>
+                                  : <span>Result not yet logged</span>
+                                }
+                              </div>
+                              <div>
+                                {sample.reported ?
+                                  <span>Result reported at {moment(sample.reportDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.reportUser] ? <span>{this.props.staff[sample.reportUser].name}</span>
+                                  :<span>an unknown person</span>}</span>
+                                  : <span>Result not yet reported</span>
+                                }
+                              </div>
+                              <div>
+                                {sample.reported ?
+                                  <span>Lab turnaround time: {timeInLab.asHours() >= 24 && <span>{timeInLab.days()} day{timeInLab.days() !== 1 &&<span>s</span>}, </span>}{timeInLab.asMinutes() >= 60 && <span>{timeInLab.hours()} hour{timeInLab.hours() !== 1 && <span>s</span>} and </span>}{timeInLab.minutes()} minute{timeInLab.minutes() !== 1 && <span>s</span>}</span>
+                                  : <span>{sample.receivedDate && <span>Time in lab: {timeInLab.asHours() >= 24 && <span>{timeInLab.days()} day{timeInLab.days() !== 1 &&<span>s</span>}, </span>}{timeInLab.asMinutes() >= 60 && <span>{timeInLab.hours()} hour{timeInLab.hours() !== 1 && <span>s</span>} and </span>}{timeInLab.minutes()} minute{timeInLab.minutes() !== 1 && <span>s</span>}</span>}</span>
+                                }
                               </div>
                             </Grid>
-                            <Grid item xs={7}>
+                            <Grid item xs={12} xl={6}>
+
                             </Grid>
                           </Grid>
                         </ExpansionPanelDetails>

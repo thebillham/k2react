@@ -128,7 +128,7 @@ class CocModal extends React.Component {
         type: 'Edit',
         log: `Sampling personnel details changed.`,
         date: new Date(),
-        username: this.props.me.name,
+        userName: this.props.me.name,
         user: auth.currentUser.uid,
       };
       this.props.doc.cocLog.push(log);
@@ -164,7 +164,7 @@ class CocModal extends React.Component {
         type: 'Edit',
         log: 'Sampling dates changed.',
         date: new Date(),
-        username: this.props.me.name,
+        userName: this.props.me.name,
         user: auth.currentUser.uid,
       };
       this.props.doc.cocLog.push(log);
@@ -330,7 +330,7 @@ class CocModal extends React.Component {
                       type: 'Delete',
                       log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) deleted.`,
                       date: new Date(),
-                      username: this.props.me.name,
+                      userName: this.props.me.name,
                       user: auth.currentUser.uid,
                       sample: this.state.sampleEditModal.uid,
                     };
@@ -354,7 +354,7 @@ class CocModal extends React.Component {
                         type: 'ID Change',
                         log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) moved to sample number ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap}.`,
                         date: new Date(),
-                        username: this.props.me.name,
+                        userName: this.props.me.name,
                         user: auth.currentUser.uid,
                         sample: this.state.sampleEditModal.uid,
                       };
@@ -390,7 +390,7 @@ class CocModal extends React.Component {
                         type: 'ID Change',
                         log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
                         date: new Date(),
-                        username: this.props.me.name,
+                        userName: this.props.me.name,
                         user: auth.currentUser.uid,
                         sample: this.state.sampleEditModal.uid,
                       };
@@ -440,7 +440,7 @@ class CocModal extends React.Component {
                       type: 'Edit',
                       log: `Details of sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) modified.`,
                       date: new Date(),
-                      username: this.props.me.name,
+                      userName: this.props.me.name,
                       user: auth.currentUser.uid,
                     };
                     doc.cocLog.push(log);
@@ -588,7 +588,7 @@ class CocModal extends React.Component {
                       type: 'Delete',
                       log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) deleted.`,
                       date: new Date(),
-                      username: this.props.me.name,
+                      userName: this.props.me.name,
                       user: auth.currentUser.uid,
                       sample: this.state.sampleEditModal.uid,
                     };
@@ -612,7 +612,7 @@ class CocModal extends React.Component {
                         type: 'ID Change',
                         log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) moved to sample number ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap}.`,
                         date: new Date(),
-                        username: this.props.me.name,
+                        userName: this.props.me.name,
                         user: auth.currentUser.uid,
                         sample: this.state.sampleEditModal.uid,
                       };
@@ -648,7 +648,7 @@ class CocModal extends React.Component {
                         type: 'ID Change',
                         log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
                         date: new Date(),
-                        username: this.props.me.name,
+                        userName: this.props.me.name,
                         user: auth.currentUser.uid,
                         sample: this.state.sampleEditModal.uid,
                       };
@@ -698,7 +698,7 @@ class CocModal extends React.Component {
                       type: 'Edit',
                       log: `Details of sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) modified.`,
                       date: new Date(),
-                      username: this.props.me.name,
+                      userName: this.props.me.name,
                       user: auth.currentUser.uid,
                     };
                     doc.cocLog.push(log);
@@ -1044,7 +1044,7 @@ class CocModal extends React.Component {
                   type: 'Create',
                   log: `Chain of Custody created.`,
                   date: new Date(),
-                  username: this.props.me.name,
+                  userName: this.props.me.name,
                   user: auth.currentUser.uid,
                 }];
               }

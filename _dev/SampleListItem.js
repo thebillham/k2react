@@ -53,11 +53,11 @@ class SampleListItem extends React.Component {
   };
 
   reportSample = (uid, reported) => {
-    let reportdate = null;
-    if (!reported) reportdate = new Date();
+    let reportDate = null;
+    if (!reported) reportDate = new Date();
     asbestosSamplesRef
       .doc(uid)
-      .set({ reported: !reported, reportdate: reportdate }, { merge: true });
+      .set({ reported: !reported, reportDate: reportDate }, { merge: true });
   };
 
   toggleResult = (uid, result, map, reported) => {
@@ -65,7 +65,7 @@ class SampleListItem extends React.Component {
     if (reported) {
       asbestosSamplesRef
         .doc(uid)
-        .set({ reported: false, reportdate: null }, { merge: true });
+        .set({ reported: false, reportDate: null }, { merge: true });
     }
     if (map === undefined) {
       newmap = { [result]: true };
@@ -151,7 +151,7 @@ class SampleListItem extends React.Component {
     if (this.state.material) change["material"] = this.state.material;
     if (Object.keys(change).length > 0) {
       change["reported"] = false;
-      change["reportdate"] = null;
+      change["reportDate"] = null;
       this.setState({
         material: null,
         description: null,
