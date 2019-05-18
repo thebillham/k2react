@@ -41,13 +41,13 @@ class SampleListItem extends React.Component {
     };
   }
 
-  receiveSample = (uid, receivedbylab) => {
-    let receiveddate = null;
-    if (!receivedbylab) receiveddate = new Date();
+  receiveSample = (uid, receivedByLab) => {
+    let receivedDate = null;
+    if (!receivedByLab) receivedDate = new Date();
     asbestosSamplesRef
       .doc(uid)
       .set(
-        { receivedbylab: !receivedbylab, receiveddate: receiveddate },
+        { receivedByLab: !receivedByLab, receivedDate: receivedDate },
         { merge: true }
       );
   };
@@ -269,9 +269,9 @@ class SampleListItem extends React.Component {
                           if (sample.result && sample.result["no"])
                             result = "negative";
                           let cameracolor = "#ddd";
-                          if (sample.path_remote) cameracolor = "green";
+                          if (sample.imagePathRemote) cameracolor = "green";
                           let receivedcolor = "#ddd";
-                          if (sample.receivedbylab) receivedcolor = "green";
+                          if (sample.receivedByLab) receivedcolor = "green";
                           let reportcolor = "#ddd";
                           if (sample.reported) reportcolor = "green";
                           let chcolor = "#ddd";
@@ -342,11 +342,11 @@ class SampleListItem extends React.Component {
                                     }
                                     position="right center"
                                     on="hover"
-                                    disabled={sample.path_remote == null}
+                                    disabled={sample.imagePathRemote == null}
                                   >
-                                    {sample.path_remote && (
+                                    {sample.imagePathRemote && (
                                       <img
-                                        src={sample.path_remote}
+                                        src={sample.imagePathRemote}
                                         width={200}
                                       />
                                     )}
@@ -430,7 +430,7 @@ class SampleListItem extends React.Component {
                                     onClick={() => {
                                       this.receiveSample(
                                         sample.uid,
-                                        sample.receivedbylab
+                                        sample.receivedByLab
                                       );
                                     }}
                                     disabled={this.state.isLoading}

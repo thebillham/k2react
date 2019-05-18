@@ -2,8 +2,8 @@ import {
   APP_HAS_LOADED,
   CAT_CHANGE,
   GET_ASBESTOS_ANALYSIS,
-  GET_AIRANALYSTS,
-  GET_BULKANALYSTS,
+  GET_AIR_ANALYSTS,
+  GET_BULK_ANALYSTS,
   GET_COCS,
   GET_DOCUMENTS,
   GET_EDIT_STAFF,
@@ -76,11 +76,11 @@ export const fetchMe = () => async dispatch => {
         let user = doc.data();
         user.uid = doc.id;
         if (user.auth && user.auth["Asbestos Air Analysis"]) {
-          // dispatch({ type: GET_AIRANALYSTS, payload: [{uid: user.uid, name: user.name}] });
+          // dispatch({ type: GET_AIR_ANALYSTS, payload: [{uid: user.uid, name: user.name}] });
           dispatch({ type: SET_ANALYST, payload: user.name });
         }
         if (user.auth && user.auth["Asbestos Bulk Analysis"]) {
-          // dispatch({ type: GET_BULKANALYSTS, payload: [{uid: user.uid, name: user.name}] });
+          // dispatch({ type: GET_BULK_ANALYSTS, payload: [{uid: user.uid, name: user.name}] });
           dispatch({ type: SET_ANALYST, payload: user.name });
         }
         dispatch({ type: GET_ME, payload: user });
@@ -109,8 +109,8 @@ export const fetchStaff = update => async dispatch => {
     var users = {};
     usersRef.get().then(querySnapshot => {
       // console.log(querySnapshot);
-      let airanalysts = [];
-      let bulkanalysts = [];
+      let airAnalysts = [];
+      let bulkAnalysts = [];
       querySnapshot.forEach(doc => {
         // console.log(doc.data());
         if (doc.data().key !== undefined) {
@@ -120,15 +120,15 @@ export const fetchStaff = update => async dispatch => {
           user.uid = doc.id;
           users[doc.id] = user;
           if (user.auth && user.auth["Asbestos Air Analysis"])
-            airanalysts.push({ uid: user.uid, name: user.name });
+            airAnalysts.push({ uid: user.uid, name: user.name });
           if (user.auth && user.auth["Asbestos Bulk Analysis"])
-            bulkanalysts.push({ uid: user.uid, name: user.name });
+            bulkAnalysts.push({ uid: user.uid, name: user.name });
         }
       });
       // console.log(users);
       dispatch({ type: GET_STAFF, payload: users, update: true });
-      dispatch({ type: GET_AIRANALYSTS, payload: airanalysts, update: true });
-      dispatch({ type: GET_BULKANALYSTS, payload: bulkanalysts, update: true });
+      dispatch({ type: GET_AIR_ANALYSTS, payload: airAnalysts, update: true });
+      dispatch({ type: GET_BULK_ANALYSTS, payload: bulkAnalysts, update: true });
     });
   } else {
     // console.log("Fetching staff from cache");
@@ -142,19 +142,19 @@ export const fetchStaff = update => async dispatch => {
       }
     });
     stateRef
-      .doc("airanalysts")
+      .doc("airAnalysts")
       .get()
       .then(doc => {
         if (doc.exists) {
-          dispatch({ type: GET_AIRANALYSTS, payload: doc.data().payload });
+          dispatch({ type: GET_AIR_ANALYSTS, payload: doc.data().payload });
         }
       });
     stateRef
-      .doc("bulkanalysts")
+      .doc("bulkAnalysts")
       .get()
       .then(doc => {
         if (doc.exists) {
-          dispatch({ type: GET_BULKANALYSTS, payload: doc.data().payload });
+          dispatch({ type: GET_BULK_ANALYSTS, payload: doc.data().payload });
         }
       });
   }
@@ -298,145 +298,6 @@ export const getEditStaff = userPath => async dispatch => {
           payload: doc.data(),
         })
     );
-}
-
-export const fetchCocs = update => async dispatch => {
-  // Make all calls update for now
-  update = true;
-  if (update) {
-    cocsRef
-      .where("deleted", "==", false)
-      .where("versionUpToDate", "==", false)
-      .orderBy("lastModified")
-      .onSnapshot(querySnapshot => {
-        var cocs = {};
-        querySnapshot.forEach(doc => {
-          cocs[doc.id] = doc.data();
-        });
-        dispatch({
-          type: GET_COCS,
-          payload: cocs,
-          update: true
-        });
-      });
-    cocsRef
-      .where("deleted", "==", false)
-      .where("versionUpToDate", "==", true)
-      .where("lastModified", ">", moment().subtract(1, 'days').toDate())
-      .orderBy("lastModified")
-      // .orderBy("dueDate", "desc")
-      .onSnapshot(querySnapshot => {
-        var cocs = {};
-        querySnapshot.forEach(doc => {
-          cocs[doc.id] = doc.data();
-        });
-        dispatch({
-          type: GET_COCS,
-          payload: cocs,
-          update: true
-        });
-      });
-  } else {
-    stateRef.doc("cocs").onSnapshot(doc => {
-      if (doc.exists) {
-        dispatch({ type: GET_COCS, payload: doc.data() });
-      } else {
-        console.log("Coc doesn't exist");
-      }
-    });
-  }
-};
-
-export const fetchCocsByJobNumber = (jobNumber) => async dispatch => {
-  cocsRef
-    .where("deleted", "==", false)
-    .where("jobNumber", "==", jobNumber.toUpperCase())
-    .orderBy("lastModified")
-    .onSnapshot(querySnapshot => {
-      var cocs = {};
-      querySnapshot.forEach(doc => {
-        cocs[doc.id] = doc.data();
-      });
-      dispatch({
-        type: GET_COCS,
-        payload: cocs,
-        update: true
-      });
-    });
-};
-
-export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch => {
-  console.log(client);
-  console.log(startDate);
-  console.log(endDate);
-  if (startDate === "") startDate = moment().subtract(6, 'months').toDate(); else startDate = new Date(startDate);
-  if (endDate === "") endDate = new Date(); else endDate = new Date(endDate);
-  console.log(startDate);
-  console.log(endDate);
-  if (client !== "") {
-    cocsRef
-      .where("deleted", "==", false)
-      .where("client", "==", client)
-      .where("lastModified", ">=", startDate)
-      .where("lastModified", "<=", endDate)
-      .orderBy("lastModified")
-      .onSnapshot(querySnapshot => {
-        var cocs = {};
-        querySnapshot.forEach(doc => {
-          cocs[doc.id] = doc.data();
-        });
-        dispatch({
-          type: GET_COCS,
-          payload: cocs,
-          update: true
-        });
-      });
-  } else {
-    console.log('blank client');
-    cocsRef
-      .where("deleted", "==", false)
-      .where("lastModified", ">=", startDate)
-      .where("lastModified", "<=", endDate)
-      .orderBy("lastModified")
-      .onSnapshot(querySnapshot => {
-        var cocs = {};
-        querySnapshot.forEach(doc => {
-          cocs[doc.id] = doc.data();
-        });
-        dispatch({
-          type: GET_COCS,
-          payload: cocs,
-          update: true
-        });
-      });
-  }
-};
-
-export const fetchAsbestosAnalysis = update => async dispatch => {
-  if (update) {
-    asbestosAnalysisRef
-      .onSnapshot(querySnapshot => {
-        var analysis = [];
-        querySnapshot.forEach(doc => {
-          analysis.push(doc.data());
-        });
-        dispatch({
-          type: GET_ASBESTOS_ANALYSIS,
-          payload: { analysis },
-          update: true,
-        });
-      });
-  } else {
-    console.log('fetch analysis');
-    stateRef.doc("asbestosanalysis").onSnapshot(doc => {
-      console.log(doc.data());
-      if (doc.exists) {
-        dispatch({ type: GET_ASBESTOS_ANALYSIS, payload: doc.data() });
-      } else {
-        console.log("Asbestos Analysis doesn't exist");
-      }
-    });
-  }
 }
 
 export const fetchDocuments = update => async dispatch => {
@@ -677,32 +538,6 @@ export const fetchVehicles = update => async dispatch => {
       }
     });
   }
-};
-
-export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
-  asbestosSamplesRef
-    .where("jobNumber", "==", jobNumber)
-    .where("deleted","==",false)
-    .onSnapshot(sampleSnapshot => {
-      let samples = {};
-      sampleSnapshot.forEach(sampleDoc => {
-        let sample = sampleDoc.data();
-        sample.uid = sampleDoc.id;
-        samples[sample.sampleNumber] = sample;
-        // console.log('fetch samples method');
-        dispatch({
-          type: GET_SAMPLES,
-          cocUid: cocUid,
-          payload: samples
-        });
-        if (modal) {
-          dispatch({
-            type: EDIT_MODAL_DOC,
-            payload: {samples: samples},
-          });
-        }
-      });
-    });
 };
 
 export const fetchReadingLog = () => async dispatch => {
@@ -1209,20 +1044,6 @@ export const copyStaff = (oldId, newId) => dispatch => {
           .set(doc.data());
       });
     });
-};
-
-export const setAnalyst = analyst => dispatch => {
-  dispatch({
-    type: SET_ANALYST,
-    payload: analyst
-  });
-};
-
-export const setAnalysisMode = mode => dispatch => {
-  dispatch({
-    type: SET_ANALYSIS_MODE,
-    payload: mode
-  });
 };
 
 export const saveGeocodes = geocodes => dispatch => {

@@ -7,7 +7,7 @@ import {
   fetchAsbestosAnalysis,
   setAnalyst,
   setAnalysisMode
-} from "../../actions/local";
+} from "../../actions/asbestosLab";
 
 //Modals
 import { showModal } from "../../actions/modal";
@@ -26,10 +26,10 @@ const mapStateToProps = state => {
     search: state.local.search,
     me: state.local.me,
     staff: state.local.staff,
-    bulkanalysts: state.local.bulkanalysts,
-    airanalysts: state.local.airanalysts,
+    bulkAnalysts: state.local.bulkAnalysts,
+    airAnalysts: state.local.airAnalysts,
     analyst: state.local.analyst,
-    analysismode: state.local.analysismode,
+    analysisMode: state.local.analysisMode,
     asbestosanalysis: state.local.asbestosanalysis,
   };
 };
@@ -40,7 +40,7 @@ const mapDispatchToProps = dispatch => {
     fetchAsbestosAnalysis: update => dispatch(fetchAsbestosAnalysis(update)),
     showModal: modal => dispatch(showModal(modal)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
-    setAnalysisMode: analysismode => dispatch(setAnalysisMode(analysismode))
+    setAnalysisMode: analysisMode => dispatch(setAnalysisMode(analysisMode))
   };
 };
 

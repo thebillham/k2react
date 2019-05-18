@@ -9,7 +9,9 @@ import {
   auth,
   asbestosSamplesRef
 } from "../../../config/firebase";
-import { fetchCocs, fetchSamples, syncJobWithWFM } from "../../../actions/local";
+import moment from "moment";
+import { fetchCocs, fetchSamples } from "../../../actions/asbestosLab";
+import { syncJobWithWFM } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
   COC,
@@ -24,6 +26,7 @@ import {
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
+import Grid from "@material-ui/core/Grid";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -50,11 +53,11 @@ const mapStateToProps = state => {
   return {
     me: state.local.me,
     staff: state.local.staff,
-    samples: state.local.samples,
-    analyst: state.local.analyst,
-    analysismode: state.local.analysismode,
-    bulkanalysts: state.local.bulkanalysts,
-    airanalysts: state.local.airanalysts
+    samples: state.asbestosLab.samples,
+    analyst: state.asbestosLab.analyst,
+    analysisMode: state.asbestosLab.analysisMode,
+    bulkAnalysts: state.asbestosLab.bulkAnalysts,
+    airAnalysts: state.asbestosLab.airAnalysts
   };
 };
 
@@ -71,7 +74,7 @@ const mapDispatchToProps = dispatch => {
 class AsbestosBulkCocCard extends React.Component {
   state = {
     samples: {},
-    bulkanalyst: "",
+    bulkAnalyst: "",
     // sessionID creates a unique id for this refresh of the CoC. This is used as the firestore uid for any results reported
     sessionID: "",
     sampleAnchorEl: {},
@@ -101,11 +104,11 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   receiveSample = sample => {
-    let receiveddate = null;
-    if (!sample.receivedbylab) receiveddate = new Date();
+    let receivedDate = null;
+    if (!sample.receivedByLab) receivedDate = new Date();
     let log = {
       type: "Received",
-      log: receiveddate
+      log: receivedDate
         ? `Sample ${sample.sampleNumber} (${sample.description} ${
             sample.material
           }) received by lab.`
@@ -114,7 +117,7 @@ class AsbestosBulkCocCard extends React.Component {
           }) unchecked as being received.`,
       user: auth.currentUser.uid,
       sample: sample.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     };
     let cocLog = this.props.job.cocLog;
@@ -124,20 +127,20 @@ class AsbestosBulkCocCard extends React.Component {
       .update({ versionUpToDate: false, cocLog: cocLog });
     asbestosSamplesRef.doc(sample.uid).set(
       {
-        receivedbylab: !sample.receivedbylab,
-        receiveduser: auth.currentUser.uid,
-        receiveddate: receiveddate
+        receivedByLab: !sample.receivedByLab,
+        receivedUser: auth.currentUser.uid,
+        receivedDate: receivedDate
       },
       { merge: true }
     );
   };
 
   startAnalysis = sample => {
-    let analysisstart = null;
-    if (!sample.analysisstart) analysisstart = new Date();
+    let analysisStart = null;
+    if (!sample.analysisStart) analysisStart = new Date();
     let log = {
       type: "Analysis",
-      log: analysisstart
+      log: analysisStart
         ? `Analysis begun on Sample ${sample.sampleNumber} (${sample.description} ${
             sample.material
           }).`
@@ -146,7 +149,7 @@ class AsbestosBulkCocCard extends React.Component {
           }).`,
       user: auth.currentUser.uid,
       sample: sample.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     };
     let cocLog = this.props.job.cocLog;
@@ -156,9 +159,9 @@ class AsbestosBulkCocCard extends React.Component {
       .update({ versionUpToDate: false, cocLog: cocLog });
     asbestosSamplesRef.doc(sample.uid).set(
       {
-        analysisstart: !sample.analysisstart,
-        analysisstartedby: auth.currentUser.uid,
-        analysisstartdate: analysisstart
+        analysisStart: !sample.analysisStart,
+        analysisStartedby: auth.currentUser.uid,
+        analysisStartdate: analysisStart
       },
       { merge: true }
     );
@@ -187,7 +190,7 @@ class AsbestosBulkCocCard extends React.Component {
               }) result unchecked.`,
           user: auth.currentUser.uid,
           sample: sample.uid,
-          username: this.props.me.name,
+          userName: this.props.me.name,
           date: new Date()
         };
         let cocLog = this.props.job.cocLog;
@@ -239,7 +242,7 @@ class AsbestosBulkCocCard extends React.Component {
               sample.description
             } ${sample.material}) overridden.`,
             user: auth.currentUser.uid,
-            username: this.props.me.name,
+            userName: this.props.me.name,
             sample: sample.uid,
             date: new Date()
           });
@@ -274,7 +277,7 @@ class AsbestosBulkCocCard extends React.Component {
         sessionID: this.state.sessionID,
         analyst: this.props.analyst,
         result: newmap,
-        resultdate: new Date()
+        resultDate: new Date()
       });
 
       cocLog.push({
@@ -283,7 +286,7 @@ class AsbestosBulkCocCard extends React.Component {
           sample.description
         } ${sample.material}): ${this.writeResult(newmap)}`,
         user: auth.currentUser.uid,
-        username: this.props.me.name,
+        userName: this.props.me.name,
         sample: sample.uid,
         date: new Date()
       });
@@ -302,7 +305,7 @@ class AsbestosBulkCocCard extends React.Component {
         asbestosAnalysisRef.doc(`${this.state.sessionID}-${sample.uid}`).set({
           analyst: this.props.analyst,
           analystUID: auth.currentUser.uid,
-          mode: this.props.analysismode,
+          mode: this.props.analysisMode,
           sessionID: this.state.sessionID,
           cocUID: this.props.job.uid,
           sampleUID: sample.uid,
@@ -310,7 +313,7 @@ class AsbestosBulkCocCard extends React.Component {
           description: sample.description,
           material: sample.material,
           samplers: this.props.job.personnel,
-          analysisdate: new Date()
+          analysisDate: new Date()
         });
       } else {
         asbestosAnalysisRef
@@ -437,16 +440,27 @@ class AsbestosBulkCocCard extends React.Component {
     return report;
   };
 
-  writeDescription = (description, material) => {
-    if (description && material) {
-      return description + ", " + material;
-    } else if (description) {
-      return description;
-    } else if (material) {
-      return material;
-    } else {
-      return "No description";
+  writeDescription = (locationgeneric, locationdetailed, description, material) => {
+    var str = '';
+    if (locationgeneric) str = locationgeneric;
+    if (locationdetailed) {
+      if (str === '') {
+        str = locationdetailed;
+      } else {
+        str = str + ' - ' + locationdetailed;
+      }
     }
+    if (str !== '') str = str + ': ';
+    if (description && material) {
+      str = str + description + ", " + material;
+    } else if (description) {
+      str = str + description;
+    } else if (material) {
+      str = str + material;
+    } else {
+      str = str + "No description";
+    }
+    return str;
   };
 
   issueLabReport = (version, changes) => {
@@ -462,7 +476,7 @@ class AsbestosBulkCocCard extends React.Component {
       type: "Issue",
       log: `Version ${version} issued.`,
       user: auth.currentUser.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     });
     versionHistory[version] = {
@@ -492,7 +506,7 @@ class AsbestosBulkCocCard extends React.Component {
       type: "Document",
       log: `Test Certificate (version ${version}) downloaded.`,
       user: auth.currentUser.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     });
     cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog }, { merge: true });
@@ -539,7 +553,7 @@ class AsbestosBulkCocCard extends React.Component {
       type: "Document",
       log: `Chain of Custody downloaded.`,
       user: auth.currentUser.uid,
-      username: this.props.me.name,
+      userName: this.props.me.name,
       date: new Date()
     });
     cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog }, { merge: true });
@@ -642,7 +656,7 @@ class AsbestosBulkCocCard extends React.Component {
         cocLog.push({
           type: "Delete",
           log: `Sample ${sample.sampleNumber} (${sample.description} ${sample.material}) deleted.`,
-          username: this.props.me.name,
+          userName: this.props.me.name,
           user: auth.currentUser.uid,
           date: new Date(),
           sample: sample.uid,
@@ -653,7 +667,7 @@ class AsbestosBulkCocCard extends React.Component {
       cocLog.push({
         type: "Delete",
         log: "Chain of Custody deleted.",
-        username: this.props.me.name,
+        userName: this.props.me.name,
         user: auth.currentUser.uid,
         date: new Date()
       });
@@ -848,357 +862,390 @@ class AsbestosBulkCocCard extends React.Component {
                       result = "positive";
                     if (sample.result && sample.result["no"])
                       result = "negative";
-                    let cameracolor = "#ddd";
-                    if (sample.path_remote) cameracolor = "green";
-                    let receivedcolor = "#ddd";
-                    if (sample.receivedbylab) receivedcolor = "green";
-                    let analysiscolor = "#ddd";
-                    if (sample.analysisstart) analysiscolor = "green";
-                    let reportcolor = "#ddd";
-                    if (sample.reported) reportcolor = "green";
-                    let chcolor = "#ddd";
-                    let amcolor = "#ddd";
-                    let crcolor = "#ddd";
-                    let umfcolor = "#ddd";
-                    let chdivcolor = "white";
-                    let amdivcolor = "white";
-                    let crdivcolor = "white";
-                    let umfdivcolor = "white";
+                    let cameraColor = "#ddd";
+                    if (sample.imagePathRemote) cameraColor = "green";
+                    let receivedColor = "#ddd";
+                    if (sample.receivedByLab) receivedColor = "green";
+                    let analysisColor = "#ddd";
+                    if (sample.analysisStart) analysisColor = "green";
+                    let reportColor = "#ddd";
+                    if (sample.reported) reportColor = "green";
+                    let chColor = "#ddd";
+                    let amColor = "#ddd";
+                    let crColor = "#ddd";
+                    let umfColor = "#ddd";
+                    let chDivColor = "white";
+                    let amDivColor = "white";
+                    let crDivColor = "white";
+                    let umfDivColor = "white";
                     // if (result === 'positive') {
-                    //   chcolor = '#b00';
-                    //   amcolor = '#b00';
-                    //   crcolor = '#b00';
-                    //   umfcolor = '#b00';
+                    //   chColor = '#b00';
+                    //   amColor = '#b00';
+                    //   crColor = '#b00';
+                    //   umfColor = '#b00';
                     // }
                     if (sample.result && sample.result["ch"]) {
-                      chcolor = "white";
-                      chdivcolor = "red";
+                      chColor = "white";
+                      chDivColor = "red";
                     }
                     if (sample.result && sample.result["am"]) {
-                      amcolor = "white";
-                      amdivcolor = "red";
+                      amColor = "white";
+                      amDivColor = "red";
                     }
                     if (sample.result && sample.result["cr"]) {
-                      crcolor = "white";
-                      crdivcolor = "red";
+                      crColor = "white";
+                      crDivColor = "red";
                     }
                     if (sample.result && sample.result["umf"]) {
-                      umfcolor = "white";
-                      umfdivcolor = "red";
+                      umfColor = "white";
+                      umfDivColor = "red";
                     }
 
-                    let nocolor = "#ddd";
-                    let nodivcolor = "#fff";
+                    let noColor = "#ddd";
+                    let noDivColor = "#fff";
                     if (result === "negative") {
-                      nocolor = "green";
-                      nodivcolor = "lightgreen";
+                      noColor = "green";
+                      noDivColor = "lightgreen";
                     }
 
                     return (
-                      <ListItem
-                        dense
-                        className={classes.hoverItem}
+                      <ExpansionPanel
+                        elevation={0}
+                        square={true}
                         key={`${
                           job.jobNumber
                         }-${sample.sampleNumber.toString()}_${
                           sample.description
                         }`}
+                        style={{
+                          width: '100%',
+                        }}
                       >
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            width: "70vw"
-                          }}
-                        >
+                        <ExpansionPanelSummary expandIcon={<ExpandMore />} className={classes.hoverItem}>
                           <div
                             style={{
-                              width: "30vw",
                               display: "flex",
                               flexDirection: "row",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              alignItems: "center",
-                              justifyContent: "flex-start"
+                              justifyContent: "space-between",
+                              width: "70vw"
                             }}
                           >
-                            <Popup
-                              trigger={
-                                <CameraAlt
-                                  style={{
-                                    fontSize: 24,
-                                    color: cameracolor,
-                                    margin: 10
-                                  }}
-                                />
-                              }
-                              position="right center"
-                              on="hover"
-                              disabled={sample.path_remote == null}
-                            >
-                              {sample.path_remote && (
-                                <img
-                                  alt=""
-                                  src={sample.path_remote}
-                                  width={200}
-                                />
-                              )}
-                            </Popup>
                             <div
                               style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 20,
-                                backgroundColor: "#aaa",
-                                marginRight: 10,
-                                color: "#fff",
-                                justifyContent: "center",
-                                alignItems: "center",
+                                // width: "60vw",
                                 display: "flex",
-                                fontWeight: "bold"
+                                flexDirection: "row",
+                                textOverflow: "ellipsis",
+                                // whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                alignItems: "center",
+                                justifyContent: "flex-start"
                               }}
                             >
-                              {sample.sampleNumber}
-                            </div>
-                            {this.writeDescription(
-                              sample.description,
-                              sample.material
-                            )}
-                          </div>
-                          <div
-                            style={{
-                              width: "40vw",
-                              display: "flex",
-                              flexDirection: "row",
-                              justifyContent: "flex-end",
-                              alignItems: "center"
-                            }}
-                          >
-                            <IconButton
-                              onClick={() => {
-                                this.receiveSample(sample);
-                              }}
-                            >
-                              <Inbox
+                              <Popup
+                                trigger={
+                                  <CameraAlt
+                                    style={{
+                                      fontSize: 24,
+                                      color: cameraColor,
+                                      margin: 10
+                                    }}
+                                  />
+                                }
+                                position="right center"
+                                on="hover"
+                                disabled={sample.imagePathRemote == null}
+                              >
+                                {sample.imagePathRemote && (
+                                  <img
+                                    alt=""
+                                    src={sample.imagePathRemote}
+                                    width={200}
+                                  />
+                                )}
+                              </Popup>
+                              <div
                                 style={{
-                                  fontSize: 24,
-                                  margin: 10,
-                                  color: receivedcolor
-                                }}
-                              />
-                            </IconButton>
-                              <IconButton
-                                onClick={() => {
-                                  this.startAnalysis(sample);
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: 20,
+                                  backgroundColor: "#aaa",
+                                  marginRight: 10,
+                                  color: "#fff",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  display: "flex",
+                                  fontWeight: "bold"
                                 }}
                               >
-                                <Colorize
+                                {sample.sampleNumber}
+                              </div>
+                              {this.writeDescription(
+                                sample.genericLocation,
+                                sample.specificLocation,
+                                sample.description,
+                                sample.material
+                              )}
+                            </div>
+                            <div
+                              style={{
+                                width: "40vw",
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "flex-end",
+                                alignItems: "center"
+                              }}
+                            >
+                              <IconButton
+                                onClick={() => {
+                                  this.receiveSample(sample);
+                                }}
+                              >
+                                <Inbox
                                   style={{
                                     fontSize: 24,
                                     margin: 10,
-                                    color: analysiscolor
+                                    color: receivedColor
                                   }}
                                 />
                               </IconButton>
-                            <div
-                              style={{ display: "flex", flexDirection: "row" }}
-                            >
+                                <IconButton
+                                  onClick={() => {
+                                    this.startAnalysis(sample);
+                                  }}
+                                >
+                                  <Colorize
+                                    style={{
+                                      fontSize: 24,
+                                      margin: 10,
+                                      color: analysisColor
+                                    }}
+                                  />
+                                </IconButton>
+                              <div
+                                style={{ display: "flex", flexDirection: "row" }}
+                              >
+                                <div
+                                  style={{
+                                    backgroundColor: chDivColor,
+                                    borderRadius: 5
+                                  }}
+                                >
+                                  <Button
+                                    variant="outlined"
+                                    disabled={!sample.receivedByLab}
+                                    style={{ margin: 5, color: chColor }}
+                                    onClick={() => {
+                                      this.toggleResult(sample, "ch");
+                                    }}
+                                  >
+                                    CH
+                                  </Button>
+                                </div>
+                                <div
+                                  style={{
+                                    backgroundColor: amDivColor,
+                                    borderRadius: 5
+                                  }}
+                                >
+                                  <Button
+                                    variant="outlined"
+                                    disabled={!sample.receivedByLab}
+                                    style={{ margin: 5, color: amColor }}
+                                    onClick={() => {
+                                      this.toggleResult(sample, "am");
+                                    }}
+                                  >
+                                    AM
+                                  </Button>
+                                </div>
+                                <div
+                                  style={{
+                                    backgroundColor: crDivColor,
+                                    borderRadius: 5
+                                  }}
+                                >
+                                  <Button
+                                    variant="outlined"
+                                    disabled={!sample.receivedByLab}
+                                    style={{ margin: 5, color: crColor }}
+                                    onClick={() => {
+                                      this.toggleResult(sample, "cr");
+                                    }}
+                                  >
+                                    CR
+                                  </Button>
+                                </div>
+                                <div
+                                  style={{
+                                    backgroundColor: umfDivColor,
+                                    borderRadius: 5
+                                  }}
+                                >
+                                  <Button
+                                    variant="outlined"
+                                    disabled={!sample.receivedByLab}
+                                    style={{ margin: 5, color: umfColor }}
+                                    onClick={() => {
+                                      this.toggleResult(sample, "umf");
+                                    }}
+                                  >
+                                    UMF
+                                  </Button>
+                                </div>
+                              </div>
+                              <div style={{ width: 30 }} />
                               <div
                                 style={{
-                                  backgroundColor: chdivcolor,
+                                  backgroundColor: noDivColor,
                                   borderRadius: 5
                                 }}
                               >
                                 <Button
                                   variant="outlined"
-                                  disabled={!sample.receivedbylab}
-                                  style={{ margin: 5, color: chcolor }}
+                                  disabled={!sample.receivedByLab}
+                                  style={{ margin: 5, color: noColor }}
                                   onClick={() => {
-                                    this.toggleResult(sample, "ch");
+                                    this.toggleResult(sample, "no");
                                   }}
                                 >
-                                  CH
+                                  NO
                                 </Button>
                               </div>
-                              <div
-                                style={{
-                                  backgroundColor: amdivcolor,
-                                  borderRadius: 5
-                                }}
-                              >
-                                <Button
-                                  variant="outlined"
-                                  disabled={!sample.receivedbylab}
-                                  style={{ margin: 5, color: amcolor }}
-                                  onClick={() => {
-                                    this.toggleResult(sample, "am");
-                                  }}
-                                >
-                                  AM
-                                </Button>
-                              </div>
-                              <div
-                                style={{
-                                  backgroundColor: crdivcolor,
-                                  borderRadius: 5
-                                }}
-                              >
-                                <Button
-                                  variant="outlined"
-                                  disabled={!sample.receivedbylab}
-                                  style={{ margin: 5, color: crcolor }}
-                                  onClick={() => {
-                                    this.toggleResult(sample, "cr");
-                                  }}
-                                >
-                                  CR
-                                </Button>
-                              </div>
-                              <div
-                                style={{
-                                  backgroundColor: umfdivcolor,
-                                  borderRadius: 5
-                                }}
-                              >
-                                <Button
-                                  variant="outlined"
-                                  disabled={!sample.receivedbylab}
-                                  style={{ margin: 5, color: umfcolor }}
-                                  onClick={() => {
-                                    this.toggleResult(sample, "umf");
-                                  }}
-                                >
-                                  UMF
-                                </Button>
-                              </div>
-                            </div>
-                            <div style={{ width: 30 }} />
-                            <div
-                              style={{
-                                backgroundColor: nodivcolor,
-                                borderRadius: 5
-                              }}
-                            >
-                              <Button
-                                variant="outlined"
-                                disabled={!sample.receivedbylab}
-                                style={{ margin: 5, color: nocolor }}
+                              <IconButton
+                                disabled={!sample.receivedByLab}
                                 onClick={() => {
-                                  this.toggleResult(sample, "no");
-                                }}
-                              >
-                                NO
-                              </Button>
-                            </div>
-                            <IconButton
-                              disabled={!sample.receivedbylab}
-                              onClick={() => {
-                                if (
-                                  !sample.result &&
-                                  !window.confirm(
-                                    "No result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
+                                  if (
+                                    !sample.result &&
+                                    !window.confirm(
+                                      "No result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
+                                    )
                                   )
-                                )
-                                  return;
-                                this.reportSample(sample);
-                              }}
-                            >
-                              <CheckCircleOutline
-                                style={{
-                                  fontSize: 24,
-                                  margin: 10,
-                                  color: reportcolor
+                                    return;
+                                  this.reportSample(sample);
                                 }}
-                              />
-                            </IconButton>
-                            <IconButton
-                              onClick={event => {
-                                this.setState({
-                                  sampleAnchorEl: {
-                                    [sample.sampleNumber]: event.currentTarget
-                                  }
-                                });
-                              }}
-                            >
-                              <More />
-                            </IconButton>
-                            <Menu
-                              id={`${
-                                job.jobNumber
-                              }-${sample.sampleNumber.toString()}`}
-                              anchorEl={
-                                this.state.sampleAnchorEl[sample.sampleNumber]
-                              }
-                              open={Boolean(
-                                this.state.sampleAnchorEl[sample.sampleNumber]
-                              )}
-                              onClose={() => {
-                                this.setState({
-                                  sampleAnchorEl: {
-                                    [sample.sampleNumber]: null
-                                  }
-                                });
-                              }}
-                              style={{ padding: 0 }}
-                            >
-                              <MenuItem
-                                key={`${
-                                  job.jobNumber
-                                }-${sample.sampleNumber.toString()}-WA`}
-                                onClick={() => {
-                                  this.props.showModal({
-                                    modalType: ASBESTOSLABDETAILS,
-                                    modalProps: {
-                                      sample: sample,
-                                      docid: job.uid
+                              >
+                                <CheckCircleOutline
+                                  style={{
+                                    fontSize: 24,
+                                    margin: 10,
+                                    color: reportColor
+                                  }}
+                                />
+                              </IconButton>
+                              <IconButton
+                                onClick={event => {
+                                  this.setState({
+                                    sampleAnchorEl: {
+                                      [sample.sampleNumber]: event.currentTarget
                                     }
                                   });
                                 }}
                               >
-                                Lab Details
-                              </MenuItem>
-                              <MenuItem
-                                key={`${
+                                <More />
+                              </IconButton>
+                              <Menu
+                                id={`${
                                   job.jobNumber
-                                }-${sample.sampleNumber.toString()}-WA`}
-                                onClick={() => {
-                                  this.props.showModal({
-                                    modalType: WAANALYSIS,
-                                    modalProps: {
-                                      title: "Add WA Analysis",
-                                      sample: sample,
-                                      docid: job.uid
+                                }-${sample.sampleNumber.toString()}`}
+                                anchorEl={
+                                  this.state.sampleAnchorEl[sample.sampleNumber]
+                                }
+                                open={Boolean(
+                                  this.state.sampleAnchorEl[sample.sampleNumber]
+                                )}
+                                onClose={() => {
+                                  this.setState({
+                                    sampleAnchorEl: {
+                                      [sample.sampleNumber]: null
                                     }
                                   });
                                 }}
+                                style={{ padding: 0 }}
                               >
-                                Add WA Analysis
-                              </MenuItem>
-                              <MenuItem
-                                key={`${
-                                  job.jobNumber
-                                }-${sample.sampleNumber.toString()}-SampleHistory`}
-                                onClick={() => {
-                                  this.props.showModal({
-                                    modalType: SAMPLEHISTORY,
-                                    modalProps: {
-                                      title: `Sample History for ${
-                                        job.jobNumber
-                                      }-${sample.sampleNumber.toString()}`,
-                                      uid: sample.uid,
-                                      cocLog: job.cocLog,
-                                  }
-                                })
-                              }}
-                              >
-                                View Sample History
-                              </MenuItem>
-                            </Menu>
+                                <MenuItem
+                                  key={`${
+                                    job.jobNumber
+                                  }-${sample.sampleNumber.toString()}-WA`}
+                                  onClick={() => {
+                                    this.props.showModal({
+                                      modalType: ASBESTOSLABDETAILS,
+                                      modalProps: {
+                                        sample: sample,
+                                        docid: job.uid
+                                      }
+                                    });
+                                  }}
+                                >
+                                  Lab Details
+                                </MenuItem>
+                                <MenuItem
+                                  key={`${
+                                    job.jobNumber
+                                  }-${sample.sampleNumber.toString()}-WA`}
+                                  onClick={() => {
+                                    this.props.showModal({
+                                      modalType: WAANALYSIS,
+                                      modalProps: {
+                                        title: "Add WA Analysis",
+                                        sample: sample,
+                                        docid: job.uid
+                                      }
+                                    });
+                                  }}
+                                >
+                                  Add WA Analysis
+                                </MenuItem>
+                                <MenuItem
+                                  key={`${
+                                    job.jobNumber
+                                  }-${sample.sampleNumber.toString()}-SampleHistory`}
+                                  onClick={() => {
+                                    this.props.showModal({
+                                      modalType: SAMPLEHISTORY,
+                                      modalProps: {
+                                        title: `Sample History for ${
+                                          job.jobNumber
+                                        }-${sample.sampleNumber.toString()}`,
+                                        uid: sample.uid,
+                                        cocLog: job.cocLog,
+                                    }
+                                  })
+                                }}
+                                >
+                                  View Sample History
+                                </MenuItem>
+                              </Menu>
+                            </div>
                           </div>
-                        </div>
-                      </ListItem>
+                        </ExpansionPanelSummary>
+                        <ExpansionPanelDetails>
+                          <Grid container>
+                            <Grid item xs={1} />
+                            <Grid item xs={4} style={{ fontSize: 14 }}>
+                              <div style={{ fontWeight: 700, height: 30}}>Details</div>
+                              <div>
+                                {sample.receivedByLab ?
+                                  <span>Received by lab at {moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.receivedUser] ? <span>{this.props.staff[sample.receivedUser].name}</span>
+                                  :<span>an unknown person</span>}</span>
+                                  : <span>Not yet received by lab</span>
+                                }
+                              </div>
+                              <div>
+                                {sample.analysisStart ?
+                                  <span>Analysis started at {moment(sample.analysisStartdate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.analysisStartedby] ? <span>{this.props.staff[sample.analysisStartedby].name}</span>
+                                  :<span>an unknown person</span>}</span>
+                                  : <span>Analysis not yet started</span>
+                                }
+                              </div>
+                              <div>
+                              </div>
+                            </Grid>
+                            <Grid item xs={7}>
+                            </Grid>
+                          </Grid>
+                        </ExpansionPanelDetails>
+                      </ExpansionPanel>
                     );
                   })}{" "}
               </div>

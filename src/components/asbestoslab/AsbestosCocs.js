@@ -8,6 +8,8 @@ import {
   fetchCocsBySearch,
   setAnalyst,
   setAnalysisMode,
+} from "../../actions/asbestosLab";
+import {
   fetchWFMClients,
 } from "../../actions/local";
 
@@ -36,15 +38,15 @@ import moment from "moment";
 
 const mapStateToProps = state => {
   return {
-    cocs: state.local.cocs,
+    cocs: state.asbestosLab.cocs,
     search: state.local.search,
     me: state.local.me,
     staff: state.local.staff,
     clients: state.local.wfmClients,
-    bulkanalysts: state.local.bulkanalysts,
-    airanalysts: state.local.airanalysts,
-    analyst: state.local.analyst,
-    analysismode: state.local.analysismode
+    bulkAnalysts: state.asbestosLab.bulkAnalysts,
+    airAnalysts: state.asbestosLab.airAnalysts,
+    analyst: state.asbestosLab.analyst,
+    analysisMode: state.asbestosLab.analysisMode
   };
 };
 
@@ -56,7 +58,7 @@ const mapDispatchToProps = dispatch => {
     fetchWFMClients: () => dispatch(fetchWFMClients()),
     showModal: modal => dispatch(showModal(modal)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
-    setAnalysisMode: analysismode => dispatch(setAnalysisMode(analysismode))
+    setAnalysisMode: analysisMode => dispatch(setAnalysisMode(analysisMode))
   };
 };
 
@@ -147,7 +149,7 @@ class AsbestosCocs extends React.Component {
                       onChange={e => this.props.setAnalyst(e.target.value)}
                       input={<Input name="analyst" id="analyst" />}
                     >
-                      {this.props.bulkanalysts.map(analyst => {
+                      {this.props.bulkAnalysts.map(analyst => {
                         return (
                           <option key={analyst.uid} value={analyst.name}>
                             {analyst.name}

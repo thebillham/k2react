@@ -2,7 +2,7 @@ import {
   GET_STAFF,
   GET_ASBESTOS_ANALYSIS,
   GET_AIRANALYSTS,
-  GET_BULKANALYSTS,
+  GET_BULK_ANALYSTS,
   GET_DOCUMENTS,
   GET_EDIT_STAFF,
   GET_GEOCODES,
@@ -43,14 +43,8 @@ import {
 import { stateRef } from "../config/firebase";
 
 const localInit = {
-  airanalysts: [],
-  analysismode: "normal",
-  analyst: "",
-  asbestosanalysis: [],
   auth: [],
-  bulkanalysts: [],
   category: "",
-  cocs: {},
   currentJobState: {},
   documents: [],
   editstaff: {},
@@ -64,7 +58,6 @@ const localInit = {
   questions: [],
   quizzes: [],
   readingLog: [],
-  samples: {},
   search: null,
   staff: {},
   steppers: [],
@@ -80,45 +73,12 @@ const localInit = {
   wfmJobs: [],
   wfmLeads: [],
   wfmClients: [],
-  wfmStats: {}
+  wfmStats: {},
 };
 
 // Properties related to local data retrieved from firebase
 export default function localReducer(state = localInit, action) {
   switch (action.type) {
-    case GET_AIRANALYSTS:
-      if (action.update)
-        stateRef.doc("airanalysts").set({ payload: action.payload });
-      return {
-        ...state,
-        airanalysts: action.payload
-      };
-    case GET_ASBESTOS_SAMPLES:
-      if (action.update) stateRef.doc("asbestossamples").set(action.payload);
-      return {
-        ...state,
-        samplesasbestos: action.payload
-      };
-    case GET_BULKANALYSTS:
-      if (action.update)
-        stateRef.doc("bulkanalysts").set({ payload: action.payload });
-      return {
-        ...state,
-        bulkanalysts: action.payload
-      };
-    case GET_COCS:
-      if (action.update) stateRef.doc("cocs").set(action.payload);
-      return { ...state,
-        cocs: {
-          ...state.cocs,
-          ...action.payload
-        }
-      };
-    case GET_ASBESTOS_ANALYSIS:
-      if (action.update) stateRef.doc("asbestosanalysis").set(action.payload);
-      return { ...state,
-        asbestosanalysis: action.payload,
-      }
     case GET_DOCUMENTS:
       if (action.update)
         stateRef.doc("documents").set({ payload: action.payload });
@@ -194,20 +154,6 @@ export default function localReducer(state = localInit, action) {
           ...state.me,
           readingLog: action.payload
         }
-      };
-    case GET_SAMPLES:
-      // if (action.update) {
-      //   stateRef.doc("samples").set({ payload: {
-      //     ...state.samples,
-      //     [action.cocUid]: action.payload
-      //     }
-      //   });
-      // }
-      console.log('Get samples');
-      console.log(action);
-      return {
-        ...state,
-        samples: { ...state.samples, [action.cocUid]: action.payload }
       };
     case GET_STAFF:
       if (action.update) stateRef.doc("staff").set(action.payload);
@@ -317,16 +263,6 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         stepper: action.payload
-      };
-    case SET_ANALYST:
-      return {
-        ...state,
-        analyst: action.payload
-      };
-    case SET_ANALYSIS_MODE:
-      return {
-        ...state,
-        analysismode: action.payload
       };
     default:
       return state;

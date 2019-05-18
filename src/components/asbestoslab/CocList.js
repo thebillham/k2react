@@ -68,7 +68,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class CocListItem extends React.Component {
+class CocList extends React.Component {
   state = {
     samples: {},
     bulkAnalyst: "",
@@ -1224,5 +1224,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(CocListItem)
+  )(CocList)
 );

@@ -6,7 +6,7 @@ import {
   fetchCocs,
   setAnalyst,
   setAnalysisMode
-} from "../../actions/local";
+} from "../../actions/asbestosLab";
 
 //Modals
 import { COC } from "../../constants/modal-types";
@@ -21,14 +21,14 @@ import Select from "@material-ui/core/Select";
 
 const mapStateToProps = state => {
   return {
-    cocs: state.local.cocs,
     search: state.local.search,
     me: state.local.me,
     staff: state.local.staff,
-    bulkanalysts: state.local.bulkanalysts,
-    airanalysts: state.local.airanalysts,
-    analyst: state.local.analyst,
-    analysismode: state.local.analysismode
+    cocs: state.asbestosLab.cocs,
+    bulkAnalysts: state.asbestosLab.bulkAnalysts,
+    airAnalysts: state.asbestosLab.airAnalysts,
+    analyst: state.asbestosLab.analyst,
+    analysisMode: state.asbestosLab.analysisMode
   };
 };
 
@@ -37,7 +37,7 @@ const mapDispatchToProps = dispatch => {
     fetchCocs: () => dispatch(fetchCocs()),
     showModal: modal => dispatch(showModal(modal)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
-    setAnalysisMode: analysismode => dispatch(setAnalysisMode(analysismode))
+    setAnalysisMode: analysisMode => dispatch(setAnalysisMode(analysisMode))
   };
 };
 

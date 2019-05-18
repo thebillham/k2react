@@ -42,8 +42,8 @@ function AsbestosBulkSampleEditListItem(props) {
         <Card className={classes.card} style={{ height: 18 }}>
           <CardContent>
             <Grid container>
-              <Grid item xs={2}>{sample.genericlocation}</Grid>
-              <Grid item xs={2}>{sample.detailedlocation}</Grid>
+              <Grid item xs={2}>{sample.genericLocation}</Grid>
+              <Grid item xs={2}>{sample.specificLocation}</Grid>
               <Grid item xs={5}>{sample.description}</Grid>
               <Grid item xs={2}>{sample.material}</Grid>
               <Grid item xs={1}>

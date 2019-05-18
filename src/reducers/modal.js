@@ -13,7 +13,7 @@ import {
   SHOW_MODAL
 } from "../constants/action-types";
 
-export const modalInit = {
+const modalInit = {
   modalType: null,
   modalProps: {
     doc: {

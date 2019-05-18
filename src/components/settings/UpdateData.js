@@ -16,8 +16,6 @@ import DialogActions from "@material-ui/core/DialogActions";
 
 import {
   analyseJobHistory,
-  fetchAsbestosAnalysis,
-  fetchCocs,
   fetchDocuments,
   fetchMethods,
   fetchNotices,
@@ -28,6 +26,10 @@ import {
   fetchTrainingPaths,
   fetchVehicles
 } from "../../actions/local";
+import {
+  fetchAsbestosAnalysis,
+  fetchCocs,
+} from "../../actions/asbestosLab";
 import { hideModal } from "../../actions/modal";
 
 const mapStateToProps = state => {
