@@ -108,20 +108,46 @@ class AsbestosBulkCocCard extends React.Component {
   getStats = () => {
     let status = '';
     let totalSamples = 0;
+    let positiveSamples = 0;
+    let negativeSamples = 0;
+
     let numberReceived = 0;
     let numberAnalysisStarted = 0;
     let numberResult = 0;
     let numberReported = 0;
+
     let maxTurnaroundTime = 0;
     let averageTurnaroundTime = 0;
     let totalTurnaroundTime = 0;
     let numTurnaroundTime = 0;
+
+    let maxAnalysisTime = 0;
+    let averageAnalysisTime = 0;
+    let totalAnalysisTime = 0;
+    let numAnalysisTime = 0;
+
+    let maxReportTime = 0;
+    let averageReportTime = 0;
+    let totalReportTime = 0;
+    let numReportTime = 0;
+
     if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
       Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
         totalSamples = totalSamples + 1;
         if (sample.receivedByLab) numberReceived = numberReceived + 1;
         if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
-        if (sample.result) numberResult = numberResult + 1;
+        if (sample.result) {
+          numberResult = numberResult + 1;
+          if (sample.result['no']) {
+            negativeSamples = negativeSamples + 1;
+          } else positiveSamples = positiveSamples + 1;
+          if (sample.analysisTime) {
+            if (sample.analysisTime > maxAnalysisTime) maxAnalysisTime = sample.analysisTime;
+            totalAnalysisTime = totalAnalysisTime + sample.analysisTime;
+            numAnalysisTime = numAnalysisTime + 1;
+            averageAnalysisTime = totalAnalysisTime / numAnalysisTime;
+          }
+        }
         if (sample.reported) {
           numberReported = numberReported + 1;
           if (sample.turnaroundTime) {
@@ -129,6 +155,14 @@ class AsbestosBulkCocCard extends React.Component {
             totalTurnaroundTime = totalTurnaroundTime + sample.turnaroundTime;
             numTurnaroundTime = numTurnaroundTime + 1;
             averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
+            // Check for time between analysis logging and verification
+            if (sample.analysisTime) {
+              let reportTime = sample.turnaroundTime - sample.analysisTime;
+              if (reportTime > maxReportTime) maxReportTime = reportTime;
+              totalReportTime = totalReportTime + reportTime;
+              numReportTime = numReportTime + 1;
+              averageReportTime = totalReportTime / numReportTime;
+            }
           }
         }
       });
@@ -147,16 +181,30 @@ class AsbestosBulkCocCard extends React.Component {
       status = 'Analysis Complete';
     } else if (numberReported === totalSamples) {
       status = 'Ready For Issue';
+    } else if (numberReported > 0) {
+      status = 'Partially Reported';
+    } else if (numberResult > 0) {
+      status = 'Analysis Partially Complete';
+    } else if (numberAnalysisStarted > 0) {
+      status = 'Analysis Begun on Some Samples';
+    } else if (numberReceived > 0) {
+      status = 'Partially Received By Lab';
     }
     return {
       status,
       totalSamples,
+      positiveSamples,
+      negativeSamples,
       numberReceived,
       numberAnalysisStarted,
       numberResult,
       numberReported,
       maxTurnaroundTime,
       averageTurnaroundTime,
+      maxAnalysisTime,
+      averageAnalysisTime,
+      maxReportTime,
+      averageReportTime,
     };
   }
 
@@ -176,7 +224,7 @@ class AsbestosBulkCocCard extends React.Component {
       if (window.confirm('The sample result has already been verified. Removing from the lab will remove the analysis result and verification. Continue?')) {
         this.removeResult(sample);
         this.reportSample(sample);
-      }
+      } else return;
     } else if (sample.receivedByLab && sample.result) {
       if (window.confirm('The sample result has already been logged. Removing from the lab will remove the analysis result. Continue?'))
         this.removeResult(sample);
@@ -397,14 +445,6 @@ class AsbestosBulkCocCard extends React.Component {
         newmap[result] = !map[result];
       }
 
-      asbestosSamplesRef.doc(sample.uid).update({
-        resultUser: auth.currentUser.uid,
-        sessionID: this.state.sessionID,
-        analyst: this.props.analyst,
-        result: newmap,
-        resultDate: new Date()
-      });
-
       cocLog.push({
         type: "Analysis",
         log: `New analysis for sample ${sample.sampleNumber} (${
@@ -441,6 +481,15 @@ class AsbestosBulkCocCard extends React.Component {
           samplers: this.props.job.personnel,
           analysisDate: new Date()
         });
+        asbestosSamplesRef.doc(sample.uid).update({
+          resultUser: auth.currentUser.uid,
+          sessionID: this.state.sessionID,
+          analyst: this.props.analyst,
+          result: newmap,
+          resultDate: new Date(),
+          analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null
+
+        });
       } else {
         asbestosAnalysisRef
           .doc(`${this.state.sessionID}-${sample.uid}`)
@@ -452,6 +501,8 @@ class AsbestosBulkCocCard extends React.Component {
             resultDate: firebase.firestore.FieldValue.delete(),
             resultUser: firebase.firestore.FieldValue.delete(),
             sessionID: firebase.firestore.FieldValue.delete(),
+            analysisTime: firebase.firestore.FieldValue.delete(),
+            analyst: firebase.firestore.FieldValue.delete(),
           });
       }
     } else {
@@ -849,6 +900,7 @@ class AsbestosBulkCocCard extends React.Component {
       }).format(formatDate);
     });
     let stats = this.getStats();
+    console.log(stats);
 
     return (
       <ExpansionPanel
@@ -861,7 +913,7 @@ class AsbestosBulkCocCard extends React.Component {
           <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.priority === 1 && <Flag color='secondary' />}</div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <List>
+          <div style={{ width: '100%'}}>
             <div>
               <Button
                 variant="outlined"
@@ -1012,7 +1064,7 @@ class AsbestosBulkCocCard extends React.Component {
                   <Grid item xs={12} style={{ fontWeight: 500, fontSize: 16, marginBottom: 12, }}>
                     STATUS: {stats && stats.status.toUpperCase()}
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid item xs={3}>
                     Sampled by:{" "}
                     <span style={{ fontWeight: 300 }}>
                       {job.personnel && job.personnel.length > 0
@@ -1032,29 +1084,51 @@ class AsbestosBulkCocCard extends React.Component {
                       {analysts ? analysts.join(", ") : "Not specified"}
                     </span>
                   </Grid>
-                  <Grid item>
+                  <Grid item xs={3}>
                     Number of Samples:{" "}
                     <span style={{ fontWeight: 300 }}>
                       {stats && stats.totalSamples}
                     </span>
                     <br />
-                    Max Turnaround Time:{" "}
-                    { stats && stats.maxTurnaroundTime > 0 ?
+                    Positive Results:{" "}
+                    <span style={{ fontWeight: 300 }}>
+                      {stats && stats.numberResult > 0 ? stats.positiveSamples : 'N/A'}
+                    </span>
+                    <br />
+                    Negative Results:{" "}
+                    <span style={{ fontWeight: 300 }}>
+                      {stats && stats.numberResult > 0 ? stats.negativeSamples : 'N/A'}
+                    </span>
+                    <br />
+                  </Grid>
+                  <Grid item xs={3}>
+                    Max/Avg Turnaround Time:{" "}
+                    { stats && stats.maxTurnaroundTime > 0 && stats.averageTurnaroundTime > 0 ?
                       <span style={{ fontWeight: 300 }}>
-                        {moment.utc(stats.maxTurnaroundTime).format('HH:mm')}
+                        {moment.utc(stats.maxTurnaroundTime).format('HH:mm')}/{moment.utc(stats.averageTurnaroundTime).format('HH:mm')}
                       </span>
                       :
                       <span style={{ fontWeight: 300 }}>N/A</span>
                     }
                     <br />
-                    Avg Turnaround Time:{" "}
-                    { stats && stats.averageTurnaroundTime > 0 ?
+                    Max/Avg Analysis Time:{" "}
+                    { stats && stats.maxAnalysisTime > 0 && stats.averageAnalysisTime > 0 ?
                       <span style={{ fontWeight: 300 }}>
-                        {moment.utc(stats.averageTurnaroundTime).format('HH:mm')}
+                        {moment.utc(stats.maxAnalysisTime).format('HH:mm')}/{moment.utc(stats.averageAnalysisTime).format('HH:mm')}
                       </span>
                       :
                       <span style={{ fontWeight: 300 }}>N/A</span>
                     }
+                    <br />
+                    Max/Avg Report Time:{" "}
+                    { stats && stats.maxReportTime > 0 && stats.averageReportTime > 0 ?
+                      <span style={{ fontWeight: 300 }}>
+                        {moment.utc(stats.maxReportTime).format('HH:mm')}/{moment.utc(stats.averageReportTime).format('HH:mm')}
+                      </span>
+                      :
+                      <span style={{ fontWeight: 300 }}>N/A</span>
+                    }
+                    <br />
                   </Grid>
                 </Grid>
                 {samples[job.uid] &&
@@ -1500,7 +1574,7 @@ class AsbestosBulkCocCard extends React.Component {
                 No samples
               </div>
             )}
-          </List>
+          </div>
         </ExpansionPanelDetails>
       </ExpansionPanel>
     );
