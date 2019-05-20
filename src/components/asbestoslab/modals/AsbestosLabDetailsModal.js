@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../config/styles";
 import { connect } from "react-redux";
 import store from "../../store";
-import { ASBESTOSLABDETAILS } from "../../constants/modal-types";
+import { ASBESTOSSAMPLEDETAILS } from "../../constants/modal-types";
 import { cocsRef } from "../../config/firebase";
 import "../../config/tags.css";
 
@@ -49,7 +49,7 @@ class AsbestosLabDetailsModal extends React.Component {
       <div>
       {modalProps.sample &&
       <Dialog
-        open={modalType === ASBESTOSLABDETAILS}
+        open={modalType === ASBESTOSSAMPLEDETAILS}
         onClose={() => this.props.hideModal()}
         maxWidth="xs"
         fullWidth={true}

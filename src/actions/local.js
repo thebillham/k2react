@@ -1044,6 +1044,45 @@ export const copyStaff = (oldId, newId) => dispatch => {
           .set(doc.data());
       });
     });
+  usersRef
+    .doc(oldId)
+    .collection("readinglog")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        usersRef
+          .doc(newId)
+          .collection("readinglog")
+          .doc(doc.id)
+          .set(doc.data());
+      });
+    });
+  usersRef
+    .doc(oldId)
+    .collection("quizlog")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        usersRef
+          .doc(newId)
+          .collection("quizlog")
+          .doc(doc.id)
+          .set(doc.data());
+      });
+    });
+  usersRef
+    .doc(oldId)
+    .collection("myjobs")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        usersRef
+          .doc(newId)
+          .collection("myjobs")
+          .doc(doc.id)
+          .set(doc.data());
+      });
+    });
 };
 
 export const saveGeocodes = geocodes => dispatch => {

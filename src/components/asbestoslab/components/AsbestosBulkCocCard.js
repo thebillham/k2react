@@ -10,12 +10,15 @@ import {
   asbestosSamplesRef
 } from "../../../config/firebase";
 import moment from "moment";
+import momentbusinessdays from "moment-business-days";
+import momenttimezone from "moment-timezone";
+import momentbusinesstime from "moment-business-time";
 import { fetchCocs, fetchSamples, logSample, writeResult } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
   COC,
-  ASBESTOSLABDETAILS,
+  ASBESTOSSAMPLEDETAILS,
   DOWNLOADLABCERTIFICATE,
   UPDATECERTIFICATEVERSION,
   WAANALYSIS,
@@ -107,6 +110,22 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   getStats = () => {
+    // let nz = moment.tz.setDefault("Pacific/Auckland");
+    moment.tz.setDefault("Pacific/Auckland");
+    moment.updateLocale('en', {
+      // workingWeekdays: [1,2,3,4,5],
+      workinghours: {
+        0: null,
+        1: ['08:30:00', '17:00:00'],
+        2: ['08:30:00', '17:00:00'],
+        3: ['08:30:00', '17:00:00'],
+        4: ['08:30:00', '17:00:00'],
+        5: ['08:30:00', '17:00:00'],
+        6: null,
+      },
+      holidays: [],
+    });
+
     let status = '';
     let totalSamples = 0;
     let positiveSamples = 0;
@@ -132,6 +151,21 @@ class AsbestosBulkCocCard extends React.Component {
     let totalReportTime = 0;
     let numReportTime = 0;
 
+    let maxTurnaroundBusinessTime = 0;
+    let averageTurnaroundBusinessTime = 0;
+    let totalTurnaroundBusinessTime = 0;
+    let numTurnaroundBusinessTime = 0;
+
+    let maxAnalysisBusinessTime = 0;
+    let averageAnalysisBusinessTime = 0;
+    let totalAnalysisBusinessTime = 0;
+    let numAnalysisBusinessTime = 0;
+
+    let maxReportBusinessTime = 0;
+    let averageReportBusinessTime = 0;
+    let totalReportBusinessTime = 0;
+    let numReportBusinessTime = 0;
+
     if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
       Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
         totalSamples = totalSamples + 1;
@@ -148,6 +182,11 @@ class AsbestosBulkCocCard extends React.Component {
             numAnalysisTime = numAnalysisTime + 1;
             averageAnalysisTime = totalAnalysisTime / numAnalysisTime;
           }
+          let analysisBusinessTime = moment(sample.resultDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
+          if (analysisBusinessTime > maxAnalysisBusinessTime) maxAnalysisBusinessTime = analysisBusinessTime;
+          totalAnalysisBusinessTime = totalAnalysisBusinessTime + analysisBusinessTime;
+          numAnalysisBusinessTime = numAnalysisBusinessTime + 1;
+          averageAnalysisBusinessTime = totalAnalysisBusinessTime / numAnalysisBusinessTime;
         }
         if (sample.verified) {
           numberVerified = numberVerified + 1;
@@ -157,6 +196,13 @@ class AsbestosBulkCocCard extends React.Component {
             numTurnaroundTime = numTurnaroundTime + 1;
             averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
             // Check for time between analysis logging and verification
+            let turnaroundBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
+            console.log(turnaroundBusinessTime);
+            if (turnaroundBusinessTime > maxTurnaroundBusinessTime) maxTurnaroundBusinessTime = turnaroundBusinessTime;
+            totalTurnaroundBusinessTime = totalTurnaroundBusinessTime + turnaroundBusinessTime;
+            numTurnaroundBusinessTime = numTurnaroundBusinessTime + 1;
+            averageTurnaroundBusinessTime = totalTurnaroundBusinessTime / numTurnaroundBusinessTime;
+
             if (sample.analysisTime) {
               let verifyTime = sample.turnaroundTime - sample.analysisTime;
               if (verifyTime > maxReportTime) maxReportTime = verifyTime;
@@ -164,6 +210,12 @@ class AsbestosBulkCocCard extends React.Component {
               numReportTime = numReportTime + 1;
               averageReportTime = totalReportTime / numReportTime;
             }
+
+            let reportBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.resultDate.toDate()));
+            if (reportBusinessTime > maxReportBusinessTime) maxReportBusinessTime = reportBusinessTime;
+            totalReportBusinessTime = totalReportBusinessTime + reportBusinessTime;
+            numReportBusinessTime = numReportBusinessTime + 1;
+            averageReportBusinessTime = totalReportBusinessTime / numReportBusinessTime;
           }
         }
       });
@@ -206,6 +258,12 @@ class AsbestosBulkCocCard extends React.Component {
       averageAnalysisTime,
       maxReportTime,
       averageReportTime,
+      maxTurnaroundBusinessTime,
+      averageTurnaroundBusinessTime,
+      maxAnalysisBusinessTime,
+      averageAnalysisBusinessTime,
+      maxReportBusinessTime,
+      averageReportBusinessTime,
     };
   }
 
@@ -1029,7 +1087,7 @@ class AsbestosBulkCocCard extends React.Component {
                   <Grid item xs={12} style={{ fontWeight: 500, fontSize: 16, marginBottom: 12, }}>
                     STATUS: {stats && stats.status.toUpperCase()}
                   </Grid>
-                  <Grid item xs={3}>
+                  <Grid item lg={3} xs={6}>
                     Sampled by:{" "}
                     <span style={{ fontWeight: 300 }}>
                       {job.personnel && job.personnel.length > 0
@@ -1049,7 +1107,7 @@ class AsbestosBulkCocCard extends React.Component {
                       {analysts ? analysts.join(", ") : "Not specified"}
                     </span>
                   </Grid>
-                  <Grid item xs={3}>
+                  <Grid item lg={2} xs={6}>
                     Number of Samples:{" "}
                     <span style={{ fontWeight: 300 }}>
                       {stats && stats.totalSamples}
@@ -1066,7 +1124,7 @@ class AsbestosBulkCocCard extends React.Component {
                     </span>
                     <br />
                   </Grid>
-                  <Grid item xs={3}>
+                  <Grid item lg={3} xs={6}>
                     Max/Avg Turnaround Time:{" "}
                     { stats && stats.maxTurnaroundTime > 0 && stats.averageTurnaroundTime > 0 ?
                       <span style={{ fontWeight: 300 }}>
@@ -1089,6 +1147,35 @@ class AsbestosBulkCocCard extends React.Component {
                     { stats && stats.maxReportTime > 0 && stats.averageReportTime > 0 ?
                       <span style={{ fontWeight: 300 }}>
                         {moment.utc(stats.maxReportTime).format('HH:mm')}/{moment.utc(stats.averageReportTime).format('HH:mm')}
+                      </span>
+                      :
+                      <span style={{ fontWeight: 300 }}>N/A</span>
+                    }
+                    <br />
+                  </Grid>
+                  <Grid item lg={4} xs={6}>
+                    Max/Avg Business Hours Turnaround Time:{" "}
+                    { stats && stats.maxTurnaroundBusinessTime > 0 && stats.averageTurnaroundBusinessTime > 0 ?
+                      <span style={{ fontWeight: 300 }}>
+                        {moment.utc(stats.maxTurnaroundBusinessTime).format('HH:mm')}/{moment.utc(stats.averageTurnaroundBusinessTime).format('HH:mm')}
+                      </span>
+                      :
+                      <span style={{ fontWeight: 300 }}>N/A</span>
+                    }
+                    <br />
+                    Max/Avg Business Hours Analysis Time:{" "}
+                    { stats && stats.maxAnalysisBusinessTime > 0 && stats.averageAnalysisBusinessTime > 0 ?
+                      <span style={{ fontWeight: 300 }}>
+                        {moment.utc(stats.maxAnalysisBusinessTime).format('HH:mm')}/{moment.utc(stats.averageAnalysisBusinessTime).format('HH:mm')}
+                      </span>
+                      :
+                      <span style={{ fontWeight: 300 }}>N/A</span>
+                    }
+                    <br />
+                    Max/Avg Business Hours Report Time:{" "}
+                    { stats && stats.maxReportBusinessTime > 0 && stats.averageReportBusinessTime > 0 ?
+                      <span style={{ fontWeight: 300 }}>
+                        {moment.utc(stats.maxReportBusinessTime).format('HH:mm')}/{moment.utc(stats.averageReportBusinessTime).format('HH:mm')}
                       </span>
                       :
                       <span style={{ fontWeight: 300 }}>N/A</span>
@@ -1202,13 +1289,14 @@ class AsbestosBulkCocCard extends React.Component {
                                   on="hover"
                                   disabled={sample.imagePathRemote == null}
                                 >
-                                  {sample.imagePathRemote && (
+                                  {sample.imagePathRemote ?
                                     <img
                                       alt=""
                                       src={sample.imagePathRemote}
                                       width={200}
                                     />
-                                  )}
+                                    : <span />
+                                  }
                                 </Popup>
                                 <div
                                   style={{
@@ -1416,11 +1504,11 @@ class AsbestosBulkCocCard extends React.Component {
                                 <MenuItem
                                   key={`${
                                     job.jobNumber
-                                  }-${sample.sampleNumber.toString()}-WA`}
+                                  }-${sample.sampleNumber.toString()}-DETAILS`}
                                   onClick={event => {
                                     event.stopPropagation();
                                     this.props.showModal({
-                                      modalType: ASBESTOSLABDETAILS,
+                                      modalType: ASBESTOSSAMPLEDETAILS,
                                       modalProps: {
                                         sample: sample,
                                         docid: job.uid
@@ -1428,7 +1516,7 @@ class AsbestosBulkCocCard extends React.Component {
                                     });
                                   }}
                                 >
-                                  Lab Details
+                                  Sample Details
                                 </MenuItem>
                                 <MenuItem
                                   key={`${
@@ -1439,7 +1527,7 @@ class AsbestosBulkCocCard extends React.Component {
                                     this.props.showModal({
                                       modalType: WAANALYSIS,
                                       modalProps: {
-                                        title: "Add WA Analysis",
+                                        title: `WA Analysis for Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description})`,
                                         sample: sample,
                                         docid: job.uid
                                       }

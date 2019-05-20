@@ -17,6 +17,7 @@ class App extends Component {
   }
 
   logIn() {
+    // auth.updateProfile();
     this.setState({});
   }
 

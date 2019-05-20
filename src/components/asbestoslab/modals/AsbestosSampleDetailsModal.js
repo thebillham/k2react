@@ -1,12 +1,12 @@
 import React from "react";
 import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
-import { modalStyles } from "../../config/styles";
+import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
-import store from "../../store";
-import { ASBESTOSLABDETAILS } from "../../constants/modal-types";
-import { cocsRef } from "../../config/firebase";
-import "../../config/tags.css";
+import store from "../../../store";
+import { ASBESTOSSAMPLEDETAILS } from "../../../constants/modal-types";
+import { cocsRef } from "../../../config/firebase";
+import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -18,10 +18,11 @@ import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import UploadIcon from "@material-ui/icons/CloudUpload";
-import { hideModal, handleSampleChange } from "../../actions/modal";
+import { hideModal } from "../../../actions/modal";
+import { handleSampleChange } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
-} from "../../config/firebase";
+} from "../../../config/firebase";
 import _ from "lodash";
 
 const mapStateToProps = state => {
@@ -38,18 +39,26 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosLabDetails extends React.Component {
+class AsbestosSampleDetailsModal extends React.Component {
   state = {
     sample: {},
   }
   render() {
     const { classes, modalProps, modalType } = this.props;
     const { sample } = this.state;
+    // todo:
+    // received weight
+    // analysis weight
+    // sample size h x w x d
+    // other fibres (org, smf)
+    // layers
+    // lab description
+    // concentration
     return (
       <div>
       {modalProps.sample &&
       <Dialog
-        open={modalType === ASBESTOSLABDETAILS}
+        open={modalType === ASBESTOSSAMPLEDETAILS}
         onClose={() => this.props.hideModal()}
         maxWidth="xs"
         fullWidth={true}
@@ -122,5 +131,5 @@ export default withStyles(modalStyles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(AsbestosLabDetails)
+  )(AsbestosSampleDetailsModal)
 );

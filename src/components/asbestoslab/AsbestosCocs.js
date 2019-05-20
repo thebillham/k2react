@@ -20,6 +20,7 @@ import CocModal from "./modals/CocModal";
 import UpdateCertificateVersionModal from "./modals/UpdateCertificateVersionModal";
 import QCAnalysisModal from "./modals/QCAnalysisModal";
 import WAAnalysisModal from "./modals/WAAnalysisModal";
+import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
 import SampleHistoryModal from "./modals/SampleHistoryModal";
 import CocLogModal from "./modals/CocLogModal";
@@ -35,6 +36,8 @@ import Select from "@material-ui/core/Select";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import moment from "moment";
+import momenttimezone from "moment-timezone";
+import momentbusinesstime from "moment-business-time";
 
 const mapStateToProps = state => {
   return {
@@ -97,6 +100,20 @@ class AsbestosCocs extends React.Component {
 
   render() {
     const { cocs } = this.props;
+    moment.tz.setDefault("Pacific/Auckland");
+    moment.updateLocale('en', {
+      // workingWeekdays: [1,2,3,4,5],
+      workinghours: {
+        0: null,
+        1: ['08:30:00', '17:00:00'],
+        2: ['08:30:00', '17:00:00'],
+        3: ['08:30:00', '17:00:00'],
+        4: ['08:30:00', '17:00:00'],
+        5: ['08:30:00', '17:00:00'],
+        6: null,
+      },
+      holidays: [],
+    });
 
     return (
       <div style={{ marginTop: 80 }}>
@@ -105,6 +122,7 @@ class AsbestosCocs extends React.Component {
         <SampleHistoryModal />
         <QCAnalysisModal />
         <WAAnalysisModal />
+        <AsbestosSampleDetailsModal />
         <DownloadLabCertificateModal />
         <CocLogModal />
         <Grid container spacing={16} alignItems='flex-start'>
@@ -273,6 +291,7 @@ class AsbestosCocs extends React.Component {
               </Grid>
             </div>
           </Grid>
+          {/*<div style={{ fontSize: 48, fontWeight: 100, }}>{moment().isWorkingTime() ? 'IT IS BUSINESS TIME' : 'IT IS NOT BUSINESS TIME :('}</div>*/}
         </Grid>
         {Object.keys(cocs).length < 1 ? (
           <div

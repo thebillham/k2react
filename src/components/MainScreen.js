@@ -7,7 +7,7 @@ import {
   Switch,
   withRouter
 } from "react-router-dom";
-import { auth, constRef } from "../config/firebase";
+import { auth, constRef, noticesRef, } from "../config/firebase";
 import { connect } from "react-redux";
 import { APPSETTINGS, UPDATEDATA } from "../constants/modal-types";
 
@@ -153,7 +153,7 @@ class MainScreen extends React.Component {
     // this.props.fixIds();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
-    // this.props.copyStaff('2krDTwuNAmmfhLOu5hV3','atzHtINMzORORCbUzazqyxtdEh32');
+    // this.props.copyStaff('fTVM9JqKb8QNVlcXzmnTcpkyI2j1','OgNBX60s1GThob3pODjtqM4tkNn1');
   }
 
   handleLogOut = () => {
@@ -843,37 +843,37 @@ class MainScreen extends React.Component {
                     }
                   >
                     <Switch>
-                      <Route
-                        exact
-                        path="/"
-                        component={Noticeboard}
-                        key="noticeboard"
-                      />
-                      <Route exact path="/staff" component={Staff} />
+                      <Route exact path="/staff" render={props => <Staff {...props} />} />
                       <Route
                         exact
                         path="/mydetails"
-                        component={MyDetails}
+                        render={props => <MyDetails {...props} />}
                         key="mydetails"
                       />
                       <Route
                         exact
+                        path="/"
+                        render={props => <Noticeboard {...props} />}
+                        key="noticeboard"
+                      />
+                      <Route
+                        exact
                         path="/staff/details/:user"
-                        component={MyDetails}
+                        render={props => <MyDetails {...props} />}
                         key="staffdetails"
                       />
                       {/*<Route exact path="/vehicles" component={Vehicles} />*/}
                       {/* <Route path="/help" component={Help} />*/}
                       {/*<Route path="/updates" component={Updates} />*/}
                       {/*<Route path="/dashboard" component={Dashboard} />*/}
-                      <Route path="/noticeboard" component={Noticeboard} />
+                      <Route path="/noticeboard" render={props => <Noticeboard {...props} />} />
                       {/*<Route path="/incidents" component={Incidents} />*/}
                       {/*<Route exact path="/jobs" component={Jobs} />*/}
-                      <Route path="/jobs/map" component={JobMap} />
-                      <Route path="/asbestoslab" component={AsbestosCocs} />
-                      <Route path="/asbestossamplelog" component={AsbestosLog} />
-                      <Route path="/asbestosqc" component={AsbestosQualityControl} />
-                      <Route path="/asbestosstats" component={AsbestosStats} />
+                      <Route path="/jobs/map" render={props => <JobMap {...props} />} />
+                      <Route path="/asbestoslab" render={props => <AsbestosCocs {...props} />} />
+                      <Route path="/asbestossamplelog" render={props => <AsbestosLog {...props} />} />
+                      <Route path="/asbestosqc" render={props => <AsbestosQualityControl {...props} />} />
+                      <Route path="/asbestosstats" render={props => <AsbestosStats {...props} />} />
                       {/*<Route
                         exact
                         path="/staff/training/:user"
@@ -892,37 +892,37 @@ class MainScreen extends React.Component {
                         component={UserTraining}
                         key="mytraining"
                       />*/}
-                      <Route exact path="/training" component={TrainingPaths} />
+                      <Route exact path="/training" render={props => <TrainingPaths {...props} />} />
                       <Route
                         exact
                         path="/training/overview"
-                        component={TrainingOverview}
+                        render={props => <TrainingOverview {...props} />}
                       />
                       <Route
                         exact
                         path="/training/paths"
-                        component={TrainingPaths}
+                        render={props => <TrainingPaths {...props} />}
                       />
-                      <Route path="/training/path/:uid" component={TrainingPath} />
+                      <Route path="/training/path/:uid" render={props => <TrainingPath {...props} />} />
                       {/*<Route path="/method/:uid" component={Method} />*/}
-                      <Route exact path="/quizzes" component={Quizzes} />
+                      <Route exact path="/quizzes" render={props => <Quizzes {...props} />} />
                       <Route
                         exact
                         path="/training/readinglog"
-                        component={TrainingReadingLog}
+                        render={props => <TrainingReadingLog {...props} />}
                         key="myreadinglog"
                       />
                       <Route
                         exact
                         path="/training/readinglog/:user"
-                        component={TrainingReadingLog}
+                        render={props => <TrainingReadingLog {...props} />}
                         key="staffreadinglog"
                       />
-                      <Route exact path="/questions" component={Questions} />
-                      <Route path="/quiz/:quiz" component={Quiz} />
+                      <Route exact path="/questions" render={props => <Questions {...props} />} />
+                      <Route path="/quiz/:quiz" render={props => <Quiz {...props} />} />
                       {/*<Route path="/tools" component={Tools} />*/}
-                      <Route path="/library" component={Library} />
-                      <Route path="/document/:uid" component={DocumentViewer} />
+                      <Route path="/library" render={props => <Library {...props} />} />
+                      <Route path="/document/:uid" render={props => <DocumentViewer {...props} />} />
                     </Switch>
                   </Suspense>
                 </main>

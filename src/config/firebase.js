@@ -20,7 +20,6 @@ p.setCustomParameters({
 p.addScope("https://www.googleapis.com/auth/calendar");
 
 const firestore = firebase.firestore();
-firestore.settings({ timestampsInSnapshots: true });
 
 const provider = p;
 const auth = firebase.auth();

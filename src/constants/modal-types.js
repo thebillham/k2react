@@ -1,6 +1,6 @@
 export const ADDTOQUIZ = "ADDTOQUIZ";
 export const APPSETTINGS = "APPSETTINGS";
-export const ASBESTOSLABDETAILS = "ASBESTOSLABDETAILS";
+export const ASBESTOSSAMPLEDETAILS = "ASBESTOSSAMPLEDETAILS";
 export const COC = "COC";
 export const COCLOG = "COCLOG";
 export const DOCUMENT = "DOCUMENT";

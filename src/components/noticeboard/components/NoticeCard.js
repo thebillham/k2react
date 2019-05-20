@@ -56,9 +56,6 @@ function NoticeCard(props) {
     readlist = "";
     notice.staff.forEach(staff => {
       count = count + 1;
-      console.log(notice.staff.length);
-      console.log(props.staff && props.staff[staff]);
-      console.log(readlist);
       if (notice.staff.length === 1) {
         readlist = props.staff && props.staff[staff] && props.staff[staff]['name'];
       } else if (count === notice.staff.length) {
@@ -93,7 +90,7 @@ function NoticeCard(props) {
       />
       <CardContent>
         <hr/>
-        <Typography className={classes.details} color="textSecondary">
+        <div className={classes.details} color="textSecondary">
           {notice.category === 'has' ? <div>
           {notice.incidentno && <div><b>Incident No.: </b>{notice.incidentno}</div>}
           {notice.incidentstaff && <div><b>Staff: </b>{notice.incidentstaff}</div>}
@@ -101,13 +98,13 @@ function NoticeCard(props) {
           {notice.text && <div><b>Learnings: </b>{notice.text}</div>}
           </div> :
           notice.text}
-        </Typography><br />
-        <Typography className={classes.whosRead} color="textPrimary">
+        </div><br />
+        <div className={classes.whosRead} color="textPrimary">
           Submitted by {notice.author}
-        </Typography>
-        <Typography className={classes.whosRead} color="textPrimary">
+        </div>
+        <div className={classes.whosRead} color="textPrimary">
           Read by {readlist}
-        </Typography>
+        </div>
       </CardContent>
       <CardActions>
         <IconButton
