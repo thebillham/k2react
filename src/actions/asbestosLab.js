@@ -6,6 +6,7 @@ import {
   GET_BULK_ANALYSTS,
   GET_COCS,
   GET_SAMPLES,
+  GET_SAMPLE_LOG,
   RESET_ASBESTOS_LAB,
   RESET_MODAL,
   SET_ANALYSIS_MODE,
@@ -15,6 +16,7 @@ import moment from "moment";
 import {
   asbestosSamplesRef,
   asbestosAnalysisRef,
+  asbestosSampleLogRef,
   cocsRef,
   stateRef,
 } from "../config/firebase";
@@ -189,6 +191,38 @@ export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
     });
 };
 
+export const fetchSampleLog = (update) => async dispatch => {
+  if (update) {
+    let startDate = moment().subtract(20, 'days').toDate();
+    asbestosSampleLogRef
+      .where("reportDate", ">", startDate)
+      .orderBy("reportDate")
+      .onSnapshot(logSnapshot => {
+        let logs = {};
+        logSnapshot.forEach(logDoc => {
+          let log = logDoc.data();
+          log.uid = logDoc.id;
+          logs[log.uid] = log;
+        });
+        dispatch({
+          type: GET_SAMPLE_LOG,
+          payload: logs,
+          update: true,
+        });
+      });
+  } else {
+    stateRef.doc("asbestosSampleLog").onSnapshot(doc => {
+      console.log(doc.data());
+      if (doc.exists) {
+        dispatch({ type: GET_SAMPLE_LOG, payload: doc.data() });
+      } else {
+        console.log("Sample log doesn't exist");
+      }
+    });
+
+  }
+};
+
 export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch => {
   // console.log(doc.samples);
   let sampleList = [];
@@ -290,4 +324,98 @@ export const handleSampleChange = (number, type, value) => dispatch => {
       value: value
     }
   });
+};
+
+export const logSample = (coc, sample, cocStats) => dispatch => {
+  // let dateString = moment(new Date()).format('YYYY-MM-DD');
+  let transitTime = sample.createdDate && sample.receivedDate ? moment.duration(moment(sample.receivedDate.toDate()).diff(sample.createdDate.toDate())).asMilliseconds() : null;
+  let labTime = sample.receivedDate && sample.resultDate ? moment.duration(moment(sample.resultDate.toDate()).diff(sample.receivedDate.toDate())).asMilliseconds() : null;
+  let analysisTime = sample.receivedDate && sample.analysisStartDate ? moment.duration(moment(sample.resultDate.toDate()).diff(sample.analysisStartDate.toDate())).asMilliseconds() : null;
+  let turnaroundTime = sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null;
+
+  let log = {
+    client: coc.client ? coc.client : '',
+    address: coc.address ? coc.address: '',
+    sampleDates: coc.dates ? coc.dates: [],
+    jobNumber: coc.jobNumber ? coc.jobNumber : '',
+    samplePersonnel: coc.personnel ? coc.personnel: [],
+    priority: coc.priority ? coc.priority: 0,
+    cocUid: coc.uid ? coc.uid : '',
+    cocType: coc.type ? coc.type : '',
+    totalSamples: cocStats.totalSamples ? cocStats.totalSamples : 0,
+    maxTurnaroundTime: cocStats.maxTurnaroundTime ? cocStats.maxTurnaroundTime : 0,
+    averageTurnaroundTime: cocStats.averageTurnaroundTime ? cocStats.averageTurnaroundTime : 0,
+    genericLocation: sample.genericLocation ? sample.genericLocation : '',
+    specificLocation: sample.specificLocation ? sample.specificLocation : '',
+    sampleUid: sample.uid ? sample.uid : '',
+    sampleNumber: sample.sampleNumber ? sample.sampleNumber : '',
+    description: sample.description ? sample.description : '',
+    material: sample.material ? sample.material : '',
+    result: sample.result ? sample.result : {},
+    receivedBy: sample.receivedUser ? sample.receivedUser : '',
+    receivedDate: sample.receivedDate ? sample.receivedDate : null,
+    analysisBy: sample.analyst ? sample.analyst : '',
+    resultDate: sample.resultDate ? sample.resultDate : null,
+    resultBy: sample.resultUser ? sample.resultUser : '',
+    reportedBy: sample.reportUser ? sample.reportUser : '',
+    reportDate: new Date(),
+    turnaroundTime: turnaroundTime,
+    analysisTime: analysisTime,
+    transitTime: transitTime,
+    labTime: labTime,
+    analysisTime: analysisTime,
+    analysisType: sample.analysisType ? sample.analysisType : 'normal',
+  };
+  asbestosSampleLogRef.doc().set(log);
+}
+
+export const writeResult = result => {
+  let detected = [];
+  if (result === undefined) return "Not analysed";
+  Object.keys(result).forEach(type => {
+    if (result[type]) detected.push(type);
+  });
+  if (detected.length < 1) return "Not analysed";
+  if (detected[0] === "no") return "No asbestos detected";
+  let asbestos = [];
+  if (result["ch"]) asbestos.push("chrysotile");
+  if (result["am"]) asbestos.push("amosite");
+  if (result["cr"]) asbestos.push("crocidolite");
+  if (asbestos.length > 0) {
+    asbestos[asbestos.length - 1] =
+      asbestos[asbestos.length - 1] + " asbestos";
+  }
+  let str = "";
+  if (asbestos.length === 1) {
+    str = asbestos[0];
+  } else if (asbestos.length > 1) {
+    var last_element = asbestos.pop();
+    str = asbestos.join(", ") + " and " + last_element;
+  }
+  detected.forEach(detect => {
+    if (detect === "umf") {
+      if (asbestos.length > 0) {
+        str = str + " and unknown mineral fibres (UMF)";
+      } else {
+        str = "unknown mineral fibres (UMF)";
+      }
+    }
+  });
+  return str.charAt(0).toUpperCase() + str.slice(1) + " detected";
+};
+
+export const writeShorthandResult = result => {
+  let detected = [];
+  if (result === undefined) return "N/A";
+  Object.keys(result).forEach(type => {
+    if (result[type]) detected.push(type);
+  });
+  if (detected.length < 1) return "N/A";
+  if (detected[0] === "no") return "NO";
+  let str = '';
+  if (result["ch"]) str = "CH ";
+  if (result["am"]) str = str + "AM ";
+  if (result["cr"]) str = str + "CR ";
+  if (result["umf"]) str = str + "UMF ";
+  return str.slice(0, -1);
 };

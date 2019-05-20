@@ -158,7 +158,7 @@ class CocListItem extends React.Component {
       {
         analysisStart: !sample.analysisStart,
         analysisStartedby: auth.currentUser.uid,
-        analysisStartdate: analysisStart
+        analysisStartDate: analysisStart
       },
       { merge: true }
     );

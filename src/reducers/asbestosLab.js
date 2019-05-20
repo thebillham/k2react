@@ -5,6 +5,7 @@ import {
   GET_BULK_ANALYSTS,
   GET_COCS,
   GET_SAMPLES,
+  GET_SAMPLE_LOG,
   SET_ANALYSIS_MODE,
   SET_ANALYST,
   RESET_ASBESTOS_LAB,
@@ -20,6 +21,7 @@ const asbestosLabInit = {
     bulkAnalysts: [],
     cocs: {},
     samples: {},
+    sampleLog: [],
 };
 
 // Properties related to local data retrieved from firebase
@@ -62,6 +64,12 @@ export default function asbestosLabReducer(state = asbestosLabInit, action) {
       return {
         ...state,
         samples: { ...state.samples, [action.cocUid]: action.payload }
+      };
+    case GET_SAMPLE_LOG:
+      if (action.update) stateRef.doc("asbestosSampleLog").set(action.payload);
+      return {
+        ...state,
+        sampleLog: action.payload
       };
     case RESET_ASBESTOS_LAB:
       return asbestosLabInit;

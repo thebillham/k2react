@@ -10,7 +10,7 @@ import {
   asbestosSamplesRef
 } from "../../../config/firebase";
 import moment from "moment";
-import { fetchCocs, fetchSamples } from "../../../actions/asbestosLab";
+import { fetchCocs, fetchSamples, logSample, writeResult } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
@@ -68,7 +68,8 @@ const mapDispatchToProps = dispatch => {
     showModal: modal => dispatch(showModal(modal)),
     fetchSamples: (cocUid, jobNumber) =>
       dispatch(fetchSamples(cocUid, jobNumber)),
-    syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber))
+    syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
+    logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
   };
 };
 
@@ -76,7 +77,7 @@ class AsbestosBulkCocCard extends React.Component {
   state = {
     samples: {},
     bulkAnalyst: "",
-    // sessionID creates a unique id for this refresh of the CoC. This is used as the firestore uid for any results reported
+    // sessionID creates a unique id for this refresh of the CoC. This is used as the firestore uid for any results verified
     sessionID: "",
     sampleAnchorEl: {},
     cocAnchorEl: null,
@@ -114,7 +115,7 @@ class AsbestosBulkCocCard extends React.Component {
     let numberReceived = 0;
     let numberAnalysisStarted = 0;
     let numberResult = 0;
-    let numberReported = 0;
+    let numberVerified = 0;
 
     let maxTurnaroundTime = 0;
     let averageTurnaroundTime = 0;
@@ -148,8 +149,8 @@ class AsbestosBulkCocCard extends React.Component {
             averageAnalysisTime = totalAnalysisTime / numAnalysisTime;
           }
         }
-        if (sample.reported) {
-          numberReported = numberReported + 1;
+        if (sample.verified) {
+          numberVerified = numberVerified + 1;
           if (sample.turnaroundTime) {
             if (sample.turnaroundTime > maxTurnaroundTime) maxTurnaroundTime = sample.turnaroundTime;
             totalTurnaroundTime = totalTurnaroundTime + sample.turnaroundTime;
@@ -157,9 +158,9 @@ class AsbestosBulkCocCard extends React.Component {
             averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
             // Check for time between analysis logging and verification
             if (sample.analysisTime) {
-              let reportTime = sample.turnaroundTime - sample.analysisTime;
-              if (reportTime > maxReportTime) maxReportTime = reportTime;
-              totalReportTime = totalReportTime + reportTime;
+              let verifyTime = sample.turnaroundTime - sample.analysisTime;
+              if (verifyTime > maxReportTime) maxReportTime = verifyTime;
+              totalReportTime = totalReportTime + verifyTime;
               numReportTime = numReportTime + 1;
               averageReportTime = totalReportTime / numReportTime;
             }
@@ -177,12 +178,12 @@ class AsbestosBulkCocCard extends React.Component {
       status = 'Received By Lab';
     } else if (numberResult === 0) {
       status = 'Analysis Begun';
-    } else if (numberResult === totalSamples && numberReported === 0) {
+    } else if (numberResult === totalSamples && numberVerified === 0) {
       status = 'Analysis Complete';
-    } else if (numberReported === totalSamples) {
+    } else if (numberVerified === totalSamples) {
       status = 'Ready For Issue';
-    } else if (numberReported > 0) {
-      status = 'Partially Reported';
+    } else if (numberVerified > 0) {
+      status = 'Analysis Partially Verified';
     } else if (numberResult > 0) {
       status = 'Analysis Partially Complete';
     } else if (numberAnalysisStarted > 0) {
@@ -198,7 +199,7 @@ class AsbestosBulkCocCard extends React.Component {
       numberReceived,
       numberAnalysisStarted,
       numberResult,
-      numberReported,
+      numberVerified,
       maxTurnaroundTime,
       averageTurnaroundTime,
       maxAnalysisTime,
@@ -220,10 +221,10 @@ class AsbestosBulkCocCard extends React.Component {
     let receivedDate = null;
     if (!sample.receivedByLab) receivedDate = new Date();
     if (sample.receivedByLab && sample.analysisStart) this.startAnalysis(sample);
-    if (sample.receivedByLab && sample.reported) {
+    if (sample.receivedByLab && sample.verified) {
       if (window.confirm('The sample result has already been verified. Removing from the lab will remove the analysis result and verification. Continue?')) {
         this.removeResult(sample);
-        this.reportSample(sample);
+        this.verifySample(sample);
       } else return;
     } else if (sample.receivedByLab && sample.result) {
       if (window.confirm('The sample result has already been logged. Removing from the lab will remove the analysis result. Continue?'))
@@ -278,7 +279,7 @@ class AsbestosBulkCocCard extends React.Component {
   startAnalysis = sample => {
     let analysisStart = null;
     if (!sample.receivedByLab && !sample.analysisStart) this.receiveSample(sample);
-    if (sample.reported) this.reportSample(sample);
+    if (sample.verified) this.verifySample(sample);
     if (!sample.analysisStart) analysisStart = new Date();
     let log = {
       type: "Analysis",
@@ -304,21 +305,21 @@ class AsbestosBulkCocCard extends React.Component {
       {
         analysisStart: true,
         analysisStartedby: auth.currentUser.uid,
-        analysisStartdate: analysisStart
+        analysisStartDate: analysisStart
       });
     } else {
       asbestosSamplesRef.doc(sample.uid).update(
       {
         analysisStart: false,
         analysisStartedby: firebase.firestore.FieldValue.delete(),
-        analysisStartdate: firebase.firestore.FieldValue.delete(),
+        analysisStartDate: firebase.firestore.FieldValue.delete(),
       });
     }
   };
 
-  reportSample = sample => {
+  verifySample = sample => {
     if (
-      !sample.reported ||
+      !sample.verified ||
       (this.props.me &&
       this.props.me.auth &&
       (this.props.me.auth["Analysis Checker"] ||
@@ -327,18 +328,17 @@ class AsbestosBulkCocCard extends React.Component {
       if (auth.currentUser.uid === sample.resultUser) {
         window.alert("Samples must be checked off by a different user.");
       } else {
-        if (!sample.analysisStart && !sample.reported) this.startAnalysis(sample);
-        let reportDate = null;
-        if (!sample.reported) reportDate = new Date();
+        if (!sample.analysisStart && !sample.verified) this.startAnalysis(sample);
+        let verifyDate = null;
         let log = {
-          type: "Reported",
-          log: reportDate
+          type: "Verified",
+          log: !sample.verified
             ? `Sample ${sample.sampleNumber} (${sample.description} ${
                 sample.material
-              }) result checked.`
+              }) result verified.`
             : `Sample ${sample.sampleNumber} (${sample.description} ${
                 sample.material
-              }) result unchecked.`,
+              }) result verified.`,
           user: auth.currentUser.uid,
           sample: sample.uid,
           userName: this.props.me.name,
@@ -349,20 +349,23 @@ class AsbestosBulkCocCard extends React.Component {
         cocsRef
           .doc(this.props.job.uid)
           .update({ versionUpToDate: false, cocLog: cocLog });
-        if (!sample.reported) {
+        if (!sample.verified) {
+          sample.verifyDate = new Date();
+          let cocStats = this.getStats(sample);
+          this.props.logSample(this.props.job, sample, cocStats);
           asbestosSamplesRef.doc(sample.uid).update(
           {
-            reported: true,
-            reportUser: auth.currentUser.uid,
-            reportDate: reportDate,
-            turnaroundTime: sample.receivedDate ? moment.duration(moment(reportDate).diff(sample.receivedDate.toDate())).asMilliseconds() : null
+            verified: true,
+            verifyUser: auth.currentUser.uid,
+            verifyDate: new Date(),
+            turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
           });
         } else {
           asbestosSamplesRef.doc(sample.uid).update(
           {
-            reported: false,
-            reportUser: firebase.firestore.FieldValue.delete(),
-            reportDate: firebase.firestore.FieldValue.delete(),
+            verified: false,
+            verifyUser: firebase.firestore.FieldValue.delete(),
+            verifyDate: firebase.firestore.FieldValue.delete(),
             turnaroundTime: firebase.firestore.FieldValue.delete(),
           });
         }
@@ -425,10 +428,10 @@ class AsbestosBulkCocCard extends React.Component {
       }
       let newmap = {};
       let map = sample.result;
-      if (sample.reported) {
+      if (sample.verified) {
         asbestosSamplesRef
           .doc(sample.uid)
-          .set({ reported: false, reportDate: null }, { merge: true });
+          .set({ verified: false, verifyDate: null }, { merge: true });
       }
       if (map === undefined) {
         newmap = { [result]: true };
@@ -449,7 +452,7 @@ class AsbestosBulkCocCard extends React.Component {
         type: "Analysis",
         log: `New analysis for sample ${sample.sampleNumber} (${
           sample.description
-        } ${sample.material}): ${this.writeResult(newmap)}`,
+        } ${sample.material}): ${writeResult(newmap)}`,
         user: auth.currentUser.uid,
         userName: this.props.me.name,
         sample: sample.uid,
@@ -487,8 +490,7 @@ class AsbestosBulkCocCard extends React.Component {
           analyst: this.props.analyst,
           result: newmap,
           resultDate: new Date(),
-          analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null
-
+          analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null,
         });
       } else {
         asbestosAnalysisRef
@@ -553,41 +555,6 @@ class AsbestosBulkCocCard extends React.Component {
     return samplemap;
   };
 
-  writeResult = result => {
-    let detected = [];
-    if (result === undefined) return "Not analysed";
-    Object.keys(result).forEach(type => {
-      if (result[type]) detected.push(type);
-    });
-    if (detected.length < 1) return "Not analysed";
-    if (detected[0] === "no") return "No asbestos detected";
-    let asbestos = [];
-    if (result["ch"]) asbestos.push("chrysotile");
-    if (result["am"]) asbestos.push("amosite");
-    if (result["cr"]) asbestos.push("crocidolite");
-    if (asbestos.length > 0) {
-      asbestos[asbestos.length - 1] =
-        asbestos[asbestos.length - 1] + " asbestos";
-    }
-    let str = "";
-    if (asbestos.length === 1) {
-      str = asbestos[0];
-    } else if (asbestos.length > 1) {
-      var last_element = asbestos.pop();
-      str = asbestos.join(", ") + " and " + last_element;
-    }
-    detected.forEach(detect => {
-      if (detect === "umf") {
-        if (asbestos.length > 0) {
-          str = str + " and unknown mineral fibres (UMF)";
-        } else {
-          str = "unknown mineral fibres (UMF)";
-        }
-      }
-    });
-    return str.charAt(0).toUpperCase() + str.slice(1) + " detected";
-  };
-
   writeVersionJson = (job, version) => {
     let aanumbers = {};
     Object.values(this.props.staff).forEach(staff => {
@@ -601,7 +568,7 @@ class AsbestosBulkCocCard extends React.Component {
     let samples = [];
     this.props.samples[job.uid] &&
       Object.values(this.props.samples[job.uid]).forEach(sample => {
-        if (sample.reported) {
+        if (sample.verified) {
           let samplemap = {};
           if (sample.disabled) return;
           samplemap["no"] = sample.sampleNumber;
@@ -610,7 +577,7 @@ class AsbestosBulkCocCard extends React.Component {
             sample.description.slice(1);
           samplemap["material"] =
             sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
-          samplemap["result"] = this.writeResult(sample.result);
+          samplemap["result"] = writeResult(sample.result);
           samples.push(samplemap);
         }
       });
@@ -826,7 +793,6 @@ class AsbestosBulkCocCard extends React.Component {
 
   getSamples = (expanded, cocUid, jobNumber) => {
     if (expanded && cocUid) {
-      console.log('get samples frm AsbestosBulkCocCard');
       this.props.fetchSamples(cocUid, jobNumber);
     }
   };
@@ -837,7 +803,7 @@ class AsbestosBulkCocCard extends React.Component {
     this.props.samples[this.props.job.uid] &&
       Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
         if (report) {
-          if (sample.analyst && sample.reported) {
+          if (sample.analyst && sample.verified) {
             analysts[sample.analyst] = true;
           }
         } else {
@@ -900,7 +866,6 @@ class AsbestosBulkCocCard extends React.Component {
       }).format(formatDate);
     });
     let stats = this.getStats();
-    console.log(stats);
 
     return (
       <ExpansionPanel
@@ -913,7 +878,7 @@ class AsbestosBulkCocCard extends React.Component {
           <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.priority === 1 && <Flag color='secondary' />}</div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <div style={{ width: '100%'}}>
+          <div style={{ width: '100%', maxWidth: '1800px'}}>
             <div>
               <Button
                 variant="outlined"
@@ -947,14 +912,14 @@ class AsbestosBulkCocCard extends React.Component {
                 disabled={job.versionUpToDate}
                 onClick={() => {
                   // Check if any samples have not been checked off and ask the user to verify
-                  let allSamplesReported = true;
+                  let allSamplesVerified = true;
                   Object.values(samples[job.uid]).forEach(sample => {
-                    if (!sample.reported && sample.cocUid === job.uid) allSamplesReported = false;
+                    if (!sample.verified && sample.cocUid === job.uid) allSamplesVerified = false;
                   });
                   if (
-                    !allSamplesReported &&
+                    !allSamplesVerified &&
                     !window.confirm(
-                      "Not all samples in the chain of custody have been checked off. These will not be included in this issue. Proceed with issuing?"
+                      "Not all sample results in the chain of custody have been verified. These will not be included in this issue. Proceed with issuing?"
                     )
                   )
                     return;
@@ -1152,8 +1117,8 @@ class AsbestosBulkCocCard extends React.Component {
                     if (sample.receivedByLab) receivedColor = "green";
                     let analysisColor = "#ddd";
                     if (sample.analysisStart) analysisColor = "green";
-                    let reportColor = "#ddd";
-                    if (sample.reported) reportColor = "green";
+                    let verifiedColor = "#ddd";
+                    if (sample.verified) verifiedColor = "green";
                     let chColor = "#ddd";
                     let amColor = "#ddd";
                     let crColor = "#ddd";
@@ -1192,10 +1157,11 @@ class AsbestosBulkCocCard extends React.Component {
                       noDivColor = "lightgreen";
                     }
                     let endTime = new Date();
-                    if (sample.reportDate) endTime = sample.reportDate.toDate();
+                    console.log(sample);
+                    if (sample.verifyDate) endTime = sample.verifyDate instanceof Date ? sample.verifyDate : sample.verifyDate.toDate();
                     let timeInLab = sample.receivedDate ? moment.duration(moment(endTime).diff(sample.receivedDate.toDate())) : null;
                     let status = 'In Transit';
-                    if (sample.reported) status = 'Complete';
+                    if (sample.verified) status = 'Complete';
                       else if (sample.resultDate) status = 'Waiting on Analysis Verification';
                       else if (sample.analysisStart) status = 'Analysis Started';
                       else if (sample.receivedByLab) status = 'Received By Lab';
@@ -1399,20 +1365,20 @@ class AsbestosBulkCocCard extends React.Component {
                                   event.stopPropagation();
                                   if (
                                     !sample.result &&
-                                    !sample.reported &&
+                                    !sample.verified &&
                                     !window.confirm(
                                       "No result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
                                     )
                                   )
                                     return;
-                                  this.reportSample(sample);
+                                  this.verifySample(sample);
                                 }}
                               >
                                 <CheckCircleOutline
                                   style={{
                                     fontSize: 24,
                                     margin: 10,
-                                    color: reportColor
+                                    color: verifiedColor
                                   }}
                                 />
                               </IconButton>
@@ -1526,7 +1492,7 @@ class AsbestosBulkCocCard extends React.Component {
                               </div>
                               <div>
                                 {sample.analysisStart ?
-                                  <span>Analysis started at {moment(sample.analysisStartdate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.analysisStartedby] ? <span>{this.props.staff[sample.analysisStartedby].name}</span>
+                                  <span>Analysis started at {moment(sample.analysisStartDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.analysisStartedby] ? <span>{this.props.staff[sample.analysisStartedby].name}</span>
                                   :<span>an unknown person</span>}</span>
                                   : <span>Analysis not yet started</span>
                                 }
@@ -1539,14 +1505,14 @@ class AsbestosBulkCocCard extends React.Component {
                                 }
                               </div>
                               <div>
-                                {sample.reported ?
-                                  <span>Result reported at {moment(sample.reportDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.reportUser] ? <span>{this.props.staff[sample.reportUser].name}</span>
+                                {sample.verified ?
+                                  <span>Result verified at {moment(sample.verifyDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.verifyUser] ? <span>{this.props.staff[sample.verifyUser].name}</span>
                                   :<span>an unknown person</span>}</span>
-                                  : <span>Result not yet reported</span>
+                                  : <span>Result not yet verified</span>
                                 }
                               </div>
                               <div>
-                                {sample.reported ?
+                                {sample.verified ?
                                   <span>Lab turnaround time: {timeInLab.asHours() >= 24 && <span>{timeInLab.days()} day{timeInLab.days() !== 1 &&<span>s</span>}, </span>}{timeInLab.asMinutes() >= 60 && <span>{timeInLab.hours()} hour{timeInLab.hours() !== 1 && <span>s</span>} and </span>}{timeInLab.minutes()} minute{timeInLab.minutes() !== 1 && <span>s</span>}</span>
                                   : <span>{sample.receivedDate && <span>Time in lab: {timeInLab.asHours() >= 24 && <span>{timeInLab.days()} day{timeInLab.days() !== 1 &&<span>s</span>}, </span>}{timeInLab.asMinutes() >= 60 && <span>{timeInLab.hours()} hour{timeInLab.hours() !== 1 && <span>s</span>} and </span>}{timeInLab.minutes()} minute{timeInLab.minutes() !== 1 && <span>s</span>}</span>}</span>
                                 }

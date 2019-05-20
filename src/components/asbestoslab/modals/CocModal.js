@@ -172,7 +172,7 @@ class CocModal extends React.Component {
   }
 
   wfmSync = () => {
-    let jobNumber = this.props.doc.jobNumber;
+    let jobNumber = "AS" + this.props.doc.jobNumber;
     if (!jobNumber) {
       this.props.setModalError('Enter the job number to sync with WorkflowMax');
     } else if (jobNumber.substring(0,2).toUpperCase() !== 'AS') {
@@ -532,10 +532,10 @@ class CocModal extends React.Component {
                   <InputLabel shrink>Job Number</InputLabel>
                   <Input
                     id="jobNumber"
-                    value={doc && doc.jobNumber && doc.jobNumber.slice(2)}
+                    defaultValue={doc && doc.jobNumber}
                     onChange={e => {
                       this.setState({ modified: true, });
-                      this.props.handleModalChange({id: 'jobNumber', value: "AS" + e.target.value.replace(/\s/g,'')})}
+                      this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'')})}
                     }
                     startAdornment={<InputAdornment position="start">AS</InputAdornment>}
                   />
@@ -770,7 +770,7 @@ class CocModal extends React.Component {
               return;
             } else {
                if (wfmJob.client) {
-                doc.jobNumber = doc.jobNumber ? doc.jobNumber.toUpperCase() : null;
+                doc.jobNumber = doc.jobNumber ? "AS" + doc.jobNumber.toUpperCase() : null;
                 doc.client = wfmJob.client ? wfmJob.client : null;
                 doc.address = wfmJob.address ? wfmJob.address : null;
                 doc.clientOrderNumber = wfmJob.clientOrderNumber ? wfmJob.clientOrderNumber : null;
