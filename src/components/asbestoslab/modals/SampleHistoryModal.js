@@ -47,7 +47,7 @@ class SampleHistoryModal extends React.Component {
         maxWidth="lg"
         fullWidth={true}
       >
-        <DialogTitle>{modalProps.title}</DialogTitle>
+        <DialogTitle>{modalProps.title ? modalProps.title : 'Sample History'}</DialogTitle>
         <DialogContent>
         <Grid container direction="column">
           <Grid item>

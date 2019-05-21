@@ -9,7 +9,7 @@ import {
   asbestosSamplesRef
 } from "../../../config/firebase";
 import moment from "moment";
-import { fetchCocs, fetchSamples, logSample, writeResult } from "../../../actions/asbestosLab";
+import { fetchCocs, fetchSamples, logSample, writeResult, setSessionID, } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
@@ -50,6 +50,7 @@ const mapStateToProps = state => {
     samples: state.asbestosLab.samples,
     analyst: state.asbestosLab.analyst,
     analysisMode: state.asbestosLab.analysisMode,
+    sessionID: state.asbestosLab.sessionID,
     bulkAnalysts: state.asbestosLab.bulkAnalysts,
     airAnalysts: state.asbestosLab.airAnalysts
   };
@@ -63,6 +64,7 @@ const mapDispatchToProps = dispatch => {
       dispatch(fetchSamples(cocUid, jobNumber)),
     syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
     logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
+    setSessionID: session => dispatch(setSessionID(session)),
   };
 };
 
@@ -70,8 +72,6 @@ class AsbestosBulkCocCard extends React.Component {
   state = {
     samples: {},
     bulkAnalyst: "",
-    // sessionID creates a unique id for this refresh of the CoC. This is used as the firestore uid for any results verified
-    sessionID: "",
     sampleAnchorEl: {},
     cocAnchorEl: null,
     samplesExpanded: {},
@@ -92,11 +92,7 @@ class AsbestosBulkCocCard extends React.Component {
       second: "2-digit"
     }).format(new Date());
     let uid = `${this.props.job.uid}-${this.props.me.name}-${now}`;
-
-    this.setState({
-      sessionID: uid.replace(/[.:/,\s]/g, "_")
-    });
-    // console.log(uid.replace(/[.:/,\s]/g, "_"));
+    this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };
 
   getStats = () => {
@@ -187,7 +183,6 @@ class AsbestosBulkCocCard extends React.Component {
             averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
             // Check for time between analysis logging and verification
             let turnaroundBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
-            console.log(turnaroundBusinessTime);
             if (turnaroundBusinessTime > maxTurnaroundBusinessTime) maxTurnaroundBusinessTime = turnaroundBusinessTime;
             totalTurnaroundBusinessTime = totalTurnaroundBusinessTime + turnaroundBusinessTime;
             numTurnaroundBusinessTime = numTurnaroundBusinessTime + 1;
@@ -694,7 +689,7 @@ class AsbestosBulkCocCard extends React.Component {
         }}
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-          <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.waAnalysis && <GroupWork color='default' />}{job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' />}{job.versionUpToDate && <CheckCircleOutline color='primary' />}</div>
+          <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.waAnalysis && <GroupWork color='action' />}{job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' />}{job.versionUpToDate && <CheckCircleOutline color='primary' />}</div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <div style={{ width: '100%', maxWidth: '1800px'}}>
@@ -824,7 +819,7 @@ class AsbestosBulkCocCard extends React.Component {
                   <Button
                     variant="outlined"
                     onClick={this.togglePriority}>
-                    <Flag color={job.priority === 1 ? 'secondary' : 'default'} style={{ fontSize: 20, margin: 5 }} />
+                    <Flag color={job.priority === 1 ? 'secondary' : 'action'} style={{ fontSize: 20, margin: 5 }} />
                     Mark As Urgent
                   </Button>
                   <Button
@@ -946,7 +941,18 @@ class AsbestosBulkCocCard extends React.Component {
                 </Grid>
                 {samples[job.uid] &&
                   Object.values(samples[job.uid]).filter(el => el.deleted === false)
-                  .map(sample => <SampleDetailsExpansion job={job} sample={sample} sampleAnchorMenu={this.sampleAnchorMenu} receiveSample={this.receiveSample} startAnalysis={this.startAnalysis} anchorEl={this.state.sampleAnchorEl[sample.sampleNumber]} />)}{" "}
+                  .map(sample =>
+                    <SampleDetailsExpansion
+                      key={sample.uid}
+                      job={job}
+                      sample={sample}
+                      sampleAnchorMenu={this.sampleAnchorMenu}
+                      receiveSample={this.receiveSample}
+                      startAnalysis={this.startAnalysis}
+                      anchorEl={this.state.sampleAnchorEl[sample.sampleNumber]}
+                      getStats={this.getStats}
+                    />
+                  )}
               </div>
             ) : (
               <div

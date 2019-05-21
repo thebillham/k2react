@@ -11,6 +11,7 @@ import {
   RESET_MODAL,
   SET_ANALYSIS_MODE,
   SET_ANALYST,
+  SET_ANALYSIS_SESSION_ID,
 } from "../constants/action-types";
 import moment from "moment";
 import {
@@ -314,6 +315,13 @@ export const setAnalysisMode = mode => dispatch => {
     payload: mode
   });
 };
+
+export const setSessionID = session => dispatch => {
+  dispatch({
+    type: SET_ANALYSIS_SESSION_ID,
+    payload: session,
+  });
+}
 
 export const handleSampleChange = (number, type, value) => dispatch => {
   dispatch({

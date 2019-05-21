@@ -64,6 +64,9 @@ const mapStateToProps = state => {
     me: state.local.me,
     staff: state.local.staff,
     samples: state.asbestosLab.samples,
+    analyst: state.asbestosLab.analyst,
+    sessionID: state.asbestosLab.sessionID,
+    analysisMode: state.asbestosLab.analysisMode,
   };
 };
 
@@ -124,7 +127,7 @@ class SampleDetailsExpansion extends React.Component {
       let cocLog = this.props.job.cocLog;
       if (!cocLog) cocLog = [];
       // Check if this sample has already been analysed
-      if (sample.sessionID !== this.state.sessionID && sample.result) {
+      if (sample.sessionID !== this.props.sessionID && sample.result) {
         if (
           window.confirm(
             "This sample has already been analysed. Do you wish to override the result?"
@@ -189,11 +192,11 @@ class SampleDetailsExpansion extends React.Component {
 
       if (notBlankAnalysis) {
         if (!sample.analysisStart) this.startAnalysis(sample);
-        asbestosAnalysisRef.doc(`${this.state.sessionID}-${sample.uid}`).set({
+        asbestosAnalysisRef.doc(`${this.props.sessionID}-${sample.uid}`).set({
           analyst: this.props.analyst,
           analystUID: auth.currentUser.uid,
           mode: this.props.analysisMode,
-          sessionID: this.state.sessionID,
+          sessionID: this.props.sessionID,
           cocUID: this.props.job.uid,
           sampleUID: sample.uid,
           result: newmap,
@@ -204,7 +207,7 @@ class SampleDetailsExpansion extends React.Component {
         });
         asbestosSamplesRef.doc(sample.uid).update({
           analysisUser: {id: auth.currentUser.uid, name: this.props.me.name},
-          sessionID: this.state.sessionID,
+          sessionID: this.props.sessionID,
           analyst: this.props.analyst,
           result: newmap,
           analysisDate: new Date(),
@@ -212,7 +215,7 @@ class SampleDetailsExpansion extends React.Component {
         });
       } else {
         asbestosAnalysisRef
-          .doc(`${this.state.sessionID}-${sample.uid}`)
+          .doc(`${this.props.sessionID}-${sample.uid}`)
           .delete();
         asbestosSamplesRef
           .doc(sample.uid)
@@ -288,13 +291,12 @@ class SampleDetailsExpansion extends React.Component {
   verifySample = () => {
     let sample = this.props.sample;
     if (
-      !sample.verified ||
       (this.props.me &&
       this.props.me.auth &&
       (this.props.me.auth["Analysis Checker"] ||
         this.props.me.auth["Asbestos Admin"]))
     ) {
-      if (auth.currentUser.uid === sample.analysisUser) {
+      if (auth.currentUser.uid === sample.analysisUser.id && !sample.verified) {
         window.alert("Samples must be checked off by a different user.");
       } else {
         if (!sample.analysisStart && !sample.verified) this.startAnalysis(sample);
@@ -307,7 +309,7 @@ class SampleDetailsExpansion extends React.Component {
               }) result verified.`
             : `Sample ${sample.sampleNumber} (${sample.description} ${
                 sample.material
-              }) result verified.`,
+              }) verification removed.`,
           user: auth.currentUser.uid,
           sample: sample.uid,
           userName: this.props.me.name,
@@ -320,7 +322,7 @@ class SampleDetailsExpansion extends React.Component {
           .update({ versionUpToDate: false, cocLog: cocLog });
         if (!sample.verified) {
           sample.verifyDate = new Date();
-          let cocStats = this.getStats(sample);
+          let cocStats = this.props.getStats(sample);
           this.props.logSample(this.props.job, sample, cocStats);
           asbestosSamplesRef.doc(sample.uid).update(
           {
@@ -402,14 +404,6 @@ class SampleDetailsExpansion extends React.Component {
       noColor = "green";
       noDivColor = "lightgreen";
     }
-    let endTime = new Date();
-    if (sample.verifyDate) endTime = sample.verifyDate instanceof Date ? sample.verifyDate : sample.verifyDate.toDate();
-    let timeInLab = sample.receivedDate ? moment.duration(moment(endTime).diff(sample.receivedDate.toDate())) : null;
-    let status = 'In Transit';
-    if (sample.verified) status = 'Complete';
-      else if (sample.analysisDate) status = 'Waiting on Analysis Verification';
-      else if (sample.analysisStart) status = 'Analysis Started';
-      else if (sample.receivedByLab) status = 'Received By Lab';
 
     return (
       <ExpansionPanel
@@ -491,7 +485,7 @@ class SampleDetailsExpansion extends React.Component {
               <IconButton
                 onClick={event => {
                   event.stopPropagation();
-                  this.props.receiveSample();
+                  this.props.receiveSample(sample);
                 }}
               >
                 <Inbox
@@ -505,7 +499,7 @@ class SampleDetailsExpansion extends React.Component {
                 <IconButton
                   onClick={event => {
                     event.stopPropagation();
-                    this.props.startAnalysis();
+                    this.props.startAnalysis(sample);
                   }}
                 >
                   <Colorize
@@ -667,7 +661,7 @@ class SampleDetailsExpansion extends React.Component {
                   }-${sample.sampleNumber.toString()}-SampleHistory`}
                   onClick={event => {
                     event.stopPropagation();
-                    showModal({
+                    this.props.showModal({
                       modalType: SAMPLEHISTORY,
                       modalProps: {
                         title: `Sample History for ${
@@ -687,55 +681,17 @@ class SampleDetailsExpansion extends React.Component {
           </Grid>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <Grid container>
-            <Grid item xs={false} xl={1} />
-            <Grid item xs={12} xl={5} style={{ fontSize: 14 }}>
-              <div style={{ fontWeight: 700, height: 30}}>STATUS: {status}</div>
-              <div style={{ fontWeight: 700, height: 25}}>Details</div>
-              <div>
-                <span>Created at {moment(sample.createdDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {sample.createdBy ? <span>{sample.createdBy.name}</span>
-                :<span>an unknown person</span>}</span>
-              </div>
-              <div>
-                {sample.receivedByLab ?
-                  <span>Received by lab at {moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {sample.receivedUser ? <span>{sample.receivedUser.name}</span>
-                  :<span>an unknown person</span>}</span>
-                  : <span>Not yet received by lab</span>
-                }
-              </div>
-              <div>
-                {sample.analysisStart ?
-                  <span>Analysis started at {moment(sample.analysisStartDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {sample.analysisStartedby ? <span>{sample.analysisStartedby.name}</span>
-                  :<span>an unknown person</span>}</span>
-                  : <span>Analysis not yet started</span>
-                }
-              </div>
-              <div>
-                {sample.analysisDate ?
-                  <span>Result logged at {moment(sample.analysisDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {sample.analysisUser ? <span>{sample.analysisUser.name}</span>
-                  :<span>an unknown person</span>}</span>
-                  : <span>Result not yet logged</span>
-                }
-              </div>
-              <div>
-                {sample.verified ?
-                  <span>Result verified at {moment(sample.verifyDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {sample.verifyUser ? <span>{sample.verifyUser.name}</span>
-                  :<span>an unknown person</span>}</span>
-                  : <span>Result not yet verified</span>
-                }
-              </div>
-              <div>
-                {sample.verified ?
-                  <span>Lab turnaround time: {timeInLab.asHours() >= 24 && <span>{timeInLab.days()} day{timeInLab.days() !== 1 &&<span>s</span>}, </span>}{timeInLab.asMinutes() >= 60 && <span>{timeInLab.hours()} hour{timeInLab.hours() !== 1 && <span>s</span>} and </span>}{timeInLab.minutes()} minute{timeInLab.minutes() !== 1 && <span>s</span>}</span>
-                  : <span>{sample.receivedDate && <span>Time in lab: {timeInLab.asHours() >= 24 && <span>{timeInLab.days()} day{timeInLab.days() !== 1 &&<span>s</span>}, </span>}{timeInLab.asMinutes() >= 60 && <span>{timeInLab.hours()} hour{timeInLab.hours() !== 1 && <span>s</span>} and </span>}{timeInLab.minutes()} minute{timeInLab.minutes() !== 1 && <span>s</span>}</span>}</span>
-                }
-              </div>
+          <Grid container direction={'column'} spacing={8}>
+            <Grid item>
+              <SampleDetailsExpansionSummary sample={sample} />
             </Grid>
-            <Grid item xs={12} xl={6}>
-
+            <Grid item>
+              <SampleDetailsExpansionDetails sample={sample} />
+            </Grid>
+            <Grid item>
+              { sample.waAnalysis && <SampleDetailsExpansionWA sample={sample} /> }
             </Grid>
           </Grid>
-          { sample.waAnalysis && <SampleDetailsExpansionWA sample={sample} /> }
         </ExpansionPanelDetails>
       </ExpansionPanel>
     );

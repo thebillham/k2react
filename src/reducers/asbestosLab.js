@@ -8,6 +8,7 @@ import {
   GET_SAMPLE_LOG,
   SET_ANALYSIS_MODE,
   SET_ANALYST,
+  SET_ANALYSIS_SESSION_ID,
   RESET_ASBESTOS_LAB,
 } from "../constants/action-types";
 
@@ -22,6 +23,7 @@ const asbestosLabInit = {
     cocs: {},
     samples: {},
     sampleLog: [],
+    sessionID: '',
 };
 
 // Properties related to local data retrieved from firebase
@@ -82,6 +84,11 @@ export default function asbestosLabReducer(state = asbestosLabInit, action) {
       return {
         ...state,
         analysisMode: action.payload
+      };
+    case SET_ANALYSIS_SESSION_ID:
+      return {
+        ...state,
+        sessionID: action.payload
       };
     default:
       return state;
