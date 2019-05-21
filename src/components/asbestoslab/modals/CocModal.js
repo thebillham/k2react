@@ -527,6 +527,22 @@ class CocModal extends React.Component {
           {this.state.sampleEditModal && sampleEditModal}
           <Grid container spacing={40}>
             <Grid item xs={12} lg={4}>
+              <FormControl component="fieldset">
+                <FormLabel component="legend">Analysis Method</FormLabel>
+                <RadioGroup
+                  row
+                  aria-label="analysisMethod"
+                  name="analysisMethod"
+                  defaultValue={doc && doc.analysisMethod ? doc.analysisMethod : 'ID'}
+                  onChange={e => {
+                    this.setState({ modified: true, });
+                    this.props.handleModalChange({id: 'analysisMethod', value: e.target.value})}
+                  }
+                >
+                  <FormControlLabel value="ID" control={<Radio />} label="Asbestos ID (Australian Standard)" />
+                  <FormControlLabel value="WA" control={<Radio />} label="Soil Concentration (Western Australian Guidelines)" />
+                </RadioGroup>
+              </FormControl>
               <div style={{ display: 'flex', flexDirection: 'row', }}>
                 <FormControl style={{ width: '100%', marginRight: 8, }}>
                   <InputLabel shrink>Job Number</InputLabel>

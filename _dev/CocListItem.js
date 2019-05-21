@@ -171,7 +171,7 @@ class CocListItem extends React.Component {
       (this.props.me.auth["Analysis Checker"] ||
         this.props.me.auth["Asbestos Admin"])
     ) {
-      if (auth.currentUser.uid === sample.resultUser) {
+      if (auth.currentUser.uid === sample.analysisUser) {
         window.alert("Samples must be checked off by a different user.");
       } else {
         let reportDate = null;
@@ -270,11 +270,11 @@ class CocListItem extends React.Component {
       }
 
       asbestosSamplesRef.doc(sample.uid).update({
-        resultUser: auth.currentUser.uid,
+        analysisUser: auth.currentUser.uid,
         sessionID: this.state.sessionID,
         analyst: this.props.analyst,
         result: newmap,
-        resultdate: new Date()
+        analysisDate: new Date()
       });
 
       cocLog.push({

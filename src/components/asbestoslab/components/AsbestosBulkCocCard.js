@@ -4,35 +4,27 @@ import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import {
   cocsRef,
-  asbestosAnalysisRef,
   firebase,
   auth,
   asbestosSamplesRef
 } from "../../../config/firebase";
 import moment from "moment";
-import momentbusinessdays from "moment-business-days";
-import momenttimezone from "moment-timezone";
-import momentbusinesstime from "moment-business-time";
 import { fetchCocs, fetchSamples, logSample, writeResult } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
   COC,
-  ASBESTOSSAMPLEDETAILS,
   DOWNLOADLABCERTIFICATE,
   UPDATECERTIFICATEVERSION,
-  WAANALYSIS,
-  SAMPLEHISTORY,
   COCLOG
 } from "../../../constants/modal-types";
+
+import SampleDetailsExpansion from "./SampleDetailsExpansion";
 
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import Grid from "@material-ui/core/Grid";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import IconButton from "@material-ui/core/IconButton";
 import Button from "@material-ui/core/Button";
 import Menu from "@material-ui/core/Menu";
@@ -44,14 +36,12 @@ import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 import Edit from "@material-ui/icons/Edit";
 import Inbox from "@material-ui/icons/Inbox";
 import Save from "@material-ui/icons/SaveAlt";
-import CameraAlt from "@material-ui/icons/CameraAlt";
 import Print from "@material-ui/icons/Print";
 import Send from "@material-ui/icons/Send";
 import Flag from "@material-ui/icons/Flag";
 import More from "@material-ui/icons/MoreVert";
 import Colorize from "@material-ui/icons/Colorize";
-
-import Popup from "reactjs-popup";
+import GroupWork from "@material-ui/icons/GroupWork";
 
 const mapStateToProps = state => {
   return {
@@ -182,7 +172,7 @@ class AsbestosBulkCocCard extends React.Component {
             numAnalysisTime = numAnalysisTime + 1;
             averageAnalysisTime = totalAnalysisTime / numAnalysisTime;
           }
-          let analysisBusinessTime = moment(sample.resultDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
+          let analysisBusinessTime = moment(sample.analysisDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
           if (analysisBusinessTime > maxAnalysisBusinessTime) maxAnalysisBusinessTime = analysisBusinessTime;
           totalAnalysisBusinessTime = totalAnalysisBusinessTime + analysisBusinessTime;
           numAnalysisBusinessTime = numAnalysisBusinessTime + 1;
@@ -211,7 +201,7 @@ class AsbestosBulkCocCard extends React.Component {
               averageReportTime = totalReportTime / numReportTime;
             }
 
-            let reportBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.resultDate.toDate()));
+            let reportBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.analysisDate.toDate()));
             if (reportBusinessTime > maxReportBusinessTime) maxReportBusinessTime = reportBusinessTime;
             totalReportBusinessTime = totalReportBusinessTime + reportBusinessTime;
             numReportBusinessTime = numReportBusinessTime + 1;
@@ -267,6 +257,14 @@ class AsbestosBulkCocCard extends React.Component {
     };
   }
 
+  sampleAnchorMenu = (number, target) => {
+    this.setState({
+      sampleAnchorEl: {
+        [number]: target
+      }
+    });
+  }
+
   receiveAll = () => {
     if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
       Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
@@ -311,7 +309,7 @@ class AsbestosBulkCocCard extends React.Component {
       asbestosSamplesRef.doc(sample.uid).update(
       {
         receivedByLab: true,
-        receivedUser: auth.currentUser.uid,
+        receivedUser: {id: auth.currentUser.uid, name: this.props.me.name},
         receivedDate: receivedDate
       });
     } else {
@@ -362,7 +360,7 @@ class AsbestosBulkCocCard extends React.Component {
       asbestosSamplesRef.doc(sample.uid).update(
       {
         analysisStart: true,
-        analysisStartedby: auth.currentUser.uid,
+        analysisStartedby: {id: auth.currentUser.uid, name: this.props.me.name},
         analysisStartDate: analysisStart
       });
     } else {
@@ -372,66 +370,6 @@ class AsbestosBulkCocCard extends React.Component {
         analysisStartedby: firebase.firestore.FieldValue.delete(),
         analysisStartDate: firebase.firestore.FieldValue.delete(),
       });
-    }
-  };
-
-  verifySample = sample => {
-    if (
-      !sample.verified ||
-      (this.props.me &&
-      this.props.me.auth &&
-      (this.props.me.auth["Analysis Checker"] ||
-        this.props.me.auth["Asbestos Admin"]))
-    ) {
-      if (auth.currentUser.uid === sample.resultUser) {
-        window.alert("Samples must be checked off by a different user.");
-      } else {
-        if (!sample.analysisStart && !sample.verified) this.startAnalysis(sample);
-        let verifyDate = null;
-        let log = {
-          type: "Verified",
-          log: !sample.verified
-            ? `Sample ${sample.sampleNumber} (${sample.description} ${
-                sample.material
-              }) result verified.`
-            : `Sample ${sample.sampleNumber} (${sample.description} ${
-                sample.material
-              }) result verified.`,
-          user: auth.currentUser.uid,
-          sample: sample.uid,
-          userName: this.props.me.name,
-          date: new Date()
-        };
-        let cocLog = this.props.job.cocLog;
-        cocLog ? cocLog.push(log) : (cocLog = [log]);
-        cocsRef
-          .doc(this.props.job.uid)
-          .update({ versionUpToDate: false, cocLog: cocLog });
-        if (!sample.verified) {
-          sample.verifyDate = new Date();
-          let cocStats = this.getStats(sample);
-          this.props.logSample(this.props.job, sample, cocStats);
-          asbestosSamplesRef.doc(sample.uid).update(
-          {
-            verified: true,
-            verifyUser: auth.currentUser.uid,
-            verifyDate: new Date(),
-            turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
-          });
-        } else {
-          asbestosSamplesRef.doc(sample.uid).update(
-          {
-            verified: false,
-            verifyUser: firebase.firestore.FieldValue.delete(),
-            verifyDate: firebase.firestore.FieldValue.delete(),
-            turnaroundTime: firebase.firestore.FieldValue.delete(),
-          });
-        }
-      }
-    } else {
-      window.alert(
-        "You don't have sufficient permissions to verify asbestos results."
-      );
     }
   };
 
@@ -447,159 +385,6 @@ class AsbestosBulkCocCard extends React.Component {
     });
     cocsRef.doc(this.props.job.uid).update({ priority: this.props.job.priority === 0 ? 1 : 0 });
   }
-
-  toggleResult = (sample, result) => {
-    if (
-      this.props.me &&
-      this.props.me.auth &&
-      (this.props.me.auth["Asbestos Bulk Analysis"] ||
-        this.props.me.auth["Asbestos Admin"])
-    ) {
-      // Check analyst has been selected
-      if (this.props.analyst === "") {
-        window.alert(
-          "Select analyst from the dropdown at the top of the page."
-        );
-      }
-      let cocLog = this.props.job.cocLog;
-      if (!cocLog) cocLog = [];
-      // Check if this sample has already been analysed
-      if (sample.sessionID !== this.state.sessionID && sample.result) {
-        if (
-          window.confirm(
-            "This sample has already been analysed. Do you wish to override the result?"
-          )
-        ) {
-          cocLog.push({
-            type: "Analysis",
-            log: `Previous analysis of sample ${sample.sampleNumber} (${
-              sample.description
-            } ${sample.material}) overridden.`,
-            user: auth.currentUser.uid,
-            userName: this.props.me.name,
-            sample: sample.uid,
-            date: new Date()
-          });
-        } else {
-          return;
-        }
-      }
-      let newmap = {};
-      let map = sample.result;
-      if (sample.verified) {
-        asbestosSamplesRef
-          .doc(sample.uid)
-          .set({ verified: false, verifyDate: null }, { merge: true });
-      }
-      if (map === undefined) {
-        newmap = { [result]: true };
-      } else if (result === "no") {
-        let val = map[result];
-        newmap = { no: !val };
-      } else if (map[result] === undefined) {
-        newmap = map;
-        newmap["no"] = false;
-        newmap[result] = true;
-      } else {
-        newmap = map;
-        newmap["no"] = false;
-        newmap[result] = !map[result];
-      }
-
-      cocLog.push({
-        type: "Analysis",
-        log: `New analysis for sample ${sample.sampleNumber} (${
-          sample.description
-        } ${sample.material}): ${writeResult(newmap)}`,
-        user: auth.currentUser.uid,
-        userName: this.props.me.name,
-        sample: sample.uid,
-        date: new Date()
-      });
-
-      cocsRef
-        .doc(this.props.job.uid)
-        .update({ versionUpToDate: false, cocLog: cocLog });
-
-      // Check for situation where all results are unselected
-      let notBlankAnalysis = false;
-      Object.values(newmap).forEach(value => {
-        if (value) notBlankAnalysis = true;
-      });
-
-      if (notBlankAnalysis) {
-        if (!sample.analysisStart) this.startAnalysis(sample);
-        asbestosAnalysisRef.doc(`${this.state.sessionID}-${sample.uid}`).set({
-          analyst: this.props.analyst,
-          analystUID: auth.currentUser.uid,
-          mode: this.props.analysisMode,
-          sessionID: this.state.sessionID,
-          cocUID: this.props.job.uid,
-          sampleUID: sample.uid,
-          result: newmap,
-          description: sample.description,
-          material: sample.material,
-          samplers: this.props.job.personnel,
-          analysisDate: new Date()
-        });
-        asbestosSamplesRef.doc(sample.uid).update({
-          resultUser: auth.currentUser.uid,
-          sessionID: this.state.sessionID,
-          analyst: this.props.analyst,
-          result: newmap,
-          resultDate: new Date(),
-          analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null,
-        });
-      } else {
-        asbestosAnalysisRef
-          .doc(`${this.state.sessionID}-${sample.uid}`)
-          .delete();
-        asbestosSamplesRef
-          .doc(sample.uid)
-          .update({
-            result: firebase.firestore.FieldValue.delete(),
-            resultDate: firebase.firestore.FieldValue.delete(),
-            resultUser: firebase.firestore.FieldValue.delete(),
-            sessionID: firebase.firestore.FieldValue.delete(),
-            analysisTime: firebase.firestore.FieldValue.delete(),
-            analyst: firebase.firestore.FieldValue.delete(),
-          });
-      }
-    } else {
-      window.alert(
-        "You don't have sufficient permissions to set asbestos results."
-      );
-    }
-  };
-
-  removeResult = sample => {
-    let log = {
-      type: "Analysis",
-      log: `Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }) result removed.`,
-      user: auth.currentUser.uid,
-      sample: sample.uid,
-      userName: this.props.me.name,
-      date: new Date()
-    };
-    let cocLog = this.props.job.cocLog;
-    cocLog ? cocLog.push(log) : (cocLog = [log]);
-    cocsRef
-      .doc(this.props.job.uid)
-      .update({ versionUpToDate: false, cocLog: cocLog });
-    asbestosAnalysisRef
-      .doc(`${this.state.sessionID}-${sample.uid}`)
-      .delete();
-    asbestosSamplesRef
-      .doc(sample.uid)
-      .update({
-        result: firebase.firestore.FieldValue.delete(),
-        resultDate: firebase.firestore.FieldValue.delete(),
-        resultUser: firebase.firestore.FieldValue.delete(),
-        sessionID: firebase.firestore.FieldValue.delete(),
-      });
-  };
 
   sortSamples = samples => {
     let samplemap = {};
@@ -669,29 +454,6 @@ class AsbestosBulkCocCard extends React.Component {
       samples: samples
     };
     return report;
-  };
-
-  writeDescription = (locationgeneric, locationdetailed, description, material) => {
-    var str = '';
-    if (locationgeneric) str = locationgeneric;
-    if (locationdetailed) {
-      if (str === '') {
-        str = locationdetailed;
-      } else {
-        str = str + ' - ' + locationdetailed;
-      }
-    }
-    if (str !== '') str = str + ': ';
-    if (description && material) {
-      str = str + description + ", " + material;
-    } else if (description) {
-      str = str + description;
-    } else if (material) {
-      str = str + material;
-    } else {
-      str = str + "No description";
-    }
-    return str;
   };
 
   issueLabReport = (version, changes) => {
@@ -909,11 +671,10 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   render() {
-    const { classes, job, samples } = this.props;
+    const { job, samples } = this.props;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     let analysts = this.getAnalysts(false);
-    let menu = {};
 
     let dates = job.dates.map(date => {
       let formatDate = date instanceof Date ? date : date.toDate();
@@ -933,7 +694,7 @@ class AsbestosBulkCocCard extends React.Component {
         }}
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-          <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.priority === 1 && <Flag color='secondary' />}</div>
+          <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.waAnalysis && <GroupWork color='default' />}{job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' />}{job.versionUpToDate && <CheckCircleOutline color='primary' />}</div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <div style={{ width: '100%', maxWidth: '1800px'}}>
@@ -1038,7 +799,7 @@ class AsbestosBulkCocCard extends React.Component {
                 </MenuItem>
                 <Divider />
                 {job.currentVersion &&
-                  job.currentVersion > 1 &&
+                  // job.currentVersion > 1 &&
                   [...Array(job.currentVersion).keys()].map(i => {
                     return (
                       <MenuItem
@@ -1185,435 +946,7 @@ class AsbestosBulkCocCard extends React.Component {
                 </Grid>
                 {samples[job.uid] &&
                   Object.values(samples[job.uid]).filter(el => el.deleted === false)
-                  .map(sample => {
-                    if (sample.cocUid !== this.props.job.uid) return;
-                    let result = "none";
-                    if (
-                      sample.result &&
-                      (sample.result["ch"] ||
-                        sample.result["am"] ||
-                        sample.result["cr"] ||
-                        sample.result["umf"])
-                    )
-                      result = "positive";
-                    if (sample.result && sample.result["no"])
-                      result = "negative";
-                    let cameraColor = "#ddd";
-                    if (sample.imagePathRemote) cameraColor = "green";
-                    let receivedColor = "#ddd";
-                    if (sample.receivedByLab) receivedColor = "green";
-                    let analysisColor = "#ddd";
-                    if (sample.analysisStart) analysisColor = "green";
-                    let verifiedColor = "#ddd";
-                    if (sample.verified) verifiedColor = "green";
-                    let chColor = "#ddd";
-                    let amColor = "#ddd";
-                    let crColor = "#ddd";
-                    let umfColor = "#ddd";
-                    let chDivColor = "white";
-                    let amDivColor = "white";
-                    let crDivColor = "white";
-                    let umfDivColor = "white";
-                    // if (result === 'positive') {
-                    //   chColor = '#b00';
-                    //   amColor = '#b00';
-                    //   crColor = '#b00';
-                    //   umfColor = '#b00';
-                    // }
-                    if (sample.result && sample.result["ch"]) {
-                      chColor = "white";
-                      chDivColor = "red";
-                    }
-                    if (sample.result && sample.result["am"]) {
-                      amColor = "white";
-                      amDivColor = "red";
-                    }
-                    if (sample.result && sample.result["cr"]) {
-                      crColor = "white";
-                      crDivColor = "red";
-                    }
-                    if (sample.result && sample.result["umf"]) {
-                      umfColor = "white";
-                      umfDivColor = "red";
-                    }
-
-                    let noColor = "#ddd";
-                    let noDivColor = "#fff";
-                    if (result === "negative") {
-                      noColor = "green";
-                      noDivColor = "lightgreen";
-                    }
-                    let endTime = new Date();
-                    console.log(sample);
-                    if (sample.verifyDate) endTime = sample.verifyDate instanceof Date ? sample.verifyDate : sample.verifyDate.toDate();
-                    let timeInLab = sample.receivedDate ? moment.duration(moment(endTime).diff(sample.receivedDate.toDate())) : null;
-                    let status = 'In Transit';
-                    if (sample.verified) status = 'Complete';
-                      else if (sample.resultDate) status = 'Waiting on Analysis Verification';
-                      else if (sample.analysisStart) status = 'Analysis Started';
-                      else if (sample.receivedByLab) status = 'Received By Lab';
-
-                    return (
-                      <ExpansionPanel
-                        elevation={0}
-                        square={true}
-                        key={`${
-                          job.jobNumber
-                        }-${sample.sampleNumber.toString()}_${
-                          sample.description
-                        }`}
-                      >
-                        <ExpansionPanelSummary expandIcon={<ExpandMore />} className={classes.hoverItem}>
-                          <Grid container>
-                            <Grid item xs={12} xl={6}>
-                              <div style={{
-                                textOverflow: "ellipsis",
-                                // whiteSpace: "nowrap",
-                                display: 'flex',
-                                flexDirection: 'row',
-                                justifyContent: 'flex-start',
-                                alignItems: 'center',
-                                overflow: "hidden",
-                              }}>
-                                <Popup
-                                  trigger={
-                                    <CameraAlt
-                                      style={{
-                                        fontSize: 24,
-                                        color: cameraColor,
-                                        margin: 10
-                                      }}
-                                    />
-                                  }
-                                  position="right center"
-                                  on="hover"
-                                  disabled={sample.imagePathRemote == null}
-                                >
-                                  {sample.imagePathRemote ?
-                                    <img
-                                      alt=""
-                                      src={sample.imagePathRemote}
-                                      width={200}
-                                    />
-                                    : <span />
-                                  }
-                                </Popup>
-                                <div
-                                  style={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: 20,
-                                    backgroundColor: "#aaa",
-                                    marginRight: 10,
-                                    color: "#fff",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    display: "flex",
-                                    fontWeight: "bold"
-                                  }}
-                                >
-                                  {sample.sampleNumber}
-                                </div>
-                                {this.writeDescription(
-                                  sample.genericLocation,
-                                  sample.specificLocation,
-                                  sample.description,
-                                  sample.material
-                                )}
-                              </div>
-                            </Grid>
-                            <Grid item xs={12} xl={6}>
-                            <div style={{
-                              justifyContent: 'flex-end',
-                              alignItems: 'center',
-                              // width: '40vw',
-                              display: 'flex',
-                              flexDirection: 'row',
-                            }}>
-                              <IconButton
-                                onClick={event => {
-                                  event.stopPropagation();
-                                  this.receiveSample(sample);
-                                }}
-                              >
-                                <Inbox
-                                  style={{
-                                    fontSize: 24,
-                                    margin: 10,
-                                    color: receivedColor
-                                  }}
-                                />
-                              </IconButton>
-                                <IconButton
-                                  onClick={event => {
-                                    event.stopPropagation();
-                                    this.startAnalysis(sample);
-                                  }}
-                                >
-                                  <Colorize
-                                    style={{
-                                      fontSize: 24,
-                                      margin: 10,
-                                      color: analysisColor
-                                    }}
-                                  />
-                                </IconButton>
-                              <div
-                                style={{ display: "flex", flexDirection: "row" }}
-                              >
-                                <div
-                                  style={{
-                                    backgroundColor: chDivColor,
-                                    borderRadius: 5
-                                  }}
-                                >
-                                  <Button
-                                    variant="outlined"
-                                    style={{ margin: 5, color: chColor }}
-                                    onClick={event => {
-                                      event.stopPropagation();
-                                      this.toggleResult(sample, "ch");
-                                    }}
-                                  >
-                                    CH
-                                  </Button>
-                                </div>
-                                <div
-                                  style={{
-                                    backgroundColor: amDivColor,
-                                    borderRadius: 5
-                                  }}
-                                >
-                                  <Button
-                                    variant="outlined"
-                                    style={{ margin: 5, color: amColor }}
-                                    onClick={event => {
-                                      event.stopPropagation();
-                                      this.toggleResult(sample, "am");
-                                    }}
-                                  >
-                                    AM
-                                  </Button>
-                                </div>
-                                <div
-                                  style={{
-                                    backgroundColor: crDivColor,
-                                    borderRadius: 5
-                                  }}
-                                >
-                                  <Button
-                                    variant="outlined"
-                                    style={{ margin: 5, color: crColor }}
-                                    onClick={event => {
-                                      event.stopPropagation();
-                                      this.toggleResult(sample, "cr");
-                                    }}
-                                  >
-                                    CR
-                                  </Button>
-                                </div>
-                                <div
-                                  style={{
-                                    backgroundColor: umfDivColor,
-                                    borderRadius: 5
-                                  }}
-                                >
-                                  <Button
-                                    variant="outlined"
-                                    style={{ margin: 5, color: umfColor }}
-                                    onClick={event => {
-                                      event.stopPropagation();
-                                      this.toggleResult(sample, "umf");
-                                    }}
-                                  >
-                                    UMF
-                                  </Button>
-                                </div>
-                              </div>
-                              <div style={{ width: 30 }} />
-                              <div
-                                style={{
-                                  backgroundColor: noDivColor,
-                                  borderRadius: 5
-                                }}
-                              >
-                                <Button
-                                  variant="outlined"
-                                  style={{ margin: 5, color: noColor }}
-                                  onClick={event => {
-                                    event.stopPropagation();
-                                    this.toggleResult(sample, "no");
-                                  }}
-                                >
-                                  NO
-                                </Button>
-                              </div>
-                              <IconButton
-                                onClick={event => {
-                                  event.stopPropagation();
-                                  if (
-                                    !sample.result &&
-                                    !sample.verified &&
-                                    !window.confirm(
-                                      "No result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
-                                    )
-                                  )
-                                    return;
-                                  this.verifySample(sample);
-                                }}
-                              >
-                                <CheckCircleOutline
-                                  style={{
-                                    fontSize: 24,
-                                    margin: 10,
-                                    color: verifiedColor
-                                  }}
-                                />
-                              </IconButton>
-                              <IconButton
-                                onClick={event => {
-                                  event.stopPropagation();
-                                  this.setState({
-                                    sampleAnchorEl: {
-                                      [sample.sampleNumber]: event.currentTarget
-                                    }
-                                  });
-                                }}
-                              >
-                                <More />
-                              </IconButton>
-                              <Menu
-                                id={`${
-                                  job.jobNumber
-                                }-${sample.sampleNumber.toString()}`}
-                                anchorEl={
-                                  this.state.sampleAnchorEl[sample.sampleNumber]
-                                }
-                                open={Boolean(
-                                  this.state.sampleAnchorEl[sample.sampleNumber]
-                                )}
-                                onClose={() => {
-                                  this.setState({
-                                    sampleAnchorEl: {
-                                      [sample.sampleNumber]: null
-                                    }
-                                  });
-                                }}
-                                style={{ padding: 0 }}
-                              >
-                                <MenuItem
-                                  key={`${
-                                    job.jobNumber
-                                  }-${sample.sampleNumber.toString()}-DETAILS`}
-                                  onClick={event => {
-                                    event.stopPropagation();
-                                    this.props.showModal({
-                                      modalType: ASBESTOSSAMPLEDETAILS,
-                                      modalProps: {
-                                        sample: sample,
-                                        docid: job.uid
-                                      }
-                                    });
-                                  }}
-                                >
-                                  Sample Details
-                                </MenuItem>
-                                <MenuItem
-                                  key={`${
-                                    job.jobNumber
-                                  }-${sample.sampleNumber.toString()}-WA`}
-                                  onClick={event => {
-                                    event.stopPropagation();
-                                    this.props.showModal({
-                                      modalType: WAANALYSIS,
-                                      modalProps: {
-                                        title: `WA Analysis for Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description})`,
-                                        sample: sample,
-                                        docid: job.uid
-                                      }
-                                    });
-                                  }}
-                                >
-                                  Add WA Analysis
-                                </MenuItem>
-                                <MenuItem
-                                  key={`${
-                                    job.jobNumber
-                                  }-${sample.sampleNumber.toString()}-SampleHistory`}
-                                  onClick={event => {
-                                    event.stopPropagation();
-                                    this.props.showModal({
-                                      modalType: SAMPLEHISTORY,
-                                      modalProps: {
-                                        title: `Sample History for ${
-                                          job.jobNumber
-                                        }-${sample.sampleNumber.toString()}`,
-                                        uid: sample.uid,
-                                        cocLog: job.cocLog,
-                                    }
-                                  })
-                                }}
-                                >
-                                  View Sample History
-                                </MenuItem>
-                              </Menu>
-                              </div>
-                            </Grid>
-                          </Grid>
-                        </ExpansionPanelSummary>
-                        <ExpansionPanelDetails>
-                          <Grid container>
-                            <Grid item xs={false} xl={1} />
-                            <Grid item xs={12} xl={5} style={{ fontSize: 14 }}>
-                              <div style={{ fontWeight: 700, height: 30}}>STATUS: {status}</div>
-                              <div style={{ fontWeight: 700, height: 25}}>Details</div>
-                              <div>
-                                <span>Created at {moment(sample.createdDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.createdBy] ? <span>{this.props.staff[sample.createdBy].name}</span>
-                                :<span>an unknown person</span>}</span>
-                              </div>
-                              <div>
-                                {sample.receivedByLab ?
-                                  <span>Received by lab at {moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.receivedUser] ? <span>{this.props.staff[sample.receivedUser].name}</span>
-                                  :<span>an unknown person</span>}</span>
-                                  : <span>Not yet received by lab</span>
-                                }
-                              </div>
-                              <div>
-                                {sample.analysisStart ?
-                                  <span>Analysis started at {moment(sample.analysisStartDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.analysisStartedby] ? <span>{this.props.staff[sample.analysisStartedby].name}</span>
-                                  :<span>an unknown person</span>}</span>
-                                  : <span>Analysis not yet started</span>
-                                }
-                              </div>
-                              <div>
-                                {sample.resultDate ?
-                                  <span>Result logged at {moment(sample.resultDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.resultUser] ? <span>{this.props.staff[sample.resultUser].name}</span>
-                                  :<span>an unknown person</span>}</span>
-                                  : <span>Result not yet logged</span>
-                                }
-                              </div>
-                              <div>
-                                {sample.verified ?
-                                  <span>Result verified at {moment(sample.verifyDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by {this.props.staff && this.props.staff[sample.verifyUser] ? <span>{this.props.staff[sample.verifyUser].name}</span>
-                                  :<span>an unknown person</span>}</span>
-                                  : <span>Result not yet verified</span>
-                                }
-                              </div>
-                              <div>
-                                {sample.verified ?
-                                  <span>Lab turnaround time: {timeInLab.asHours() >= 24 && <span>{timeInLab.days()} day{timeInLab.days() !== 1 &&<span>s</span>}, </span>}{timeInLab.asMinutes() >= 60 && <span>{timeInLab.hours()} hour{timeInLab.hours() !== 1 && <span>s</span>} and </span>}{timeInLab.minutes()} minute{timeInLab.minutes() !== 1 && <span>s</span>}</span>
-                                  : <span>{sample.receivedDate && <span>Time in lab: {timeInLab.asHours() >= 24 && <span>{timeInLab.days()} day{timeInLab.days() !== 1 &&<span>s</span>}, </span>}{timeInLab.asMinutes() >= 60 && <span>{timeInLab.hours()} hour{timeInLab.hours() !== 1 && <span>s</span>} and </span>}{timeInLab.minutes()} minute{timeInLab.minutes() !== 1 && <span>s</span>}</span>}</span>
-                                }
-                              </div>
-                            </Grid>
-                            <Grid item xs={12} xl={6}>
-
-                            </Grid>
-                          </Grid>
-                        </ExpansionPanelDetails>
-                      </ExpansionPanel>
-                    );
-                  })}{" "}
+                  .map(sample => <SampleDetailsExpansion job={job} sample={sample} sampleAnchorMenu={this.sampleAnchorMenu} receiveSample={this.receiveSample} startAnalysis={this.startAnalysis} anchorEl={this.state.sampleAnchorEl[sample.sampleNumber]} />)}{" "}
               </div>
             ) : (
               <div

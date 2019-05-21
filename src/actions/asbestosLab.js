@@ -259,7 +259,7 @@ export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch =
         doc.samples[sample].uid = uid;
         doc.samples[sample].deleted = false;
         doc.samples[sample].createdDate = new Date();
-        doc.samples[sample].createdBy = userUid;
+        doc.samples[sample].createdBy = {id: userUid, name: userName};
         sampleList.push(uid);
       } else {
         // console.log(`UID for old sample is ${doc.samples[sample].uid}`);
@@ -329,8 +329,8 @@ export const handleSampleChange = (number, type, value) => dispatch => {
 export const logSample = (coc, sample, cocStats) => dispatch => {
   // let dateString = moment(new Date()).format('YYYY-MM-DD');
   let transitTime = sample.createdDate && sample.receivedDate ? moment.duration(moment(sample.receivedDate.toDate()).diff(sample.createdDate.toDate())).asMilliseconds() : null;
-  let labTime = sample.receivedDate && sample.resultDate ? moment.duration(moment(sample.resultDate.toDate()).diff(sample.receivedDate.toDate())).asMilliseconds() : null;
-  let analysisTime = sample.receivedDate && sample.analysisStartDate ? moment.duration(moment(sample.resultDate.toDate()).diff(sample.analysisStartDate.toDate())).asMilliseconds() : null;
+  let labTime = sample.receivedDate && sample.analysisDate ? moment.duration(moment(sample.analysisDate.toDate()).diff(sample.receivedDate.toDate())).asMilliseconds() : null;
+  let analysisTime = sample.receivedDate && sample.analysisStartDate ? moment.duration(moment(sample.analysisDate.toDate()).diff(sample.analysisStartDate.toDate())).asMilliseconds() : null;
   let turnaroundTime = sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null;
 
   let log = {
@@ -355,8 +355,8 @@ export const logSample = (coc, sample, cocStats) => dispatch => {
     receivedBy: sample.receivedUser ? sample.receivedUser : '',
     receivedDate: sample.receivedDate ? sample.receivedDate : null,
     analysisBy: sample.analyst ? sample.analyst : '',
-    resultDate: sample.resultDate ? sample.resultDate : null,
-    resultBy: sample.resultUser ? sample.resultUser : '',
+    analysisDate: sample.analysisDate ? sample.analysisDate : null,
+    resultBy: sample.analysisUser ? sample.analysisUser : '',
     reportedBy: sample.reportUser ? sample.reportUser : '',
     reportDate: new Date(),
     turnaroundTime: turnaroundTime,

@@ -83,7 +83,7 @@ class SampleListItem extends React.Component {
     }
     asbestosSamplesRef
       .doc(uid)
-      .update({ result: newmap, resultdate: new Date() });
+      .update({ result: newmap, analysisDate: new Date() });
   };
 
   sortSamples = samples => {
