@@ -7,6 +7,20 @@ const modalStyles = theme => ({
     color: theme.palette.secondary.main,
   },
 
+  hoverItem: {
+      // backgroundColor: "#fff",
+      "&:hover": {
+          backgroundColor: "#eee"
+      }
+  },
+
+  subheading: {
+    marginTop: 20,
+    marginBottom: 16,
+    fontWeight: 300,
+    color: '#888',
+  },
+
   dialogField: {
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,

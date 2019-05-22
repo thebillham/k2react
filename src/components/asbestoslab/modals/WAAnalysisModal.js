@@ -81,10 +81,10 @@ class WAAnalysisModal extends React.Component {
       <Dialog
         open={modalType === WAANALYSIS}
         onClose={() => this.props.hideModal()}
-        maxWidth="sm"
+        maxWidth="xl"
         fullWidth={true}
       >
-        <DialogTitle>{modalProps.title ? modalProps.title : 'Edit WA Analysis'}</DialogTitle>
+        <DialogTitle>Edit WA Analysis</DialogTitle>
         <DialogContent>
           <Grid container spacing={8}>
             <Grid item xs={4}>

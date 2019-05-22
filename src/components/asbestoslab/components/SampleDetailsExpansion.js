@@ -54,8 +54,10 @@ import Print from "@material-ui/icons/Print";
 import Send from "@material-ui/icons/Send";
 import Flag from "@material-ui/icons/Flag";
 import More from "@material-ui/icons/MoreVert";
-import Colorize from "@material-ui/icons/Colorize";
-import GroupWork from "@material-ui/icons/GroupWork";
+import AnalysisIcon from "@material-ui/icons/Colorize";
+import WAIcon from "@material-ui/icons/GroupWork";
+import SampleLogIcon from "@material-ui/icons/Ballot";
+import SampleDetailsIcon from "@material-ui/icons/Edit";
 
 import Popup from "reactjs-popup";
 
@@ -296,49 +298,51 @@ class SampleDetailsExpansion extends React.Component {
       (this.props.me.auth["Analysis Checker"] ||
         this.props.me.auth["Asbestos Admin"]))
     ) {
-      if (auth.currentUser.uid === sample.analysisUser.id && !sample.verified) {
-        window.alert("Samples must be checked off by a different user.");
-      } else {
-        if (!sample.analysisStart && !sample.verified) this.startAnalysis(sample);
-        let verifyDate = null;
-        let log = {
-          type: "Verified",
-          log: !sample.verified
-            ? `Sample ${sample.sampleNumber} (${sample.description} ${
-                sample.material
-              }) result verified.`
-            : `Sample ${sample.sampleNumber} (${sample.description} ${
-                sample.material
-              }) verification removed.`,
-          user: auth.currentUser.uid,
-          sample: sample.uid,
-          userName: this.props.me.name,
-          date: new Date()
-        };
-        let cocLog = this.props.job.cocLog;
-        cocLog ? cocLog.push(log) : (cocLog = [log]);
-        cocsRef
-          .doc(this.props.job.uid)
-          .update({ versionUpToDate: false, cocLog: cocLog });
-        if (!sample.verified) {
-          sample.verifyDate = new Date();
-          let cocStats = this.props.getStats(sample);
-          this.props.logSample(this.props.job, sample, cocStats);
-          asbestosSamplesRef.doc(sample.uid).update(
-          {
-            verified: true,
-            verifyUser: {id: auth.currentUser.uid, name: this.props.me.name},
-            verifyDate: new Date(),
-            turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
-          });
+      if (!sample.verified || window.confirm("Are you sure you wish to remove the verification of this sample result?")) {
+        if (auth.currentUser.uid === sample.analysisUser.id && !sample.verified) {
+          window.alert("Samples must be checked off by a different user.");
         } else {
-          asbestosSamplesRef.doc(sample.uid).update(
-          {
-            verified: false,
-            verifyUser: firebase.firestore.FieldValue.delete(),
-            verifyDate: firebase.firestore.FieldValue.delete(),
-            turnaroundTime: firebase.firestore.FieldValue.delete(),
-          });
+          if (!sample.analysisStart && !sample.verified) this.startAnalysis(sample);
+          let verifyDate = null;
+          let log = {
+            type: "Verified",
+            log: !sample.verified
+              ? `Sample ${sample.sampleNumber} (${sample.description} ${
+                  sample.material
+                }) result verified.`
+              : `Sample ${sample.sampleNumber} (${sample.description} ${
+                  sample.material
+                }) verification removed.`,
+            user: auth.currentUser.uid,
+            sample: sample.uid,
+            userName: this.props.me.name,
+            date: new Date()
+          };
+          let cocLog = this.props.job.cocLog;
+          cocLog ? cocLog.push(log) : (cocLog = [log]);
+          cocsRef
+            .doc(this.props.job.uid)
+            .update({ versionUpToDate: false, cocLog: cocLog });
+          if (!sample.verified) {
+            sample.verifyDate = new Date();
+            let cocStats = this.props.getStats(sample);
+            this.props.logSample(this.props.job, sample, cocStats);
+            asbestosSamplesRef.doc(sample.uid).update(
+            {
+              verified: true,
+              verifyUser: {id: auth.currentUser.uid, name: this.props.me.name},
+              verifyDate: new Date(),
+              turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
+            });
+          } else {
+            asbestosSamplesRef.doc(sample.uid).update(
+            {
+              verified: false,
+              verifyUser: firebase.firestore.FieldValue.delete(),
+              verifyDate: firebase.firestore.FieldValue.delete(),
+              turnaroundTime: firebase.firestore.FieldValue.delete(),
+            });
+          }
         }
       }
     } else {
@@ -370,8 +374,8 @@ class SampleDetailsExpansion extends React.Component {
     if (sample.analysisStart) analysisColor = "green";
     let verifiedColor = "#ddd";
     if (sample.verified) verifiedColor = "green";
-    let methodColor = "#ddd";
-    if (sample.waAnalysis) methodColor = "green";
+    let waColor = "#ddd";
+    if (sample.waAnalysis) waColor = "green";
     let chColor = "#ddd";
     let amColor = "#ddd";
     let crColor = "#ddd";
@@ -502,7 +506,7 @@ class SampleDetailsExpansion extends React.Component {
                     this.props.startAnalysis(sample);
                   }}
                 >
-                  <Colorize
+                  <AnalysisIcon
                     style={{
                       fontSize: 24,
                       margin: 10,
@@ -622,23 +626,69 @@ class SampleDetailsExpansion extends React.Component {
                   }}
                 />
               </IconButton>
-              <Tooltip id="wa-tooltip" title={sample.waAnalysis ? 'Remove WA Analysis' : 'Add WA Analysis' }>
+              <Tooltip id="det-tooltip" title={'Edit Sample Details' }>
                 <IconButton
                   onClick={event => {
                     event.stopPropagation();
-                    this.toggleWAAnalysis();
-                    }}
+                      this.props.showModal({
+                        modalType: ASBESTOSSAMPLEDETAILS,
+                        modalProps: {
+                          sample: sample,
+                      }});
+                  }}
                 >
-                  <GroupWork
+                  <SampleDetailsIcon
                     style={{
                       fontSize: 24,
                       margin: 10,
-                      color: methodColor
                     }}
                   />
                 </IconButton>
               </Tooltip>
-              <IconButton
+              <Tooltip id="wa-tooltip" title={'Edit WA Analysis' }>
+                <IconButton
+                  onClick={event => {
+                    event.stopPropagation();
+                    this.props.showModal({
+                      modalType: WAANALYSIS,
+                      modalProps: {
+                        sample: sample,
+                    }});
+                  }}
+                >
+                  <WAIcon
+                    style={{
+                      fontSize: 24,
+                      margin: 10,
+                      color: waColor
+                    }}
+                  />
+                </IconButton>
+              </Tooltip>
+              <Tooltip id="sl-tooltip" title={'Sample Log' }>
+                <IconButton
+                  onClick={event => {
+                    event.stopPropagation();
+                    this.props.showModal({
+                      modalType: SAMPLEHISTORY,
+                      modalProps: {
+                        title: `Sample History for ${
+                          job.jobNumber
+                        }-${sample.sampleNumber.toString()}`,
+                        uid: sample.uid,
+                        cocLog: job.cocLog,
+                    }});
+                  }}
+                >
+                  <SampleLogIcon
+                    style={{
+                      fontSize: 24,
+                      margin: 10,
+                    }}
+                  />
+                </IconButton>
+              </Tooltip>
+              {/*<IconButton
                 onClick={event => {
                   event.stopPropagation();
                   this.props.sampleAnchorMenu(sample.sampleNumber, event.currentTarget);
@@ -675,7 +725,7 @@ class SampleDetailsExpansion extends React.Component {
                 >
                   View Sample History
                 </MenuItem>
-              </Menu>
+              </Menu>*/}
               </div>
             </Grid>
           </Grid>
