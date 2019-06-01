@@ -41,7 +41,7 @@ import Send from "@material-ui/icons/Send";
 import Flag from "@material-ui/icons/Flag";
 import More from "@material-ui/icons/MoreVert";
 import Colorize from "@material-ui/icons/Colorize";
-import GroupWork from "@material-ui/icons/GroupWork";
+import WAIcon from "@material-ui/icons/GroupWork";
 
 const mapStateToProps = state => {
   return {
@@ -381,6 +381,19 @@ class AsbestosBulkCocCard extends React.Component {
     cocsRef.doc(this.props.job.uid).update({ priority: this.props.job.priority === 0 ? 1 : 0 });
   }
 
+  toggleWAAnalysis = () => {
+    let cocLog = this.props.job.cocLog;
+    if (!cocLog) cocLog = [];
+    cocLog.push({
+      type: "Admin",
+      log: this.props.job.waAnalysis ? `WA analysis request removed.` : `Chain of Custody flagged for WA analysis.`,
+      user: auth.currentUser.uid,
+      userName: this.props.me.name,
+      date: new Date()
+    });
+    cocsRef.doc(this.props.job.uid).update({ waAnalysis: this.props.job.waAnalysis ? false : true });
+  }
+
   sortSamples = samples => {
     let samplemap = {};
     samples.forEach(sample => {
@@ -689,7 +702,7 @@ class AsbestosBulkCocCard extends React.Component {
         }}
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-          <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.waAnalysis && <GroupWork color='action' />}{job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' />}{job.versionUpToDate && <CheckCircleOutline color='primary' />}</div>
+          <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.waAnalysis && <WAIcon color='action' />}{job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' />}{job.versionUpToDate && <CheckCircleOutline color='primary' />}</div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <div style={{ width: '100%', maxWidth: '1800px'}}>
@@ -819,8 +832,15 @@ class AsbestosBulkCocCard extends React.Component {
                   <Button
                     variant="outlined"
                     onClick={this.togglePriority}>
-                    <Flag color={job.priority === 1 ? 'secondary' : 'action'} style={{ fontSize: 20, margin: 5 }} />
+                    <Flag color={job.priority === 1 ? 'secondary' : 'default'} style={{ fontSize: 20, margin: 5 }} />
                     Mark As Urgent
+                  </Button>
+                  <Button
+                    style={{ marginLeft: 5 }}
+                    variant="outlined"
+                    onClick={this.toggleWAAnalysis}>
+                    <WAIcon color={job.waAnalysis ? 'primary' : 'default'} style={{ fontSize: 20, margin: 5}} />
+                    Flag For WA Analysis
                   </Button>
                   <Button
                     style={{ marginLeft: 5 }}

@@ -11,6 +11,7 @@ import "../../../config/tags.css";
 
 import { SketchPicker } from 'react-color';
 import Button from "@material-ui/core/Button";
+import IconButton from "@material-ui/core/IconButton";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Tooltip from "@material-ui/core/Tooltip";
 import Divider from "@material-ui/core/Divider";
@@ -29,6 +30,8 @@ import FormLabel from "@material-ui/core/FormLabel";
 import TextField from "@material-ui/core/TextField";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import UploadIcon from "@material-ui/icons/CloudUpload";
+import AddIcon from "@material-ui/icons/Add";
+import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal } from "../../../actions/modal";
 import { handleSampleChange } from "../../../actions/asbestosLab";
 import {
@@ -100,6 +103,34 @@ class AsbestosSampleDetailsModal extends React.Component {
     })
   };
 
+  addLayer = () => {
+    let num = this.state.sample.layerNum ? this.state.sample.layerNum : layerNum;
+    num += 1;
+    let sampleLayers = this.state.sample.layers;
+    if (sampleLayers[`layer${num}`] === undefined) {
+      sampleLayers[`layer${num}`] = { color: defaultColor, result: {}, };
+    }
+    this.setState({
+      sample: {
+        ...this.state.sample,
+        layerNum: num,
+        layers: sampleLayers,
+      }
+    });
+  };
+
+  removeLayer = () => {
+    let num = this.state.sample.layerNum ? this.state.sample.layerNum : layerNum;
+    num -= 1;
+    if (num < 1) num = 1;
+    this.setState({
+      sample: {
+        ...this.state.sample,
+        layerNum: num,
+      }
+    });
+  };
+
   render() {
     const { classes, modalProps, modalType } = this.props;
     const { sample } = this.state;
@@ -125,12 +156,28 @@ class AsbestosSampleDetailsModal extends React.Component {
                 value={sample.labDescription}
                 helperText="Provide a detailed description of the material."
                 multiline
-                rows={5}
+                rows={3}
                 onChange={e => {
                   this.setState({
                     sample: {
                       ...sample,
                       labDescription: e.target.value,
+                    }
+                  });
+                }}
+              />
+              <TextField
+                id="labComments"
+                style={{ width: '100%' }}
+                value={sample.labComments}
+                helperText="Note any additional observations or comments."
+                multiline
+                rows={3}
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      labComments: e.target.value,
                     }
                   });
                 }}
@@ -277,7 +324,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                 />
               </div>
               <div className={this.props.classes.subheading}>Dimensions</div>
-              <div style={{ flexDirection: 'row', display: 'flex' }}>
+              <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
                 <TextField
                   id="dimensionsL"
                   label="Length"
@@ -332,13 +379,80 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }}
                 />
               </div>
+              {/*{doc.fileUrl && (
+                <div>
+                  <img
+                    src={doc.fileUrl}
+                    alt=""
+                    width="200px"
+                    style={{
+                      opacity: "0.5",
+                      borderStyle: "solid",
+                      borderWidth: "2px"
+                    }}
+                  />
+                  <IconButton
+                    style={{
+                      position: "relative",
+                      top: "2px",
+                      left: "-120px",
+                      borderStyle: "solid",
+                      borderWidth: "2px",
+                      fontSize: 8
+                    }}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Are you sure you wish to delete the image?"
+                        )
+                      )
+                        this.deleteImage(doc.fileRef, doc.uid);
+                    }}
+                  >
+                    <Close />
+                  </IconButton>
+                </div>
+              )}
+
+              Always allow file upload
+              <InputLabel style={{ fontSize: 12, marginTop: 4 }}>
+                Upload Photos
+              </InputLabel>
+              <label>
+                <UploadIcon className={classes.accentButton} />
+                <input
+                  id="attr_upload_file"
+                  type="file"
+                  style={{ display: "none" }}
+                  onChange={e => {
+                    this.props.onUploadFile({
+                      file: e.currentTarget.files[0],
+                      storagePath:
+                        "attr/" +
+                        modalProps.staffName.replace(/\s+/g, "") +
+                        "/" +
+                        doc.type +
+                        "_"
+                    });
+                  }}
+                />
+                <LinearProgress
+                  style={{ marginTop: 4 }}
+                  variant="determinate"
+                  value={modalProps.uploadProgress}
+                />
+              </label>*/}
             </Grid>
           </Grid>
           <Divider />
           <Grid container>
             <Grid item xs={12}>
-              <div className={this.props.classes.subheading}>Layers</div>
-              {[...Array(layerNum).keys()].map(num => {
+              <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
+                Layers
+                <IconButton size='small' aria-lable='add' style={{ marginLeft: 12 }} onClick={this.addLayer}><AddIcon /></IconButton>
+                <IconButton size='small' aria-lable='remove' style={{ marginLeft: 12 }} onClick={this.removeLayer}><RemoveIcon /></IconButton>
+              </div>
+              {[...Array(sample && sample.layerNum ? sample.layerNum : layerNum).keys()].map(num => {
                 return this.getLayerRow(num+1);
               })}
             </Grid>
@@ -403,19 +517,21 @@ class AsbestosSampleDetailsModal extends React.Component {
         color: {
           width: '36px',
           height: '14px',
-          borderRadius: '2px',
+          borderRadius: '12px',
           background: `rgba(${ layer.color ? layer.color.r : null }, ${ layer.color ? layer.color.g : null }, ${ layer.color ? layer.color.b : null }, ${ layer.color ? layer.color.a : null })`,
         },
         swatch: {
           padding: '5px',
           background: '#fff',
-          borderRadius: '1px',
+          borderRadius: '12px',
           boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
           display: 'inline-block',
           cursor: 'pointer',
         },
         popover: {
-          position: 'absolute',
+          position: 'fixed',
+          top: '45%',
+          left: '45%',
           zIndex: '2',
         },
         cover: {
@@ -429,7 +545,7 @@ class AsbestosSampleDetailsModal extends React.Component {
     });
 
     return(
-      <div key={num} style={{ flexDirection: 'row', display: 'flex', }} className={this.props.classes.hoverItem}>
+      <div key={num} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }} className={this.props.classes.hoverItem}>
         <div
           style={{
             width: 40,
@@ -456,13 +572,13 @@ class AsbestosSampleDetailsModal extends React.Component {
           }}
         />
 
-        <div>
+        <div style={{ marginRight: 12,}}>
           <div style={ styles.swatch } onClick={ () => this.handleColorClick(num) }>
             <div style={ styles.color } />
           </div>
           { this.state.displayColorPicker[num] ? <div style={ styles.popover }>
             <div style={ styles.cover } onClick={ () => this.handleColorClose(num) }/>
-            <SketchPicker color={ this.state.color } onChange={ color => this.setLayerVar('color', num, color.rgb) } />
+            <SketchPicker color={ this.state.sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
           </div> : null }
 
         </div>
@@ -644,7 +760,7 @@ class AsbestosSampleDetailsModal extends React.Component {
   toggleLayerRes = (type, num, stateLayer, removeNo) => {
     let update = {};
     if (removeNo) update = {no: false};
-    if (this.state.sample.layers[`layer${num}`].result && this.state.sample.layers[`layer${num}`].result[type] !== undefined) {
+    if (this.state.sample.layers[`layer${num}`] && this.state.sample.layers[`layer${num}`].result && this.state.sample.layers[`layer${num}`].result[type] !== undefined) {
       update[type] = !this.state.sample.layers[`layer${num}`].result[type];
     } else {
       update[type] = true;
