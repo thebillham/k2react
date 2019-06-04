@@ -154,9 +154,7 @@ export const fetchAsbestosAnalysis = update => async dispatch => {
         });
       });
   } else {
-    console.log('fetch analysis');
     stateRef.doc("asbestosanalysis").onSnapshot(doc => {
-      console.log(doc.data());
       if (doc.exists) {
         dispatch({ type: GET_ASBESTOS_ANALYSIS, payload: doc.data() });
       } else {
@@ -213,7 +211,6 @@ export const fetchSampleLog = (update) => async dispatch => {
       });
   } else {
     stateRef.doc("asbestosSampleLog").onSnapshot(doc => {
-      console.log(doc.data());
       if (doc.exists) {
         dispatch({ type: GET_SAMPLE_LOG, payload: doc.data() });
       } else {

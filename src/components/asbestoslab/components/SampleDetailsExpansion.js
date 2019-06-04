@@ -45,7 +45,6 @@ import Divider from "@material-ui/core/Divider";
 import Tooltip from "@material-ui/core/Tooltip";
 
 import ExpandMore from "@material-ui/icons/ExpandMore";
-import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 import Edit from "@material-ui/icons/Edit";
 import Inbox from "@material-ui/icons/Inbox";
 import Save from "@material-ui/icons/SaveAlt";
@@ -58,6 +57,7 @@ import AnalysisIcon from "@material-ui/icons/Colorize";
 import WAIcon from "@material-ui/icons/GroupWork";
 import SampleLogIcon from "@material-ui/icons/Ballot";
 import SampleDetailsIcon from "@material-ui/icons/Edit";
+import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 
 import Popup from "reactjs-popup";
 
@@ -193,7 +193,7 @@ class SampleDetailsExpansion extends React.Component {
       });
 
       if (notBlankAnalysis) {
-        if (!sample.analysisStart) this.startAnalysis(sample);
+        if (!sample.analysisStart) this.props.startAnalysis(sample);
         asbestosAnalysisRef.doc(`${this.props.sessionID}-${sample.uid}`).set({
           analyst: this.props.analyst,
           analystUID: auth.currentUser.uid,
@@ -354,7 +354,7 @@ class SampleDetailsExpansion extends React.Component {
 
   render() {
     const { job, sample, staff, anchorEl, classes } = this.props;
-    if (sample.cocUid !== job.uid) return;
+    if (sample.cocUid !== job.uid) return null;
     let result = "none";
     if (
       sample.result &&

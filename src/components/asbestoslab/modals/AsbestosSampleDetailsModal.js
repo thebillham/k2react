@@ -449,8 +449,8 @@ class AsbestosSampleDetailsModal extends React.Component {
             <Grid item xs={12}>
               <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
                 Layers
-                <IconButton size='small' aria-lable='add' style={{ marginLeft: 12 }} onClick={this.addLayer}><AddIcon /></IconButton>
-                <IconButton size='small' aria-lable='remove' style={{ marginLeft: 12 }} onClick={this.removeLayer}><RemoveIcon /></IconButton>
+                <IconButton size='small' aria-label='add' style={{ marginLeft: 12 }} onClick={this.addLayer}><AddIcon /></IconButton>
+                <IconButton size='small' aria-label='remove' style={{ marginLeft: 12 }} onClick={this.removeLayer}><RemoveIcon /></IconButton>
               </div>
               {[...Array(sample && sample.layerNum ? sample.layerNum : layerNum).keys()].map(num => {
                 return this.getLayerRow(num+1);

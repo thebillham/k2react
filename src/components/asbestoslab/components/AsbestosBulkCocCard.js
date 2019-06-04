@@ -832,14 +832,14 @@ class AsbestosBulkCocCard extends React.Component {
                   <Button
                     variant="outlined"
                     onClick={this.togglePriority}>
-                    <Flag color={job.priority === 1 ? 'secondary' : 'default'} style={{ fontSize: 20, margin: 5 }} />
+                    <Flag color={job.priority === 1 ? 'secondary' : 'inherit'} style={{ fontSize: 20, margin: 5 }} />
                     Mark As Urgent
                   </Button>
                   <Button
                     style={{ marginLeft: 5 }}
                     variant="outlined"
                     onClick={this.toggleWAAnalysis}>
-                    <WAIcon color={job.waAnalysis ? 'primary' : 'default'} style={{ fontSize: 20, margin: 5}} />
+                    <WAIcon color={job.waAnalysis ? 'primary' : 'inherit'} style={{ fontSize: 20, margin: 5}} />
                     Flag For WA Analysis
                   </Button>
                   <Button
@@ -959,10 +959,10 @@ class AsbestosBulkCocCard extends React.Component {
                     <br />
                   </Grid>
                 </Grid>
-                {samples[job.uid] &&
+                {samples[job.uid] && Object.values(samples[job.uid]).filter(el => el.deleted === false).length > 0 &&
                   Object.values(samples[job.uid]).filter(el => el.deleted === false)
-                  .map(sample =>
-                    <SampleDetailsExpansion
+                  .map(sample => {
+                    return (<SampleDetailsExpansion
                       key={sample.uid}
                       job={job}
                       sample={sample}
@@ -971,8 +971,9 @@ class AsbestosBulkCocCard extends React.Component {
                       startAnalysis={this.startAnalysis}
                       anchorEl={this.state.sampleAnchorEl[sample.sampleNumber]}
                       getStats={this.getStats}
-                    />
-                  )}
+                    />);
+                  }
+                )}
               </div>
             ) : (
               <div
