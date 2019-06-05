@@ -679,6 +679,8 @@ export const fetchWFMJobs = () => async dispatch => {
   let path = `${process.env.REACT_APP_WFM_ROOT}job.api/current?apiKey=${
     process.env.REACT_APP_WFM_API
   }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+  let len = 100;
+  let str = '';
   fetch(path)
     .then(results => results.text())
     .then(data => {
@@ -691,6 +693,13 @@ export const fetchWFMJobs = () => async dispatch => {
         job.jobNumber = wfmJob.ID ? wfmJob.ID : "No job number";
         job.wfmID = wfmJob.InternalID;
         job.address = wfmJob.Name ? wfmJob.Name : "No address";
+        let i = job.address.length;
+        if (i < len) {
+          len = i;
+          str = job.address;
+          console.log(`${str} (${len})`);
+        }
+
         job.description = wfmJob.Description
           ? wfmJob.Description
           : "No description";
@@ -734,6 +743,7 @@ export const fetchWFMJobs = () => async dispatch => {
         job.type = wfmJob.Type ? wfmJob.Type : "Other";
         jobs.push(job);
       });
+      console.log(`${str} (${len})`);
       dispatch({
         type: GET_WFM_JOBS,
         payload: jobs
@@ -877,6 +887,8 @@ export const fetchWFMClients = () => async dispatch => {
   let path = `${process.env.REACT_APP_WFM_ROOT}client.api/list?apiKey=${
     process.env.REACT_APP_WFM_API
   }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+  let len = 100;
+  let str = '';
   fetch(path)
     .then(results => results.text())
     .then(data => {
@@ -886,6 +898,11 @@ export const fetchWFMClients = () => async dispatch => {
       // Map WFM jobs to a single level job object we can use
       json.Response.Clients.Client.forEach(wfmClient => {
         // console.log(wfmClient);
+        let i = wfmClient.Name.length;
+        if (i < len) {
+          len = i;
+          str = wfmClient.Name;
+        }
         let client = {};
         client.wfmID = wfmClient.ID;
         client.name = wfmClient.Name;
@@ -896,6 +913,7 @@ export const fetchWFMClients = () => async dispatch => {
         // client.postalAddress = wfmClient.postalAddress;
         clients.push(client);
       });
+      console.log(`${str} (${len})`);
       // console.log(clients);
       dispatch({
         type: GET_WFM_CLIENTS,
