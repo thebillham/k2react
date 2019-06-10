@@ -374,8 +374,8 @@ class SampleDetailsExpansion extends React.Component {
     if (sample.analysisStart) analysisColor = "green";
     let verifiedColor = "#ddd";
     if (sample.verified) verifiedColor = "green";
-    let waColor = "#ddd";
-    if (sample.waAnalysis) waColor = "green";
+    let waColor = "inherit";
+    if (sample.waAnalysisDone) waColor = "green";
     let chColor = "#ddd";
     let amColor = "#ddd";
     let crColor = "#ddd";
@@ -645,26 +645,28 @@ class SampleDetailsExpansion extends React.Component {
                   />
                 </IconButton>
               </Tooltip>
-              <Tooltip id="wa-tooltip" title={'Edit WA Analysis' }>
-                <IconButton
-                  onClick={event => {
-                    event.stopPropagation();
-                    this.props.showModal({
-                      modalType: WAANALYSIS,
-                      modalProps: {
-                        sample: sample,
-                    }});
-                  }}
-                >
-                  <WAIcon
-                    style={{
-                      fontSize: 24,
-                      margin: 10,
-                      color: waColor
+              {job.waAnalysis &&
+                <Tooltip id="wa-tooltip" title={'Edit WA Analysis' }>
+                  <IconButton
+                    onClick={event => {
+                      event.stopPropagation();
+                      this.props.showModal({
+                        modalType: WAANALYSIS,
+                        modalProps: {
+                          sample: sample,
+                      }});
                     }}
-                  />
-                </IconButton>
-              </Tooltip>
+                  >
+                    <WAIcon
+                      style={{
+                        fontSize: 24,
+                        margin: 10,
+                        color: waColor
+                      }}
+                    />
+                  </IconButton>
+                </Tooltip>
+              }
               <Tooltip id="sl-tooltip" title={'Sample Log' }>
                 <IconButton
                   onClick={event => {

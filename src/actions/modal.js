@@ -9,8 +9,10 @@ import {
   EDIT_MODAL,
   GET_SAMPLES,
   RESET_MODAL,
+  RESET_MODAL_SECONDARY,
   SET_MODAL_ERROR,
-  SHOW_MODAL
+  SHOW_MODAL,
+  SHOW_MODAL_SECONDARY,
 } from "../constants/action-types";
 
 import { storage, cocsRef, asbestosSamplesRef } from "../config/firebase";
@@ -25,6 +27,12 @@ export const hideModal = () => dispatch => {
   });
 };
 
+export const hideModalSecondary = () => dispatch => {
+  dispatch({
+    type: RESET_MODAL_SECONDARY
+  });
+};
+
 export const showModal = ({ modalType, modalProps }) => dispatch => {
   dispatch({
     type: SHOW_MODAL,
@@ -32,6 +40,14 @@ export const showModal = ({ modalType, modalProps }) => dispatch => {
     modalProps
   });
 };
+
+export const showModalSecondary = ({ modalType, modalProps }) => dispatch => {
+  dispatch({
+    type: SHOW_MODAL_SECONDARY,
+    modalType,
+    modalProps,
+  })
+}
 
 export const onUploadFile = ({ file, storagePath }) => async dispatch => {
   if (!file) return;

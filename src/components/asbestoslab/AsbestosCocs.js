@@ -20,6 +20,7 @@ import CocModal from "./modals/CocModal";
 import UpdateCertificateVersionModal from "./modals/UpdateCertificateVersionModal";
 import QCAnalysisModal from "./modals/QCAnalysisModal";
 import WAAnalysisModal from "./modals/WAAnalysisModal";
+import SoilDetailsModal from "./modals/SoilDetailsModal";
 import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
 import SampleHistoryModal from "./modals/SampleHistoryModal";
@@ -125,6 +126,7 @@ class AsbestosCocs extends React.Component {
         <AsbestosSampleDetailsModal />
         <DownloadLabCertificateModal />
         <CocLogModal />
+        <SoilDetailsModal />
         <Grid container spacing={16} alignItems='flex-start'>
           <Grid item>
             <Button

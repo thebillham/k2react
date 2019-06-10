@@ -8,9 +8,12 @@ import {
   EDIT_MODAL_SAMPLE,
   EDIT_MODAL,
   HIDE_MODAL,
+  HIDE_MODAL_SECONDARY,
   RESET_MODAL,
+  RESET_MODAL_SECONDARY,
   SET_MODAL_ERROR,
-  SHOW_MODAL
+  SHOW_MODAL,
+  SHOW_MODAL_SECONDARY,
 } from "../constants/action-types";
 
 const modalInit = {
@@ -24,7 +27,13 @@ const modalInit = {
     isUploading: false,
     uploadProgress: 0,
     tags: []
-  }
+  },
+  modalTypeSecondary: null,
+  modalPropsSecondary: {
+    doc: {
+
+    },
+  },
 };
 
 // All properties related to dialog boxes etc.
@@ -32,6 +41,15 @@ export default function modalReducer(state = modalInit, action) {
   switch (action.type) {
     case RESET_MODAL:
       return modalInit;
+    case RESET_MODAL_SECONDARY:
+      return {...state,
+        modalTypeSecondary: null,
+        modalPropsSecondary: {
+          doc: {
+
+          },
+        }
+      }
     case SHOW_MODAL:
       return {
         modalProps: {
@@ -40,8 +58,16 @@ export default function modalReducer(state = modalInit, action) {
         },
         modalType: action.modalType
       };
+    case SHOW_MODAL_SECONDARY:
+      return {
+        ...state,
+        modalPropsSecondary: {
+          ...state.modalPropsSecondary,
+          ...action.modalProps
+        },
+        modalTypeSecondary: action.modalType
+      };
     case EDIT_MODAL_DOC:
-    console.log('Edit modal doc');
       return {
         ...state,
         modalProps: {
@@ -53,8 +79,6 @@ export default function modalReducer(state = modalInit, action) {
         }
       };
     case EDIT_MODAL_DOC_SAMPLES:
-    console.log('Edit modal doc samples');
-    console.log(state.modalProps.doc);
       return {
         ...state,
         modalProps: {
@@ -154,6 +178,11 @@ export default function modalReducer(state = modalInit, action) {
       return {
         ...state,
         modalType: null
+      };
+    case HIDE_MODAL_SECONDARY:
+      return {
+        ...state,
+        modalTypeSecondary: null
       };
     case ADD_TAG:
       return {
