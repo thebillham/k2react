@@ -162,21 +162,6 @@ class WAAnalysisModal extends React.Component {
         <DialogContent>
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={5}>
-              <Button
-                variant="outlined"
-                style={{ marginBottom: 16, width: 220 }}
-                onClick={() => {
-                  this.props.showModalSecondary({
-                    modalType: SOILDETAILS,
-                    modalProps: {
-                      title: "Edit Soil Details",
-                      sample: sample,
-                    }
-                  });
-                }}
-              >
-                Edit Soil Details
-              </Button>
               <div className={this.props.classes.subheading}>Description</div>
               <TextField
                 id="labDescription"
@@ -212,43 +197,24 @@ class WAAnalysisModal extends React.Component {
               />
               <div className={this.props.classes.subheading}>Sample Conditioning</div>
               <FormGroup row>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={sample.sampleConditioningFurnace ?
-                      sample.sampleConditioningFurnace :
-                      false }
-                    onChange={e => {
-                      this.setState({
-                        sample: {
-                          ...sample,
-                          sampleConditioningFurnace: e.target.checked,
-                        }
-                      });
-                    }}
-                    value="sampleConditioningFurnace"
-                  />
-                }
-                label="Furnace"
-              />
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={sample.sampleConditioningFlame ?
-                        sample.sampleConditioningFlame :
-                        false}
+                      checked={sample.sampleConditioningFurnace ?
+                        sample.sampleConditioningFurnace :
+                        false }
                       onChange={e => {
                         this.setState({
                           sample: {
                             ...sample,
-                            sampleConditioningFlame: e.target.checked,
+                            sampleConditioningFurnace: e.target.checked,
                           }
                         });
                       }}
-                      value="sampleConditioningFlame"
+                      value="sampleConditioningFurnace"
                     />
                   }
-                  label="Flame"
+                  label="Furnace"
                 />
                 <FormControlLabel
                   control={
@@ -269,36 +235,15 @@ class WAAnalysisModal extends React.Component {
                   }
                   label="Low Heat/Drying"
                 />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sample.sampleConditioningDCM ?
-                        sample.sampleConditioningDCM :
-                        false}
-                      onChange={e => {
-                        this.setState({
-                          sample: {
-                            ...sample,
-                            sampleConditioningDCM: e.target.checked,
-                          }
-                        });
-                      }}
-                      value="sampleConditioningDCM"
-                    />
-                  }
-                  label="Dichloromethane"
-                />
               </FormGroup>
-            </Grid>
-            <Grid item xs={1} />
-            <Grid item xs={6}>
+
               <div className={this.props.classes.subheading}>Weight</div>
               <div style={{ display: 'flex', flexDirection: 'row'}}>
                 <TextField
                   id="weightReceived"
                   label="Weight as Received"
                   value={sample.weightReceived ? sample.weightReceived : ''}
-                  helperText="Record the weight as received (e.g. before any conditioning)."
+                  helperText="Record the weight as received (i.e. entire sample received by client)."
                   InputProps={{
                     endAdornment: <InputAdornment position="end">g</InputAdornment>,
                   }}
@@ -316,7 +261,7 @@ class WAAnalysisModal extends React.Component {
                   label="Weight Analysed"
                   style={{ marginLeft: 12, }}
                   value={sample.weightAnalysed ? sample.weightAnalysed : ''}
-                  helperText="Record the weight analysed (e.g. after conditioning such as furnacing)."
+                  helperText="Record the weight analysed (i.e. portion selected for analysis)."
                   InputProps={{
                     endAdornment: <InputAdornment position="end">g</InputAdornment>,
                   }}
@@ -329,63 +274,44 @@ class WAAnalysisModal extends React.Component {
                     });
                   }}
                 />
-              </div>
-              <div className={this.props.classes.subheading}>Dimensions</div>
-              <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
                 <TextField
-                  id="dimensionsL"
-                  label="Length"
-                  style={{ width: '100%', margin: 12, }}
-                  value={sample.dimensionsL ? sample.dimensionsL : ''}
+                  id="weightConditioned"
+                  label="Weight Conditioned"
+                  style={{ marginLeft: 12, }}
+                  value={sample.weightConditioned ? sample.weightConditioned : ''}
+                  helperText="Record the conditioned weight (e.g. after conditioning such as furnacing)."
                   InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>,
+                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
                   }}
                   onChange={e => {
                     this.setState({
                       sample: {
                         ...sample,
-                        dimensionsL: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
-                <TextField
-                  id="dimensionsW"
-                  label="Width"
-                  style={{ width: '100%', margin: 12, }}
-                  value={sample.dimensionsW ? sample.dimensionsW : ''}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      sample: {
-                        ...sample,
-                        dimensionsW: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
-                <TextField
-                  id="dimensionsD"
-                  label="Depth/Thickness"
-                  style={{ width: '100%', margin: 12 }}
-                  value={sample.dimensionsD ? sample.dimensionsD : ''}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      sample: {
-                        ...sample,
-                        dimensionsD: e.target.value,
+                        weightConditioned: e.target.value,
                       }
                     });
                   }}
                 />
               </div>
+            </Grid>
+            <Grid item xs={1} />
+            <Grid item xs={6}>
+              <div className={this.props.classes.subheading}>Soil Type</div>
+              <Button
+                variant="outlined"
+                style={{ marginBottom: 16, width: 220 }}
+                onClick={() => {
+                  this.props.showModalSecondary({
+                    modalType: SOILDETAILS,
+                    modalProps: {
+                      title: "Edit Soil Description",
+                      sample: sample,
+                    }
+                  });
+                }}
+              >
+                Edit Soil Details
+              </Button>
             </Grid>
           </Grid>
           <Divider />
@@ -420,8 +346,25 @@ class WAAnalysisModal extends React.Component {
     let title = '< 2mm Fraction';
     if (fraction === 'to7') title = '2 - 7 mm Fraction';
     else if (fraction === 'gt7') title = '> 7mm Fraction';
+    let weightFA = 0.0;
+    let weightAF = 0.0;
+    let weightACM = 0.0;
+    let weightConditioned = this.state.sample.weightConditioned;
+
+    [...Array(this.state.sample && this.state.sample.layerNum && this.state.sample.layerNum[fraction] ? this.state.sample.layerNum[fraction] : layerNum).keys()].forEach(num => {
+      if (this.state.sample && this.state.sample.waSoilAnalysis && this.state.sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] !== undefined) {
+        let sub = this.state.sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
+        if (sub.weight && sub.concentration) {
+          let asbestosWeight = (parseFloat(sub.weight) * parseFloat(sub.concentration) / 100).toPrecision(3);
+
+          if (sub.type === 'fa') weightFA += parseFloat(asbestosWeight);
+            else if (sub.type === 'af') weightAF += parseFloat(asbestosWeight);
+            else if (sub.type === 'acm') weightACM += parseFloat(asbestosWeight);
+        }
+      }
+    });
     return(
-      <div style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: '50%', display: 'flex', flexDirection: 'column', padding: 12, margin: 12, }}>
+      <div key={fraction} style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: '1200px', display: 'flex', flexDirection: 'column', padding: 12, margin: 12, }}>
         <div style={{ fontWeight: 500, fontSize: 16, }}>{title}</div>
         <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
           Layers
@@ -431,6 +374,18 @@ class WAAnalysisModal extends React.Component {
         {[...Array(this.state.sample && this.state.sample.layerNum && this.state.sample.layerNum[fraction] ? this.state.sample.layerNum[fraction] : layerNum).keys()].map(num => {
           return this.getSubfractionRow(num+1, fraction);
         })}
+        <div style={{ flexDirection: 'row', display: 'flex', justifyContent: 'flex-end'}}>
+          <div style={{ marginRight: 24, justifyContent: 'flex-end'}}>
+            <div style={{ fontWeight: 500 }}>ACM Bonded</div>
+            <div style={{ fontWeight: 500 }}>Friable Asbestos</div>
+            <div style={{ fontWeight: 500 }}>Asbestos Fines</div>
+          </div>
+          <div style={{ width: 140, marginRight: 100 }}>
+            <div>{weightACM.toPrecision(4)}g {weightConditioned && <span>({(weightACM/weightConditioned*100).toFixed(4)}%)</span>}</div>
+            <div>{weightFA.toPrecision(4)}g {weightConditioned && <span>({(weightFA/weightConditioned*100).toFixed(4)}%)</span>}</div>
+            <div>{weightAF.toPrecision(4)}g {weightConditioned && <span>({(weightAF/weightConditioned*100).toFixed(4)}%)</span>}</div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -446,8 +401,8 @@ class WAAnalysisModal extends React.Component {
     }
 
     return(
-      <div>
-        <div key={num} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }} className={this.props.classes.hoverItem}>
+      <div key={num+fraction}>
+        <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }} className={this.props.classes.hoverItem}>
           <div
             style={{
               width: 40,
@@ -470,6 +425,7 @@ class WAAnalysisModal extends React.Component {
             InputLabelProps={{ shrink: true }}
             style={{ width: '10%', marginRight: 14, }}
             value={layer.weight ? layer.weight : ''}
+            type='number'
             onChange={e => {
               this.setLayerVar('weight', num, fraction, e.target.value);
             }}
@@ -478,8 +434,10 @@ class WAAnalysisModal extends React.Component {
             id={`l${num}Concentration`}
             label="Asbestos %"
             InputLabelProps={{ shrink: true }}
+            InputProps = {{ inputProps: { min: 0, max: 100 }}}
             style={{ width: '10%', marginRight: 14, }}
             value={layer.concentration ? layer.concentration : ''}
+            type='number'
             onChange={e => {
               this.setLayerVar('concentration', num, fraction, e.target.value);
             }}
@@ -489,10 +447,7 @@ class WAAnalysisModal extends React.Component {
             label="Asbestos Weight (g)"
             InputLabelProps={{ shrink: true, readOnly: true, }}
             style={{ width: '10%', marginRight: 14, }}
-            value={layer.weight && layer.concentration ? (parseFloat(layer.weight) * parseFloat(layer.concentration) / 100).toPrecision(3) : ''}
-            onChange={e => {
-              this.setLayerVar('asbestosWeight', num, fraction, e.target.value);
-            }}
+            value={layer.concentration && layer.weight ? (parseFloat(layer.weight) * parseFloat(layer.concentration) / 100).toPrecision(3) : ''}
           />
 
           <FormControl component="fieldset">
