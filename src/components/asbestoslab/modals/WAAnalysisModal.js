@@ -466,10 +466,10 @@ class WAAnalysisModal extends React.Component {
           </div>
           <TextField
             id={`l${num}Weight`}
-            label="Weight"
+            label="Weight (g)"
             InputLabelProps={{ shrink: true }}
             style={{ width: '10%', marginRight: 14, }}
-            value={layer.weight ? layer.description : ''}
+            value={layer.weight ? layer.weight : ''}
             onChange={e => {
               this.setLayerVar('weight', num, fraction, e.target.value);
             }}
@@ -479,9 +479,19 @@ class WAAnalysisModal extends React.Component {
             label="Asbestos %"
             InputLabelProps={{ shrink: true }}
             style={{ width: '10%', marginRight: 14, }}
-            value={layer.concentration ? layer.concentration : 0}
+            value={layer.concentration ? layer.concentration : ''}
             onChange={e => {
               this.setLayerVar('concentration', num, fraction, e.target.value);
+            }}
+          />
+          <TextField
+            id={`l${num}AsbestosWeight`}
+            label="Asbestos Weight (g)"
+            InputLabelProps={{ shrink: true, readOnly: true, }}
+            style={{ width: '10%', marginRight: 14, }}
+            value={layer.weight && layer.concentration ? (parseFloat(layer.weight) * parseFloat(layer.concentration) / 100).toPrecision(3) : ''}
+            onChange={e => {
+              this.setLayerVar('asbestosWeight', num, fraction, e.target.value);
             }}
           />
 

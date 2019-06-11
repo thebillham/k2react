@@ -136,7 +136,7 @@ class MainScreen extends React.Component {
       anchorEl: null,
       staffUid: null,
       openDev: false,
-      openAsbestos: false,
+      openAsbestos: true,
       // openRef: false,
       // openStaff: false,
       // openMyDetails: false,
