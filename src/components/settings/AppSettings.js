@@ -73,6 +73,7 @@ class AppSettings extends React.Component {
       "Surface Suggestions",
       "Why Not Sampled Suggestions",
       "Asbestos Types",
+      "Skills List",
       "Document Tag Suggestions",
       "Quiz Tag Suggestions",
       "Document Categories",
@@ -177,6 +178,44 @@ class AppSettings extends React.Component {
                 <TextField
                   id="buildingitems"
                   label="Building Items"
+                  multiline
+                  defaultValue={
+                    doc &&
+                    doc.buildingitems &&
+                    doc.buildingitems
+                      .map(obj => {
+                        return obj.hint == undefined ? `${obj.label}` : `${obj.label}|${obj.hint}`;
+                      })
+                      .join("\n")
+                  }
+                  helperText='Put each item on a new line in the form "item name|hint text".'
+                  className={classes.dialogField}
+                  onChange={e => {
+                    this.props.handleModalChange({
+                      id: e.target.id,
+                      value: e.target.value
+                        .split("\n")
+                        .filter(Boolean)
+                        .sort()
+                        .map(option => {
+                          let list = option.split("|");
+                          return {
+                            hint: list[1] ? list[1] : list[0],
+                            label: list[0]
+                          };
+                        })
+                        .map(option => {
+                          return { label: option };
+                        })
+                    });
+                  }}
+                />
+              )}
+
+              {setting === "Skills List" && (
+                <TextField
+                  id="skillslist"
+                  label="Skills List"
                   multiline
                   defaultValue={
                     doc &&
