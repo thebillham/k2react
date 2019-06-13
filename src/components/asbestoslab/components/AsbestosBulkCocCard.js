@@ -75,6 +75,7 @@ class AsbestosBulkCocCard extends React.Component {
     sampleAnchorEl: {},
     cocAnchorEl: null,
     samplesExpanded: {},
+    expanded: false,
   };
 
   componentWillMount = () => {
@@ -97,6 +98,7 @@ class AsbestosBulkCocCard extends React.Component {
 
   getStats = () => {
     // let nz = moment.tz.setDefault("Pacific/Auckland");
+    if (this.state.expanded === false) return null;
     moment.tz.setDefault("Pacific/Auckland");
     moment.updateLocale('en', {
       // workingWeekdays: [1,2,3,4,5],
@@ -154,57 +156,60 @@ class AsbestosBulkCocCard extends React.Component {
 
     if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
       Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
-        totalSamples = totalSamples + 1;
-        if (sample.receivedByLab) numberReceived = numberReceived + 1;
-        if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
-        if (sample.result) {
-          numberResult = numberResult + 1;
-          if (sample.result['no']) {
-            negativeSamples = negativeSamples + 1;
-          } else positiveSamples = positiveSamples + 1;
-          if (sample.analysisTime) {
-            if (sample.analysisTime > maxAnalysisTime) maxAnalysisTime = sample.analysisTime;
-            totalAnalysisTime = totalAnalysisTime + sample.analysisTime;
-            numAnalysisTime = numAnalysisTime + 1;
-            averageAnalysisTime = totalAnalysisTime / numAnalysisTime;
-          }
-          let analysisBusinessTime = moment(sample.analysisDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
-          if (analysisBusinessTime > maxAnalysisBusinessTime) maxAnalysisBusinessTime = analysisBusinessTime;
-          totalAnalysisBusinessTime = totalAnalysisBusinessTime + analysisBusinessTime;
-          numAnalysisBusinessTime = numAnalysisBusinessTime + 1;
-          averageAnalysisBusinessTime = totalAnalysisBusinessTime / numAnalysisBusinessTime;
-        }
-        if (sample.verified) {
-          numberVerified = numberVerified + 1;
-          if (sample.turnaroundTime) {
-            if (sample.turnaroundTime > maxTurnaroundTime) maxTurnaroundTime = sample.turnaroundTime;
-            totalTurnaroundTime = totalTurnaroundTime + sample.turnaroundTime;
-            numTurnaroundTime = numTurnaroundTime + 1;
-            averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
-            // Check for time between analysis logging and verification
-            let turnaroundBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
-            if (turnaroundBusinessTime > maxTurnaroundBusinessTime) maxTurnaroundBusinessTime = turnaroundBusinessTime;
-            totalTurnaroundBusinessTime = totalTurnaroundBusinessTime + turnaroundBusinessTime;
-            numTurnaroundBusinessTime = numTurnaroundBusinessTime + 1;
-            averageTurnaroundBusinessTime = totalTurnaroundBusinessTime / numTurnaroundBusinessTime;
-
+        if (sample.cocUid === this.props.job.uid) {
+          totalSamples = totalSamples + 1;
+          if (sample.receivedByLab) numberReceived = numberReceived + 1;
+          if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
+          if (sample.result) {
+            numberResult = numberResult + 1;
+            if (sample.result['no']) {
+              negativeSamples = negativeSamples + 1;
+            } else positiveSamples = positiveSamples + 1;
             if (sample.analysisTime) {
-              let verifyTime = sample.turnaroundTime - sample.analysisTime;
-              if (verifyTime > maxReportTime) maxReportTime = verifyTime;
-              totalReportTime = totalReportTime + verifyTime;
-              numReportTime = numReportTime + 1;
-              averageReportTime = totalReportTime / numReportTime;
+              if (sample.analysisTime > maxAnalysisTime) maxAnalysisTime = sample.analysisTime;
+              totalAnalysisTime = totalAnalysisTime + sample.analysisTime;
+              numAnalysisTime = numAnalysisTime + 1;
+              averageAnalysisTime = totalAnalysisTime / numAnalysisTime;
             }
+            let analysisBusinessTime = moment(sample.analysisDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
+            if (analysisBusinessTime > maxAnalysisBusinessTime) maxAnalysisBusinessTime = analysisBusinessTime;
+            totalAnalysisBusinessTime = totalAnalysisBusinessTime + analysisBusinessTime;
+            numAnalysisBusinessTime = numAnalysisBusinessTime + 1;
+            averageAnalysisBusinessTime = totalAnalysisBusinessTime / numAnalysisBusinessTime;
+          }
+          if (sample.verified) {
+            numberVerified = numberVerified + 1;
+            if (sample.turnaroundTime) {
+              if (sample.turnaroundTime > maxTurnaroundTime) maxTurnaroundTime = sample.turnaroundTime;
+              totalTurnaroundTime = totalTurnaroundTime + sample.turnaroundTime;
+              numTurnaroundTime = numTurnaroundTime + 1;
+              averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
+              // Check for time between analysis logging and verification
+              let turnaroundBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
+              if (turnaroundBusinessTime > maxTurnaroundBusinessTime) maxTurnaroundBusinessTime = turnaroundBusinessTime;
+              totalTurnaroundBusinessTime = totalTurnaroundBusinessTime + turnaroundBusinessTime;
+              numTurnaroundBusinessTime = numTurnaroundBusinessTime + 1;
+              averageTurnaroundBusinessTime = totalTurnaroundBusinessTime / numTurnaroundBusinessTime;
 
-            let reportBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.analysisDate.toDate()));
-            if (reportBusinessTime > maxReportBusinessTime) maxReportBusinessTime = reportBusinessTime;
-            totalReportBusinessTime = totalReportBusinessTime + reportBusinessTime;
-            numReportBusinessTime = numReportBusinessTime + 1;
-            averageReportBusinessTime = totalReportBusinessTime / numReportBusinessTime;
+              if (sample.analysisTime) {
+                let verifyTime = sample.turnaroundTime - sample.analysisTime;
+                if (verifyTime > maxReportTime) maxReportTime = verifyTime;
+                totalReportTime = totalReportTime + verifyTime;
+                numReportTime = numReportTime + 1;
+                averageReportTime = totalReportTime / numReportTime;
+              }
+
+              let reportBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.analysisDate.toDate()));
+              if (reportBusinessTime > maxReportBusinessTime) maxReportBusinessTime = reportBusinessTime;
+              totalReportBusinessTime = totalReportBusinessTime + reportBusinessTime;
+              numReportBusinessTime = numReportBusinessTime + 1;
+              averageReportBusinessTime = totalReportBusinessTime / numReportBusinessTime;
+            }
           }
         }
       });
     }
+
     if (this.props.job.versionUpToDate) {
       status = 'Issued';
     } else if (totalSamples === 0) {
@@ -228,7 +233,8 @@ class AsbestosBulkCocCard extends React.Component {
     } else if (numberReceived > 0) {
       status = 'Partially Received By Lab';
     }
-    return {
+
+    let stats = {
       status,
       totalSamples,
       positiveSamples,
@@ -250,6 +256,9 @@ class AsbestosBulkCocCard extends React.Component {
       maxReportBusinessTime,
       averageReportBusinessTime,
     };
+
+    if (totalSamples !== 0 && this.props.job.stats !== stats) cocsRef.doc(this.props.job.uid).update({ stats });
+    return stats;
   }
 
   sampleAnchorMenu = (number, target) => {
@@ -699,10 +708,18 @@ class AsbestosBulkCocCard extends React.Component {
         style={{ width: '100%'}}
         onChange={(event, ex) => {
           if (!job.samples) this.getSamples(ex, job.uid, job.jobNumber);
+          this.setState({ expanded: ex });
         }}
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-          <div><b>{job.jobNumber}</b> {job.client} ({job.address}) {job.waAnalysis && <WAIcon color='action' />}{job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' />}{job.versionUpToDate && <CheckCircleOutline color='primary' />}</div>
+          <div>
+            <span style={{ fontWeight: 500, marginRight: 12, }}>{job.jobNumber}</span>
+            <span style={{ marginRight: 12, }}>{job.client} ({job.address})</span>
+            {job.waAnalysis && <WAIcon color='action' />}
+            {job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' />}
+            {job.versionUpToDate && <CheckCircleOutline color='primary' />}
+            {job.stats && <span style={{ marginLeft: 12, fontSize: 10, fontWeight: 500, }}>{job.stats.status.toUpperCase()}</span>}
+          </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <div style={{ width: '100%', maxWidth: '1800px'}}>
@@ -860,9 +877,6 @@ class AsbestosBulkCocCard extends React.Component {
                   </Button>
                 </div>
                 <Grid container style={{ marginTop: 12, marginBottom: 12 }}>
-                  <Grid item xs={12} style={{ fontWeight: 500, fontSize: 16, marginBottom: 12, }}>
-                    STATUS: {stats && stats.status.toUpperCase()}
-                  </Grid>
                   <Grid item lg={3} xs={6}>
                     Sampled by:{" "}
                     <span style={{ fontWeight: 300 }}>

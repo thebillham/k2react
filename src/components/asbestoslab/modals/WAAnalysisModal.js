@@ -327,7 +327,7 @@ class WAAnalysisModal extends React.Component {
                 }
               )}
             </Grid>
-            <Grid item xs={12} xl={4} alignItems='center'>
+            <Grid item xs={12} xl={4}>
               {this.getTotals()}
             </Grid>
           </Grid>

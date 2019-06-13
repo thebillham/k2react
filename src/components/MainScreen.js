@@ -153,7 +153,7 @@ class MainScreen extends React.Component {
     // this.props.fixIds();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
-    // this.props.copyStaff('fTVM9JqKb8QNVlcXzmnTcpkyI2j1','OgNBX60s1GThob3pODjtqM4tkNn1');
+    // this.props.copyStaff('rm32KXAJM8rtC95cKmym','uYXUrFnT9vVQkaVdqzJE84Vdg322');
   }
 
   handleLogOut = () => {
