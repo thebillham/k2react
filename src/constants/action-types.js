@@ -71,6 +71,10 @@ export const RESET_ASBESTOS_LAB = "RESET_ASBESTOS_LAB";
 // Display
 export const APP_HAS_LOADED = "APP_HAS_LOADED";
 export const RESET_DISPLAY = "RESET_DISPLAY";
+export const TAB_STAFF = "TAB_STAFF";
+export const FILTER_STAFF = "FILTER_STAFF";
+export const FILTER_MAP = "FILTER_MAP";
+export const FILTER_MAP_RESET = "FILTER_MAP_RESET";
 
 // Const
 export const INIT_CONSTANTS = "INIT_CONSTANTS";

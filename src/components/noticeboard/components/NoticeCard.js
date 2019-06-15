@@ -18,6 +18,7 @@ import DiscardIcon from "@material-ui/icons/Delete";
 import EditIcon from '@material-ui/icons/Edit';
 import CommentIcon from '@material-ui/icons/AddComment';
 import { FormattedDate } from "react-intl";
+import { auth } from "../../../config/firebase";
 
 const styles = {
   card: {
@@ -75,7 +76,7 @@ function NoticeCard(props) {
   }
 
   return (
-    <Card className={classes.card} style={{ borderRadius: 20 }}>
+    <Card className={classes.card} style={{ borderRadius: 20, height: '100%' }}>
       <CardHeader
         style={{height: '4vw'}}
         title={
@@ -84,14 +85,19 @@ function NoticeCard(props) {
           </Typography>
         }
         subheader={
-          <Typography className={classes.subtitle} color="textSecondary">
-            <FormattedDate
-              value={notice.date}
-              month="long"
-              day="numeric"
-              weekday="short"
-            />
-          </Typography>
+          <div>
+            <Typography className={classes.whosRead} color="textPrimary">
+              Submitted by {notice.author}
+            </Typography>
+            <Typography className={classes.subtitle} color="textSecondary">
+              <FormattedDate
+                value={notice.date}
+                month="long"
+                day="numeric"
+                weekday="short"
+              />
+            </Typography>
+          </div>
         }
       />
       <CardContent>
@@ -114,16 +120,19 @@ function NoticeCard(props) {
                 <CommentListItem
                   key={comment.text}
                   comment={comment}
-                  edit={true}
+                  edit={notice.authorUid === auth.currentUser.uid ||
+                    comment.author.uid === auth.currentUser.uid ||
+                    notice.author === this.props.me.name ||
+                    this.props.me.auth['Admin']
+                  }
                   onEditComment={() => props.onEditComment(comment, notice)}
+                  onDeleteComment={() => props.onDeleteComment(comment, notice)}
                 />
               )}
             </div><hr />
           </div>
         }
-        <div className={classes.whosRead} color="textPrimary">
-          Submitted by {notice.author}
-        </div>
+        <hr />
         <div className={classes.whosRead} color="textPrimary">
           Read by {readlist}
         </div>

@@ -135,7 +135,7 @@ class NoticeModal extends React.Component {
                 let comments = doc.notice.comments;
                 if ((!comment.text || comment.text === '') && comment.uid) {
                   console.log(comments);
-                  comments.delete(comment.uid);
+                  delete comments[comment.uid];
                   newDoc = {
                     ...doc.notice,
                     comments,

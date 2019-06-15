@@ -166,6 +166,14 @@ class Noticeboard extends React.Component {
     });
   }
 
+  onDeleteComment = (comment, notice) => {
+    let comments = notice.comments;
+    delete notice.comments[comment.uid];
+
+    noticesRef.doc(notice.uid).update({ comments: comments });
+    this.props.fetchNotices(true);
+  }
+
   render() {
     return (
       <div style={{ marginTop: 80 }}>
@@ -184,6 +192,7 @@ class Noticeboard extends React.Component {
                   category: 'gen',
                   categorydesc: 'General',
                   author: this.props.me.name,
+                  authorUid: auth.currentUser.uid,
                   auth: '',
                   date: moment().format('YYYY-MM-DD'),
                   staff: []
@@ -306,7 +315,7 @@ class Noticeboard extends React.Component {
                     staff={this.props.staff}
                     fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)}
                     read={notice.staff && notice.staff.includes(auth.currentUser.uid)}
-                    edit={true}
+                    edit={auth.currentUser.uid === notice.authorUid || this.props.me.auth['Admin'] || this.props.me.name === notice.author}
                     // edit={notice.author === this.props.me.name || this.props.me.auth['Admin']}
                     onFavNotice={() => this.onFavNotice(notice.uid)}
                     onReadNotice={() => this.onReadNotice(notice)}
@@ -314,6 +323,7 @@ class Noticeboard extends React.Component {
                     onDeleteNotice={() => this.onDeleteNotice(notice)}
                     onAddComment={() => this.onAddComment(notice)}
                     onEditComment={this.onEditComment}
+                    onDeleteComment={this.onDeleteComment}
                   />
                 </Grid>
               );

@@ -22,7 +22,15 @@ function CommentListItem(props) {
   const { classes, comment } = props;
 
   return (
-    <div className={classes.hoverItem} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', padding: 12, }}>
+    <div className={classes.hoverItem}
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        wordWrap: 'break-word',
+        whiteSpace: 'pre-wrap',
+        padding: 12,
+      }}>
       <div style={{ marginRight: 12, }}>
         <div style={{ fontWeight: 500, fontSize: 14, }}>{comment.author.name}</div>
         <div style={{ fontSize: 12, }}>
@@ -33,18 +41,28 @@ function CommentListItem(props) {
             weekday="short"
           />
         </div>
-        <div style={{ fontSize: 14, }}>{comment.text}</div>
+        <div style={{ fontSize: 14, }}><Linkify>{comment.text}</Linkify></div>
       </div>
       <div>
         { props.edit &&
-          <Tooltip title={'Edit Comment' }>
-            <IconButton
-              aira-label="Edit comment"
-              onClick={props.onEditComment}
-            >
-              <EditIcon color="action" />
-            </IconButton>
-          </Tooltip>
+          <div style={{ flexDirection: 'row', display: 'flex'}}>
+            <Tooltip title={'Edit Comment'}>
+              <IconButton
+                aira-label="Edit comment"
+                onClick={props.onEditComment}
+              >
+                <EditIcon color="action" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={'Delete Comment'}>
+              <IconButton
+                aira-label="Delete comment"
+                onClick={props.onDeleteComment}
+              >
+                <DiscardIcon color="action" />
+              </IconButton>
+            </Tooltip>
+          </div>
         }
       </div>
     </div>

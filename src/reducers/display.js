@@ -1,7 +1,50 @@
-import { APP_HAS_LOADED, RESET_DISPLAY } from "../constants/action-types";
+import {
+  APP_HAS_LOADED,
+  RESET_DISPLAY,
+  TAB_STAFF,
+  FILTER_STAFF,
+  FILTER_MAP,
+  FILTER_MAP_RESET,
+} from "../constants/action-types";
+
+const filterStaff = {
+  officeFilters: {},
+  officeFilterOn: false,
+  attrFilters: {},
+  attrFilterOn: false,
+  authFilters: {},
+  authFilterOn: false,
+  attrFilters: {},
+  attrFilterOn: false,
+  docview: "none",
+};
+
+const filterMap = {
+  filterViewCompleted: false,
+  filterJobLead: '',
+  filterOnJobLead: false,
+  filterCategory: '',
+  filterOnCategory: false,
+  filterState: '',
+  filterOnState: false,
+
+  filterK2Jobs: false,
+
+  filterCreatedInTheLast: false,
+  createdInTheLast: 7,
+  filterCompletedInTheLast: false,
+  completedInTheLast: 7,
+  filterUpdatedInTheLast: false,
+  updatedInTheLast: 7,
+  filterActionsOverdueBy: false,
+  actionsOverdueBy: 7,
+}
 
 const displayInit = {
-  initialLoading: true
+  initialLoading: true,
+  tabStaff: 0,
+  filterStaff: filterStaff,
+  filterMap: filterMap,
 };
 
 // Properties related to all other displays
@@ -14,10 +57,26 @@ export default function displayReducer(state = displayInit, action) {
         ...state,
         initialLoading: false
       };
-    // case SHOW_MODAL:
-    //   return { ...state, modalProps: action.modalProps, modalType: action.modalType}
-    // case HIDE_MODAL:
-    //   return {...state, modalInit };
+    case TAB_STAFF:
+      return {
+        ...state,
+        tabStaff: action.payload,
+      }
+    case FILTER_STAFF:
+      return {
+        ...state,
+        filterStaff: action.payload,
+      }
+    case FILTER_MAP:
+      return {
+        ...state,
+        filterMap: action.payload,
+      }
+    case FILTER_MAP_RESET:
+      return {
+        ...state,
+        filterMap: filterMap,
+      }
     default:
       return state;
   }

@@ -36,6 +36,7 @@ import ApiCalendar from "react-google-calendar-api";
 import StaffOverviewListItem from "./components/StaffOverviewListItem.js";
 import { connect } from "react-redux";
 import { getUserAttrs, fetchStaff } from "../../actions/local";
+import { tabStaff, filterStaff, } from "../../actions/display";
 import { auth, usersRef } from "../../config/firebase";
 
 const mapStateToProps = state => {
@@ -46,14 +47,18 @@ const mapStateToProps = state => {
     offices: state.const.offices,
     contacts: state.const.officecontacts,
     permissions: state.const.permissions,
-    qualificationtypes: state.const.qualificationtypes
+    qualificationtypes: state.const.qualificationtypes,
+    tab: state.display.tabStaff,
+    filter: state.display.filterStaff,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     getUserAttrs: userPath => dispatch(getUserAttrs(userPath)),
-    fetchStaff: () => dispatch(fetchStaff())
+    fetchStaff: () => dispatch(fetchStaff()),
+    tabStaff: tab => dispatch(tabStaff(tab)),
+    filterStaff: filter => dispatch(filterStaff(filter)),
   };
 };
 
@@ -62,17 +67,9 @@ class Staff extends React.Component {
     super(props);
 
     this.state = {
-      tabValue: this.props.me.tabStaff ? this.props.me.tabStaff : 0,
+      tabValue: this.props.tab,
       admin: false,
-      filterStaff: this.props.me.filterStaff ? this.props.me.filterStaff : {
-        officeFilters: {},
-        officeFilterOn: false,
-        attrFilters: {},
-        attrFilterOn: false,
-        authFilters: {},
-        authFilterOn: false,
-        docview: "none",
-      },
+      filterStaff: this.props.filter,
       events: {},
     };
   }
@@ -81,84 +78,80 @@ class Staff extends React.Component {
     if (!this.state.staff) this.props.fetchStaff();
   }
 
-  componentWillUnmount() {
-    usersRef.doc(auth.currentUser.uid).update({
-      tabStaff: this.state.tabValue,
-      filterStaff: this.state.filterStaff,
-    });
-  }
-
   filterOffice = chip => {
     let state = true;
-    if (this.state.filterStaff.officeFilters[chip]) state = false;
+    if (this.props.filter.officeFilters[chip]) state = false;
 
     let filterOn = false;
 
-    let newFilters = {
-      ...this.state.filterStaff.officeFilters,
+    let officeFilters = {
+      ...this.props.filter.officeFilters,
       [chip]: state
     };
 
-    Object.values(newFilters).forEach(filter => {
+    Object.values(officeFilters).forEach(filter => {
       if (filter) filterOn = true;
     });
 
-    this.setState({
-      filterStaff: {
-        ...this.state.filterStaff,
-        officeFilters: newFilters,
-        officeFilterOn: filterOn,
-      }
-    });
+    let newFilter = {
+      ...this.props.filter,
+      officeFilters: officeFilters,
+      officeFilterOn: filterOn,
+    }
+
+    this.props.filterStaff(newFilter);
   };
 
   filterAttr = chip => {
     let state = true;
-    if (this.state.filterStaff.attrFilters[chip]) state = false;
+    if (this.props.filter.attrFilters[chip]) state = false;
 
     let filterOn = state;
 
-    let newFilters = {
-      ...this.state.filterStaff.attrFilters,
+    let attrFilters = {
+      ...this.props.filter.attrFilters,
       [chip]: state
     };
 
-    Object.values(newFilters).forEach(filter => {
+    Object.values(attrFilters).forEach(filter => {
       if (filter) filterOn = true;
     });
 
-    this.setState({
-      filterStaff: {
-        ...this.state.filterStaff,
-        attrFilters: newFilters,
-        attrFilterOn: filterOn,
-      }
-    });
+    let newFilters = {
+      ...this.props.filter,
+      attrFilters: attrFilters,
+      attrFilterOn: filterOn,
+    }
+
+    this.props.filterStaff(newFilters);
   };
 
   filterAuth = chip => {
     let state = true;
-    if (this.state.filterStaff.authFilters[chip]) state = false;
+    if (this.props.filter.authFilters[chip]) state = false;
 
     let filterOn = state;
 
-    let newFilters = {
-      ...this.state.filterStaff.authFilters,
+    let authFilters = {
+      ...this.props.filter.authFilters,
       [chip]: state
     };
 
-    Object.values(newFilters).forEach(filter => {
+    Object.values(authFilters).forEach(filter => {
       if (filter) filterOn = true;
     });
 
-    this.setState({
-      authFilters: newFilters,
+    let newFilters = {
+      ...this.props.filter,
+      authFilters: authFilters,
       authFilterOn: filterOn
-    });
+    };
+
+    this.props.filterStaff(newFilters);
   };
 
   handleTabChange = (event, value) => {
-    this.setState({ tabValue: value });
+    this.props.tabStaff(value);
   };
 
   getEvents = (expanded, calendarid) => {
@@ -190,11 +183,11 @@ class Staff extends React.Component {
   };
 
   setDocView = type => {
-    this.setState({ filterStaff: {
-      ...this.state.filterStaff,
+    let newFilter = {
+      ...this.props.filter,
       docview: type,
-      }
-    });
+    };
+    this.props.filterStaff(newFilter);
   };
 
   email = who => {
@@ -217,30 +210,30 @@ class Staff extends React.Component {
   filterUser = user => {
     let filter = false;
     if (
-      this.state.filterStaff.officeFilterOn === false ||
-      this.state.filterStaff.officeFilters[user.office]
+      this.props.filter.officeFilterOn === false ||
+      this.props.filter.officeFilters[user.office]
     )
       filter = true;
-    if (this.state.filterStaff.attrFilterOn) {
-      if (this.state.filterStaff.attrFilters["IP402"] && !user.ip402) filter = false;
-      if (this.state.filterStaff.attrFilters["Asbestos Assessor"] && !user.aanumber)
+    if (this.props.filter.attrFilterOn) {
+      if (this.props.filter.attrFilters["IP402"] && !user.ip402) filter = false;
+      if (this.props.filter.attrFilters["Asbestos Assessor"] && !user.aanumber)
         filter = false;
-      if (this.state.filterStaff.attrFilters["Tertiary Degree"] && !user.tertiary)
+      if (this.props.filter.attrFilters["Tertiary Degree"] && !user.tertiary)
         filter = false;
       if (
-        this.state.filterStaff.attrFilters["Science Degree"] &&
+        this.props.filter.attrFilters["Science Degree"] &&
         !(user.tertiary && user.tertiary.includes("Sc"))
       )
         filter = false;
-      if (this.state.filterStaff.attrFilters["Mask Fit Tested"] && user.maskfit !== "OK")
+      if (this.props.filter.attrFilters["Mask Fit Tested"] && user.maskfit !== "OK")
         filter = false;
-      if (this.state.filterStaff.attrFilters["First Aid"] && !user.firstaid) filter = false;
+      if (this.props.filter.attrFilters["First Aid"] && !user.firstaid) filter = false;
     }
-    if (this.state.filterStaff.authFilterOn) {
+    if (this.props.filter.authFilterOn) {
       this.props.permissions.forEach(permission => {
         if (!user.auth) filter = false;
         else if (
-          this.state.filterStaff.authFilters[permission.name] &&
+          this.props.filter.authFilters[permission.name] &&
           !user.auth[permission.name]
         )
           filter = false;
@@ -261,7 +254,7 @@ class Staff extends React.Component {
     const staff = Object.values(this.props.staff)
       .sort((a, b) => a.name.localeCompare(b.name));
     let docs = [];
-    if (this.state.filterStaff.docview !== "none") {
+    if (this.props.filter.docview !== "none") {
       staff.forEach(e => {
         if (e.docimages && e.docimages.length > 0) {
           if (
@@ -271,7 +264,7 @@ class Staff extends React.Component {
               .includes(this.props.search.toLowerCase())
           ) {
             e.docimages.forEach(attr => {
-              if (attr.type === this.state.filterStaff.docview) {
+              if (attr.type === this.props.filter.docview) {
                 docs.push({
                   url: attr.url,
                   name: e.name
@@ -291,8 +284,7 @@ class Staff extends React.Component {
     const staff = Object.values(this.props.staff).sort((a, b) =>
       a.name.localeCompare(b.name)
     );
-    var { tabValue } = this.state;
-    const { classes } = this.props;
+    const { classes, tab } = this.props;
     const docs = this.getDocs();
     const filter = (
       <ExpansionPanel>
@@ -315,7 +307,7 @@ class Staff extends React.Component {
                       icon={<LocationCity />}
                       variant="outlined"
                       color={
-                        this.state.filterStaff.officeFilters[chip] ? "secondary" : "default"
+                        this.props.filter.officeFilters[chip] ? "secondary" : "default"
                       }
                       onClick={() => this.filterOffice(chip)}
                       label={chip}
@@ -339,7 +331,7 @@ class Staff extends React.Component {
                       icon={<School />}
                       variant="outlined"
                       color={
-                        this.state.filterStaff.attrFilters[chip] ? "secondary" : "default"
+                        this.props.filter.attrFilters[chip] ? "secondary" : "default"
                       }
                       onClick={() => this.filterAttr(chip)}
                       label={chip}
@@ -356,7 +348,7 @@ class Staff extends React.Component {
                       icon={<Https />}
                       variant="outlined"
                       color={
-                        this.state.filterStaff.authFilters[chip.name]
+                        this.props.filter.authFilters[chip.name]
                           ? "secondary"
                           : "default"
                       }
@@ -377,7 +369,7 @@ class Staff extends React.Component {
         {/* <Paper style={{ padding: 20, }}>*/}
         <div style={{ marginBottom: 20 }}>
           <Tabs
-            value={tabValue}
+            value={tab}
             onChange={this.handleTabChange}
             indicatorColor="secondary"
             textColor="secondary"
@@ -390,7 +382,7 @@ class Staff extends React.Component {
           </Tabs>
         </div>
         <div style={{ display: "flex", justifyContent: "center" }}>
-          {tabValue === 0 && (
+          {tab === 0 && (
             <div style={{ position: "relative", width: "80vw" }}>
               {filter}
               {staff.length > 0 ? (
@@ -427,7 +419,7 @@ class Staff extends React.Component {
               )}
             </div>
           )}
-          {tabValue === 1 && (
+          {tab === 1 && (
             <div style={{ position: "relative", width: "80vw" }}>
               <Button
                 onClick={() => this.email("all")}
@@ -572,7 +564,7 @@ class Staff extends React.Component {
                 })}
             </div>
           )}
-          {tabValue === 2 && (
+          {tab === 2 && (
             <div style={{ position: "relative", width: "80vw" }}>
               {filter}
               <ListItem>
@@ -709,12 +701,12 @@ class Staff extends React.Component {
                 })}
             </div>
           )}
-          {tabValue === 3 && (
+          {tab === 3 && (
             <div style={{ position: "relative", width: "80vw" }}>
               <FormControl style={{ width: 500, marginBottom: 10 }}>
                 <InputLabel shrink>Document Type</InputLabel>
                 <Select
-                  value={this.state.filterStaff.docview}
+                  value={this.props.filter.docview}
                   onChange={e => this.setDocView(e.target.value)}
                   input={<Input name="docview" id="docview" />}
                 >
@@ -736,24 +728,24 @@ class Staff extends React.Component {
                     "https://api.k2.co.nz/v1/doc/scripts/staff/qualification_documents.php?images=" +
                     docs.map(doc => encodeURIComponent(doc.url)).join(";") +
                     "&doctype=" +
-                    this.props.qualificationtypes[this.state.filterStaff.docview].name +
+                    this.props.qualificationtypes[this.props.filter.docview].name +
                     "&format=A5";
                   window.open(url);
                 }}
               >
                 Printable Version
               </Button>
-              {this.state.filterStaff.docview !== "none" && (
+              {this.props.filter.docview !== "none" && (
                 <GridList
                   cellHeight={
-                    this.state.filterStaff.docview
-                      ? this.props.qualificationtypes[this.state.filterStaff.docview]
+                    this.props.filter.docview
+                      ? this.props.qualificationtypes[this.props.filter.docview]
                           .cellHeight
                       : 420
                   }
                   cols={
-                    this.state.filterStaff.docview
-                      ? this.props.qualificationtypes[this.state.filterStaff.docview].cols
+                    this.props.filter.docview
+                      ? this.props.qualificationtypes[this.props.filter.docview].cols
                       : 6
                   }
                 >
