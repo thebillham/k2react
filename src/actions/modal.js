@@ -1,6 +1,7 @@
 import {
   ADD_TAG,
   DELETE_TAG,
+  EDIT_MODAL_DOC_COMMENT,
   EDIT_MODAL_DOC,
   EDIT_MODAL_DOC_STEPS,
   EDIT_MODAL_DOC_SAMPLES,
@@ -118,6 +119,11 @@ export const handleModalChange = target => dispatch => {
       cocUid: target.cocUid,
       payload: target.value,
     });
+  } else if (target.id === 'comment') {
+    dispatch({
+      type: EDIT_MODAL_DOC_COMMENT,
+      payload: target.value,
+    })
   } else {
     dispatch({
       type: EDIT_MODAL_DOC,

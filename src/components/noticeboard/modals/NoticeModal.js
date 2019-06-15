@@ -182,7 +182,7 @@ class NoticeModal extends React.Component {
                 defaultValue={doc && doc.text}
                 className={classes.dialogField}
                 multiline
-                rows={3}
+                rows={10}
                 onChange={e => {
                   this.props.handleModalChange(e.target);
                 }}

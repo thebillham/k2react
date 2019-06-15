@@ -9,9 +9,10 @@ import { connect } from "react-redux";
 
 import NoticeCard from "./components/NoticeCard";
 import NoticeModal from "./modals/NoticeModal";
+import CommentModal from "./modals/CommentModal";
 
 // import IncidentModal from "../incidents/modals/IncidentModal";
-import { NOTICES, INCIDENT } from "../../constants/modal-types";
+import { NOTICES, INCIDENT, COMMENT } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
 import { auth, usersRef, noticesRef } from "../../config/firebase";
 import store from "../../store";
@@ -132,10 +133,44 @@ class Noticeboard extends React.Component {
     });
   }
 
+  onAddComment = (notice) => {
+    this.props.showModal({
+      modalType: COMMENT,
+      modalProps: {
+        title: "Add Comment",
+        doc: {
+          comment: {
+            text: null,
+            author: {
+              uid: auth.currentUser.uid,
+              name: this.props.me.name,
+            },
+            date: Date(),
+          },
+          notice: notice,
+        }
+      }
+    })
+  }
+
+  onEditComment = (comment, notice) => {
+    this.props.showModal({
+      modalType: COMMENT,
+      modalProps: {
+        title: "Edit Comment",
+        doc: {
+          comment,
+          notice,
+        }
+      }
+    });
+  }
+
   render() {
     return (
       <div style={{ marginTop: 80 }}>
         <NoticeModal />
+        <CommentModal />
         <Button
           variant="outlined"
           style={{ marginBottom: 16, marginRight: 8, }}
@@ -151,7 +186,7 @@ class Noticeboard extends React.Component {
                   author: this.props.me.name,
                   auth: '',
                   date: moment().format('YYYY-MM-DD'),
-                  staff: [auth.currentUser.uid]
+                  staff: []
                 }
               }
             });
@@ -221,7 +256,6 @@ class Noticeboard extends React.Component {
             .filter(notice => {
               if (
                 this.props.me.favnotices &&
-                this.props.category === "fav" &&
                 this.props.me.favnotices.includes(notice.uid)
               ) {
                 return true;
@@ -266,7 +300,7 @@ class Noticeboard extends React.Component {
             })
             .map(notice => {
               return (
-                <Grid item xs={12} sm={6} md={4} lg={3} xl={2} key={notice.uid}>
+                <Grid item sm={12} md={6} lg={4} xl={3} key={notice.uid}>
                   <NoticeCard
                     notice={notice}
                     staff={this.props.staff}
@@ -278,6 +312,8 @@ class Noticeboard extends React.Component {
                     onReadNotice={() => this.onReadNotice(notice)}
                     onEditNotice={() => this.onEditNotice(notice)}
                     onDeleteNotice={() => this.onDeleteNotice(notice)}
+                    onAddComment={() => this.onAddComment(notice)}
+                    onEditComment={this.onEditComment}
                   />
                 </Grid>
               );

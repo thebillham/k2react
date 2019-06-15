@@ -3,6 +3,7 @@ export const APPSETTINGS = "APPSETTINGS";
 export const ASBESTOSSAMPLEDETAILS = "ASBESTOSSAMPLEDETAILS";
 export const COC = "COC";
 export const COCLOG = "COCLOG";
+export const COMMENT = "COMMENT";
 export const DOCUMENT = "DOCUMENT";
 export const DOWNLOADLABCERTIFICATE = "DOWNLOADLABCERTIFICATE";
 export const INCIDENT = "INCIDENT";

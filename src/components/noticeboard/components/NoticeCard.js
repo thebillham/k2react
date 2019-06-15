@@ -2,17 +2,21 @@ import React from "react";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 
+import CommentListItem from "./CommentListItem";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardActions from "@material-ui/core/CardActions";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
+import Tooltip from "@material-ui/core/Tooltip";
+import Linkify from "react-linkify";
 
 import PinIcon from "@material-ui/icons/Star";
 import ReadIcon from "@material-ui/icons/CheckBox";
 import DiscardIcon from "@material-ui/icons/Delete";
 import EditIcon from '@material-ui/icons/Edit';
+import CommentIcon from '@material-ui/icons/AddComment';
 import { FormattedDate } from "react-intl";
 
 const styles = {
@@ -36,7 +40,9 @@ const styles = {
     fontStyle: "italic"
   },
   details: {
-    fontSize: 14
+    fontSize: 14,
+    wordWrap: 'break-word',
+    whiteSpace: 'pre-wrap',
   },
   whosRead: {
     fontSize: 14
@@ -97,8 +103,24 @@ function NoticeCard(props) {
           {notice.incidentdesc && <div><b>Incident Desc.: </b>{notice.incidentdesc}</div>}
           {notice.text && <div><b>Learnings: </b>{notice.text}</div>}
           </div> :
-          notice.text}
+          <Linkify>
+            {notice.text}
+          </Linkify>}
         </div><br />
+        {notice.comments && Object.values(notice.comments).length > 0 &&
+          <div>
+            <div>
+              {Object.values(notice.comments).map(comment =>
+                <CommentListItem
+                  key={comment.text}
+                  comment={comment}
+                  edit={true}
+                  onEditComment={() => props.onEditComment(comment, notice)}
+                />
+              )}
+            </div><hr />
+          </div>
+        }
         <div className={classes.whosRead} color="textPrimary">
           Submitted by {notice.author}
         </div>
@@ -107,32 +129,49 @@ function NoticeCard(props) {
         </div>
       </CardContent>
       <CardActions>
-        <IconButton
-          aira-label="Pin notice"
-          onClick={props.onFavNotice}
-        >
-          <PinIcon color={props.fav ? "secondary" : "action"} />
-        </IconButton>
-        <IconButton
-          aira-label="Mark as read"
-          onClick={props.onReadNotice}
-        >
-          <ReadIcon color={props.read ? "secondary" : "action"} />
-        </IconButton>
+        <Tooltip title={'Pin Notice'}>
+          <IconButton
+            aira-label="Pin notice"
+            onClick={props.onFavNotice}
+          >
+            <PinIcon color={props.fav ? "secondary" : "action"} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={'Mark As Read'}>
+          <IconButton
+            aira-label="Mark as read"
+            onClick={props.onReadNotice}
+          >
+            <ReadIcon color={props.read ? "secondary" : "action"} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={'Add Comment'}>
+          <IconButton
+            aira-label="Add comment"
+            onClick={props.onAddComment}
+          >
+            <CommentIcon />
+          </IconButton>
+        </Tooltip>
         { props.edit &&
           <span>
-          <IconButton
-            aira-label="Edit notice"
-            onClick={props.onEditNotice}
-          >
-            <EditIcon color="action" />
-          </IconButton>
-          <IconButton
-            aira-label="Discard notice"
-            onClick={props.onDeleteNotice}
-          >
-            <DiscardIcon color="action" />
-          </IconButton>
+
+          <Tooltip title={'Edit Notice' }>
+            <IconButton
+              aira-label="Edit notice"
+              onClick={props.onEditNotice}
+            >
+              <EditIcon color="action" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={'Delete Notice' }>
+            <IconButton
+              aira-label="Discard notice"
+              onClick={props.onDeleteNotice}
+            >
+              <DiscardIcon color="action" />
+            </IconButton>
+          </Tooltip>
           </span>
         }
       </CardActions>

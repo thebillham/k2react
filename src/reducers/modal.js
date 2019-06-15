@@ -2,6 +2,7 @@ import {
   ADD_TAG,
   DELETE_TAG,
   EDIT_MODAL_DOC,
+  EDIT_MODAL_DOC_COMMENT,
   EDIT_MODAL_DOC_STEPS,
   EDIT_MODAL_DOC_SAMPLES,
   EDIT_MODAL_GLOSSARY,
@@ -78,6 +79,20 @@ export default function modalReducer(state = modalInit, action) {
           }
         }
       };
+    case EDIT_MODAL_DOC_COMMENT:
+      return {
+        ...state,
+        modalProps: {
+          ...state.modalProps,
+          doc: {
+            ...state.modalProps.doc,
+            comment: {
+              ...state.modalProps.doc.comment,
+              text: action.payload,
+            }
+          }
+        }
+      }
     case EDIT_MODAL_DOC_SAMPLES:
       return {
         ...state,
