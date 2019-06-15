@@ -78,7 +78,7 @@ function NoticeCard(props) {
   return (
     <Card className={classes.card} style={{ borderRadius: 20, height: '100%' }}>
       <CardHeader
-        style={{height: '4vw'}}
+        style={{height: '4vw', backgroundColor: '#eee'}}
         title={
           <Typography className={classes.title} color="textSecondary">
           {notice.categorydesc}
@@ -86,8 +86,8 @@ function NoticeCard(props) {
         }
         subheader={
           <div>
-            <Typography className={classes.whosRead} color="textPrimary">
-              Submitted by {notice.author}
+            <Typography color="textPrimary">
+              Submitted by <span style={{ fontWeight: 500,}}>{notice.author}</span>
             </Typography>
             <Typography className={classes.subtitle} color="textSecondary">
               <FormattedDate
@@ -101,7 +101,6 @@ function NoticeCard(props) {
         }
       />
       <CardContent>
-        <hr/>
         <div className={classes.details} color="textSecondary">
           {notice.category === 'has' ? <div>
           {notice.incidentno && <div><b>Incident No.: </b>{notice.incidentno}</div>}
@@ -115,6 +114,7 @@ function NoticeCard(props) {
         </div><br />
         {notice.comments && Object.values(notice.comments).length > 0 &&
           <div>
+            <hr />
             <div>
               {Object.values(notice.comments).map(comment =>
                 <CommentListItem
