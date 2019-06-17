@@ -356,7 +356,7 @@ export const fetchNotices = update => async dispatch => {
   if (update) {
     noticesRef
       .orderBy("date", "desc")
-      .limit(100)
+      // .limit(100)
       .onSnapshot(querySnapshot => {
         var notices = [];
         querySnapshot.forEach(doc => {

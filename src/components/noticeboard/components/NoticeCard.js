@@ -10,6 +10,7 @@ import CardActions from "@material-ui/core/CardActions";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import Tooltip from "@material-ui/core/Tooltip";
+import Avatar from "@material-ui/core/Avatar";
 import Linkify from "react-linkify";
 
 import PinIcon from "@material-ui/icons/Star";
@@ -17,6 +18,14 @@ import ReadIcon from "@material-ui/icons/CheckBox";
 import DiscardIcon from "@material-ui/icons/Delete";
 import EditIcon from '@material-ui/icons/Edit';
 import CommentIcon from '@material-ui/icons/AddComment';
+import WhosReadIcon from "@material-ui/icons/HowToReg";
+
+import GeneralIcon from "@material-ui/icons/Note";
+import HealthIcon from "@material-ui/icons/LocalHospital";
+import JobLeadsIcon from "@material-ui/icons/Call";
+import ClientIcon from "@material-ui/icons/RecordVoiceOver";
+import ReportIcon from "@material-ui/icons/ImportContacts"
+
 import { FormattedDate } from "react-intl";
 import { auth } from "../../../config/firebase";
 
@@ -75,10 +84,23 @@ function NoticeCard(props) {
     });
   }
 
+  let avatar = (<GeneralIcon style={{ color: '6fa1b6'}} />);
+  if (notice.category === 'has') avatar = (<HealthIcon style={{ color: 'red', }} />);
+  if (notice.category === 'client') avatar = (<ClientIcon style={{ color: '#6fa1b6'}} />);
+  if (notice.category === 'reports') avatar = (<ReportIcon style={{ color: '#6fa1b6'}} />);
+  if (notice.category === 'leads') avatar = (<JobLeadsIcon style={{ color: '#6fa1b6'}} />);
+  if (notice.category === 'jqfasb') avatar = (<Avatar style={{ backgroundColor: '#7d6d26', color: 'white' }}>A</Avatar>);
+  if (notice.category === 'jqfmeth') avatar = (<Avatar style={{ backgroundColor: '#ff0065', color: 'white' }}>M</Avatar>);
+  if (notice.category === 'occjqf') avatar = (<Avatar style={{ backgroundColor: '#a2539c', color: 'white' }}>O</Avatar>);
+  if (notice.category === 'jqfbio') avatar = (<Avatar style={{ backgroundColor: '#87cc14', color: 'white' }}>B</Avatar>);
+  if (notice.category === 'jqfnoise') avatar = (<Avatar style={{ backgroundColor: '#995446', color: 'white' }}>B</Avatar>);
+  if (notice.category === 'jqfstack') avatar = (<Avatar style={{ backgroundColor: '#e33714', color: 'white' }}>B</Avatar>);
+
   return (
-    <Card className={classes.card} style={{ borderRadius: 20, height: '100%' }}>
+    <Card className={classes.card} style={{ borderRadius: 20, height: '100%', display: 'flex', flexDirection: 'column', }}>
       <CardHeader
         style={{height: '4vw', backgroundColor: '#eee'}}
+        avatar={avatar}
         title={
           <Typography className={classes.title} color="textSecondary">
           {notice.categorydesc}
@@ -95,6 +117,7 @@ function NoticeCard(props) {
                 month="long"
                 day="numeric"
                 weekday="short"
+                year="numeric"
               />
             </Typography>
           </div>
@@ -104,11 +127,15 @@ function NoticeCard(props) {
         <div className={classes.details} color="textSecondary">
           {notice.category === 'has' ? <div>
           {notice.incidentno && <div><b>Incident No.: </b>{notice.incidentno}</div>}
-          {notice.incidentstaff && <div><b>Staff: </b>{notice.incidentstaff}</div>}
+          {notice.job && <div><b>Job: </b>{notice.job}</div>}
+          {notice.incidentstaff && <div><b>Staff Involved: </b>{notice.incidentstaff}</div>}
           {notice.incidentdesc && <div><b>Incident Desc.: </b>{notice.incidentdesc}</div>}
           {notice.text && <div><b>Learnings: </b>{notice.text}</div>}
           </div> :
           <Linkify>
+            {!'geneq'.includes(notice.category) &&
+              <div style={{ fontWeight: 500, textDecoration: 'underline', marginBottom: 6, }}>{notice.job}</div>
+            }
             {notice.text}
           </Linkify>}
         </div><br />
@@ -122,8 +149,8 @@ function NoticeCard(props) {
                   comment={comment}
                   edit={notice.authorUid === auth.currentUser.uid ||
                     comment.author.uid === auth.currentUser.uid ||
-                    notice.author === this.props.me.name ||
-                    this.props.me.auth['Admin']
+                    notice.author === props.me.name ||
+                    props.me.auth['Admin']
                   }
                   onEditComment={() => props.onEditComment(comment, notice)}
                   onDeleteComment={() => props.onDeleteComment(comment, notice)}
@@ -132,58 +159,64 @@ function NoticeCard(props) {
             </div><hr />
           </div>
         }
-        <hr />
-        <div className={classes.whosRead} color="textPrimary">
-          Read by {readlist}
-        </div>
       </CardContent>
-      <CardActions>
-        <Tooltip title={'Pin Notice'}>
-          <IconButton
-            aira-label="Pin notice"
-            onClick={props.onFavNotice}
-          >
-            <PinIcon color={props.fav ? "secondary" : "action"} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={'Mark As Read'}>
-          <IconButton
-            aira-label="Mark as read"
-            onClick={props.onReadNotice}
-          >
-            <ReadIcon color={props.read ? "secondary" : "action"} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={'Add Comment'}>
-          <IconButton
-            aira-label="Add comment"
-            onClick={props.onAddComment}
-          >
-            <CommentIcon />
-          </IconButton>
-        </Tooltip>
-        { props.edit &&
-          <span>
+      <div style={{ display: 'flex', flex: 'auto', alignItems: 'flex-start', justifyContent: 'flex-end', flexDirection: 'column', }}>
+        <CardActions style={{ display: 'flex', justifyContent: 'flex-end', }}>
+          <Tooltip title={'Pin Notice'}>
+            <IconButton
+              aira-label="Pin notice"
+              onClick={props.onFavNotice}
+            >
+              <PinIcon color={props.fav ? "secondary" : "action"} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={'Mark As Read'}>
+            <IconButton
+              aira-label="Mark as read"
+              onClick={props.onReadNotice}
+            >
+              <ReadIcon color={props.read ? "secondary" : "action"} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={'Add Comment'}>
+            <IconButton
+              aira-label="Add comment"
+              onClick={props.onAddComment}
+            >
+              <CommentIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={'Check who has read'}>
+            <IconButton
+              aira-label="Check who has read"
+              onClick={props.onCheckRead}
+            >
+              <WhosReadIcon />
+            </IconButton>
+          </Tooltip>
+          { props.edit &&
+            <span>
 
-          <Tooltip title={'Edit Notice' }>
-            <IconButton
-              aira-label="Edit notice"
-              onClick={props.onEditNotice}
-            >
-              <EditIcon color="action" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={'Delete Notice' }>
-            <IconButton
-              aira-label="Discard notice"
-              onClick={props.onDeleteNotice}
-            >
-              <DiscardIcon color="action" />
-            </IconButton>
-          </Tooltip>
-          </span>
-        }
-      </CardActions>
+            <Tooltip title={'Edit Notice' }>
+              <IconButton
+                aira-label="Edit notice"
+                onClick={props.onEditNotice}
+              >
+                <EditIcon color="action" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={'Delete Notice' }>
+              <IconButton
+                aira-label="Discard notice"
+                onClick={props.onDeleteNotice}
+              >
+                <DiscardIcon color="action" />
+              </IconButton>
+            </Tooltip>
+            </span>
+          }
+        </CardActions>
+      </div>
     </Card>
   );
 }

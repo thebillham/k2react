@@ -121,7 +121,7 @@ class NoticeModal extends React.Component {
             <Button
               onClick={() => {
                 let comment = doc.comment;
-                if (!comment.uid && comment.text && comment.text !== '') {
+                if (comment && !comment.uid && comment.text && comment.text !== '') {
                   comment.uid = new Intl.DateTimeFormat('en-GB', {
                     year: '2-digit',
                     month: '2-digit',

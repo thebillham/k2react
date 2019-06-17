@@ -136,7 +136,7 @@ class NoticeModal extends React.Component {
               />
               {!'geneq'.includes(doc.category) && <TextField
                 id="job"
-                label="Job Number/Site Address"
+                label={doc.category === 'client' ? "Client Name" : "Job Number/Site Address"}
                 defaultValue={doc && doc.job}
                 className={classes.dialogField}
                 onChange={e => {
@@ -178,7 +178,7 @@ class NoticeModal extends React.Component {
               }
               <TextField
                 id="text"
-                label={'genleadseq'.includes(doc.category) ? "Message" : "Learnings" }
+                label={'genleadseqclient'.includes(doc.category) ? "Message" : "Learnings" }
                 defaultValue={doc && doc.text}
                 className={classes.dialogField}
                 multiline
@@ -206,7 +206,7 @@ class NoticeModal extends React.Component {
           ) : (
             <Button
               onClick={() => {
-                if (doc.category && doc.text) {
+                if (doc.category) {
                   doc.type = doc.category +
                   "-" + doc.date + "-"
                   doc.author.replace(/\s+/g, "_");
@@ -216,7 +216,7 @@ class NoticeModal extends React.Component {
                   });
                   this.props.fetchNotices(true);
                 } else {
-                  window.alert("Add a category and message before submitting.");
+                  window.alert("Add a category before submitting.");
                 }
               }}
               color="primary"

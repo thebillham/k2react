@@ -10,9 +10,10 @@ import { connect } from "react-redux";
 import NoticeCard from "./components/NoticeCard";
 import NoticeModal from "./modals/NoticeModal";
 import CommentModal from "./modals/CommentModal";
+import WhosReadModal from "./modals/WhosReadModal";
 
 // import IncidentModal from "../incidents/modals/IncidentModal";
-import { NOTICES, INCIDENT, COMMENT } from "../../constants/modal-types";
+import { NOTICES, INCIDENT, COMMENT, WHOSREAD } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
 import { auth, usersRef, noticesRef } from "../../config/firebase";
 import store from "../../store";
@@ -174,11 +175,22 @@ class Noticeboard extends React.Component {
     this.props.fetchNotices(true);
   }
 
+  onCheckRead = (notice) => {
+    console.log(notice);
+    this.props.showModal({
+      modalType: WHOSREAD,
+      modalProps: {
+        doc: notice,
+      }
+    });
+  }
+
   render() {
     return (
       <div style={{ marginTop: 80 }}>
         <NoticeModal />
         <CommentModal />
+        <WhosReadModal />
         <Button
           variant="outlined"
           style={{ marginBottom: 16, marginRight: 8, }}
@@ -286,10 +298,19 @@ class Noticeboard extends React.Component {
               if (this.props.category === "imp" && notice.important) return true;
               if (this.props.search) {
                 let search = [
-                    notice.category,
+                    notice.categorydesc,
                     notice.text,
                     notice.author,
                   ];
+                if (notice.category === 'has') search = [
+                  notice.categorydesc,
+                  notice.incidentdesc,
+                  notice.incidentno,
+                  notice.incidentstaff,
+                  notice.job,
+                  notice.text,
+                  notice.author,
+                ];
                 let searchterm = this.props.search.toLowerCase().split(" ");
                 let res = true;
                 searchterm.forEach(term => {
@@ -312,6 +333,7 @@ class Noticeboard extends React.Component {
                 <Grid item sm={12} md={6} lg={4} xl={3} key={notice.uid}>
                   <NoticeCard
                     notice={notice}
+                    me={this.props.me}
                     staff={this.props.staff}
                     fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)}
                     read={notice.staff && notice.staff.includes(auth.currentUser.uid)}
@@ -324,6 +346,7 @@ class Noticeboard extends React.Component {
                     onAddComment={() => this.onAddComment(notice)}
                     onEditComment={this.onEditComment}
                     onDeleteComment={this.onDeleteComment}
+                    onCheckRead={() => this.onCheckRead(notice)}
                   />
                 </Grid>
               );

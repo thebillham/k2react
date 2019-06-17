@@ -23,3 +23,4 @@ export const UPLOADFILE = "UPLOADFILE";
 export const USERATTR = "USERATTR";
 export const VEHICLE = "VEHICLE";
 export const WAANALYSIS = "WAANALYSIS";
+export const WHOSREAD = "WHOSREAD";
