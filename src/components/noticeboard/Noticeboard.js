@@ -277,7 +277,8 @@ class Noticeboard extends React.Component {
             .filter(notice => {
               if (
                 this.props.me.favnotices &&
-                this.props.me.favnotices.includes(notice.uid)
+                this.props.me.favnotices.includes(notice.uid) &&
+                this.props.category === "fav"
               ) {
                 return true;
               }

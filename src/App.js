@@ -3,6 +3,7 @@ import MainScreen from "./components/MainScreen";
 import K2SignInScreen from "./components/K2SignInScreen";
 import { auth } from "./config/firebase";
 import { withRouter } from "react-router-dom";
+import * as serviceWorker from "./registerServiceWorker";
 require("dotenv").config();
 
 class App extends Component {
@@ -23,6 +24,7 @@ class App extends Component {
 
   logOut() {
     auth.signOut().then(() => {
+      serviceWorker.unregister();
       this.setState({});
     });
   }

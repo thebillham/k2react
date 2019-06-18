@@ -468,6 +468,7 @@ class MainScreen extends React.Component {
               </ListItem>
             </div>
           )}
+          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.1.0</div>
         {/*<Divider />
           <ListItem button onClick={this.handleDevClick}>
             <ListItemIcon>
@@ -776,7 +777,7 @@ class MainScreen extends React.Component {
                     </Typography>
                     <Route
                       exact
-                      path="/(library|training|modules|noticeboard|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
+                      path="/(|library|training|modules|noticeboard|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
                       render={() => (
                         <div className={classes.search}>
                           <div className={classes.searchIcon}>

@@ -23,7 +23,6 @@ function QuizList(props) {
   return (
     <div>
       <ListItem
-        dense
         button
         onClick={() => props.history.push(path)}
         selected={props.selected}
