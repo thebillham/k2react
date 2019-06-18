@@ -2,6 +2,7 @@ import {
   APP_HAS_LOADED,
   RESET_DISPLAY,
   TAB_STAFF,
+  TAB_MY_DETAILS,
   FILTER_STAFF,
   FILTER_MAP,
   FILTER_MAP_RESET,
@@ -43,6 +44,7 @@ const filterMap = {
 const displayInit = {
   initialLoading: true,
   tabStaff: 0,
+  tabMyDetails: 0,
   filterStaff: filterStaff,
   filterMap: filterMap,
 };
@@ -61,6 +63,11 @@ export default function displayReducer(state = displayInit, action) {
       return {
         ...state,
         tabStaff: action.payload,
+      }
+    case TAB_MY_DETAILS:
+      return {
+        ...state,
+        tabMyDetails: action.payload,
       }
     case FILTER_STAFF:
       return {

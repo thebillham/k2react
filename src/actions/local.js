@@ -1367,6 +1367,7 @@ export const saveCurrentJobState = state => dispatch => {
     stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket], { merge: true });
   });
 };
+
 //
 // function getDaysSinceDate(date) {
 //   var timeDifference = new Date() - new Date(date);

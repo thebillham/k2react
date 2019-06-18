@@ -242,8 +242,11 @@ class Noticeboard extends React.Component {
           style={{ marginLeft: 1, }}
           control={
             <Checkbox
-              checked={this.state.hideRead}
-              onChange={(event) => { this.setState({ hideRead: event.target.checked })}}
+              checked={this.props.me && this.props.me.settings && this.props.me.settings.showReadNotices !== undefined ? this.props.me.settings.showReadNotices : true}
+              onChange={(event) => { usersRef.doc(auth.currentUser.uid).update({ settings: {
+                ...this.props.me.settings,
+                showReadNotices: event.target.checked,
+              }})}}
               value='hideRead'
               color='secondary'
             />
@@ -278,11 +281,11 @@ class Noticeboard extends React.Component {
               if (
                 this.props.me.favnotices &&
                 this.props.me.favnotices.includes(notice.uid) &&
-                this.props.category === "fav"
+                (this.props.category === "fav" || this.props.category === "" || this.props.category === null)
               ) {
                 return true;
               }
-              if (!this.state.hideRead && notice.staff && notice.staff.includes(auth.currentUser.uid)) return false;
+              if (this.props.me.settings && this.props.me.settings.showReadNotices !== undefined && !this.props.me.settings.showReadNotices && notice.staff && notice.staff.includes(auth.currentUser.uid)) return false;
               if (
                 notice.auth !== undefined &&
                 this.props.me.auth &&

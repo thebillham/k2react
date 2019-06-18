@@ -162,9 +162,9 @@ class WAAnalysisModal extends React.Component {
       >
         <DialogTitle>{`WA Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description})`}</DialogTitle>
         <DialogContent>
-          <Grid container spacing={12} justify='center'>
+          <Grid container justify='center'>
             <Grid item xs={12} lg={4}>
-              <div style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: '100%', padding: 48, margin: 12, }}>
+              <div style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: '95%', padding: 48, margin: 12, }}>
                 <div className={this.props.classes.subheading}>Description</div>
                 <TextField
                   id="labDescription"
@@ -298,8 +298,11 @@ class WAAnalysisModal extends React.Component {
                 </div>
               </div>
             </Grid>
-            <Grid item xs={12} lg={8}>
-              <div style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: '100%', padding: 48, margin: 12, }}>
+            <Grid item xs={12} md={6} lg={4}>
+              {this.getTotals()}
+            </Grid>
+            <Grid item xs={12} md={6} lg={4}>
+              <div style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: '95%', padding: 48, margin: 12, }}>
                 <div className={this.props.classes.subheading}>Soil Type</div>
                 <Button
                   variant="outlined"
@@ -321,14 +324,11 @@ class WAAnalysisModal extends React.Component {
           </Grid>
           <Divider />
           <Grid container>
-            <Grid item xs={12} xl={8}>
+            <Grid item xs={12}>
               {fractionNames.map(fraction => {
                   return this.getFractionColumn(fraction);
                 }
               )}
-            </Grid>
-            <Grid item xs={12} xl={4}>
-              {this.getTotals()}
             </Grid>
           </Grid>
         </DialogContent>
@@ -388,7 +388,17 @@ class WAAnalysisModal extends React.Component {
     }
 
     return(
-      <div key={fraction} style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: 1150, display: 'flex', flexDirection: 'column', padding: 48, margin: 12, }}>
+      <div key={fraction} style={{
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: '#aaa',
+          borderStyle: 'solid',
+          width: 1150,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 48,
+          margin: 12,
+        }}>
         <div style={{ fontWeight: 500, fontSize: 16, }}>{title}</div>
         <TextField
           id="weightConditioned"

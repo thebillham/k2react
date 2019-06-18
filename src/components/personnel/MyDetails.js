@@ -31,6 +31,7 @@ import AttrList from "./components/MyDetailsAttrListItem";
 import { USERATTR, EDITSTAFF } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import { getUserAttrs, getEditStaff, fetchStaff, } from "../../actions/local";
+import { tabMyDetails, } from "../../actions/display";
 import _ from "lodash";
 
 const mapStateToProps = state => {
@@ -40,6 +41,7 @@ const mapStateToProps = state => {
     offices: state.const.offices,
     jobdescriptions: state.const.jobdescriptions,
     permissions: state.const.permissions,
+    tab: state.display.tabMyDetails,
   };
 };
 
@@ -48,7 +50,8 @@ const mapDispatchToProps = dispatch => {
     showModal: modal => dispatch(showModal(modal)),
     getEditStaff: user => dispatch(getEditStaff(user)),
     fetchStaff: update => dispatch(fetchStaff(update)),
-    getUserAttrs: userPath => dispatch(getUserAttrs(userPath))
+    getUserAttrs: userPath => dispatch(getUserAttrs(userPath)),
+    tabMyDetails: (tab) => dispatch(tabMyDetails(tab)),
   };
 };
 
@@ -58,7 +61,6 @@ class UserDetails extends React.Component {
     var userPath = auth.currentUser.uid;
     if (props.match.params.user) userPath = props.match.params.user;
     this.state = {
-      tabValue: this.props.me.tabUserDetails ? this.props.me.tabUserDetails : 0,
       userPath: userPath,
       isLoading: true,
       edited: false,
@@ -67,7 +69,7 @@ class UserDetails extends React.Component {
   }
 
   handleTabChange = (event, value) => {
-    this.setState({ tabValue: value });
+    this.props.tabMyDetails(value);
   };
 
   componentWillMount() {
@@ -80,7 +82,6 @@ class UserDetails extends React.Component {
 
   componentWillUnmount() {
     if (this.state.edited) this.props.fetchStaff(true);
-    usersRef.doc(auth.currentUser.uid).update({ tabUserDetails: this.state.tabValue });
   }
 
   onEditUser = (target, select) => {
@@ -146,8 +147,7 @@ class UserDetails extends React.Component {
   };
 
   render() {
-    const { classes } = this.props;
-    var { tabValue } = this.state;
+    const { classes, tab } = this.props;
 
     if (this.state.isLoading && ((this.props.match.params.user && this.props.editstaff != undefined) || (!this.props.match.params.user && this.props.me != undefined))) this.setState({ isLoading: false, });
 
@@ -172,7 +172,7 @@ class UserDetails extends React.Component {
         {/* <Paper style={{ padding: 20, }}>*/}
         <div style={{ marginBottom: 20 }}>
           <Tabs
-            value={tabValue}
+            value={tab}
             onChange={this.handleTabChange}
             indicatorColor="secondary"
             textColor="secondary"
@@ -186,7 +186,7 @@ class UserDetails extends React.Component {
           </Tabs>
         </div>
         <div style={{ display: "flex", justifyContent: "center" }}>
-          {tabValue === 0 && (
+          {tab === 0 && (
             <div>
               {this.state.isLoading ? (
                 <div>
@@ -358,7 +358,7 @@ class UserDetails extends React.Component {
               )}
             </div>
           )}
-          {tabValue === 1 && (
+          {tab === 1 && (
             <div>
               {this.state.isLoading || !user ? (
                 <div>
@@ -408,7 +408,7 @@ class UserDetails extends React.Component {
               )}
             </div>
           )}
-          {tabValue === 2 && (
+          {tab === 2 && (
             <div>
               {this.state.isLoading ? (
                 <div>
@@ -598,7 +598,7 @@ class UserDetails extends React.Component {
               )}
             </div>
           )}
-          {tabValue === 3 && (
+          {tab === 3 && (
             <div>
               {this.state.isLoading || !user ? (
                 <div>
@@ -764,7 +764,7 @@ class UserDetails extends React.Component {
               )}
             </div>
           )}
-          {tabValue === 4 && (
+          {tab === 4 && (
             <div>
               {this.state.isLoading ? (
                 <div>
@@ -781,7 +781,7 @@ class UserDetails extends React.Component {
                     {this.props.permissions.map(permission => {
                       return (
                         <div key={permission.name}>
-                          <ListItem key={permission.name} dense>
+                          <div style={{ marginBottom: 0, }}>
                             <FormControlLabel
                               control={
                                 <Checkbox
@@ -805,10 +805,10 @@ class UserDetails extends React.Component {
                               }
                               label={permission.name}
                             />
-                          </ListItem>
-                          <ListItem dense>
+                          </div>
+                          <div style={{ marginBottom: 12,}}>
                             <FormHelperText>{permission.desc}</FormHelperText>
-                          </ListItem>
+                          </div>
                         </div>
                       );
                     })}

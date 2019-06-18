@@ -2,6 +2,7 @@ import {
   APP_HAS_LOADED,
   RESET_DISPLAY,
   TAB_STAFF,
+  TAB_MY_DETAILS,
   FILTER_STAFF,
   FILTER_MAP,
   FILTER_MAP_RESET,
@@ -17,9 +18,17 @@ export const appHasLoaded = () => dispatch => {
   });
 };
 
+// Settings that should last a session
 export const tabStaff = (tab) => dispatch => {
   dispatch({
     type: TAB_STAFF,
+    payload: tab,
+  })
+}
+
+export const tabMyDetails = (tab) => dispatch => {
+  dispatch({
+    type: TAB_MY_DETAILS,
     payload: tab,
   })
 }

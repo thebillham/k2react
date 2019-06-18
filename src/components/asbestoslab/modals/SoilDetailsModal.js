@@ -41,13 +41,6 @@ import _ from "lodash";
 
 const layerNum = 5;
 
-const defaultColor = {
-  r: '150',
-  g: '150',
-  b: '150',
-  a: '1',
-};
-
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalTypeSecondary,
@@ -65,7 +58,6 @@ const mapDispatchToProps = dispatch => {
 class SoilDetailsModal extends React.Component {
   state = {
     sample: {},
-    displayColorPicker: {},
   };
 
   loadProps = () => {
@@ -149,39 +141,6 @@ class SoilDetailsModal extends React.Component {
         <DialogContent>
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={5}>
-              <div className={this.props.classes.subheading}>Description</div>
-              <TextField
-                id="labDescription"
-                style={{ width: '100%' }}
-                value={sample.labDescription}
-                helperText="Provide a detailed description of the material."
-                multiline
-                rows={3}
-                onChange={e => {
-                  this.setState({
-                    sample: {
-                      ...sample,
-                      labDescription: e.target.value,
-                    }
-                  });
-                }}
-              />
-              <TextField
-                id="labComments"
-                style={{ width: '100%' }}
-                value={sample.labComments}
-                helperText="Note any additional observations or comments."
-                multiline
-                rows={3}
-                onChange={e => {
-                  this.setState({
-                    sample: {
-                      ...sample,
-                      labComments: e.target.value,
-                    }
-                  });
-                }}
-              />
               <div className={this.props.classes.subheading}>Sampling Method</div>
               <FormControl component="fieldset">
                 <RadioGroup

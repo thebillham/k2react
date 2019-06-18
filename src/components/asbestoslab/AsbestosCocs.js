@@ -127,174 +127,162 @@ class AsbestosCocs extends React.Component {
         <DownloadLabCertificateModal />
         <CocLogModal />
         <SoilDetailsModal />
-        <Grid container spacing={16} alignItems='flex-start'>
-          <Grid item>
-            <Button
-              variant="outlined"
-              style={{ marginBottom: 16, width: 220 }}
-              onClick={() => {
-                this.props.showModal({
-                  modalType: COC,
-                  modalProps: {
-                    title: "Add New Chain of Custody",
-                    doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, }
-                  }
-                });
-              }}
-            >
-              New Chain of Custody
-            </Button>
-            {this.state.analyst && (
-              <div
-                style={{
-                  borderRadius: 4,
-                  borderStyle: "solid",
-                  borderWidth: 1,
-                  borderColor: "#ccc",
-                  width: 220,
-                  marginBottom: 12,
-                  padding: 14
-                }}
-              >
-                <div style={{ marginBottom: 12 }}>
-                  <InputLabel style={{ marginLeft: 12 }}>
-                    Report Analysis As:
-                  </InputLabel>
-                </div>
-                <div>
-                  <FormControl style={{ width: 200 }}>
-                    <InputLabel shrink>Analyst</InputLabel>
-                    <Select
-                      value={this.props.analyst}
-                      onChange={e => this.props.setAnalyst(e.target.value)}
-                      input={<Input name="analyst" id="analyst" />}
-                    >
-                      {this.props.bulkAnalysts.map(analyst => {
-                        return (
-                          <option key={analyst.uid} value={analyst.name}>
-                            {analyst.name}
-                          </option>
-                        );
-                      })}
-                    </Select>
-                  </FormControl>
-                </div>
-              </div>
-            )}
-          </Grid>
-          <Grid item xs={3}>
+        <Button
+          variant="outlined"
+          style={{ marginBottom: 16, width: 220, }}
+          onClick={() => {
+            this.props.showModal({
+              modalType: COC,
+              modalProps: {
+                title: "Add New Chain of Custody",
+                doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, }
+              }
+            });
+          }}
+        >
+          New Chain of Custody
+        </Button>
+        <div style={{ display: 'flex', flexDirection: 'row'}}>
+          {this.state.analyst && (
             <div
               style={{
                 borderRadius: 4,
                 borderStyle: "solid",
                 borderWidth: 1,
                 borderColor: "#ccc",
-                width: '100%',
+                width: 220,
+                marginBottom: 16,
+                marginRight: 12,
                 height: '100%',
                 padding: 12
               }}
             >
               <div style={{ marginBottom: 12 }}>
                 <InputLabel style={{ marginLeft: 12 }}>
-                  Get Chains of Custody by Job Number
+                  Report Analysis As:
                 </InputLabel>
               </div>
               <div>
-                <FormControl style={{ width: '80%', marginRight: 8, }}>
-                  <InputLabel shrink>Job Number</InputLabel>
-                  <Input
-                    id="searchJobNumber"
-                    value={this.state.searchJobNumber}
-                    onChange={e => this.setState({ searchJobNumber: e.target.value})}
-                    startAdornment={<InputAdornment position="start">AS</InputAdornment>}
-                  />
-                </FormControl>
-                <Button
-                  variant="outlined"
-                  style={{ marginTop: 16, marginBottom: 16, marginLeft: 1 }}
-                  onClick={() => this.props.fetchCocsByJobNumber(`AS${this.state.searchJobNumber}`)}
-                >
-                  Go
-                </Button>
-              </div>
-            </div>
-          </Grid>
-          <Grid item xl={this.state.analyst ? 7 : 9} lg={12}>
-            <div
-              style={{
-                borderRadius: 4,
-                borderStyle: "solid",
-                borderWidth: 1,
-                borderColor: "#ccc",
-                width: '100%',
-                height: '100%',
-                padding: 12
-              }}
-            >
-              <div style={{ marginBottom: 12 }}>
-                <InputLabel style={{ marginLeft: 12 }}>
-                  Search Historic Chains of Custody
-                </InputLabel>
-              </div>
-              <Grid container spacing={8}>
-                <Grid item xs={12} lg={6}>
-                <FormControl style={{ width: '100%'}}>
-                  <InputLabel shrink>Client</InputLabel>
+                <FormControl style={{ width: 200, marginBottom: 19, }}>
+                  <InputLabel shrink>Analyst</InputLabel>
                   <Select
-                    value={this.state.searchClient}
-                    onChange={e => {
-                      if (e.target.value === "-") this.setState({searchClient: ""}); else this.setState({searchClient: e.target.value});
-                    }}
-                    input={<Input name="searchClient" id="searchClient" />}
+                    value={this.props.analyst}
+                    onChange={e => this.props.setAnalyst(e.target.value)}
+                    input={<Input name="analyst" id="analyst" />}
                   >
-                    {this.props.clients.map(client => {
+                    {this.props.bulkAnalysts.map(analyst => {
                       return (
-                        <option key={client.wfmID} value={client.name}>
-                          {client.name}
+                        <option key={analyst.uid} value={analyst.name}>
+                          {analyst.name}
                         </option>
                       );
                     })}
                   </Select>
                 </FormControl>
-                </Grid>
-                <Grid item xs={4} lg={2}>
-                  <TextField
-                    id="searchStartDate"
-                    label="From"
-                    type="date"
-                    value={this.state.searchStartDate}
-                    onChange={e => this.setState({ searchStartDate: e.target.value})}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={4} lg={2}>
-                  <TextField
-                    id="searchEndDate"
-                    label="To"
-                    type="date"
-                    value={this.state.searchEndDate}
-                    onChange={e => this.setState({ searchEndDate: e.target.value})}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={4} lg={2}>
-                  <Button
-                    variant="outlined"
-                    style={{ marginTop: 16, marginBottom: 16 }}
-                    onClick={() => this.props.fetchCocsBySearch(this.state.searchClient, this.state.searchStartDate, this.state.searchEndDate)}
-                  >
-                    Go
-                  </Button>
-                </Grid>
-              </Grid>
+              </div>
             </div>
-          </Grid>
-          {/*<div style={{ fontSize: 48, fontWeight: 100, }}>{moment().isWorkingTime() ? 'IT IS BUSINESS TIME' : 'IT IS NOT BUSINESS TIME :('}</div>*/}
-        </Grid>
+          )}
+          <div
+            style={{
+              borderRadius: 4,
+              borderStyle: "solid",
+              borderWidth: 1,
+              borderColor: "#ccc",
+              width: 400,
+              height: '100%',
+              padding: 12,
+            }}
+          >
+            <div style={{ marginBottom: 12 }}>
+              <InputLabel style={{ marginLeft: 12 }}>
+                Get Chains of Custody by Job Number
+              </InputLabel>
+            </div>
+            <div>
+              <FormControl style={{ width: '80%', marginRight: 8, }}>
+                <InputLabel shrink>Job Number</InputLabel>
+                <Input
+                  id="searchJobNumber"
+                  value={this.state.searchJobNumber}
+                  onChange={e => this.setState({ searchJobNumber: e.target.value})}
+                  startAdornment={<InputAdornment position="start">AS</InputAdornment>}
+                />
+              </FormControl>
+              <Button
+                variant="outlined"
+                style={{ marginTop: 16, marginBottom: 16, marginLeft: 1 }}
+                onClick={() => this.props.fetchCocsByJobNumber(`AS${this.state.searchJobNumber}`)}
+              >
+                Go
+              </Button>
+            </div>
+          </div>
+          <div
+            style={{
+              borderRadius: 4,
+              marginLeft: 12,
+              borderStyle: "solid",
+              borderWidth: 1,
+              borderColor: "#ccc",
+              width: 800,
+              height: '100%',
+              padding: 12
+            }}
+          >
+            <div style={{ marginBottom: 12 }}>
+              <InputLabel style={{ marginLeft: 12 }}>
+                Search Historic Chains of Custody
+              </InputLabel>
+            </div>
+            <div style={{ flexDirection: 'row', display: 'flex', }}>
+              <FormControl style={{ width: 400}}>
+                <InputLabel shrink>Client</InputLabel>
+                <Select
+                  value={this.state.searchClient}
+                  onChange={e => {
+                    if (e.target.value === "-") this.setState({searchClient: ""}); else this.setState({searchClient: e.target.value});
+                  }}
+                  input={<Input name="searchClient" id="searchClient" />}
+                >
+                  {this.props.clients.map(client => {
+                    return (
+                      <option key={client.wfmID} value={client.name}>
+                        {client.name}
+                      </option>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+              <TextField
+                id="searchStartDate"
+                label="From"
+                type="date"
+                value={this.state.searchStartDate}
+                onChange={e => this.setState({ searchStartDate: e.target.value})}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <TextField
+                id="searchEndDate"
+                label="To"
+                type="date"
+                value={this.state.searchEndDate}
+                onChange={e => this.setState({ searchEndDate: e.target.value})}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <Button
+                variant="outlined"
+                style={{ marginTop: 16, marginBottom: 16, marginLeft: 1, }}
+                onClick={() => this.props.fetchCocsBySearch(this.state.searchClient, this.state.searchStartDate, this.state.searchEndDate)}
+              >
+                Go
+              </Button>
+            </div>
+          </div>
+        </div>
         {Object.keys(cocs).length < 1 ? (
           <div
             style={{
