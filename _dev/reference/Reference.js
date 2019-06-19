@@ -65,7 +65,7 @@ class Reference extends React.Component {
     const { docs } = this.props;
     return (
       <div style={{ marginTop: 80 }}>
-        <Grid container spacing={8}>
+        <Grid container spacing={1}>
           {this.props.categories.map(cat => {
             return (
               <Grid item>

@@ -424,3 +424,133 @@ export const writeShorthandResult = result => {
   if (result["umf"]) str = str + "UMF ";
   return str.slice(0, -1);
 };
+
+export const writeSoilDetails = details => {
+  let dictionary = {
+    subFractionType: {
+      cobbles: 'cobbly ',
+      gravel: 'gravelly ',
+      sand: 'sandy ',
+      clay: 'clayey ',
+      silt: 'silty ',
+      topsoil: 'organic soily ',
+      organicclay: 'organic clayey ',
+      organicsilt: 'organic silty ',
+      organicsand: 'organic sandy ',
+      peat: 'peaty ',
+    },
+    majorFractionRange: {
+      fine: 'fine ',
+      medium: 'medium ',
+      coarse: 'coarse ',
+      finetocoarse: 'fine to coarse ',
+      finetomedium: 'fine to medium ',
+      mediumtocoarse: 'medium to coarse ',
+    },
+    majorFractionType: {
+      boulders: 'BOULDERS ',
+      cobbles: 'COBBLES ',
+      gravel: 'GRAVEL ',
+      sand: 'SAND ',
+      clay: 'CLAY ',
+      silt: 'SILT ',
+      topsoil: 'ORGANIC TOPSOIL ',
+      organicclay: 'ORGANIC CLAY ',
+      organicsilt: 'ORGANIC SILT ',
+      organicsand: 'ORGANIC SAND ',
+      peat: 'PEAT ',
+    },
+    minorFractionType: {
+      cobbles: 'cobbles',
+      gravel: 'gravel',
+      sand: 'sand',
+      clay: 'clay',
+      silt: 'silt',
+      topsoil: 'organic soil',
+      organicclay: 'organic clay',
+      organicsilt: 'organic silt',
+      organicsand: 'organic sand',
+      peat: 'peat',
+    }
+  }
+  let sections = [];
+  if (details.majorFractionType) {
+
+    // SOIL NAME
+    let str = '';
+    let minorFractions = [];
+    if (details.subFractionType && details.subFractionType !== 'none') {
+      str = dictionary.subFractionType[details.subFractionType];
+    }
+    if ((details.majorFractionType === 'sand' || details.majorFractionType === 'gravel') && details.majorFractionRange) {
+      str = str + dictionary.majorFractionRange[details.majorFractionRange];
+    }
+    str = str + dictionary.majorFractionType[details.majorFractionType];
+    if (details.someFractionTypes) {
+      let fractionArray = [];
+      Object.keys(details.someFractionTypes).forEach(key => {
+        if (details.someFractionTypes[key] === true) fractionArray.push(key);
+      });
+      if (fractionArray.length > 0) {
+        if (fractionArray.length > 1) {
+          minorFractions.push('some ' + fractionArray.slice(0, -1).map(x => dictionary.minorFractionType[x]).join(', ') + ' and ' + fractionArray.slice(-1).map(x => dictionary.minorFractionType[x]));
+        } else {
+          minorFractions.push('some ' + dictionary.minorFractionType[fractionArray[0]]);
+        }
+      }
+    }
+    if (details.minorFractionTypes) {
+      let fractionArray = [];
+      Object.keys(details.minorFractionTypes).forEach(key => {
+        if (details.minorFractionTypes[key] === true) fractionArray.push(key);
+      });
+      console.log(fractionArray);
+      if (fractionArray.length > 0) {
+        if (fractionArray.length > 1) {
+          minorFractions.push('minor ' + fractionArray.slice(0, -1).map(x => dictionary.minorFractionType[x]).join(', ') + ' and ' + fractionArray.slice(-1).map(x => dictionary.minorFractionType[x]));
+        } else {
+          minorFractions.push('minor ' + dictionary.minorFractionType[fractionArray[0]]);
+        }
+      }
+    }
+    if (details.traceFractionTypes) {
+      let fractionArray = [];
+      Object.keys(details.traceFractionTypes).forEach(key => {
+        if (details.traceFractionTypes[key] === true) fractionArray.push(key);
+      });
+      if (fractionArray.length > 0) {
+        if (fractionArray.length > 1) {
+          minorFractions.push('trace of ' + fractionArray.slice(0, -1).map(x => dictionary.minorFractionType[x]).join(', ') + ' and ' + fractionArray.slice(-1).map(x => dictionary.minorFractionType[x]));
+        } else {
+          minorFractions.push('trace of ' + dictionary.minorFractionType[fractionArray[0]]);
+        }
+      }
+    }
+    if (minorFractions.length > 0) {
+      if (minorFractions.length === 1) str += 'with ' + minorFractions[0];
+      else str += 'with ' + minorFractions.slice(0, -1).join(', ') + ' and ' + minorFractions.slice(-1);
+    }
+    sections.push[str];
+    str = '';
+
+    // VISUAL CHARACTERISTICS
+    let section = [];
+    if (details.colour && details.colour !== '') {
+      let colour = '';
+      if (details.colourShade && details.colourShade !== '') colour += details.colourShade + ' ';
+      if (details.colourQualifier && details.colourQualifier !== '') colour += details.colourQualifier + ' ';
+      colour += details.colour;
+      section.push[colour];
+    }
+    if (details.structure && details.structure !== '') {
+      section.push[details.structure];
+    }
+    if (section.length > 0) {
+      sections.push[section.join(', ')];
+    }
+
+  } else {
+    str = 'No details';
+  }
+  return str;
+};

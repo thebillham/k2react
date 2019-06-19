@@ -217,7 +217,7 @@ class CocModal extends React.Component {
         </DialogTitle>
         <DialogContent>
         {this.state.sampleEditModal && (
-          <Grid container spacing={8}>
+          <Grid container spacing={1}>
             <Grid item xs={12}>
               <TextField
                 label={'Generic Location'}

@@ -174,7 +174,7 @@ class Vehicles extends React.Component {
         <ExpansionPanelDetails>
           <Grid
             container
-            spacing={8}
+            spacing={1}
             direction="row"
             justify="flex-start"
             alignItems="flex-start"

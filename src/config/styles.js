@@ -21,10 +21,18 @@ const modalStyles = theme => ({
     color: '#888',
   },
 
+  heading: {
+    marginTop: 20,
+    marginBottom: 16,
+    fontWeight: 500,
+    fontSize: 16,
+    color: '#333',
+  },
+
   dialogField: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-    marginBottom: theme.spacing.unit * 2,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    marginBottom: theme.spacing(2),
     width: 500,
   },
 });
@@ -34,35 +42,35 @@ const formStyles = theme => ({
   paper: {
     ...theme.mixins.gutters(),
     display: 'flex',
-    paddingTop: theme.spacing.unit * 2,
-    paddingBottom: theme.spacing.unit * 2,
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
     width: 700,
     justifyContent: 'center',
   },
 
   textField: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
     fontSize: 12,
-    // marginBottom: theme.spacing.unit * 2,
+    // marginBottom: theme.spacing(2),
     width: 500,
   },
 
   note: {
-    marginLeft: theme.spacing.unit,
+    marginLeft: theme.spacing(1),
     fontSize: 14,
     color: '#444',
-    // marginBottom: theme.spacing.unit * 2,
+    // marginBottom: theme.spacing(2),
   },
   labels: {
-    marginTop: theme.spacing.unit * 2,
-    marginLeft: theme.spacing.unit,
+    marginTop: theme.spacing(2),
+    marginLeft: theme.spacing(1),
     fontSize: 16,
     fontWeight: 'bold',
-    // marginBottom: theme.spacing.unit * 2,
+    // marginBottom: theme.spacing(2),
   },
   container: {
-    marginTop: theme.spacing.unit * 10,
+    marginTop: theme.spacing(10),
     justifyContent: 'center',
   },
 
@@ -93,10 +101,10 @@ const styles = theme => ({
     display: 'flex',
   },
   textField: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
     fontSize: 12,
-    // marginBottom: theme.spacing.unit * 2,
+    // marginBottom: theme.spacing(2),
     width: 500,
   },
   hoverItem: {
@@ -107,6 +115,9 @@ const styles = theme => ({
   },
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
+  },
+  mainMenuText: {
+    color: '#333',
   },
   toolbarIcon: {
     display: 'flex',
@@ -122,7 +133,7 @@ const styles = theme => ({
     '&:hover': {
       backgroundColor: fade(theme.palette.common.white, 0.25),
     },
-    marginRight: theme.spacing.unit * 2,
+    marginRight: theme.spacing(2),
     marginLeft: 0,
     width: '100%',
     [theme.breakpoints.up('sm')]: {
@@ -144,10 +155,10 @@ const styles = theme => ({
     width: '100%',
   },
   inputInput: {
-    paddingTop: theme.spacing.unit,
-    paddingRight: theme.spacing.unit,
-    paddingBottom: theme.spacing.unit,
-    paddingLeft: theme.spacing.unit * 10,
+    paddingTop: theme.spacing(1),
+    paddingRight: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(10),
     transition: theme.transitions.create('width'),
     width: '100%',
     [theme.breakpoints.up('md')]: {
@@ -185,11 +196,11 @@ const styles = theme => ({
     flexGrow: 1,
   },
   labels: {
-    marginTop: theme.spacing.unit * 2,
-    marginLeft: theme.spacing.unit,
+    marginTop: theme.spacing(2),
+    marginLeft: theme.spacing(1),
     fontSize: 16,
     fontWeight: 'bold',
-    // marginBottom: theme.spacing.unit * 2,
+    // marginBottom: theme.spacing(2),
   },
   drawerPaper: {
     background: '#fff',
@@ -234,7 +245,7 @@ const styles = theme => ({
     margin: 10,
   },
   nested: {
-    paddingLeft: theme.spacing.unit * 5,
+    paddingLeft: theme.spacing(5),
   },
   subitem: {
     fontSize: 8,

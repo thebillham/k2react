@@ -62,7 +62,7 @@ class AsbestosLog extends React.Component {
               padding: 12
             }}
           >
-            <Grid container spacing={16} alignItems='flex-start'>
+            <Grid container spacing={2} alignItems='flex-start'>
               <Grid item xs={3}>
                 <div style={{ marginBottom: 12 }}>
                   <InputLabel style={{ marginLeft: 12 }}>

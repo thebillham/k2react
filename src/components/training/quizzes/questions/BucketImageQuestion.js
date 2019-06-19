@@ -133,7 +133,7 @@ class BucketImageQuestion extends React.Component {
       <div style={{ marginTop: 24 }}>
         <FormLabel component="legend"> {q.question}</FormLabel>
         <DragDropContext onDragEnd={this.onDragEnd}>
-          <Grid container spacing={16}>
+          <Grid container spacing={2}>
             {q.selected.map((bucket, index) => {
               return (
                 <Grid item key={bucket.label}>

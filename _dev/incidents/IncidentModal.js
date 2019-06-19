@@ -169,7 +169,7 @@ class IncidentModal extends React.Component {
         <DialogContent>
           <form>
             <InputLabel shrink>Diagram of incident</InputLabel>
-            <Grid container spacing={8}>
+            <Grid container spacing={1}>
               <Grid item>
                 <IconButton
                   aira-label="Undo"

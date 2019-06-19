@@ -32,10 +32,10 @@ class Dashboard extends React.Component {
           justify="flex-start"
           className={classes.container}
           alignItems="stretch"
-          spacing={16}
+          spacing={2}
         >
           <Grid item xs={3}>
-            <Grid container direction="column" spacing={16}>
+            <Grid container direction="column" spacing={2}>
               <Grid item>
                 <GoogleCalendar />
               </Grid>
@@ -45,14 +45,14 @@ class Dashboard extends React.Component {
             </Grid>
           </Grid>
           <Grid item xs={3}>
-            <Grid container direction="column" spacing={16}>
+            <Grid container direction="column" spacing={2}>
               <Grid item>
                 <CurrentJobs />
               </Grid>
             </Grid>
           </Grid>
           <Grid item xs={3}>
-            <Grid container direction="column" spacing={16}>
+            <Grid container direction="column" spacing={2}>
               <Grid item>
                 <RecentNotifications />
               </Grid>
@@ -62,7 +62,7 @@ class Dashboard extends React.Component {
             </Grid>
           </Grid>
           <Grid item xs={3}>
-            <Grid container direction="column" spacing={16}>
+            <Grid container direction="column" spacing={2}>
               <Grid item>
                 <ToDo />
               </Grid>

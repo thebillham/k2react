@@ -1385,7 +1385,7 @@ class JobMap extends React.Component {
               </ExpansionPanelSummary>
               <ExpansionPanelDetails>
                 <div>
-                  <Grid container spacing={8}>
+                  <Grid container spacing={1}>
                     <Grid item>
                       <Button
                         style={{ fontSize: 12 }}
@@ -1450,7 +1450,7 @@ class JobMap extends React.Component {
                       />
                     </Grid>
                   </Grid>
-                  <Grid container spacing={8} style={{ marginBottom: 8 }}>
+                  <Grid container spacing={1} style={{ marginBottom: 8 }}>
                     {[
                       "Lead",
                       "On Hold",
@@ -1478,7 +1478,7 @@ class JobMap extends React.Component {
                       );
                     })}
                   </Grid>
-                  <Grid container spacing={8} style={{ marginBottom: 8 }}>
+                  <Grid container spacing={1} style={{ marginBottom: 8 }}>
                     {[
                       "Asbestos",
                       "Meth",
@@ -1507,7 +1507,7 @@ class JobMap extends React.Component {
                       );
                     })}
                   </Grid>
-                  <Grid container spacing={8}>
+                  <Grid container spacing={1}>
                     <Grid style={{ fontSize: 14 }}>
                       <Checkbox
                         checked={this.props.filter.filterUpdatedInTheLast}
@@ -1532,7 +1532,7 @@ class JobMap extends React.Component {
                       days or more
                     </Grid>
                   </Grid>
-                  <Grid container spacing={8}>
+                  <Grid container spacing={1}>
                     <Grid style={{ fontSize: 14 }}>
                       <Checkbox
                         checked={this.props.filter.filterCreatedInTheLast}
@@ -1557,7 +1557,7 @@ class JobMap extends React.Component {
                       days or less
                     </Grid>
                   </Grid>
-                  <Grid container spacing={8}>
+                  <Grid container spacing={1}>
                     <Grid style={{ fontSize: 14 }}>
                       <Checkbox
                         checked={this.props.filter.filterCompletedInTheLast}
@@ -1584,7 +1584,7 @@ class JobMap extends React.Component {
                       days or less
                     </Grid>
                   </Grid>
-                  <Grid container spacing={8}>
+                  <Grid container spacing={1}>
                     <Grid style={{ fontSize: 14 }}>
                       <Checkbox
                         checked={this.props.filter.filterActionsOverdueBy}
@@ -1612,7 +1612,7 @@ class JobMap extends React.Component {
                 </div>
               </ExpansionPanelDetails>
             </ExpansionPanel>
-            <Grid container spacing={8} style={{ marginTop: 12}}>
+            <Grid container spacing={1} style={{ marginTop: 12}}>
               <Grid item>
                 <Button onClick={this.openLeadsModal} variant='outlined'>
                   <span style={{ fontSize: 12 }}>

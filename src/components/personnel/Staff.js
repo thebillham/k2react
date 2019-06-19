@@ -294,7 +294,7 @@ class Staff extends React.Component {
         <ExpansionPanelDetails>
           <Grid
             container
-            spacing={8}
+            spacing={1}
             direction="row"
             justify="space-between"
             alignItems="flex-start"

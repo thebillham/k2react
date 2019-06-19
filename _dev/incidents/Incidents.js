@@ -168,7 +168,7 @@ class Incidents extends React.Component {
           }
           label="Show Read Notices"
         />
-        <Grid container spacing={8}>
+        <Grid container spacing={1}>
           {this.props.categories.map(cat => {
             return (
               <Grid item key={cat.key}>
@@ -185,7 +185,7 @@ class Incidents extends React.Component {
             );
           })}
         </Grid>
-        <Grid container spacing={16} style={{ paddingTop: 30 }}>
+        <Grid container spacing={2} style={{ paddingTop: 30 }}>
           {this.props.incidents
             .filter(notice => {
               if (

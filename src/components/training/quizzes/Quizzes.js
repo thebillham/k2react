@@ -95,7 +95,7 @@ class Quizzes extends React.Component {
         >
           See All Questions
         </Button>
-        <Grid container spacing={8}>
+        <Grid container spacing={1}>
           {this.props.categories.map(cat => {
             return (
               <Grid item key={cat.key}>

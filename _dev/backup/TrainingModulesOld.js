@@ -65,7 +65,7 @@ class TrainingModules extends React.Component {
   render() {
     return (
       <div style={{ marginTop: 80 }}>
-        <Grid container spacing={8}>
+        <Grid container spacing={1}>
           {this.props.categories.map(cat => {
             return (
               <Grid item>
@@ -82,7 +82,7 @@ class TrainingModules extends React.Component {
             );
           })}
         </Grid>
-        <Grid container spacing={16} style={{ paddingTop: 30 }}>
+        <Grid container spacing={2} style={{ paddingTop: 30 }}>
           <Grid item xs={6}>
             {this.props.modules
               .filter(mod => {

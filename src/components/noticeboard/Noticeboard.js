@@ -253,7 +253,7 @@ class Noticeboard extends React.Component {
           }
           label="Show Read Notices"
         />
-        <Grid container spacing={8}>
+        <Grid container spacing={1}>
           {[
             {
               key: "fav",
@@ -275,7 +275,7 @@ class Noticeboard extends React.Component {
             );
           })}
         </Grid>
-        <Grid container spacing={16} style={{ paddingTop: 30 }}>
+        <Grid container spacing={2} style={{ paddingTop: 30 }}>
           {this.props.notices
             .filter(notice => {
               if (

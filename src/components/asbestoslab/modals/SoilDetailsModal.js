@@ -23,8 +23,11 @@ import DialogActions from "@material-ui/core/DialogActions";
 import FormGroup from "@material-ui/core/FormGroup";
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormHelperText from "@material-ui/core/FormHelperText";
 import RadioGroup from "@material-ui/core/RadioGroup";
 import Radio from "@material-ui/core/Radio";
+import InputLabel from "@material-ui/core/InputLabel";
+import Select from "@material-ui/core/Select";
 import Checkbox from "@material-ui/core/Checkbox";
 import FormLabel from "@material-ui/core/FormLabel";
 import TextField from "@material-ui/core/TextField";
@@ -33,13 +36,11 @@ import UploadIcon from "@material-ui/icons/CloudUpload";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModalSecondary } from "../../../actions/modal";
-import { handleSampleChange } from "../../../actions/asbestosLab";
+import { handleSampleChange, writeSoilDetails, } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
 } from "../../../config/firebase";
 import _ from "lodash";
-
-const layerNum = 5;
 
 const mapStateToProps = state => {
   return {
@@ -55,367 +56,482 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+const sampleInit = {
+  type: 'fine',
+};
+
 class SoilDetailsModal extends React.Component {
   state = {
-    sample: {},
+    sample: sampleInit,
   };
 
   loadProps = () => {
-    let sample = this.props.modalProps.sample;
-    if (sample.layers === undefined) sample.layers = {};
-    [...Array(layerNum).keys()].forEach(num => {
-      if (sample.layers[`layer${num+1}`] === undefined) {
-        sample.layers[`layer${num+1}`] = { color: defaultColor, result: {}, };
-      }
-    });
-    this.setState({
-      sample
-    });
+    if (this.props.modalProps.sample && this.props.modalProps.sample.soilDetails) {
+      this.setState({
+        sample: this.props.modalProps.sample.soilDetails,
+      });
+    }
   }
 
   clearProps = () => {
-    this.setState({ sample: {}, displayColorPicker: {}, });
+    this.setState({ sample: sampleInit, });
   }
 
-  handleColorClick = (num) => {
-    console.log(this.state.displayColorPicker);
-    this.setState({ displayColorPicker: {
-        ...this.state.displayColorPicker,
-        [num]: !this.state.displayColorPicker[num],
-      }
-    })
-  };
-
-  handleColorClose = (num) => {
-    console.log(this.state.displayColorPicker);
-    this.setState({ displayColorPicker: {
-        ...this.state.displayColorPicker,
-        [num]: false,
-      }
-    })
-  };
-
-  addLayer = () => {
-    let num = this.state.sample.layerNum ? this.state.sample.layerNum : layerNum;
-    num += 1;
-    let sampleLayers = this.state.sample.layers;
-    if (sampleLayers[`layer${num}`] === undefined) {
-      sampleLayers[`layer${num}`] = { color: defaultColor, result: {}, };
+  handleCheck = (field, check) => {
+    let set = {};
+    if (this.state.sample[field]) set = this.state.sample[field];
+    let val = true;
+    if (set[check]) val = !set[check];
+    set = {
+      ...set,
+      [check]: !set[check],
     }
     this.setState({
       sample: {
         ...this.state.sample,
-        layerNum: num,
-        layers: sampleLayers,
+        [field]: set,
       }
     });
-  };
-
-  removeLayer = () => {
-    let num = this.state.sample.layerNum ? this.state.sample.layerNum : layerNum;
-    num -= 1;
-    if (num < 1) num = 1;
-    this.setState({
-      sample: {
-        ...this.state.sample,
-        layerNum: num,
-      }
-    });
-  };
+  }
 
   render() {
     const { classes, modalProps, modalType } = this.props;
     const { sample } = this.state;
+    console.log(sample);
     return (
       <div>
-      {sample &&
+      {modalProps && modalProps.sample && sample &&
       <Dialog
         open={modalType === SOILDETAILS}
         onClose={() => this.props.hideModal()}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth={true}
         onEnter={() => this.loadProps()}
         onExit={() => this.clearProps()}
       >
-        <DialogTitle>{`Soil Details for Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description})`}</DialogTitle>
+        <DialogTitle>{`Soil Details for Sample ${modalProps.sample.jobNumber}-${modalProps.sample.sampleNumber} (${modalProps.sample.description})`}</DialogTitle>
         <DialogContent>
-          <Grid container alignItems='flex-start' justify='flex-end'>
-            <Grid item xs={5}>
-              <div className={this.props.classes.subheading}>Sampling Method</div>
-              <FormControl component="fieldset">
-                <RadioGroup
-                  aria-label="Sampling Method"
-                  name="samplingMethod"
-                  value={sample.samplingMethod ? sample.samplingMethod : 'normal' }
-                  row
-                  onChange={e => {
-                    this.setState({
-                      sample: {
-                        ...sample,
-                        labDescription: e.target.value,
-                      }
-                    });
-                  }}
-                >
-                  <FormControlLabel value="normal" control={<Radio />} label="Normal" />
-                  <FormControlLabel value="tape" control={<Radio />} label="Tape" />
-                  <FormControlLabel value="swab" control={<Radio />} label="Swab" />
-                </RadioGroup>
-              </FormControl>
-              <div className={this.props.classes.subheading}>Sample Conditioning</div>
+          <div>{writeSoilDetails(sample)}</div>
+          <div className={classes.heading}>Soil Material Classification</div>
+          <hr />
+          <div>
+            <div className={classes.heading}>Soil Name</div>
+            <div className={classes.subheading}>Type</div>
+            <FormControl component="fieldset">
+              <RadioGroup
+                aria-label="Type"
+                name="type"
+                value={sample.type ? sample.type : null }
+                row
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      type: e.target.value,
+                    }
+                  });
+                }}
+              >
+                <FormControlLabel value="coarse" control={<Radio />} label="Coarse" />
+                <FormControlLabel value="fine" control={<Radio />} label="Fine" />
+                <FormControlLabel value="organic" control={<Radio />} label="Organic" />
+              </RadioGroup>
+              <FormHelperText>Select the major component of the soil. If over 35% clay or silt then it is fine. If there is enough organic material in the sample to make it behave differently to clay or silt, then it is organic.</FormHelperText>
+            </FormControl>
+            <div className={classes.subheading}>Major Fraction Type (≥50% content)</div>
+            { sample.type === 'coarse' && <FormControl component="fieldset">
+              <RadioGroup
+                aria-label="Type"
+                name="type"
+                value={sample.majorFractionType ? sample.majorFractionType : null }
+                row
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      majorFractionType: e.target.value,
+                    }
+                  });
+                }}
+              >
+                <FormControlLabel value="boulders" control={<Radio />} label="Boulders (>200mm)" />
+                <FormControlLabel value="cobbles" control={<Radio />} label="Cobbles (60-200mm)" />
+                <FormControlLabel value="gravel" control={<Radio />} label="Gravel (2-60mm)" />
+                <FormControlLabel value="sand" control={<Radio />} label="Sand (0.06 - 2mm)" />
+              </RadioGroup>
+            </FormControl>}
+            { sample.type === 'fine' && <FormControl component="fieldset">
+              <RadioGroup
+                aria-label="Type"
+                name="type"
+                value={sample.majorFractionType ? sample.majorFractionType : null }
+                row
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      majorFractionType: e.target.value,
+                    }
+                  });
+                }}
+              >
+                <FormControlLabel value="silt" control={<Radio />} label="Silt (dilatant, quick)" />
+                <FormControlLabel value="clay" control={<Radio />} label="Clay (cohesive, plastic)" />
+              </RadioGroup>
+              <FormHelperText>To test whether soil is silt or clay, put a sample of wet soil on your hand and tap that hand with your other hand. If water pools at the surface then it is silt.
+              </FormHelperText>
+            </FormControl>}
+            { sample.type === 'organic' && <FormControl component="fieldset">
+              <RadioGroup
+                aria-label="Major Fraction Type"
+                name="majorFractionType"
+                value={sample.majorFractionType ? sample.majorFractionType : null }
+                row
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      majorFractionType: e.target.value,
+                    }
+                  });
+                }}
+              >
+                <FormControlLabel value="topsoil" control={<Radio />} label="Topsoil (surficial organic soil, living matter)" />
+                <FormControlLabel value="organicsand" control={<Radio />} label="Organic Sand (finely divided organic matter)" />
+                <FormControlLabel value="organicclay" control={<Radio />} label="Organic Clay (finely divided organic matter)" />
+                <FormControlLabel value="organicsilt" control={<Radio />} label="Organic Silt (finely divided organic matter)" />
+                <FormControlLabel value="peat" control={<Radio />} label="Peat (plant remains)" />
+              </RadioGroup>
+              <FormHelperText>Organic clay, silt or sand may have distinctive smell, may stain, may oxidise rapidly.
+              </FormHelperText>
+            </FormControl>}
+            { sample.type === 'coarse' && sample.majorFractionType === 'gravel' && <FormControl component="fieldset">
+              <div className={classes.subheading}>Major Fraction Range</div>
+              <RadioGroup
+                aria-label="Major Fraction Range"
+                name="majorFractionRange"
+                value={sample.majorFractionRange ? sample.majorFractionRange : null }
+                row
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      majorFractionRange: e.target.value,
+                    }
+                  });
+                }}
+              >
+                <FormControlLabel value="fine" control={<Radio />} label="Fine (2-6mm)" />
+                <FormControlLabel value="medium" control={<Radio />} label="Medium (6-20mm)" />
+                <FormControlLabel value="coarse" control={<Radio />} label="Coarse (20-60mm)" />
+                <FormControlLabel value="finetomedium" control={<Radio />} label="F-M (2-20mm)" />
+                <FormControlLabel value="mediumtocoarse" control={<Radio />} label="M-C (6-20mm)" />
+                <FormControlLabel value="finetocoarse" control={<Radio />} label="F-C (2-60mm)" />
+              </RadioGroup>
+            </FormControl>}
+            { sample.type === 'coarse' && (sample.majorFractionType === 'sand' || sample.majorFractionType === 'organicsand') && <FormControl component="fieldset">
+              <div className={classes.subheading}>Major Fraction Range</div>
+              <RadioGroup
+                aria-label="Major Fraction Range"
+                name="majorFractionRange"
+                value={sample.majorFractionRange ? sample.majorFractionRange : null }
+                row
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      majorFractionRange: e.target.value,
+                    }
+                  });
+                }}
+              >
+                <FormControlLabel value="fine" control={<Radio />} label="Fine (0.06-0.2mm)" />
+                <FormControlLabel value="medium" control={<Radio />} label="Medium (0.2-0.6mm)" />
+                <FormControlLabel value="coarse" control={<Radio />} label="Coarse (0.6-2mm)" />
+                <FormControlLabel value="finetomedium" control={<Radio />} label="F-M (0.06-0.6mm)" />
+                <FormControlLabel value="mediumtocoarse" control={<Radio />} label="M-C (0.2-2mm)" />
+                <FormControlLabel value="finetocoarse" control={<Radio />} label="F-C (0.06-2mm)" />
+              </RadioGroup>
+            </FormControl>}
+            <div className={classes.subheading}>Subordinate Fraction Type (20-50% content)</div>
+            <FormControl component="fieldset">
+              <RadioGroup
+                aria-label="Subordinate Fraction Type"
+                name="subFractionType"
+                value={sample.subFractionType ? sample.subFractionType : 'none' }
+                row
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      subFractionType: e.target.value,
+                    }
+                  });
+                }}
+              >
+                <FormControlLabel value="none" control={<Radio />} label="None" />
+                <FormControlLabel value="cobbles" control={<Radio />} label="Cobbles" />
+                <FormControlLabel value="gravel" control={<Radio />} label="Gravel" />
+                <FormControlLabel value="sand" control={<Radio />} label="Sand" />
+                <FormControlLabel value="silt" control={<Radio />} label="Silt" />
+                <FormControlLabel value="clay" control={<Radio />} label="Clay" />
+                <FormControlLabel value="topsoil" control={<Radio />} label="Topsoil" />
+                <FormControlLabel value="organicsand" control={<Radio />} label="Organic Sand" />
+                <FormControlLabel value="organicclay" control={<Radio />} label="Organic Clay" />
+                <FormControlLabel value="organicsilt" control={<Radio />} label="Organic Silt" />
+                <FormControlLabel value="peat" control={<Radio />} label="Peat" />
+              </RadioGroup>
+            </FormControl>
+            <div className={classes.subheading}>Minor Fraction Types (12-20% content)</div>
+            <FormControl component="fieldset">
               <FormGroup row>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={sample.sampleConditioningFurnace ?
-                      sample.sampleConditioningFurnace :
-                      false }
-                    onChange={e => {
-                      this.setState({
-                        sample: {
-                          ...sample,
-                          sampleConditioningFurnace: e.target.checked,
-                        }
-                      });
-                    }}
-                    value="sampleConditioningFurnace"
-                  />
-                }
-                label="Furnace"
-              />
                 <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sample.sampleConditioningFlame ?
-                        sample.sampleConditioningFlame :
-                        false}
-                      onChange={e => {
-                        this.setState({
-                          sample: {
-                            ...sample,
-                            sampleConditioningFlame: e.target.checked,
-                          }
-                        });
-                      }}
-                      value="sampleConditioningFlame"
-                    />
-                  }
-                  label="Flame"
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.cobbles} onChange={() => this.handleCheck('someFractionTypes','cobbles')} value="cobbles" />}
+                  label="Cobbles"
                 />
                 <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sample.sampleConditioningLowHeat ?
-                        sample.sampleConditioningLowHeat :
-                        false}
-                      onChange={e => {
-                        this.setState({
-                          sample: {
-                            ...sample,
-                            sampleConditioningLowHeat: e.target.checked,
-                          }
-                        });
-                      }}
-                      value="sampleConditioningLowHeat"
-                    />
-                  }
-                  label="Low Heat/Drying"
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.gravel} onChange={() => this.handleCheck('someFractionTypes','gravel')} value="gravel" />}
+                  label="Gravel"
                 />
                 <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sample.sampleConditioningDCM ?
-                        sample.sampleConditioningDCM :
-                        false}
-                      onChange={e => {
-                        this.setState({
-                          sample: {
-                            ...sample,
-                            sampleConditioningDCM: e.target.checked,
-                          }
-                        });
-                      }}
-                      value="sampleConditioningDCM"
-                    />
-                  }
-                  label="Dichloromethane"
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.sand} onChange={() => this.handleCheck('someFractionTypes','sand')} value="sand" />}
+                  label="Sand"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.silt} onChange={() => this.handleCheck('someFractionTypes','silt')} value="silt" />}
+                  label="Silt"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.clay} onChange={() => this.handleCheck('someFractionTypes','clay')} value="clay" />}
+                  label="Clay"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.topsoil} onChange={() => this.handleCheck('someFractionTypes','topsoil')} value="topsoil" />}
+                  label="Topsoil"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.organicsand} onChange={() => this.handleCheck('someFractionTypes','organicsand')} value="organicsand" />}
+                  label="Organic Sand"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.organicsilt} onChange={() => this.handleCheck('someFractionTypes','organicsilt')} value="organicsilt" />}
+                  label="Organic Silt"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.organicclay} onChange={() => this.handleCheck('someFractionTypes','organicclay')} value="organicclay" />}
+                  label="Organic Clay"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.peat} onChange={() => this.handleCheck('someFractionTypes','peat')} value="peat" />}
+                  label="Peat"
                 />
               </FormGroup>
-            </Grid>
-            <Grid item xs={1} />
-            <Grid item xs={6}>
-              <div className={this.props.classes.subheading}>Weight</div>
-              <div style={{ display: 'flex', flexDirection: 'row'}}>
-                <TextField
-                  id="weightReceived"
-                  label="Weight as Received"
-                  value={sample.weightReceived ? sample.weightReceived : ''}
-                  helperText="Record the weight as received (e.g. before any conditioning)."
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                  }}
+            </FormControl>
+            <div className={classes.subheading}>Minor Fraction Types (5-12% content)</div>
+            <FormControl component="fieldset">
+              <FormGroup row>
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.cobbles} onChange={() => this.handleCheck('minorFractionTypes','cobbles')} value="cobbles" />}
+                  label="Cobbles"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.gravel} onChange={() => this.handleCheck('minorFractionTypes','gravel')} value="gravel" />}
+                  label="Gravel"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.sand} onChange={() => this.handleCheck('minorFractionTypes','sand')} value="sand" />}
+                  label="Sand"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.silt} onChange={() => this.handleCheck('minorFractionTypes','silt')} value="silt" />}
+                  label="Silt"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.clay} onChange={() => this.handleCheck('minorFractionTypes','clay')} value="clay" />}
+                  label="Clay"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.topsoil} onChange={() => this.handleCheck('minorFractionTypes','topsoil')} value="topsoil" />}
+                  label="Topsoil"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.organicsand} onChange={() => this.handleCheck('minorFractionTypes','organicsand')} value="organicsand" />}
+                  label="Organic Sand"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.organicsilt} onChange={() => this.handleCheck('minorFractionTypes','organicsilt')} value="organicsilt" />}
+                  label="Organic Silt"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.organicclay} onChange={() => this.handleCheck('minorFractionTypes','organicclay')} value="organicclay" />}
+                  label="Organic Clay"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.peat} onChange={() => this.handleCheck('minorFractionTypes','peat')} value="peat" />}
+                  label="Peat"
+                />
+              </FormGroup>
+            </FormControl>
+            <div className={classes.subheading}>Trace Fraction Types (less than 5% content)</div>
+            <FormControl component="fieldset">
+              <FormGroup row>
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.cobbles} onChange={() => this.handleCheck('traceFractionTypes','cobbles')} value="cobbles" />}
+                  label="Cobbles"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.gravel} onChange={() => this.handleCheck('traceFractionTypes','gravel')} value="gravel" />}
+                  label="Gravel"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.sand} onChange={() => this.handleCheck('traceFractionTypes','sand')} value="sand" />}
+                  label="Sand"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.silt} onChange={() => this.handleCheck('traceFractionTypes','silt')} value="silt" />}
+                  label="Silt"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.clay} onChange={() => this.handleCheck('traceFractionTypes','clay')} value="clay" />}
+                  label="Clay"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.topsoil} onChange={() => this.handleCheck('traceFractionTypes','topsoil')} value="topsoil" />}
+                  label="Topsoil"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.organicsand} onChange={() => this.handleCheck('traceFractionTypes','organicsand')} value="organicsand" />}
+                  label="Organic Sand"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.organicsilt} onChange={() => this.handleCheck('traceFractionTypes','organicsilt')} value="organicsilt" />}
+                  label="Organic Silt"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.organicclay} onChange={() => this.handleCheck('traceFractionTypes','organicclay')} value="organicclay" />}
+                  label="Organic Clay"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.peat} onChange={() => this.handleCheck('traceFractionTypes','peat')} value="peat" />}
+                  label="Peat"
+                />
+              </FormGroup>
+            </FormControl>
+          </div>
+          <div>
+            <div className={classes.heading}>Visual Characteristics</div>
+            <div className={classes.subheading}>Colour</div>
+            <div style={{ display: 'flex', flexDirection: 'row', }}>
+              <FormControl>
+                <InputLabel>Shade</InputLabel>
+                <Select
+                  native
+                  value={sample.colourShade ? sample.colourShade : ""}
                   onChange={e => {
                     this.setState({
                       sample: {
                         ...sample,
-                        weightReceived: e.target.value,
+                        colourShade: e.target.value,
                       }
                     });
                   }}
-                />
-                <TextField
-                  id="weightAnalysed"
-                  label="Weight Analysed"
-                  style={{ marginLeft: 12, }}
-                  value={sample.weightAnalysed ? sample.weightAnalysed : ''}
-                  helperText="Record the weight analysed (e.g. after conditioning such as furnacing)."
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
+                  inputProps={{
+                    name: 'shade',
                   }}
+                >
+                  <option value="" />
+                  <option value={'light'}>Light</option>
+                  <option value={'dark'}>Dark</option>
+                </Select>
+              </FormControl>
+              <FormControl>
+                <InputLabel>Qualifier</InputLabel>
+                <Select
+                  native
+                  value={sample.colourQualifier ? sample.colourQualifier : ""}
                   onChange={e => {
                     this.setState({
                       sample: {
                         ...sample,
-                        weightAnalysed: e.target.value,
+                        colourQualifier: e.target.value,
                       }
                     });
                   }}
-                />
-              </div>
-              <div className={this.props.classes.subheading}>Dimensions</div>
-              <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                <TextField
-                  id="dimensionsL"
-                  label="Length"
-                  style={{ width: '100%', margin: 12, }}
-                  value={sample.dimensionsL ? sample.dimensionsL : ''}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>,
+                  inputProps={{
+                    name: 'colourQualifier',
                   }}
+                >
+                  <option value="" />
+                  <option value={'pinkish'}>Pinkish</option>
+                  <option value={'reddish'}>Reddish</option>
+                  <option value={'yellowish'}>Yellowish</option>
+                  <option value={'brownish'}>Brownish</option>
+                  <option value={'greenish'}>Greenish</option>
+                  <option value={'bluish'}>Bluish</option>
+                  <option value={'greyish'}>Greyish</option>
+                </Select>
+              </FormControl>
+              <FormControl>
+                <InputLabel>Colour</InputLabel>
+                <Select
+                  native
+                  value={sample.colour ? sample.colour : ""}
                   onChange={e => {
                     this.setState({
                       sample: {
                         ...sample,
-                        dimensionsL: e.target.value,
+                        colour: e.target.value,
                       }
                     });
                   }}
-                />
-                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
-                <TextField
-                  id="dimensionsW"
-                  label="Width"
-                  style={{ width: '100%', margin: 12, }}
-                  value={sample.dimensionsW ? sample.dimensionsW : ''}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>,
+                  inputProps={{
+                    name: 'colour',
                   }}
-                  onChange={e => {
-                    this.setState({
-                      sample: {
-                        ...sample,
-                        dimensionsW: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
-                <TextField
-                  id="dimensionsD"
-                  label="Depth/Thickness"
-                  style={{ width: '100%', margin: 12 }}
-                  value={sample.dimensionsD ? sample.dimensionsD : ''}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      sample: {
-                        ...sample,
-                        dimensionsD: e.target.value,
-                      }
-                    });
-                  }}
-                />
-              </div>
-              {/*{doc.fileUrl && (
-                <div>
-                  <img
-                    src={doc.fileUrl}
-                    alt=""
-                    width="200px"
-                    style={{
-                      opacity: "0.5",
-                      borderStyle: "solid",
-                      borderWidth: "2px"
-                    }}
-                  />
-                  <IconButton
-                    style={{
-                      position: "relative",
-                      top: "2px",
-                      left: "-120px",
-                      borderStyle: "solid",
-                      borderWidth: "2px",
-                      fontSize: 8
-                    }}
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          "Are you sure you wish to delete the image?"
-                        )
-                      )
-                        this.deleteImage(doc.fileRef, doc.uid);
-                    }}
-                  >
-                    <Close />
-                  </IconButton>
-                </div>
-              )}
-
-              Always allow file upload
-              <InputLabel style={{ fontSize: 12, marginTop: 4 }}>
-                Upload Photos
-              </InputLabel>
-              <label>
-                <UploadIcon className={classes.accentButton} />
-                <input
-                  id="attr_upload_file"
-                  type="file"
-                  style={{ display: "none" }}
-                  onChange={e => {
-                    this.props.onUploadFile({
-                      file: e.currentTarget.files[0],
-                      storagePath:
-                        "attr/" +
-                        modalProps.staffName.replace(/\s+/g, "") +
-                        "/" +
-                        doc.type +
-                        "_"
-                    });
-                  }}
-                />
-                <LinearProgress
-                  style={{ marginTop: 4 }}
-                  variant="determinate"
-                  value={modalProps.uploadProgress}
-                />
-              </label>*/}
-            </Grid>
-          </Grid>
-          <Divider />
-          <Grid container>
-            <Grid item xs={12}>
-              <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
-                Layers
-                <IconButton size='small' aria-label='add' style={{ marginLeft: 12 }} onClick={this.addLayer}><AddIcon /></IconButton>
-                <IconButton size='small' aria-label='remove' style={{ marginLeft: 12 }} onClick={this.removeLayer}><RemoveIcon /></IconButton>
-              </div>
-              {[...Array(sample && sample.layerNum ? sample.layerNum : layerNum).keys()].map(num => {
-                return this.getLayerRow(num+1);
-              })}
-            </Grid>
-          </Grid>
+                >
+                  <option value="" />
+                  <option value={'pink'}>Pink</option>
+                  <option value={'red'}>Red</option>
+                  <option value={'orange'}>Orange</option>
+                  <option value={'yellow'}>Yellow</option>
+                  <option value={'brown'}>Brown</option>
+                  <option value={'green'}>Green</option>
+                  <option value={'blue'}>Blue</option>
+                  <option value={'white'}>White</option>
+                  <option value={'grey'}>Grey</option>
+                  <option value={'black'}>Black</option>
+                </Select>
+              </FormControl>
+            </div>
+          </div>
+          <div className={classes.heading}>In-Situ Characteristics</div>
+          <FormControl>
+            <InputLabel>Structure</InputLabel>
+            <Select
+              native
+              value={sample.structure ? sample.structure : ""}
+              onChange={e => {
+                this.setState({
+                  sample: {
+                    ...sample,
+                    structure: e.target.value,
+                  }
+                });
+              }}
+              inputProps={{
+                name: 'structure',
+              }}
+            >
+              <option value="" />
+              <option value={'homogenous'}>Homogenous (lack of visible bedding and same colour and appearance)</option>
+              <option value={'bedded'}>Bedded (presence of layers)</option>
+              <option value={'fissured'}>Fissured (breaks along definite planes of fracture with little resistance to fracturing)</option>
+              <option value={'polished'}>Polished (fracture planes are polished or glossy)</option>
+              <option value={'slickensided'}>Slickensided (fracture planes are striated)</option>
+              <option value={'blocky'}>Blocky (cohesive soil that can be broken down into angular lumps that resist further breakdown)</option>
+              <option value={'lensoidal'}>Lensoidal (discontinuous pockets of a soil within a different soil mass)</option>
+            </Select>
+          </FormControl>
+          <hr />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => this.props.hideModal()} color="secondary">
@@ -424,355 +540,18 @@ class SoilDetailsModal extends React.Component {
           <Button
             onClick={() => {
               asbestosSamplesRef
-                .doc(sample.uid)
-                .update(sample);
+                .doc(modalProps.sample.uid)
+                .update({soilDetails: sample});
               this.props.hideModal();
             }}
             color="primary"
           >
             Submit
           </Button>
-          }
         </DialogActions>
       </Dialog>}
       </div>
     );
-  }
-
-  getLayerRow = (num) => {
-    let chColor, amColor, crColor, umfColor, noColor, orgColor, smfColor = '#ddd';
-    let chDivColor, amDivColor, crDivColor, umfDivColor, noDivColor, orgDivColor, smfDivColor = 'white';
-
-    let layer = {};
-
-    if (this.state.sample.layers && this.state.sample.layers[`layer${num}`]) {
-      layer = this.state.sample.layers[`layer${num}`];
-      let res = layer.result;
-
-      chColor = this.getResultColor(res, 'ch', '#ddd', 'white');
-      chDivColor = this.getResultColor(res, 'ch', 'white', 'red');
-
-      amColor = this.getResultColor(res, 'am', '#ddd', 'white');
-      amDivColor = this.getResultColor(res, 'am', 'white', 'red');
-
-      crColor = this.getResultColor(res, 'cr', '#ddd', 'white');
-      crDivColor = this.getResultColor(res, 'cr', 'white', 'red');
-
-      umfColor = this.getResultColor(res, 'umf', '#ddd', 'white');
-      umfDivColor = this.getResultColor(res, 'umf', 'white', 'red');
-
-      noColor = this.getResultColor(res, 'no', '#ddd', 'green');
-      noDivColor = this.getResultColor(res, 'no', 'white', 'lightgreen');
-
-      orgColor = this.getResultColor(res, 'org', '#ddd', 'mediumblue');
-      orgDivColor = this.getResultColor(res, 'org', 'white', 'lightblue');
-
-      smfColor = this.getResultColor(res, 'smf', '#ddd', 'mediumblue');
-      smfDivColor = this.getResultColor(res, 'smf', 'white', 'lightblue');
-    }
-
-    const styles = reactCSS({
-      'default': {
-        color: {
-          width: '36px',
-          height: '14px',
-          borderRadius: '12px',
-          background: `rgba(${ layer.color ? layer.color.r : null }, ${ layer.color ? layer.color.g : null }, ${ layer.color ? layer.color.b : null }, ${ layer.color ? layer.color.a : null })`,
-        },
-        swatch: {
-          padding: '5px',
-          background: '#fff',
-          borderRadius: '12px',
-          boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
-          display: 'inline-block',
-          cursor: 'pointer',
-        },
-        popover: {
-          position: 'fixed',
-          top: '45%',
-          left: '45%',
-          zIndex: '2',
-        },
-        cover: {
-          position: 'fixed',
-          top: '0px',
-          right: '0px',
-          bottom: '0px',
-          left: '0px',
-        },
-      },
-    });
-
-    return(
-      <div key={num} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }} className={this.props.classes.hoverItem}>
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: "#aaa",
-            marginRight: 10,
-            color: "#fff",
-            justifyContent: "center",
-            alignItems: "center",
-            display: "flex",
-            fontWeight: "bold"
-          }}
-        >
-          {num}
-        </div>
-        <TextField
-          id={`l${num}Description`}
-          label="Material description"
-          style={{ width: '30%', marginRight: 14, }}
-          value={layer.description ? layer.description : ''}
-          onChange={e => {
-            this.setLayerVar('description', num, e.target.value);
-          }}
-        />
-
-        <div style={{ marginRight: 12,}}>
-          <div style={ styles.swatch } onClick={ () => this.handleColorClick(num) }>
-            <div style={ styles.color } />
-          </div>
-          { this.state.displayColorPicker[num] ? <div style={ styles.popover }>
-            <div style={ styles.cover } onClick={ () => this.handleColorClose(num) }/>
-            <SketchPicker color={ this.state.sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
-          </div> : null }
-
-        </div>
-        <TextField
-          id={`l${num}Concentration`}
-          label="Asbestos %"
-          style={{ marginRight: 14, }}
-          value={layer.concentration ? layer.concentration : 0}
-          onChange={e => {
-            this.setLayerVar('concentration',num,e.target.value);
-          }}
-        />
-        <div
-          style={{
-            backgroundColor: chDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Chrysotile (white) asbestos detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: chColor }}
-              onClick={e => {
-                this.toggleLayerRes('ch', num, layer, true);
-              }}
-            >
-              CH
-            </Button>
-          </Tooltip>
-        </div>
-        <div
-          style={{
-            backgroundColor: amDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Amosite (brown) asbestos detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: amColor }}
-              onClick={e => {
-                this.toggleLayerRes('am', num, layer, true);
-              }}
-            >
-              AM
-            </Button>
-          </Tooltip>
-        </div>
-        <div
-          style={{
-            backgroundColor: crDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Crocidolite (blue) asbestos detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: crColor }}
-              onClick={e => {
-                this.toggleLayerRes('cr', num, layer, true);
-              }}
-            >
-              CR
-            </Button>
-          </Tooltip>
-        </div>
-        <div
-          style={{
-            backgroundColor: umfDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Unidentified mineral fibres detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: umfColor }}
-              onClick={e => {
-                this.toggleLayerRes('umf', num, layer, true);
-              }}
-            >
-              UMF
-            </Button>
-          </Tooltip>
-        </div>
-        <div style={{ width: 40, }} />
-        <div
-          style={{
-            backgroundColor: noDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='No asbestos detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: noColor }}
-              onClick={e => {
-                this.removeLayerPositives(num);
-              }}
-            >
-              NO
-            </Button>
-          </Tooltip>
-        </div>
-        <div style={{ width: 40, }} />
-        <div
-          style={{
-            backgroundColor: orgDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Organic fibres detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: orgColor }}
-              onClick={e => {
-                this.toggleLayerRes('org', num, layer,);
-              }}
-            >
-              ORG
-            </Button>
-          </Tooltip>
-        </div>
-        <div
-          style={{
-            backgroundColor: smfDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Synthetic mineral fibres or MMMF detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: smfColor }}
-              onClick={e => {
-                this.toggleLayerRes('smf', num, layer,);
-              }}
-            >
-              SMF
-            </Button>
-          </Tooltip>
-        </div>
-    </div>
-    );
-  }
-
-  setLayerVar = (variable, num, val) => {
-    this.setState({
-      sample: {
-        ...this.state.sample,
-        layers: {
-          ...this.state.sample.layers,
-          [`layer${num}`]: {
-            ...this.state.sample.layers[`layer${num}`],
-            [variable]: val,
-          }
-        }
-      }
-    })
-    console.log(this.state.sample.layers[`layer${num}`]);
-  }
-
-  setLayerResVar = (variable, num, val) => {
-    this.setState({
-      sample: {
-        ...this.state.sample,
-        layers: {
-          ...this.state.sample.layers,
-          [`layer${num}`]: {
-            ...this.state.sample.layers[`layer${num}`],
-            result: {
-              ...this.state.sample.layers[`layer${num}`].result,
-              [variable]: val,
-            }
-          }
-        }
-      }
-    })
-  }
-
-  toggleLayerRes = (type, num, stateLayer, removeNo) => {
-    let update = {};
-    if (removeNo) update = {no: false};
-    if (this.state.sample.layers[`layer${num}`] && this.state.sample.layers[`layer${num}`].result && this.state.sample.layers[`layer${num}`].result[type] !== undefined) {
-      update[type] = !this.state.sample.layers[`layer${num}`].result[type];
-    } else {
-      update[type] = true;
-    }
-    this.setState({
-      sample: {
-        ...this.state.sample,
-        layers: {
-          ...this.state.sample.layers,
-          [`layer${num}`]: {
-            ...this.state.sample.layers[`layer${num}`],
-            result: {
-              ...this.state.sample.layers[`layer${num}`].result,
-              ...update,
-            }
-          }
-        }
-      }
-    });
-  }
-
-  removeLayerPositives = (num) => {
-    let noRes = true;
-    let res = this.state.sample.layers[`layer${num}`].result;
-    if (res && res.no !== undefined) noRes = !res.no;
-
-    if (res)
-    {
-      let update = {no: noRes};
-      ['ch','am','cr','umf'].forEach(type => {
-        if (res[type]) update[type] = false;
-      });
-      this.setState({
-        sample: {
-          ...this.state.sample,
-          layers: {
-            ...this.state.sample.layers,
-            [`layer${num}`]: {
-              ...this.state.sample.layers[`layer${num}`],
-              result: {
-                ...this.state.sample.layers[`layer${num}`].result,
-                ...update,
-              }
-            }
-          }
-        }
-      });
-    }
-  }
-
-  getResultColor = (state, type, noColor, yesColor) => {
-    if(state && state[type] === true) return yesColor;
-    return noColor;
   }
 }
 

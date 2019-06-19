@@ -16,6 +16,7 @@ import {
   SHOW_MODAL,
   SHOW_MODAL_SECONDARY,
 } from "../constants/action-types";
+import { SOILDETAILS } from "../constants/modal-types";
 
 const modalInit = {
   modalType: null,

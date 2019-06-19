@@ -107,7 +107,7 @@ class Questions extends React.Component {
         >
           Back to Quizzes
         </Button>
-        <Grid container spacing={8}>
+        <Grid container spacing={1}>
           {this.props.quiztags.map(tag => {
             return (
               <Grid item key={tag.id}>

@@ -733,7 +733,7 @@ class SampleDetailsExpansion extends React.Component {
           </Grid>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <Grid container direction={'column'} spacing={8}>
+          <Grid container direction={'column'} spacing={1}>
             <Grid item>
               <SampleDetailsExpansionSummary sample={sample} />
             </Grid>

@@ -84,7 +84,7 @@ class Library extends React.Component {
         <DocumentModal />
         <MethodModal />
         <UpdateMethodVersionModal />
-        <Grid container spacing={8}>
+        <Grid container spacing={1}>
           <Grid item>
             {this.props.me.auth["Method Editor"] && (
               <Button
@@ -135,7 +135,7 @@ class Library extends React.Component {
             )}
           </Grid>
         </Grid>
-        <Grid container spacing={8}>
+        <Grid container spacing={1}>
           {this.props.categories.map(cat => {
             return (
               <Grid item key={cat.key}>
