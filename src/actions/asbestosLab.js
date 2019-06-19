@@ -439,13 +439,18 @@ export const writeSoilDetails = details => {
       organicsand: 'organic sandy ',
       peat: 'peaty ',
     },
-    majorFractionRange: {
+    majorFractionQualifier: {
       fine: 'fine ',
       medium: 'medium ',
       coarse: 'coarse ',
       finetocoarse: 'fine to coarse ',
       finetomedium: 'fine to medium ',
       mediumtocoarse: 'medium to coarse ',
+      firm: 'firm ',
+      spongy: 'spongy ',
+      plastic: 'plastic ',
+      fibrous: 'fibrous ',
+      amorphous: 'amorphous ',
     },
     majorFractionType: {
       boulders: 'BOULDERS ',
@@ -482,8 +487,8 @@ export const writeSoilDetails = details => {
     if (details.subFractionType && details.subFractionType !== 'none') {
       str = dictionary.subFractionType[details.subFractionType];
     }
-    if ((details.majorFractionType === 'sand' || details.majorFractionType === 'gravel') && details.majorFractionRange) {
-      str = str + dictionary.majorFractionRange[details.majorFractionRange];
+    if ((details.majorFractionType === 'sand' || details.majorFractionType === 'gravel' || details.majorFractionType === 'organicsand' || details.majorFractionType === 'peat') && details.majorFractionQualifier) {
+      str = str + dictionary.majorFractionQualifier[details.majorFractionQualifier];
     }
     str = str + dictionary.majorFractionType[details.majorFractionType];
     if (details.someFractionTypes) {
@@ -530,7 +535,7 @@ export const writeSoilDetails = details => {
       if (minorFractions.length === 1) str += 'with ' + minorFractions[0];
       else str += 'with ' + minorFractions.slice(0, -1).join(', ') + ' and ' + minorFractions.slice(-1);
     }
-    sections.push[str];
+    sections.push(str);
     str = '';
 
     // VISUAL CHARACTERISTICS
@@ -540,17 +545,20 @@ export const writeSoilDetails = details => {
       if (details.colourShade && details.colourShade !== '') colour += details.colourShade + ' ';
       if (details.colourQualifier && details.colourQualifier !== '') colour += details.colourQualifier + ' ';
       colour += details.colour;
-      section.push[colour];
+      if (details.colourPattern && details.colourPattern !== '' && details.colourSecondary && details.colourSecondary !== '') {
+        colour += ', ' + details.colourPattern + ' ' + details.colourSecondary;
+      }
+      section.push(colour);
     }
     if (details.structure && details.structure !== '') {
-      section.push[details.structure];
+      section.push(details.structure);
     }
     if (section.length > 0) {
-      sections.push[section.join(', ')];
+      sections.push(section.join(', '));
     }
 
   } else {
-    str = 'No details';
+    sections = ['No details'];
   }
-  return str;
+  return sections.map(x => x.trim()).join('; ');
 };

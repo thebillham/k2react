@@ -136,290 +136,402 @@ class SoilDetailsModal extends React.Component {
                 <FormControlLabel value="fine" control={<Radio />} label="Fine" />
                 <FormControlLabel value="organic" control={<Radio />} label="Organic" />
               </RadioGroup>
-              <FormHelperText>Select the major component of the soil. If over 35% clay or silt then it is fine. If there is enough organic material in the sample to make it behave differently to clay or silt, then it is organic.</FormHelperText>
+              <FormHelperText style={{ width: 500, }}>Select the major category of the soil. If over 35% clay or silt then it is fine. If there is enough organic material in the sample to make it behave differently to clay or silt, then it is organic.</FormHelperText>
             </FormControl>
-            <div className={classes.subheading}>Major Fraction Type (≥50% content)</div>
-            { sample.type === 'coarse' && <FormControl component="fieldset">
-              <RadioGroup
-                aria-label="Type"
-                name="type"
-                value={sample.majorFractionType ? sample.majorFractionType : null }
-                row
-                onChange={e => {
-                  this.setState({
-                    sample: {
-                      ...sample,
-                      majorFractionType: e.target.value,
-                    }
-                  });
-                }}
-              >
-                <FormControlLabel value="boulders" control={<Radio />} label="Boulders (>200mm)" />
-                <FormControlLabel value="cobbles" control={<Radio />} label="Cobbles (60-200mm)" />
-                <FormControlLabel value="gravel" control={<Radio />} label="Gravel (2-60mm)" />
-                <FormControlLabel value="sand" control={<Radio />} label="Sand (0.06 - 2mm)" />
-              </RadioGroup>
-            </FormControl>}
-            { sample.type === 'fine' && <FormControl component="fieldset">
-              <RadioGroup
-                aria-label="Type"
-                name="type"
-                value={sample.majorFractionType ? sample.majorFractionType : null }
-                row
-                onChange={e => {
-                  this.setState({
-                    sample: {
-                      ...sample,
-                      majorFractionType: e.target.value,
-                    }
-                  });
-                }}
-              >
-                <FormControlLabel value="silt" control={<Radio />} label="Silt (dilatant, quick)" />
-                <FormControlLabel value="clay" control={<Radio />} label="Clay (cohesive, plastic)" />
-              </RadioGroup>
-              <FormHelperText>To test whether soil is silt or clay, put a sample of wet soil on your hand and tap that hand with your other hand. If water pools at the surface then it is silt.
-              </FormHelperText>
-            </FormControl>}
-            { sample.type === 'organic' && <FormControl component="fieldset">
-              <RadioGroup
-                aria-label="Major Fraction Type"
-                name="majorFractionType"
-                value={sample.majorFractionType ? sample.majorFractionType : null }
-                row
-                onChange={e => {
-                  this.setState({
-                    sample: {
-                      ...sample,
-                      majorFractionType: e.target.value,
-                    }
-                  });
-                }}
-              >
-                <FormControlLabel value="topsoil" control={<Radio />} label="Topsoil (surficial organic soil, living matter)" />
-                <FormControlLabel value="organicsand" control={<Radio />} label="Organic Sand (finely divided organic matter)" />
-                <FormControlLabel value="organicclay" control={<Radio />} label="Organic Clay (finely divided organic matter)" />
-                <FormControlLabel value="organicsilt" control={<Radio />} label="Organic Silt (finely divided organic matter)" />
-                <FormControlLabel value="peat" control={<Radio />} label="Peat (plant remains)" />
-              </RadioGroup>
-              <FormHelperText>Organic clay, silt or sand may have distinctive smell, may stain, may oxidise rapidly.
-              </FormHelperText>
-            </FormControl>}
-            { sample.type === 'coarse' && sample.majorFractionType === 'gravel' && <FormControl component="fieldset">
-              <div className={classes.subheading}>Major Fraction Range</div>
-              <RadioGroup
-                aria-label="Major Fraction Range"
-                name="majorFractionRange"
-                value={sample.majorFractionRange ? sample.majorFractionRange : null }
-                row
-                onChange={e => {
-                  this.setState({
-                    sample: {
-                      ...sample,
-                      majorFractionRange: e.target.value,
-                    }
-                  });
-                }}
-              >
-                <FormControlLabel value="fine" control={<Radio />} label="Fine (2-6mm)" />
-                <FormControlLabel value="medium" control={<Radio />} label="Medium (6-20mm)" />
-                <FormControlLabel value="coarse" control={<Radio />} label="Coarse (20-60mm)" />
-                <FormControlLabel value="finetomedium" control={<Radio />} label="F-M (2-20mm)" />
-                <FormControlLabel value="mediumtocoarse" control={<Radio />} label="M-C (6-20mm)" />
-                <FormControlLabel value="finetocoarse" control={<Radio />} label="F-C (2-60mm)" />
-              </RadioGroup>
-            </FormControl>}
-            { sample.type === 'coarse' && (sample.majorFractionType === 'sand' || sample.majorFractionType === 'organicsand') && <FormControl component="fieldset">
-              <div className={classes.subheading}>Major Fraction Range</div>
-              <RadioGroup
-                aria-label="Major Fraction Range"
-                name="majorFractionRange"
-                value={sample.majorFractionRange ? sample.majorFractionRange : null }
-                row
-                onChange={e => {
-                  this.setState({
-                    sample: {
-                      ...sample,
-                      majorFractionRange: e.target.value,
-                    }
-                  });
-                }}
-              >
-                <FormControlLabel value="fine" control={<Radio />} label="Fine (0.06-0.2mm)" />
-                <FormControlLabel value="medium" control={<Radio />} label="Medium (0.2-0.6mm)" />
-                <FormControlLabel value="coarse" control={<Radio />} label="Coarse (0.6-2mm)" />
-                <FormControlLabel value="finetomedium" control={<Radio />} label="F-M (0.06-0.6mm)" />
-                <FormControlLabel value="mediumtocoarse" control={<Radio />} label="M-C (0.2-2mm)" />
-                <FormControlLabel value="finetocoarse" control={<Radio />} label="F-C (0.06-2mm)" />
-              </RadioGroup>
-            </FormControl>}
-            <div className={classes.subheading}>Subordinate Fraction Type (20-50% content)</div>
-            <FormControl component="fieldset">
-              <RadioGroup
-                aria-label="Subordinate Fraction Type"
-                name="subFractionType"
-                value={sample.subFractionType ? sample.subFractionType : 'none' }
-                row
-                onChange={e => {
-                  this.setState({
-                    sample: {
-                      ...sample,
-                      subFractionType: e.target.value,
-                    }
-                  });
-                }}
-              >
-                <FormControlLabel value="none" control={<Radio />} label="None" />
-                <FormControlLabel value="cobbles" control={<Radio />} label="Cobbles" />
-                <FormControlLabel value="gravel" control={<Radio />} label="Gravel" />
-                <FormControlLabel value="sand" control={<Radio />} label="Sand" />
-                <FormControlLabel value="silt" control={<Radio />} label="Silt" />
-                <FormControlLabel value="clay" control={<Radio />} label="Clay" />
-                <FormControlLabel value="topsoil" control={<Radio />} label="Topsoil" />
-                <FormControlLabel value="organicsand" control={<Radio />} label="Organic Sand" />
-                <FormControlLabel value="organicclay" control={<Radio />} label="Organic Clay" />
-                <FormControlLabel value="organicsilt" control={<Radio />} label="Organic Silt" />
-                <FormControlLabel value="peat" control={<Radio />} label="Peat" />
-              </RadioGroup>
-            </FormControl>
-            <div className={classes.subheading}>Minor Fraction Types (12-20% content)</div>
-            <FormControl component="fieldset">
+            <div style={{ display: 'flex', flexDirection: 'row', marginTop: 16, }}>
+              <div>
+                <FormControl>
+                  <InputLabel>Major Fraction Type (≥50% content)</InputLabel>
+                  <Select
+                    native
+                    value={sample.majorFractionType ? sample.majorFractionType : ""}
+                    onChange={e => {
+                      this.setState({
+                        sample: {
+                          ...sample,
+                          majorFractionType: e.target.value,
+                        }
+                      });
+                    }}
+                    inputProps={{
+                      name: 'majorFractionType',
+                    }}
+                  >
+                    <option value="" />
+                    <optgroup label="Coarse" disabled={sample.type !== 'coarse'}>
+                      <option value={'cobbles'}>Cobbles (60-200mm)</option>
+                      <option value={'gravel'}>Gravel (2-60mm)</option>
+                      <option value={'sand'}>Sand (0.06-2mm)</option>
+                    </optgroup>
+                    <optgroup label="Fine" disabled={sample.type !== 'fine'}>
+                      <option value={'silt'}>Silt (fine, dilatant, quick, 0.002-0.06mm)</option>
+                      <option value={'clay'}>{`Clay (fine, plastic, cohesive, <0.002mm)`}</option>
+                    </optgroup>
+                    <optgroup label="Organic" disabled={sample.type !== 'organic'}>
+                      <option value={'topsoil'}>Topsoil (surficial organic soil that may contain living matter)</option>
+                      <option value={'organicsand'}>Organic Sand (contains finely divided organic matter)</option>
+                      <option value={'organicclay'}>Organic Clay (contains finely divided organic matter)</option>
+                      <option value={'organicsilt'}>Organic Silt (contains finely divided organic matter)</option>
+                      <option value={'peat'}>Peat (plant remains)</option>
+                    </optgroup>
+                  </Select>
+                </FormControl>
+                  {/*{ sample.type === 'coarse' &&
+                  <FormControl>
+                    <InputLabel>Major Fraction Type (≥50% content)</InputLabel>
+                    <Select
+                      native
+                      value={sample.majorFractionType ? sample.majorFractionType : ""}
+                      onChange={e => {
+                        this.setState({
+                          sample: {
+                            ...sample,
+                            majorFractionType: e.target.value,
+                          }
+                        });
+                      }}
+                      inputProps={{
+                        name: 'majorFractionType',
+                      }}
+                    >
+                      <option value="" />
+                      <option value={'boulders'}>{`Boulders (>200mm)`}</option>
+                      <option value={'cobbles'}>Cobbles (60-200mm)</option>
+                      <option value={'gravel'}>Gravel (2-60mm)</option>
+                      <option value={'sand'}>Sand (0.06 - 2mm)</option>
+                    </Select>
+                  </FormControl>}
+                  { sample.type === 'fine' &&
+                  <FormControl>
+                    <InputLabel>Major Fraction Type (≥50% content)</InputLabel>
+                    <Select
+                      native
+                      value={sample.majorFractionType ? sample.majorFractionType : ""}
+                      onChange={e => {
+                        this.setState({
+                          sample: {
+                            ...sample,
+                            majorFractionType: e.target.value,
+                          }
+                        });
+                      }}
+                      inputProps={{
+                        name: 'majorFractionType',
+                      }}
+                    >
+                      <option value="" />
+                      <option value={'silt'}>Silt (dilatant, quick)</option>
+                      <option value={'clay'}>Clay (cohesive, plastic)</option>
+                    </Select>
+                  </FormControl>}
+                  { sample.type === 'organic' &&
+                    <FormControl>
+                      <InputLabel>Major Fraction Type (≥50% content)</InputLabel>
+                      <Select
+                        native
+                        value={sample.majorFractionType ? sample.majorFractionType : ""}
+                        onChange={e => {
+                          this.setState({
+                            sample: {
+                              ...sample,
+                              majorFractionType: e.target.value,
+                            }
+                          });
+                        }}
+                        inputProps={{
+                          name: 'majorFractionType',
+                        }}
+                      >
+                        <option value="" />
+                        <option value={'topsoil'}>Topsoil (surficial organic soil, living matter)</option>
+                        <option value={'organicsand'}>Organic Sand (finely divided organic matter)</option>
+                        <option value={'organicclay'}>Organic Clay (finely divided organic matter)</option>
+                        <option value={'organicsilt'}>Organic Silt (finely divided organic matter)</option>
+                        <option value={'peat'}>Peat (plant remains)</option>
+                      </Select>
+                  </FormControl>}*/}
+              </div>
+              <div>
+                { sample.majorFractionType === 'gravel' &&
+                <FormControl>
+                  <InputLabel>Particle Size Range</InputLabel>
+                  <Select
+                    native
+                    value={sample.majorFractionQualifier ? sample.majorFractionQualifier : ""}
+                    onChange={e => {
+                      this.setState({
+                        sample: {
+                          ...sample,
+                          majorFractionQualifier: e.target.value,
+                        }
+                      });
+                    }}
+                    inputProps={{
+                      name: 'majorFractionQualifier',
+                    }}
+                  >
+                    <option value="" />
+                    <option value={'fine'}>Fine (2-6mm)</option>
+                    <option value={'medium'}>Medium (6-20mm)</option>
+                    <option value={'coarse'}>Coarse (20-60mm)</option>
+                    <option value={'finetomedium'}>Fine to Medium (2-20mm)</option>
+                    <option value={'mediumtocoarse'}>Medium to Coarse (6-20mm)</option>
+                    <option value={'finetocoarse'}>Fine to Coarse (2-60mm)</option>
+                  </Select>
+                </FormControl>}
+                { (sample.majorFractionType === 'sand' || sample.majorFractionType === 'organicsand') &&
+                <FormControl>
+                  <InputLabel>Particle Size Range</InputLabel>
+                  <Select
+                    native
+                    value={sample.majorFractionQualifier ? sample.majorFractionQualifier : ""}
+                    onChange={e => {
+                      this.setState({
+                        sample: {
+                          ...sample,
+                          majorFractionQualifier: e.target.value,
+                        }
+                      });
+                    }}
+                    inputProps={{
+                      name: 'majorFractionQualifier',
+                    }}
+                  >
+                    <option value="" />
+                    <option value={'fine'}>Fine (0.06-0.2mm)</option>
+                    <option value={'medium'}>Medium (0.2-0.6mm)</option>
+                    <option value={'coarse'}>Coarse (0.6-2mm)</option>
+                    <option value={'finetomedium'}>Fine to Medium (0.06-0.6mm)</option>
+                    <option value={'mediumtocoarse'}>Medium to Coarse (0.2-2mm)</option>
+                    <option value={'finetocoarse'}>Fine to Coarse (0.06-2mm)</option>
+                  </Select>
+                </FormControl>}
+                { sample.majorFractionType === 'peat' &&
+                <FormControl>
+                  <InputLabel>Peat Type</InputLabel>
+                  <Select
+                    native
+                    value={sample.majorFractionQualifier ? sample.majorFractionQualifier : ""}
+                    onChange={e => {
+                      this.setState({
+                        sample: {
+                          ...sample,
+                          majorFractionQualifier: e.target.value,
+                        }
+                      });
+                    }}
+                    inputProps={{
+                      name: 'majorFractionQualifier',
+                    }}
+                  >
+                    <option value="" />
+                    <option value={'firm'}>Firm (fibres already compressed together)</option>
+                    <option value={'spongy'}>Spongy (very compressible and open structure)</option>
+                    <option value={'plastic'}>Plastic (can be moulded in hand and smears in fingers)</option>
+                    <option value={'fibrous'}>Fibrous (plant remains recognisable and retain some strength)</option>
+                    <option value={'amorphous'}>Amorphous (no recognisable plant remains)</option>
+                  </Select>
+                </FormControl>}
+                { (sample.majorFractionType === 'clay' || sample.majorFractionType === 'organicclay') &&
+                <FormControl>
+                  <InputLabel>Plasticity</InputLabel>
+                  <Select
+                    native
+                    value={sample.majorFractionPlasticity ? sample.majorFractionPlasticity : ""}
+                    onChange={e => {
+                      this.setState({
+                        sample: {
+                          ...sample,
+                          majorFractionPlasticity: e.target.value,
+                        }
+                      });
+                    }}
+                    inputProps={{
+                      name: 'majorFractionPlasticity',
+                    }}
+                  >
+                    <option value="" />
+                    <option value={'low'}>Low Plasticity (crumbles easily when dry)</option>
+                    <option value={'medium'}>Medium Plasticity</option>
+                    <option value={'high'}>High Plasticity (rock hard when dry)</option>
+                  </Select>
+                </FormControl>}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'row', marginTop: 16, }}>
+              <div>
+                <FormControl>
+                  <InputLabel>Subordinate Fraction Type (20-50% content)</InputLabel>
+                  <Select
+                    native
+                    value={sample.subFractionType ? sample.subFractionType : ""}
+                    onChange={e => {
+                      this.setState({
+                        sample: {
+                          ...sample,
+                          subFractionType: e.target.value,
+                        }
+                      });
+                    }}
+                    inputProps={{
+                      name: 'subFractionType',
+                    }}
+                  >
+                    <option value="" />
+                    <optgroup label="Coarse">
+                      <option value={'cobbles'}>Cobbles (60-200mm)</option>
+                      <option value={'gravel'}>Gravel (2-60mm)</option>
+                      <option value={'sand'}>Sand (0.06-2mm)</option>
+                    </optgroup>
+                    <optgroup label="Fine">
+                      <option value={'silt'}>Silt (fine, dilatant, quick)</option>
+                      <option value={'clay'}>Clay (fine, plastic, cohesive)</option>
+                    </optgroup>
+                    <optgroup label="Organic">
+                      <option value={'topsoil'}>Topsoil (surficial organic soil that may contain living matter)</option>
+                      <option value={'organicsand'}>Organic Sand (contains finely divided organic matter)</option>
+                      <option value={'organicclay'}>Organic Clay (contains finely divided organic matter)</option>
+                      <option value={'organicsilt'}>Organic Silt (contains finely divided organic matter)</option>
+                      <option value={'peat'}>Peat (plant remains)</option>
+                    </optgroup>
+                  </Select>
+                </FormControl>
+              </div>
+
+              <div>
+                { sample.subFractionType === 'gravel' &&
+                <FormControl>
+                  <InputLabel>Particle Size Range</InputLabel>
+                  <Select
+                    native
+                    value={sample.subFractionQualifier ? sample.subFractionQualifier : ""}
+                    onChange={e => {
+                      this.setState({
+                        sample: {
+                          ...sample,
+                          subFractionQualifier: e.target.value,
+                        }
+                      });
+                    }}
+                    inputProps={{
+                      name: 'subFractionQualifier',
+                    }}
+                  >
+                    <option value="" />
+                    <option value={'fine'}>Fine (2-6mm)</option>
+                    <option value={'medium'}>Medium (6-20mm)</option>
+                    <option value={'coarse'}>Coarse (20-60mm)</option>
+                    <option value={'finetomedium'}>Fine to Medium (2-20mm)</option>
+                    <option value={'mediumtocoarse'}>Medium to Coarse (6-20mm)</option>
+                    <option value={'finetocoarse'}>Fine to Coarse (2-60mm)</option>
+                  </Select>
+                </FormControl>}
+                { (sample.subFractionType === 'sand' || sample.subFractionType === 'organicsand') &&
+                <FormControl>
+                  <InputLabel>Particle Size Range</InputLabel>
+                  <Select
+                    native
+                    value={sample.subFractionQualifier ? sample.subFractionQualifier : ""}
+                    onChange={e => {
+                      this.setState({
+                        sample: {
+                          ...sample,
+                          subFractionQualifier: e.target.value,
+                        }
+                      });
+                    }}
+                    inputProps={{
+                      name: 'subFractionQualifier',
+                    }}
+                  >
+                    <option value="" />
+                    <option value={'fine'}>Fine (0.06-0.2mm)</option>
+                    <option value={'medium'}>Medium (0.2-0.6mm)</option>
+                    <option value={'coarse'}>Coarse (0.6-2mm)</option>
+                    <option value={'finetomedium'}>Fine to Medium (0.06-0.6mm)</option>
+                    <option value={'mediumtocoarse'}>Medium to Coarse (0.2-2mm)</option>
+                    <option value={'finetocoarse'}>Fine to Coarse (0.06-2mm)</option>
+                  </Select>
+                </FormControl>}
+              </div>
+            </div>
+            <div style={{ fontSize: 12, marginTop: 16, color: '#333' }}>Minor Fraction Types (12-20% content)</div>
+            <FormControl component="fieldset" margin="dense" style={{ marginBottom: 4, }}>
               <FormGroup row>
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.cobbles} onChange={() => this.handleCheck('someFractionTypes','cobbles')} value="cobbles" />}
-                  label="Cobbles"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.gravel} onChange={() => this.handleCheck('someFractionTypes','gravel')} value="gravel" />}
-                  label="Gravel"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.sand} onChange={() => this.handleCheck('someFractionTypes','sand')} value="sand" />}
-                  label="Sand"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.silt} onChange={() => this.handleCheck('someFractionTypes','silt')} value="silt" />}
-                  label="Silt"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.clay} onChange={() => this.handleCheck('someFractionTypes','clay')} value="clay" />}
-                  label="Clay"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.topsoil} onChange={() => this.handleCheck('someFractionTypes','topsoil')} value="topsoil" />}
-                  label="Topsoil"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.organicsand} onChange={() => this.handleCheck('someFractionTypes','organicsand')} value="organicsand" />}
-                  label="Organic Sand"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.organicsilt} onChange={() => this.handleCheck('someFractionTypes','organicsilt')} value="organicsilt" />}
-                  label="Organic Silt"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.organicclay} onChange={() => this.handleCheck('someFractionTypes','organicclay')} value="organicclay" />}
-                  label="Organic Clay"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes.peat} onChange={() => this.handleCheck('someFractionTypes','peat')} value="peat" />}
-                  label="Peat"
-                />
+                {[{label: 'Cobbles', name: 'cobbles'}, {label: 'Gravel', name: 'gravel'}, {label: 'Sand', name: 'sand'}, {label: 'Silt', name: 'silt'},
+                  {label: 'Clay', name: 'clay'}, {label: 'Topsoil', name: 'topsoil'}, {label: 'Organic Sand', name: 'organicsand'},
+                  {label: 'Organic Silt', name: 'organicsilt'}, {label: 'Organic Clay', name: 'organicclay'}, {label: 'Peat', name: 'peat'}].map(check => {
+                  return (<FormControlLabel key={check.name}
+                    control={<Checkbox checked={sample.someFractionTypes && sample.someFractionTypes[check.name] ? sample.someFractionTypes[check.name] : false}
+                    onChange={() => this.handleCheck('someFractionTypes',check.name)} value={check.name} />}
+                    label={check.label}
+                  />)
+                })}
               </FormGroup>
             </FormControl>
-            <div className={classes.subheading}>Minor Fraction Types (5-12% content)</div>
-            <FormControl component="fieldset">
+            <div style={{ fontSize: 12, marginTop: 4, color: '#333' }}>Minor Fraction Types (5-12% content)</div>
+            <FormControl component="fieldset" margin="dense" style={{ marginBottom: 4, }}>
               <FormGroup row>
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.cobbles} onChange={() => this.handleCheck('minorFractionTypes','cobbles')} value="cobbles" />}
-                  label="Cobbles"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.gravel} onChange={() => this.handleCheck('minorFractionTypes','gravel')} value="gravel" />}
-                  label="Gravel"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.sand} onChange={() => this.handleCheck('minorFractionTypes','sand')} value="sand" />}
-                  label="Sand"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.silt} onChange={() => this.handleCheck('minorFractionTypes','silt')} value="silt" />}
-                  label="Silt"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.clay} onChange={() => this.handleCheck('minorFractionTypes','clay')} value="clay" />}
-                  label="Clay"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.topsoil} onChange={() => this.handleCheck('minorFractionTypes','topsoil')} value="topsoil" />}
-                  label="Topsoil"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.organicsand} onChange={() => this.handleCheck('minorFractionTypes','organicsand')} value="organicsand" />}
-                  label="Organic Sand"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.organicsilt} onChange={() => this.handleCheck('minorFractionTypes','organicsilt')} value="organicsilt" />}
-                  label="Organic Silt"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.organicclay} onChange={() => this.handleCheck('minorFractionTypes','organicclay')} value="organicclay" />}
-                  label="Organic Clay"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes.peat} onChange={() => this.handleCheck('minorFractionTypes','peat')} value="peat" />}
-                  label="Peat"
-                />
+                {[{label: 'Cobbles', name: 'cobbles'},{label: 'Gravel', name: 'gravel'},{label: 'Sand', name: 'sand'},{label: 'Silt', name: 'silt'},
+                  {label: 'Clay', name: 'clay'},{label: 'Topsoil', name: 'topsoil'},{label: 'Organic Sand', name: 'organicsand'},
+                  {label: 'Organic Silt', name: 'organicsilt'},{label: 'Organic Clay', name: 'organicclay'},{label: 'Peat', name: 'peat'},
+                ].map(check => {
+                  return (<FormControlLabel key={check.name}
+                    control={<Checkbox checked={sample.minorFractionTypes && sample.minorFractionTypes[check.name] ? sample.minorFractionTypes[check.name] : false}
+                    onChange={() => this.handleCheck('minorFractionTypes',check.name)} value={check.name} />}
+                    label={check.label}
+                  />)
+                })}
               </FormGroup>
             </FormControl>
-            <div className={classes.subheading}>Trace Fraction Types (less than 5% content)</div>
-            <FormControl component="fieldset">
+            <div style={{ fontSize: 12, marginTop: 4, color: '#333' }}>Trace Fraction Types (less than 5% content)</div>
+            <FormControl component="fieldset" margin="dense" style={{ marginBottom: 4, }}>
               <FormGroup row>
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.cobbles} onChange={() => this.handleCheck('traceFractionTypes','cobbles')} value="cobbles" />}
-                  label="Cobbles"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.gravel} onChange={() => this.handleCheck('traceFractionTypes','gravel')} value="gravel" />}
-                  label="Gravel"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.sand} onChange={() => this.handleCheck('traceFractionTypes','sand')} value="sand" />}
-                  label="Sand"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.silt} onChange={() => this.handleCheck('traceFractionTypes','silt')} value="silt" />}
-                  label="Silt"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.clay} onChange={() => this.handleCheck('traceFractionTypes','clay')} value="clay" />}
-                  label="Clay"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.topsoil} onChange={() => this.handleCheck('traceFractionTypes','topsoil')} value="topsoil" />}
-                  label="Topsoil"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.organicsand} onChange={() => this.handleCheck('traceFractionTypes','organicsand')} value="organicsand" />}
-                  label="Organic Sand"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.organicsilt} onChange={() => this.handleCheck('traceFractionTypes','organicsilt')} value="organicsilt" />}
-                  label="Organic Silt"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.organicclay} onChange={() => this.handleCheck('traceFractionTypes','organicclay')} value="organicclay" />}
-                  label="Organic Clay"
-                />
-                <FormControlLabel
-                  control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes.peat} onChange={() => this.handleCheck('traceFractionTypes','peat')} value="peat" />}
-                  label="Peat"
-                />
+                {[{label: 'Cobbles', name: 'cobbles'},{label: 'Gravel', name: 'gravel'},{label: 'Sand', name: 'sand'},{label: 'Silt', name: 'silt'},
+                  {label: 'Clay', name: 'clay'},{label: 'Topsoil', name: 'topsoil'},{label: 'Organic Sand', name: 'organicsand'},
+                  {label: 'Organic Silt', name: 'organicsilt'},{label: 'Organic Clay', name: 'organicclay'},{label: 'Peat', name: 'peat'},
+                ].map(check => {
+                  return (<FormControlLabel key={check.name}
+                    control={<Checkbox checked={sample.traceFractionTypes && sample.traceFractionTypes[check.name] ? sample.traceFractionTypes[check.name] : false}
+                    onChange={() => this.handleCheck('traceFractionTypes',check.name)} value={check.name} />}
+                    label={check.label}
+                  />)
+                })}
               </FormGroup>
             </FormControl>
           </div>
+          <hr />
           <div>
+            { sample.type === 'coarse' &&
+            <div>
+              <FormControl>
+                <InputLabel>Grading</InputLabel>
+                <Select
+                  native
+                  value={sample.grading ? sample.grading : ""}
+                  onChange={e => {
+                    this.setState({
+                      sample: {
+                        ...sample,
+                        grading: e.target.value,
+                      }
+                    });
+                  }}
+                  inputProps={{
+                    name: 'grading',
+                  }}
+                >
+                  <option value="" />
+                  <option value={'well'}>Well graded (good representation of grain sizes)</option>
+                  <option value={'uniformly'}>Uniformly graded (a limited representation of grain sizes)</option>
+                  <option value={'gap'}>Gap graded (absence of one or more intermediate sizes within what otherwise would be a well graded material)</option>
+                </Select>
+              </FormControl>
+              {/* ADD MAXIMUM PARTICLE SIZE, PARTICLE SHAPE, OTHER MATERIAL, GEOLOGICAL INFORMATION */}
+            </div>}
             <div className={classes.heading}>Visual Characteristics</div>
+
             <div className={classes.subheading}>Colour</div>
             <div style={{ display: 'flex', flexDirection: 'row', }}>
               <FormControl>
@@ -501,6 +613,63 @@ class SoilDetailsModal extends React.Component {
                   <option value={'black'}>Black</option>
                 </Select>
               </FormControl>
+              { sample.type === 'fine' && <span>
+
+              <FormControl>
+                <InputLabel>Colour</InputLabel>
+                <Select
+                  native
+                  value={sample.colourPattern ? sample.colourPattern : ""}
+                  onChange={e => {
+                    this.setState({
+                      sample: {
+                        ...sample,
+                        colourPattern: e.target.value,
+                      }
+                    });
+                  }}
+                  inputProps={{
+                    name: 'colourPattern',
+                  }}
+                >
+                  <option value="" />
+                  <option value={'mottled'}>Mottled</option>
+                  <option value={'banded'}>Banded</option>
+                  <option value={'mixed'}>Mixed</option>
+                  <option value={'speckled'}>Speckled</option>
+                </Select>
+              </FormControl>
+              <FormControl>
+                <InputLabel>Colour</InputLabel>
+                <Select
+                  native
+                  value={sample.colourSecondary ? sample.colourSecondary : ""}
+                  onChange={e => {
+                    this.setState({
+                      sample: {
+                        ...sample,
+                        colourSecondary: e.target.value,
+                      }
+                    });
+                  }}
+                  inputProps={{
+                    name: 'colourSecondary',
+                  }}
+                >
+                  <option value="" />
+                  <option value={'pink'}>Pink</option>
+                  <option value={'red'}>Red</option>
+                  <option value={'orange'}>Orange</option>
+                  <option value={'yellow'}>Yellow</option>
+                  <option value={'brown'}>Brown</option>
+                  <option value={'green'}>Green</option>
+                  <option value={'blue'}>Blue</option>
+                  <option value={'white'}>White</option>
+                  <option value={'grey'}>Grey</option>
+                  <option value={'black'}>Black</option>
+                </Select>
+              </FormControl>
+              </span>}
             </div>
           </div>
           <div className={classes.heading}>In-Situ Characteristics</div>
