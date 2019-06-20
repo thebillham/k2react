@@ -271,7 +271,7 @@ class MainScreen extends React.Component {
             <ListItemIcon>
               <NoticeboardIcon className={classes.accentButton} />
             </ListItemIcon>
-            <ListItemText className={classes.mainMenuText} primary="Noticeboard" />
+            <ListItemText primary="Noticeboard" />
           </ListItem>
 
           <Divider />
@@ -285,7 +285,7 @@ class MainScreen extends React.Component {
             <ListItemIcon>
               <StaffIcon className={classes.accentButton} />
             </ListItemIcon>
-            <ListItemText className={classes.mainMenuText} primary="Staff" />
+            <ListItemText primary="Staff" />
           </ListItem>
           <ListItem
             button
@@ -296,7 +296,7 @@ class MainScreen extends React.Component {
             <ListItemIcon>
               <MyDetailsIcon className={classes.accentButton} />
             </ListItemIcon>
-            <ListItemText className={classes.mainMenuText} primary="My Details" />
+            <ListItemText primary="My Details" />
             {/*{this.state.openMyDetails ? <ExpandLess /> : <ExpandMore /> }*/}
           </ListItem>
         <Divider />
@@ -304,7 +304,7 @@ class MainScreen extends React.Component {
             <ListItemIcon>
               <MapIcon className={classes.accentButton} />
             </ListItemIcon>
-            <ListItemText className={classes.mainMenuText} primary="Jobs Map" />
+            <ListItemText primary="Jobs Map" />
           </ListItem>
 
         <Divider />
@@ -312,7 +312,7 @@ class MainScreen extends React.Component {
             <ListItemIcon>
               <LabIcon className={classes.accentButton} />
             </ListItemIcon>
-            <ListItemText className={classes.mainMenuText} primary="Asbestos Lab" />
+            <ListItemText primary="Asbestos Lab" />
             {this.state.openAsbestos ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
           <Collapse in={this.state.openAsbestos} timeout="auto" unmountOnExit>
@@ -326,7 +326,7 @@ class MainScreen extends React.Component {
                 <ListItemIcon>
                   <CocIcon className={classes.accentButton} />
                 </ListItemIcon>
-                <ListItemText className={classes.mainMenuText} primary="Chains of Custody" />
+                <ListItemText primary="Chains of Custody" />
               </ListItem>
               <ListItem
                 button
@@ -337,7 +337,7 @@ class MainScreen extends React.Component {
                 <ListItemIcon>
                   <LogIcon className={classes.accentButton} />
                 </ListItemIcon>
-                <ListItemText className={classes.mainMenuText} primary="Sample Log" />
+                <ListItemText primary="Sample Log" />
               </ListItem>
               <ListItem
                 button
@@ -348,7 +348,7 @@ class MainScreen extends React.Component {
                 <ListItemIcon>
                   <QCIcon className={classes.accentButton} />
                 </ListItemIcon>
-                <ListItemText className={classes.mainMenuText} primary="Quality Control" />
+                <ListItemText primary="Quality Control" />
               </ListItem>
               <ListItem
                 button
@@ -359,7 +359,7 @@ class MainScreen extends React.Component {
                 <ListItemIcon>
                   <StatsIcon className={classes.accentButton} />
                 </ListItemIcon>
-                <ListItemText className={classes.mainMenuText} primary="Stats" />
+                <ListItemText primary="Stats" />
               </ListItem>
             </List>
           </Collapse>
@@ -371,7 +371,7 @@ class MainScreen extends React.Component {
             <ListItemIcon>
               <TrainingIcon className={classes.accentButton} />
             </ListItemIcon>
-            <ListItemText className={classes.mainMenuText} primary="Training" />
+            <ListItemText primary="Training" />
             {this.state.openTraining ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
           <Collapse in={this.state.openTraining} timeout="auto" unmountOnExit>
@@ -385,7 +385,7 @@ class MainScreen extends React.Component {
                 <ListItemIcon>
                   <TrainingOverviewIcon className={classes.accentButton} />
                 </ListItemIcon>
-                <ListItemText className={classes.mainMenuText} primary="Overview" />
+                <ListItemText primary="Overview" />
               </ListItem>
               <ListItem
                 button
@@ -396,7 +396,7 @@ class MainScreen extends React.Component {
                 <ListItemIcon>
                   <TrainingPathIcon className={classes.accentButton} />
                 </ListItemIcon>
-                <ListItemText className={classes.mainMenuText} primary="Training Paths" />
+                <ListItemText primary="Training Paths" />
               </ListItem>
             </List>
             <ListItem
@@ -408,7 +408,7 @@ class MainScreen extends React.Component {
               <ListItemIcon>
                 <QuizIcon className={classes.accentButton} />
               </ListItemIcon>
-              <ListItemText className={classes.mainMenuText} primary="Quizzes" />
+              <ListItemText primary="Quizzes" />
             </ListItem>
             <ListItem
               button
@@ -434,7 +434,7 @@ class MainScreen extends React.Component {
           <ListItemIcon>
             <LibraryIcon className={classes.accentButton} />
           </ListItemIcon>
-          <ListItemText className={classes.mainMenuText} primary="Library" />
+          <ListItemText primary="Library" />
         </ListItem>
         <Divider />
         {this.props.state.local.me.auth &&
@@ -453,7 +453,7 @@ class MainScreen extends React.Component {
                 <ListItemIcon>
                   <SettingsIcon className={classes.accentButton} />
                 </ListItemIcon>
-                <ListItemText className={classes.mainMenuText} primary="App Settings" />
+                <ListItemText primary="App Settings" />
               </ListItem>
               <ListItem
                 button
@@ -464,7 +464,7 @@ class MainScreen extends React.Component {
                 <ListItemIcon>
                   <UpdateIcon className={classes.accentButton} />
                 </ListItemIcon>
-                <ListItemText className={classes.mainMenuText} primary="Update Data" />
+                <ListItemText primary="Update Data" />
               </ListItem>
             </div>
           )}

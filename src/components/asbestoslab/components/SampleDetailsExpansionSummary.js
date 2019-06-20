@@ -18,7 +18,7 @@ function SampleDetailsExpansionSummary(props) {
   return (
     <Grid container>
       <Grid item xs={false} xl={1} />
-      <Grid item xs={12} xl={11} style={{ fontSize: 14 }}>
+      <Grid item xs={12} xl={11}>
         <div style={{ fontWeight: 700, height: 30}}>STATUS: {status}</div>
         <div style={{ fontWeight: 700, height: 25}}>Details</div>
         <div>

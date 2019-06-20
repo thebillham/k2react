@@ -199,7 +199,7 @@ class AsbestosCocs extends React.Component {
               </InputLabel>
             </div>
             <div>
-              <FormControl style={{ width: '80%', marginRight: 8, }}>
+              <FormControl style={{ width: 150, marginRight: 8, }}>
                 <InputLabel shrink>Job Number</InputLabel>
                 <Input
                   id="searchJobNumber"
@@ -210,7 +210,7 @@ class AsbestosCocs extends React.Component {
               </FormControl>
               <Button
                 variant="outlined"
-                style={{ marginTop: 16, marginBottom: 16, marginLeft: 1 }}
+                style={{ marginTop: 16, marginBottom: 16 }}
                 onClick={() => this.props.fetchCocsByJobNumber(`AS${this.state.searchJobNumber}`)}
               >
                 Go
@@ -275,7 +275,7 @@ class AsbestosCocs extends React.Component {
               />
               <Button
                 variant="outlined"
-                style={{ marginTop: 16, marginBottom: 16, marginLeft: 1, }}
+                style={{ marginTop: 16, marginBottom: 16, marginLeft: 9, }}
                 onClick={() => this.props.fetchCocsBySearch(this.state.searchClient, this.state.searchStartDate, this.state.searchEndDate)}
               >
                 Go

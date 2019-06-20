@@ -193,7 +193,7 @@ class Staff extends React.Component {
   email = who => {
     var list = [];
     Object.values(this.props.staff).forEach(user => {
-      if (user.auth && user.auth["K2 Staff"] && user.email) {
+      if (user.auth && user.auth["K2 Staff"] && user.email && user.uid !== auth.currentUser.uid) {
         if (who === "all") {
           list.push(user.email);
         } else if (who === "Christchurch" && user.office === "Christchurch") {
@@ -423,25 +423,23 @@ class Staff extends React.Component {
             <div style={{ position: "relative", width: "80vw" }}>
               <Button
                 onClick={() => this.email("all")}
-                color={"primary"}
+                color="primary"
                 variant="outlined"
-                style={{ margin: 20 }}
               >
                 Email All Staff
               </Button>
               <Button
                 onClick={() => this.email("Christchurch")}
-                color={"primary"}
+                color="primary"
                 variant="outlined"
-                style={{ margin: 20 }}
+                style={{ margin: 12, }}
               >
                 Email Christchurch Staff
               </Button>
               <Button
                 onClick={() => this.email("Auckland")}
-                color={"primary"}
+                color="primary"
                 variant="outlined"
-                style={{ margin: 20 }}
               >
                 Email North Island Staff
               </Button>

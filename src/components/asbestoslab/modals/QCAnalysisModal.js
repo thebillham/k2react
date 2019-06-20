@@ -39,7 +39,7 @@ class QCAnalysisModal extends React.Component {
     return (
       <Dialog
         open={modalType === QCANALYSIS}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
       >
         <DialogTitle>{modalProps.title}</DialogTitle>
         <DialogContent>In development.</DialogContent>

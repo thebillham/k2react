@@ -88,7 +88,7 @@ class UpdateCertificateVersion extends React.Component {
     return (
       <Dialog
         open={modalType === ADDTOQUIZ}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
       >
         <DialogTitle>Add Question to Quiz</DialogTitle>
         <DialogContent>

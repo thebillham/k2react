@@ -63,7 +63,7 @@ class UpdateMethodVersionModal extends React.Component {
     return (
       <Dialog
         open={modalType === UPDATEMETHODVERSION}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
       >
         <DialogTitle>Update Method</DialogTitle>
         <DialogContent>

@@ -50,7 +50,7 @@ class AsbestosLabDetailsModal extends React.Component {
       {modalProps.sample &&
       <Dialog
         open={modalType === ASBESTOSSAMPLEDETAILS}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
         maxWidth="xs"
         fullWidth={true}
       >

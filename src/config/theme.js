@@ -2,6 +2,7 @@ import { createMuiTheme } from "@material-ui/core/styles";
 
 export default createMuiTheme({
   typography: {
+    fontSize: 12,
     useNextVariants: true
   },
   palette: {
@@ -26,6 +27,22 @@ export default createMuiTheme({
     }
   },
   overrides: {
+    MuiInputLabel: {
+      root: {
+        fontSize: 12,
+      },
+    },
+    MuiButton: {
+      root: {
+        fontSize: 10,
+      }
+    },
+    MuiListItemText: {
+      primary: {
+        fontSize: 12,
+        color: '#333',
+      },
+    },
     MuiTab: {
       root: {
         indicatorColor: "#FF2D00",

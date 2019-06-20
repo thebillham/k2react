@@ -421,7 +421,7 @@ class SampleDetailsExpansion extends React.Component {
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />} className={classes.hoverItem}>
           <Grid container>
-            <Grid item xs={12} xl={6}>
+            <Grid item xs={12} xl={5}>
               <div style={{
                 textOverflow: "ellipsis",
                 // whiteSpace: "nowrap",
@@ -478,7 +478,7 @@ class SampleDetailsExpansion extends React.Component {
                 )}
               </div>
             </Grid>
-            <Grid item xs={12} xl={6}>
+            <Grid item xs={12} xl={7}>
             <div style={{
               justifyContent: 'flex-end',
               alignItems: 'center',
@@ -626,14 +626,14 @@ class SampleDetailsExpansion extends React.Component {
                   }}
                 />
               </IconButton>
-              <Tooltip id="det-tooltip" title={'Edit Sample Details' }>
+              {this.props.me.auth['Asbestos Bulk Analysis'] && <span><Tooltip id="det-tooltip" title={'Edit Sample Details' }>
                 <IconButton
                   onClick={event => {
                     event.stopPropagation();
                       this.props.showModal({
                         modalType: ASBESTOSSAMPLEDETAILS,
                         modalProps: {
-                          sample: sample,
+                          doc: sample,
                       }});
                   }}
                 >
@@ -653,7 +653,7 @@ class SampleDetailsExpansion extends React.Component {
                       this.props.showModal({
                         modalType: WAANALYSIS,
                         modalProps: {
-                          sample: sample,
+                          doc: sample,
                       }});
                     }}
                   >
@@ -689,7 +689,7 @@ class SampleDetailsExpansion extends React.Component {
                     }}
                   />
                 </IconButton>
-              </Tooltip>
+              </Tooltip></span>}
               {/*<IconButton
                 onClick={event => {
                   event.stopPropagation();

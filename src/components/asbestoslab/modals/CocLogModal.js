@@ -40,7 +40,7 @@ class CocLogModal extends React.Component {
     return (
       <Dialog
         open={modalType === COCLOG}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
       >

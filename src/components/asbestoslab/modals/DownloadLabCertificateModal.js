@@ -45,7 +45,7 @@ class DownloadLabCertificateModal extends React.Component {
     return (
       <Dialog
         open={modalType === DOWNLOADLABCERTIFICATE}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
       >
         <DialogTitle>Download Lab Certificate</DialogTitle>
         <DialogContent>

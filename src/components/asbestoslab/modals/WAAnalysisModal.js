@@ -33,7 +33,7 @@ import UploadIcon from "@material-ui/icons/CloudUpload";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, showModalSecondary } from "../../../actions/modal";
-import { handleSampleChange } from "../../../actions/asbestosLab";
+import { handleSampleChange, writeSoilDetails, } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
 } from "../../../config/firebase";
@@ -72,7 +72,7 @@ class WAAnalysisModal extends React.Component {
   };
 
   loadProps = () => {
-    let sample = this.props.modalProps.sample;
+    let sample = this.props.modalProps.doc;
     if (sample.waSoilAnalysis === undefined) sample.waSoilAnalysis = {};
     if (sample.layerNum === undefined) sample.layerNum = {lt2: layerNum, to7: layerNum, gt7: layerNum} ;
     if (sample.waAnalysisDone === undefined) sample.waAnalysisDone = false;
@@ -153,184 +153,183 @@ class WAAnalysisModal extends React.Component {
       {sample &&
       <Dialog
         open={modalType === WAANALYSIS}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
         maxWidth="xl"
         fullWidth={true}
         fullScreen={true}
-        onEnter={() => this.loadProps()}
-        onExit={() => this.clearProps()}
+        onEnter={this.loadProps}
+        onExit={this.clearProps}
       >
         <DialogTitle>{`WA Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description})`}</DialogTitle>
         <DialogContent>
-          <Grid container justify='center'>
-            <Grid item xs={12} lg={4}>
-              <div style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: '95%', padding: 48, margin: 12, }}>
-                <div className={this.props.classes.subheading}>Description</div>
-                <TextField
-                  id="labDescription"
-                  style={{ width: '100%' }}
-                  value={sample.labDescription}
-                  helperText="Provide a short description of the soil."
-                  multiline
-                  rows={3}
-                  onChange={e => {
-                    this.setState({
-                      sample: {
-                        ...sample,
-                        labDescription: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <TextField
-                  id="labComments"
-                  style={{ width: '100%' }}
-                  value={sample.labComments}
-                  helperText="Note any additional observations or comments."
-                  multiline
-                  rows={3}
-                  onChange={e => {
-                    this.setState({
-                      sample: {
-                        ...sample,
-                        labComments: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <div className={this.props.classes.subheading}>Sample Conditioning</div>
-                <FormGroup row>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={sample.sampleConditioningFurnace ?
-                          sample.sampleConditioningFurnace :
-                          false }
-                        onChange={e => {
-                          this.setState({
-                            sample: {
-                              ...sample,
-                              sampleConditioningFurnace: e.target.checked,
-                            }
-                          });
-                        }}
-                        value="sampleConditioningFurnace"
-                      />
+          <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', }}>
+            <div style={{ width: 502, padding: 48, margin: 12, }}>
+              <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Analysis Details</div>
+              <div className={this.props.classes.subheading}>Description</div>
+              <TextField
+                id="labDescription"
+                style={{ width: '100%' }}
+                value={sample.labDescription}
+                helperText="Provide a short description of the soil."
+                multiline
+                rows={3}
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      labDescription: e.target.value,
                     }
-                    label="Furnace"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={sample.sampleConditioningLowHeat ?
-                          sample.sampleConditioningLowHeat :
-                          false}
-                        onChange={e => {
-                          this.setState({
-                            sample: {
-                              ...sample,
-                              sampleConditioningLowHeat: e.target.checked,
-                            }
-                          });
-                        }}
-                        value="sampleConditioningLowHeat"
-                      />
+                  });
+                }}
+              />
+              <TextField
+                id="labComments"
+                style={{ width: '100%' }}
+                value={sample.labComments}
+                helperText="Note any additional observations or comments."
+                multiline
+                rows={3}
+                onChange={e => {
+                  this.setState({
+                    sample: {
+                      ...sample,
+                      labComments: e.target.value,
                     }
-                    label="Low Heat/Drying"
-                  />
-                </FormGroup>
+                  });
+                }}
+              />
+              <div className={this.props.classes.subheading}>Sample Conditioning</div>
+              <FormGroup row>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={sample.sampleConditioningFurnace ?
+                        sample.sampleConditioningFurnace :
+                        false }
+                      onChange={e => {
+                        this.setState({
+                          sample: {
+                            ...sample,
+                            sampleConditioningFurnace: e.target.checked,
+                          }
+                        });
+                      }}
+                      value="sampleConditioningFurnace"
+                    />
+                  }
+                  label="Furnace"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={sample.sampleConditioningLowHeat ?
+                        sample.sampleConditioningLowHeat :
+                        false}
+                      onChange={e => {
+                        this.setState({
+                          sample: {
+                            ...sample,
+                            sampleConditioningLowHeat: e.target.checked,
+                          }
+                        });
+                      }}
+                      value="sampleConditioningLowHeat"
+                    />
+                  }
+                  label="Low Heat/Drying"
+                />
+              </FormGroup>
 
-                <div className={this.props.classes.subheading}>Weight</div>
-                <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 14, }}>
-                  <TextField
-                    id="weightReceived"
-                    label="Weight as Received"
-                    value={sample.weightReceived ? sample.weightReceived : ''}
-                    helperText="Record the weight as received (i.e. entire sample received by client)."
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                    }}
-                    onChange={e => {
-                      this.setState({
-                        sample: {
-                          ...sample,
-                          weightReceived: e.target.value,
-                        }
-                      });
-                    }}
-                  />
-                  <TextField
-                    id="weightAnalysed"
-                    label="Weight Analysed"
-                    style={{ marginLeft: 12, }}
-                    value={sample.weightAnalysed ? sample.weightAnalysed : ''}
-                    helperText="Record the weight analysed (i.e. portion selected for analysis)."
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                    }}
-                    onChange={e => {
-                      this.setState({
-                        sample: {
-                          ...sample,
-                          weightAnalysed: e.target.value,
-                        }
-                      });
-                    }}
-                  />
-                  <TextField
-                    id="weightConditioned"
-                    label="Weight Conditioned"
-                    style={{ marginLeft: 12, }}
-                    value={sample.weightConditioned ? sample.weightConditioned : ''}
-                    helperText="Record the conditioned weight (e.g. after conditioning such as furnacing)."
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                    }}
-                    onChange={e => {
-                      this.setState({
-                        sample: {
-                          ...sample,
-                          weightConditioned: e.target.value,
-                        }
-                      });
-                    }}
-                  />
-                </div>
+              <div className={this.props.classes.subheading}>Weight</div>
+              <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 14, }}>
+                <TextField
+                  id="weightReceived"
+                  label="Weight as Received"
+                  value={sample.weightReceived ? sample.weightReceived : ''}
+                  helperText="Record the weight as received (i.e. entire sample received by client)."
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
+                  }}
+                  onChange={e => {
+                    this.setState({
+                      sample: {
+                        ...sample,
+                        weightReceived: e.target.value,
+                      }
+                    });
+                  }}
+                />
+                <TextField
+                  id="weightAnalysed"
+                  label="Weight Analysed"
+                  style={{ marginLeft: 12, }}
+                  value={sample.weightAnalysed ? sample.weightAnalysed : ''}
+                  helperText="Record the weight analysed (i.e. portion selected for analysis)."
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
+                  }}
+                  onChange={e => {
+                    this.setState({
+                      sample: {
+                        ...sample,
+                        weightAnalysed: e.target.value,
+                      }
+                    });
+                  }}
+                />
+                <TextField
+                  id="weightConditioned"
+                  label="Weight Conditioned"
+                  style={{ marginLeft: 12, }}
+                  value={sample.weightConditioned ? sample.weightConditioned : ''}
+                  helperText="Record the conditioned weight (e.g. after conditioning such as furnacing)."
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
+                  }}
+                  onChange={e => {
+                    this.setState({
+                      sample: {
+                        ...sample,
+                        weightConditioned: e.target.value,
+                      }
+                    });
+                  }}
+                />
               </div>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            </div>
+            <div>
               {this.getTotals()}
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <div style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: '95%', padding: 48, margin: 12, }}>
-                <div className={this.props.classes.subheading}>Soil Type</div>
+              <div style={{ padding: 48, margin: 12, justifyContent: 'center', width: 600 }}>
+                <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Geotechnical Soil Description</div>
                 <Button
                   variant="outlined"
-                  style={{ marginBottom: 16, width: 220 }}
+                  style={{ marginBottom: 16, marginTop: 16, }}
                   onClick={() => {
                     this.props.showModalSecondary({
                       modalType: SOILDETAILS,
                       modalProps: {
-                        title: "Edit Soil Description",
-                        sample: sample,
+                        title: "Edit Soil Details",
+                        doc: sample,
+                        onExit: details => this.setState({
+                          sample: {
+                            ...this.state.sample,
+                            soilDetails: details,
+                          }
+                        })
                       }
                     });
                   }}
                 >
                   Edit Soil Details
                 </Button>
+                <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
               </div>
-            </Grid>
-          </Grid>
-          <Divider />
-          <Grid container>
-            <Grid item xs={12}>
-              {fractionNames.map(fraction => {
-                  return this.getFractionColumn(fraction);
-                }
-              )}
-            </Grid>
-          </Grid>
+            </div>
+          </div>
+          {fractionNames.map(fraction => {
+              return this.getFractionColumn(fraction);
+            }
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => this.props.hideModal()} color="secondary">
@@ -347,7 +346,6 @@ class WAAnalysisModal extends React.Component {
           >
             Submit
           </Button>
-          }
         </DialogActions>
       </Dialog>}
       </div>
@@ -388,68 +386,67 @@ class WAAnalysisModal extends React.Component {
     }
 
     return(
-      <div key={fraction} style={{
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: '#aaa',
-          borderStyle: 'solid',
-          width: 1150,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 48,
-          margin: 12,
-        }}>
-        <div style={{ fontWeight: 500, fontSize: 16, }}>{title}</div>
-        <TextField
-          id="weightConditioned"
-          label="Weight Conditioned"
-          style={{ width: 180, marginTop: 12, }}
-          value={this.state.sample && this.state.sample.waAnalysis && this.state.sample.waAnalysis['fraction' + fraction + 'WeightConditioned'] ? this.state.sample.waAnalysis['fraction' + fraction + 'WeightConditioned'] : ''}
-          helperText="Record the conditioned weight of this fraction (e.g. after conditioning such as furnacing)."
-          InputProps={{
-            endAdornment: <InputAdornment position="end">g</InputAdornment>,
-          }}
-          onChange={e => {
-            this.setState({
-              sample: {
-                ...this.state.sample,
-                waAnalysis: {
-                  ...this.state.sample.waAnalysis,
-                  ['fraction' + fraction + 'WeightConditioned']: e.target.value,
+      <div>
+        <hr />
+        <div key={fraction} style={{
+            width: 1150,
+            display: 'flex',
+            flexDirection: 'column',
+            padding: 48,
+            margin: 12,
+          }}>
+          <div style={{ fontWeight: 500, fontSize: 16, }}>{title}</div>
+          <TextField
+            id="weightConditioned"
+            label="Weight Conditioned"
+            style={{ width: 180, marginTop: 12, }}
+            value={this.state.sample && this.state.sample.waAnalysis && this.state.sample.waAnalysis['fraction' + fraction + 'WeightConditioned'] ? this.state.sample.waAnalysis['fraction' + fraction + 'WeightConditioned'] : ''}
+            helperText="Record the conditioned weight of this fraction (e.g. after conditioning such as furnacing)."
+            InputProps={{
+              endAdornment: <InputAdornment position="end">g</InputAdornment>,
+            }}
+            onChange={e => {
+              this.setState({
+                sample: {
+                  ...this.state.sample,
+                  waAnalysis: {
+                    ...this.state.sample.waAnalysis,
+                    ['fraction' + fraction + 'WeightConditioned']: e.target.value,
+                  }
                 }
-              }
-            });
-          }}
-        />
-        <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
-          Subfractions
-          <IconButton size='small' aria-label='add' style={{ marginLeft: 12 }} onClick={() => this.addLayer(fraction)}><AddIcon /></IconButton>
-          <IconButton size='small' aria-label='remove' style={{ marginLeft: 12 }} onClick={() => this.removeLayer(fraction)}><RemoveIcon /></IconButton>
-        </div>
-        {[...Array(this.state.sample && this.state.sample.layerNum && this.state.sample.layerNum[fraction] ? this.state.sample.layerNum[fraction] : layerNum).keys()].map(num => {
-          return this.getSubfractionRow(num+1, fraction);
-        })}
-        <div style={{ flexDirection: 'row', display: 'flex', justifyContent: 'flex-end', textAlign: 'right', marginTop: 14, }}>
-          <div style={{ marginRight: 12, }}>
-            <div style={{ fontWeight: 500 }}>Type</div>
-            <div>ACM Bonded</div>
-            <div>Friable Asbestos</div>
-            <div>Asbestos Fines</div>
-            <div>FA/AF Total</div>
+              });
+            }}
+          />
+          <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
+            Subfractions
+            <IconButton size='small' aria-label='add' style={{ marginLeft: 12 }} onClick={() => this.addLayer(fraction)}><AddIcon /></IconButton>
+            <IconButton size='small' aria-label='remove' style={{ marginLeft: 12 }} onClick={() => this.removeLayer(fraction)}><RemoveIcon /></IconButton>
           </div>
-          <div style={{ width: 140, }}>
-            <div style={{ fontWeight: 500 }}>Asbestos Weight</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightACM.toFixed(6)}g</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightFA.toFixed(6)}g</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightAF.toFixed(6)}g</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{(weightFA+weightAF).toFixed(6)}g</div>
-          </div>
-          <div style={{ width: 200, marginRight: 14, }}>
-            <div style={{ fontWeight: 500 }}>Asbestos Concentration</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationACM > 0.01 ? 'red' : 'black' }}>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFA > 0.01 ? 'red' : 'black' }}>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationAF > 0.001 ? 'red' : 'black' }}>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFAAF > 0.001 ? 'red' : 'black' }}>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+          {[...Array(this.state.sample && this.state.sample.layerNum && this.state.sample.layerNum[fraction] ? this.state.sample.layerNum[fraction] : layerNum).keys()].map(num => {
+            return this.getSubfractionRow(num+1, fraction);
+          })}
+          <div style={{ flexDirection: 'row', display: 'flex', justifyContent: 'flex-end', textAlign: 'right', marginTop: 14, }}>
+            <div style={{ marginRight: 12, }}>
+              <div style={{ fontWeight: 500 }}>Type</div>
+              <div>ACM Bonded</div>
+              <div>Friable Asbestos</div>
+              <div>Asbestos Fines</div>
+              <div>FA/AF Total</div>
+            </div>
+            <div style={{ width: 140, }}>
+              <div style={{ fontWeight: 500 }}>Asbestos Weight</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightACM.toFixed(6)}g</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightFA.toFixed(6)}g</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightAF.toFixed(6)}g</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{(weightFA+weightAF).toFixed(6)}g</div>
+            </div>
+            <div style={{ width: 200, marginRight: 14, }}>
+              <div style={{ fontWeight: 500 }}>Asbestos Concentration</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationACM > 0.01 ? 'red' : 'black' }}>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFA > 0.01 ? 'red' : 'black' }}>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationAF > 0.001 ? 'red' : 'black' }}>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFAAF > 0.001 ? 'red' : 'black' }}>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -473,8 +470,6 @@ class WAAnalysisModal extends React.Component {
             style={{
               width: 40,
               height: 40,
-              borderRadius: 20,
-              backgroundColor: "#aaa",
               marginRight: 10,
               color: "#fff",
               justifyContent: "center",
@@ -655,7 +650,7 @@ class WAAnalysisModal extends React.Component {
       concentrationFAAF = (weightFA+weightAF)/weightConditioned*100;
     }
     return(
-      <div style={{ borderRadius: 12, borderWidth: 1, borderColor: '#aaa', borderStyle: 'solid', width: 600, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, }}>
+      <div style={{ width: 600, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, }}>
         <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Totals</div>
         <div style={{ flexDirection: 'row', display: 'flex', textAlign: 'right', marginTop: 14, }}>
           <div style={{ width: 160, marginRight: 12, marginTop: 14, }}>

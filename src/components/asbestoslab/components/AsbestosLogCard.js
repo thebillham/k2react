@@ -2,46 +2,19 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
-import {
-  cocsRef,
-  asbestosAnalysisRef,
-  firebase,
-  auth,
-  asbestosSamplesRef
-} from "../../../config/firebase";
-import moment from "moment";
-import { fetchCocs, fetchSamples, logSample, writeResult, writeShorthandResult, } from "../../../actions/asbestosLab";
+import { writeShorthandResult, } from "../../../actions/asbestosLab";
 
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import Grid from "@material-ui/core/Grid";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import IconButton from "@material-ui/core/IconButton";
-import Button from "@material-ui/core/Button";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import Divider from "@material-ui/core/Divider";
 
 import ExpandMore from "@material-ui/icons/ExpandMore";
-import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
-import Edit from "@material-ui/icons/Edit";
-import Inbox from "@material-ui/icons/Inbox";
-import Save from "@material-ui/icons/SaveAlt";
-import CameraAlt from "@material-ui/icons/CameraAlt";
-import Print from "@material-ui/icons/Print";
-import Send from "@material-ui/icons/Send";
 import Flag from "@material-ui/icons/Flag";
-import More from "@material-ui/icons/MoreVert";
-import Colorize from "@material-ui/icons/Colorize";
-
-import Popup from "reactjs-popup";
 
 class AsbestosLogCard extends React.Component {
   render() {
-    const { classes, log } = this.props;
+    const { log } = this.props;
     return (
       <ExpansionPanel style={{ width: '100%'}}>
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>

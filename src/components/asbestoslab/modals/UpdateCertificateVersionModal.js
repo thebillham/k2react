@@ -41,7 +41,7 @@ class UpdateCertificateVersionModal extends React.Component {
     return (
       <Dialog
         open={modalType === UPDATECERTIFICATEVERSION}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
       >
         <DialogTitle>Issue New Version</DialogTitle>
         <DialogContent>

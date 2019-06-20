@@ -21,6 +21,15 @@ const modalStyles = theme => ({
     color: '#888',
   },
 
+  roundedBox: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#aaa',
+    borderStyle: 'solid',
+    padding: 48,
+    margin: 12,
+  },
+
   heading: {
     marginTop: 20,
     marginBottom: 16,
@@ -116,9 +125,6 @@ const styles = theme => ({
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
   },
-  mainMenuText: {
-    color: '#333',
-  },
   toolbarIcon: {
     display: 'flex',
     alignItems: 'center',
@@ -137,12 +143,12 @@ const styles = theme => ({
     marginLeft: 0,
     width: '100%',
     [theme.breakpoints.up('sm')]: {
-      marginLeft: theme.spacing.unit * 3,
+      marginLeft: theme.spacing(3),
       width: 'auto',
     },
   },
   searchIcon: {
-    width: theme.spacing.unit * 9,
+    width: theme.spacing(9),
     height: '100%',
     position: 'absolute',
     pointerEvents: 'none',
@@ -218,16 +224,16 @@ const styles = theme => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    width: theme.spacing.unit * 7,
+    width: theme.spacing(7),
     [theme.breakpoints.up('sm')]: {
-      width: theme.spacing.unit * 9,
+      width: theme.spacing(9),
     },
   },
   appBarSpacer: theme.mixins.toolbar,
 
   content: {
     flexGrow: 1,
-    padding: theme.spacing.unit * 3,
+    padding: theme.spacing(3),
     height: '100vh',
     overflow: 'auto',
   },

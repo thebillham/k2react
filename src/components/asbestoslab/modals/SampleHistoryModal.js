@@ -43,7 +43,7 @@ class SampleHistoryModal extends React.Component {
     return (
       <Dialog
         open={modalType === SAMPLEHISTORY}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
       >

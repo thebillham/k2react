@@ -439,58 +439,39 @@ export const writeSoilDetails = details => {
       organicsand: 'organic sandy ',
       peat: 'peaty ',
     },
-    majorFractionQualifier: {
-      fine: 'fine ',
-      medium: 'medium ',
-      coarse: 'coarse ',
-      finetocoarse: 'fine to coarse ',
-      finetomedium: 'fine to medium ',
-      mediumtocoarse: 'medium to coarse ',
-      firm: 'firm ',
-      spongy: 'spongy ',
-      plastic: 'plastic ',
-      fibrous: 'fibrous ',
-      amorphous: 'amorphous ',
+    fractionQualifier: {
+      fine: 'fine',
+      medium: 'medium',
+      coarse: 'coarse',
+      finetocoarse: 'fine to coarse',
+      finetomedium: 'fine to medium',
+      mediumtocoarse: 'medium to coarse',
+      firm: 'firm',
+      spongy: 'spongy',
+      plastic: 'plastic',
+      fibrous: 'fibrous',
+      amorphous: 'amorphous',
     },
-    majorFractionType: {
-      boulders: 'BOULDERS ',
-      cobbles: 'COBBLES ',
-      gravel: 'GRAVEL ',
-      sand: 'SAND ',
-      clay: 'CLAY ',
-      silt: 'SILT ',
-      topsoil: 'ORGANIC TOPSOIL ',
-      organicclay: 'ORGANIC CLAY ',
-      organicsilt: 'ORGANIC SILT ',
-      organicsand: 'ORGANIC SAND ',
-      peat: 'PEAT ',
-    },
-    minorFractionType: {
-      cobbles: 'cobbles',
-      gravel: 'gravel',
-      sand: 'sand',
-      clay: 'clay',
-      silt: 'silt',
-      topsoil: 'organic soil',
-      organicclay: 'organic clay',
-      organicsilt: 'organic silt',
-      organicsand: 'organic sand',
-      peat: 'peat',
+    plasticity: {
+      'low plasticity': 'slightly plastic',
+      'medium plasticity': 'moderately plastic',
+      'high plasticity': 'highly plastic'
     }
   }
+  let finalStr = '';
   let sections = [];
-  if (details.majorFractionType) {
+  if (details && details.majorFractionType) {
 
     // SOIL NAME
     let str = '';
     let minorFractions = [];
-    if (details.subFractionType && details.subFractionType !== 'none') {
+    if (details.subFractionType && details.subFractionType !== '') {
       str = dictionary.subFractionType[details.subFractionType];
     }
     if ((details.majorFractionType === 'sand' || details.majorFractionType === 'gravel' || details.majorFractionType === 'organicsand' || details.majorFractionType === 'peat') && details.majorFractionQualifier) {
-      str = str + dictionary.majorFractionQualifier[details.majorFractionQualifier];
+      str = str + dictionary.fractionQualifier[details.majorFractionQualifier] + ' ';
     }
-    str = str + dictionary.majorFractionType[details.majorFractionType];
+    str = str + details.majorFractionType.toUpperCase() + ' ';
     if (details.someFractionTypes) {
       let fractionArray = [];
       Object.keys(details.someFractionTypes).forEach(key => {
@@ -498,9 +479,9 @@ export const writeSoilDetails = details => {
       });
       if (fractionArray.length > 0) {
         if (fractionArray.length > 1) {
-          minorFractions.push('some ' + fractionArray.slice(0, -1).map(x => dictionary.minorFractionType[x]).join(', ') + ' and ' + fractionArray.slice(-1).map(x => dictionary.minorFractionType[x]));
+          minorFractions.push('some ' + fractionArray.slice(0, -1).join(', ') + ' and ' + fractionArray.slice(-1));
         } else {
-          minorFractions.push('some ' + dictionary.minorFractionType[fractionArray[0]]);
+          minorFractions.push('some ' + fractionArray[0]);
         }
       }
     }
@@ -509,12 +490,11 @@ export const writeSoilDetails = details => {
       Object.keys(details.minorFractionTypes).forEach(key => {
         if (details.minorFractionTypes[key] === true) fractionArray.push(key);
       });
-      console.log(fractionArray);
       if (fractionArray.length > 0) {
         if (fractionArray.length > 1) {
-          minorFractions.push('minor ' + fractionArray.slice(0, -1).map(x => dictionary.minorFractionType[x]).join(', ') + ' and ' + fractionArray.slice(-1).map(x => dictionary.minorFractionType[x]));
+          minorFractions.push('minor ' + fractionArray.slice(0, -1).join(', ') + ' and ' + fractionArray.slice(-1));
         } else {
-          minorFractions.push('minor ' + dictionary.minorFractionType[fractionArray[0]]);
+          minorFractions.push('minor ' + fractionArray[0]);
         }
       }
     }
@@ -525,9 +505,9 @@ export const writeSoilDetails = details => {
       });
       if (fractionArray.length > 0) {
         if (fractionArray.length > 1) {
-          minorFractions.push('trace of ' + fractionArray.slice(0, -1).map(x => dictionary.minorFractionType[x]).join(', ') + ' and ' + fractionArray.slice(-1).map(x => dictionary.minorFractionType[x]));
+          minorFractions.push('trace of ' + fractionArray.slice(0, -1).join(', ') + ' and ' + fractionArray.slice(-1));
         } else {
-          minorFractions.push('trace of ' + dictionary.minorFractionType[fractionArray[0]]);
+          minorFractions.push('trace of ' + fractionArray[0]);
         }
       }
     }
@@ -545,7 +525,7 @@ export const writeSoilDetails = details => {
       if (details.colourShade && details.colourShade !== '') colour += details.colourShade + ' ';
       if (details.colourQualifier && details.colourQualifier !== '') colour += details.colourQualifier + ' ';
       colour += details.colour;
-      if (details.colourPattern && details.colourPattern !== '' && details.colourSecondary && details.colourSecondary !== '') {
+      if (details.type !== 'coarse' && details.colourPattern && details.colourPattern !== '' && details.colourSecondary && details.colourSecondary !== '') {
         colour += ', ' + details.colourPattern + ' ' + details.colourSecondary;
       }
       section.push(colour);
@@ -557,8 +537,82 @@ export const writeSoilDetails = details => {
       sections.push(section.join(', '));
     }
 
+    finalStr = sections.map(x => x.trim()).join('; ') + '. ';
+
+    // SOIL MASS QUALIFICATIONS
+    section = [];
+    sections = [];
+    if (details.type !== 'coarse' && details.strength && details.strength !== '') sections.push(details.strength);
+    if (details.type === 'coarse' && details.density && details.density !== '') sections.push(details.density);
+    if (details.moisture && details.moisture !== '') sections.push(details.moisture);
+    if (details.grading && details.grading !== '') sections.push(details.grading);
+    if (details.bedding && details.bedding !== '') sections.push(details.bedding);
+    if (details.majorFractionType === 'clay' && details.plasticity && details.plasticity !== '') sections.push(details.plasticity);
+    if (details.type === 'fine' && details.strength && details.sensitivityStrength && details.strength !== '' && details.sensitivityStrength !== '') {
+       sections.push(getSoilSensitivity(details).toLowerCase());
+    }
+
+    // SOIL FRACTION QUALIFICATIONS
+    // Add major fraction
+    if (details.majorFractionType && details.majorFractionType !== '') {
+      let temp = details.majorFractionType;
+      if ((details.majorFractionType === 'sand' || details.majorFractionType === 'gravel' || details.majorFractionType === 'organicsand' || details.majorFractionType === 'peat') && details.majorFractionQualifier && details.majorFractionQualifier !== '') temp += ', ' + dictionary.fractionQualifier[details.majorFractionQualifier];
+      if (details.type !== 'fine' && details.particleShape && details.particleShape !== '') temp += ', ' + details.particleShape;
+      if (details.type !== 'fine' && details.particleShapeSecondary && details.particleShapeSecondary !== '') temp += ', ' + details.particleShapeSecondary;
+      if (details.majorFractionType === 'clay' && details.plasticity && details.plasticity !== '') temp += ', ' + dictionary.plasticity[details.plasticity];
+      sections.push(temp);
+    }
+    // Add subordinate fraction
+    if (details.subFractionType && details.subFractionType !== '') {
+      let temp = details.subFractionType;
+      if ((details.subFractionType === 'sand' || details.subFractionType === 'gravel' || details.subFractionType === 'organicsand' || details.subFractionType === 'peat') && details.subFractionQualifier && details.subFractionQualifier !== '') temp += ', ' + dictionary.fractionQualifier[details.subFractionQualifier];
+      if (details.subFractionType === 'clay' && details.plasticity && details.plasticity !== '') temp += ', ' + dictionary.plasticity[details.plasticity];
+      sections.push(temp);
+    }
+    // Add minor fraction
+    let fractionArray = [];
+    Object.keys(details.someFractionTypes).forEach(key => {
+      if (details.someFractionTypes[key] === true) fractionArray.push(key);
+    });
+    Object.keys(details.minorFractionTypes).forEach(key => {
+      if (details.minorFractionTypes[key] === true) fractionArray.push(key);
+    });
+    Object.keys(details.traceFractionTypes).forEach(key => {
+      if (details.traceFractionTypes[key] === true) fractionArray.push(key);
+    });
+    if (fractionArray.length > 1) sections.push(fractionArray.slice(0, -1).join(', ') + ' and ' + fractionArray.slice(-1));
+    else if (fractionArray.length === 1) sections.push(fractionArray[0]);
+
+    if (details.additionalStructures && details.additionalStructures !== '') sections.push(details.additionalStructures.toLowerCase());
+    if (sections.length > 0) {
+      let temp = sections.join('; ');
+      finalStr += temp.charAt(0).toUpperCase() + temp.slice(1);
+    }
+
+    if (details.geological && details.geological !== '') finalStr += ' (' + details.geological.toUpperCase() + ')';
+    finalStr += '.';
+
   } else {
-    sections = ['No details'];
+    finalStr = 'No details.';
   }
-  return sections.map(x => x.trim()).join('; ');
+  return finalStr;
 };
+
+export const getSoilSensitivity = details => {
+  // see page 16 of NZ Geotechnical Society guide
+  let dictionary = {
+    'very soft': 6,
+    soft: 19,
+    firm: 38,
+    stiff: 75,
+    'very stiff': 150,
+    hard: 350,
+  };
+  let ratio = dictionary[details.strength]/dictionary[details.sensitivityStrength];
+  let sensitivity = 'Insensitive, normal';
+  if (ratio >= 2 && ratio < 4) sensitivity = 'Moderately sensitive';
+  else if (ratio >=4 && ratio < 8) sensitivity = 'Sensitive';
+  else if (ratio >=8 && ratio < 16) sensitivity = 'Extra sensitive';
+  else if (ratio >=16) sensitivity = 'Quick';
+  return sensitivity;
+}

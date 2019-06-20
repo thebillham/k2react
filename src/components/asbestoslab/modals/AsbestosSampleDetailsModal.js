@@ -5,7 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { ASBESTOSSAMPLEDETAILS } from "../../../constants/modal-types";
+import { ASBESTOSSAMPLEDETAILS, SOILDETAILS } from "../../../constants/modal-types";
 import { cocsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -32,8 +32,8 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import UploadIcon from "@material-ui/icons/CloudUpload";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
-import { hideModal } from "../../../actions/modal";
-import { handleSampleChange } from "../../../actions/asbestosLab";
+import { hideModal, showModalSecondary, } from "../../../actions/modal";
+import { handleSampleChange, writeSoilDetails, } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
 } from "../../../config/firebase";
@@ -59,6 +59,7 @@ const mapDispatchToProps = dispatch => {
   return {
     hideModal: () => dispatch(hideModal()),
     handleSampleChange: (number, type, value) => dispatch(handleSampleChange(number, type, value)),
+    showModalSecondary: modal => dispatch(showModalSecondary(modal)),
   };
 };
 
@@ -69,7 +70,7 @@ class AsbestosSampleDetailsModal extends React.Component {
   };
 
   loadProps = () => {
-    let sample = this.props.modalProps.sample;
+    let sample = this.props.modalProps.doc;
     if (sample.layers === undefined) sample.layers = {};
     [...Array(layerNum).keys()].forEach(num => {
       if (sample.layers[`layer${num+1}`] === undefined) {
@@ -139,7 +140,7 @@ class AsbestosSampleDetailsModal extends React.Component {
       {sample &&
       <Dialog
         open={modalType === ASBESTOSSAMPLEDETAILS}
-        onClose={() => this.props.hideModal()}
+        onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
         onEnter={() => this.loadProps()}
@@ -379,6 +380,31 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }}
                 />
               </div>
+              <div style={{ padding: 48, margin: 12, justifyContent: 'center', width: 600 }}>
+                <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Geotechnical Soil Description</div>
+                <Button
+                  variant="outlined"
+                  style={{ marginBottom: 16, marginTop: 16, }}
+                  onClick={() => {
+                    this.props.showModalSecondary({
+                      modalType: SOILDETAILS,
+                      modalProps: {
+                        title: "Edit Soil Details",
+                        doc: sample,
+                        onExit: details => this.setState({
+                          sample: {
+                            ...this.state.sample,
+                            soilDetails: details,
+                          }
+                        })
+                      }
+                    });
+                  }}
+                >
+                  Edit Soil Details
+                </Button>
+                <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
+              </div>
               {/*{doc.fileUrl && (
                 <div>
                   <img
@@ -473,7 +499,6 @@ class AsbestosSampleDetailsModal extends React.Component {
           >
             Submit
           </Button>
-          }
         </DialogActions>
       </Dialog>}
       </div>
