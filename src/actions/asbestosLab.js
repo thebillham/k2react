@@ -263,12 +263,7 @@ export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch =
         // console.log(`UID for old sample is ${doc.samples[sample].uid}`);
         sampleList.push(doc.samples[sample].uid);
       }
-      if (
-        (doc.samples[sample].description || doc.samples[sample].material) &&
-        !doc.samples[sample].disabled &&
-        (doc.samples[sample].cocUid === undefined ||
-          doc.samples[sample].cocUid === doc.uid)
-      ) {
+      if (doc.samples[sample].description || doc.samples[sample].material) {
         // console.log(`Submitting sample ${sample} to ${docid}`);
         let sample2 = doc.samples[sample];
         if (sample2.description)
@@ -280,7 +275,7 @@ export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch =
           sample2.material = "Air Sample";
         }
         sample2.jobNumber = doc.jobNumber;
-        sample2.cocUid = docid;
+        if (sample2.cocUid === undefined) sample2.cocUid = docid;
         console.log(docid);
         sample2.sampleNumber = parseInt(sample, 10);
         if ("disabled" in sample2) delete sample2.disabled;

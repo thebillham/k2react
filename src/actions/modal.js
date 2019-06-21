@@ -114,11 +114,11 @@ export const handleModalChange = target => dispatch => {
       type: EDIT_MODAL_DOC_SAMPLES,
       payload: target.value
     });
-    dispatch({
-      type: GET_SAMPLES,
-      cocUid: target.cocUid,
-      payload: target.value,
-    });
+    // dispatch({
+    //   type: GET_SAMPLES,
+    //   cocUid: target.cocUid,
+    //   payload: target.value,
+    // });
   } else if (target.id === 'comment') {
     dispatch({
       type: EDIT_MODAL_DOC_COMMENT,

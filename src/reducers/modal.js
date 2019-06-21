@@ -101,7 +101,7 @@ export default function modalReducer(state = modalInit, action) {
           ...state.modalProps,
           doc: {
             ...state.modalProps.doc,
-            samples: {...action.payload}
+            samples: action.payload,
           }
         }
       };

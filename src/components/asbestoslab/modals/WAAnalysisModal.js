@@ -386,9 +386,9 @@ class WAAnalysisModal extends React.Component {
     }
 
     return(
-      <div>
+      <div key={fraction}>
         <hr />
-        <div key={fraction} style={{
+        <div style={{
             width: 1150,
             display: 'flex',
             flexDirection: 'column',

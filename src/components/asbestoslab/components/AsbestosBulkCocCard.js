@@ -732,7 +732,7 @@ class AsbestosBulkCocCard extends React.Component {
                     modalType: COC,
                     modalProps: {
                       title: "Edit Chain of Custody",
-                      doc: { ...job, samples: samples[job.uid] === undefined ? {} : samples[job.uid] }
+                      doc: { ...job, samples: samples[job.uid] === undefined ? {} : {...samples[job.uid]} }
                     }
                   });
                 }}
