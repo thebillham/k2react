@@ -6,7 +6,7 @@ import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
 import { ASBESTOSSAMPLEDETAILS, SOILDETAILS } from "../../../constants/modal-types";
-import { cocsRef } from "../../../config/firebase";
+import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import { SketchPicker } from 'react-color';
@@ -51,7 +51,8 @@ const defaultColor = {
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
-    modalProps: state.modal.modalProps
+    modalProps: state.modal.modalProps,
+    me: state.local.me,
   };
 };
 
@@ -67,6 +68,7 @@ class AsbestosSampleDetailsModal extends React.Component {
   state = {
     sample: {},
     displayColorPicker: {},
+    modified: false,
   };
 
   loadProps = () => {
@@ -83,7 +85,7 @@ class AsbestosSampleDetailsModal extends React.Component {
   }
 
   clearProps = () => {
-    this.setState({ sample: {}, displayColorPicker: {}, });
+    this.setState({ sample: {}, displayColorPicker: {}, modified: false, });
   }
 
   handleColorClick = (num) => {
@@ -91,7 +93,7 @@ class AsbestosSampleDetailsModal extends React.Component {
     this.setState({ displayColorPicker: {
         ...this.state.displayColorPicker,
         [num]: !this.state.displayColorPicker[num],
-      }
+      },
     })
   };
 
@@ -112,11 +114,12 @@ class AsbestosSampleDetailsModal extends React.Component {
       sampleLayers[`layer${num}`] = { color: defaultColor, result: {}, };
     }
     this.setState({
+      modified: true,
       sample: {
         ...this.state.sample,
         layerNum: num,
         layers: sampleLayers,
-      }
+      },
     });
   };
 
@@ -125,6 +128,7 @@ class AsbestosSampleDetailsModal extends React.Component {
     num -= 1;
     if (num < 1) num = 1;
     this.setState({
+      modified: true,
       sample: {
         ...this.state.sample,
         layerNum: num,
@@ -160,6 +164,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                 rows={3}
                 onChange={e => {
                   this.setState({
+                    modified: true,
                     sample: {
                       ...sample,
                       labDescription: e.target.value,
@@ -176,6 +181,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                 rows={3}
                 onChange={e => {
                   this.setState({
+                    modified: true,
                     sample: {
                       ...sample,
                       labComments: e.target.value,
@@ -192,6 +198,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   row
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         labDescription: e.target.value,
@@ -214,6 +221,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                       false }
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           sampleConditioningFurnace: e.target.checked,
@@ -233,6 +241,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                         false}
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             sampleConditioningFlame: e.target.checked,
@@ -252,6 +261,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                         false}
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             sampleConditioningLowHeat: e.target.checked,
@@ -271,6 +281,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                         false}
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             sampleConditioningDCM: e.target.checked,
@@ -298,6 +309,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         weightReceived: e.target.value,
@@ -316,6 +328,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         weightAnalysed: e.target.value,
@@ -336,6 +349,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         dimensionsL: e.target.value,
@@ -354,6 +368,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         dimensionsW: e.target.value,
@@ -372,6 +387,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         dimensionsD: e.target.value,
@@ -392,6 +408,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                         title: "Edit Soil Details",
                         doc: sample,
                         onExit: details => this.setState({
+                          modified: true,
                           sample: {
                             ...this.state.sample,
                             soilDetails: details,
@@ -488,12 +505,28 @@ class AsbestosSampleDetailsModal extends React.Component {
           <Button onClick={() => this.props.hideModal()} color="secondary">
             Cancel
           </Button>
-          <Button
+          <Button disabled={!this.state.modified}
             onClick={() => {
               asbestosSamplesRef
                 .doc(sample.uid)
                 .update(sample);
               this.props.hideModal();
+
+              let log = {
+                type: "Analysis",
+                log: `Sample ${sample.sampleNumber} (${sample.description} ${
+                      sample.material
+                    }) details edited.`,
+                user: auth.currentUser.uid,
+                sample: sample.uid,
+                userName: this.props.me.name,
+                date: new Date()
+              };
+              let cocLog = modalProps.job.cocLog;
+              cocLog ? cocLog.push(log) : (cocLog = [log]);
+              cocsRef
+                .doc(modalProps.job.uid)
+                .update({ cocLog: cocLog });
             }}
             color="primary"
           >
@@ -750,6 +783,7 @@ class AsbestosSampleDetailsModal extends React.Component {
 
   setLayerVar = (variable, num, val) => {
     this.setState({
+      modified: true,
       sample: {
         ...this.state.sample,
         layers: {
@@ -766,6 +800,7 @@ class AsbestosSampleDetailsModal extends React.Component {
 
   setLayerResVar = (variable, num, val) => {
     this.setState({
+      modified: true,
       sample: {
         ...this.state.sample,
         layers: {
@@ -791,6 +826,7 @@ class AsbestosSampleDetailsModal extends React.Component {
       update[type] = true;
     }
     this.setState({
+      modified: true,
       sample: {
         ...this.state.sample,
         layers: {
@@ -819,6 +855,7 @@ class AsbestosSampleDetailsModal extends React.Component {
         if (res[type]) update[type] = false;
       });
       this.setState({
+        modified: true,
         sample: {
           ...this.state.sample,
           layers: {

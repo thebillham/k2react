@@ -1167,7 +1167,8 @@ class CocListItem extends React.Component {
                                     modalProps: {
                                       title: "Add WA Analysis",
                                       sample: sample,
-                                      docid: job.uid
+                                      docid: job.uid,
+                                      cocLog: job.cocLog,
                                     }
                                   });
                                 }}

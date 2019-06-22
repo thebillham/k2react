@@ -4,6 +4,7 @@ import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
 import { SOILDETAILS } from "../../../constants/modal-types";
+import { cocsRef, auth } from "../../../config/firebase";
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -29,6 +30,8 @@ const mapStateToProps = state => {
   return {
     modalType: state.modal.modalTypeSecondary,
     modalProps: state.modal.modalPropsSecondary,
+    modalPropsMain: state.modal.modalProps,
+    me: state.local.me,
   };
 };
 
@@ -41,6 +44,7 @@ const mapDispatchToProps = dispatch => {
 
 const sampleInit = {
   type: 'fine',
+  modified: false,
 };
 
 class SoilDetailsModal extends React.Component {
@@ -81,6 +85,7 @@ class SoilDetailsModal extends React.Component {
       }
     })
     this.setState({
+      modified: true,
       sample: {
         ...this.state.sample,
         ...updates,
@@ -91,7 +96,7 @@ class SoilDetailsModal extends React.Component {
   render() {
     const { classes, modalProps, modalType } = this.props;
     const { sample } = this.state;
-    console.log(sample);
+    console.log(this.props.modalPropsMain);
     return (
       <div>
       {modalProps && modalProps.doc && sample &&
@@ -121,6 +126,7 @@ class SoilDetailsModal extends React.Component {
                 row
                 onChange={e => {
                   this.setState({
+                    modified: true,
                     sample: {
                       ...sample,
                       type: e.target.value,
@@ -143,6 +149,7 @@ class SoilDetailsModal extends React.Component {
                     value={sample.majorFractionType ? sample.majorFractionType : ""}
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           majorFractionType: e.target.value,
@@ -192,6 +199,7 @@ class SoilDetailsModal extends React.Component {
                       value={sample.majorFractionType ? sample.majorFractionType : ""}
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             majorFractionType: e.target.value,
@@ -217,6 +225,7 @@ class SoilDetailsModal extends React.Component {
                       value={sample.majorFractionType ? sample.majorFractionType : ""}
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             majorFractionType: e.target.value,
@@ -240,6 +249,7 @@ class SoilDetailsModal extends React.Component {
                         value={sample.majorFractionType ? sample.majorFractionType : ""}
                         onChange={e => {
                           this.setState({
+                            modified: true,
                             sample: {
                               ...sample,
                               majorFractionType: e.target.value,
@@ -268,6 +278,7 @@ class SoilDetailsModal extends React.Component {
                     value={sample.majorFractionQualifier ? sample.majorFractionQualifier : ""}
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           majorFractionQualifier: e.target.value,
@@ -295,6 +306,7 @@ class SoilDetailsModal extends React.Component {
                     value={sample.majorFractionQualifier ? sample.majorFractionQualifier : ""}
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           majorFractionQualifier: e.target.value,
@@ -322,6 +334,7 @@ class SoilDetailsModal extends React.Component {
                     value={sample.majorFractionQualifier ? sample.majorFractionQualifier : ""}
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           majorFractionQualifier: e.target.value,
@@ -348,6 +361,7 @@ class SoilDetailsModal extends React.Component {
                     value={sample.plasticity ? sample.plasticity : ""}
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           plasticity: e.target.value,
@@ -376,6 +390,7 @@ class SoilDetailsModal extends React.Component {
                     value={sample.subFractionType ? sample.subFractionType : ""}
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           subFractionType: e.target.value,
@@ -428,6 +443,7 @@ class SoilDetailsModal extends React.Component {
                     value={sample.subFractionQualifier ? sample.subFractionQualifier : ""}
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           subFractionQualifier: e.target.value,
@@ -455,6 +471,7 @@ class SoilDetailsModal extends React.Component {
                     value={sample.subFractionQualifier ? sample.subFractionQualifier : ""}
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           subFractionQualifier: e.target.value,
@@ -482,6 +499,7 @@ class SoilDetailsModal extends React.Component {
                     value={sample.majorFractionQualifier ? sample.majorFractionQualifier : ""}
                     onChange={e => {
                       this.setState({
+                        modified: true,
                         sample: {
                           ...sample,
                           majorFractionQualifier: e.target.value,
@@ -508,6 +526,7 @@ class SoilDetailsModal extends React.Component {
                       value={sample.plasticity ? sample.plasticity : ""}
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             plasticity: e.target.value,
@@ -588,6 +607,7 @@ class SoilDetailsModal extends React.Component {
                   value={sample.colourShade ? sample.colourShade : ""}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         colourShade: e.target.value,
@@ -610,6 +630,7 @@ class SoilDetailsModal extends React.Component {
                   value={sample.colourQualifier ? sample.colourQualifier : ""}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         colourQualifier: e.target.value,
@@ -637,6 +658,7 @@ class SoilDetailsModal extends React.Component {
                   value={sample.colour ? sample.colour : ""}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         colour: e.target.value,
@@ -669,6 +691,7 @@ class SoilDetailsModal extends React.Component {
                   value={sample.colourPattern ? sample.colourPattern : ""}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         colourPattern: e.target.value,
@@ -693,6 +716,7 @@ class SoilDetailsModal extends React.Component {
                   value={sample.colourSecondary ? sample.colourSecondary : ""}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         colourSecondary: e.target.value,
@@ -727,6 +751,7 @@ class SoilDetailsModal extends React.Component {
                   value={sample.grading ? sample.grading : ""}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         grading: e.target.value,
@@ -752,6 +777,7 @@ class SoilDetailsModal extends React.Component {
                   value={sample.maximumParticleSize ? sample.maximumParticleSize : ""}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         maximumParticleSize: e.target.value,
@@ -768,6 +794,7 @@ class SoilDetailsModal extends React.Component {
                       value={sample.particleShape ? sample.particleShape : ""}
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             particleShape: e.target.value,
@@ -798,6 +825,7 @@ class SoilDetailsModal extends React.Component {
                       value={sample.particleShapeSecondary ? sample.particleShapeSecondary : ""}
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             particleShapeSecondary: e.target.value,
@@ -829,6 +857,7 @@ class SoilDetailsModal extends React.Component {
                 value={sample.density ? sample.density : ""}
                 onChange={e => {
                   this.setState({
+                    modified: true,
                     sample: {
                       ...sample,
                       density: e.target.value,
@@ -854,6 +883,7 @@ class SoilDetailsModal extends React.Component {
                   value={sample.strength ? sample.strength : ""}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         strength: e.target.value,
@@ -880,6 +910,7 @@ class SoilDetailsModal extends React.Component {
                   value={sample.sensitivityStrength ? sample.sensitivityStrength : ""}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         sensitivityStrength: e.target.value,
@@ -913,6 +944,7 @@ class SoilDetailsModal extends React.Component {
                 value={sample.structure ? sample.structure : ""}
                 onChange={e => {
                   this.setState({
+                    modified: true,
                     sample: {
                       ...sample,
                       structure: e.target.value,
@@ -942,6 +974,7 @@ class SoilDetailsModal extends React.Component {
                 value={sample.moisture ? sample.moisture : ""}
                 onChange={e => {
                   this.setState({
+                    modified: true,
                     sample: {
                       ...sample,
                       moisture: e.target.value,
@@ -967,6 +1000,7 @@ class SoilDetailsModal extends React.Component {
               helperText="Note any other material present (e.g. coal, shell, oils) and strong odours."
               onChange={e => {
                 this.setState({
+                  modified: true,
                   sample: {
                     ...sample,
                     additionalStructures: e.target.value,
@@ -982,6 +1016,7 @@ class SoilDetailsModal extends React.Component {
               helperText="Note the geological information if known (e.g. Mt John Outwash Gravel)."
               onChange={e => {
                 this.setState({
+                  modified: true,
                   sample: {
                     ...sample,
                     geological: e.target.value,
@@ -996,8 +1031,26 @@ class SoilDetailsModal extends React.Component {
           <Button onClick={() => this.props.hideModal()} color="secondary">
             Cancel
           </Button>
-          <Button
+          <Button disabled={!this.state.modified}
             onClick={() => {
+              console.log(this.props.modalPropsMain);
+              let log = {
+                type: "Analysis",
+                log: `Sample ${this.props.modalProps.doc.sampleNumber} (${this.props.modalProps.doc.description} ${
+                      this.props.modalProps.doc.material
+                    }) geotechnical information edited.`,
+                user: auth.currentUser.uid,
+                sample: this.props.modalProps.doc.uid,
+                userName: this.props.me.name,
+                date: new Date()
+              };
+              console.log(log);
+              let cocLog = this.props.modalPropsMain.job.cocLog;
+              cocLog ? cocLog.push(log) : (cocLog = [log]);
+              cocsRef
+                .doc(this.props.modalPropsMain.job.uid)
+                .update({ cocLog: cocLog });
+
               modalProps.onExit(this.state.sample);
               this.props.hideModal();
             }}

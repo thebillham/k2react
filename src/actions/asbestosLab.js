@@ -34,7 +34,7 @@ export const fetchCocs = update => async dispatch => {
     cocsRef
       .where("deleted", "==", false)
       .where("versionUpToDate", "==", false)
-      .orderBy("lastModified")
+      // .orderBy("lastModified")
       .onSnapshot(querySnapshot => {
         var cocs = {};
         querySnapshot.forEach(doc => {
@@ -50,7 +50,7 @@ export const fetchCocs = update => async dispatch => {
       .where("deleted", "==", false)
       .where("versionUpToDate", "==", true)
       .where("lastModified", ">", moment().subtract(1, 'days').toDate())
-      .orderBy("lastModified")
+      // .orderBy("lastModified")
       // .orderBy("dueDate", "desc")
       .onSnapshot(querySnapshot => {
         var cocs = {};
@@ -138,6 +138,19 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
       });
   }
 };
+
+export const deleteCoc = (coc, cocs) => async dispatch => {
+  console.log(coc);
+  console.log(cocs);
+  let newCocs = {...cocs};
+  delete newCocs[coc];
+  console.log(newCocs);
+  dispatch({
+    type: GET_COCS,
+    payload: newCocs,
+    update: true
+  });
+}
 
 export const fetchAsbestosAnalysis = update => async dispatch => {
   if (update) {

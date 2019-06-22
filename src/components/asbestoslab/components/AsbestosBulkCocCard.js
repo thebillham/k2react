@@ -9,7 +9,7 @@ import {
   asbestosSamplesRef
 } from "../../../config/firebase";
 import moment from "moment";
-import { fetchCocs, fetchSamples, logSample, writeResult, setSessionID, } from "../../../actions/asbestosLab";
+import { fetchCocs, fetchSamples, logSample, writeResult, setSessionID, deleteCoc, } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
@@ -52,7 +52,8 @@ const mapStateToProps = state => {
     analysisMode: state.asbestosLab.analysisMode,
     sessionID: state.asbestosLab.sessionID,
     bulkAnalysts: state.asbestosLab.bulkAnalysts,
-    airAnalysts: state.asbestosLab.airAnalysts
+    airAnalysts: state.asbestosLab.airAnalysts,
+    cocs: state.asbestosLab.cocs,
   };
 };
 
@@ -65,6 +66,7 @@ const mapDispatchToProps = dispatch => {
     syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
     logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
     setSessionID: session => dispatch(setSessionID(session)),
+    deleteCoc: (coc, cocs) => dispatch(deleteCoc(coc, cocs)),
   };
 };
 
@@ -663,15 +665,17 @@ class AsbestosBulkCocCard extends React.Component {
     ) {
       let cocLog = this.props.job.cocLog;
       this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
-        cocLog.push({
-          type: "Delete",
-          log: `Sample ${sample.sampleNumber} (${sample.description} ${sample.material}) deleted.`,
-          userName: this.props.me.name,
-          user: auth.currentUser.uid,
-          date: new Date(),
-          sample: sample.uid,
-        })
-        asbestosSamplesRef.doc(sample.uid).update({ deleted: true })
+        if (sample.cocUid === this.props.job.uid) {
+          cocLog.push({
+            type: "Delete",
+            log: `Sample ${sample.sampleNumber} (${sample.description} ${sample.material}) deleted.`,
+            userName: this.props.me.name,
+            user: auth.currentUser.uid,
+            date: new Date(),
+            sample: sample.uid,
+          })
+          asbestosSamplesRef.doc(sample.uid).update({ deleted: true })
+        }
       });
       if (!cocLog) cocLog = [];
       cocLog.push({
@@ -684,6 +688,7 @@ class AsbestosBulkCocCard extends React.Component {
       cocsRef
         .doc(this.props.job.uid)
         .update({ deleted: true, cocLog: cocLog });
+      this.props.deleteCoc(this.props.job.uid, this.props.cocs);
     } else return;
   };
 

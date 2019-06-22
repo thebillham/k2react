@@ -24,6 +24,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from "@material-ui/core/Switch";
 import Radio from '@material-ui/core/Radio';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
@@ -51,7 +52,8 @@ import { asbestosSamplesRef } from "../../../config/firebase";
 
 const mapStateToProps = state => {
   return {
-    suggestions: state.const.asbestosmaterials,
+    materialSuggestions: state.const.asbestosmaterials,
+    specificLocationSuggestions: state.const.roomsuggestions,
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
@@ -95,7 +97,8 @@ class CocModal extends React.Component {
     personnel: [],
     personnelSetup: [],
     personnelPickup: [],
-    suggestions: [],
+    materialSuggestions: [],
+    specificLocationSuggestions: [],
     syncError: null,
     modified: false,
 
@@ -137,15 +140,21 @@ class CocModal extends React.Component {
     this.props.handleSelectChange({ id: type, value: event.target.value, })
   }
 
-  handleSuggestionsFetchRequested = ({ value }) => {
+  handleSuggestionsFetchRequestedMaterial = ({value}) => {
     this.setState({
-      suggestions: getSuggestions(value, this),
+      materialSuggestions: getSuggestions(value, 'materialSuggestions', this),
     });
   };
 
-  handleSuggestionsClearRequested = () => {
+  handleSuggestionsFetchRequestedLocation = ({value}) => {
     this.setState({
-      suggestions: [],
+      specificLocationSuggestions: getSuggestions(value, 'specificLocationSuggestions', this),
+    });
+  };
+
+  handleSuggestionsClearRequested = (suggestions) => {
+    this.setState({
+      [suggestions]: [],
     });
   };
 
@@ -200,11 +209,14 @@ class CocModal extends React.Component {
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
     const autosuggestProps = {
       renderInputComponent,
-      suggestions: this.state.suggestions,
-      onSuggestionsFetchRequested: _.debounce(this.handleSuggestionsFetchRequested, 100),
-      onSuggestionsClearRequested: this.handleSuggestionsClearRequested,
       getSuggestionValue,
       renderSuggestion,
+      theme: {
+        container: { position: 'relative',},
+        suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
+        suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
+        suggestion: {display: 'block', },
+      },
     };
 
     // console.log(doc.samples);
@@ -645,9 +657,89 @@ class CocModal extends React.Component {
                     helperText="Include any information that may be useful for the lab. E.g. for a soil sample you might include information on what contamination you are expecting."
                     multiline
                     onChange={e => {
-                      this.props.handleModalChange({id: 'labInstructions', value: e.target.value})}
-                    }
+                      this.setState({ modified: true, });
+                      this.props.handleModalChange({id: 'labInstructions', value: e.target.value});
+                    }}
                   />
+                  <div style={{ marginTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'row' }}>
+
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={doc.priority === 1 ? true : false}
+                          onClick={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'priority', value: doc.priority === 1 ? 0 : 1});
+                          }}
+                          value="priority"
+                          color="secondary"
+                        />
+                      }
+                      label="Urgent"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={doc.clearance === true ? true : false}
+                          onClick={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'clearance', value: e.target.checked});
+                          }}
+                          value="clearance"
+                          color="secondary"
+                        />
+                      }
+                      label="Clearance"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={doc.waAnalysis === true ? true : false}
+                          onClick={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'waAnalysis', value: e.target.checked});
+                          }}
+                          value="priority"
+                          color="primary"
+                        />
+                      }
+                      label="Western Australian Standard Analysis"
+                    />
+                  </div>
+                  <div style={{ marginTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'row', alignItems: 'flex-end', }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={doc.labToContactClient === true ? true : false}
+                          onClick={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'labToContactClient', value: e.target.checked});
+                          }}
+                          value="labToContactClient"
+                          color="primary"
+                        />
+                      }
+                      label="Lab to Contact Client"
+                    />
+                    <TextField
+                      id="labContactName"
+                      label="Contact Name"
+                      defaultValue={doc && doc.labContactName}
+                      onChange={e => {
+                        this.setState({ modified: true, });
+                        this.props.handleModalChange({id: 'labContactName', value: e.target.value});
+                      }}
+                    />
+                    <TextField
+                      id="labContactNumber"
+                      label="Contact Number/Email"
+                      defaultValue={doc && doc.labContactNumber}
+                      onChange={e => {
+                        this.setState({ modified: true, });
+                        this.props.handleModalChange({id: 'labContactNumber', value: e.target.value});
+                      }}
+                    />
+                  </div>
                 </FormGroup>
               </form>
             </Grid>
@@ -717,16 +809,29 @@ class CocModal extends React.Component {
                             />
                           </Grid>
                           <Grid item xs={3} style={{ paddingLeft: 12, paddingRight: 12, }}>
-                            <TextField
-                              id={`room${i+1}`}
-                              disabled={disabled}
-                              style={{ width: '100%' }}
-                              value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : ''}
-                              onChange={e => {
+                            <Autosuggest
+                              {...autosuggestProps}
+                              suggestions = {this.state.specificLocationSuggestions}
+                              onSuggestionsFetchRequested = {_.debounce(this.handleSuggestionsFetchRequestedLocation, 100)}
+                              onSuggestionsClearRequested = {() => this.handleSuggestionsClearRequested('specificLocationSuggestions')}
+                              onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
                                 this.setState({ modified: true, });
                                 this.props.handleSampleChange(i, 'reported', false);
-                                this.props.handleSampleChange(i, 'specificLocation', e.target.value);
+                                this.props.handleSampleChange(i, 'specificLocation', suggestionValue); }}
+                              inputProps={{
+                                disabled: disabled,
+                                value: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : '',
+                                onChange: e => {
+                                  this.setState({ modified: true, });
+                                  this.props.handleSampleChange(i, 'reported', false);
+                                  this.props.handleSampleChange(i, 'specificLocation', e.target.value)
+                                },
                               }}
+                              renderSuggestionsContainer = {options => (
+                                <Paper {...options.containerProps} square>
+                                  {options.children}
+                                </Paper>
+                              )}
                             />
                           </Grid>
                           <Grid item xs={4} style={{ paddingLeft: 12, paddingRight: 12, }}>
@@ -745,6 +850,9 @@ class CocModal extends React.Component {
                           <Grid item xs={2} style={{ paddingLeft: 12, }}>
                             <Autosuggest
                               {...autosuggestProps}
+                              suggestions = {this.state.materialSuggestions}
+                              onSuggestionsFetchRequested = {_.debounce(this.handleSuggestionsFetchRequestedMaterial, 100)}
+                              onSuggestionsClearRequested = {() => this.handleSuggestionsClearRequested('materialSuggestions')}
                               onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
                                 this.setState({ modified: true, });
                                 this.props.handleSampleChange(i, 'reported', false);
@@ -758,13 +866,7 @@ class CocModal extends React.Component {
                                   this.props.handleSampleChange(i, 'material', e.target.value)
                                 },
                               }}
-                              theme={{
-                                container: { position: 'relative',},
-                                suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
-                                suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
-                                suggestion: {display: 'block', },
-                              }}
-                              renderSuggestionsContainer={options => (
+                              renderSuggestionsContainer = {options => (
                                 <Paper {...options.containerProps} square>
                                   {options.children}
                                 </Paper>
@@ -880,14 +982,14 @@ function renderSuggestion(suggestion, { query, isHighlighted }) {
   );
 }
 
-function getSuggestions(value, that) {
+function getSuggestions(value, suggestions, that) {
   const inputValue = deburr(value.trim()).toLowerCase();
   const inputLength = inputValue.length;
   let count = 0;
 
   return inputLength === 0
     ? []
-    : that.props.suggestions.filter(suggestion => {
+    : that.props[suggestions].filter(suggestion => {
         const keep =
           count < 5 && suggestion.label.slice(0, inputLength).toLowerCase() === inputValue;
 

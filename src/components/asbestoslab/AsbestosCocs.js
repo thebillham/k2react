@@ -8,6 +8,7 @@ import {
   fetchCocsBySearch,
   setAnalyst,
   setAnalysisMode,
+  deleteCoc,
 } from "../../actions/asbestosLab";
 import {
   fetchWFMClients,
@@ -62,7 +63,7 @@ const mapDispatchToProps = dispatch => {
     fetchWFMClients: () => dispatch(fetchWFMClients()),
     showModal: modal => dispatch(showModal(modal)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
-    setAnalysisMode: analysisMode => dispatch(setAnalysisMode(analysisMode))
+    setAnalysisMode: analysisMode => dispatch(setAnalysisMode(analysisMode)),
   };
 };
 
@@ -318,6 +319,7 @@ class AsbestosCocs extends React.Component {
                 if (this.state.searchStartDate !== "" && moment(cocs[job].lastModified.toDate()).isBefore(new Date(this.state.searchStartDate), 'day')) res = false;
                 if (this.state.searchEndDate !== "" && moment(cocs[job].lastModified.toDate()).isAfter(new Date(this.state.searchEndDate), 'day')) res = false;
                 if (this.state.searchJobNumber !== "" && cocs[job].jobNumber.includes(this.state.searchJobNumber.toUpperCase()) === false) res = false;
+                if (cocs[job].deleted === true) res = false;
                 return res;
               })
               .map(job => {

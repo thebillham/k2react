@@ -41,25 +41,25 @@ const styles = {
   },
   title: {
     marginTop: 4,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 600
   },
   subtitle: {
     marginBottom: 0,
-    fontSize: 14,
+    fontSize: 12,
     fontStyle: "italic"
   },
   details: {
-    fontSize: 14,
+    fontSize: 12,
     wordWrap: 'break-word',
     whiteSpace: 'pre-wrap',
   },
   whosRead: {
-    fontSize: 14
+    fontSize: 12
   },
   formIcon: {
     color: "black",
-    fontSize: 14
+    fontSize: 12
   }
 };
 

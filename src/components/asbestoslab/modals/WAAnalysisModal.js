@@ -6,7 +6,7 @@ import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
 import { WAANALYSIS, SOILDETAILS } from "../../../constants/modal-types";
-import { cocsRef } from "../../../config/firebase";
+import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import { SketchPicker } from 'react-color';
@@ -25,6 +25,7 @@ import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import RadioGroup from "@material-ui/core/RadioGroup";
 import Radio from "@material-ui/core/Radio";
+import Switch from "@material-ui/core/Switch";
 import Checkbox from "@material-ui/core/Checkbox";
 import FormLabel from "@material-ui/core/FormLabel";
 import TextField from "@material-ui/core/TextField";
@@ -52,6 +53,7 @@ const fractionNames = ['gt7','to7','lt2'];
 
 const mapStateToProps = state => {
   return {
+    me: state.local.me,
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps
   };
@@ -69,6 +71,7 @@ class WAAnalysisModal extends React.Component {
   state = {
     sample: {},
     displayColorPicker: {},
+    modified: false,
   };
 
   loadProps = () => {
@@ -90,60 +93,8 @@ class WAAnalysisModal extends React.Component {
   }
 
   clearProps = () => {
-    this.setState({ sample: {}, displayColorPicker: {}, });
+    this.setState({ sample: {}, displayColorPicker: {}, modified: false, });
   }
-
-  handleColorClick = (num) => {
-    console.log(this.state.displayColorPicker);
-    this.setState({ displayColorPicker: {
-        ...this.state.displayColorPicker,
-        [num]: !this.state.displayColorPicker[num],
-      }
-    })
-  };
-
-  handleColorClose = (num) => {
-    console.log(this.state.displayColorPicker);
-    this.setState({ displayColorPicker: {
-        ...this.state.displayColorPicker,
-        [num]: false,
-      }
-    })
-  };
-
-  addLayer = (fraction) => {
-    let num = this.state.sample.layerNum[fraction] ? this.state.sample.layerNum[fraction] : layerNum;
-    num += 1;
-    let sampleLayers = this.state.sample.waSoilAnalysis;
-    if (sampleLayers[`subfraction${fraction}-${num}`] === undefined) {
-      sampleLayers[`subfraction${fraction}-${num}`] = { result: {}, };
-    }
-    this.setState({
-      sample: {
-        ...this.state.sample,
-        layerNum: {
-          ...this.state.sample.layerNum,
-          [fraction]: num,
-        },
-        waSoilAnalysis: sampleLayers,
-      }
-    });
-  };
-
-  removeLayer = (fraction) => {
-    let num = this.state.sample.layerNum[fraction] ? this.state.sample.layerNum[fraction] : layerNum;
-    num -= 1;
-    if (num < 1) num = 1;
-    this.setState({
-      sample: {
-        ...this.state.sample,
-        layerNum: {
-          ...this.state.sample.layerNum,
-          [fraction]: num,
-        },
-      }
-    });
-  };
 
   render() {
     const { classes, modalProps, modalType } = this.props;
@@ -165,6 +116,44 @@ class WAAnalysisModal extends React.Component {
           <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', }}>
             <div style={{ width: 502, padding: 48, margin: 12, }}>
               <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Analysis Details</div>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={sample.waAnalysisComplete === true ? true : false}
+                    onClick={e => {
+                      this.setState({
+                        modified: true,
+                        sample: {
+                          ...sample,
+                          waAnalysisComplete: e.target.checked,
+                        }
+                      });
+                      let log = {
+                        type: "Analysis",
+                        log: e.target.checked === true
+                          ? `Sample ${sample.sampleNumber} (${sample.description} ${
+                              sample.material
+                            }) WA Analysis marked as complete.`
+                          : `Sample ${sample.sampleNumber} (${sample.description} ${
+                              sample.material
+                            }) WA Analysis marked as incomplete.`,
+                        user: auth.currentUser.uid,
+                        sample: sample.uid,
+                        userName: this.props.me.name,
+                        date: new Date()
+                      };
+                      let cocLog = modalProps.job.cocLog;
+                      cocLog ? cocLog.push(log) : (cocLog = [log]);
+                      cocsRef
+                        .doc(modalProps.job.uid)
+                        .update({ versionUpToDate: false, cocLog: cocLog });
+                    }}
+                    value="waAnalysisComplete"
+                    color="primary"
+                  />
+                }
+                label="WA Analysis Complete"
+              />
               <div className={this.props.classes.subheading}>Description</div>
               <TextField
                 id="labDescription"
@@ -175,6 +164,7 @@ class WAAnalysisModal extends React.Component {
                 rows={3}
                 onChange={e => {
                   this.setState({
+                    modified: true,
                     sample: {
                       ...sample,
                       labDescription: e.target.value,
@@ -191,6 +181,7 @@ class WAAnalysisModal extends React.Component {
                 rows={3}
                 onChange={e => {
                   this.setState({
+                    modified: true,
                     sample: {
                       ...sample,
                       labComments: e.target.value,
@@ -208,6 +199,7 @@ class WAAnalysisModal extends React.Component {
                         false }
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             sampleConditioningFurnace: e.target.checked,
@@ -227,6 +219,7 @@ class WAAnalysisModal extends React.Component {
                         false}
                       onChange={e => {
                         this.setState({
+                          modified: true,
                           sample: {
                             ...sample,
                             sampleConditioningLowHeat: e.target.checked,
@@ -252,6 +245,7 @@ class WAAnalysisModal extends React.Component {
                   }}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         weightReceived: e.target.value,
@@ -270,6 +264,7 @@ class WAAnalysisModal extends React.Component {
                   }}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         weightAnalysed: e.target.value,
@@ -288,6 +283,7 @@ class WAAnalysisModal extends React.Component {
                   }}
                   onChange={e => {
                     this.setState({
+                      modified: true,
                       sample: {
                         ...sample,
                         weightConditioned: e.target.value,
@@ -311,6 +307,7 @@ class WAAnalysisModal extends React.Component {
                         title: "Edit Soil Details",
                         doc: sample,
                         onExit: details => this.setState({
+                          modified: true,
                           sample: {
                             ...this.state.sample,
                             soilDetails: details,
@@ -335,12 +332,28 @@ class WAAnalysisModal extends React.Component {
           <Button onClick={() => this.props.hideModal()} color="secondary">
             Cancel
           </Button>
-          <Button
+          <Button disabled={!this.state.modified}
             onClick={() => {
               asbestosSamplesRef
                 .doc(sample.uid)
                 .update(sample);
               this.props.hideModal();
+
+              let log = {
+                type: "Analysis",
+                log: `Sample ${sample.sampleNumber} (${sample.description} ${
+                      sample.material
+                    }) WA analysis edited.`,
+                user: auth.currentUser.uid,
+                sample: sample.uid,
+                userName: this.props.me.name,
+                date: new Date()
+              };
+              let cocLog = modalProps.job.cocLog;
+              cocLog ? cocLog.push(log) : (cocLog = [log]);
+              cocsRef
+                .doc(modalProps.job.uid)
+                .update({ versionUpToDate: false, cocLog: cocLog });
             }}
             color="primary"
           >
@@ -407,6 +420,7 @@ class WAAnalysisModal extends React.Component {
             }}
             onChange={e => {
               this.setState({
+                modified: true,
                 sample: {
                   ...this.state.sample,
                   waAnalysis: {
@@ -782,6 +796,7 @@ class WAAnalysisModal extends React.Component {
 
   setLayerVar = (variable, num, fraction, val) => {
     this.setState({
+      modified: true,
       sample: {
         ...this.state.sample,
         waSoilAnalysis: {
@@ -797,6 +812,7 @@ class WAAnalysisModal extends React.Component {
 
   setLayerResVar = (variable, num, fraction, val) => {
     this.setState({
+      modified: true,
       sample: {
         ...this.state.sample,
         waSoilAnalysis: {
@@ -823,6 +839,7 @@ class WAAnalysisModal extends React.Component {
       update[type] = true;
     }
     this.setState({
+      modified: true,
       sample: {
         ...this.state.sample,
         waSoilAnalysis: {

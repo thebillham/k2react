@@ -27,6 +27,11 @@ export default createMuiTheme({
     }
   },
   overrides: {
+    MuiFormControlLabel: {
+      label: {
+        fontSize: 12,
+      },
+    },
     MuiInputLabel: {
       root: {
         fontSize: 12,

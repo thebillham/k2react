@@ -160,7 +160,13 @@ class SampleDetailsExpansion extends React.Component {
         newmap = { [result]: true };
       } else if (result === "no") {
         let val = map[result];
-        newmap = { no: !val };
+        newmap = {
+          ...map,
+          ch: false,
+          am: false,
+          cr: false,
+          umf: false,
+          no: !val };
       } else if (map[result] === undefined) {
         newmap = map;
         newmap["no"] = false;
@@ -375,7 +381,7 @@ class SampleDetailsExpansion extends React.Component {
     let verifiedColor = "#ddd";
     if (sample.verified) verifiedColor = "green";
     let waColor = "inherit";
-    if (sample.waAnalysisDone) waColor = "green";
+    if (sample.waAnalysisComplete) waColor = "green";
     let chColor = "#ddd";
     let amColor = "#ddd";
     let crColor = "#ddd";
@@ -409,6 +415,19 @@ class SampleDetailsExpansion extends React.Component {
       noDivColor = "lightgreen";
     }
 
+    let orgColor = "#ddd";
+    let orgDivColor = "white";
+    let smfColor = "#ddd";
+    let smfDivColor = "white";
+    if (sample.result && sample.result["org"]) {
+      orgColor = "mediumblue";
+      orgDivColor = "lightblue";
+    }
+    if (sample.result && sample.result["smf"]) {
+      smfColor = "mediumblue";
+      smfDivColor = "lightblue";
+    }
+
     return (
       <ExpansionPanel
         elevation={0}
@@ -421,7 +440,7 @@ class SampleDetailsExpansion extends React.Component {
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />} className={classes.hoverItem}>
           <Grid container>
-            <Grid item xs={12} xl={5}>
+            <Grid item xs={12} xl={4}>
               <div style={{
                 textOverflow: "ellipsis",
                 // whiteSpace: "nowrap",
@@ -478,7 +497,7 @@ class SampleDetailsExpansion extends React.Component {
                 )}
               </div>
             </Grid>
-            <Grid item xs={12} xl={7}>
+            <Grid item xs={12} xl={8}>
             <div style={{
               justifyContent: 'flex-end',
               alignItems: 'center',
@@ -517,6 +536,7 @@ class SampleDetailsExpansion extends React.Component {
               <div
                 style={{ display: "flex", flexDirection: "row" }}
               >
+              <Tooltip title='Chrysotile (white) asbestos detected'>
                 <div
                   style={{
                     backgroundColor: chDivColor,
@@ -534,6 +554,8 @@ class SampleDetailsExpansion extends React.Component {
                     CH
                   </Button>
                 </div>
+              </Tooltip>
+              <Tooltip title='Amosite (brown) asbestos detected'>
                 <div
                   style={{
                     backgroundColor: amDivColor,
@@ -551,6 +573,8 @@ class SampleDetailsExpansion extends React.Component {
                     AM
                   </Button>
                 </div>
+              </Tooltip>
+              <Tooltip title='Crocidolite (blue) asbestos detected'>
                 <div
                   style={{
                     backgroundColor: crDivColor,
@@ -568,6 +592,8 @@ class SampleDetailsExpansion extends React.Component {
                     CR
                   </Button>
                 </div>
+              </Tooltip>
+              <Tooltip title='Unidentified mineral fibres detected'>
                 <div
                   style={{
                     backgroundColor: umfDivColor,
@@ -585,8 +611,10 @@ class SampleDetailsExpansion extends React.Component {
                     UMF
                   </Button>
                 </div>
-              </div>
-              <div style={{ width: 30 }} />
+              </Tooltip>
+            </div>
+            <div style={{ width: 30 }} />
+            <Tooltip title='No asbestos detected'>
               <div
                 style={{
                   backgroundColor: noDivColor,
@@ -604,6 +632,46 @@ class SampleDetailsExpansion extends React.Component {
                   NO
                 </Button>
               </div>
+            </Tooltip>
+            <div style={{ width: 30 }} />
+            <Tooltip title='Organic fibres detected'>
+              <div
+                style={{
+                  backgroundColor: orgDivColor,
+                  borderRadius: 5
+                }}
+              >
+                <Button
+                  variant="outlined"
+                  style={{ margin: 5, color: orgColor }}
+                  onClick={event => {
+                    event.stopPropagation();
+                    this.toggleResult("org");
+                  }}
+                >
+                  ORG
+                </Button>
+              </div>
+            </Tooltip>
+            <Tooltip title='Synthetic mineral fibres detected'>
+              <div
+                style={{
+                  backgroundColor: smfDivColor,
+                  borderRadius: 5
+                }}
+              >
+                <Button
+                  variant="outlined"
+                  style={{ margin: 5, color: smfColor }}
+                  onClick={event => {
+                    event.stopPropagation();
+                    this.toggleResult("smf");
+                  }}
+                >
+                  SMF
+                </Button>
+              </div>
+            </Tooltip>
               <IconButton
                 onClick={event => {
                   event.stopPropagation();
@@ -634,6 +702,7 @@ class SampleDetailsExpansion extends React.Component {
                         modalType: ASBESTOSSAMPLEDETAILS,
                         modalProps: {
                           doc: sample,
+                          job: job,
                       }});
                   }}
                 >
@@ -654,6 +723,7 @@ class SampleDetailsExpansion extends React.Component {
                         modalType: WAANALYSIS,
                         modalProps: {
                           doc: sample,
+                          job: job,
                       }});
                     }}
                   >
