@@ -140,11 +140,8 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
 };
 
 export const deleteCoc = (coc, cocs) => async dispatch => {
-  console.log(coc);
-  console.log(cocs);
   let newCocs = {...cocs};
   delete newCocs[coc];
-  console.log(newCocs);
   dispatch({
     type: GET_COCS,
     payload: newCocs,
