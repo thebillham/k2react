@@ -58,7 +58,9 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import UpdateIcon from "@material-ui/icons/Cached";
 import IncidentIcon from '@material-ui/icons/LocalHospital';
 import CocIcon from '@material-ui/icons/TableChart';
+import InventoryIcon from '@material-ui/icons/Category'
 import LogIcon from '@material-ui/icons/ListAlt';
+import SiteIcon from '@material-ui/icons/Place';
 import QCIcon from '@material-ui/icons/OfflinePin'
 import StatsIcon from '@material-ui/icons/InsertChart';
 import TrainingPathIcon from "@material-ui/icons/DirectionsWalk";
@@ -278,7 +280,6 @@ class MainScreen extends React.Component {
 
           <ListItem
             button
-            onClick={this.handleStaffClick}
             component={Link}
             to="/staff"
           >
@@ -289,7 +290,6 @@ class MainScreen extends React.Component {
           </ListItem>
           <ListItem
             button
-            onClick={this.handleMyDetailsClick}
             component={Link}
             to="/mydetails"
           >
@@ -300,6 +300,12 @@ class MainScreen extends React.Component {
             {/*{this.state.openMyDetails ? <ExpandLess /> : <ExpandMore /> }*/}
           </ListItem>
         <Divider />
+          <ListItem button component={Link} to="/jobs/sites">
+            <ListItemIcon>
+              <SiteIcon className={classes.accentButton} />
+            </ListItemIcon>
+            <ListItemText primary="Sites" />
+          </ListItem>
           <ListItem button component={Link} to="/jobs/map">
             <ListItemIcon>
               <MapIcon className={classes.accentButton} />
@@ -363,6 +369,13 @@ class MainScreen extends React.Component {
               </ListItem>
             </List>
           </Collapse>
+        <Divider />
+        <ListItem button component={Link} to="/inventory">
+          <ListItemIcon>
+            <InventoryIcon className={classes.accentButton} />
+          </ListItemIcon>
+          <ListItemText primary="Inventory" />
+        </ListItem>
         <Divider />
           <ListItem
             button
