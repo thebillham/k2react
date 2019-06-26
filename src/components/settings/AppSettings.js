@@ -76,6 +76,7 @@ class AppSettings extends React.Component {
       "Skills List",
       "Document Tag Suggestions",
       "Quiz Tag Suggestions",
+      "Asset Categories",
       "Document Categories",
       "Notice Categories",
       "Tool Categories",
@@ -463,6 +464,40 @@ class AppSettings extends React.Component {
                           return {
                             id: list[1] ? list[1] : list[0],
                             text: list[0]
+                          };
+                        })
+                    });
+                  }}
+                />
+              )}
+
+              {setting === "Asset Categories" && (
+                <TextField
+                  id="assetcategories"
+                  label="Asset Categories"
+                  multiline
+                  defaultValue={
+                    doc &&
+                    doc.assetcategories &&
+                    doc.assetcategories
+                      .map(obj => {
+                        return `${obj.desc}|${obj.key}`;
+                      })
+                      .join("\n")
+                  }
+                  helperText='Put each category on a new line in the form "category description|category id".'
+                  className={classes.dialogField}
+                  onChange={e => {
+                    this.props.handleModalChange({
+                      id: e.target.id,
+                      value: e.target.value
+                        .split("\n")
+                        .filter(Boolean)
+                        .map(option => {
+                          let list = option.split("|");
+                          return {
+                            key: list[1] ? list[1] : list[0],
+                            desc: list[0]
                           };
                         })
                     });

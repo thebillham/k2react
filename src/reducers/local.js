@@ -3,10 +3,12 @@ import {
   GET_ASBESTOS_ANALYSIS,
   GET_AIRANALYSTS,
   GET_BULK_ANALYSTS,
+  GET_ASSETS,
   GET_DOCUMENTS,
   GET_EDIT_STAFF,
   GET_GEOCODES,
   GET_USER,
+  GET_SITES,
   GET_WFM_JOBS,
   GET_WFM_JOB,
   GET_WFM_LEADS,
@@ -44,6 +46,7 @@ import { stateRef } from "../config/firebase";
 
 const localInit = {
   auth: [],
+  assets: [],
   category: "",
   currentJobState: {},
   documents: [],
@@ -59,6 +62,7 @@ const localInit = {
   quizzes: [],
   readingLog: [],
   search: null,
+  sites: [],
   staff: {},
   steppers: [],
   tools: [],
@@ -96,6 +100,18 @@ export default function localReducer(state = localInit, action) {
           ...action.payload
         }
       };
+    case GET_ASSETS:
+      if (action.update) {
+        let assets = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: []};
+        action.payload.forEach(asset => {
+          assets[asset.id.charAt(0)].push(asset);
+        });
+        stateRef.doc("assets").set(assets);
+      }
+      return {
+        ...state,
+        assets: action.payload,
+      }
     case GET_METHODLOG:
       return {
         ...state,
@@ -165,6 +181,12 @@ export default function localReducer(state = localInit, action) {
           ...state.editstaff,
           ...action.payload,
         }
+      };
+    case GET_SITES:
+      if (action.update) stateRef.doc("sites").set({ payload: action.payload });
+      return {
+        ...state,
+        sites: action.payload
       };
     case GET_TOOLS:
       if (action.update) stateRef.doc("tools").set({ payload: action.payload });

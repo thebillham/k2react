@@ -80,7 +80,7 @@ import store from "../store";
 import { onSearchChange, onCatChange } from "../actions/local";
 import { sendSlackMessage } from "../Slack";
 
-import { fetchMe, resetLocal, copyStaff, fetchGeocodes, fetchStaff, } from "../actions/local";
+import { fetchMe, resetLocal, copyStaff, fetchGeocodes, fetchStaff, fetchAssets, } from "../actions/local";
 import { resetModal, showModal } from "../actions/modal";
 import { resetDisplay } from "../actions/display";
 import { initConstants } from "../actions/const";
@@ -93,10 +93,13 @@ const AsbestosLog = lazy(() => import("./asbestoslab/AsbestosLog"));
 const AsbestosQualityControl = lazy(() => import("./asbestoslab/AsbestosQualityControl"));
 const AsbestosStats = lazy(() => import("./asbestoslab/AsbestosStats"));
 const JobMap = lazy(() => import("./jobs/JobMap"));
+const Sites = lazy(() => import("./jobs/Sites"));
 
 const Staff = lazy(() => import("./personnel/Staff"));
 
 const MyDetails = lazy(() => import("./personnel/MyDetails"));
+
+const Inventory = lazy(() => import("./inventory/Inventory"));
 
 const TrainingOverview = lazy(() => import("./training/TrainingOverview"));
 const TrainingPaths = lazy(() => import("./training/TrainingPaths"));
@@ -126,6 +129,7 @@ const mapDispatchToProps = dispatch => {
     initConstants: () => dispatch(initConstants()),
     showModal: modal => dispatch(showModal(modal)),
     fetchStaff: () => dispatch(fetchStaff()),
+    fetchAssets: update => dispatch(fetchAssets(update)),
     // fixIds: () => dispatch(fixIds())
   };
 };
@@ -151,6 +155,7 @@ class MainScreen extends React.Component {
     this.props.fetchMe();
     this.props.initConstants();
     this.props.fetchGeocodes();
+    this.props.fetchAssets();
     if (!this.state.staff) this.props.fetchStaff();
     // this.props.fixIds();
     // constRef.set(this.props.state.const);
@@ -672,6 +677,10 @@ class MainScreen extends React.Component {
                           render={() => <div>Jobs Map</div>}
                         />
                         <Route
+                          path="/jobs/sites"
+                          render={() => <div>Sites</div>}
+                        />
+                        <Route
                           path="/asbestoslab"
                           render={() => <div>Asbestos Lab: COCs</div>}
                         />
@@ -691,6 +700,11 @@ class MainScreen extends React.Component {
                           exact
                           path="/staff"
                           render={() => <div>Staff</div>}
+                        />
+                        <Route
+                          exact
+                          path="/inventory"
+                          render={() => <div>Inventory</div>}
                         />
                         <Route
                           exact
@@ -779,7 +793,7 @@ class MainScreen extends React.Component {
                         />
                         <Route
                           path="/document"
-                          render={() => <div>Document Viewer</div>}
+                          render={() => <div>Library</div>}
                         />
                         <Route path="/help" render={() => <div>Help</div>} />
                         <Route
@@ -790,7 +804,7 @@ class MainScreen extends React.Component {
                     </Typography>
                     <Route
                       exact
-                      path="/(|library|training|modules|noticeboard|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
+                      path="/(|library|training|modules|noticeboard|inventory|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
                       render={() => (
                         <div className={classes.search}>
                           <div className={classes.searchIcon}>
@@ -883,7 +897,9 @@ class MainScreen extends React.Component {
                       <Route path="/noticeboard" render={props => <Noticeboard {...props} />} />
                       {/*<Route path="/incidents" component={Incidents} />*/}
                       {/*<Route exact path="/jobs" component={Jobs} />*/}
-                      <Route path="/jobs/map" render={props => <JobMap {...props} />} />
+                      <Route path="/inventory" render={props => <Inventory {...props} />} />
+                      <Route exact path="/jobs/map" render={props => <JobMap {...props} />} />
+                      <Route exact path="/jobs/sites" render={props => <Sites {...props} />} />
                       <Route path="/asbestoslab" render={props => <AsbestosCocs {...props} />} />
                       <Route path="/asbestossamplelog" render={props => <AsbestosLog {...props} />} />
                       <Route path="/asbestosqc" render={props => <AsbestosQualityControl {...props} />} />

@@ -1,5 +1,6 @@
 export const ADDTOQUIZ = "ADDTOQUIZ";
 export const APPSETTINGS = "APPSETTINGS";
+export const ASSET = "ASSET";
 export const ASBESTOSSAMPLEDETAILS = "ASBESTOSSAMPLEDETAILS";
 export const COC = "COC";
 export const COCLOG = "COCLOG";
@@ -14,6 +15,7 @@ export const QUIZ = "QUIZ";
 export const NOTICES = "NOTICES";
 export const SAMPLE = "SAMPLE";
 export const SAMPLEHISTORY = "SAMPLEHISTORY";
+export const SITE = "SITE";
 export const SOILDETAILS = "SOILDETAILS";
 export const TRAINING = "TRAINING";
 export const UPDATECERTIFICATEVERSION = "UPDATECERTIFICATEVERSION";

@@ -29,18 +29,22 @@ const appSettingsRef = firestore.collection("appsettings");
 const asbestosAnalysisRef = firestore.collection("lab").doc("asbestos").collection("analysis");
 const asbestosSamplesRef = firestore.collection("lab").doc("asbestos").collection("samples");
 const asbestosSampleLogRef = firestore.collection("lab").doc("asbestos").collection("sampleLog");
+const assetsRef = firestore.collection("inventory").doc("entities").collection("assets");
+const modelsRef = firestore.collection("inventory").doc("categories").collection("models");
+const manufacturersRef = firestore.collection("inventory").doc("categories").collection("manufacturers");
 const cocsRef = firestore.collection("lab").doc("asbestos").collection("cocs");
 const constRef = firestore.collection("appsettings").doc("constants");
 const docsRef = firestore.collection("documents");
 const geocodesRef = firestore.collection("state").doc("geocodes");
 const helpRef = firestore.collection("help");
 const incidentsRef = firestore.collection("incidents");
-const jobsRef = firestore.collection("jobheaders");
+const jobsRef = firestore.collection("jobs");
 const methodsRef = firestore.collection("methods");
 const modulesRef = firestore.collection("modules");
 const noticesRef = firestore.collection("notices");
 const questionsRef = firestore.collection("questions");
 const quizzesRef = firestore.collection("quizzes");
+const sitesRef = firestore.collection("sites");
 const stateRef = firestore.collection("state");
 const toolsRef = firestore.collection("tools");
 const trainingPathsRef = firestore.collection("trainingpaths");
@@ -54,6 +58,9 @@ export {
   asbestosAnalysisRef,
   asbestosSamplesRef,
   asbestosSampleLogRef,
+  assetsRef,
+  modelsRef,
+  manufacturersRef,
   cocsRef,
   constRef,
   docsRef,
@@ -65,6 +72,7 @@ export {
   noticesRef,
   questionsRef,
   quizzesRef,
+  sitesRef,
   stateRef,
   toolsRef,
   trainingPathsRef,

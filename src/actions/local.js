@@ -5,12 +5,14 @@ import {
   GET_AIR_ANALYSTS,
   GET_BULK_ANALYSTS,
   GET_COCS,
+  GET_ASSETS,
   GET_DOCUMENTS,
   GET_EDIT_STAFF,
   GET_GEOCODES,
   GET_HELP,
   GET_INCIDENTS,
   GET_ME,
+  GET_SITES,
   GET_METHODLOG,
   GET_METHODS,
   GET_NOTICES,
@@ -45,6 +47,7 @@ import moment from "moment";
 import {
   asbestosSamplesRef,
   asbestosAnalysisRef,
+  assetsRef,
   auth,
   cocsRef,
   docsRef,
@@ -54,6 +57,7 @@ import {
   noticesRef,
   questionsRef,
   quizzesRef,
+  sitesRef,
   stateRef,
   toolsRef,
   trainingPathsRef,
@@ -62,6 +66,7 @@ import {
   vehiclesRef
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
+// import assetData from "./assetData.json";
 
 export const resetLocal = () => dispatch => {
   dispatch({ type: RESET_LOCAL });
@@ -539,6 +544,94 @@ export const fetchVehicles = update => async dispatch => {
     });
   }
 };
+
+// export const fetchAssets = () => async dispatch => {
+//   let assetList = {
+//     1: [],
+//     2: [],
+//     3: [],
+//     4: [],
+//     5: [],
+//     6: [],
+//     7: [],
+//     8: [],
+//     9: [],
+//   };
+//   assetData.forEach(assetData => {
+//     let asset = JSON.parse(assetData);
+//     delete asset.asset_tag;
+//     delete asset.response;
+//     Object.keys(asset).forEach(key => {
+//       if (asset[key] === null) delete asset[key];
+//     });
+//     if (asset.lastCheckDone !== undefined && asset.lastCheckDone !== null) asset.lastCheckDone = new Date(asset.lastCheckDone);
+//     if (asset.lastServiceDone !== undefined && asset.lastServiceDone !== null) asset.lastServiceDone = new Date(asset.lastServiceDone);
+//     if (asset.regExpiry !== undefined && asset.regExpiry !== null) asset.regExpiry = new Date(asset.regExpiry);
+//     if (asset.wofExpiry !== undefined && asset.wofExpiry !== null) asset.wofExpiry = new Date(asset.wofExpiry);
+//     // console.log(asset);
+//     if (asset.docID !== undefined && asset.docID !== null) {
+//       // assetsRef.doc(asset.docID).set(asset);
+//       assetList[asset.id.charAt(0)].push(asset);
+//     }
+//   });
+//   console.log(assetList);
+//   stateRef.doc('assets').set(assetList);
+//   // var assetObj = JSON.parse(asset[0]);
+//   // console.log(assetObj);
+// };
+
+export const fetchSites = update => async dispatch => {
+  if (update) {
+    sitesRef.get().then(querySnapshot => {
+      var sites = [];
+      querySnapshot.forEach(doc => {
+        sites.push(doc.data());
+      });
+      dispatch({
+        type: GET_SITES,
+        payload: sites,
+        update: true
+      });
+    });
+  } else {
+    stateRef.doc("sites").onSnapshot(doc => {
+      if (doc.exists) {
+        dispatch({ type: GET_SITES, payload: doc.data().payload });
+      } else {
+        console.log("Sites don't exist");
+      }
+    });
+  }
+}
+
+export const fetchAssets = update => async dispatch => {
+  if (update) {
+    assetsRef.get().then(querySnapshot => {
+      var assets = [];
+      querySnapshot.forEach(doc => {
+        assets.push(doc.data());
+      });
+      dispatch({
+        type: GET_ASSETS,
+        payload: assets,
+        update: true
+      });
+    });
+  } else {
+    stateRef.doc("assets").onSnapshot(doc => {
+      if (doc.exists) {
+        let assets = [];
+        Object.keys(doc.data()).forEach(bucket => {
+          assets.push(...doc.data()[bucket]);
+        });
+        console.log(assets);
+        dispatch({ type: GET_ASSETS, payload: assets });
+      } else {
+        console.log("Assets doesn't exist");
+      }
+    });
+  }
+}
 
 export const fetchReadingLog = () => async dispatch => {
   usersRef

@@ -363,6 +363,16 @@ const constInit = {
       desc: "Admin"
     }
   ],
+  assetcategories: [
+    {
+      key: "gen",
+      desc: "General"
+    },
+    {
+      key: "gen",
+      desc: "General"
+    },
+  ],
   incidentcategories: [
     {
       key: "injury",
