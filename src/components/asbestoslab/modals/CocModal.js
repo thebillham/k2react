@@ -929,9 +929,7 @@ class CocModal extends React.Component {
               doc.deleted = false;
               this.props.handleCocSubmit({
                 doc: doc,
-                docid: doc.uid,
-                userName: this.props.me.name,
-                userUid: auth.currentUser.uid,
+                me: this.props.me,
               });
             }
           }

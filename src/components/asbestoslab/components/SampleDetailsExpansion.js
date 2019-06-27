@@ -7,13 +7,26 @@ import {
   asbestosAnalysisRef,
   firebase,
   auth,
-  asbestosSamplesRef
+  asbestosSamplesRef,
 } from "../../../config/firebase";
 import moment from "moment";
 import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
-import { fetchCocs, fetchSamples, logSample, writeResult } from "../../../actions/asbestosLab";
+import {
+  fetchCocs,
+  fetchSamples,
+  logSample,
+  writeResult,
+  getStats,
+  writeDescription,
+  getSampleColours,
+  getBasicResult,
+  receiveSample,
+  startAnalysis,
+  toggleResult,
+  verifySample,
+} from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
@@ -75,7 +88,6 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     showModal: modal => dispatch(showModal(modal)),
-    logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
   };
 };
 
@@ -112,321 +124,11 @@ class SampleDetailsExpansion extends React.Component {
       .update({ waAnalysis: !sample.waAnalysis});
   }
 
-  toggleResult = result => {
-    let sample = this.props.sample;
-    if (
-      this.props.me &&
-      this.props.me.auth &&
-      (this.props.me.auth["Asbestos Bulk Analysis"] ||
-        this.props.me.auth["Asbestos Admin"])
-    ) {
-      // Check analyst has been selected
-      if (this.props.analyst === "") {
-        window.alert(
-          "Select analyst from the dropdown at the top of the page."
-        );
-      }
-      let cocLog = this.props.job.cocLog;
-      if (!cocLog) cocLog = [];
-      // Check if this sample has already been analysed
-      if (sample.sessionID !== this.props.sessionID && sample.result) {
-        if (
-          window.confirm(
-            "This sample has already been analysed. Do you wish to override the result?"
-          )
-        ) {
-          cocLog.push({
-            type: "Analysis",
-            log: `Previous analysis of sample ${sample.sampleNumber} (${
-              sample.description
-            } ${sample.material}) overridden.`,
-            user: auth.currentUser.uid,
-            userName: this.props.me.name,
-            sample: sample.uid,
-            date: new Date()
-          });
-        } else {
-          return;
-        }
-      }
-      let newmap = {};
-      let map = this.props.sample.result;
-      if (sample.verified) {
-        asbestosSamplesRef
-          .doc(sample.uid)
-          .update({ verified: false, verifyDate: null });
-      }
-      if (map === undefined) {
-        newmap = { [result]: true };
-      } else if (result === "no") {
-        let val = map[result];
-        newmap = {
-          ...map,
-          ch: false,
-          am: false,
-          cr: false,
-          umf: false,
-          no: !val };
-      } else if (map[result] === undefined) {
-        newmap = map;
-        newmap["no"] = false;
-        newmap[result] = true;
-      } else {
-        newmap = map;
-        newmap["no"] = false;
-        newmap[result] = !map[result];
-      }
-
-      cocLog.push({
-        type: "Analysis",
-        log: `New analysis for sample ${sample.sampleNumber} (${
-          sample.description
-        } ${sample.material}): ${writeResult(newmap)}`,
-        user: auth.currentUser.uid,
-        userName: this.props.me.name,
-        sample: sample.uid,
-        date: new Date()
-      });
-
-      cocsRef
-        .doc(this.props.job.uid)
-        .update({ versionUpToDate: false, cocLog: cocLog });
-
-      // Check for situation where all results are unselected
-      let notBlankAnalysis = false;
-      Object.values(newmap).forEach(value => {
-        if (value) notBlankAnalysis = true;
-      });
-
-      if (notBlankAnalysis) {
-        if (!sample.analysisStart) this.props.startAnalysis(sample);
-        asbestosAnalysisRef.doc(`${this.props.sessionID}-${sample.uid}`).set({
-          analyst: this.props.analyst,
-          analystUID: auth.currentUser.uid,
-          mode: this.props.analysisMode,
-          sessionID: this.props.sessionID,
-          cocUID: this.props.job.uid,
-          sampleUID: sample.uid,
-          result: newmap,
-          description: sample.description,
-          material: sample.material,
-          samplers: this.props.job.personnel,
-          analysisDate: new Date()
-        });
-        asbestosSamplesRef.doc(sample.uid).update({
-          analysisUser: {id: auth.currentUser.uid, name: this.props.me.name},
-          sessionID: this.props.sessionID,
-          analyst: this.props.analyst,
-          result: newmap,
-          analysisDate: new Date(),
-          analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null,
-        });
-      } else {
-        asbestosAnalysisRef
-          .doc(`${this.props.sessionID}-${sample.uid}`)
-          .delete();
-        asbestosSamplesRef
-          .doc(sample.uid)
-          .update({
-            result: firebase.firestore.FieldValue.delete(),
-            analysisDate: firebase.firestore.FieldValue.delete(),
-            analysisUser: firebase.firestore.FieldValue.delete(),
-            sessionID: firebase.firestore.FieldValue.delete(),
-            analysisTime: firebase.firestore.FieldValue.delete(),
-            analyst: firebase.firestore.FieldValue.delete(),
-          });
-      }
-    } else {
-      window.alert(
-        "You don't have sufficient permissions to set asbestos results."
-      );
-    }
-  };
-
-  removeResult = () => {
-    let sample = this.props.sample;
-    let log = {
-      type: "Analysis",
-      log: `Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }) result removed.`,
-      user: auth.currentUser.uid,
-      sample: sample.uid,
-      userName: this.props.me.name,
-      date: new Date()
-    };
-    let cocLog = this.props.job.cocLog;
-    cocLog ? cocLog.push(log) : (cocLog = [log]);
-    cocsRef
-      .doc(this.props.job.uid)
-      .update({ versionUpToDate: false, cocLog: cocLog });
-    asbestosAnalysisRef
-      .doc(`${this.state.sessionID}-${sample.uid}`)
-      .delete();
-    asbestosSamplesRef
-      .doc(sample.uid)
-      .update({
-        result: firebase.firestore.FieldValue.delete(),
-        analysisDate: firebase.firestore.FieldValue.delete(),
-        analysisUser: firebase.firestore.FieldValue.delete(),
-        sessionID: firebase.firestore.FieldValue.delete(),
-      });
-  };
-
-  writeDescription = (locationgeneric, locationdetailed, description, material) => {
-    var str = '';
-    if (locationgeneric) str = locationgeneric;
-    if (locationdetailed) {
-      if (str === '') {
-        str = locationdetailed;
-      } else {
-        str = str + ' - ' + locationdetailed;
-      }
-    }
-    if (str !== '') str = str + ': ';
-    if (description && material) {
-      str = str + description + ", " + material;
-    } else if (description) {
-      str = str + description;
-    } else if (material) {
-      str = str + material;
-    } else {
-      str = str + "No description";
-    }
-    return str;
-  };
-
-  verifySample = () => {
-    let sample = this.props.sample;
-    if (
-      (this.props.me &&
-      this.props.me.auth &&
-      (this.props.me.auth["Analysis Checker"] ||
-        this.props.me.auth["Asbestos Admin"]))
-    ) {
-      if (!sample.verified || window.confirm("Are you sure you wish to remove the verification of this sample result?")) {
-        if (auth.currentUser.uid === sample.analysisUser.id && !sample.verified) {
-          window.alert("Samples must be checked off by a different user.");
-        } else {
-          if (!sample.analysisStart && !sample.verified) this.startAnalysis(sample);
-          let verifyDate = null;
-          let log = {
-            type: "Verified",
-            log: !sample.verified
-              ? `Sample ${sample.sampleNumber} (${sample.description} ${
-                  sample.material
-                }) result verified.`
-              : `Sample ${sample.sampleNumber} (${sample.description} ${
-                  sample.material
-                }) verification removed.`,
-            user: auth.currentUser.uid,
-            sample: sample.uid,
-            userName: this.props.me.name,
-            date: new Date()
-          };
-          let cocLog = this.props.job.cocLog;
-          cocLog ? cocLog.push(log) : (cocLog = [log]);
-          cocsRef
-            .doc(this.props.job.uid)
-            .update({ versionUpToDate: false, cocLog: cocLog });
-          if (!sample.verified) {
-            sample.verifyDate = new Date();
-            let cocStats = this.props.getStats(sample);
-            this.props.logSample(this.props.job, sample, cocStats);
-            asbestosSamplesRef.doc(sample.uid).update(
-            {
-              verified: true,
-              verifyUser: {id: auth.currentUser.uid, name: this.props.me.name},
-              verifyDate: new Date(),
-              turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
-            });
-          } else {
-            asbestosSamplesRef.doc(sample.uid).update(
-            {
-              verified: false,
-              verifyUser: firebase.firestore.FieldValue.delete(),
-              verifyDate: firebase.firestore.FieldValue.delete(),
-              turnaroundTime: firebase.firestore.FieldValue.delete(),
-            });
-          }
-        }
-      }
-    } else {
-      window.alert(
-        "You don't have sufficient permissions to verify asbestos results."
-      );
-    }
-  };
-
   render() {
     const { job, sample, staff, anchorEl, classes } = this.props;
     if (sample.cocUid !== job.uid) return null;
-    let result = "none";
-    if (
-      sample.result &&
-      (sample.result["ch"] ||
-        sample.result["am"] ||
-        sample.result["cr"] ||
-        sample.result["umf"])
-    )
-      result = "positive";
-    if (sample.result && sample.result["no"])
-      result = "negative";
-    let cameraColor = "#ddd";
-    if (sample.imagePathRemote) cameraColor = "green";
-    let receivedColor = "#ddd";
-    if (sample.receivedByLab) receivedColor = "green";
-    let analysisColor = "#ddd";
-    if (sample.analysisStart) analysisColor = "green";
-    let verifiedColor = "#ddd";
-    if (sample.verified) verifiedColor = "green";
-    let waColor = "inherit";
-    if (sample.waAnalysisComplete) waColor = "green";
-    let chColor = "#ddd";
-    let amColor = "#ddd";
-    let crColor = "#ddd";
-    let umfColor = "#ddd";
-    let chDivColor = "white";
-    let amDivColor = "white";
-    let crDivColor = "white";
-    let umfDivColor = "white";
-
-    if (sample.result && sample.result["ch"]) {
-      chColor = "white";
-      chDivColor = "red";
-    }
-    if (sample.result && sample.result["am"]) {
-      amColor = "white";
-      amDivColor = "red";
-    }
-    if (sample.result && sample.result["cr"]) {
-      crColor = "white";
-      crDivColor = "red";
-    }
-    if (sample.result && sample.result["umf"]) {
-      umfColor = "white";
-      umfDivColor = "red";
-    }
-
-    let noColor = "#ddd";
-    let noDivColor = "#fff";
-    if (result === "negative") {
-      noColor = "green";
-      noDivColor = "lightgreen";
-    }
-
-    let orgColor = "#ddd";
-    let orgDivColor = "white";
-    let smfColor = "#ddd";
-    let smfDivColor = "white";
-    if (sample.result && sample.result["org"]) {
-      orgColor = "mediumblue";
-      orgDivColor = "lightblue";
-    }
-    if (sample.result && sample.result["smf"]) {
-      smfColor = "mediumblue";
-      smfDivColor = "lightblue";
-    }
+    let result = getBasicResult(sample);
+    let colours = getSampleColours(sample);
 
     return (
       <ExpansionPanel
@@ -455,7 +157,7 @@ class SampleDetailsExpansion extends React.Component {
                     <CameraAlt
                       style={{
                         fontSize: 24,
-                        color: cameraColor,
+                        color: colours.cameraColor,
                         margin: 10
                       }}
                     />
@@ -489,12 +191,7 @@ class SampleDetailsExpansion extends React.Component {
                 >
                   {sample.sampleNumber}
                 </div>
-                {this.writeDescription(
-                  sample.genericLocation,
-                  sample.specificLocation,
-                  sample.description,
-                  sample.material
-                )}
+                {writeDescription(sample)}
               </div>
             </Grid>
             <Grid item xs={12} xl={8}>
@@ -508,28 +205,28 @@ class SampleDetailsExpansion extends React.Component {
               <IconButton
                 onClick={event => {
                   event.stopPropagation();
-                  this.props.receiveSample(sample);
+                  receiveSample(sample, job, this.props.sessionID, this.props.me);
                 }}
               >
                 <Inbox
                   style={{
                     fontSize: 24,
                     margin: 10,
-                    color: receivedColor
+                    color: colours.receivedColor
                   }}
                 />
               </IconButton>
                 <IconButton
                   onClick={event => {
                     event.stopPropagation();
-                    this.props.startAnalysis(sample);
+                    startAnalysis(sample, job, this.props.sessionID, this.props.me);
                   }}
                 >
                   <AnalysisIcon
                     style={{
                       fontSize: 24,
                       margin: 10,
-                      color: analysisColor
+                      color: colours.analysisColor
                     }}
                   />
                 </IconButton>
@@ -539,16 +236,16 @@ class SampleDetailsExpansion extends React.Component {
               <Tooltip title='Chrysotile (white) asbestos detected'>
                 <div
                   style={{
-                    backgroundColor: chDivColor,
+                    backgroundColor: colours.chDivColor,
                     borderRadius: 5
                   }}
                 >
                   <Button
                     variant="outlined"
-                    style={{ margin: 5, color: chColor }}
+                    style={{ margin: 5, color: colours.chColor }}
                     onClick={event => {
                       event.stopPropagation();
-                      this.toggleResult("ch");
+                      toggleResult("ch", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
                     }}
                   >
                     CH
@@ -558,16 +255,16 @@ class SampleDetailsExpansion extends React.Component {
               <Tooltip title='Amosite (brown) asbestos detected'>
                 <div
                   style={{
-                    backgroundColor: amDivColor,
+                    backgroundColor: colours.amDivColor,
                     borderRadius: 5
                   }}
                 >
                   <Button
                     variant="outlined"
-                    style={{ margin: 5, color: amColor }}
+                    style={{ margin: 5, color: colours.amColor }}
                     onClick={event => {
                       event.stopPropagation();
-                      this.toggleResult("am");
+                      toggleResult("am", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
                     }}
                   >
                     AM
@@ -577,16 +274,16 @@ class SampleDetailsExpansion extends React.Component {
               <Tooltip title='Crocidolite (blue) asbestos detected'>
                 <div
                   style={{
-                    backgroundColor: crDivColor,
+                    backgroundColor: colours.crDivColor,
                     borderRadius: 5
                   }}
                 >
                   <Button
                     variant="outlined"
-                    style={{ margin: 5, color: crColor }}
+                    style={{ margin: 5, color: colours.crColor }}
                     onClick={event => {
                       event.stopPropagation();
-                      this.toggleResult("cr");
+                      toggleResult("cr", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
                     }}
                   >
                     CR
@@ -596,16 +293,16 @@ class SampleDetailsExpansion extends React.Component {
               <Tooltip title='Unidentified mineral fibres detected'>
                 <div
                   style={{
-                    backgroundColor: umfDivColor,
+                    backgroundColor: colours.umfDivColor,
                     borderRadius: 5
                   }}
                 >
                   <Button
                     variant="outlined"
-                    style={{ margin: 5, color: umfColor }}
+                    style={{ margin: 5, color: colours.umfColor }}
                     onClick={event => {
                       event.stopPropagation();
-                      this.toggleResult("umf");
+                      toggleResult("umf", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
                     }}
                   >
                     UMF
@@ -617,16 +314,16 @@ class SampleDetailsExpansion extends React.Component {
             <Tooltip title='No asbestos detected'>
               <div
                 style={{
-                  backgroundColor: noDivColor,
+                  backgroundColor: colours.noDivColor,
                   borderRadius: 5
                 }}
               >
                 <Button
                   variant="outlined"
-                  style={{ margin: 5, color: noColor }}
+                  style={{ margin: 5, color: colours.noColor }}
                   onClick={event => {
                     event.stopPropagation();
-                    this.toggleResult("no");
+                    toggleResult("no", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
                   }}
                 >
                   NO
@@ -637,16 +334,16 @@ class SampleDetailsExpansion extends React.Component {
             <Tooltip title='Organic fibres detected'>
               <div
                 style={{
-                  backgroundColor: orgDivColor,
+                  backgroundColor: colours.orgDivColor,
                   borderRadius: 5
                 }}
               >
                 <Button
                   variant="outlined"
-                  style={{ margin: 5, color: orgColor }}
+                  style={{ margin: 5, color: colours.orgColor }}
                   onClick={event => {
                     event.stopPropagation();
-                    this.toggleResult("org");
+                    toggleResult("org", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
                   }}
                 >
                   ORG
@@ -656,16 +353,16 @@ class SampleDetailsExpansion extends React.Component {
             <Tooltip title='Synthetic mineral fibres detected'>
               <div
                 style={{
-                  backgroundColor: smfDivColor,
+                  backgroundColor: colours.smfDivColor,
                   borderRadius: 5
                 }}
               >
                 <Button
                   variant="outlined"
-                  style={{ margin: 5, color: smfColor }}
+                  style={{ margin: 5, color: colours.smfColor }}
                   onClick={event => {
                     event.stopPropagation();
-                    this.toggleResult("smf");
+                    toggleResult("smf", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
                   }}
                 >
                   SMF
@@ -683,14 +380,14 @@ class SampleDetailsExpansion extends React.Component {
                     )
                   )
                     return;
-                  this.verifySample(sample);
+                  verifySample(sample, job, this.props.me);
                 }}
               >
                 <CheckCircleOutline
                   style={{
                     fontSize: 24,
                     margin: 10,
-                    color: verifiedColor
+                    color: colours.verifiedColor
                   }}
                 />
               </IconButton>
@@ -731,7 +428,7 @@ class SampleDetailsExpansion extends React.Component {
                       style={{
                         fontSize: 24,
                         margin: 10,
-                        color: waColor
+                        color: colours.waColor
                       }}
                     />
                   </IconButton>

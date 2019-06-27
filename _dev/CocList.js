@@ -227,7 +227,7 @@ class CocList extends React.Component {
       let cocLog = this.props.job.cocLog;
       if (!cocLog) cocLog = [];
       // Check if this sample has already been analysed
-      if (sample.sessionID !== this.state.sessionID && sample.result) {
+      if (sample.sessionID !== this.props.sessionID && sample.result) {
         if (
           window.confirm(
             "This sample has already been analysed. Do you wish to override the result?"
@@ -271,7 +271,7 @@ class CocList extends React.Component {
 
       asbestosSamplesRef.doc(sample.uid).update({
         analysisUser: auth.currentUser.uid,
-        sessionID: this.state.sessionID,
+        sessionID: this.props.sessionID,
         analyst: this.props.analyst,
         result: newmap,
         analysisDate: new Date()
@@ -299,11 +299,11 @@ class CocList extends React.Component {
       });
 
       if (notBlankAnalysis) {
-        asbestosAnalysisRef.doc(`${this.state.sessionID}-${sample.uid}`).set({
+        asbestosAnalysisRef.doc(`${this.props.sessionID}-${sample.uid}`).set({
           analyst: this.props.analyst,
           analystUID: auth.currentUser.uid,
           mode: this.props.analysisMode,
-          sessionID: this.state.sessionID,
+          sessionID: this.props.sessionID,
           cocUID: this.props.job.uid,
           sampleUID: sample.uid,
           result: newmap,
@@ -314,7 +314,7 @@ class CocList extends React.Component {
         });
       } else {
         asbestosAnalysisRef
-          .doc(`${this.state.sessionID}-${sample.uid}`)
+          .doc(`${this.props.sessionID}-${sample.uid}`)
           .delete();
         cocsRef
           .doc(this.props.job.uid)

@@ -39,6 +39,7 @@ const geocodesRef = firestore.collection("state").doc("geocodes");
 const helpRef = firestore.collection("help");
 const incidentsRef = firestore.collection("incidents");
 const jobsRef = firestore.collection("jobs");
+const logsRef = firestore.collection("logs").doc("logs");
 const methodsRef = firestore.collection("methods");
 const modulesRef = firestore.collection("modules");
 const noticesRef = firestore.collection("notices");
@@ -67,6 +68,7 @@ export {
   helpRef,
   incidentsRef,
   jobsRef,
+  logsRef,
   methodsRef,
   modulesRef,
   noticesRef,

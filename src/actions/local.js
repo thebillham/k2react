@@ -41,7 +41,7 @@ import {
   SET_MODAL_ERROR,
   SET_STEPPER,
   UPDATE_STAFF,
-  EDIT_MODAL_DOC
+  EDIT_MODAL_DOC,
 } from "../constants/action-types";
 import moment from "moment";
 import {
@@ -53,6 +53,7 @@ import {
   docsRef,
   helpRef,
   incidentsRef,
+  logsRef,
   methodsRef,
   noticesRef,
   questionsRef,
@@ -1460,6 +1461,25 @@ export const saveCurrentJobState = state => dispatch => {
     stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket], { merge: true });
   });
 };
+
+export const addLog = (collection, log, user) => {
+  let uid = moment().format('YYYY-MMM-DD-HH-mm-ss') + parseInt(Math.floor(Math.random() * Math.floor(1000)));
+  log = {
+    ...log,
+    date: new Date(),
+    user: user.uid,
+    userName: user.name,
+  };
+
+  console.log('Adding Log');
+  console.log(log);
+
+  logsRef.collection(collection).doc(uid).set(log);
+};
+
+export const fetchLogs = (filter, filterValue, limit) => {
+
+}
 
 //
 // function getDaysSinceDate(date) {

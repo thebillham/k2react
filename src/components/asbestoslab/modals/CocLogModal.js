@@ -20,12 +20,15 @@ import _ from "lodash";
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
-    modalProps: state.modal.modalProps
+    modalProps: state.modal.modalProps,
+    log: state.local.log,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
+    fetchLogs: (limit) => dispatch(fetchLogs("chainOfCustody", limit)),
+    clearLog: () => dispatch(clearLog()),
     hideModal: () => dispatch(hideModal()),
     handleModalChange: _.debounce(
       target => dispatch(handleModalChange(target)),
@@ -43,6 +46,8 @@ class CocLogModal extends React.Component {
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
+        onEnter={() => this.props.fetchLogs(10)}
+        onExit={this.props.clearLog}
       >
         <DialogTitle>Change Log for {modalProps.jobNumber}</DialogTitle>
         <DialogContent>

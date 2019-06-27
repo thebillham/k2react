@@ -14,18 +14,28 @@ import {
   SET_ANALYSIS_SESSION_ID,
 } from "../constants/action-types";
 import moment from "moment";
+import momentbusinessdays from "moment-business-days";
+import momenttimezone from "moment-timezone";
+import momentbusinesstime from "moment-business-time";
+import { addLog } from "./local";
 import {
   asbestosSamplesRef,
   asbestosAnalysisRef,
   asbestosSampleLogRef,
   cocsRef,
   stateRef,
+  firebase,
+  auth,
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 
 export const resetAsbestosLab = () => dispatch => {
   dispatch({ type: RESET_ASBESTOS_LAB });
 };
+
+//
+// GET DATA
+//
 
 export const fetchCocs = update => async dispatch => {
   // Make all calls update for now
@@ -231,7 +241,37 @@ export const fetchSampleLog = (update) => async dispatch => {
   }
 };
 
-export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch => {
+
+//
+// SETTINGS
+//
+
+export const setAnalyst = analyst => dispatch => {
+  dispatch({
+    type: SET_ANALYST,
+    payload: analyst
+  });
+};
+
+export const setAnalysisMode = mode => dispatch => {
+  dispatch({
+    type: SET_ANALYSIS_MODE,
+    payload: mode
+  });
+};
+
+export const setSessionID = session => dispatch => {
+  dispatch({
+    type: SET_ANALYSIS_SESSION_ID,
+    payload: session,
+  });
+}
+
+//
+// COC EDIT
+//
+
+export const handleCocSubmit = ({ doc, me }) => dispatch => {
   // console.log(doc.samples);
   let sampleList = [];
   if (doc.samples) {
@@ -258,16 +298,14 @@ export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch =
         let log = {
           type: 'Create',
           log: `Sample ${sample} (${doc.samples[sample].description} ${doc.samples[sample].material}) created.`,
-          date: new Date(),
-          userName: userName,
-          user: userUid,
+          chainOfCustody: doc.uid,
           sample: uid,
         };
-        doc.cocLog.push(log);
+        addLog("asbestosLab", log, me);
         doc.samples[sample].uid = uid;
         doc.samples[sample].deleted = false;
         doc.samples[sample].createdDate = new Date();
-        doc.samples[sample].createdBy = {id: userUid, name: userName};
+        doc.samples[sample].createdBy = {id: me.uid, name: me.name};
         sampleList.push(uid);
       } else {
         // console.log(`UID for old sample is ${doc.samples[sample].uid}`);
@@ -285,8 +323,7 @@ export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch =
           sample2.material = "Air Sample";
         }
         sample2.jobNumber = doc.jobNumber;
-        if (sample2.cocUid === undefined) sample2.cocUid = docid;
-        console.log(docid);
+        if (sample2.cocUid === undefined) sample2.cocUid = doc.uid;
         sample2.sampleNumber = parseInt(sample, 10);
         if ("disabled" in sample2) delete sample2.disabled;
         // console.log("Sample 2");
@@ -297,33 +334,37 @@ export const handleCocSubmit = ({ doc, docid, userName, userUid }) => dispatch =
   }
   let doc2 = doc;
   if ("samples" in doc2) delete doc2.samples;
-  doc2.uid = docid;
+  doc2.uid = doc.uid;
   doc2.sampleList = sampleList;
-  // console.log(doc2);
-  cocsRef.doc(docid).set(doc2);
+  cocsRef.doc(doc.uid).set(doc2);
   dispatch({ type: RESET_MODAL });
 };
 
-export const setAnalyst = analyst => dispatch => {
-  dispatch({
-    type: SET_ANALYST,
-    payload: analyst
-  });
+export const togglePriority = (job, me) => {
+  let log = {
+    type: "Admin",
+    log: job.priority === 1 ? `Chain of Custody changed to normal priority.` : `Chain of Custody marked as high priority.`,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me);
+  cocsRef.doc(job.uid).update({ priority: job.priority === 0 ? 1 : 0 });
 };
 
-export const setAnalysisMode = mode => dispatch => {
-  dispatch({
-    type: SET_ANALYSIS_MODE,
-    payload: mode
-  });
+export const toggleWAAnalysis = (job, me) => {
+  let log = {
+    type: "Admin",
+    log: job.waAnalysis ? `WA analysis request removed.` : `Chain of Custody flagged for WA analysis.`,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me);
+  cocsRef.doc(job.uid).update({ waAnalysis: job.waAnalysis ? false : true });
 };
 
-export const setSessionID = session => dispatch => {
-  dispatch({
-    type: SET_ANALYSIS_SESSION_ID,
-    payload: session,
-  });
-}
+
+//
+// SAMPLE EDIT
+//
+
 
 export const handleSampleChange = (number, type, value) => dispatch => {
   dispatch({
@@ -377,6 +418,426 @@ export const logSample = (coc, sample, cocStats) => dispatch => {
     analysisType: sample.analysisType ? sample.analysisType : 'normal',
   };
   asbestosSampleLogRef.doc().set(log);
+}
+
+
+//
+// SAMPLE PROGRESS CHANGES
+//
+
+export const receiveAll = (samples, job, sessionID, me) => {
+  if (samples && samples[job.uid] && Object.values(samples[job.uid]).length > 0) {
+    Object.values(samples[job.uid]).forEach(sample => {
+      if (sample.cocUid === job.uid) {
+        if (!sample.receivedByLab) receiveSample(sample, job, sessionID, me);
+      }
+    });
+  }
+};
+
+export const receiveSample = (sample, job, sessionID, me) => {
+  let receivedDate = null;
+  if (!sample.receivedByLab) receivedDate = new Date();
+  if (sample.receivedByLab && sample.analysisStart) startAnalysis(sample, job, sessionID, me);
+  if (sample.receivedByLab && sample.verified) {
+    if (window.confirm('The sample result has already been verified. Removing from the lab will remove the analysis result and verification. Continue?')) {
+      removeResult(sample, sessionID, me);
+      verifySample(sample, job, me);
+    } else return;
+  } else if (sample.receivedByLab && sample.result) {
+    if (window.confirm('The sample result has already been logged. Removing from the lab will remove the analysis result. Continue?'))
+      removeResult(sample, sessionID, me);
+  }
+  let log = {
+    type: "Received",
+    log: receivedDate
+      ? `Sample ${sample.sampleNumber} (${sample.description} ${
+          sample.material
+        }) received by lab.`
+      : `Sample ${sample.sampleNumber} (${sample.description} ${
+          sample.material
+        }) unchecked as being received.`,
+    sample: sample.uid,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me);
+  // let cocLog = this.props.job.cocLog;
+  // cocLog ? cocLog.push(log) : (cocLog = [log]);
+  cocsRef
+    .doc(sample.cocUid)
+    .update({ versionUpToDate: false });
+  if (!sample.receivedByLab) {
+    asbestosSamplesRef.doc(sample.uid).update(
+    {
+      receivedByLab: true,
+      receivedUser: {id: me.uid, name: me.name},
+      receivedDate: receivedDate
+    });
+  } else {
+    asbestosSamplesRef.doc(sample.uid).update({
+      receivedByLab: false,
+      receivedUser: firebase.firestore.FieldValue.delete(),
+      receivedDate: firebase.firestore.FieldValue.delete(),
+    });
+  }
+};
+
+export const startAnalysisAll = (samples, job, sessionID, me) => {
+  if (samples && samples[job.uid] && Object.values(samples[job.uid]).length > 0) {
+    Object.values(samples[job.uid]).forEach(sample => {
+      if (sample.cocUid === job.uid) {
+        if (!sample.analysisStart) {
+          if (!sample.receivedByLab) receiveSample(sample, job, sessionID, me);
+          startAnalysis(sample, job, sessionID, me);
+        }
+      }
+    });
+  }
+};
+
+export const startAnalysis = (sample, job, sessionID, me) => {
+  let analysisStart = null;
+  if (!sample.receivedByLab && !sample.analysisStart) receiveSample(sample, job, sessionID, me);
+  if (sample.verified) verifySample(sample, job, me);
+  if (!sample.analysisStart) analysisStart = new Date();
+  let log = {
+    type: "Analysis",
+    log: analysisStart
+      ? `Analysis begun on Sample ${sample.sampleNumber} (${sample.description} ${
+          sample.material
+        }).`
+      : `Analysis stopped for Sample ${sample.sampleNumber} (${sample.description} ${
+          sample.material
+        }).`,
+    sample: sample.uid,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me);
+  cocsRef
+    .doc(sample.cocUid)
+    .update({ versionUpToDate: false, });
+  if (!sample.analysisStart) {
+    asbestosSamplesRef.doc(sample.uid).update(
+    {
+      analysisStart: true,
+      analysisStartedby: {id: me.uid, name: me.name},
+      analysisStartDate: analysisStart
+    });
+  } else {
+    asbestosSamplesRef.doc(sample.uid).update(
+    {
+      analysisStart: false,
+      analysisStartedby: firebase.firestore.FieldValue.delete(),
+      analysisStartDate: firebase.firestore.FieldValue.delete(),
+    });
+  }
+};
+
+export const updateResultMap = (result, map) => {
+  let updatedMap = {};
+
+  if (map === undefined) {
+    updatedMap = { [result]: true };
+  } else {
+    let res = true;
+    if (map[result] !== undefined) res = !map[result];
+    updatedMap = {
+      ...map,
+      [result]: res,
+    };
+    if ((result === "ch" || result === "am" || result === "cr" || result === "umf") && map["no"] === true) updatedMap["no"] = false;
+    if (result === "no") {
+      ["ch","am","cr","umf"].forEach(type => {
+        if (map[type] === true) updatedMap[type] = false;
+      });
+    }
+  }
+
+  return updatedMap;
+}
+
+export const toggleResult = (result, analyst, sample, job, sessionID, me) => {
+  if (
+    me.auth &&
+    (me.auth["Asbestos Bulk Analysis"] ||
+      me.auth["Asbestos Admin"])
+  ) {
+    // Check analyst has been selected
+    if (analyst === "") {
+      window.alert(
+        "Select analyst from the dropdown at the top of the page."
+      );
+    }
+    // let cocLog = this.props.job.cocLog;
+    // if (!cocLog) cocLog = [];
+    // Check if this sample has already been analysed
+    if (sample.sessionID !== sessionID && sample.result) {
+      if (
+        window.confirm(
+          "This sample has already been analysed. Do you wish to override the result?"
+        )
+      ) {
+        let log = {
+          type: "Analysis",
+          log: `Previous analysis of sample ${sample.sampleNumber} (${
+            sample.description
+          } ${sample.material}) overridden.`,
+          sample: sample.uid,
+          chainOfCustody: job.uid,
+        };
+        addLog("asbestosLab", log, me);
+      } else {
+        return;
+      }
+    }
+
+    if (sample.verified) {
+      asbestosSamplesRef
+        .doc(sample.uid)
+        .update({ verified: false, verifyDate: null });
+    }
+
+    let newMap = updateResultMap(result, sample.result);
+
+    let log = {
+      type: "Analysis",
+      log: `New analysis for sample ${sample.sampleNumber} (${
+        sample.description
+      } ${sample.material}): ${writeResult(newMap)}`,
+      sample: sample.uid,
+      chainOfCustody: job.uid,
+    };
+    addLog("asbestosLab", log, me);
+
+    cocsRef
+      .doc(job.uid)
+      .update({ versionUpToDate: false });
+
+    // Check for situation where all results are unselected
+    let notBlankAnalysis = false;
+    Object.values(newMap).forEach(value => {
+      if (value) notBlankAnalysis = true;
+    });
+
+    if (notBlankAnalysis) {
+      if (!sample.analysisStart) startAnalysis(sample, job, sessionID, me);
+      asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`).set({
+        analyst: analyst,
+        analystUID: me.uid,
+        // mode: this.props.analysisMode,
+        sessionID: sessionID,
+        cocUID: job.uid,
+        sampleUID: sample.uid,
+        result: newMap,
+        description: sample.description,
+        material: sample.material,
+        samplers: job.personnel,
+        analysisDate: new Date()
+      });
+      asbestosSamplesRef.doc(sample.uid).update({
+        analysisUser: {id: me.uid, name: me.name},
+        sessionID: sessionID,
+        analyst: analyst,
+        result: newMap,
+        analysisDate: new Date(),
+        analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null,
+      });
+    } else {
+      asbestosAnalysisRef
+        .doc(`${sessionID}-${sample.uid}`)
+        .delete();
+      asbestosSamplesRef
+        .doc(sample.uid)
+        .update({
+          result: firebase.firestore.FieldValue.delete(),
+          analysisDate: firebase.firestore.FieldValue.delete(),
+          analysisUser: firebase.firestore.FieldValue.delete(),
+          sessionID: firebase.firestore.FieldValue.delete(),
+          analysisTime: firebase.firestore.FieldValue.delete(),
+          analyst: firebase.firestore.FieldValue.delete(),
+        });
+    }
+  } else {
+    window.alert(
+      "You don't have sufficient permissions to set asbestos results."
+    );
+  }
+};
+
+export const removeResult = (sample, sessionID, me) => {
+  let log = {
+    type: "Analysis",
+    log: `Sample ${sample.sampleNumber} (${sample.description} ${
+          sample.material
+        }) result removed.`,
+    sample: sample.uid,
+    chainOfCustody: sample.cocUid,
+  };
+  addLog("asbestosLab", log, me);
+
+  cocsRef
+    .doc(sample.cocUid)
+    .update({ versionUpToDate: false });
+  asbestosAnalysisRef
+    .doc(`${sessionID}-${sample.uid}`)
+    .delete();
+  asbestosSamplesRef
+    .doc(sample.uid)
+    .update({
+      result: firebase.firestore.FieldValue.delete(),
+      analysisDate: firebase.firestore.FieldValue.delete(),
+      analysisUser: firebase.firestore.FieldValue.delete(),
+      sessionID: firebase.firestore.FieldValue.delete(),
+    });
+}
+
+export const verifySample = (sample, job, me) => {
+  if (
+    (me.auth &&
+    (me.auth["Analysis Checker"] ||
+      me.auth["Asbestos Admin"]))
+  ) {
+    if (!sample.verified || window.confirm("Are you sure you wish to remove the verification of this sample result?")) {
+      // if (me.uid === sample.analysisUser.id && !sample.verified) {
+      //   window.alert("Samples must be checked off by a different user.");
+      // } else {
+        if (!sample.analysisStart && !sample.verified) startAnalysis(sample);
+        let verifyDate = null;
+        let log = {
+          type: "Verified",
+          log: !sample.verified
+            ? `Sample ${sample.sampleNumber} (${sample.description} ${
+                sample.material
+              }) result verified.`
+            : `Sample ${sample.sampleNumber} (${sample.description} ${
+                sample.material
+              }) verification removed.`,
+          sample: sample.uid,
+          chainOfCustody: job.uid,
+        };
+        addLog("asbestosLab", log, me);
+
+        cocsRef
+          .doc(sample.cocUid)
+          .update({ versionUpToDate: false });
+        if (!sample.verified) {
+          sample.verifyDate = new Date();
+          let cocStats = getStats(sample);
+          logSample(job, sample, cocStats);
+          asbestosSamplesRef.doc(sample.uid).update(
+          {
+            verified: true,
+            verifyUser: {id: me.uid, name: me.name},
+            verifyDate: new Date(),
+            turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
+          });
+        } else {
+          asbestosSamplesRef.doc(sample.uid).update(
+          {
+            verified: false,
+            verifyUser: firebase.firestore.FieldValue.delete(),
+            verifyDate: firebase.firestore.FieldValue.delete(),
+            turnaroundTime: firebase.firestore.FieldValue.delete(),
+          });
+        }
+      // }
+    }
+  } else {
+    window.alert(
+      "You don't have sufficient permissions to verify asbestos results."
+    );
+  }
+};
+
+//
+// HELPER FUNCTIONS
+//
+
+export const sortSamples = samples => {
+  let samplemap = {};
+  samples.forEach(sample => {
+    if (samplemap[sample.jobnumber]) {
+      samplemap[sample.jobnumber].push(sample);
+    } else {
+      samplemap[sample.jobnumber] = [sample];
+    }
+  });
+  return samplemap;
+};
+
+export const writeDescription = (sample) => {
+  var str = '';
+  if (sample.locationgeneric) str = sample.locationgeneric;
+  if (sample.locationdetailed) {
+    if (str === '') {
+      str = sample.locationdetailed;
+    } else {
+      str = str + ' - ' + sample.locationdetailed;
+    }
+  }
+  if (str !== '') str = str + ': ';
+  if (sample.description && sample.material) {
+    str = str + sample.description + ", " + sample.material;
+  } else if (sample.description) {
+    str = str + sample.description;
+  } else if (sample.material) {
+    str = str + sample.material;
+  } else {
+    str = str + "No description";
+  }
+  return str;
+};
+
+export const getResultColor = (state, type, noColor, yesColor) => {
+  if(state && state[type] === true) return yesColor;
+  return noColor;
+}
+
+export const getSampleColours = sample => {
+  let res = sample.result;
+  return {
+    cameraColor: sample.imagePathRemote ? 'green' : '#ddd',
+    receivedColor: sample.receivedByLab ? 'green' : '#ddd',
+    analysisColor: sample.analysisStart ? 'green' : '#ddd',
+    verifiedColor: sample.verified ? 'green' : '#ddd',
+    waColor: sample.waAnalysisComplete ? 'green' : 'inherit',
+
+    chColor: getResultColor(res, 'ch', '#ddd', 'white'),
+    chDivColor: getResultColor(res, 'ch', 'white', 'red'),
+
+    amColor: getResultColor(res, 'am', '#ddd', 'white'),
+    amDivColor: getResultColor(res, 'am', 'white', 'red'),
+
+    crColor: getResultColor(res, 'cr', '#ddd', 'white'),
+    crDivColor: getResultColor(res, 'cr', 'white', 'red'),
+
+    umfColor: getResultColor(res, 'umf', '#ddd', 'white'),
+    umfDivColor: getResultColor(res, 'umf', 'white', 'red'),
+
+    noColor: getResultColor(res, 'no', '#ddd', 'green'),
+    noDivColor: getResultColor(res, 'no', 'white', 'lightgreen'),
+
+    orgColor: getResultColor(res, 'org', '#ddd', 'mediumblue'),
+    orgDivColor: getResultColor(res, 'org', 'white', 'lightblue'),
+
+    smfColor: getResultColor(res, 'smf', '#ddd', 'mediumblue'),
+    smfDivColor: getResultColor(res, 'smf', 'white', 'lightblue'),
+  };
+}
+
+export const getBasicResult = (sample) => {
+  let result = "none";
+  if (
+    sample.result &&
+    (sample.result["ch"] ||
+      sample.result["am"] ||
+      sample.result["cr"] ||
+      sample.result["umf"])
+  )
+    result = "positive";
+  if (sample.result && sample.result["no"])
+    result = "negative";
+  return result;
 }
 
 export const writeResult = result => {
@@ -601,6 +1062,173 @@ export const writeSoilDetails = details => {
     finalStr = 'No details.';
   }
   return finalStr;
+};
+
+export const getStats = job => {
+  let samples = job.samples;
+  let jobID = job.uid;
+  let versionUpToDate = job.versionUpToDate;
+  let nz = moment.tz.setDefault("Pacific/Auckland");
+  moment.tz.setDefault("Pacific/Auckland");
+  moment.updateLocale('en', {
+    // workingWeekdays: [1,2,3,4,5],
+    workinghours: {
+      0: null,
+      1: ['08:30:00', '17:00:00'],
+      2: ['08:30:00', '17:00:00'],
+      3: ['08:30:00', '17:00:00'],
+      4: ['08:30:00', '17:00:00'],
+      5: ['08:30:00', '17:00:00'],
+      6: null,
+    },
+    holidays: [],
+  });
+
+  let status = '';
+  let totalSamples = 0;
+  let positiveSamples = 0;
+  let negativeSamples = 0;
+
+  let numberReceived = 0;
+  let numberAnalysisStarted = 0;
+  let numberResult = 0;
+  let numberVerified = 0;
+
+  let maxTurnaroundTime = 0;
+  let averageTurnaroundTime = 0;
+  let totalTurnaroundTime = 0;
+  let numTurnaroundTime = 0;
+
+  let maxAnalysisTime = 0;
+  let averageAnalysisTime = 0;
+  let totalAnalysisTime = 0;
+  let numAnalysisTime = 0;
+
+  let maxReportTime = 0;
+  let averageReportTime = 0;
+  let totalReportTime = 0;
+  let numReportTime = 0;
+
+  let maxTurnaroundBusinessTime = 0;
+  let averageTurnaroundBusinessTime = 0;
+  let totalTurnaroundBusinessTime = 0;
+  let numTurnaroundBusinessTime = 0;
+
+  let maxAnalysisBusinessTime = 0;
+  let averageAnalysisBusinessTime = 0;
+  let totalAnalysisBusinessTime = 0;
+  let numAnalysisBusinessTime = 0;
+
+  let maxReportBusinessTime = 0;
+  let averageReportBusinessTime = 0;
+  let totalReportBusinessTime = 0;
+  let numReportBusinessTime = 0;
+
+  if (samples && samples[jobID] && Object.values(samples[jobID]).length > 0) {
+    Object.values(samples[jobID]).forEach(sample => {
+      if (sample.cocUid === jobID) {
+        totalSamples = totalSamples + 1;
+        if (sample.receivedByLab) numberReceived = numberReceived + 1;
+        if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
+        if (sample.result) {
+          numberResult = numberResult + 1;
+          if (sample.result['no']) {
+            negativeSamples = negativeSamples + 1;
+          } else positiveSamples = positiveSamples + 1;
+          if (sample.analysisTime) {
+            if (sample.analysisTime > maxAnalysisTime) maxAnalysisTime = sample.analysisTime;
+            totalAnalysisTime = totalAnalysisTime + sample.analysisTime;
+            numAnalysisTime = numAnalysisTime + 1;
+            averageAnalysisTime = totalAnalysisTime / numAnalysisTime;
+          }
+          let analysisBusinessTime = moment(sample.analysisDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
+          if (analysisBusinessTime > maxAnalysisBusinessTime) maxAnalysisBusinessTime = analysisBusinessTime;
+          totalAnalysisBusinessTime = totalAnalysisBusinessTime + analysisBusinessTime;
+          numAnalysisBusinessTime = numAnalysisBusinessTime + 1;
+          averageAnalysisBusinessTime = totalAnalysisBusinessTime / numAnalysisBusinessTime;
+        }
+        if (sample.verified) {
+          numberVerified = numberVerified + 1;
+          if (sample.turnaroundTime) {
+            if (sample.turnaroundTime > maxTurnaroundTime) maxTurnaroundTime = sample.turnaroundTime;
+            totalTurnaroundTime = totalTurnaroundTime + sample.turnaroundTime;
+            numTurnaroundTime = numTurnaroundTime + 1;
+            averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
+            // Check for time between analysis logging and verification
+            let turnaroundBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
+            if (turnaroundBusinessTime > maxTurnaroundBusinessTime) maxTurnaroundBusinessTime = turnaroundBusinessTime;
+            totalTurnaroundBusinessTime = totalTurnaroundBusinessTime + turnaroundBusinessTime;
+            numTurnaroundBusinessTime = numTurnaroundBusinessTime + 1;
+            averageTurnaroundBusinessTime = totalTurnaroundBusinessTime / numTurnaroundBusinessTime;
+
+            if (sample.analysisTime) {
+              let verifyTime = sample.turnaroundTime - sample.analysisTime;
+              if (verifyTime > maxReportTime) maxReportTime = verifyTime;
+              totalReportTime = totalReportTime + verifyTime;
+              numReportTime = numReportTime + 1;
+              averageReportTime = totalReportTime / numReportTime;
+            }
+
+            let reportBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.analysisDate.toDate()));
+            if (reportBusinessTime > maxReportBusinessTime) maxReportBusinessTime = reportBusinessTime;
+            totalReportBusinessTime = totalReportBusinessTime + reportBusinessTime;
+            numReportBusinessTime = numReportBusinessTime + 1;
+            averageReportBusinessTime = totalReportBusinessTime / numReportBusinessTime;
+          }
+        }
+      }
+    });
+  }
+
+  if (versionUpToDate) {
+    status = 'Issued';
+  } else if (totalSamples === 0) {
+    status = 'No Samples';
+  } else if (numberReceived === 0) {
+    status = 'In Transit';
+  } else if (numberAnalysisStarted === 0) {
+    status = 'Received By Lab';
+  } else if (numberResult === 0) {
+    status = 'Analysis Begun';
+  } else if (numberResult === totalSamples && numberVerified === 0) {
+    status = 'Analysis Complete';
+  } else if (numberVerified === totalSamples) {
+    status = 'Ready For Issue';
+  } else if (numberVerified > 0) {
+    status = 'Analysis Partially Verified';
+  } else if (numberResult > 0) {
+    status = 'Analysis Partially Complete';
+  } else if (numberAnalysisStarted > 0) {
+    status = 'Analysis Begun on Some Samples';
+  } else if (numberReceived > 0) {
+    status = 'Partially Received By Lab';
+  }
+
+  let stats = {
+    status,
+    totalSamples,
+    positiveSamples,
+    negativeSamples,
+    numberReceived,
+    numberAnalysisStarted,
+    numberResult,
+    numberVerified,
+    maxTurnaroundTime,
+    averageTurnaroundTime,
+    maxAnalysisTime,
+    averageAnalysisTime,
+    maxReportTime,
+    averageReportTime,
+    maxTurnaroundBusinessTime,
+    averageTurnaroundBusinessTime,
+    maxAnalysisBusinessTime,
+    averageAnalysisBusinessTime,
+    maxReportBusinessTime,
+    averageReportBusinessTime,
+  };
+
+  // if (totalSamples !== 0 && this.props.job.stats !== stats) cocsRef.doc(this.props.job.uid).update({ stats });
+  return stats;
 };
 
 export const getSoilSensitivity = details => {

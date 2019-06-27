@@ -9,8 +9,23 @@ import {
   asbestosSamplesRef
 } from "../../../config/firebase";
 import moment from "moment";
-import { fetchCocs, fetchSamples, logSample, writeResult, setSessionID, deleteCoc, } from "../../../actions/asbestosLab";
-import { syncJobWithWFM } from "../../../actions/local";
+import {
+  fetchCocs,
+  fetchSamples,
+  logSample,
+  writeResult,
+  setSessionID,
+  deleteCoc,
+  getStats,
+  removeResult,
+  verifySample,
+  startAnalysisAll,
+  receiveAll,
+  togglePriority,
+  toggleWAAnalysis,
+  sortSamples,
+} from "../../../actions/asbestosLab";
+import { syncJobWithWFM, addLog, } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
   COC,
@@ -98,171 +113,6 @@ class AsbestosBulkCocCard extends React.Component {
     this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };
 
-  getStats = () => {
-    // let nz = moment.tz.setDefault("Pacific/Auckland");
-    if (this.state.expanded === false) return null;
-    moment.tz.setDefault("Pacific/Auckland");
-    moment.updateLocale('en', {
-      // workingWeekdays: [1,2,3,4,5],
-      workinghours: {
-        0: null,
-        1: ['08:30:00', '17:00:00'],
-        2: ['08:30:00', '17:00:00'],
-        3: ['08:30:00', '17:00:00'],
-        4: ['08:30:00', '17:00:00'],
-        5: ['08:30:00', '17:00:00'],
-        6: null,
-      },
-      holidays: [],
-    });
-
-    let status = '';
-    let totalSamples = 0;
-    let positiveSamples = 0;
-    let negativeSamples = 0;
-
-    let numberReceived = 0;
-    let numberAnalysisStarted = 0;
-    let numberResult = 0;
-    let numberVerified = 0;
-
-    let maxTurnaroundTime = 0;
-    let averageTurnaroundTime = 0;
-    let totalTurnaroundTime = 0;
-    let numTurnaroundTime = 0;
-
-    let maxAnalysisTime = 0;
-    let averageAnalysisTime = 0;
-    let totalAnalysisTime = 0;
-    let numAnalysisTime = 0;
-
-    let maxReportTime = 0;
-    let averageReportTime = 0;
-    let totalReportTime = 0;
-    let numReportTime = 0;
-
-    let maxTurnaroundBusinessTime = 0;
-    let averageTurnaroundBusinessTime = 0;
-    let totalTurnaroundBusinessTime = 0;
-    let numTurnaroundBusinessTime = 0;
-
-    let maxAnalysisBusinessTime = 0;
-    let averageAnalysisBusinessTime = 0;
-    let totalAnalysisBusinessTime = 0;
-    let numAnalysisBusinessTime = 0;
-
-    let maxReportBusinessTime = 0;
-    let averageReportBusinessTime = 0;
-    let totalReportBusinessTime = 0;
-    let numReportBusinessTime = 0;
-
-    if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
-      Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
-        if (sample.cocUid === this.props.job.uid) {
-          totalSamples = totalSamples + 1;
-          if (sample.receivedByLab) numberReceived = numberReceived + 1;
-          if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
-          if (sample.result) {
-            numberResult = numberResult + 1;
-            if (sample.result['no']) {
-              negativeSamples = negativeSamples + 1;
-            } else positiveSamples = positiveSamples + 1;
-            if (sample.analysisTime) {
-              if (sample.analysisTime > maxAnalysisTime) maxAnalysisTime = sample.analysisTime;
-              totalAnalysisTime = totalAnalysisTime + sample.analysisTime;
-              numAnalysisTime = numAnalysisTime + 1;
-              averageAnalysisTime = totalAnalysisTime / numAnalysisTime;
-            }
-            let analysisBusinessTime = moment(sample.analysisDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
-            if (analysisBusinessTime > maxAnalysisBusinessTime) maxAnalysisBusinessTime = analysisBusinessTime;
-            totalAnalysisBusinessTime = totalAnalysisBusinessTime + analysisBusinessTime;
-            numAnalysisBusinessTime = numAnalysisBusinessTime + 1;
-            averageAnalysisBusinessTime = totalAnalysisBusinessTime / numAnalysisBusinessTime;
-          }
-          if (sample.verified) {
-            numberVerified = numberVerified + 1;
-            if (sample.turnaroundTime) {
-              if (sample.turnaroundTime > maxTurnaroundTime) maxTurnaroundTime = sample.turnaroundTime;
-              totalTurnaroundTime = totalTurnaroundTime + sample.turnaroundTime;
-              numTurnaroundTime = numTurnaroundTime + 1;
-              averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
-              // Check for time between analysis logging and verification
-              let turnaroundBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
-              if (turnaroundBusinessTime > maxTurnaroundBusinessTime) maxTurnaroundBusinessTime = turnaroundBusinessTime;
-              totalTurnaroundBusinessTime = totalTurnaroundBusinessTime + turnaroundBusinessTime;
-              numTurnaroundBusinessTime = numTurnaroundBusinessTime + 1;
-              averageTurnaroundBusinessTime = totalTurnaroundBusinessTime / numTurnaroundBusinessTime;
-
-              if (sample.analysisTime) {
-                let verifyTime = sample.turnaroundTime - sample.analysisTime;
-                if (verifyTime > maxReportTime) maxReportTime = verifyTime;
-                totalReportTime = totalReportTime + verifyTime;
-                numReportTime = numReportTime + 1;
-                averageReportTime = totalReportTime / numReportTime;
-              }
-
-              let reportBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.analysisDate.toDate()));
-              if (reportBusinessTime > maxReportBusinessTime) maxReportBusinessTime = reportBusinessTime;
-              totalReportBusinessTime = totalReportBusinessTime + reportBusinessTime;
-              numReportBusinessTime = numReportBusinessTime + 1;
-              averageReportBusinessTime = totalReportBusinessTime / numReportBusinessTime;
-            }
-          }
-        }
-      });
-    }
-
-    if (this.props.job.versionUpToDate) {
-      status = 'Issued';
-    } else if (totalSamples === 0) {
-      status = 'No Samples';
-    } else if (numberReceived === 0) {
-      status = 'In Transit';
-    } else if (numberAnalysisStarted === 0) {
-      status = 'Received By Lab';
-    } else if (numberResult === 0) {
-      status = 'Analysis Begun';
-    } else if (numberResult === totalSamples && numberVerified === 0) {
-      status = 'Analysis Complete';
-    } else if (numberVerified === totalSamples) {
-      status = 'Ready For Issue';
-    } else if (numberVerified > 0) {
-      status = 'Analysis Partially Verified';
-    } else if (numberResult > 0) {
-      status = 'Analysis Partially Complete';
-    } else if (numberAnalysisStarted > 0) {
-      status = 'Analysis Begun on Some Samples';
-    } else if (numberReceived > 0) {
-      status = 'Partially Received By Lab';
-    }
-
-    let stats = {
-      status,
-      totalSamples,
-      positiveSamples,
-      negativeSamples,
-      numberReceived,
-      numberAnalysisStarted,
-      numberResult,
-      numberVerified,
-      maxTurnaroundTime,
-      averageTurnaroundTime,
-      maxAnalysisTime,
-      averageAnalysisTime,
-      maxReportTime,
-      averageReportTime,
-      maxTurnaroundBusinessTime,
-      averageTurnaroundBusinessTime,
-      maxAnalysisBusinessTime,
-      averageAnalysisBusinessTime,
-      maxReportBusinessTime,
-      averageReportBusinessTime,
-    };
-
-    if (totalSamples !== 0 && this.props.job.stats !== stats) cocsRef.doc(this.props.job.uid).update({ stats });
-    return stats;
-  }
-
   sampleAnchorMenu = (number, target) => {
     this.setState({
       sampleAnchorEl: {
@@ -270,152 +120,6 @@ class AsbestosBulkCocCard extends React.Component {
       }
     });
   }
-
-  receiveAll = () => {
-    if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
-      Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
-        if (!sample.receivedByLab) this.receiveSample(sample);
-      });
-    }
-  }
-
-  receiveSample = sample => {
-    let receivedDate = null;
-    if (!sample.receivedByLab) receivedDate = new Date();
-    if (sample.receivedByLab && sample.analysisStart) this.startAnalysis(sample);
-    if (sample.receivedByLab && sample.verified) {
-      if (window.confirm('The sample result has already been verified. Removing from the lab will remove the analysis result and verification. Continue?')) {
-        this.removeResult(sample);
-        this.verifySample(sample);
-      } else return;
-    } else if (sample.receivedByLab && sample.result) {
-      if (window.confirm('The sample result has already been logged. Removing from the lab will remove the analysis result. Continue?'))
-        this.removeResult(sample);
-    }
-    let log = {
-      type: "Received",
-      log: receivedDate
-        ? `Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }) received by lab.`
-        : `Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }) unchecked as being received.`,
-      user: auth.currentUser.uid,
-      sample: sample.uid,
-      userName: this.props.me.name,
-      date: new Date()
-    };
-    let cocLog = this.props.job.cocLog;
-    cocLog ? cocLog.push(log) : (cocLog = [log]);
-    cocsRef
-      .doc(this.props.job.uid)
-      .update({ versionUpToDate: false, cocLog: cocLog });
-    if (!sample.receivedByLab) {
-      asbestosSamplesRef.doc(sample.uid).update(
-      {
-        receivedByLab: true,
-        receivedUser: {id: auth.currentUser.uid, name: this.props.me.name},
-        receivedDate: receivedDate
-      });
-    } else {
-      asbestosSamplesRef.doc(sample.uid).update({
-        receivedByLab: false,
-        receivedUser: firebase.firestore.FieldValue.delete(),
-        receivedDate: firebase.firestore.FieldValue.delete(),
-      });
-    }
-  };
-
-  startAnalysisAll = () => {
-    if (this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length > 0) {
-      Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
-        if (!sample.analysisStart) {
-          if (!sample.receivedByLab) this.receiveSample(sample);
-          this.startAnalysis(sample);
-        }
-      });
-    }
-  }
-
-  startAnalysis = sample => {
-    let analysisStart = null;
-    if (!sample.receivedByLab && !sample.analysisStart) this.receiveSample(sample);
-    if (sample.verified) this.verifySample(sample);
-    if (!sample.analysisStart) analysisStart = new Date();
-    let log = {
-      type: "Analysis",
-      log: analysisStart
-        ? `Analysis begun on Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }).`
-        : `Analysis stopped for Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }).`,
-      user: auth.currentUser.uid,
-      sample: sample.uid,
-      userName: this.props.me.name,
-      date: new Date()
-    };
-    let cocLog = this.props.job.cocLog;
-    cocLog ? cocLog.push(log) : (cocLog = [log]);
-    cocsRef
-      .doc(this.props.job.uid)
-      .update({ versionUpToDate: false, cocLog: cocLog });
-    if (!sample.analysisStart) {
-      asbestosSamplesRef.doc(sample.uid).update(
-      {
-        analysisStart: true,
-        analysisStartedby: {id: auth.currentUser.uid, name: this.props.me.name},
-        analysisStartDate: analysisStart
-      });
-    } else {
-      asbestosSamplesRef.doc(sample.uid).update(
-      {
-        analysisStart: false,
-        analysisStartedby: firebase.firestore.FieldValue.delete(),
-        analysisStartDate: firebase.firestore.FieldValue.delete(),
-      });
-    }
-  };
-
-  togglePriority = () => {
-    let cocLog = this.props.job.cocLog;
-    if (!cocLog) cocLog = [];
-    cocLog.push({
-      type: "Admin",
-      log: this.props.job.priority === 1 ? `Chain of Custody changed to normal priority.` : `Chain of Custody marked as high priority.`,
-      user: auth.currentUser.uid,
-      userName: this.props.me.name,
-      date: new Date()
-    });
-    cocsRef.doc(this.props.job.uid).update({ priority: this.props.job.priority === 0 ? 1 : 0 });
-  }
-
-  toggleWAAnalysis = () => {
-    let cocLog = this.props.job.cocLog;
-    if (!cocLog) cocLog = [];
-    cocLog.push({
-      type: "Admin",
-      log: this.props.job.waAnalysis ? `WA analysis request removed.` : `Chain of Custody flagged for WA analysis.`,
-      user: auth.currentUser.uid,
-      userName: this.props.me.name,
-      date: new Date()
-    });
-    cocsRef.doc(this.props.job.uid).update({ waAnalysis: this.props.job.waAnalysis ? false : true });
-  }
-
-  sortSamples = samples => {
-    let samplemap = {};
-    samples.forEach(sample => {
-      if (samplemap[sample.jobnumber]) {
-        samplemap[sample.jobnumber].push(sample);
-      } else {
-        samplemap[sample.jobnumber] = [sample];
-      }
-    });
-    return samplemap;
-  };
 
   writeVersionJson = (job, version) => {
     let aanumbers = {};
@@ -706,7 +410,7 @@ class AsbestosBulkCocCard extends React.Component {
         day: "numeric"
       }).format(formatDate);
     });
-    let stats = this.getStats();
+    let stats = getStats(samples, job.uid, job.versionUpToDate);
 
     return (
       <ExpansionPanel
@@ -853,21 +557,21 @@ class AsbestosBulkCocCard extends React.Component {
                 <div style={{ marginTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'row' }}>
                   <Button
                     variant="outlined"
-                    onClick={this.togglePriority}>
+                    onClick={() => togglePriority(job, this.props.me)}>
                     <Flag color={job.priority === 1 ? 'secondary' : 'inherit'} style={{ fontSize: 20, margin: 5 }} />
                     Mark As Urgent
                   </Button>
                   <Button
                     style={{ marginLeft: 5 }}
                     variant="outlined"
-                    onClick={this.toggleWAAnalysis}>
+                    onClick={() => toggleWAAnalysis(job, this.props.me)}>
                     <WAIcon color={job.waAnalysis ? 'primary' : 'inherit'} style={{ fontSize: 20, margin: 5}} />
                     Flag For WA Analysis
                   </Button>
                   <Button
                     style={{ marginLeft: 5 }}
                     variant="outlined"
-                    onClick={this.receiveAll}
+                    onClick={() => receiveAll(samples, job, this.props.sessionID, this.props.me)}
                   >
                     <Inbox style={{ fontSize: 20, margin: 5 }} />
                     Receive All
@@ -875,7 +579,7 @@ class AsbestosBulkCocCard extends React.Component {
                   <Button
                     style={{ marginLeft: 5 }}
                     variant="outlined"
-                    onClick={this.startAnalysisAll}
+                    onClick={() => startAnalysisAll(samples, job, this.props.sessionID, this.props.me)}
                   >
                     <Colorize style={{ fontSize: 20, margin: 5 }} />
                     Start Analysis All
@@ -986,10 +690,7 @@ class AsbestosBulkCocCard extends React.Component {
                       job={job}
                       sample={sample}
                       sampleAnchorMenu={this.sampleAnchorMenu}
-                      receiveSample={this.receiveSample}
-                      startAnalysis={this.startAnalysis}
                       anchorEl={this.state.sampleAnchorEl[sample.sampleNumber]}
-                      getStats={this.getStats}
                     />);
                   }
                 )}

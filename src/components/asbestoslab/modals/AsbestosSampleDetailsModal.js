@@ -33,7 +33,11 @@ import UploadIcon from "@material-ui/icons/CloudUpload";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
-import { handleSampleChange, writeSoilDetails, } from "../../../actions/asbestosLab";
+import {
+  handleSampleChange,
+  writeSoilDetails,
+  getSampleColours,
+} from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
 } from "../../../config/firebase";
@@ -539,35 +543,12 @@ class AsbestosSampleDetailsModal extends React.Component {
   }
 
   getLayerRow = (num) => {
-    let chColor, amColor, crColor, umfColor, noColor, orgColor, smfColor = '#ddd';
-    let chDivColor, amDivColor, crDivColor, umfDivColor, noDivColor, orgDivColor, smfDivColor = 'white';
-
     let layer = {};
+    let colours = {};
 
     if (this.state.sample.layers && this.state.sample.layers[`layer${num}`]) {
       layer = this.state.sample.layers[`layer${num}`];
-      let res = layer.result;
-
-      chColor = this.getResultColor(res, 'ch', '#ddd', 'white');
-      chDivColor = this.getResultColor(res, 'ch', 'white', 'red');
-
-      amColor = this.getResultColor(res, 'am', '#ddd', 'white');
-      amDivColor = this.getResultColor(res, 'am', 'white', 'red');
-
-      crColor = this.getResultColor(res, 'cr', '#ddd', 'white');
-      crDivColor = this.getResultColor(res, 'cr', 'white', 'red');
-
-      umfColor = this.getResultColor(res, 'umf', '#ddd', 'white');
-      umfDivColor = this.getResultColor(res, 'umf', 'white', 'red');
-
-      noColor = this.getResultColor(res, 'no', '#ddd', 'green');
-      noDivColor = this.getResultColor(res, 'no', 'white', 'lightgreen');
-
-      orgColor = this.getResultColor(res, 'org', '#ddd', 'mediumblue');
-      orgDivColor = this.getResultColor(res, 'org', 'white', 'lightblue');
-
-      smfColor = this.getResultColor(res, 'smf', '#ddd', 'mediumblue');
-      smfDivColor = this.getResultColor(res, 'smf', 'white', 'lightblue');
+      colours = getSampleColours(layer.result);
     }
 
     const styles = reactCSS({
@@ -651,14 +632,14 @@ class AsbestosSampleDetailsModal extends React.Component {
         />
         <div
           style={{
-            backgroundColor: chDivColor,
+            backgroundColor: colours.chDivColor,
             borderRadius: 14,
           }}
         >
           <Tooltip title='Chrysotile (white) asbestos detected'>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: chColor }}
+              style={{ margin: 5, color: colours.chColor }}
               onClick={e => {
                 this.toggleLayerRes('ch', num, layer, true);
               }}
@@ -669,14 +650,14 @@ class AsbestosSampleDetailsModal extends React.Component {
         </div>
         <div
           style={{
-            backgroundColor: amDivColor,
+            backgroundColor: colours.amDivColor,
             borderRadius: 14,
           }}
         >
           <Tooltip title='Amosite (brown) asbestos detected'>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: amColor }}
+              style={{ margin: 5, color: colours.amColor }}
               onClick={e => {
                 this.toggleLayerRes('am', num, layer, true);
               }}
@@ -687,14 +668,14 @@ class AsbestosSampleDetailsModal extends React.Component {
         </div>
         <div
           style={{
-            backgroundColor: crDivColor,
+            backgroundColor: colours.crDivColor,
             borderRadius: 14,
           }}
         >
           <Tooltip title='Crocidolite (blue) asbestos detected'>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: crColor }}
+              style={{ margin: 5, color: colours.crColor }}
               onClick={e => {
                 this.toggleLayerRes('cr', num, layer, true);
               }}
@@ -705,14 +686,14 @@ class AsbestosSampleDetailsModal extends React.Component {
         </div>
         <div
           style={{
-            backgroundColor: umfDivColor,
+            backgroundColor: colours.umfDivColor,
             borderRadius: 14,
           }}
         >
           <Tooltip title='Unidentified mineral fibres detected'>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: umfColor }}
+              style={{ margin: 5, color: colours.umfColor }}
               onClick={e => {
                 this.toggleLayerRes('umf', num, layer, true);
               }}
@@ -724,14 +705,14 @@ class AsbestosSampleDetailsModal extends React.Component {
         <div style={{ width: 40, }} />
         <div
           style={{
-            backgroundColor: noDivColor,
+            backgroundColor: colours.noDivColor,
             borderRadius: 14,
           }}
         >
           <Tooltip title='No asbestos detected'>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: noColor }}
+              style={{ margin: 5, color: colours.noColor }}
               onClick={e => {
                 this.removeLayerPositives(num);
               }}
@@ -743,14 +724,14 @@ class AsbestosSampleDetailsModal extends React.Component {
         <div style={{ width: 40, }} />
         <div
           style={{
-            backgroundColor: orgDivColor,
+            backgroundColor: colours.orgDivColor,
             borderRadius: 14,
           }}
         >
           <Tooltip title='Organic fibres detected'>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: orgColor }}
+              style={{ margin: 5, color: colours.orgColor }}
               onClick={e => {
                 this.toggleLayerRes('org', num, layer,);
               }}
@@ -761,14 +742,14 @@ class AsbestosSampleDetailsModal extends React.Component {
         </div>
         <div
           style={{
-            backgroundColor: smfDivColor,
+            backgroundColor: colours.smfDivColor,
             borderRadius: 14,
           }}
         >
           <Tooltip title='Synthetic mineral fibres or MMMF detected'>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: smfColor }}
+              style={{ margin: 5, color: colours.smfColor }}
               onClick={e => {
                 this.toggleLayerRes('smf', num, layer,);
               }}
@@ -871,11 +852,6 @@ class AsbestosSampleDetailsModal extends React.Component {
         }
       });
     }
-  }
-
-  getResultColor = (state, type, noColor, yesColor) => {
-    if(state && state[type] === true) return yesColor;
-    return noColor;
   }
 }
 
