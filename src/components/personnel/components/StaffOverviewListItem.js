@@ -7,6 +7,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import ListSubheader from "@material-ui/core/ListSubheader";
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
+import moment from "moment";
 
 import {
   BrowserRouter as Router,
@@ -15,9 +16,6 @@ import {
   Switch,
   withRouter
 } from "react-router-dom";
-
-// import EditIcon from '@material-ui/icons/Edit';
-import { FormattedDate } from "react-intl";
 
 const mapStateToProps = state => {
   return {
@@ -145,14 +143,7 @@ function StaffCard(props) {
         <hr />
         Start Date at K2:{" "}
         <span style={{ fontWeight: 100 }}>
-          {staff.startdate ? (
-            <FormattedDate
-              value={staff.startdate}
-              month="long"
-              day="numeric"
-              year="numeric"
-            />
-          ) : (
+          {staff.startdate ? moment(staff.startdate).format('D MMMM YYYY') : (
             "Start date not set."
           )}
         </span>
@@ -207,21 +198,11 @@ function StaffCard(props) {
                         secondary={
                           event.start.date ? (
                             <span>
-                              <FormattedDate
-                                value={Date.parse(event.start.date)}
-                                month="long"
-                                day="numeric"
-                              />{" "}
+                              {moment(Date.parse(event.start.date)).format('D MMMM')}{" "}
                               (all day)
                             </span>
                           ) : (
-                            <FormattedDate
-                              value={Date.parse(event.start.dateTime)}
-                              month="long"
-                              day="numeric"
-                              hour="numeric"
-                              minute="numeric"
-                            />
+                            <span>{moment(Date.parse(event.start.dateTime)).format('D MMMM, h:ma')}{" "}</span>
                           )
                         }
                       />

@@ -16,8 +16,8 @@ import { styles } from "../../../config/styles";
 import { showModal } from "../../../actions/modal";
 import { getUserAttrs } from "../../../actions/local";
 import Popup from "reactjs-popup";
-import { FormattedDate } from "react-intl";
 import { usersRef, storage } from "../../../config/firebase";
+import moment from "moment";
 
 const mapDispatchToProps = dispatch => {
   return {
@@ -151,24 +151,14 @@ function AttrList(props) {
           {attr.date && (
             <div>
               <span style={{ fontWeight: 450 }}>Issue Date:</span>{" "}
-              <FormattedDate
-                value={attr.date}
-                month="long"
-                day="numeric"
-                year="numeric"
-              />{" "}
+              {moment(attr.date).format('D MMMM YYYY')}{" "}
             </div>
           )}
           {qual.expiry && attr.expiry && (
             <div>
               <span style={{ fontWeight: 450 }}>Expiry Date:</span>{" "}
               <span style={{ color: expirycolor }}>
-                <FormattedDate
-                  value={attr.expiry}
-                  month="long"
-                  day="numeric"
-                  year="numeric"
-                />
+                {moment(attr.expiry).format('D MMMM YYYY')}
               </span>
             </div>
           )}

@@ -24,13 +24,17 @@ import {
   togglePriority,
   toggleWAAnalysis,
   sortSamples,
+  getAnalysts,
+  printCoc,
+  printLabReport,
+  issueLabReport,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM, addLog, } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
   COC,
   DOWNLOADLABCERTIFICATE,
-  UPDATECERTIFICATEVERSION,
+  UPDATE_CERTIFICATE_VERSION,
   COCLOG
 } from "../../../constants/modal-types";
 
@@ -101,15 +105,7 @@ class AsbestosBulkCocCard extends React.Component {
           return date instanceof Date ? date : date.toDate();
         })
       : [];
-    let now = new Intl.DateTimeFormat("en-GB", {
-      year: "2-digit",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit"
-    }).format(new Date());
-    let uid = `${this.props.job.uid}-${this.props.me.name}-${now}`;
+    let uid = `${this.props.job.uid}-${this.props.me.name}-${moment().format('x')}`;
     this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };
 
@@ -121,294 +117,21 @@ class AsbestosBulkCocCard extends React.Component {
     });
   }
 
-  writeVersionJson = (job, version) => {
-    let aanumbers = {};
-    Object.values(this.props.staff).forEach(staff => {
-      aanumbers[staff.name] = staff.aanumber ? staff.aanumber : "-";
-    });
-    aanumbers[this.props.me.name] = this.props.me.aanumber
-      ? this.props.me.aanumber
-      : "-";
-    aanumbers["Client"] = "-";
-    // console.log(aanumbers);
-    let samples = [];
-    this.props.samples[job.uid] &&
-      Object.values(this.props.samples[job.uid]).forEach(sample => {
-        if (sample.verified) {
-          let samplemap = {};
-          if (sample.disabled) return;
-          samplemap["no"] = sample.sampleNumber;
-          samplemap["description"] =
-            sample.description.charAt(0).toUpperCase() +
-            sample.description.slice(1);
-          samplemap["material"] =
-            sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
-          samplemap["result"] = writeResult(sample.result);
-          samples.push(samplemap);
-        }
-      });
-    let analysts = this.getAnalysts(true);
-    let report = {
-      jobNumber: job.jobNumber,
-      client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
-      address: job.address,
-      date: job.dates
-        .sort((b, a) => {
-          let aDate = a instanceof Date ? a : a.toDate();
-          let bDate = b instanceof Date ? b : b.toDate();
-          return new Date(bDate - aDate);
-        })
-        .map(date => {
-          let formatDate = date instanceof Date ? date : date.toDate();
-          return new Intl.DateTimeFormat("en-GB", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-          }).format(formatDate);
-        })
-        .join(", "),
-      // ktp: 'Stuart Keer-Keer',
-      personnel: job.personnel.sort(),
-      assessors: job.personnel.sort().map(staff => {
-        return aanumbers[staff];
-      }),
-      analysts: analysts ? analysts : ["Not specified"],
-      version: version ? version : 1,
-      samples: samples
-    };
-    return report;
-  };
-
-  issueLabReport = (version, changes) => {
-    console.log('issuing lab report ' + version + ' ' + changes);
-    // first check all samples have been checked
-    // if not version 1, prompt for reason for new version
-    let json = this.writeVersionJson(this.props.job, version);
-    let versionHistory = this.props.job.versionHistory
-      ? this.props.job.versionHistory
-      : {};
-    let cocLog = this.props.job.cocLog;
-    if (!cocLog) cocLog = [];
-    cocLog.push({
-      type: "Issue",
-      log: `Version ${version} issued.`,
-      user: auth.currentUser.uid,
-      userName: this.props.me.name,
-      date: new Date()
-    });
-    versionHistory[version] = {
-      issueUser: auth.currentUser.uid,
-      issueDate: new Date(),
-      changes: changes,
-      data: json
-    };
-    cocsRef.doc(this.props.job.uid).set(
-      {
-        currentVersion: version,
-        versionHistory: versionHistory,
-        versionUpToDate: true,
-        lastModified: new Date(),
-        cocLog: cocLog
-      },
-      { merge: true }
-    );
-  };
-
-  printLabReport = version => {
-    // console.log(this.props.job.versionHistory[version]);
-    let report = this.props.job.versionHistory[version].data;
-    let cocLog = this.props.job.cocLog;
-    if (!cocLog) cocLog = [];
-    cocLog.push({
-      type: "Document",
-      log: `Test Certificate (version ${version}) downloaded.`,
-      user: auth.currentUser.uid,
-      userName: this.props.me.name,
-      date: new Date()
-    });
-    cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog }, { merge: true });
-    if (report.version && report.version > 1) {
-      let versionHistory = [];
-      [...Array(report.version).keys()].forEach(i => {
-        let formatDate =
-          this.props.job.versionHistory[i + 1].issueDate instanceof Date
-            ? this.props.job.versionHistory[i + 1].issueDate
-            : this.props.job.versionHistory[i + 1].issueDate.toDate();
-
-        versionHistory.push({
-          version: i + 1,
-          issueDate: new Intl.DateTimeFormat("en-GB", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-          }).format(formatDate),
-          changes: this.props.job.versionHistory[i + 1].changes
-        });
-      });
-      report = { ...report, versionHistory: versionHistory };
-    }
-    this.props.showModal({
-      modalType: DOWNLOADLABCERTIFICATE,
-      modalProps: {
-        report: report,
-      }
-    });
-    // let url =
-    //   "http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
-    //   JSON.stringify(report);
-    // console.log(url);
-    // // this.setState({ url: url });
-    // window.open(url);
-    // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
-  };
-
-  printCoc = job => {
-    // console.log(job);
-    let cocLog = this.props.job.cocLog;
-    if (!cocLog) cocLog = [];
-    cocLog.push({
-      type: "Document",
-      log: `Chain of Custody downloaded.`,
-      user: auth.currentUser.uid,
-      userName: this.props.me.name,
-      date: new Date()
-    });
-    cocsRef.doc(this.props.job.uid).set({ cocLog: cocLog }, { merge: true });
-
-    let aanumbers = {};
-    Object.values(this.props.staff).forEach(staff => {
-      aanumbers[staff.name] = staff.aanumber ? staff.aanumber : "-";
-    });
-    aanumbers[this.props.me.name] = this.props.me.aanumber
-      ? this.props.me.aanumber
-      : "-";
-    aanumbers["Client"] = "-";
-
-    let samples = [];
-    this.props.samples[job.uid] &&
-      Object.values(this.props.samples[job.uid]).forEach(sample => {
-        let samplemap = {};
-        if (sample.disabled) return;
-        samplemap["no"] = sample.sampleNumber;
-        samplemap["description"] =
-          sample.description.charAt(0).toUpperCase() +
-          sample.description.slice(1);
-        samplemap["material"] =
-          sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
-        samples.push(samplemap);
-      });
-    let report = {
-      jobNumber: job.jobNumber,
-      client: job.client,
-      orderNumber: job.clientOrderNumber ? job.clientOrderNumber : '',
-      address: job.address,
-      type: job.type,
-      jobManager: job.manager,
-      date: job.dates
-        .sort((b, a) => {
-          let aDate = a instanceof Date ? a : a.toDate();
-          let bDate = b instanceof Date ? b : b.toDate();
-          return new Date(bDate - aDate);
-        })
-        .map(date => {
-          let formatDate = date instanceof Date ? date : date.toDate();
-          return new Intl.DateTimeFormat("en-GB", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-          }).format(formatDate);
-        })
-        .join(", "),
-      // ktp: 'Stuart Keer-Keer',
-      personnel: job.personnel.sort(),
-      assessors: job.personnel.sort().map(staff => {
-        return aanumbers[staff];
-      }),
-      samples: samples
-    };
-    let url =
-      "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc.php?report=" +
-      JSON.stringify(report);
-    console.log(url);
-    this.setState({ url: url });
-    window.open(url);
-  };
-
   getSamples = (expanded, cocUid, jobNumber) => {
     if (expanded && cocUid) {
       this.props.fetchSamples(cocUid, jobNumber);
     }
   };
 
-  // Restructure result first to include analyst, analysis type, date etc.
-  getAnalysts = report => {
-    let analysts = {};
-    this.props.samples[this.props.job.uid] &&
-      Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
-        if (report) {
-          if (sample.analyst && sample.verified) {
-            analysts[sample.analyst] = true;
-          }
-        } else {
-          if (sample.analyst) {
-            analysts[sample.analyst] = true;
-          }
-        }
-      });
-    let list = [];
-    Object.keys(analysts).forEach(analyst => {
-      list.push(analyst);
-    });
-    if (list.length === 0) return false;
-    return list;
-  };
-
-  deleteCoc = () => {
-    if (
-      window.confirm("Are you sure you wish to delete this Chain of Custody?")
-    ) {
-      let cocLog = this.props.job.cocLog;
-      this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).forEach(sample => {
-        if (sample.cocUid === this.props.job.uid) {
-          cocLog.push({
-            type: "Delete",
-            log: `Sample ${sample.sampleNumber} (${sample.description} ${sample.material}) deleted.`,
-            userName: this.props.me.name,
-            user: auth.currentUser.uid,
-            date: new Date(),
-            sample: sample.uid,
-          })
-          asbestosSamplesRef.doc(sample.uid).update({ deleted: true })
-        }
-      });
-      if (!cocLog) cocLog = [];
-      cocLog.push({
-        type: "Delete",
-        log: "Chain of Custody deleted.",
-        userName: this.props.me.name,
-        user: auth.currentUser.uid,
-        date: new Date()
-      });
-      cocsRef
-        .doc(this.props.job.uid)
-        .update({ deleted: true, cocLog: cocLog });
-      this.props.deleteCoc(this.props.job.uid, this.props.cocs);
-    } else return;
-  };
-
   render() {
     const { job, samples } = this.props;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
-    let analysts = this.getAnalysts(false);
+    let analysts = getAnalysts(job, samples[job.uid], false);
 
     let dates = job.dates.map(date => {
       let formatDate = date instanceof Date ? date : date.toDate();
-      return new Intl.DateTimeFormat("en-GB", {
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-      }).format(formatDate);
+      return moment(formatDate).format('D MMMM YYYY');
     });
     let stats = getStats(samples, job.uid, job.versionUpToDate);
 
@@ -453,7 +176,7 @@ class AsbestosBulkCocCard extends React.Component {
                 style={{ marginLeft: 5 }}
                 variant="outlined"
                 onClick={() => {
-                  this.printCoc(job);
+                  printCoc(job, samples[job.uid], this.props.me, this.props.staff);
                 }}
               >
                 <Print style={{ fontSize: 20, margin: 5 }} /> Print Chain of
@@ -478,14 +201,11 @@ class AsbestosBulkCocCard extends React.Component {
                     return;
                   if (job.currentVersion) {
                     this.props.showModal({
-                      modalType: UPDATECERTIFICATEVERSION,
-                      modalProps: {
-                        doc: { changes: "", version: version },
-                        issueLabReport: this.issueLabReport
-                      }
+                      modalType: UPDATE_CERTIFICATE_VERSION,
+                      modalProps: {job: job, samples: samples[job.uid], version: version, doc: { changes: ""}}
                     });
                   } else {
-                    this.issueLabReport(1, "First issue.");
+                    issueLabReport(job, samples[job.uid], 1, "First issue.", this.props.staff, this.props.me);
                   }
                 }}
               >
@@ -497,7 +217,7 @@ class AsbestosBulkCocCard extends React.Component {
                 variant="outlined"
                 disabled={!job.currentVersion || !job.versionUpToDate}
                 onClick={() => {
-                  this.printLabReport(job.currentVersion);
+                  printLabReport(job, job.currentVersion, this.props.me, this.props.showModal);
                 }}
               >
                 <Save style={{ fontSize: 20, margin: 5 }} /> Download Test
@@ -523,8 +243,7 @@ class AsbestosBulkCocCard extends React.Component {
                     this.props.showModal({
                       modalType: COCLOG,
                       modalProps: {
-                        jobNumber: job.jobNumber,
-                        cocLog: job.cocLog
+                        ...job,
                       }
                     });
                   }}
@@ -539,7 +258,7 @@ class AsbestosBulkCocCard extends React.Component {
                       <MenuItem
                         key={i}
                         onClick={() => {
-                          this.printLabReport(i + 1);
+                          printLabReport(job, i + 1, this.props.me, this.props.showModal);
                         }}
                       >
                         Download Version {i + 1}

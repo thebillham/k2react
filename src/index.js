@@ -5,7 +5,6 @@ import { ConnectedRouter } from "connected-react-router";
 import App from "./App";
 import registerServiceWorker from "./registerServiceWorker";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { IntlProvider } from "react-intl";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import theme from "./config/theme";
 import store, { history } from "./store/index";
@@ -19,11 +18,9 @@ import store, { history } from "./store/index";
 ReactDOM.render(
   <Provider store={store}>
     <MuiThemeProvider theme={theme}>
-      <IntlProvider locale="en-NZ">
-        <ConnectedRouter history={history}>
-          <App />
-        </ConnectedRouter>
-      </IntlProvider>
+      <ConnectedRouter history={history}>
+        <App />
+      </ConnectedRouter>
     </MuiThemeProvider>
   </Provider>,
   document.getElementById("root")

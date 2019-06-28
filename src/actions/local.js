@@ -1,6 +1,7 @@
 import {
   APP_HAS_LOADED,
   CAT_CHANGE,
+  CLEAR_LOG,
   GET_ASBESTOS_ANALYSIS,
   GET_AIR_ANALYSTS,
   GET_BULK_ANALYSTS,
@@ -11,6 +12,7 @@ import {
   GET_GEOCODES,
   GET_HELP,
   GET_INCIDENTS,
+  GET_LOGS,
   GET_ME,
   GET_SITES,
   GET_METHODLOG,
@@ -625,7 +627,6 @@ export const fetchAssets = update => async dispatch => {
         Object.keys(doc.data()).forEach(bucket => {
           assets.push(...doc.data()[bucket]);
         });
-        console.log(assets);
         dispatch({ type: GET_ASSETS, payload: assets });
       } else {
         console.log("Assets doesn't exist");
@@ -1028,7 +1029,6 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
     .then(data => {
       var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
       var json = xmlToJson(xmlDOM);
-      // console.log(json);
       if (json.Response.Status === "ERROR") {
         dispatch({
           type: SET_MODAL_ERROR,
@@ -1057,14 +1057,39 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
           : "";
         if (job.clientOrderNumber)
         if (wfmJob.Contact) {
-          job.contact = wfmJob.Contact.Name
-            ? wfmJob.Contact.Name
-            : "No contact name";
-          job.contactID = wfmJob.Contact.ID
-            ? wfmJob.Contact.ID
-            : "No contact ID";
+          if (wfmJob.Contact.ID) {
+            let path = `${process.env.REACT_APP_WFM_ROOT}client.api/contact/${wfmJob.Contact.ID}?apiKey=${
+              process.env.REACT_APP_WFM_API
+            }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+            fetch(path)
+              .then(results => results.text())
+              .then(data => {
+                var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
+                var json = xmlToJson(xmlDOM);
+                if (json.Response.Status === "ERROR") {
+                  dispatch({
+                    type: SET_MODAL_ERROR,
+                    payload: json.Response.ErrorDescription
+                  });
+                } else {
+                  let contact = json.Response.Contact;
+                  job.contactID = wfmJob.Contact.ID;
+                  job.contactName = wfmJob.Contact.Name;
+                  job.contactEmail = contact.Email;
+                  dispatch({
+                    type: GET_WFM_JOB,
+                    payload: job
+                  });
+                }
+              });
+          } else {
+            job.contactName = "No contact name";
+            job.contactEmail = "No contact email";
+            job.contactID = "No contact ID";
+          }
         } else {
-          job.contact = "No contact name";
+          job.contactName = "No contact name";
+          job.contactEmail = "No contact email";
           job.contactID = "No contact ID";
         }
         if (wfmJob.Manager) {
@@ -1083,16 +1108,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
         job.state = wfmJob.State ? wfmJob.State : "Unknown state";
         job.type = wfmJob.Type ? wfmJob.Type : "Other";
         if (createUid) {
-          // console.log('Create UID is true');
-          let datestring = new Intl.DateTimeFormat('en-GB', {
-            year: '2-digit',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          }).format(new Date()).replace(/[.:/,\s]/g, '_');
-          let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${datestring}`;
+          let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${moment().format('x')}`;
           // console.log('New uid' + uid);
           dispatch({
             type: EDIT_MODAL_DOC,
@@ -1477,9 +1493,29 @@ export const addLog = (collection, log, user) => {
   logsRef.collection(collection).doc(uid).set(log);
 };
 
-export const fetchLogs = (filter, filterValue, limit) => {
+export const fetchLogs = (collection, filter, filterValue, limit) => async dispatch => {
+    logsRef.collection(collection)
+      .where(filter, "==", filterValue)
+      .limit(limit)
+      .onSnapshot(querySnapshot => {
+        var logs = [];
+        querySnapshot.forEach(doc => {
+          let log = doc.data();
+          log.uid = doc.id;
+          logs.push(log);
+        });
+        dispatch({
+          type: GET_LOGS,
+          payload: logs,
+        });
+      });
+};
 
-}
+export const clearLog = () => dispatch => {
+  dispatch({
+    type: CLEAR_LOG,
+  });
+};
 
 //
 // function getDaysSinceDate(date) {

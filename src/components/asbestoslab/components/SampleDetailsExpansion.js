@@ -33,7 +33,7 @@ import {
   COC,
   ASBESTOSSAMPLEDETAILS,
   DOWNLOADLABCERTIFICATE,
-  UPDATECERTIFICATEVERSION,
+  UPDATE_CERTIFICATE_VERSION,
   WAANALYSIS,
   SAMPLEHISTORY,
   COCLOG
@@ -444,8 +444,7 @@ class SampleDetailsExpansion extends React.Component {
                         title: `Sample History for ${
                           job.jobNumber
                         }-${sample.sampleNumber.toString()}`,
-                        uid: sample.uid,
-                        cocLog: job.cocLog,
+                        ...sample,
                     }});
                   }}
                 >

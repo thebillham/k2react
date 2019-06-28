@@ -3,7 +3,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { DOWNLOADLABCERTIFICATE } from "../../../constants/modal-types";
+import { DOWNLOAD_LAB_CERTIFICATE } from "../../../constants/modal-types";
 import { docsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -44,7 +44,7 @@ class DownloadLabCertificateModal extends React.Component {
     const { classes, modalProps, modalType } = this.props;
     return (
       <Dialog
-        open={modalType === DOWNLOADLABCERTIFICATE}
+        open={modalType === DOWNLOAD_LAB_CERTIFICATE}
         onClose={this.props.hideModal}
       >
         <DialogTitle>Download Lab Certificate</DialogTitle>
@@ -88,10 +88,11 @@ class DownloadLabCertificateModal extends React.Component {
             onClick={() => {
               let url =
                 "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.template + "/" + this.state.fileType +
-                ".php?report=" + JSON.stringify(modalProps.report);
+                ".php?report=" + encodeURIComponent(JSON.stringify(modalProps.report));
               url =
                 "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
-                JSON.stringify(modalProps.report);
+                encodeURIComponent(JSON.stringify(modalProps.report));
+              console.log(url);
               window.open(url);
               this.props.hideModal();
             }}
@@ -99,7 +100,6 @@ class DownloadLabCertificateModal extends React.Component {
           >
             Download
           </Button>
-          }
         </DialogActions>
       </Dialog>
     );

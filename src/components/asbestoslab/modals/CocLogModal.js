@@ -15,38 +15,36 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import { hideModal, handleModalChange } from "../../../actions/modal";
+import { fetchLogs, clearLog, } from "../../../actions/local";
 import _ from "lodash";
+import moment from "moment";
 
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
-    log: state.local.log,
+    logs: state.local.logs,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchLogs: (limit) => dispatch(fetchLogs("chainOfCustody", limit)),
+    fetchLogs: (uid, limit) => dispatch(fetchLogs("asbestosLab", "chainOfCustody", uid, limit)),
     clearLog: () => dispatch(clearLog()),
     hideModal: () => dispatch(hideModal()),
-    handleModalChange: _.debounce(
-      target => dispatch(handleModalChange(target)),
-      300
-    )
   };
 };
 
 class CocLogModal extends React.Component {
   render() {
-    const { classes, modalProps, modalType } = this.props;
+    const { classes, modalProps, modalType, logs } = this.props;
     return (
       <Dialog
         open={modalType === COCLOG}
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
-        onEnter={() => this.props.fetchLogs(10)}
+        onEnter={() => this.props.fetchLogs(modalProps.uid, 10)}
         onExit={this.props.clearLog}
       >
         <DialogTitle>Change Log for {modalProps.jobNumber}</DialogTitle>
@@ -67,25 +65,18 @@ class CocLogModal extends React.Component {
                   User
                 </Grid>
               </Grid>
-              {modalProps.cocLog &&
-                modalProps.cocLog.map(log => {
+              {logs &&
+                logs.map(log => {
                   let date =
                     log.date instanceof Date ? log.date : log.date.toDate();
-                  let formatDate = new Intl.DateTimeFormat("en-GB", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric"
-                  }).format(date);
                   return (
                     <Grid
-                      key={formatDate + log.log}
+                      key={log.uid}
                       container
                       style={{ marginTop: 12 }}
                     >
                       <Grid item xs={2}>
-                        {formatDate}
+                        {moment(date).format('D MMM YYYY, h:ma')}
                       </Grid>
                       <Grid item xs={1}>
                         {log.type}

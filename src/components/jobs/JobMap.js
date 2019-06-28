@@ -2,11 +2,7 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
 import { connect } from "react-redux";
-// import { FormattedDate } from 'react-intl';
-// import ReactTable from 'react-table';
 import ListItem from "@material-ui/core/ListItem";
-// import Tab from "@material-ui/core/Tab";
-// import Tabs from "@material-ui/core/Tabs";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
@@ -17,22 +13,8 @@ import Input from "@material-ui/core/Input";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
-// import LineChart from "recharts/lib/chart/LineChart";
-// import Line from "recharts/lib/cartesian/Line";
-// import XAxis from "recharts/lib/cartesian/XAxis";
-// import YAxis from "recharts/lib/cartesian/YAxis";
-// import Legend from "recharts/lib/component/Legend";
-// import ZAxis from "recharts/lib/cartesian/ZAxis";
-// import Tooltip from "recharts/lib/component/Tooltip";
-// import Scatter from "recharts/lib/cartesian/Scatter";
-// import CartesianGrid from "recharts/lib/cartesian/CartesianGrid";
-// import DialogActions from '@material-ui/core/DialogActions';
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import Button from "@material-ui/core/Button";
-// import 'react-table/react-table.css'
-// import treeTableHOC from 'react-table/lib/hoc/treeTable';
-import { FormattedDate } from "react-intl";
-// import GoogleMapReact from 'google-map-react';
 import moment from "moment";
 import { auth, usersRef } from "../../config/firebase";
 import { Map, GoogleApiWrapper, Marker, InfoWindow } from "google-maps-react";
@@ -380,18 +362,6 @@ class JobMap extends React.Component {
     var days = Math.floor(timeDifference / divideBy);
 
     return days;
-  };
-
-  formatDate = date => {
-    return (
-      <FormattedDate
-        value={date instanceof Date ? date : new Date(date)}
-        month="long"
-        day="numeric"
-        year="numeric"
-        children={string => string}
-      />
-    );
   };
 
   getCompletionDateFromHistory = (activity, history) => {

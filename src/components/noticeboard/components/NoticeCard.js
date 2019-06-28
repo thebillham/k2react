@@ -25,8 +25,8 @@ import HealthIcon from "@material-ui/icons/LocalHospital";
 import JobLeadsIcon from "@material-ui/icons/Call";
 import ClientIcon from "@material-ui/icons/RecordVoiceOver";
 import ReportIcon from "@material-ui/icons/ImportContacts"
+import moment from "moment";
 
-import { FormattedDate } from "react-intl";
 import { auth } from "../../../config/firebase";
 
 const styles = {
@@ -112,13 +112,7 @@ function NoticeCard(props) {
               Submitted by <span style={{ fontWeight: 500,}}>{notice.author}</span>
             </Typography>
             <Typography className={classes.subtitle} color="textSecondary">
-              <FormattedDate
-                value={notice.date}
-                month="long"
-                day="numeric"
-                weekday="short"
-                year="numeric"
-              />
+              {moment(notice.date).format('ddd, D MMM YYYY')}
             </Typography>
           </div>
         }

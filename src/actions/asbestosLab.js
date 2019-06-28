@@ -13,11 +13,13 @@ import {
   SET_ANALYST,
   SET_ANALYSIS_SESSION_ID,
 } from "../constants/action-types";
+import { DOWNLOAD_LAB_CERTIFICATE } from "../constants/modal-types";
 import moment from "moment";
 import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 import { addLog } from "./local";
+import { showModal } from "./modal";
 import {
   asbestosSamplesRef,
   asbestosAnalysisRef,
@@ -149,15 +151,15 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
   }
 };
 
-export const deleteCoc = (coc, cocs) => async dispatch => {
-  let newCocs = {...cocs};
-  delete newCocs[coc];
-  dispatch({
-    type: GET_COCS,
-    payload: newCocs,
-    update: true
-  });
-}
+// export const deleteCoc = (coc, cocs) => async dispatch => {
+//   let newCocs = {...cocs};
+//   delete newCocs[coc];
+//   dispatch({
+//     type: GET_COCS,
+//     payload: newCocs,
+//     update: true
+//   });
+// }
 
 export const fetchAsbestosAnalysis = update => async dispatch => {
   if (update) {
@@ -279,19 +281,9 @@ export const handleCocSubmit = ({ doc, me }) => dispatch => {
     Object.keys(doc.samples).forEach(sample => {
       // console.log(sample);
       if (!doc.samples[sample].uid) {
-        let datestring = new Intl.DateTimeFormat("en-GB", {
-          year: "2-digit",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit"
-        })
-          .format(new Date())
-          .replace(/[.:/,\s]/g, "_");
         let uid = `${
           doc.jobNumber
-        }-SAMPLE-${sample}-CREATED-${datestring}-${Math.round(
+        }-SAMPLE-${sample}-CREATED-${moment().format('x')}-${Math.round(
           Math.random() * 1000
         )}`;
         // console.log(`UID for new sample is ${uid}`);
@@ -461,8 +453,6 @@ export const receiveSample = (sample, job, sessionID, me) => {
     chainOfCustody: job.uid,
   };
   addLog("asbestosLab", log, me);
-  // let cocLog = this.props.job.cocLog;
-  // cocLog ? cocLog.push(log) : (cocLog = [log]);
   cocsRef
     .doc(sample.cocUid)
     .update({ versionUpToDate: false });
@@ -568,8 +558,6 @@ export const toggleResult = (result, analyst, sample, job, sessionID, me) => {
         "Select analyst from the dropdown at the top of the page."
       );
     }
-    // let cocLog = this.props.job.cocLog;
-    // if (!cocLog) cocLog = [];
     // Check if this sample has already been analysed
     if (sample.sessionID !== sessionID && sample.result) {
       if (
@@ -749,20 +737,264 @@ export const verifySample = (sample, job, me) => {
   }
 };
 
+
+//
+// ADMIN/ISSUE
+//
+
+export const printCoc = (job, samples, me, staffList) => {
+console.log(job);
+  let log = {
+    type: "Document",
+    log: `Chain of Custody downloaded.`,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me);
+
+  let aaNumbers = getAANumbers(staffList);
+  console.log(aaNumbers);
+
+  let sampleList = [];
+
+  samples &&
+    Object.values(samples).forEach(sample => {
+      if (sample.cocUid === job.uid) {
+        let sampleMap = {};
+        if (sample.disabled) return;
+        sampleMap["no"] = sample.sampleNumber;
+        sampleMap["description"] =
+          sample.description.charAt(0).toUpperCase() +
+          sample.description.slice(1);
+        sampleMap["material"] =
+          sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
+        sampleList.push(sampleMap);
+      }
+    });
+  let report = {
+    jobNumber: job.jobNumber,
+    client: job.client,
+    contactName: job.contactName,
+    contactEmail: job.contactEmail,
+    orderNumber: job.clientOrderNumber ? job.clientOrderNumber : '',
+    address: job.address,
+    type: job.type,
+    jobManager: job.manager,
+    date: job.dates
+      .sort((b, a) => {
+        let aDate = a instanceof Date ? a : a.toDate();
+        let bDate = b instanceof Date ? b : b.toDate();
+        return new Date(bDate - aDate);
+      })
+      .map(date => {
+        let formatDate = date instanceof Date ? date : date.toDate();
+        return moment(formatDate).format('D MMMM YYYY');
+      })
+      .join(", "),
+    // ktp: 'Stuart Keer-Keer',
+    personnel: job.personnel.sort(),
+    assessors: job.personnel.sort().map(staff => {
+      return aaNumbers[staff];
+    }),
+    samples: sampleList
+  };
+  console.log(report);
+  let url =
+    "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc.php?report=" +
+    encodeURIComponent(JSON.stringify(report));
+  window.open(url);
+};
+
+export const getAANumbers = (staffList) => {
+  let aaNumbers = {};
+  Object.values(staffList).forEach(staff => {
+    aaNumbers[staff.name] = staff.aanumber ? staff.aanumber : "-";
+  });
+  // aaNumbers[me.name] = me.aanumber
+  //   ? me.aanumber
+  //   : "-";
+  aaNumbers["Client"] = "-";
+  return aaNumbers;
+};
+
+export const getAnalysts = (job, samples, report) => {
+  let analysts = {};
+  samples &&
+    Object.values(samples).forEach(sample => {
+      if (sample.cocUid === job.uid) {
+        if (report) {
+          if (sample.analyst && sample.verified) {
+            analysts[sample.analyst] = true;
+          }
+        } else {
+          if (sample.analyst) {
+            analysts[sample.analyst] = true;
+          }
+        }
+      }
+    });
+  let list = [];
+  Object.keys(analysts).forEach(analyst => {
+    list.push(analyst);
+  });
+  if (list.length === 0) return false;
+  return list;
+};
+
+export const writeVersionJson = (job, samples, version, staffList, me) => {
+  let aaNumbers = getAANumbers(staffList);
+  let sampleList = [];
+  samples &&
+    Object.values(samples).forEach(sample => {
+      if (sample.verified && sample.cocUid === job.uid) {
+        let sampleMap = {};
+        if (sample.disabled) return;
+        sampleMap["no"] = sample.sampleNumber;
+        sampleMap["description"] =
+          sample.description.charAt(0).toUpperCase() +
+          sample.description.slice(1);
+        sampleMap["material"] =
+          sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
+        sampleMap["result"] = writeResult(sample.result);
+        sampleList.push(sampleMap);
+      }
+    });
+  let analysts = getAnalysts(job, samples, true);
+  let report = {
+    jobNumber: job.jobNumber,
+    client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
+    address: job.address,
+    date: job.dates
+      .sort((b, a) => {
+        let aDate = a instanceof Date ? a : a.toDate();
+        let bDate = b instanceof Date ? b : b.toDate();
+        return new Date(bDate - aDate);
+      })
+      .map(date => {
+        let formatDate = date instanceof Date ? date : date.toDate();
+        return moment(formatDate).format('D MMMM YYYY');
+      })
+      .join(", "),
+    // ktp: 'Stuart Keer-Keer',
+    personnel: job.personnel.sort(),
+    assessors: job.personnel.sort().map(staff => {
+      return aaNumbers[staff];
+    }),
+    analysts: analysts ? analysts : ["Not specified"],
+    version: version ? version : 1,
+    samples: sampleList
+  };
+  return report;
+};
+
+export const issueLabReport = (job, samples, version, changes, staffList, me) => {
+  // first check all samples have been checked
+  // if not version 1, prompt for reason for new version
+  let json = writeVersionJson(job, samples, version, staffList, me);
+  let versionHistory = job.versionHistory
+    ? job.versionHistory
+    : {};
+  let log = {
+    type: "Issue",
+    log: `Version ${version} issued.`,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me);
+  versionHistory[version] = {
+    issueUser: me.uid,
+    issueDate: new Date(),
+    changes: changes,
+    data: json,
+  };
+  cocsRef.doc(job.uid).update(
+    {
+      currentVersion: version,
+      versionHistory: versionHistory,
+      versionUpToDate: true,
+      lastModified: new Date(),
+    }
+  );
+};
+
+export const printLabReport = (job, version, me, showModal) => {
+  let report = job.versionHistory[version].data;
+  let log = {
+    type: "Document",
+    log: `Test Certificate (version ${version}) downloaded.`,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me);
+  if (report.version && report.version > 1) {
+    let versionHistory = [];
+    [...Array(report.version).keys()].forEach(i => {
+      let formatDate =
+        job.versionHistory[i + 1].issueDate instanceof Date
+          ? job.versionHistory[i + 1].issueDate
+          : job.versionHistory[i + 1].issueDate.toDate();
+
+      versionHistory.push({
+        version: i + 1,
+        issueDate: moment(formatDate).format('D MMMM YYYY'),
+        changes: job.versionHistory[i + 1].changes
+      });
+    });
+    report = { ...report, versionHistory: versionHistory };
+  }
+  console.log(report);
+  showModal({
+    modalType: DOWNLOAD_LAB_CERTIFICATE,
+    modalProps: {
+      report: report,
+    }
+  });
+  // let url =
+  //   "http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
+  //   JSON.stringify(report);
+  // console.log(url);
+  // // this.setState({ url: url });
+  // window.open(url);
+  // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
+};
+
+export const deleteCoc = (job, me) => {
+  if (
+    window.confirm("Are you sure you wish to delete this Chain of Custody?")
+  ) {
+    job.samples && Object.values(job.samples).forEach(sample => {
+      if (sample.cocUid === job.uid) {
+        let log = {
+          type: "Delete",
+          log: `Sample ${sample.sampleNumber} (${sample.description} ${sample.material}) deleted.`,
+          sample: sample.uid,
+          chainOfCustody: job.uid,
+        };
+        asbestosSamplesRef.doc(sample.uid).update({ deleted: true })
+      }
+    });
+    let log = {
+      type: "Delete",
+      log: "Chain of Custody deleted.",
+      chainOfCustody: job.uid,
+    };
+    cocsRef
+      .doc(job.uid)
+      .update({ deleted: true, });
+  } else return;
+};
+
 //
 // HELPER FUNCTIONS
 //
 
 export const sortSamples = samples => {
-  let samplemap = {};
+  let sampleMap = {};
   samples.forEach(sample => {
-    if (samplemap[sample.jobnumber]) {
-      samplemap[sample.jobnumber].push(sample);
+    if (sampleMap[sample.jobnumber]) {
+      sampleMap[sample.jobnumber].push(sample);
     } else {
-      samplemap[sample.jobnumber] = [sample];
+      sampleMap[sample.jobnumber] = [sample];
     }
   });
-  return samplemap;
+  return sampleMap;
 };
 
 export const writeDescription = (sample) => {

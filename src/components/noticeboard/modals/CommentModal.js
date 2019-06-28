@@ -122,14 +122,7 @@ class NoticeModal extends React.Component {
               onClick={() => {
                 let comment = doc.comment;
                 if (comment && !comment.uid && comment.text && comment.text !== '') {
-                  comment.uid = new Intl.DateTimeFormat('en-GB', {
-                    year: '2-digit',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                  }).format(new Date()).replace(/[.:/,\s]/g, '_');
+                  comment.uid = moment().format('x');
                 }
                 let newDoc = {};
                 let comments = doc.notice.comments;

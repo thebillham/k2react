@@ -9,6 +9,8 @@ import {
   GET_GEOCODES,
   GET_USER,
   GET_SITES,
+  GET_LOGS,
+  CLEAR_LOG,
   GET_WFM_JOBS,
   GET_WFM_JOB,
   GET_WFM_LEADS,
@@ -54,6 +56,7 @@ const localInit = {
   geocodes: {},
   incidents: [],
   helps: [],
+  logs: [],
   me: {},
   methodLog: [],
   methods: [],
@@ -155,6 +158,16 @@ export default function localReducer(state = localInit, action) {
           ...state.me,
           quizLog: action.payload
         }
+      };
+    case GET_LOGS:
+      return {
+        ...state,
+        logs: action.payload,
+      };
+    case CLEAR_LOG:
+      return {
+        ...state,
+        logs: [],
       };
     case GET_QUIZZES:
       if (action.update)

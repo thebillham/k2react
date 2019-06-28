@@ -16,7 +16,6 @@ import {
   questionsRef
 } from "../../../config/firebase";
 import { formStyles } from "../../../config/styles";
-import { FormattedDate } from "react-intl";
 import TrueFalseQuestion from "./questions/TrueFalseQuestion";
 import MultiMultiQuestion from "./questions/MultiMultiQuestion";
 import MultiSingleQuestion from "./questions/MultiSingleQuestion";
@@ -29,6 +28,7 @@ import ImageSelectMultiQuestion from "./questions/ImageSelectMultiQuestion";
 import SortImageQuestion from "./questions/SortImageQuestion";
 import BucketImageQuestion from "./questions/BucketImageQuestion";
 import { Bar, XAxis, YAxis, BarChart } from "recharts";
+import moment from "moment";
 
 const mapStateToProps = state => {
   return {
@@ -360,14 +360,7 @@ class Quiz extends React.Component {
                 <Typography className={classes.note}>{quiz.desc}</Typography>
                 <Typography className={classes.note}>
                   <b>Date completed: </b>
-                  {this.state.read ? (
-                    <FormattedDate
-                      value={this.state.read}
-                      month="long"
-                      day="numeric"
-                      year="numeric"
-                    />
-                  ) : (
+                  {this.state.read ? moment(this.state.read).format('D MMMM YYYY') : (
                     "N/A"
                   )}
                 </Typography>

@@ -14,29 +14,30 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import Grid from "@material-ui/core/Grid";
-import { hideModal, handleModalChange } from "../../../actions/modal";
+import { hideModal } from "../../../actions/modal";
+import { fetchLogs, clearLog } from "../../../actions/local";
 import _ from "lodash";
+import moment from "moment";
 
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
-    modalProps: state.modal.modalProps
+    modalProps: state.modal.modalProps,
+    logs: state.local.logs,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
+    fetchLogs: (uid, limit) => dispatch(fetchLogs("asbestosLab", "sample", uid, limit)),
+    clearLog: () => dispatch(clearLog()),
     hideModal: () => dispatch(hideModal()),
-    handleModalChange: _.debounce(
-      target => dispatch(handleModalChange(target)),
-      300
-    )
   };
 };
 
-class SampleHistoryModal extends React.Component {
+class SampleLogModal extends React.Component {
   render() {
-    const { classes, modalProps, modalType } = this.props;
+    const { classes, modalProps, modalType, logs } = this.props;
     // console.log('Printing modal props');
     // console.log(JSON.stringify(modalProps));
     // console.log(modalProps.uid.toString());
@@ -46,8 +47,10 @@ class SampleHistoryModal extends React.Component {
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
+        onEnter={() => this.props.fetchLogs(modalProps.uid, 10)}
+        onExit={this.props.clearLog}
       >
-        <DialogTitle>{modalProps.title ? modalProps.title : 'Sample History'}</DialogTitle>
+        <DialogTitle>{modalProps.title}</DialogTitle>
         <DialogContent>
         <Grid container direction="column">
           <Grid item>
@@ -65,28 +68,18 @@ class SampleHistoryModal extends React.Component {
                 User
               </Grid>
             </Grid>
-            {modalProps.cocLog &&
-              modalProps.cocLog
-              .filter(log => log.sample === modalProps.uid)
-              .map(log => {
+            {logs &&
+              logs.map(log => {
                 let date =
                   log.date instanceof Date ? log.date : log.date.toDate();
-                let formatDate = new Intl.DateTimeFormat("en-GB", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  second: "2-digit",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric"
-                }).format(date);
                 return (
                   <Grid
-                    key={formatDate + log.log}
+                    key={log.uid}
                     container
                     style={{ marginTop: 12 }}
                   >
                     <Grid item xs={2}>
-                      {formatDate}
+                      {moment(date).format('D MMM YYYY, h:ma')}
                     </Grid>
                     <Grid item xs={1}>
                       {log.type}
@@ -122,5 +115,5 @@ export default withStyles(modalStyles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(SampleHistoryModal)
+  )(SampleLogModal)
 );

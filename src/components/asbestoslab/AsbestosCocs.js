@@ -24,7 +24,7 @@ import WAAnalysisModal from "./modals/WAAnalysisModal";
 import SoilDetailsModal from "./modals/SoilDetailsModal";
 import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
-import SampleHistoryModal from "./modals/SampleHistoryModal";
+import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
 
 import AsbestosBulkCocCard from "./components/AsbestosBulkCocCard";
@@ -121,7 +121,7 @@ class AsbestosCocs extends React.Component {
       <div style={{ marginTop: 80 }}>
         <CocModal />
         <UpdateCertificateVersionModal />
-        <SampleHistoryModal />
+        <SampleLogModal />
         <QCAnalysisModal />
         <WAAnalysisModal />
         <AsbestosSampleDetailsModal />

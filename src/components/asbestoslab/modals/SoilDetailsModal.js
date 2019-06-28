@@ -96,7 +96,6 @@ class SoilDetailsModal extends React.Component {
   render() {
     const { classes, modalProps, modalType } = this.props;
     const { sample } = this.state;
-    console.log(this.props.modalPropsMain);
     return (
       <div>
       {modalProps && modalProps.doc && sample &&

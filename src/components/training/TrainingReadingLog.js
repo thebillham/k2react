@@ -3,7 +3,6 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
 
 import { connect } from "react-redux";
-// import { FormattedDate } from 'react-intl';
 import { fetchReadingLog } from "../../actions/local";
 import ReadingLogListItem from "./components/ReadingLogListItem";
 

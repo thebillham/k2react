@@ -17,8 +17,7 @@ import StepButton from "@material-ui/core/StepButton";
 import { auth, docsRef, usersRef } from "../../config/firebase";
 import { showModal } from "../../actions/modal";
 import DocumentModal from "./modals/DocumentModal";
-import { FormattedDate } from "react-intl";
-// import 'react-pdf/dist/Page/AnnotationLayer.css';
+import moment from "moment";
 
 const mapStateToProps = state => {
   return {
@@ -180,50 +179,18 @@ class DocumentViewer extends React.Component {
                 )}
                 <Typography className={classes.note} style={{ marginTop: 12 }}>
                   <b>Date published: </b>
-                  {doc.date ? (
-                    <FormattedDate
-                      value={
-                        doc.date instanceof Date ? doc.date : new Date(doc.date)
-                      }
-                      month="long"
-                      day="numeric"
-                      year="numeric"
-                    />
-                  ) : (
-                    "Unknown"
-                  )}
+                  {doc.date ? moment(doc.date instanceof Date ? doc.date : new Date(doc.date)).format('D MMMM YYYY')
+                   : <span>Unknown</span>}
                 </Typography>
                 <Typography className={classes.note}>
                   <b>Last updated: </b>
-                  {doc.updateDate ? (
-                    <FormattedDate
-                      value={
-                        doc.date instanceof Date
-                          ? doc.date
-                          : new Date(doc.updateDate)
-                      }
-                      month="long"
-                      day="numeric"
-                      year="numeric"
-                    />
-                  ) : (
-                    "Unknown"
-                  )}
+                  {doc.updateDate ? moment(doc.updateDate instanceof Date ? doc.updateDate : new Date(doc.updateDate)).format('D MMMM YYYY')
+                   : <span>Unknown</span>}
                 </Typography>
                 <Typography className={classes.note}>
                   <b>Date read: </b>
-                  {this.state.read ? (
-                    <FormattedDate
-                      value={
-                        doc.date instanceof Date ? doc.date : this.state.read
-                      }
-                      month="long"
-                      day="numeric"
-                      year="numeric"
-                    />
-                  ) : (
-                    "N/A"
-                  )}
+                  {this.state.read ? moment(doc.date instanceof Date ? doc.date : this.state.read).format('D MMMM YYYY')
+                   : <span>N/A</span>}
                 </Typography>
                 <Button
                   variant="outlined"

@@ -16,7 +16,7 @@ import PinIcon from "@material-ui/icons/Star";
 import ReadIcon from "@material-ui/icons/CheckBox";
 import DiscardIcon from "@material-ui/icons/Delete";
 import EditIcon from '@material-ui/icons/Edit';
-import { FormattedDate } from "react-intl";
+import moment from "moment";
 
 function CommentListItem(props) {
   const { classes, comment } = props;
@@ -34,12 +34,7 @@ function CommentListItem(props) {
       <div style={{ marginRight: 12, }}>
         <div style={{ fontWeight: 500, fontSize: 14, }}>{comment.author.name}</div>
         <div style={{ fontSize: 12, }}>
-          <FormattedDate
-            value={comment.date}
-            month="long"
-            day="numeric"
-            weekday="short"
-          />
+          {moment(comment.date).format('ddd, D MMM YYYY')}
         </div>
         <div style={{ fontSize: 14, }}><Linkify>{comment.text}</Linkify></div>
       </div>

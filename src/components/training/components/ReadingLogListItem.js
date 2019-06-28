@@ -8,8 +8,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
-
-import { FormattedDate } from "react-intl";
+import moment from "moment";
 
 function ReadingLogListItem(props) {
   const { log } = props;
@@ -17,14 +16,7 @@ function ReadingLogListItem(props) {
     <ListItem dense>
       <ListItemText
         primary={log.title}
-        secondary={
-          <FormattedDate
-            value={log.date.toDate()}
-            month="long"
-            day="numeric"
-            year="numeric"
-          />
-        }
+        secondary={moment(log.date.toDate()).format('D MMM YYYY')}
       />
     </ListItem>
   );

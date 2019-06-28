@@ -4,8 +4,9 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { UPDATECERTIFICATEVERSION } from "../../../constants/modal-types";
+import { UPDATE_CERTIFICATE_VERSION } from "../../../constants/modal-types";
 import { docsRef } from "../../../config/firebase";
+import { issueLabReport } from "../../../actions/asbestosLab";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
@@ -20,6 +21,8 @@ import _ from "lodash";
 
 const mapStateToProps = state => {
   return {
+    me: state.local.me,
+    staff: state.local.staff,
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps
   };
@@ -40,7 +43,7 @@ class UpdateCertificateVersionModal extends React.Component {
     const { classes, modalProps, modalType } = this.props;
     return (
       <Dialog
-        open={modalType === UPDATECERTIFICATEVERSION}
+        open={modalType === UPDATE_CERTIFICATE_VERSION}
         onClose={this.props.hideModal}
       >
         <DialogTitle>Issue New Version</DialogTitle>
@@ -68,17 +71,13 @@ class UpdateCertificateVersionModal extends React.Component {
           </Button>
           <Button
             onClick={() => {
-              modalProps.issueLabReport(
-                modalProps.doc.version,
-                modalProps.doc.changes
-              );
+              issueLabReport(modalProps.job, modalProps.samples, modalProps.version, modalProps.doc.changes, this.props.staff, this.props.me);
               this.props.hideModal();
             }}
             color="primary"
           >
             Submit
           </Button>
-          }
         </DialogActions>
       </Dialog>
     );
