@@ -205,7 +205,7 @@ class SampleDetailsExpansion extends React.Component {
               <IconButton
                 onClick={event => {
                   event.stopPropagation();
-                  receiveSample(sample, job, this.props.sessionID, this.props.me);
+                  receiveSample(sample, job, this.props.samples, this.props.sessionID, this.props.me);
                 }}
               >
                 <Inbox
@@ -380,7 +380,7 @@ class SampleDetailsExpansion extends React.Component {
                     )
                   )
                     return;
-                  verifySample(sample, job, this.props.me);
+                  verifySample(sample, job, this.props.samples, this.props.me,);
                 }}
               >
                 <CheckCircleOutline

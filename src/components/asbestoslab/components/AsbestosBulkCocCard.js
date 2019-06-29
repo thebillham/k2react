@@ -124,8 +124,7 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   render() {
-    const { jobID, samples, cocs } = this.props;
-    let job = cocs[jobID];
+    const { job, samples } = this.props;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     let analysts = getAnalysts(job, samples[job.uid], false);
@@ -134,7 +133,8 @@ class AsbestosBulkCocCard extends React.Component {
       let formatDate = date instanceof Date ? date : date.toDate();
       return moment(formatDate).format('D MMMM YYYY');
     });
-    let stats = getStats(samples, job);
+    console.log(samples);
+    let stats = getStats(samples[job.uid], job);
 
     return (
       <ExpansionPanel

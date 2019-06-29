@@ -449,14 +449,14 @@ export const receiveAll = (samples, job, sessionID, me) => {
   }
 };
 
-export const receiveSample = (sample, job, sessionID, me) => {
+export const receiveSample = (sample, job, samples, sessionID, me) => {
   let receivedDate = null;
   if (!sample.receivedByLab) receivedDate = new Date();
   if (sample.receivedByLab && sample.analysisStart) startAnalysis(sample, job, sessionID, me);
   if (sample.receivedByLab && sample.verified) {
     if (window.confirm('The sample result has already been verified. Removing from the lab will remove the analysis result and verification. Continue?')) {
       removeResult(sample, sessionID, me);
-      verifySample(sample, job, me);
+      verifySample(sample, job, samples, me);
     } else return;
   } else if (sample.receivedByLab && sample.result) {
     if (window.confirm('The sample result has already been logged. Removing from the lab will remove the analysis result. Continue?'))
@@ -701,7 +701,7 @@ export const removeResult = (sample, sessionID, me) => {
     });
 }
 
-export const verifySample = (sample, job, me) => {
+export const verifySample = (sample, job, samples, me) => {
   if (
     (me.auth &&
     (me.auth["Analysis Checker"] ||
@@ -732,7 +732,7 @@ export const verifySample = (sample, job, me) => {
           .update({ versionUpToDate: false });
         if (!sample.verified) {
           sample.verifyDate = new Date();
-          let cocStats = getStats(sample);
+          let cocStats = getStats(samples, job);
           logSample(job, sample, cocStats);
           asbestosSamplesRef.doc(sample.uid).update(
           {
@@ -1693,7 +1693,7 @@ export const getStats = (samples, job) => {
   };
   console.log(stats);
 
-  if (totalSamples !== 0 && job.stats !== stats) cocsRef.doc(job.uid).update({ stats });
+  if (totalSamples !== 0 && job.stats !== stats) cocsRef.doc(jobID).update({ stats });
   return stats;
 };
 
