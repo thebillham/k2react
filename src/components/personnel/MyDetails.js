@@ -28,7 +28,7 @@ import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 
 import AttrModal from "./modals/AttrModal";
 import AttrList from "./components/MyDetailsAttrListItem";
-import { USERATTR, EDITSTAFF } from "../../constants/modal-types";
+import { USER_ATTR, EDITSTAFF } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import { getUserAttrs, getEditStaff, fetchStaff, } from "../../actions/local";
 import { tabMyDetails, } from "../../actions/display";
@@ -372,7 +372,7 @@ class UserDetails extends React.Component {
                       onClick={() => {
                         if (!this.state.edited) this.setState({ edited: true });
                         this.props.showModal({
-                          modalType: USERATTR,
+                          modalType: USER_ATTR,
                           modalProps: {
                             userPath: this.state.userPath,
                             title: "Add New Item",

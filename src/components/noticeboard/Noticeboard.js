@@ -13,7 +13,7 @@ import CommentModal from "./modals/CommentModal";
 import WhosReadModal from "./modals/WhosReadModal";
 
 // import IncidentModal from "../incidents/modals/IncidentModal";
-import { NOTICES, INCIDENT, COMMENT, WHOSREAD } from "../../constants/modal-types";
+import { NOTICES, INCIDENT, COMMENT, WHOS_READ } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
 import { auth, usersRef, noticesRef } from "../../config/firebase";
 import store from "../../store";
@@ -178,7 +178,7 @@ class Noticeboard extends React.Component {
   onCheckRead = (notice) => {
     console.log(notice);
     this.props.showModal({
-      modalType: WHOSREAD,
+      modalType: WHOS_READ,
       modalProps: {
         doc: notice,
       }

@@ -5,7 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { WAANALYSIS, SOILDETAILS } from "../../../constants/modal-types";
+import { WA_ANALYSIS, SOIL_DETAILS } from "../../../constants/modal-types";
 import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -34,7 +34,8 @@ import UploadIcon from "@material-ui/icons/CloudUpload";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, showModalSecondary } from "../../../actions/modal";
-import { handleSampleChange, writeSoilDetails, } from "../../../actions/asbestosLab";
+import { handleSampleChange, writeSoilDetails, getWAAnalysisSummary, } from "../../../actions/asbestosLab";
+import { addLog, } from '../../../actions/local';
 import {
   asbestosSamplesRef
 } from "../../../config/firebase";
@@ -97,13 +98,13 @@ class WAAnalysisModal extends React.Component {
   }
 
   render() {
-    const { classes, modalProps, modalType } = this.props;
+    const { classes, modalProps, modalType, me } = this.props;
     const { sample } = this.state;
     return (
       <div>
       {sample &&
       <Dialog
-        open={modalType === WAANALYSIS}
+        open={modalType === WA_ANALYSIS}
         onClose={this.props.hideModal}
         maxWidth="xl"
         fullWidth={true}
@@ -137,16 +138,10 @@ class WAAnalysisModal extends React.Component {
                           : `Sample ${sample.sampleNumber} (${sample.description} ${
                               sample.material
                             }) WA Analysis marked as incomplete.`,
-                        user: auth.currentUser.uid,
                         sample: sample.uid,
-                        userName: this.props.me.name,
-                        date: new Date()
+                        chainOfCustody: sample.cocUid,
                       };
-                      let cocLog = modalProps.job.cocLog;
-                      cocLog ? cocLog.push(log) : (cocLog = [log]);
-                      cocsRef
-                        .doc(modalProps.job.uid)
-                        .update({ versionUpToDate: false, cocLog: cocLog });
+                      addLog("asbestosLab", log, me);
                     }}
                     value="waAnalysisComplete"
                     color="primary"
@@ -294,7 +289,7 @@ class WAAnalysisModal extends React.Component {
               </div>
             </div>
             <div>
-              {this.getTotals()}
+              {getWAAnalysisSummary(sample)}
               <div style={{ padding: 48, margin: 12, justifyContent: 'center', width: 600 }}>
                 <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Geotechnical Soil Description</div>
                 <Button
@@ -302,7 +297,7 @@ class WAAnalysisModal extends React.Component {
                   style={{ marginBottom: 16, marginTop: 16, }}
                   onClick={() => {
                     this.props.showModalSecondary({
-                      modalType: SOILDETAILS,
+                      modalType: SOIL_DETAILS,
                       modalProps: {
                         title: "Edit Soil Details",
                         doc: sample,
@@ -344,16 +339,10 @@ class WAAnalysisModal extends React.Component {
                 log: `Sample ${sample.sampleNumber} (${sample.description} ${
                       sample.material
                     }) WA analysis edited.`,
-                user: auth.currentUser.uid,
                 sample: sample.uid,
-                userName: this.props.me.name,
-                date: new Date()
+                chainOfCustody: sample.cocUid,
               };
-              let cocLog = modalProps.job.cocLog;
-              cocLog ? cocLog.push(log) : (cocLog = [log]);
-              cocsRef
-                .doc(modalProps.job.uid)
-                .update({ versionUpToDate: false, cocLog: cocLog });
+              addLog("asbestosLab", log, me);
             }}
             color="primary"
           >
@@ -592,204 +581,6 @@ class WAAnalysisModal extends React.Component {
             />
           </FormGroup>
         </div>
-      </div>
-    );
-  }
-
-  getTotals = () => {
-    let weightACM = 0;
-    let weightFA = 0;
-    let weightAF = 0;
-    let weightConditioned = this.state.sample.weightConditioned;
-    let ch = false;
-    let am = false;
-    let cr = false;
-    let umf = false;
-    let fractionTotalWeight = 0.0;
-    let fractionWeightNum = 0;
-    let subFractionTotalWeight = 0.0;
-    let asbestosTotalWeight = 0.0;
-    let allHaveTypes = true;
-    let allHaveForms = true;
-
-    fractionNames.forEach(fraction => {
-      if (this.state.sample && this.state.sample.waAnalysis && this.state.sample.waAnalysis['fraction' + fraction + 'WeightConditioned'] > 0) {
-        fractionWeightNum++;
-        fractionTotalWeight += parseFloat(this.state.sample.waAnalysis['fraction' + fraction + 'WeightConditioned']);
-      }
-
-      [...Array(this.state.sample && this.state.sample.layerNum && this.state.sample.layerNum[fraction] ? this.state.sample.layerNum[fraction] : layerNum).keys()].forEach(num => {
-        if (this.state.sample && this.state.sample.waSoilAnalysis && this.state.sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] !== undefined) {
-          let sub = this.state.sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
-          if (sub.weight) {
-            subFractionTotalWeight += parseFloat(sub.weight);
-          }
-          if (sub.weight && sub.concentration) {
-            let asbestosWeight = (parseFloat(sub.weight) * parseFloat(sub.concentration) / 100);
-            asbestosTotalWeight += asbestosWeight;
-            if (sub.type === undefined) allHaveForms = false;
-            if (sub.type === 'fa') weightFA += parseFloat(asbestosWeight);
-              else if (sub.type === 'af') weightAF += parseFloat(asbestosWeight);
-              else if (sub.type === 'acm') weightACM += parseFloat(asbestosWeight);
-            if (sub.result) {
-              if (sub.result.ch === true) ch = true;
-              if (sub.result.am === true) am = true;
-              if (sub.result.cr === true) cr = true;
-              if (sub.result.umf === true) umf = true;
-              if (!sub.result.ch && !sub.result.am && !sub.result.cr && !sub.result.umf) allHaveTypes = false;
-            } else {
-              allHaveTypes = false;
-            }
-          }
-        }
-      });
-    });
-
-    let match = true;
-    if (this.state.sample.result) {
-      if ((ch || this.state.sample.result.ch) && ch !== this.state.sample.result.ch) match = false;
-      if ((am || this.state.sample.result.am) && am !== this.state.sample.result.am) match = false;
-      if ((cr || this.state.sample.result.cr) && cr !== this.state.sample.result.cr) match = false;
-      if ((umf || this.state.sample.result.umf) && umf !== this.state.sample.result.umf) match = false;
-    }
-
-    let concentrationFA = 0.0;
-    let concentrationAF = 0.0;
-    let concentrationACM = 0.0;
-    let concentrationFAAF = 0.0;
-    if (weightConditioned) {
-      concentrationFA = weightFA/weightConditioned*100;
-      concentrationAF = weightAF/weightConditioned*100;
-      concentrationACM = weightACM/weightConditioned*100;
-      concentrationFAAF = (weightFA+weightAF)/weightConditioned*100;
-    }
-    return(
-      <div style={{ width: 600, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, }}>
-        <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Totals</div>
-        <div style={{ flexDirection: 'row', display: 'flex', textAlign: 'right', marginTop: 14, }}>
-          <div style={{ width: 160, marginRight: 12, marginTop: 14, }}>
-            <div style={{ fontWeight: 500}}>Conditioned Weight: </div>
-            <div style={{ fontWeight: 500}}>Fraction Total: </div>
-            <div style={{ fontWeight: 500}}>Subfraction Total: </div>
-            <div style={{ fontWeight: 500}}>Asbestos Total: </div>
-          </div>
-          <div style={{ width: 80, marginRight: 12, marginTop: 14, }}>
-            <div>{weightConditioned ? <span>{parseFloat(weightConditioned).toFixed(2)}g</span> : <span>N/A</span>}</div>
-            <div>{fractionWeightNum === 3 ? <span>{parseFloat(fractionTotalWeight).toFixed(2)}g</span> : <span>N/A</span>}</div>
-            <div>{subFractionTotalWeight ? <span>{parseFloat(subFractionTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
-            <div>{asbestosTotalWeight > 0 ? <span>{parseFloat(asbestosTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
-          </div>
-        </div>
-        <div style={{ flexDirection: 'row', display: 'flex', justifyContent: 'flex-end', textAlign: 'right', marginTop: 14, }}>
-          <div style={{ width: 140, marginRight: 12, }}>
-            <div style={{ fontWeight: 500 }}>Type</div>
-            <div>ACM Bonded</div>
-            <div>Friable Asbestos</div>
-            <div>Asbestos Fines</div>
-            <div>FA/AF Total</div>
-          </div>
-          <div style={{ width: 140, }}>
-            <div style={{ fontWeight: 500 }}>Asbestos Weight</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightACM.toFixed(6)}g</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightFA.toFixed(6)}g</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightAF.toFixed(6)}g</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{(weightFA+weightAF).toFixed(6)}g</div>
-          </div>
-          <div style={{ width: 200, marginRight: 14, }}>
-            <div style={{ fontWeight: 500 }}>Asbestos Concentration</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationACM > 0.01 ? 'red' : 'black' }}>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFA > 0.001 ? 'red' : 'black' }}>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationAF > 0.001 ? 'red' : 'black' }}>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFAAF > 0.001 ? 'red' : 'black' }}>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-          </div>
-        </div>
-        <div
-          style={{ display: "flex", flexDirection: "row", justifyContent: 'flex-end', marginTop: 14, marginBottom: 14, }}
-        >
-          <div
-            style={{
-              backgroundColor: ch ? 'red' : 'white',
-              borderRadius: 5
-            }}
-          >
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: ch ? 'white' : '#ddd' }}
-              onClick={event => {
-                event.stopPropagation();
-                this.toggleResult("ch");
-              }}
-            >
-              CH
-            </Button>
-          </div>
-          <div
-            style={{
-              backgroundColor: am ? 'red' : 'white',
-              borderRadius: 5
-            }}
-          >
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: am ? 'white' : '#ddd' }}
-              onClick={event => {
-                event.stopPropagation();
-                this.toggleResult("am");
-              }}
-            >
-              AM
-            </Button>
-          </div>
-          <div
-            style={{
-              backgroundColor: cr ? 'red' : 'white',
-              borderRadius: 5
-            }}
-          >
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: cr ? 'white' : '#ddd' }}
-              onClick={event => {
-                event.stopPropagation();
-                this.toggleResult("cr");
-              }}
-            >
-              CR
-            </Button>
-          </div>
-          <div
-            style={{
-              backgroundColor: umf ? 'red' : 'white',
-              borderRadius: 5
-            }}
-          >
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: umf ? 'white' : '#ddd' }}
-              onClick={event => {
-                event.stopPropagation();
-                this.toggleResult("umf");
-              }}
-            >
-              UMF
-            </Button>
-          </div>
-        </div>
-        { fractionWeightNum === 3 && parseFloat(fractionTotalWeight) !== parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
-          The weight of all fractions does not match the total conditioned weight.
-        </div>}
-        { parseFloat(subFractionTotalWeight) > parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
-          The weight of all analysed subfractions exceeds the total conditioned weight of the entire sample!
-        </div>}
-        { allHaveTypes === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
-          Not all subfractions have been assigned an asbestos type (i.e. CH/AM/CR/UMF).
-        </div>}
-        { allHaveForms === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
-          Not all subfractions have been assigned an asbestos form (i.e. AF/FA/ACM). This will result in an incorrect concentration.
-        </div>}
-        { match === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
-          The cumulative result of the analysed fractions does not match with the reported asbestos result for the entire sample. Please check.
-        </div>}
       </div>
     );
   }

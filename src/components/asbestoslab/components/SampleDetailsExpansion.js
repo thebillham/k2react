@@ -25,18 +25,20 @@ import {
   receiveSample,
   startAnalysis,
   toggleResult,
+  holdSample,
   verifySample,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
   COC,
-  ASBESTOSSAMPLEDETAILS,
-  DOWNLOADLABCERTIFICATE,
+  ASBESTOS_SAMPLE_DETAILS,
+  DOWNLOAD_LAB_CERTIFICATE,
   UPDATE_CERTIFICATE_VERSION,
-  WAANALYSIS,
-  SAMPLEHISTORY,
-  COCLOG
+  WA_ANALYSIS,
+  SAMPLE_HISTORY,
+  COC_LOG,
+  CONFIRM_RESULT,
 } from "../../../constants/modal-types";
 
 import SampleDetailsExpansionWA from "./SampleDetailsExpansionWA";
@@ -72,6 +74,8 @@ import SampleLogIcon from "@material-ui/icons/Ballot";
 import SampleDetailsIcon from "@material-ui/icons/Edit";
 import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 
+import { addLog, } from '../../../actions/local';
+
 import Popup from "reactjs-popup";
 
 const mapStateToProps = state => {
@@ -93,18 +97,14 @@ const mapDispatchToProps = dispatch => {
 
 class SampleDetailsExpansion extends React.Component {
   toggleWAAnalysis = () => {
-    let cocLog = this.props.job.cocLog;
     let sample = this.props.sample;
-
-    if (!cocLog) cocLog = [];
-    cocLog.push({
+    let log = {
       type: "Admin",
       log: sample.waAnalysis ? `Western Australia guidelines removed from Sample ${sample.sampleNumber}` : `Western Australia guidelines added to Sample ${sample.sampleNumber}`,
-      user: auth.currentUser.uid,
-      userName: this.props.me.name,
-      date: new Date(),
       sample: sample.uid,
-    });
+      chainOfCustody: sample.cocUid,
+    };
+    addLog("asbestosLab", log, this.props.me);
 
     let waAnalysis = false;
     if (!sample.waAnalysis) {
@@ -118,7 +118,7 @@ class SampleDetailsExpansion extends React.Component {
 
     cocsRef
       .doc(this.props.job.uid)
-      .update({ versionUpToDate: false, cocLog: cocLog, waAnalysis: waAnalysis, });
+      .update({ versionUpToDate: false, waAnalysis: waAnalysis, });
     asbestosSamplesRef
       .doc(sample.uid)
       .update({ waAnalysis: !sample.waAnalysis});
@@ -396,7 +396,7 @@ class SampleDetailsExpansion extends React.Component {
                   onClick={event => {
                     event.stopPropagation();
                       this.props.showModal({
-                        modalType: ASBESTOSSAMPLEDETAILS,
+                        modalType: ASBESTOS_SAMPLE_DETAILS,
                         modalProps: {
                           doc: sample,
                           job: job,
@@ -417,7 +417,7 @@ class SampleDetailsExpansion extends React.Component {
                     onClick={event => {
                       event.stopPropagation();
                       this.props.showModal({
-                        modalType: WAANALYSIS,
+                        modalType: WA_ANALYSIS,
                         modalProps: {
                           doc: sample,
                           job: job,
@@ -433,13 +433,83 @@ class SampleDetailsExpansion extends React.Component {
                     />
                   </IconButton>
                 </Tooltip>
-              }
-              <Tooltip id="sl-tooltip" title={'Sample Log' }>
+              }</span>}
+              <IconButton
+                onClick={event => {
+                  event.stopPropagation();
+                  this.props.sampleAnchorMenu(sample.sampleNumber, event.currentTarget);
+                }}
+              >
+                <More />
+              </IconButton>
+              <Menu
+                id={`${
+                  job.jobNumber
+                }-${sample.sampleNumber.toString()}`}
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={event => {
+                  event.stopPropagation();
+                  this.props.sampleAnchorMenu(sample.sampleNumber, null);
+                }}
+                style={{ padding: 0 }}
+              >
+                <MenuItem
+                  key={`${
+                    job.jobNumber
+                  }-${sample.sampleNumber.toString()}-SampleHistory`}
+                  onClick={event => {
+                    event.stopPropagation();
+                    showModal({
+                      modalType: SAMPLE_HISTORY,
+                      modalProps: {
+                        title: `Sample History for ${
+                          job.jobNumber
+                        }-${sample.sampleNumber.toString()}`,
+                        uid: sample.uid,
+                    }
+                  });
+                }}
+                >
+                  View Sample History
+                </MenuItem>
+                <MenuItem
+                  key={`${
+                    job.jobNumber
+                  }-${sample.sampleNumber.toString()}-SampleHold`}
+                  onClick={event => {
+                    event.stopPropagation();
+                    holdSample(sample, job, this.props.me);
+                  }}
+                >
+                  {sample.onHold === true ? <span>Take Sample Off Hold</span> : <span>Put Sample On Hold</span>}
+                </MenuItem>
+                <MenuItem
+                  key={`${
+                    job.jobNumber
+                  }-${sample.sampleNumber.toString()}-SampleConfirm`}
+                  onClick={event => {
+                    event.stopPropagation();
+                    showModal({
+                      modalType: CONFIRM_RESULT,
+                      modalProps: {
+                        title: `Confirm Result for ${
+                          job.jobNumber
+                        }-${sample.sampleNumber.toString()}`,
+                        uid: sample.uid,
+                      }
+                    });
+                  }}
+                >
+                  Confirm Result
+                </MenuItem>
+              </Menu>
+              {/*<Tooltip id="sl-tooltip" title={'Sample Log' }>
                 <IconButton
                   onClick={event => {
                     event.stopPropagation();
                     this.props.showModal({
-                      modalType: SAMPLEHISTORY,
+                      modalType: SAMPLE_HISTORY,
                       modalProps: {
                         title: `Sample History for ${
                           job.jobNumber
@@ -456,7 +526,7 @@ class SampleDetailsExpansion extends React.Component {
                   />
                 </IconButton>
               </Tooltip></span>}
-              {/*<IconButton
+              <IconButton
                 onClick={event => {
                   event.stopPropagation();
                   this.props.sampleAnchorMenu(sample.sampleNumber, event.currentTarget);
@@ -480,7 +550,7 @@ class SampleDetailsExpansion extends React.Component {
                   onClick={event => {
                     event.stopPropagation();
                     this.props.showModal({
-                      modalType: SAMPLEHISTORY,
+                      modalType: SAMPLE_HISTORY,
                       modalProps: {
                         title: `Sample History for ${
                           job.jobNumber

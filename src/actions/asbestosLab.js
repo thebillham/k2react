@@ -30,6 +30,8 @@ import {
   auth,
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
+import React from "react";
+import Button from "@material-ui/core/Button";
 
 export const resetAsbestosLab = () => dispatch => {
   dispatch({ type: RESET_ASBESTOS_LAB });
@@ -417,6 +419,26 @@ export const logSample = (coc, sample, cocStats) => dispatch => {
 // SAMPLE PROGRESS CHANGES
 //
 
+export const holdSample = (sample, job, me) => {
+  let log = {
+    type: "Analysis",
+    log: sample.onHold
+      ? `Sample ${sample.sampleNumber} (${sample.description} ${
+          sample.material
+        }) analysis taken off hold.`
+      : `Sample ${sample.sampleNumber} (${sample.description} ${
+          sample.material
+        }) analysis put on hold.`,
+    sample: sample.uid,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me);
+  cocsRef
+    .doc(sample.cocUid)
+    .update({ versionUpToDate: false, });
+  asbestosSamplesRef.doc(sample.uid).update({ onHold: sample.onHold ? false : true, });
+}
+
 export const receiveAll = (samples, job, sessionID, me) => {
   if (samples && samples[job.uid] && Object.values(samples[job.uid]).length > 0) {
     Object.values(samples[job.uid]).forEach(sample => {
@@ -736,6 +758,215 @@ export const verifySample = (sample, job, me) => {
     );
   }
 };
+
+
+//
+// WA ANALYSIS/SAMPLE DETAILS
+//
+
+const fractionNames = ['gt7','to7','lt2'];
+const layerNum = 5;
+
+export const getWAAnalysisSummary = sample => {
+    let weightACM = 0;
+    let weightFA = 0;
+    let weightAF = 0;
+    let weightConditioned = sample.weightConditioned;
+    let ch = false;
+    let am = false;
+    let cr = false;
+    let umf = false;
+    let fractionTotalWeight = 0.0;
+    let fractionWeightNum = 0;
+    let subFractionTotalWeight = 0.0;
+    let asbestosTotalWeight = 0.0;
+    let allHaveTypes = true;
+    let allHaveForms = true;
+
+    fractionNames.forEach(fraction => {
+      if (sample && sample.waAnalysis && sample.waAnalysis['fraction' + fraction + 'WeightConditioned'] > 0) {
+        fractionWeightNum++;
+        fractionTotalWeight += parseFloat(sample.waAnalysis['fraction' + fraction + 'WeightConditioned']);
+      }
+
+      [...Array(sample && sample.layerNum && sample.layerNum[fraction] ? sample.layerNum[fraction] : layerNum).keys()].forEach(num => {
+        if (sample && sample.waSoilAnalysis && sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] !== undefined) {
+          let sub = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
+          if (sub.weight) {
+            subFractionTotalWeight += parseFloat(sub.weight);
+          }
+          if (sub.weight && sub.concentration) {
+            let asbestosWeight = (parseFloat(sub.weight) * parseFloat(sub.concentration) / 100);
+            asbestosTotalWeight += asbestosWeight;
+            if (sub.type === undefined) allHaveForms = false;
+            if (sub.type === 'fa') weightFA += parseFloat(asbestosWeight);
+              else if (sub.type === 'af') weightAF += parseFloat(asbestosWeight);
+              else if (sub.type === 'acm') weightACM += parseFloat(asbestosWeight);
+            if (sub.result) {
+              if (sub.result.ch === true) ch = true;
+              if (sub.result.am === true) am = true;
+              if (sub.result.cr === true) cr = true;
+              if (sub.result.umf === true) umf = true;
+              if (!sub.result.ch && !sub.result.am && !sub.result.cr && !sub.result.umf) allHaveTypes = false;
+            } else {
+              allHaveTypes = false;
+            }
+          }
+        }
+      });
+    });
+
+    let match = true;
+    if (sample.result) {
+      if ((ch || sample.result.ch) && ch !== sample.result.ch) match = false;
+      if ((am || sample.result.am) && am !== sample.result.am) match = false;
+      if ((cr || sample.result.cr) && cr !== sample.result.cr) match = false;
+      if ((umf || sample.result.umf) && umf !== sample.result.umf) match = false;
+    }
+
+    let concentrationFA = 0.0;
+    let concentrationAF = 0.0;
+    let concentrationACM = 0.0;
+    let concentrationFAAF = 0.0;
+    if (weightConditioned) {
+      concentrationFA = weightFA/weightConditioned*100;
+      concentrationAF = weightAF/weightConditioned*100;
+      concentrationACM = weightACM/weightConditioned*100;
+      concentrationFAAF = (weightFA+weightAF)/weightConditioned*100;
+    }
+    return(
+      <div style={{ width: 600, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, }}>
+        <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Totals</div>
+        <div style={{ flexDirection: 'row', display: 'flex', textAlign: 'right', marginTop: 14, }}>
+          <div style={{ width: 160, marginRight: 12, marginTop: 14, }}>
+            <div style={{ fontWeight: 500}}>Conditioned Weight: </div>
+            <div style={{ fontWeight: 500}}>Fraction Total: </div>
+            <div style={{ fontWeight: 500}}>Subfraction Total: </div>
+            <div style={{ fontWeight: 500}}>Asbestos Total: </div>
+          </div>
+          <div style={{ width: 80, marginRight: 12, marginTop: 14, }}>
+            <div>{weightConditioned ? <span>{parseFloat(weightConditioned).toFixed(2)}g</span> : <span>N/A</span>}</div>
+            <div>{fractionWeightNum === 3 ? <span>{parseFloat(fractionTotalWeight).toFixed(2)}g</span> : <span>N/A</span>}</div>
+            <div>{subFractionTotalWeight ? <span>{parseFloat(subFractionTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
+            <div>{asbestosTotalWeight > 0 ? <span>{parseFloat(asbestosTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
+          </div>
+        </div>
+        <div style={{ flexDirection: 'row', display: 'flex', justifyContent: 'flex-end', textAlign: 'right', marginTop: 14, }}>
+          <div style={{ width: 140, marginRight: 12, }}>
+            <div style={{ fontWeight: 500 }}>Type</div>
+            <div>ACM Bonded</div>
+            <div>Friable Asbestos</div>
+            <div>Asbestos Fines</div>
+            <div>FA/AF Total</div>
+          </div>
+          <div style={{ width: 140, }}>
+            <div style={{ fontWeight: 500 }}>Asbestos Weight</div>
+            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightACM.toFixed(6)}g</div>
+            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightFA.toFixed(6)}g</div>
+            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightAF.toFixed(6)}g</div>
+            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{(weightFA+weightAF).toFixed(6)}g</div>
+          </div>
+          <div style={{ width: 200, marginRight: 14, }}>
+            <div style={{ fontWeight: 500 }}>Asbestos Concentration</div>
+            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationACM > 0.01 ? 'red' : 'black' }}>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFA > 0.001 ? 'red' : 'black' }}>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationAF > 0.001 ? 'red' : 'black' }}>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFAAF > 0.001 ? 'red' : 'black' }}>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+          </div>
+        </div>
+        <div
+          style={{ display: "flex", flexDirection: "row", justifyContent: 'flex-end', marginTop: 14, marginBottom: 14, }}
+        >
+          <div
+            style={{
+              backgroundColor: ch ? 'red' : 'white',
+              borderRadius: 5
+            }}
+          >
+            <Button
+              variant="outlined"
+              style={{ margin: 5, color: ch ? 'white' : '#ddd' }}
+              onClick={null}
+            >
+              CH
+            </Button>
+          </div>
+          <div
+            style={{
+              backgroundColor: am ? 'red' : 'white',
+              borderRadius: 5
+            }}
+          >
+            <Button
+              variant="outlined"
+              style={{ margin: 5, color: am ? 'white' : '#ddd' }}
+              onClick={null}
+            >
+              AM
+            </Button>
+          </div>
+          <div
+            style={{
+              backgroundColor: cr ? 'red' : 'white',
+              borderRadius: 5
+            }}
+          >
+            <Button
+              variant="outlined"
+              style={{ margin: 5, color: cr ? 'white' : '#ddd' }}
+              onClick={null}
+            >
+              CR
+            </Button>
+          </div>
+          <div
+            style={{
+              backgroundColor: umf ? 'red' : 'white',
+              borderRadius: 5
+            }}
+          >
+            <Button
+              variant="outlined"
+              style={{ margin: 5, color: umf ? 'white' : '#ddd' }}
+              onClick={null}
+            >
+              UMF
+            </Button>
+          </div>
+        </div>
+        { fractionWeightNum === 3 && parseFloat(fractionTotalWeight) !== parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+          The weight of all fractions does not match the total conditioned weight.
+        </div>}
+        { parseFloat(subFractionTotalWeight) > parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+          The weight of all analysed subfractions exceeds the total conditioned weight of the entire sample!
+        </div>}
+        { allHaveTypes === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+          Not all subfractions have been assigned an asbestos type (i.e. CH/AM/CR/UMF).
+        </div>}
+        { allHaveForms === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+          Not all subfractions have been assigned an asbestos form (i.e. AF/FA/ACM). This will result in an incorrect concentration.
+        </div>}
+        { match === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+          The cumulative result of the analysed fractions does not match with the reported asbestos result for the entire sample. Please check.
+        </div>}
+      </div>
+    );
+  }
+
+export const getSampleDetails = sample => {
+  let conditioning = [];
+  if (sample.sampleConditioningFurnace === true) conditioning.push('Furnance');
+  if (sample.sampleConditioningLowHeat === true) conditioning.push('Low Heat');
+  if (sample.sampleConditioningDCM === true) conditioning.push('DCM Acid');
+  return (
+    <div>
+      <div>SAMPLE DETAILS</div>
+      {sample.soilDetails && <div>Soil Description: {writeSoilDetails(sample.soilDetails)}</div>}
+      {conditioning.length > 0 && <div>Sample Conditioning: {conditioning.join(", ")}</div>}
+      {sample.layers && <div>Layers</div>}
+    </div>
+  );
+}
 
 
 //
@@ -1296,10 +1527,12 @@ export const writeSoilDetails = details => {
   return finalStr;
 };
 
-export const getStats = job => {
-  let samples = job.samples;
+export const getStats = (samples, job) => {
   let jobID = job.uid;
   let versionUpToDate = job.versionUpToDate;
+  console.log('Getting stats');
+  console.log(job);
+  console.log(samples);
   let nz = moment.tz.setDefault("Pacific/Auckland");
   moment.tz.setDefault("Pacific/Auckland");
   moment.updateLocale('en', {
@@ -1458,8 +1691,9 @@ export const getStats = job => {
     maxReportBusinessTime,
     averageReportBusinessTime,
   };
+  console.log(stats);
 
-  // if (totalSamples !== 0 && this.props.job.stats !== stats) cocsRef.doc(this.props.job.uid).update({ stats });
+  if (totalSamples !== 0 && job.stats !== stats) cocsRef.doc(job.uid).update({ stats });
   return stats;
 };
 

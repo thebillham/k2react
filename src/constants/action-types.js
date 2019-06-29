@@ -33,6 +33,7 @@ export const GET_WFM_JOBS = "GET_WFM_JOBS";
 export const GET_WFM_JOB = "GET_WFM_JOB";
 export const GET_WFM_LEADS = "GET_WFM_LEADS";
 export const GET_WFM_CLIENTS = "GET_WFM_CLIENTS";
+export const GET_WFM_CONTACT = "GET_WFM_CONTACT";
 export const RESET_LOCAL = "RESET_LOCAL";
 export const SEARCH_CHANGE = "SEARCH_CHANGE";
 export const SET_STEPPER = "SET_STEPPER";

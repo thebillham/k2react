@@ -5,7 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../config/styles";
 import { connect } from "react-redux";
 // import store from '../../store';
-import { APPSETTINGS } from "../../constants/modal-types";
+import { APP_SETTINGS } from "../../constants/modal-types";
 import { appSettingsRef } from "../../config/firebase";
 import "../../config/tags.css";
 
@@ -74,6 +74,10 @@ class AppSettings extends React.Component {
       "Why Not Sampled Suggestions",
       "Asbestos Types",
       "Skills List",
+      "Generic Location Suggestions",
+      "Specific Location Suggestions",
+      "Asbestos Description Suggestions",
+      "Asbestos Material Suggestions",
       "Document Tag Suggestions",
       "Quiz Tag Suggestions",
       "Asset Categories",
@@ -88,7 +92,7 @@ class AppSettings extends React.Component {
     ];
     return (
       <Dialog
-        open={this.props.modalType === APPSETTINGS}
+        open={this.props.modalType === APP_SETTINGS}
         onClose={() => this.props.hideModal}
       >
         <DialogTitle>App Settings</DialogTitle>
@@ -104,7 +108,7 @@ class AppSettings extends React.Component {
                   value={setting}
                   input={<Input name="setting" id="setting" />}
                 >
-                  {settingTypes.map(setting => {
+                  {settingTypes.sort().map(setting => {
                     return (
                       <option key={setting} value={setting}>
                         {setting}
@@ -243,6 +247,138 @@ class AppSettings extends React.Component {
                             label: list[0]
                           };
                         })
+                        .map(option => {
+                          return { label: option };
+                        })
+                    });
+                  }}
+                />
+              )}
+
+              {setting === "Generic Location Suggestions" && (
+                <TextField
+                  id="genericLocationSuggestions"
+                  label="Specific Location Suggestions"
+                  multiline
+                  defaultValue={
+                    doc &&
+                    doc.genericLocationSuggestions &&
+                    doc.genericLocationSuggestions
+                      .map(obj => {
+                        return `${obj.label}|${obj.code}`;
+                      })
+                      .join("\n")
+                  }
+                  helperText='Put each tag on a new line in the form "room group name|room group code".'
+                  className={classes.dialogField}
+                  onChange={e => {
+                    this.props.handleModalChange({
+                      id: e.target.id,
+                      value: e.target.value
+                        .split("\n")
+                        .filter(Boolean)
+                        .sort()
+                        .map(option => {
+                          let list = option.split("|");
+                          return {
+                            code: list[1] ? list[1] : list[0],
+                            label: list[0]
+                          };
+                        })
+                    });
+                  }}
+                />
+              )}
+
+              {setting === "Specific Location Suggestions" && (
+                <TextField
+                  id="specificLocationSuggestions"
+                  label="Specific Location Suggestions"
+                  multiline
+                  defaultValue={
+                    doc &&
+                    doc.specificLocationSuggestions &&
+                    doc.specificLocationSuggestions
+                      .map(obj => {
+                        return `${obj.label}|${obj.code}`;
+                      })
+                      .join("\n")
+                  }
+                  helperText='Put each tag on a new line in the form "room name|room code".'
+                  className={classes.dialogField}
+                  onChange={e => {
+                    this.props.handleModalChange({
+                      id: e.target.id,
+                      value: e.target.value
+                        .split("\n")
+                        .filter(Boolean)
+                        .sort()
+                        .map(option => {
+                          let list = option.split("|");
+                          return {
+                            code: list[1] ? list[1] : list[0],
+                            label: list[0]
+                          };
+                        })
+                    });
+                  }}
+                />
+              )}
+
+              {setting === "Asbestos Description Suggestions" && (
+                <TextField
+                  id="asbestosDescriptionSuggestions"
+                  label="Asbestos Description Suggestions"
+                  multiline
+                  defaultValue={
+                    doc &&
+                    doc.asbestosDescriptionSuggestions &&
+                    doc.asbestosDescriptionSuggestions
+                      .map(obj => {
+                        return obj.label;
+                      })
+                      .join("\n")
+                  }
+                  helperText="Put each description on a new line."
+                  className={classes.dialogField}
+                  onChange={e => {
+                    this.props.handleModalChange({
+                      id: e.target.id,
+                      value: e.target.value
+                        .split("\n")
+                        .filter(Boolean)
+                        .sort()
+                        .map(option => {
+                          return { label: option };
+                        })
+                    });
+                  }}
+                />
+              )}
+
+              {setting === "Asbestos Material Suggestions" && (
+                <TextField
+                  id="asbestosMaterialSuggestions"
+                  label="Asbestos Material Suggestions"
+                  multiline
+                  defaultValue={
+                    doc &&
+                    doc.asbestosMaterialSuggestions &&
+                    doc.asbestosMaterialSuggestions
+                      .map(obj => {
+                        return obj.label;
+                      })
+                      .join("\n")
+                  }
+                  helperText="Put each material on a new line."
+                  className={classes.dialogField}
+                  onChange={e => {
+                    this.props.handleModalChange({
+                      id: e.target.id,
+                      value: e.target.value
+                        .split("\n")
+                        .filter(Boolean)
+                        .sort()
                         .map(option => {
                           return { label: option };
                         })

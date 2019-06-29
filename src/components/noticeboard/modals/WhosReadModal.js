@@ -5,7 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 // import store from '../../store';
-import { WHOSREAD } from "../../../constants/modal-types";
+import { WHOS_READ } from "../../../constants/modal-types";
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -47,7 +47,7 @@ class WhosReadModal extends React.Component {
 
     return (
       <Dialog
-        open={this.props.modalType === WHOSREAD}
+        open={this.props.modalType === WHOS_READ}
         onClose={() => this.props.hideModal}
       >
         <DialogTitle>

@@ -10,7 +10,7 @@ import Image from "@material-ui/icons/Image";
 import Delete from "@material-ui/icons/Delete";
 
 import AttrModal from "../modals/AttrModal";
-import { USERATTR } from "../../../constants/modal-types";
+import { USER_ATTR } from "../../../constants/modal-types";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { showModal } from "../../../actions/modal";
@@ -81,7 +81,7 @@ function AttrList(props) {
           <IconButton
             onClick={() => {
               props.showModal({
-                modalType: USERATTR,
+                modalType: USER_ATTR,
                 modalProps: {
                   doc: attr,
                   userPath: props.userPath,

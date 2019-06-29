@@ -5,7 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../config/styles";
 import { connect } from "react-redux";
 // import store from '../../store';
-import { UPDATEDATA } from "../../constants/modal-types";
+import { UPDATE_DATA } from "../../constants/modal-types";
 import "../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
@@ -111,7 +111,7 @@ class UpdateData extends React.Component {
     ];
     return (
       <Dialog
-        open={this.props.modalType === UPDATEDATA}
+        open={this.props.modalType === UPDATE_DATA}
         onClose={() => this.props.hideModal}
       >
         <DialogTitle>Update Cached Data</DialogTitle>

@@ -44,6 +44,7 @@ import {
   SET_STEPPER,
   UPDATE_STAFF,
   EDIT_MODAL_DOC,
+  GET_WFM_CONTACT,
 } from "../constants/action-types";
 import moment from "moment";
 import {
@@ -1037,6 +1038,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
       } else {
         let wfmJob = json.Response.Job;
         let job = {};
+        console.log(wfmJob);
         job.jobNumber = wfmJob.ID ? wfmJob.ID : "No job number";
         job.address = wfmJob.Name ? wfmJob.Name : "No address";
         job.description = wfmJob.Description
@@ -1051,16 +1053,16 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
           job.client = "No client name";
           job.clientID = "No client ID";
         }
-        console.log(wfmJob.ClientOrderNumber);
         job.clientOrderNumber = wfmJob.ClientOrderNumber && typeof wfmJob.ClientOrderNumber !== 'object'
           ? wfmJob.ClientOrderNumber
           : "";
-        if (job.clientOrderNumber)
         if (wfmJob.Contact) {
           if (wfmJob.Contact.ID) {
-            let path = `${process.env.REACT_APP_WFM_ROOT}client.api/contact/${wfmJob.Contact.ID}?apiKey=${
+            let contactID = wfmJob.Contact.ID;
+            let path = `${process.env.REACT_APP_WFM_ROOT}client.api/contact/${contactID}?apiKey=${
               process.env.REACT_APP_WFM_API
             }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+            console.log(path);
             fetch(path)
               .then(results => results.text())
               .then(data => {
@@ -1073,12 +1075,14 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
                   });
                 } else {
                   let contact = json.Response.Contact;
-                  job.contactID = wfmJob.Contact.ID;
-                  job.contactName = wfmJob.Contact.Name;
-                  job.contactEmail = contact.Email;
+                  let wfmContact = {};
+                  console.log(contact);
+                  wfmContact.contactID = contactID;
+                  wfmContact.contactName = contact.Name;
+                  wfmContact.contactEmail = contact.Email;
                   dispatch({
-                    type: GET_WFM_JOB,
-                    payload: job
+                    type: GET_WFM_CONTACT,
+                    payload: wfmContact,
                   });
                 }
               });

@@ -70,13 +70,14 @@ class DownloadLabCertificateModal extends React.Component {
               aria-label="File Type"
               name="filetype"
               className={classes.group}
-              value={this.state.value}
+              // value={this.state.value}
+              value={'doc'}
               onChange={event => this.setState({
                 fileType: event.target.value,
               })}
             >
-              <FormControlLabel value="pdf" control={<Radio />} label="PDF" />
-              <FormControlLabel value="doc" control={<Radio />} label="Word Document" />
+              <FormControlLabel value="pdf" control={<Radio disabled />} label="PDF" />
+              <FormControlLabel value="doc" control={<Radio disabled />} label="Word Document" />
             </RadioGroup>
           </FormControl>
         </DialogContent>
@@ -89,9 +90,9 @@ class DownloadLabCertificateModal extends React.Component {
               let url =
                 "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.template + "/" + this.state.fileType +
                 ".php?report=" + encodeURIComponent(JSON.stringify(modalProps.report));
-              url =
-                "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
-                encodeURIComponent(JSON.stringify(modalProps.report));
+              // url =
+              //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
+              //   encodeURIComponent(JSON.stringify(modalProps.report));
               console.log(url);
               window.open(url);
               this.props.hideModal();

@@ -12,7 +12,7 @@ import draftToHtml from "draftjs-to-html";
 import htmlToDraft from "html-to-draftjs";
 
 // import store from '../../store';
-import { METHOD, UPDATEMETHODVERSION } from "../../../constants/modal-types";
+import { METHOD, UPDATE_METHOD_VERSION } from "../../../constants/modal-types";
 import { methodsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
 import { sendSlackMessage } from "../../../Slack";
@@ -500,7 +500,7 @@ class MethodModal extends React.Component {
                   doc: doc,
                   pathRef: methodsRef
                 });
-                // this.props.showModal({ modalType: UPDATEMETHODVERSION, modalProps: { doc: doc, } });
+                // this.props.showModal({ modalType: UPDATE_METHOD_VERSION, modalProps: { doc: doc, } });
               }
               // this.sendNewAttrSlack();
             }}

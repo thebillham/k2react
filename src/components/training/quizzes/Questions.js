@@ -3,7 +3,7 @@ import React from "react";
 import Button from "@material-ui/core/Button";
 import List from "@material-ui/core/List";
 import Grid from "@material-ui/core/Grid";
-import { QUESTION, ADDTOQUIZ } from "../../../constants/modal-types";
+import { QUESTION, ADD_TO_QUIZ } from "../../../constants/modal-types";
 
 import { connect } from "react-redux";
 import {
@@ -173,7 +173,7 @@ class Questions extends React.Component {
                       }}
                       addToQuiz={() => {
                         this.props.showModal({
-                          modalType: ADDTOQUIZ,
+                          modalType: ADD_TO_QUIZ,
                           modalProps: { title: "Add To Quiz", doc: doc }
                         });
                       }}

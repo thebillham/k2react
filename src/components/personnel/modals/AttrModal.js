@@ -5,7 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 // import store from '../../store';
-import { USERATTR } from "../../../constants/modal-types";
+import { USER_ATTR } from "../../../constants/modal-types";
 import { usersRef, storage } from "../../../config/firebase";
 import "../../../config/tags.css";
 import { sendSlackMessage } from "../../../Slack";
@@ -96,7 +96,7 @@ class AttrModal extends React.Component {
     const { modalProps, doc, classes } = this.props;
     return (
       <Dialog
-        open={this.props.modalType === USERATTR}
+        open={this.props.modalType === USER_ATTR}
         onClose={() => this.props.hideModal}
       >
         <DialogTitle>

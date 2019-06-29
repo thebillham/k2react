@@ -19,6 +19,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
+import MenuItem from '@material-ui/core/MenuItem';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormLabel from '@material-ui/core/FormLabel';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -32,11 +33,8 @@ import InputLabel from '@material-ui/core/InputLabel';
 import IconButton from '@material-ui/core/IconButton';
 import Chip from '@material-ui/core/Chip';
 import Paper from '@material-ui/core/Paper'
-import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
-import Autosuggest from 'react-autosuggest';
-import match from 'autosuggest-highlight/match';
-import parse from 'autosuggest-highlight/parse';
+import { SuggestionField } from '../../../widgets/SuggestionField';
 
 import DayPicker, { DateUtils } from 'react-day-picker';
 import 'react-day-picker/lib/style.css';
@@ -44,16 +42,17 @@ import 'react-day-picker/lib/style.css';
 import Add from '@material-ui/icons/Add';
 import Sync from '@material-ui/icons/Sync';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, resetModal, } from '../../../actions/modal';
-import { fetchStaff, syncJobWithWFM, resetWfmJob, } from '../../../actions/local';
+import { fetchStaff, syncJobWithWFM, resetWfmJob, addLog, } from '../../../actions/local';
 import { fetchSamples, handleCocSubmit, handleSampleChange } from '../../../actions/asbestosLab';
 import _ from 'lodash';
-import deburr from 'lodash/deburr';
 import { asbestosSamplesRef } from "../../../config/firebase";
 
 const mapStateToProps = state => {
   return {
-    materialSuggestions: state.const.asbestosmaterials,
-    specificLocationSuggestions: state.const.roomsuggestions,
+    genericLocationSuggestions: state.const.genericLocationSuggestions,
+    specificLocationSuggestions: state.const.specificLocationSuggestions,
+    descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
+    materialSuggestions: state.const.asbestosMaterialSuggestions,
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
@@ -97,8 +96,10 @@ class CocModal extends React.Component {
     personnel: [],
     personnelSetup: [],
     personnelPickup: [],
-    materialSuggestions: [],
+    genericLocationSuggestions: [],
     specificLocationSuggestions: [],
+    descriptionSuggestions: [],
+    materialSuggestions: [],
     syncError: null,
     modified: false,
 
@@ -127,36 +128,14 @@ class CocModal extends React.Component {
       [type]: event.target.value,
       modified: true,
     });
-    if (this.props.doc.cocLog) {
-      let log = {
-        type: 'Edit',
-        log: `Sampling personnel details changed.`,
-        date: new Date(),
-        userName: this.props.me.name,
-        user: auth.currentUser.uid,
-      };
-      this.props.doc.cocLog.push(log);
-    }
+    let log = {
+      type: 'Edit',
+      log: `Sampling personnel details changed.`,
+      chainOfCustody: this.props.doc.uid,
+    };
+    addLog("asbestosLab", log, this.props.me);
     this.props.handleSelectChange({ id: type, value: event.target.value, })
   }
-
-  handleSuggestionsFetchRequestedMaterial = ({value}) => {
-    this.setState({
-      materialSuggestions: getSuggestions(value, 'materialSuggestions', this),
-    });
-  };
-
-  handleSuggestionsFetchRequestedLocation = ({value}) => {
-    this.setState({
-      specificLocationSuggestions: getSuggestions(value, 'specificLocationSuggestions', this),
-    });
-  };
-
-  handleSuggestionsClearRequested = (suggestions) => {
-    this.setState({
-      [suggestions]: [],
-    });
-  };
 
   handleDateChange = (day, { selected }) => {
     const { dates } = this.props.doc;
@@ -169,16 +148,12 @@ class CocModal extends React.Component {
       dates.push(day);
     }
     this.setState({ modified: true, });
-    if (this.props.doc.cocLog) {
-      let log = {
-        type: 'Edit',
-        log: 'Sampling dates changed.',
-        date: new Date(),
-        userName: this.props.me.name,
-        user: auth.currentUser.uid,
-      };
-      this.props.doc.cocLog.push(log);
-    }
+    let log = {
+      type: 'Edit',
+      log: 'Sampling dates changed.',
+      chainOfCustody: this.props.doc.uid,
+    };
+    addLog("asbestosLab", log, this.props.me);
     this.props.handleSelectChange({ id: 'dates', value: dates, })
   }
 
@@ -205,23 +180,8 @@ class CocModal extends React.Component {
   }
 
   render() {
-    const { modalProps, doc, wfmJob, classes } = this.props;
+    const { modalProps, doc, wfmJob, classes, me } = this.props;
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
-    const autosuggestProps = {
-      renderInputComponent,
-      getSuggestionValue,
-      renderSuggestion,
-      theme: {
-        container: { position: 'relative',},
-        suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
-        suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
-        suggestion: {display: 'block', },
-      },
-    };
-
-    // console.log(doc.samples);
-    // console.log(this.state.sampleEditModal);
-    // console.log(this.props.samples);
 
     const sampleEditModal = (
       <Dialog
@@ -237,90 +197,56 @@ class CocModal extends React.Component {
         {this.state.sampleEditModal && (
           <Grid container spacing={1}>
             <Grid item xs={12}>
-              <TextField
-                label={'Generic Location'}
-                style={{ width: '100%' }}
-                value={this.state.sampleEditModal.genericLocation}
-                onChange={e => {
-                  this.setState({
-                    sampleEditModal: {
-                      ...this.state.sampleEditModal,
-                      genericLocation: e.target.value,
-                    },
-                    sampleEditModified: true,
-                  });
-                }}
-              />
-            </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label={'Detailed Location'}
-                  style={{ width: '100%' }}
-                  value={this.state.sampleEditModal.specificLocation}
-                  onChange={e => {
+              {SuggestionField(this, false, 'genericLocationSuggestions', this.state.sampleEditModal.genericLocation,
+                (value) => {
                     this.setState({
                       sampleEditModal: {
                         ...this.state.sampleEditModal,
-                        specificLocation: e.target.value,
+                        genericLocation: value,
                       },
                       sampleEditModified: true,
                     });
-                  }}
-                />
-              </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label={'Description'}
-                style={{ width: '100%' }}
-                value={this.state.sampleEditModal.description}
-                onChange={e => {
-                  this.setState({
-                    sampleEditModal: {
-                      ...this.state.sampleEditModal,
-                      description: e.target.value,
-                    },
-                    sampleEditModified: true,
-                  });
-                }}
-              />
+                  }
+              )}
             </Grid>
             <Grid item xs={12}>
-              <Autosuggest
-                {...autosuggestProps}
-                onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
-                  this.setState({
-                    sampleEditModal: {
-                      ...this.state.sampleEditModal,
-                      material: suggestionValue,
-                    },
-                    sampleEditModified: true,
-                  });
-                }}
-                inputProps={{
-                  label: 'Material',
-                  value: this.state.sampleEditModal.material,
-                  onChange: e => {
+              {SuggestionField(this, false, 'specificLocationSuggestions', this.state.sampleEditModal.specificLocation,
+                (value) => {
                     this.setState({
                       sampleEditModal: {
                         ...this.state.sampleEditModal,
-                        material: e.target.value,
+                        specificLocation: value,
                       },
                       sampleEditModified: true,
                     });
-                  },
-                }}
-                theme={{
-                  container: { position: 'relative',},
-                  suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
-                  suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
-                  suggestion: {display: 'block', },
-                }}
-                renderSuggestionsContainer={options => (
-                  <Paper {...options.containerProps} square>
-                    {options.children}
-                  </Paper>
-                )}
-              />
+                  }
+              )}
+            </Grid>
+            <Grid item xs={12}>
+              {SuggestionField(this, false, 'descriptionSuggestions', this.state.sampleEditModal.description,
+                (value) => {
+                    this.setState({
+                      sampleEditModal: {
+                        ...this.state.sampleEditModal,
+                        description: value,
+                      },
+                      sampleEditModified: true,
+                    });
+                  }
+              )}
+            </Grid>
+            <Grid item xs={12}>
+              {SuggestionField(this, false, 'materialSuggestions', this.state.sampleEditModal.material,
+                (value) => {
+                    this.setState({
+                      sampleEditModal: {
+                        ...this.state.sampleEditModal,
+                        material: value,
+                      },
+                      sampleEditModified: true,
+                    });
+                  }
+              )}
             </Grid>
             <Grid item xs={12}>
               <Checkbox
@@ -371,17 +297,13 @@ class CocModal extends React.Component {
                 let log = {};
                 if (this.state.sampleDelete && window.confirm("Are you sure you wish to delete this sample?")) {
                   // Delete sample
-                  if (doc.cocLog) {
-                    log = {
-                      type: 'Delete',
-                      log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) deleted.`,
-                      date: new Date(),
-                      userName: this.props.me.name,
-                      user: auth.currentUser.uid,
-                      sample: this.state.sampleEditModal.uid,
-                    };
-                    doc.cocLog.push(log);
-                  }
+                  log = {
+                    type: 'Delete',
+                    log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) deleted.`,
+                    chainOfCustody: this.state.sampleEditModal.cocUid,
+                    sample: this.state.sampleEditModal.uid,
+                  };
+                  addLog("asbestosLab", log, me);
 
                   // Set sample DELETED flag to true
                   let newSamples = {...doc.samples,
@@ -412,17 +334,13 @@ class CocModal extends React.Component {
                     window.alert('Sample numbers must be a positive integer.')
                   } else if (doc.samples[this.state.sampleSwap] === undefined && window.confirm(`Are you sure you wish to move this sample to number ${this.state.sampleSwap}`)) {
                     // Move to sample number
-                    if (doc.cocLog) {
-                      log = {
-                        type: 'ID Change',
-                        log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) moved to sample number ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap}.`,
-                        date: new Date(),
-                        userName: this.props.me.name,
-                        user: auth.currentUser.uid,
-                        sample: this.state.sampleEditModal.uid,
-                      };
-                      doc.cocLog.push(log);
-                    }
+                    log = {
+                      type: 'ID Change',
+                      log: `Sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) moved to sample number ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap}.`,
+                      chainOfCustody: this.state.sampleEditModal.cocUid,
+                      sample: this.state.sampleEditModal.uid,
+                    };
+                    addLog("asbestosLab", log, me);
 
                     let newSamples = {...doc.samples,
                       [this.state.sampleSwap]: {
@@ -446,26 +364,20 @@ class CocModal extends React.Component {
                     });
                   } else if (doc.samples[this.state.sampleSwap] !== undefined && window.confirm(`There is already a sample using that sample number. Do you wish to swap sample ${this.state.sampleEditModal.sampleNumber} with sample ${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap]['description']} ${doc.samples[this.state.sampleSwap]['material']})?`)) {
                     // Swap sample number
-                    if (doc.cocLog) {
-                      log = {
-                        type: 'ID Change',
-                        log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
-                        date: new Date(),
-                        userName: this.props.me.name,
-                        user: auth.currentUser.uid,
-                        sample: this.state.sampleEditModal.uid,
-                      };
-                      doc.cocLog.push(log);
-                      log = {
-                        type: 'ID Change',
-                        log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
-                        date: new Date(),
-                        userName: this.props.me.name,
-                        user: auth.currentUser.uid,
-                        sample: doc.samples[this.state.sampleSwap].uid,
-                      };
-                      doc.cocLog.push(log);
-                    }
+                    log = {
+                      type: 'ID Change',
+                      log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
+                      chainOfCustody: this.state.sampleEditModal.cocUid,
+                      sample: this.state.sampleEditModal.uid,
+                    };
+                    addLog("asbestosLab", log, me);
+                    log = {
+                      type: 'ID Change',
+                      log: `Samples ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) and ${this.state.sampleEditModal.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
+                      chainOfCustody: this.state.sampleEditModal.cocUid,
+                      sample: doc.samples[this.state.sampleSwap].uid,
+                    };
+                    addLog("asbestosLab", log, me);
 
                     let newSamples = {...doc.samples,
                       [this.state.sampleSwap]: {
@@ -496,17 +408,13 @@ class CocModal extends React.Component {
                   window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
                 }
               } else {
-                  // console.log('Else');
-                  if (doc.cocLog) {
-                    log = {
-                      type: 'Edit',
-                      log: `Details of sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) modified.`,
-                      date: new Date(),
-                      userName: this.props.me.name,
-                      user: auth.currentUser.uid,
-                    };
-                    doc.cocLog.push(log);
-                  }
+                  log = {
+                    type: 'Edit',
+                    log: `Details of sample ${this.state.sampleEditModal.jobNumber}-${this.state.sampleEditModal.sampleNumber} (${this.state.sampleEditModal.description} ${this.state.sampleEditModal.material}) modified.`,
+                    sample: this.state.sampleEditModal.uid,
+                    chainOfCustody: this.state.sampleEditModal.cocUid,
+                  };
+                  addLog("asbestosLab", log, me);
                   let i = parseInt(this.state.sampleEditModal.sampleNumber) - 1;
                   this.props.handleSampleChange(i, 'reported', false);
                   this.props.handleSampleChange(i, 'genericLocation', this.state.sampleEditModal.genericLocation);
@@ -724,7 +632,7 @@ class CocModal extends React.Component {
                     <TextField
                       id="labContactName"
                       label="Contact Name"
-                      defaultValue={doc && doc.labContactName}
+                      defaultValue={doc && doc.labContactName ? doc.labContactName : doc.contactName}
                       onChange={e => {
                         this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'labContactName', value: e.target.value});
@@ -733,7 +641,7 @@ class CocModal extends React.Component {
                     <TextField
                       id="labContactNumber"
                       label="Contact Number/Email"
-                      defaultValue={doc && doc.labContactNumber}
+                      defaultValue={doc && doc.labContactNumber ? doc.labContactNumber : doc.contactEmail}
                       onChange={e => {
                         this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'labContactNumber', value: e.target.value});
@@ -749,10 +657,10 @@ class CocModal extends React.Component {
                   <Grid container style={{ fontWeight: 450, marginLeft: 12, }}>
                     <Grid item xs={1}>
                     </Grid>
-                    <Grid item xs={2}>
+                    <Grid item xs={1}>
                       Generic Location
                     </Grid>
-                    <Grid item xs={2}>
+                    <Grid item xs={3}>
                       Specific Location
                     </Grid>
                     <Grid item xs={4}>
@@ -765,17 +673,17 @@ class CocModal extends React.Component {
                     <Grid container style={{ fontWeight: 100, fontSize: 10, marginLeft: 12, }}>
                       <Grid item xs={1}>
                       </Grid>
-                      <Grid item xs={2}>
-                        e.g. External or 1st Floor
+                      <Grid item xs={1}>
+                        e.g. 1st Floor
                       </Grid>
-                      <Grid item xs={2}>
+                      <Grid item xs={3}>
                         e.g. South elevation or Kitchen
                       </Grid>
                       <Grid item xs={4}>
-                        e.g. Cement sheet soffit or Blue patterned vinyl flooring
+                        e.g. Soffit or Blue patterned vinyl flooring
                       </Grid>
                       <Grid item xs={2}>
-                        e.g. Cement products
+                        e.g. fibre cement, vinyl with paper backing
                       </Grid>
                     </Grid>
                   {Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
@@ -796,82 +704,44 @@ class CocModal extends React.Component {
                             </div>
                           </Grid>
                           <Grid item xs={1} style={{ paddingLeft: 12, paddingRight: 12, }}>
-                            <TextField
-                              id={`roomgroup${i+1}`}
-                              disabled={disabled}
-                              style={{ width: '100%' }}
-                              value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
-                              onChange={e => {
+                            {SuggestionField(this, disabled, 'genericLocationSuggestions',
+                              doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : '',
+                              (value) => {
                                 this.setState({ modified: true, });
                                 this.props.handleSampleChange(i, 'reported', false);
-                                this.props.handleSampleChange(i, 'genericLocation', e.target.value);
-                              }}
-                            />
+                                this.props.handleSampleChange(i, 'genericLocation', value);
+                              }
+                            )}
                           </Grid>
                           <Grid item xs={3} style={{ paddingLeft: 12, paddingRight: 12, }}>
-                            <Autosuggest
-                              {...autosuggestProps}
-                              suggestions = {this.state.specificLocationSuggestions}
-                              onSuggestionsFetchRequested = {_.debounce(this.handleSuggestionsFetchRequestedLocation, 100)}
-                              onSuggestionsClearRequested = {() => this.handleSuggestionsClearRequested('specificLocationSuggestions')}
-                              onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
+                            {SuggestionField(this, disabled, 'specificLocationSuggestions',
+                              doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : '',
+                              (value) => {
                                 this.setState({ modified: true, });
                                 this.props.handleSampleChange(i, 'reported', false);
-                                this.props.handleSampleChange(i, 'specificLocation', suggestionValue); }}
-                              inputProps={{
-                                disabled: disabled,
-                                value: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : '',
-                                onChange: e => {
-                                  this.setState({ modified: true, });
-                                  this.props.handleSampleChange(i, 'reported', false);
-                                  this.props.handleSampleChange(i, 'specificLocation', e.target.value)
-                                },
-                              }}
-                              renderSuggestionsContainer = {options => (
-                                <Paper {...options.containerProps} square>
-                                  {options.children}
-                                </Paper>
-                              )}
-                            />
+                                this.props.handleSampleChange(i, 'specificLocation', value);
+                              }
+                            )}
                           </Grid>
                           <Grid item xs={4} style={{ paddingLeft: 12, paddingRight: 12, }}>
-                            <TextField
-                              id={`description${i+1}`}
-                              disabled={disabled}
-                              style={{ width: '100%' }}
-                              value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
-                              onChange={e => {
+                            {SuggestionField(this, disabled, 'descriptionSuggestions',
+                              doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : '',
+                              (value) => {
                                 this.setState({ modified: true, });
                                 this.props.handleSampleChange(i, 'reported', false);
-                                this.props.handleSampleChange(i, 'description', e.target.value);
-                              }}
-                            />
+                                this.props.handleSampleChange(i, 'description', value);
+                              }
+                            )}
                           </Grid>
                           <Grid item xs={2} style={{ paddingLeft: 12, }}>
-                            <Autosuggest
-                              {...autosuggestProps}
-                              suggestions = {this.state.materialSuggestions}
-                              onSuggestionsFetchRequested = {_.debounce(this.handleSuggestionsFetchRequestedMaterial, 100)}
-                              onSuggestionsClearRequested = {() => this.handleSuggestionsClearRequested('materialSuggestions')}
-                              onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
+                            {SuggestionField(this, disabled, 'materialSuggestions',
+                              doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
+                              (value) => {
                                 this.setState({ modified: true, });
                                 this.props.handleSampleChange(i, 'reported', false);
-                                this.props.handleSampleChange(i, 'material', suggestionValue); }}
-                              inputProps={{
-                                disabled: disabled,
-                                value: doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
-                                onChange: e => {
-                                  this.setState({ modified: true, });
-                                  this.props.handleSampleChange(i, 'reported', false);
-                                  this.props.handleSampleChange(i, 'material', e.target.value)
-                                },
-                              }}
-                              renderSuggestionsContainer = {options => (
-                                <Paper {...options.containerProps} square>
-                                  {options.children}
-                                </Paper>
-                              )}
-                            />
+                                this.props.handleSampleChange(i, 'material', value);
+                              }
+                            )}
                           </Grid>
                     </Grid>
                         )
@@ -907,6 +777,8 @@ class CocModal extends React.Component {
                 doc.address = wfmJob.address ? wfmJob.address : null;
                 doc.clientOrderNumber = wfmJob.clientOrderNumber ? wfmJob.clientOrderNumber : null;
                 doc.contact = wfmJob.contact ? wfmJob.contact : null;
+                doc.contactName = wfmJob.contactName ? wfmJob.contactName : null;
+                doc.contactEmail = wfmJob.contactEmail ? wfmJob.contactEmail : null;
                 doc.dueDate = wfmJob.dueDate ? wfmJob.dueDate : null;
                 doc.manager = wfmJob.manager ? wfmJob.manager : null;
                 doc.type = wfmJob.type ? wfmJob.type : null;
@@ -915,21 +787,20 @@ class CocModal extends React.Component {
               if (!doc.dateSubmit) doc.dateSubmit = now;
               doc.lastModified = now;
               doc.versionUpToDate = false;
+              doc.stats = { status: 'In Transit'};
+              if (Object.keys(doc.samples).length === 0) doc.stats.status = 'No Samples';
               this.props.resetWfmJob();
               console.log(`Doc UID exists it is ${doc.uid}`);
-              if (!doc.cocLog) {
-                doc.cocLog = [{
+              let log = {
                   type: 'Create',
                   log: `Chain of Custody created.`,
-                  date: new Date(),
-                  userName: this.props.me.name,
-                  user: auth.currentUser.uid,
-                }];
-              }
+                  chainOfCustody: doc.uid,
+                };
+              addLog("asbestosLab", log, me);
               doc.deleted = false;
               this.props.handleCocSubmit({
                 doc: doc,
-                me: this.props.me,
+                me: me,
               });
             }
           }
@@ -939,66 +810,5 @@ class CocModal extends React.Component {
     )
   }
 }
-
-function renderInputComponent(inputProps) {
-  const { classes, inputRef = () => {}, ref, ...other } = inputProps;
-
-  return (
-    <TextField
-      fullWidth
-      InputProps={{
-        inputRef: node => {
-          ref(node);
-          inputRef(node);
-        },
-      }}
-      {...other}
-    />
-  );
-}
-
-function renderSuggestion(suggestion, { query, isHighlighted }) {
-  const matches = match(suggestion.label, query);
-  const parts = parse(suggestion.label, matches);
-
-  return (
-    <MenuItem selected={isHighlighted} component="div">
-      <div>
-        {parts.map((part, index) => {
-          return part.highlight ? (
-            <span key={String(index)} style={{ fontWeight: 500 }}>
-              {part.text}
-            </span>
-          ) : (
-            <strong key={String(index)} style={{ fontWeight: 300 }}>
-              {part.text}
-            </strong>
-          );
-        })}
-      </div>
-    </MenuItem>
-  );
-}
-
-function getSuggestions(value, suggestions, that) {
-  const inputValue = deburr(value.trim()).toLowerCase();
-  const inputLength = inputValue.length;
-  let count = 0;
-
-  return inputLength === 0
-    ? []
-    : that.props[suggestions].filter(suggestion => {
-        const keep =
-          count < 5 && suggestion.label.slice(0, inputLength).toLowerCase() === inputValue;
-
-        if (keep) {
-          count += 1;
-        }
-
-        return keep;
-      });
-}
-
-const getSuggestionValue = suggestion => suggestion.label;
 
 export default withStyles(modalStyles)(connect(mapStateToProps, mapDispatchToProps)(CocModal));

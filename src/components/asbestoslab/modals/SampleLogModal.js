@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { SAMPLEHISTORY } from "../../../constants/modal-types";
+import { SAMPLE_HISTORY } from "../../../constants/modal-types";
 import { docsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -43,7 +43,7 @@ class SampleLogModal extends React.Component {
     // console.log(modalProps.uid.toString());
     return (
       <Dialog
-        open={modalType === SAMPLEHISTORY}
+        open={modalType === SAMPLE_HISTORY}
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}

@@ -5,7 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { ASBESTOSSAMPLEDETAILS, SOILDETAILS } from "../../../constants/modal-types";
+import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS } from "../../../constants/modal-types";
 import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -33,6 +33,7 @@ import UploadIcon from "@material-ui/icons/CloudUpload";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
+import { addLog, } from "../../../actions/local";
 import {
   handleSampleChange,
   writeSoilDetails,
@@ -147,7 +148,7 @@ class AsbestosSampleDetailsModal extends React.Component {
       <div>
       {sample &&
       <Dialog
-        open={modalType === ASBESTOSSAMPLEDETAILS}
+        open={modalType === ASBESTOS_SAMPLE_DETAILS}
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
@@ -407,7 +408,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   style={{ marginBottom: 16, marginTop: 16, }}
                   onClick={() => {
                     this.props.showModalSecondary({
-                      modalType: SOILDETAILS,
+                      modalType: SOIL_DETAILS,
                       modalProps: {
                         title: "Edit Soil Details",
                         doc: sample,
@@ -521,16 +522,10 @@ class AsbestosSampleDetailsModal extends React.Component {
                 log: `Sample ${sample.sampleNumber} (${sample.description} ${
                       sample.material
                     }) details edited.`,
-                user: auth.currentUser.uid,
                 sample: sample.uid,
-                userName: this.props.me.name,
-                date: new Date()
+                chainOfCustody: sample.cocUid,
               };
-              let cocLog = modalProps.job.cocLog;
-              cocLog ? cocLog.push(log) : (cocLog = [log]);
-              cocsRef
-                .doc(modalProps.job.uid)
-                .update({ cocLog: cocLog });
+              addLog("asbestosLab", log, this.props.me);
             }}
             color="primary"
           >

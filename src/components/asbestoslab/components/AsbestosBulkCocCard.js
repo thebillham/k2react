@@ -33,9 +33,9 @@ import { syncJobWithWFM, addLog, } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
   COC,
-  DOWNLOADLABCERTIFICATE,
+  DOWNLOAD_LAB_CERTIFICATE,
   UPDATE_CERTIFICATE_VERSION,
-  COCLOG
+  COC_LOG
 } from "../../../constants/modal-types";
 
 import SampleDetailsExpansion from "./SampleDetailsExpansion";
@@ -124,7 +124,8 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   render() {
-    const { job, samples } = this.props;
+    const { jobID, samples, cocs } = this.props;
+    let job = cocs[jobID];
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     let analysts = getAnalysts(job, samples[job.uid], false);
@@ -133,7 +134,7 @@ class AsbestosBulkCocCard extends React.Component {
       let formatDate = date instanceof Date ? date : date.toDate();
       return moment(formatDate).format('D MMMM YYYY');
     });
-    let stats = getStats(samples, job.uid, job.versionUpToDate);
+    let stats = getStats(samples, job);
 
     return (
       <ExpansionPanel
@@ -241,7 +242,7 @@ class AsbestosBulkCocCard extends React.Component {
                 <MenuItem
                   onClick={() => {
                     this.props.showModal({
-                      modalType: COCLOG,
+                      modalType: COC_LOG,
                       modalProps: {
                         ...job,
                       }

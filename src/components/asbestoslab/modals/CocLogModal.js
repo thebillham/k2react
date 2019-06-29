@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { COCLOG } from "../../../constants/modal-types";
+import { COC_LOG } from "../../../constants/modal-types";
 import { docsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -40,7 +40,7 @@ class CocLogModal extends React.Component {
     const { classes, modalProps, modalType, logs } = this.props;
     return (
       <Dialog
-        open={modalType === COCLOG}
+        open={modalType === COC_LOG}
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}

@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../../store";
-import { ADDTOQUIZ } from "../../../../constants/modal-types";
+import { ADD_TO_QUIZ } from "../../../../constants/modal-types";
 import { docsRef, quizzesRef } from "../../../../config/firebase";
 import "../../../../config/tags.css";
 
@@ -87,7 +87,7 @@ class UpdateCertificateVersion extends React.Component {
     const { classes, modalProps, modalType } = this.props;
     return (
       <Dialog
-        open={modalType === ADDTOQUIZ}
+        open={modalType === ADD_TO_QUIZ}
         onClose={this.props.hideModal}
       >
         <DialogTitle>Add Question to Quiz</DialogTitle>

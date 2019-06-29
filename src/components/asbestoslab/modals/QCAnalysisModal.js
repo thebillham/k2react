@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { QCANALYSIS } from "../../../constants/modal-types";
+import { QC_ANALYSIS } from "../../../constants/modal-types";
 import { docsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -38,7 +38,7 @@ class QCAnalysisModal extends React.Component {
     const { classes, modalProps, modalType } = this.props;
     return (
       <Dialog
-        open={modalType === QCANALYSIS}
+        open={modalType === QC_ANALYSIS}
         onClose={this.props.hideModal}
       >
         <DialogTitle>{modalProps.title}</DialogTitle>

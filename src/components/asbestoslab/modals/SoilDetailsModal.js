@@ -3,7 +3,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { SOILDETAILS } from "../../../constants/modal-types";
+import { SOIL_DETAILS } from "../../../constants/modal-types";
 import { cocsRef, auth } from "../../../config/firebase";
 
 import Button from "@material-ui/core/Button";
@@ -100,7 +100,7 @@ class SoilDetailsModal extends React.Component {
       <div>
       {modalProps && modalProps.doc && sample &&
       <Dialog
-        open={modalType === SOILDETAILS}
+        open={modalType === SOIL_DETAILS}
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
@@ -1038,18 +1038,9 @@ class SoilDetailsModal extends React.Component {
                 log: `Sample ${this.props.modalProps.doc.sampleNumber} (${this.props.modalProps.doc.description} ${
                       this.props.modalProps.doc.material
                     }) geotechnical information edited.`,
-                user: auth.currentUser.uid,
                 sample: this.props.modalProps.doc.uid,
-                userName: this.props.me.name,
-                date: new Date()
+                chainOfCustody: this.props.modalProps.doc.cocUid,
               };
-              console.log(log);
-              let cocLog = this.props.modalPropsMain.job.cocLog;
-              cocLog ? cocLog.push(log) : (cocLog = [log]);
-              cocsRef
-                .doc(this.props.modalPropsMain.job.uid)
-                .update({ cocLog: cocLog });
-
               modalProps.onExit(this.state.sample);
               this.props.hideModal();
             }}

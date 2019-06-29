@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { modalStyles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { UPDATEMETHODVERSION } from "../../../constants/modal-types";
+import { UPDATE_METHOD_VERSION } from "../../../constants/modal-types";
 import { methodsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -62,7 +62,7 @@ class UpdateMethodVersionModal extends React.Component {
     const { change, newVersion } = this.state;
     return (
       <Dialog
-        open={modalType === UPDATEMETHODVERSION}
+        open={modalType === UPDATE_METHOD_VERSION}
         onClose={this.props.hideModal}
       >
         <DialogTitle>Update Method</DialogTitle>

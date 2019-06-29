@@ -15,6 +15,7 @@ import {
   GET_WFM_JOB,
   GET_WFM_LEADS,
   GET_WFM_CLIENTS,
+  GET_WFM_CONTACT,
   GET_QUIZZES,
   GET_QUIZLOG,
   GET_QUESTIONS,
@@ -41,7 +42,7 @@ import {
   SET_ANALYST,
   SET_ANALYSIS_MODE,
   SAVE_WFM_ITEMS,
-  SAVE_WFM_STATS
+  SAVE_WFM_STATS,
 } from "../constants/action-types";
 
 import { stateRef } from "../config/firebase";
@@ -240,6 +241,11 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         wfmJob: action.payload
+      };
+    case GET_WFM_CONTACT:
+      return {
+        ...state,
+        wfmJob: {...state.wfmJob, ...action.payload}
       };
     case GET_WFM_LEADS:
       return {

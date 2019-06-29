@@ -9,7 +9,7 @@ import {
 } from "react-router-dom";
 import { auth, constRef, noticesRef, } from "../config/firebase";
 import { connect } from "react-redux";
-import { APPSETTINGS, UPDATEDATA } from "../constants/modal-types";
+import { APP_SETTINGS, UPDATE_DATA } from "../constants/modal-types";
 
 import PropTypes from "prop-types";
 import classNames from "classnames";
@@ -463,7 +463,7 @@ class MainScreen extends React.Component {
                 button
                 onClick={() => {
                   this.props.showModal({
-                    modalType: APPSETTINGS,
+                    modalType: APP_SETTINGS,
                     modalProps: { doc: this.props.state.const }
                   });
                 }}
@@ -476,7 +476,7 @@ class MainScreen extends React.Component {
               <ListItem
                 button
                 onClick={() => {
-                  this.props.showModal({ modalType: UPDATEDATA });
+                  this.props.showModal({ modalType: UPDATE_DATA });
                 }}
               >
                 <ListItemIcon>
