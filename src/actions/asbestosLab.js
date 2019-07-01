@@ -1078,13 +1078,9 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
     Object.values(samples).forEach(sample => {
       if (sample.verified && sample.cocUid === job.uid) {
         let sampleMap = {};
-        if (sample.disabled) return;
+        if (sample.disabled || sample.onHold) return;
         sampleMap["no"] = sample.sampleNumber;
-        sampleMap["description"] =
-          sample.description.charAt(0).toUpperCase() +
-          sample.description.slice(1);
-        sampleMap["material"] =
-          sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
+        sampleMap["description"] = writeReportDescription(sample);
         sampleMap["result"] = writeResult(sample.result);
         sampleList.push(sampleMap);
       }
@@ -1114,6 +1110,7 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
     version: version ? version : 1,
     samples: sampleList
   };
+  console.log(report);
   return report;
 };
 
@@ -1136,14 +1133,15 @@ export const issueLabReport = (job, samples, version, changes, staffList, me) =>
     changes: changes,
     data: json,
   };
-  cocsRef.doc(job.uid).update(
-    {
+  let update = {
       currentVersion: version,
       versionHistory: versionHistory,
       versionUpToDate: true,
       lastModified: new Date(),
-    }
-  );
+    };
+  // console.log(update)
+  // console.log(job);
+  cocsRef.doc(job.uid).update(update);
 };
 
 export const printLabReport = (job, version, me, showModal) => {
@@ -1251,6 +1249,59 @@ export const writeDescription = (sample) => {
   return str;
 };
 
+export const writeReportDescription = (sample) => {
+  let report = sample.report ? sample.report : {soilDescription: true, layers: true, dimensions: true, weight: true,};
+  let lines = [];
+  // Generic information
+  // LOCATION (e.g.
+  // Lounge
+  // 1st Floor, Dining Room
+  // 2nd Floor
+  // )
+  let genericLocation = sample.genericLocation && sample.genericLocation.length > 0 ? sample.genericLocation.charAt(0).toUpperCase() + sample.genericLocation.slice(1) : '';
+  let specificLocation = sample.specificLocation && sample.specificLocation.length > 0 ? sample.specificLocation.charAt(0).toUpperCase() + sample.specificLocation.slice(1) : '';
+  let location = genericLocation.length > 0 && specificLocation.length > 0 ? genericLocation + ", " + specificLocation : genericLocation + specificLocation;
+
+  // e.g. Dark grey vinyl sheet flooring (vinyl with paper backing)
+  // e.g. Soffits (cement sheet)
+  // e.g. Cement sheet
+  // e.g. Soffits
+  let description = sample.description && sample.description.length > 0 ? sample.description.charAt(0).toUpperCase() + sample.description.slice(1) : '';
+  let material = sample.material && sample.material.length > 0 ? sample.material : '';
+  let fullDesc = description.length > 0 && material.length > 0 ? description + ' (' + material + ')' : (description + material).charAt(0).toUpperCase() + (description + material).slice(1);
+
+  if ((location + fullDesc).length > 0) lines.push(location.length > 0 && fullDesc.length > 0 ? location + ': ' + fullDesc : location + fullDesc);
+
+  // ~ at start means make italic, * means make bold
+  if (report['soilDescription'] === true) lines.push("~" + writeSoilDetails(sample.soilDetails));
+  if (report['layers'] === true) {
+    [...Array(sample.layerNum).keys()].forEach(num => {
+      if (sample.layers[`layer${num+1}`] !== undefined) {
+        let lay = sample.layers[`layer${num+1}`];
+        let layStr = 'L' + (num+1).toString() + ': ' + lay.description;
+        if (getBasicResult(lay) === 'positive') layStr = '*' + layStr;
+        if (lay.description !== undefined) lines.push(layStr);
+      }
+    });
+  }
+  let dimensions = '';
+  if (report['dimensions'] === true) {
+    let dim = [];
+    if (sample.dimensionsL) dim.push(sample.dimensionsL);
+    if (sample.dimensionsW) dim.push(sample.dimensionsW);
+    if (sample.dimensionsD) dim.push(sample.dimensionsD);
+    if (dim.length > 0) dimensions = dim.join(' x ') + ' mm';
+  }
+  if (report['weight'] === true) {
+    if (dimensions.length > 0) dimensions = dimensions + ', ';
+    if (sample.weightAnalysed) dimensions = dimensions + sample.weightAnalysed + "g"
+  }
+  if (dimensions.length > 0) lines.push(dimensions);
+  console.log('LINES');
+  console.log(lines);
+  return lines;
+}
+
 export const getResultColor = (state, type, noColor, yesColor) => {
   if(state && state[type] === true) return yesColor;
   return noColor;
@@ -1305,19 +1356,23 @@ export const getBasicResult = (sample) => {
 
 export const writeResult = result => {
   let detected = [];
-  if (result === undefined) return "Not analysed";
+  if (result === undefined) return "Not Analysed";
   Object.keys(result).forEach(type => {
     if (result[type]) detected.push(type);
   });
-  if (detected.length < 1) return "Not analysed";
-  if (detected[0] === "no") return "No asbestos detected";
+  if (detected.length < 1) return "Not Analysed";
+  let others = '';
+  if (result["org"]) others = "Organic Fibres\n";
+  if (result["smf"]) others = others + "Synthetic Mineral Fibres\n";
+  if (others.length > 0) others = "\n" + others;
+  if (result["no"]) return "No Asbestos Detected" + others;
   let asbestos = [];
-  if (result["ch"]) asbestos.push("chrysotile");
-  if (result["am"]) asbestos.push("amosite");
-  if (result["cr"]) asbestos.push("crocidolite");
+  if (result["ch"]) asbestos.push("Chrysotile");
+  if (result["am"]) asbestos.push("Amosite");
+  if (result["cr"]) asbestos.push("Crocidolite");
   if (asbestos.length > 0) {
     asbestos[asbestos.length - 1] =
-      asbestos[asbestos.length - 1] + " asbestos";
+      asbestos[asbestos.length - 1] + " Asbestos";
   }
   let str = "";
   if (asbestos.length === 1) {
@@ -1329,13 +1384,13 @@ export const writeResult = result => {
   detected.forEach(detect => {
     if (detect === "umf") {
       if (asbestos.length > 0) {
-        str = str + " and unknown mineral fibres (UMF)";
+        str = str + " and Unidentified Mineral Fibres (UMF)";
       } else {
-        str = "unknown mineral fibres (UMF)";
+        str = "Unidentified Mineral Fibres (UMF)";
       }
     }
   });
-  return str.charAt(0).toUpperCase() + str.slice(1) + " detected";
+  return str.charAt(0).toUpperCase() + str.slice(1) + " Detected" + others;
 };
 
 export const writeShorthandResult = result => {

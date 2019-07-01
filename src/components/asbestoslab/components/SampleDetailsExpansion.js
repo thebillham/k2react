@@ -72,6 +72,8 @@ import AnalysisIcon from "@material-ui/icons/Colorize";
 import WAIcon from "@material-ui/icons/GroupWork";
 import SampleLogIcon from "@material-ui/icons/Ballot";
 import SampleDetailsIcon from "@material-ui/icons/Edit";
+import HoldIcon from "@material-ui/icons/PauseCircleOutline";
+import ConfirmIcon from "@material-ui/icons/ThumbUp";
 import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 
 import { addLog, } from '../../../actions/local';
@@ -154,12 +156,8 @@ class SampleDetailsExpansion extends React.Component {
               }}>
                 <Popup
                   trigger={
-                    <CameraAlt
-                      style={{
-                        fontSize: 24,
-                        color: colours.cameraColor,
-                        margin: 10
-                      }}
+                    <CameraAlt className={classes.asbestosIcon}
+                      style={{color: colours.cameraColor,}}
                     />
                   }
                   position="right center"
@@ -202,37 +200,31 @@ class SampleDetailsExpansion extends React.Component {
               display: 'flex',
               flexDirection: 'row',
             }}>
-              <IconButton
-                onClick={event => {
-                  event.stopPropagation();
-                  receiveSample(sample, job, this.props.samples, this.props.sessionID, this.props.me);
-                }}
-              >
-                <Inbox
-                  style={{
-                    fontSize: 24,
-                    margin: 10,
-                    color: colours.receivedColor
-                  }}
-                />
-              </IconButton>
+              <Tooltip title='Mark as Received by Lab'>
                 <IconButton
                   onClick={event => {
                     event.stopPropagation();
-                    startAnalysis(sample, job, this.props.sessionID, this.props.me);
+                    receiveSample(sample, job, this.props.samples, this.props.sessionID, this.props.me);
                   }}
                 >
-                  <AnalysisIcon
-                    style={{
-                      fontSize: 24,
-                      margin: 10,
-                      color: colours.analysisColor
-                    }}
+                  <Inbox className={classes.asbestosIcon}
+                    style={{color: colours.receivedColor}}
                   />
-                </IconButton>
-              <div
-                style={{ display: "flex", flexDirection: "row" }}
-              >
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Start Analysis'>
+                    <IconButton
+                      onClick={event => {
+                        event.stopPropagation();
+                        startAnalysis(sample, job, this.props.sessionID, this.props.me);
+                      }}
+                    >
+                      <AnalysisIcon className={classes.asbestosIcon}
+                        style={{color: colours.analysisColor}}
+                      />
+                    </IconButton>
+                </Tooltip>
+              <div style={{ display: "flex", flexDirection: "row" }}>
               <Tooltip title='Chrysotile (white) asbestos detected'>
                 <div
                   style={{
@@ -369,6 +361,7 @@ class SampleDetailsExpansion extends React.Component {
                 </Button>
               </div>
             </Tooltip>
+            <Tooltip title='Verify Result is Correct'>
               <IconButton
                 onClick={event => {
                   event.stopPropagation();
@@ -391,7 +384,9 @@ class SampleDetailsExpansion extends React.Component {
                   }}
                 />
               </IconButton>
-              {this.props.me.auth['Asbestos Bulk Analysis'] && <span><Tooltip id="det-tooltip" title={'Edit Sample Details' }>
+            </Tooltip>
+              {this.props.me.auth['Asbestos Bulk Analysis'] && <span>
+              <Tooltip id="det-tooltip" title={'Edit Sample Details' }>
                 <IconButton
                   onClick={event => {
                     event.stopPropagation();
@@ -403,12 +398,7 @@ class SampleDetailsExpansion extends React.Component {
                       }});
                   }}
                 >
-                  <SampleDetailsIcon
-                    style={{
-                      fontSize: 24,
-                      margin: 10,
-                    }}
-                  />
+                  <SampleDetailsIcon className={classes.asbestosIcon}/>
                 </IconButton>
               </Tooltip>
               {job.waAnalysis &&
@@ -424,17 +414,58 @@ class SampleDetailsExpansion extends React.Component {
                       }});
                     }}
                   >
-                    <WAIcon
-                      style={{
-                        fontSize: 24,
-                        margin: 10,
-                        color: colours.waColor
-                      }}
+                    <WAIcon className={classes.asbestosIcon}
+                      style={{color: colours.waColor}}
                     />
                   </IconButton>
                 </Tooltip>
-              }</span>}
-              <IconButton
+              }
+                <Tooltip id="sl-tooltip" title={'Sample Log' }>
+                  <IconButton
+                    onClick={event => {
+                      event.stopPropagation();
+                      this.props.showModal({
+                        modalType: SAMPLE_HISTORY,
+                        modalProps: {
+                          title: `Sample History for ${
+                            job.jobNumber
+                          }-${sample.sampleNumber.toString()}`,
+                          ...sample,
+                      }});
+                    }}
+                  >
+                    <SampleLogIcon className={classes.asbestosIcon}/>
+                  </IconButton>
+                </Tooltip>
+                <Tooltip id="cr-tooltip" title={'Confirm Result' }>
+                  <IconButton
+                    onClick={event => {
+                      event.stopPropagation();
+                      showModal({
+                        modalType: CONFIRM_RESULT,
+                        modalProps: {
+                          title: `Confirm Result for ${
+                            job.jobNumber
+                          }-${sample.sampleNumber.toString()}`,
+                          uid: sample.uid,
+                        }
+                      });
+                    }}
+                  >
+                    <ConfirmIcon className={classes.asbestosIcon} />
+                  </IconButton>
+                </Tooltip>
+                </span>}
+                <Tooltip id="h-tooltip" title={'Put Sample on Hold'}>
+                  <IconButton
+                    onClick={event => {
+                      event.stopPropagation();
+                      holdSample(sample, job, this.props.me);
+                    }}>
+                    <HoldIcon className={classes.asbestosIcon} />
+                  </IconButton>
+                </Tooltip>
+              {/*<IconButton
                 onClick={event => {
                   event.stopPropagation();
                   this.props.sampleAnchorMenu(sample.sampleNumber, event.currentTarget);
@@ -459,7 +490,7 @@ class SampleDetailsExpansion extends React.Component {
                     job.jobNumber
                   }-${sample.sampleNumber.toString()}-SampleHistory`}
                   onClick={event => {
-                    event.stopPropagation();
+                    // event.stopPropagation();
                     showModal({
                       modalType: SAMPLE_HISTORY,
                       modalProps: {
@@ -478,7 +509,7 @@ class SampleDetailsExpansion extends React.Component {
                     job.jobNumber
                   }-${sample.sampleNumber.toString()}-SampleHold`}
                   onClick={event => {
-                    event.stopPropagation();
+                    // event.stopPropagation();
                     holdSample(sample, job, this.props.me);
                   }}
                 >
@@ -489,7 +520,7 @@ class SampleDetailsExpansion extends React.Component {
                     job.jobNumber
                   }-${sample.sampleNumber.toString()}-SampleConfirm`}
                   onClick={event => {
-                    event.stopPropagation();
+                    // event.stopPropagation();
                     showModal({
                       modalType: CONFIRM_RESULT,
                       modalProps: {
@@ -502,66 +533,6 @@ class SampleDetailsExpansion extends React.Component {
                   }}
                 >
                   Confirm Result
-                </MenuItem>
-              </Menu>
-              {/*<Tooltip id="sl-tooltip" title={'Sample Log' }>
-                <IconButton
-                  onClick={event => {
-                    event.stopPropagation();
-                    this.props.showModal({
-                      modalType: SAMPLE_HISTORY,
-                      modalProps: {
-                        title: `Sample History for ${
-                          job.jobNumber
-                        }-${sample.sampleNumber.toString()}`,
-                        ...sample,
-                    }});
-                  }}
-                >
-                  <SampleLogIcon
-                    style={{
-                      fontSize: 24,
-                      margin: 10,
-                    }}
-                  />
-                </IconButton>
-              </Tooltip></span>}
-              <IconButton
-                onClick={event => {
-                  event.stopPropagation();
-                  this.props.sampleAnchorMenu(sample.sampleNumber, event.currentTarget);
-                }}
-              >
-                <More />
-              </IconButton>
-              <Menu
-                id={`${
-                  job.jobNumber
-                }-${sample.sampleNumber.toString()}`}
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={() => {this.props.sampleAnchorMenu(sample.sampleNumber, null);}}
-                style={{ padding: 0 }}
-              >
-                <MenuItem
-                  key={`${
-                    job.jobNumber
-                  }-${sample.sampleNumber.toString()}-SampleHistory`}
-                  onClick={event => {
-                    event.stopPropagation();
-                    this.props.showModal({
-                      modalType: SAMPLE_HISTORY,
-                      modalProps: {
-                        title: `Sample History for ${
-                          job.jobNumber
-                        }-${sample.sampleNumber.toString()}`,
-                        uid: sample.uid,
-                        cocLog: job.cocLog,
-                    }
-                  })
-                }}
-                >
-                  View Sample History
                 </MenuItem>
               </Menu>*/}
               </div>

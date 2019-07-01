@@ -160,6 +160,10 @@ const styles = theme => ({
     color: 'inherit',
     width: '100%',
   },
+  asbestosIcon: {
+    fontSize: 24,
+    margin: 5,
+  },
   inputInput: {
     paddingTop: theme.spacing(1),
     paddingRight: theme.spacing(1),

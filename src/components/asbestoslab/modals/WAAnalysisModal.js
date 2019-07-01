@@ -41,7 +41,7 @@ import {
 } from "../../../config/firebase";
 import _ from "lodash";
 
-const layerNum = 5;
+const waLayerNum = 5;
 
 const defaultColor = {
   r: '150',
@@ -78,10 +78,10 @@ class WAAnalysisModal extends React.Component {
   loadProps = () => {
     let sample = this.props.modalProps.doc;
     if (sample.waSoilAnalysis === undefined) sample.waSoilAnalysis = {};
-    if (sample.layerNum === undefined) sample.layerNum = {lt2: layerNum, to7: layerNum, gt7: layerNum} ;
+    if (sample.waLayerNum === undefined) sample.waLayerNum = {lt2: waLayerNum, to7: waLayerNum, gt7: waLayerNum} ;
     if (sample.waAnalysisDone === undefined) sample.waAnalysisDone = false;
     fractionNames.forEach(fraction => {
-      [...Array(layerNum).keys()].forEach(num => {
+      [...Array(waLayerNum).keys()].forEach(num => {
         if (sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] === undefined) {
           sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] = { result: {}, };
         }
@@ -363,7 +363,7 @@ class WAAnalysisModal extends React.Component {
     let weightACM = 0.0;
     let weightConditioned = this.state.sample.weightConditioned;
 
-    [...Array(this.state.sample && this.state.sample.layerNum && this.state.sample.layerNum[fraction] ? this.state.sample.layerNum[fraction] : layerNum).keys()].forEach(num => {
+    [...Array(this.state.sample && this.state.sample.waLayerNum && this.state.sample.waLayerNum[fraction] ? this.state.sample.waLayerNum[fraction] : waLayerNum).keys()].forEach(num => {
       if (this.state.sample && this.state.sample.waSoilAnalysis && this.state.sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] !== undefined) {
         let sub = this.state.sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
         if (sub.weight && sub.concentration) {
@@ -425,7 +425,7 @@ class WAAnalysisModal extends React.Component {
             <IconButton size='small' aria-label='add' style={{ marginLeft: 12 }} onClick={() => this.addLayer(fraction)}><AddIcon /></IconButton>
             <IconButton size='small' aria-label='remove' style={{ marginLeft: 12 }} onClick={() => this.removeLayer(fraction)}><RemoveIcon /></IconButton>
           </div>
-          {[...Array(this.state.sample && this.state.sample.layerNum && this.state.sample.layerNum[fraction] ? this.state.sample.layerNum[fraction] : layerNum).keys()].map(num => {
+          {[...Array(this.state.sample && this.state.sample.waLayerNum && this.state.sample.waLayerNum[fraction] ? this.state.sample.waLayerNum[fraction] : waLayerNum).keys()].map(num => {
             return this.getSubfractionRow(num+1, fraction);
           })}
           <div style={{ flexDirection: 'row', display: 'flex', justifyContent: 'flex-end', textAlign: 'right', marginTop: 14, }}>

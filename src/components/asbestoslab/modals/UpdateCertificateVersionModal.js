@@ -41,6 +41,7 @@ const mapDispatchToProps = dispatch => {
 class UpdateCertificateVersionModal extends React.Component {
   render() {
     const { classes, modalProps, modalType } = this.props;
+    console.log(modalProps);
     return (
       <Dialog
         open={modalType === UPDATE_CERTIFICATE_VERSION}

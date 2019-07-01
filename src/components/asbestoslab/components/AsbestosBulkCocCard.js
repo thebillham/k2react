@@ -49,6 +49,7 @@ import Button from "@material-ui/core/Button";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Divider from "@material-ui/core/Divider";
+import Tooltip from "@material-ui/core/Tooltip";
 
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
@@ -124,7 +125,7 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   render() {
-    const { job, samples } = this.props;
+    const { job, samples, classes } = this.props;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     let analysts = getAnalysts(job, samples[job.uid], false);
@@ -157,7 +158,46 @@ class AsbestosBulkCocCard extends React.Component {
         <ExpansionPanelDetails>
           <div style={{ width: '100%', maxWidth: '1800px'}}>
             <div>
-              <Button
+              <Tooltip id="h-tooltip" title={'Edit Chain of Custody'}>
+                <IconButton
+                  onClick={() => {
+                    this.props.syncJobWithWFM(job.jobNumber);
+                    this.props.showModal({
+                      modalType: COC,
+                      modalProps: {
+                        title: "Edit Chain of Custody",
+                        doc: { ...job, samples: samples[job.uid] === undefined ? {} : {...samples[job.uid]} }
+                      }
+                    });
+                  }}>
+                  <Edit className={classes.asbestosIcon} />
+                </IconButton>
+              </Tooltip>
+              {samples[job.uid] && Object.values(samples[job.uid]).length > 0 && (
+                  <span>
+                    <Tooltip id="pr-tooltip" title={'Flag as Priority'}>
+                      <IconButton onClick={() => togglePriority(job, this.props.me)}>
+                        <Flag color={job.priority === 1 ? 'secondary' : 'inherit'} className={classes.asbestosIcon} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip id="waa-tooltip" title={'Request Western Australian Standard Analysis'}>
+                      <IconButton onClick={() => toggleWAAnalysis(job, this.props.me)}>
+                        <WAIcon color={job.waAnalysis ? 'primary' : 'inherit'} className={classes.asbestosIcon} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip id="reca-tooltip" title={'Receive All Samples'}>
+                      <IconButton onClick={() => receiveAll(samples, job, this.props.sessionID, this.props.me)}>
+                        <Inbox className={classes.asbestosIcon} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip id="analysisa-tooltip" title={'Start Analysis on All Samples'}>
+                      <IconButton
+                      onClick={() => startAnalysisAll(samples, job, this.props.sessionID, this.props.me)}>
+                        <Colorize className={classes.asbestosIcon} />
+                      </IconButton>
+                    </Tooltip>
+                  </span>)}
+              {/*<Button
                 variant="outlined"
                 onClick={() => {
                   this.props.syncJobWithWFM(job.jobNumber);
@@ -172,7 +212,7 @@ class AsbestosBulkCocCard extends React.Component {
               >
                 <Edit style={{ fontSize: 20, margin: 5 }} />
                 Edit
-              </Button>
+              </Button>*/}
               <Button
                 style={{ marginLeft: 5 }}
                 variant="outlined"
@@ -274,7 +314,7 @@ class AsbestosBulkCocCard extends React.Component {
             </div>
             {samples[job.uid] && Object.values(samples[job.uid]).length > 0 ? (
               <div>
-                <div style={{ marginTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'row' }}>
+                {/*<div style={{ marginTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'row' }}>
                   <Button
                     variant="outlined"
                     onClick={() => togglePriority(job, this.props.me)}>
@@ -304,7 +344,7 @@ class AsbestosBulkCocCard extends React.Component {
                     <Colorize style={{ fontSize: 20, margin: 5 }} />
                     Start Analysis All
                   </Button>
-                </div>
+                </div>*/}
                 <Grid container style={{ marginTop: 12, marginBottom: 12 }}>
                   <Grid item lg={3} xs={6}>
                     Sampled by:{" "}

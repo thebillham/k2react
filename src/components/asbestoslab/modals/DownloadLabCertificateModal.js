@@ -88,8 +88,8 @@ class DownloadLabCertificateModal extends React.Component {
           <Button
             onClick={() => {
               let url =
-                "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.template + "/" + this.state.fileType +
-                ".php?report=" + encodeURIComponent(JSON.stringify(modalProps.report));
+                "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.fileType + ".php?template=" + this.state.template +
+                "&report=" + encodeURIComponent(JSON.stringify(modalProps.report));
               // url =
               //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
               //   encodeURIComponent(JSON.stringify(modalProps.report));
