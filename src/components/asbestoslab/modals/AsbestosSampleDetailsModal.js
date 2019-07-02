@@ -9,6 +9,8 @@ import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS } from "../../../constants/modal-
 import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
+import { SampleTickyBox, SampleTextyBox, SampleRadioSelector } from '../../../widgets/FormWidgets';
+
 import { SketchPicker } from 'react-color';
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
@@ -160,176 +162,13 @@ class AsbestosSampleDetailsModal extends React.Component {
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={5}>
               <div className={this.props.classes.subheading}>Description</div>
-              <TextField
-                id="labDescription"
-                style={{ width: '100%' }}
-                value={sample.labDescription}
-                helperText="Provide a detailed description of the material."
-                multiline
-                rows={3}
-                onChange={e => {
-                  this.setState({
-                    modified: true,
-                    sample: {
-                      ...sample,
-                      labDescription: e.target.value,
-                    }
-                  });
-                }}
-              />
-              <TextField
-                id="labComments"
-                style={{ width: '100%' }}
-                value={sample.labComments}
-                helperText="Note any additional observations or comments."
-                multiline
-                rows={3}
-                onChange={e => {
-                  this.setState({
-                    modified: true,
-                    sample: {
-                      ...sample,
-                      labComments: e.target.value,
-                    }
-                  });
-                }}
-              />
-              <div className={this.props.classes.subheading}>Sampling Method</div>
-              <FormControl component="fieldset">
-                <RadioGroup
-                  aria-label="Sampling Method"
-                  name="samplingMethod"
-                  value={sample.samplingMethod ? sample.samplingMethod : 'normal' }
-                  row
-                  onChange={e => {
-                    this.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        labDescription: e.target.value,
-                      }
-                    });
-                  }}
-                >
-                  <FormControlLabel value="normal" control={<Radio />} label="Normal" />
-                  <FormControlLabel value="tape" control={<Radio />} label="Tape" />
-                  <FormControlLabel value="swab" control={<Radio />} label="Swab" />
-                </RadioGroup>
-              </FormControl>
-              <div className={this.props.classes.subheading}>Sample Conditioning</div>
-              <FormGroup row>
-                <SampleTickyBox that={this} label={'Furnace'} sample={sample} field={'sampleConditioningFurnace'} />
-                <SampleTickyBox that={this} label={'Flame'} sample={sample} field={'sampleConditioningFlame'} />
-                <SampleTickyBox that={this} label={'Low Heat/Drying'} sample={sample} field={'sampleConditioningLowHeat'} />
-                <SampleTickyBox that={this} label={'Dichloromethane'} sample={sample} field={'sampleConditioningDCM'} />
-              </FormGroup>
-            </Grid>
-            <Grid item xs={1} />
-            <Grid item xs={6}>
-              <div className={this.props.classes.subheading}>Weight</div>
-              <div style={{ display: 'flex', flexDirection: 'row'}}>
-                <TextField
-                  id="weightReceived"
-                  label="Weight as Received"
-                  value={sample.weightReceived ? sample.weightReceived : ''}
-                  helperText="Record the weight as received (e.g. before any conditioning)."
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        weightReceived: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <TextField
-                  id="weightAnalysed"
-                  label="Weight Analysed"
-                  style={{ marginLeft: 12, }}
-                  value={sample.weightAnalysed ? sample.weightAnalysed : ''}
-                  helperText="Record the weight analysed (e.g. after conditioning such as furnacing)."
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        weightAnalysed: e.target.value,
-                      }
-                    });
-                  }}
-                />
-              </div>
-              <div className={this.props.classes.subheading}>Dimensions</div>
-              <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                <TextField
-                  id="dimensionsL"
-                  label="Length"
-                  style={{ width: '100%', margin: 12, }}
-                  value={sample.dimensionsL ? sample.dimensionsL : ''}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        dimensionsL: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
-                <TextField
-                  id="dimensionsW"
-                  label="Width"
-                  style={{ width: '100%', margin: 12, }}
-                  value={sample.dimensionsW ? sample.dimensionsW : ''}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        dimensionsW: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
-                <TextField
-                  id="dimensionsD"
-                  label="Depth/Thickness"
-                  style={{ width: '100%', margin: 12 }}
-                  value={sample.dimensionsD ? sample.dimensionsD : ''}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        dimensionsD: e.target.value,
-                      }
-                    });
-                  }}
-                />
-              </div>
-              <div style={{ padding: 48, margin: 12, justifyContent: 'center', width: 600 }}>
-                <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Geotechnical Soil Description</div>
+              {SampleTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 3, null, null)}
+              {SampleTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 3, null, null)}
+
+              <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
                 <Button
                   variant="outlined"
-                  style={{ marginBottom: 16, marginTop: 16, }}
+                  style={{ marginBottom: 16, marginTop: 16, textAlign: 'center' }}
                   onClick={() => {
                     this.props.showModalSecondary({
                       modalType: SOIL_DETAILS,
@@ -347,73 +186,91 @@ class AsbestosSampleDetailsModal extends React.Component {
                     });
                   }}
                 >
-                  Edit Soil Details
+                  Edit Geotechnical Soil Description
                 </Button>
                 <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
               </div>
-              {/*{doc.fileUrl && (
-                <div>
-                  <img
-                    src={doc.fileUrl}
-                    alt=""
-                    width="200px"
-                    style={{
-                      opacity: "0.5",
-                      borderStyle: "solid",
-                      borderWidth: "2px"
-                    }}
-                  />
-                  <IconButton
-                    style={{
-                      position: "relative",
-                      top: "2px",
-                      left: "-120px",
-                      borderStyle: "solid",
-                      borderWidth: "2px",
-                      fontSize: 8
-                    }}
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          "Are you sure you wish to delete the image?"
-                        )
-                      )
-                        this.deleteImage(doc.fileRef, doc.uid);
-                    }}
-                  >
-                    <Close />
-                  </IconButton>
-                </div>
+            </Grid>
+            <Grid item xs={1} />
+            <Grid item xs={6}>
+              <div className={this.props.classes.subheading}>Sampling Method</div>
+                {SampleRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
+                  [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
+              <div className={this.props.classes.subheading}>Weight</div>
+              <div style={{ display: 'flex', flexDirection: 'row'}}>
+                {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. before any conditioning).', false, 0, 'g', null)}
+                <div style={{ width: 200 }} />
+                {SampleTextyBox(this, sample, 'weightAnalysed', 'Weight Analysed', 'Record the weight analysed (e.g. after conditioning such as furnacing).', false, 0, 'g', null)}
+              </div>
+
+              <div className={this.props.classes.subheading}>Dimensions</div>
+              <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
+                {SampleTextyBox(this, sample, 'dimensionsL', 'Length', null, false, 0, 'mm', null)}
+                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
+                {SampleTextyBox(this, sample, 'dimensionsW', 'Width', null, false, 0, 'mm', null)}
+                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
+                {SampleTextyBox(this, sample, 'dimensionsD', 'Depth/Thickness', null, false, 0, 'mm', null)}
+              </div>
+            </Grid>
+          </Grid>
+          <Divider />
+          <Grid container alignItems='flex-start' justify='flex-end'>
+            <Grid item xs={5}>
+              <div className={this.props.classes.subheading}>Classification</div>
+              {SampleRadioSelector(this, sample, 'classification', 'homo', 'Classification',
+                [{value: 'homo', label: 'Homogenous'},{value: 'nonhomo', label: 'Non-homogenous'},{value: 'soil', label: 'Soil'},{value: 'ore', label: 'Ore'}],
+                "Homogenous: Uniform distribution of fibres of any type through the entire sample or in each discernibly discrete layer of the sample (sprayed asbestos, asbestos-cement, mastic, vermiculite); Non-homogenous samples contain small, discrete amounts of asbestos distributed unevenly in a large body of non-asbestos material (e.g. dust, soil)"
               )}
 
-              Always allow file upload
-              <InputLabel style={{ fontSize: 12, marginTop: 4 }}>
-                Upload Photos
-              </InputLabel>
-              <label>
-                <UploadIcon className={classes.accentButton} />
-                <input
-                  id="attr_upload_file"
-                  type="file"
-                  style={{ display: "none" }}
-                  onChange={e => {
-                    this.props.onUploadFile({
-                      file: e.currentTarget.files[0],
-                      storagePath:
-                        "attr/" +
-                        modalProps.staffName.replace(/\s+/g, "") +
-                        "/" +
-                        doc.type +
-                        "_"
-                    });
-                  }}
-                />
-                <LinearProgress
-                  style={{ marginTop: 4 }}
-                  variant="determinate"
-                  value={modalProps.uploadProgress}
-                />
-              </label>*/}
+              {sample.classification === 'homo' && <div>
+                <div>If sample is large, i.e. more than 100g it can be reduced in size.</div>
+                <div>Using the stereo microscope, observe and record the presence and nature of any separate layers.</div>
+                <div>Take sub-samples of each constituent layer of the sample.</div>
+                <div>Examine each sample and sub-sample in its entirety for evidence of fibres. Separate out the fibre clumps.</div>
+                <div>Classify the fibres into separate groups by means of colour and morphology.</div>
+              </div>}
+
+              {sample.classification === 'nonhomo' && <div>
+                <div>Sample cannot be reduced in size. If necessary, get client to do it.</div>
+                <div>Examine the entire sample by stereo-microscope after ensuring that it is spread out to a thickness of no more than approximately 3 to 5 mm, depending upon the type of material.</div>
+                <div>Locate and extract fibrous material.</div>
+              </div>}
+
+              {sample.classification === 'soil' && <div>
+                <div>Sieve sample</div>
+                <div>Examine each layer to a thickness of no more than 1 to 3 mm</div>
+                <div>Locate and extract fibrous material.</div>
+                <div>Conduct a trace analysis on the less than 2mm fraction.</div>
+              </div>}
+
+              {sample.classification === 'ore' && <div>
+                <div>Examine the entire surface of the large solid sections and extract any fibrous material.</div>
+                <div>Examine the dust using the same method as for soils.</div>
+              </div>}
+
+              <div className={this.props.classes.subheading}>Sample Conditioning</div>
+              <FormGroup row>
+                {SampleTickyBox(this, 'Furnace', sample, 'sampleConditioningFurnace')}
+                {SampleTickyBox(this, 'Flame', sample, 'sampleConditioningFlame')}
+                {SampleTickyBox(this, 'Low Heat/Drying', sample, 'sampleConditioningLowHeat')}
+                {SampleTickyBox(this, 'Dichloromethane', sample, 'sampleConditioningDCM')}
+                {SampleTickyBox(this, 'Mortar and Pestle', sample, 'mortarAndPestle')}
+                {SampleTickyBox(this, 'Sieved', sample, 'sieved')}
+              </FormGroup>
+
+              <div className={this.props.classes.subheading}>Analytical Criteria</div>
+              <FormGroup row>
+                {SampleTickyBox(this, 'Pleochroism', sample, 'analyticalCriteriaPleochroism')}
+                {SampleTickyBox(this, 'Orientation', sample, 'analyticalCriteraOrientation')}
+                {SampleTickyBox(this, 'Extinction', sample, 'analyticalCriteraExtinction')}
+              </FormGroup>
+              <FormGroup row>
+                {SampleTickyBox(this, 'Birefringence Strength', sample, 'analyticalCriteriaBirefringence')}
+                {SampleTickyBox(this, 'Colour', sample, 'analyticalCriteraColour')}
+              </FormGroup>
+            </Grid>
+            <Grid item xs={1} />
+            <Grid item xs={6}>
             </Grid>
           </Grid>
           <Divider />
