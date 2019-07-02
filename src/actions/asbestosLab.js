@@ -440,8 +440,8 @@ export const holdSample = (sample, job, me) => {
 }
 
 export const receiveAll = (samples, job, sessionID, me) => {
-  if (samples && samples[job.uid] && Object.values(samples[job.uid]).length > 0) {
-    Object.values(samples[job.uid]).forEach(sample => {
+  if (samples && Object.values(samples).length > 0) {
+    Object.values(samples).forEach(sample => {
       if (sample.cocUid === job.uid) {
         if (!sample.receivedByLab) receiveSample(sample, job, sessionID, me);
       }
@@ -450,9 +450,10 @@ export const receiveAll = (samples, job, sessionID, me) => {
 };
 
 export const receiveSample = (sample, job, samples, sessionID, me) => {
+  console.log(me);
   let receivedDate = null;
   if (!sample.receivedByLab) receivedDate = new Date();
-  if (sample.receivedByLab && sample.analysisStart) startAnalysis(sample, job, sessionID, me);
+  if (sample.receivedByLab && sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
   if (sample.receivedByLab && sample.verified) {
     if (window.confirm('The sample result has already been verified. Removing from the lab will remove the analysis result and verification. Continue?')) {
       removeResult(sample, sessionID, me);
@@ -495,22 +496,23 @@ export const receiveSample = (sample, job, samples, sessionID, me) => {
 };
 
 export const startAnalysisAll = (samples, job, sessionID, me) => {
-  if (samples && samples[job.uid] && Object.values(samples[job.uid]).length > 0) {
-    Object.values(samples[job.uid]).forEach(sample => {
+  if (samples && Object.values(samples).length > 0) {
+    Object.values(samples).forEach(sample => {
       if (sample.cocUid === job.uid) {
         if (!sample.analysisStart) {
-          if (!sample.receivedByLab) receiveSample(sample, job, sessionID, me);
-          startAnalysis(sample, job, sessionID, me);
+          if (!sample.receivedByLab) receiveSample(sample, job, samples, sessionID, me);
+          startAnalysis(sample, job, samples, sessionID, me);
         }
       }
     });
   }
 };
 
-export const startAnalysis = (sample, job, sessionID, me) => {
+export const startAnalysis = (sample, job, samples, sessionID, me) => {
+  console.log(me);
   let analysisStart = null;
-  if (!sample.receivedByLab && !sample.analysisStart) receiveSample(sample, job, sessionID, me);
-  if (sample.verified) verifySample(sample, job, me);
+  if (!sample.receivedByLab && !sample.analysisStart) receiveSample(sample, job, samples, sessionID, me);
+  if (sample.verified) verifySample(sample, job, samples, me);
   if (!sample.analysisStart) analysisStart = new Date();
   let log = {
     type: "Analysis",
@@ -568,7 +570,8 @@ export const updateResultMap = (result, map) => {
   return updatedMap;
 }
 
-export const toggleResult = (result, analyst, sample, job, sessionID, me) => {
+export const toggleResult = (result, analyst, sample, job, samples, sessionID, me) => {
+  console.log(me);
   if (
     me.auth &&
     (me.auth["Asbestos Bulk Analysis"] ||
@@ -630,7 +633,7 @@ export const toggleResult = (result, analyst, sample, job, sessionID, me) => {
     });
 
     if (notBlankAnalysis) {
-      if (!sample.analysisStart) startAnalysis(sample, job, sessionID, me);
+      if (!sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
       asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`).set({
         analyst: analyst,
         analystUID: me.uid,
@@ -1278,6 +1281,7 @@ export const writeReportDescription = (sample) => {
     [...Array(sample.layerNum).keys()].forEach(num => {
       if (sample.layers[`layer${num+1}`] !== undefined) {
         let lay = sample.layers[`layer${num+1}`];
+        console.log(lay);
         let layStr = 'L' + (num+1).toString() + ': ' + lay.description;
         if (getBasicResult(lay) === 'positive') layStr = '*' + layStr;
         if (lay.description !== undefined) lines.push(layStr);
@@ -1585,8 +1589,8 @@ export const writeSoilDetails = details => {
 export const getStats = (samples, job) => {
   let jobID = job.uid;
   let versionUpToDate = job.versionUpToDate;
-  console.log('Getting stats');
-  console.log(job);
+  // console.log('Getting stats');
+  // console.log(job);
   console.log(samples);
   let nz = moment.tz.setDefault("Pacific/Auckland");
   moment.tz.setDefault("Pacific/Auckland");
@@ -1644,8 +1648,10 @@ export const getStats = (samples, job) => {
   let totalReportBusinessTime = 0;
   let numReportBusinessTime = 0;
 
-  if (samples && samples[jobID] && Object.values(samples[jobID]).length > 0) {
-    Object.values(samples[jobID]).forEach(sample => {
+  console.log(samples);
+
+  if (samples && Object.values(samples).length > 0) {
+    Object.values(samples).forEach(sample => {
       if (sample.cocUid === jobID) {
         totalSamples = totalSamples + 1;
         if (sample.receivedByLab) numberReceived = numberReceived + 1;

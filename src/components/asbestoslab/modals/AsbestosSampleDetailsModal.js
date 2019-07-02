@@ -218,86 +218,10 @@ class AsbestosSampleDetailsModal extends React.Component {
               </FormControl>
               <div className={this.props.classes.subheading}>Sample Conditioning</div>
               <FormGroup row>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={sample.sampleConditioningFurnace ?
-                      sample.sampleConditioningFurnace :
-                      false }
-                    onChange={e => {
-                      this.setState({
-                        modified: true,
-                        sample: {
-                          ...sample,
-                          sampleConditioningFurnace: e.target.checked,
-                        }
-                      });
-                    }}
-                    value="sampleConditioningFurnace"
-                  />
-                }
-                label="Furnace"
-              />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sample.sampleConditioningFlame ?
-                        sample.sampleConditioningFlame :
-                        false}
-                      onChange={e => {
-                        this.setState({
-                          modified: true,
-                          sample: {
-                            ...sample,
-                            sampleConditioningFlame: e.target.checked,
-                          }
-                        });
-                      }}
-                      value="sampleConditioningFlame"
-                    />
-                  }
-                  label="Flame"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sample.sampleConditioningLowHeat ?
-                        sample.sampleConditioningLowHeat :
-                        false}
-                      onChange={e => {
-                        this.setState({
-                          modified: true,
-                          sample: {
-                            ...sample,
-                            sampleConditioningLowHeat: e.target.checked,
-                          }
-                        });
-                      }}
-                      value="sampleConditioningLowHeat"
-                    />
-                  }
-                  label="Low Heat/Drying"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sample.sampleConditioningDCM ?
-                        sample.sampleConditioningDCM :
-                        false}
-                      onChange={e => {
-                        this.setState({
-                          modified: true,
-                          sample: {
-                            ...sample,
-                            sampleConditioningDCM: e.target.checked,
-                          }
-                        });
-                      }}
-                      value="sampleConditioningDCM"
-                    />
-                  }
-                  label="Dichloromethane"
-                />
+                <SampleTickyBox that={this} label={'Furnace'} sample={sample} field={'sampleConditioningFurnace'} />
+                <SampleTickyBox that={this} label={'Flame'} sample={sample} field={'sampleConditioningFlame'} />
+                <SampleTickyBox that={this} label={'Low Heat/Drying'} sample={sample} field={'sampleConditioningLowHeat'} />
+                <SampleTickyBox that={this} label={'Dichloromethane'} sample={sample} field={'sampleConditioningDCM'} />
               </FormGroup>
             </Grid>
             <Grid item xs={1} />

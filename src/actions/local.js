@@ -1484,6 +1484,7 @@ export const saveCurrentJobState = state => dispatch => {
 
 export const addLog = (collection, log, user) => {
   let uid = moment().format('YYYY-MMM-DD-HH-mm-ss') + parseInt(Math.floor(Math.random() * Math.floor(1000)));
+  if (user === undefined) user = {uid: '', name: 'Mystery Person'};
   log = {
     ...log,
     date: new Date(),

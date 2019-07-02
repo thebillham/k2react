@@ -325,7 +325,7 @@ class AsbestosCocs extends React.Component {
               .map(job => {
                 // what is the version thing doing
                 let version = 1;
-                console.log(cocs[job]);
+                // console.log(cocs[job]);
                 if (cocs[job].reportversion)
                   version = cocs[job].reportversion + 1;
                 return <AsbestosBulkCocCard key={job} job={cocs[job]} />;

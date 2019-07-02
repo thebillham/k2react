@@ -127,7 +127,7 @@ class SampleDetailsExpansion extends React.Component {
   }
 
   render() {
-    const { job, sample, staff, anchorEl, classes } = this.props;
+    const { sample, job, samples, staff, anchorEl, classes } = this.props;
     if (sample.cocUid !== job.uid) return null;
     let result = getBasicResult(sample);
     let colours = getSampleColours(sample);
@@ -204,7 +204,7 @@ class SampleDetailsExpansion extends React.Component {
                 <IconButton
                   onClick={event => {
                     event.stopPropagation();
-                    receiveSample(sample, job, this.props.samples, this.props.sessionID, this.props.me);
+                    receiveSample(sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                   }}
                 >
                   <Inbox className={classes.asbestosIcon}
@@ -216,7 +216,7 @@ class SampleDetailsExpansion extends React.Component {
                     <IconButton
                       onClick={event => {
                         event.stopPropagation();
-                        startAnalysis(sample, job, this.props.sessionID, this.props.me);
+                        startAnalysis(sample, job, this.props.sessionID, samples[job.uid], this.props.me);
                       }}
                     >
                       <AnalysisIcon className={classes.asbestosIcon}
@@ -237,7 +237,7 @@ class SampleDetailsExpansion extends React.Component {
                     style={{ margin: 5, color: colours.chColor }}
                     onClick={event => {
                       event.stopPropagation();
-                      toggleResult("ch", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
+                      toggleResult("ch", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                     }}
                   >
                     CH
@@ -256,7 +256,7 @@ class SampleDetailsExpansion extends React.Component {
                     style={{ margin: 5, color: colours.amColor }}
                     onClick={event => {
                       event.stopPropagation();
-                      toggleResult("am", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
+                      toggleResult("am", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                     }}
                   >
                     AM
@@ -275,7 +275,7 @@ class SampleDetailsExpansion extends React.Component {
                     style={{ margin: 5, color: colours.crColor }}
                     onClick={event => {
                       event.stopPropagation();
-                      toggleResult("cr", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
+                      toggleResult("cr", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                     }}
                   >
                     CR
@@ -294,7 +294,7 @@ class SampleDetailsExpansion extends React.Component {
                     style={{ margin: 5, color: colours.umfColor }}
                     onClick={event => {
                       event.stopPropagation();
-                      toggleResult("umf", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
+                      toggleResult("umf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                     }}
                   >
                     UMF
@@ -315,7 +315,7 @@ class SampleDetailsExpansion extends React.Component {
                   style={{ margin: 5, color: colours.noColor }}
                   onClick={event => {
                     event.stopPropagation();
-                    toggleResult("no", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
+                    toggleResult("no", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                   }}
                 >
                   NO
@@ -335,7 +335,7 @@ class SampleDetailsExpansion extends React.Component {
                   style={{ margin: 5, color: colours.orgColor }}
                   onClick={event => {
                     event.stopPropagation();
-                    toggleResult("org", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
+                    toggleResult("org", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                   }}
                 >
                   ORG
@@ -354,7 +354,7 @@ class SampleDetailsExpansion extends React.Component {
                   style={{ margin: 5, color: colours.smfColor }}
                   onClick={event => {
                     event.stopPropagation();
-                    toggleResult("smf", this.props.analyst, sample, job, this.props.sessionID, this.props.me);
+                    toggleResult("smf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                   }}
                 >
                   SMF
@@ -366,14 +366,14 @@ class SampleDetailsExpansion extends React.Component {
                 onClick={event => {
                   event.stopPropagation();
                   if (
-                    !sample.result &&
                     !sample.verified &&
+                    getBasicResult(sample) === "none" &&
                     !window.confirm(
-                      "No result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
+                      "No asbestos result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
                     )
                   )
                     return;
-                  verifySample(sample, job, this.props.samples, this.props.me,);
+                  verifySample(sample, job, samples[job.uid], this.props.me,);
                 }}
               >
                 <CheckCircleOutline
