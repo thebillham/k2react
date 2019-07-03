@@ -451,17 +451,18 @@ export const receiveAll = (samples, job, sessionID, me) => {
 
 export const receiveSample = (sample, job, samples, sessionID, me) => {
   console.log(me);
-  let receivedDate = null;
-  if (!sample.receivedByLab) receivedDate = new Date();
-  if (sample.receivedByLab && sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
+  let receivedDate = new Date();
   if (sample.receivedByLab && sample.verified) {
     if (window.confirm('The sample result has already been verified. Removing from the lab will remove the analysis result and verification. Continue?')) {
       removeResult(sample, sessionID, me);
-      verifySample(sample, job, samples, me);
+      startAnalysis(sample, job, samples, sessionID, me);
+      verifySample(sample, job, samples, sessionID, me);
     } else return;
   } else if (sample.receivedByLab && sample.result) {
-    if (window.confirm('The sample result has already been logged. Removing from the lab will remove the analysis result. Continue?'))
+    if (window.confirm('The sample result has already been logged. Removing from the lab will remove the analysis result. Continue?')) {
       removeResult(sample, sessionID, me);
+      startAnalysis(sample, job, samples, sessionID, me);
+    } else return;
   }
   let log = {
     type: "Received",
@@ -512,7 +513,7 @@ export const startAnalysis = (sample, job, samples, sessionID, me) => {
   console.log(me);
   let analysisStart = null;
   if (!sample.receivedByLab && !sample.analysisStart) receiveSample(sample, job, samples, sessionID, me);
-  if (sample.verified) verifySample(sample, job, samples, me);
+  if (sample.verified) verifySample(sample, job, samples, sessionID, me);
   if (!sample.analysisStart) analysisStart = new Date();
   let log = {
     type: "Analysis",
@@ -704,7 +705,7 @@ export const removeResult = (sample, sessionID, me) => {
     });
 }
 
-export const verifySample = (sample, job, samples, me) => {
+export const verifySample = (sample, job, samples, sessionID, me) => {
   if (
     (me.auth &&
     (me.auth["Analysis Checker"] ||
@@ -714,7 +715,7 @@ export const verifySample = (sample, job, samples, me) => {
       // if (me.uid === sample.analysisUser.id && !sample.verified) {
       //   window.alert("Samples must be checked off by a different user.");
       // } else {
-        if (!sample.analysisStart && !sample.verified) startAnalysis(sample);
+        if (!sample.analysisStart && !sample.verified) startAnalysis(sample, job, samples, sessionID, me);
         let verifyDate = null;
         let log = {
           type: "Verified",
@@ -1691,7 +1692,7 @@ export const getStats = (samples, job) => {
         totalSamples = totalSamples + 1;
         if (sample.receivedByLab) numberReceived = numberReceived + 1;
         if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
-        if (sample.result) {
+        if (sample.result && sample.analysisDate && sample.receivedDate) {
           numberResult = numberResult + 1;
           if (sample.result['no']) {
             negativeSamples = negativeSamples + 1;

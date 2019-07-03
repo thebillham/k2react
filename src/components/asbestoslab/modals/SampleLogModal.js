@@ -50,7 +50,7 @@ class SampleLogModal extends React.Component {
         onEnter={() => this.props.fetchLogs(modalProps.uid, 10)}
         onExit={this.props.clearLog}
       >
-        <DialogTitle>{modalProps.title}</DialogTitle>
+        <DialogTitle>{modalProps.title ? modalProps.title : 'Sample History'}</DialogTitle>
         <DialogContent>
         <Grid container direction="column">
           <Grid item>

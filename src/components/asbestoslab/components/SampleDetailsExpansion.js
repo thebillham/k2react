@@ -29,6 +29,7 @@ import {
   verifySample,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
+import { AsbestosClickyBasic, } from '../../../widgets/ButtonWidgets';
 import { showModal } from "../../../actions/modal";
 import {
   COC,
@@ -190,13 +191,13 @@ class SampleDetailsExpansion extends React.Component {
                   {sample.sampleNumber}
                 </div>
                 {writeDescription(sample)}
+                {sample.onHold && <div style={{ fontWeight: 'bold', marginLeft: 12, color: 'red' }}>ON HOLD</div>}
               </div>
             </Grid>
             <Grid item xs={12} xl={8}>
             <div style={{
               justifyContent: 'flex-end',
               alignItems: 'center',
-              // width: '40vw',
               display: 'flex',
               flexDirection: 'row',
             }}>
@@ -207,197 +208,76 @@ class SampleDetailsExpansion extends React.Component {
                     receiveSample(sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                   }}
                 >
-                  <Inbox className={classes.asbestosIcon}
-                    style={{color: colours.receivedColor}}
-                  />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title='Start Analysis'>
-                    <IconButton
-                      onClick={event => {
-                        event.stopPropagation();
-                        startAnalysis(sample, job, this.props.sessionID, samples[job.uid], this.props.me);
-                      }}
-                    >
-                      <AnalysisIcon className={classes.asbestosIcon}
-                        style={{color: colours.analysisColor}}
-                      />
-                    </IconButton>
-                </Tooltip>
-              <div style={{ display: "flex", flexDirection: "row" }}>
-              <Tooltip title='Chrysotile (white) asbestos detected'>
-                <div
-                  style={{
-                    backgroundColor: colours.chDivColor,
-                    borderRadius: 5
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    style={{ margin: 5, color: colours.chColor }}
-                    onClick={event => {
-                      event.stopPropagation();
-                      toggleResult("ch", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
-                    }}
-                  >
-                    CH
-                  </Button>
-                </div>
-              </Tooltip>
-              <Tooltip title='Amosite (brown) asbestos detected'>
-                <div
-                  style={{
-                    backgroundColor: colours.amDivColor,
-                    borderRadius: 5
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    style={{ margin: 5, color: colours.amColor }}
-                    onClick={event => {
-                      event.stopPropagation();
-                      toggleResult("am", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
-                    }}
-                  >
-                    AM
-                  </Button>
-                </div>
-              </Tooltip>
-              <Tooltip title='Crocidolite (blue) asbestos detected'>
-                <div
-                  style={{
-                    backgroundColor: colours.crDivColor,
-                    borderRadius: 5
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    style={{ margin: 5, color: colours.crColor }}
-                    onClick={event => {
-                      event.stopPropagation();
-                      toggleResult("cr", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
-                    }}
-                  >
-                    CR
-                  </Button>
-                </div>
-              </Tooltip>
-              <Tooltip title='Unidentified mineral fibres detected'>
-                <div
-                  style={{
-                    backgroundColor: colours.umfDivColor,
-                    borderRadius: 5
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    style={{ margin: 5, color: colours.umfColor }}
-                    onClick={event => {
-                      event.stopPropagation();
-                      toggleResult("umf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
-                    }}
-                  >
-                    UMF
-                  </Button>
-                </div>
-              </Tooltip>
-            </div>
-            <div style={{ width: 30 }} />
-            <Tooltip title='No asbestos detected'>
-              <div
-                style={{
-                  backgroundColor: colours.noDivColor,
-                  borderRadius: 5
-                }}
-              >
-                <Button
-                  variant="outlined"
-                  style={{ margin: 5, color: colours.noColor }}
-                  onClick={event => {
-                    event.stopPropagation();
-                    toggleResult("no", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
-                  }}
-                >
-                  NO
-                </Button>
-              </div>
-            </Tooltip>
-            <div style={{ width: 30 }} />
-            <Tooltip title='Organic fibres detected'>
-              <div
-                style={{
-                  backgroundColor: colours.orgDivColor,
-                  borderRadius: 5
-                }}
-              >
-                <Button
-                  variant="outlined"
-                  style={{ margin: 5, color: colours.orgColor }}
-                  onClick={event => {
-                    event.stopPropagation();
-                    toggleResult("org", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
-                  }}
-                >
-                  ORG
-                </Button>
-              </div>
-            </Tooltip>
-            <Tooltip title='Synthetic mineral fibres detected'>
-              <div
-                style={{
-                  backgroundColor: colours.smfDivColor,
-                  borderRadius: 5
-                }}
-              >
-                <Button
-                  variant="outlined"
-                  style={{ margin: 5, color: colours.smfColor }}
-                  onClick={event => {
-                    event.stopPropagation();
-                    toggleResult("smf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me);
-                  }}
-                >
-                  SMF
-                </Button>
-              </div>
-            </Tooltip>
-            <Tooltip title='Verify Result is Correct'>
-              <IconButton
-                onClick={event => {
-                  event.stopPropagation();
-                  if (
-                    !sample.verified &&
-                    getBasicResult(sample) === "none" &&
-                    !window.confirm(
-                      "No asbestos result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
-                    )
-                  )
-                    return;
-                  verifySample(sample, job, samples[job.uid], this.props.me,);
-                }}
-              >
-                <CheckCircleOutline
-                  style={{
-                    fontSize: 24,
-                    margin: 10,
-                    color: colours.verifiedColor
-                  }}
+                <Inbox className={classes.asbestosIcon}
+                  style={{color: colours.receivedColor}}
                 />
-              </IconButton>
-            </Tooltip>
-              {this.props.me.auth['Asbestos Bulk Analysis'] && <span>
-              <Tooltip id="det-tooltip" title={'Edit Sample Details' }>
+                </IconButton>
+              </Tooltip>
+              <Tooltip title='Start Analysis'>
+                  <IconButton
+                    onClick={event => {
+                      event.stopPropagation();
+                      if (!sample.onHold) startAnalysis(sample, job, this.props.sessionID, samples[job.uid], this.props.me);
+                    }}
+                  >
+                    <AnalysisIcon className={classes.asbestosIcon}
+                      style={{color: colours.analysisColor}}
+                    />
+                  </IconButton>
+              </Tooltip>
+              {AsbestosClickyBasic(colours.chColor, colours.chDivColor, 'Chrysotile (white) asbestos detected', 'CH',
+              () => toggleResult("ch", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
+              {AsbestosClickyBasic(colours.amColor, colours.amDivColor, 'Amosite (brown) asbestos detected', 'AM',
+              () => toggleResult("am", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
+              {AsbestosClickyBasic(colours.crColor, colours.crDivColor, 'Crocidolite (blue) asbestos detected', 'CR',
+              () => toggleResult("cr", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
+              {AsbestosClickyBasic(colours.umfColor, colours.umfDivColor, 'Unidentified mineral fibres detected', 'UMF',
+              () => toggleResult("umf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
+              <div style={{ width: 30 }} />
+              {AsbestosClickyBasic(colours.noColor, colours.noDivColor, 'No asbestos detected', 'NO',
+              () => toggleResult("no", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
+              <div style={{ width: 30 }} />
+              {AsbestosClickyBasic(colours.orgColor, colours.orgDivColor, 'Organic fibres detected', 'ORG',
+              () => toggleResult("org", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
+              {AsbestosClickyBasic(colours.smfColor, colours.smfDivColor, 'Synthetic mineral fibres detected', 'SMF',
+              () => toggleResult("smf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
+              <Tooltip title='Verify Result is Correct'>
                 <IconButton
                   onClick={event => {
                     event.stopPropagation();
-                      this.props.showModal({
-                        modalType: ASBESTOS_SAMPLE_DETAILS,
-                        modalProps: {
-                          doc: sample,
-                          job: job,
-                      }});
+                    if (
+                      (!sample.verified &&
+                      getBasicResult(sample) === "none" &&
+                      !window.confirm(
+                        "No asbestos result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
+                      )) || sample.onHold
+                    )
+                      return;
+                    verifySample(sample, job, samples[job.uid], this.props.sessionID, this.props.me,);
                   }}
                 >
+                  <CheckCircleOutline
+                    style={{
+                      fontSize: 24,
+                      margin: 10,
+                      color: colours.verifiedColor
+                    }}
+                  />
+                </IconButton>
+              </Tooltip>
+                {this.props.me.auth['Asbestos Bulk Analysis'] && <span>
+                <Tooltip id="det-tooltip" title={'Edit Sample Details' }>
+                  <IconButton
+                    onClick={event => {
+                      event.stopPropagation();
+                        this.props.showModal({
+                          modalType: ASBESTOS_SAMPLE_DETAILS,
+                          modalProps: {
+                            doc: sample,
+                            job: job,
+                        }});
+                    }}
+                  >
                   <SampleDetailsIcon className={classes.asbestosIcon}/>
                 </IconButton>
               </Tooltip>
@@ -441,7 +321,7 @@ class SampleDetailsExpansion extends React.Component {
                   <IconButton
                     onClick={event => {
                       event.stopPropagation();
-                      showModal({
+                      this.props.showModal({
                         modalType: CONFIRM_RESULT,
                         modalProps: {
                           title: `Confirm Result for ${
@@ -456,13 +336,13 @@ class SampleDetailsExpansion extends React.Component {
                   </IconButton>
                 </Tooltip>
                 </span>}
-                <Tooltip id="h-tooltip" title={'Put Sample on Hold'}>
+                <Tooltip id="h-tooltip" title={sample.onHold ? 'Take Sample off Hold' : 'Put Sample on Hold'}>
                   <IconButton
                     onClick={event => {
                       event.stopPropagation();
                       holdSample(sample, job, this.props.me);
                     }}>
-                    <HoldIcon className={classes.asbestosIcon} />
+                    <HoldIcon className={classes.asbestosIcon} style={{color: sample.onHold ? 'red' : 'inherit'}} />
                   </IconButton>
                 </Tooltip>
               {/*<IconButton
