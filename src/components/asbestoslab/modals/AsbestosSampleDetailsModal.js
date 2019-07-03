@@ -9,7 +9,8 @@ import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS } from "../../../constants/modal-
 import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
-import { SampleTickyBox, SampleTextyBox, SampleRadioSelector } from '../../../widgets/FormWidgets';
+import { SampleTickyBox, SampleTextyBox, SampleRadioSelector, SampleTickyBoxGroup, } from '../../../widgets/FormWidgets';
+import { AsbestosClassification } from '../../../config/strings';
 
 import { SketchPicker } from 'react-color';
 import Button from "@material-ui/core/Button";
@@ -40,6 +41,8 @@ import {
   handleSampleChange,
   writeSoilDetails,
   getSampleColours,
+  analyticalCriteraOK,
+  traceAnalysisRequired,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
@@ -218,59 +221,45 @@ class AsbestosSampleDetailsModal extends React.Component {
             <Grid item xs={5}>
               <div className={this.props.classes.subheading}>Classification</div>
               {SampleRadioSelector(this, sample, 'classification', 'homo', 'Classification',
-                [{value: 'homo', label: 'Homogenous'},{value: 'nonhomo', label: 'Non-homogenous'},{value: 'soil', label: 'Soil'},{value: 'ore', label: 'Ore'}],
-                "Homogenous: Uniform distribution of fibres of any type through the entire sample or in each discernibly discrete layer of the sample (sprayed asbestos, asbestos-cement, mastic, vermiculite); Non-homogenous samples contain small, discrete amounts of asbestos distributed unevenly in a large body of non-asbestos material (e.g. dust, soil)"
+                [{value: 'homo', label: 'Homogenous', tooltip: 'Uniform distribution of fibres of any type through the entire sample or in each discernibly discrete layer of the sample (sprayed asbestos, asbestos-cement, mastic, vermiculite)'},
+                {value: 'nonhomo', label: 'Non-homogenous', tooltip: 'Small, discrete amounts of asbestos distributed unevenly in a large body of non-asbestos material (e.g. dust, soil)'},
+                {value: 'soil', label: 'Soil'},{value: 'ore', label: 'Ore'}],
               )}
 
-              {sample.classification === 'homo' && <div>
-                <div>If sample is large, i.e. more than 100g it can be reduced in size.</div>
-                <div>Using the stereo microscope, observe and record the presence and nature of any separate layers.</div>
-                <div>Take sub-samples of each constituent layer of the sample.</div>
-                <div>Examine each sample and sub-sample in its entirety for evidence of fibres. Separate out the fibre clumps.</div>
-                <div>Classify the fibres into separate groups by means of colour and morphology.</div>
-              </div>}
+              {SampleTickyBox(this, 'Asbestos Evident', sample, 'asbestosEvident',)}
 
-              {sample.classification === 'nonhomo' && <div>
-                <div>Sample cannot be reduced in size. If necessary, get client to do it.</div>
-                <div>Examine the entire sample by stereo-microscope after ensuring that it is spread out to a thickness of no more than approximately 3 to 5 mm, depending upon the type of material.</div>
-                <div>Locate and extract fibrous material.</div>
-              </div>}
+              {traceAnalysisRequired(sample)}
 
-              {sample.classification === 'soil' && <div>
-                <div>Sieve sample</div>
-                <div>Examine each layer to a thickness of no more than 1 to 3 mm</div>
-                <div>Locate and extract fibrous material.</div>
-                <div>Conduct a trace analysis on the less than 2mm fraction.</div>
-              </div>}
+              {SampleTickyBoxGroup(this, sample, 'Sample Conditioning', 'sampleConditioning',
+                [{value: 'furnace', label: 'Furnace'},
+                {value: 'flame', label: 'Flame'},
+                {value: 'lowHeat', label: 'Low Heat/Drying'},
+                {value: 'dcm', label: 'Dichloromethane'},
+                {value: 'mortarAndPestle', label: 'Mortar and Pestle'},
+                {value: 'sieved', label: 'Sieved', },
+                ]
+              )}
 
-              {sample.classification === 'ore' && <div>
-                <div>Examine the entire surface of the large solid sections and extract any fibrous material.</div>
-                <div>Examine the dust using the same method as for soils.</div>
-              </div>}
+              {SampleTickyBoxGroup(this, sample, 'Analytical Critera', 'analyticalCriteria',
+                [{value: 'dispersion', label: 'Dispersion Staining', tooltip: 'Fibres show positive confirmation of the RIs for both axes for each asbestos type detected.'},
+                {value: 'morphology', label: 'Morphology', tooltip: 'Fibres show appropriate and basic morphological features.'},
+                {value: 'pleochroism', label: 'Pleochroism', tooltip: 'PP: EW-NS blue-grey indicates Crocidolite, other types have no change.'},
+                {value: 'orientation', label: 'Orientation', tooltip: 'XP+1st Red: Length Fast or Length Slow.'},
+                {value: 'extinction', label: 'Extinction', tooltip: 'XP: Does fibre go dark at 0° and 90°?'},
+                {value: 'birefringence', label: 'Birefringence', tooltip: 'XP: Appropriate intensity of fibre at 45°'},
+                {value: 'colour', label: 'Colour', tooltip: 'PP: Appropriate colour for fibre type?' },
+                ]
+              )}
 
-              <div className={this.props.classes.subheading}>Sample Conditioning</div>
-              <FormGroup row>
-                {SampleTickyBox(this, 'Furnace', sample, 'sampleConditioningFurnace')}
-                {SampleTickyBox(this, 'Flame', sample, 'sampleConditioningFlame')}
-                {SampleTickyBox(this, 'Low Heat/Drying', sample, 'sampleConditioningLowHeat')}
-                {SampleTickyBox(this, 'Dichloromethane', sample, 'sampleConditioningDCM')}
-                {SampleTickyBox(this, 'Mortar and Pestle', sample, 'mortarAndPestle')}
-                {SampleTickyBox(this, 'Sieved', sample, 'sieved')}
-              </FormGroup>
+              {analyticalCriteraOK(sample)}
 
-              <div className={this.props.classes.subheading}>Analytical Criteria</div>
-              <FormGroup row>
-                {SampleTickyBox(this, 'Pleochroism', sample, 'analyticalCriteriaPleochroism')}
-                {SampleTickyBox(this, 'Orientation', sample, 'analyticalCriteraOrientation')}
-                {SampleTickyBox(this, 'Extinction', sample, 'analyticalCriteraExtinction')}
-              </FormGroup>
-              <FormGroup row>
-                {SampleTickyBox(this, 'Birefringence Strength', sample, 'analyticalCriteriaBirefringence')}
-                {SampleTickyBox(this, 'Colour', sample, 'analyticalCriteraColour')}
-              </FormGroup>
+
             </Grid>
             <Grid item xs={1} />
             <Grid item xs={6}>
+              <div className={this.props.classes.informationBox}>
+                {AsbestosClassification(sample.classification)}
+              </div>
             </Grid>
           </Grid>
           <Divider />

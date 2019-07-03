@@ -7,8 +7,10 @@ import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
+import FormGroup from '@material-ui/core/FormGroup';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Radio from '@material-ui/core/Radio';
+import Tooltip from '@material-ui/core/Tooltip';
 
 export const SampleTickyBox = (that, label, sample, field) => {
   return(<FormControlLabel
@@ -35,31 +37,68 @@ export const SampleTickyBox = (that, label, sample, field) => {
 
 export const SampleTickyBoxGroup = (that, sample, heading, base, options) => {
   return(<div>
-          <div className={this.props.classes.subheading}>{heading}</div>
+          <div style={{
+            marginTop: 20,
+            marginBottom: 16,
+            fontWeight: 300,
+            color: '#888',}}>{heading}</div>
           <FormGroup row>
-            {options && options.map(opt => <FormControlLabel
-              control={
-                <Checkbox
-                  checked={sample[base] && sample[base][opt.field] ?
-                    sample[base][opt.field] :
-                    false }
-                  onChange={e => {
-                    that.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        [base]: {
-                          ...sample[base],
-                          [opt.field]: e.target.checked,
-                        }
-                      }
-                    });
-                  }}
-                  value={opt.field}
-                />
+            {options && options.map(opt => {
+              if (opt.tooltip !== undefined) {
+                return (
+                  <Tooltip title={opt.tooltip} key={opt.value}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={sample[base] && sample[base][opt.value] === true ?
+                          true : false }
+                        onChange={e => {
+                          that.setState({
+                            modified: true,
+                            sample: {
+                              ...sample,
+                              [base]: {
+                                ...sample[base],
+                                [opt.value]: e.target.checked,
+                              }
+                            }
+                          });
+                        }}
+                        value={opt.value}
+                      />
+                    }
+                    label={opt.label}
+                  />
+              </Tooltip>);
+              } else {
+                return (
+                <FormControlLabel
+                  key={opt.value}
+                  control={
+                    <Checkbox
+                      checked={sample[base] && sample[base][opt.value] === true ?
+                        true : false }
+                      onChange={e => {
+                        that.setState({
+                          modified: true,
+                          sample: {
+                            ...sample,
+                            [base]: {
+                              ...sample[base],
+                              [opt.value]: e.target.checked,
+                            }
+                          }
+                        });
+                      }}
+                      value={opt.value}
+                    />
+                  }
+                  label={opt.label}
+                />);
               }
-              label={opt.label}
-            />)}
+            }
+
+          )}
           </FormGroup>
           </div>);
 };
@@ -105,7 +144,14 @@ export const SampleRadioSelector = (that, sample, field, defaultValue, label, se
         });
       }}
     >
-      {selections && selections.map(select => <FormControlLabel key={select.value} value={select.value} control={<Radio />} label={select.label} />)}
+      {selections && selections.map(select => {
+        if (select.tooltip !== undefined) {
+          return (<Tooltip key={select.value} title={select.tooltip}><FormControlLabel value={select.value} control={<Radio />} label={select.label} /></Tooltip>);
+        } else {
+          return (<FormControlLabel key={select.value} value={select.value} control={<Radio />} label={select.label} />);
+        }
+      }
+      )}
     </RadioGroup>
     {helperText && <FormHelperText style={{ width: 500, }}>{helperText}</FormHelperText>}
   </FormControl>);

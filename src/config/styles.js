@@ -14,6 +14,15 @@ const modalStyles = theme => ({
       }
   },
 
+  informationBox: {
+    backgroundColor: '#eee',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: 12,
+    fontSize: 12,
+    margin: 12,
+  },
+
   subheading: {
     marginTop: 20,
     marginBottom: 16,

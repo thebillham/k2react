@@ -1217,6 +1217,35 @@ export const deleteCoc = (job, me) => {
 // HELPER FUNCTIONS
 //
 
+export const analyticalCriteraOK = sample => {
+  let color = 'black';
+  let text = '';
+  let compulsory = false;
+  if (sample.analyticalCriteria !== undefined && sample.analyticalCriteria.dispersion === true && sample.analyticalCriteria.morphology === true) compulsory = true;
+  let optionalScore = 0;
+  if (sample.analyticalCriteria !== undefined) {
+    if (sample.analyticalCriteria.pleochroism) optionalScore += sample.analyticalCriteria.pleochroism;
+    if (sample.analyticalCriteria.orientation) optionalScore += sample.analyticalCriteria.orientation;
+    if (sample.analyticalCriteria.extinction) optionalScore += sample.analyticalCriteria.extinction;
+    console.log(optionalScore);
+  }
+  if (sample.analyticalCriteria === undefined) {
+    text = 'Analytical criteria not set.'
+  } else if (compulsory) {
+    if (parseInt(optionalScore) < 2) {
+      text = 'Fibres must display at least 2 of the following optical properties: Pleochroism, Orientation and Extinction';
+      color = 'red';
+    } else {
+      text = 'Fibres display properties consistent with positive identification';
+      color = 'green';
+    }
+  } else {
+    text = 'Fibres must have positive dispersion staining and morphology identification';
+    color = 'red';
+  }
+  return (<div style={{ color: color, marginBottom: 12, backgroundColor: '#eee', }}>{text}</div>);
+};
+
 export const sortSamples = samples => {
   let sampleMap = {};
   samples.forEach(sample => {
@@ -1356,6 +1385,12 @@ export const getBasicResult = (sample) => {
   if (sample.result && sample.result["no"])
     result = "negative";
   return result;
+}
+
+export const traceAnalysisRequired = sample => {
+  let text = 'Trace Analysis Required';
+  if (sample.classification === 'homo' && sample.asbestosEvident === true) text = 'No Trace Analysis Required';
+  return (<div style={{ marginBottom: 12, backgroundColor: '#eee',}}>{text}</div>);
 }
 
 export const writeResult = result => {
