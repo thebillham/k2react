@@ -201,8 +201,6 @@ class ConfirmResultModal extends React.Component {
         <DialogTitle>{modalProps.title ? modalProps.title : 'Confirm Result'}</DialogTitle>
         <DialogContent>
           {[...Array(this.state.totalNum ? this.state.totalNum : 1).keys()].map(num => {
-            console.log(this.state[num]);
-            console.log(this.state[num+1]);
             if (this.state[num+1].deleted !== true) return this.confirmRow(num+1);
           })}
           <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>

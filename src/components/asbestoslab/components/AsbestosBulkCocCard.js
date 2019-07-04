@@ -225,7 +225,7 @@ class AsbestosBulkCocCard extends React.Component {
               <Button
                 style={{ marginLeft: 5 }}
                 variant="outlined"
-                disabled={job.versionUpToDate}
+                {/*disabled={job.versionUpToDate}*/}
                 onClick={() => {
                   // Check if any samples have not been checked off and ask the user to verify
                   let allSamplesVerified = true;

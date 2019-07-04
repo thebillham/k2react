@@ -1228,7 +1228,6 @@ export const analyticalCriteraOK = sample => {
     if (sample.analyticalCriteria.pleochroism) optionalScore += sample.analyticalCriteria.pleochroism;
     if (sample.analyticalCriteria.orientation) optionalScore += sample.analyticalCriteria.orientation;
     if (sample.analyticalCriteria.extinction) optionalScore += sample.analyticalCriteria.extinction;
-    console.log(optionalScore);
   }
   if (sample.analyticalCriteria === undefined) {
     text = 'Analytical criteria not set.'
@@ -1344,7 +1343,6 @@ export const getResultColour = (state, type, noColor, yesColor) => {
 export const getSampleColours = sample => {
   let res = sample.result;
   let confirm = getAllConfirmResult(sample);
-  console.log(confirm);
   let confirmColour = 'green';
   if (confirm === 'no') {
     confirmColour = 'red';
