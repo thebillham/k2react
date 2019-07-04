@@ -1688,7 +1688,6 @@ export const getStats = (samples, job) => {
   let versionUpToDate = job.versionUpToDate;
   // console.log('Getting stats');
   // console.log(job);
-  console.log(samples);
   let nz = moment.tz.setDefault("Pacific/Auckland");
   moment.tz.setDefault("Pacific/Auckland");
   moment.updateLocale('en', {
@@ -1744,8 +1743,6 @@ export const getStats = (samples, job) => {
   let averageReportBusinessTime = 0;
   let totalReportBusinessTime = 0;
   let numReportBusinessTime = 0;
-
-  console.log(samples);
 
   if (samples && Object.values(samples).length > 0) {
     Object.values(samples).forEach(sample => {
@@ -1849,7 +1846,6 @@ export const getStats = (samples, job) => {
     maxReportBusinessTime,
     averageReportBusinessTime,
   };
-  console.log(stats);
 
   if (totalSamples !== 0 && job.stats !== stats) cocsRef.doc(jobID).update({ stats });
   return stats;
