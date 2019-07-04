@@ -647,7 +647,7 @@ class WAAnalysisModal extends React.Component {
     });
   }
 
-  getResultColor = (state, type, noColor, yesColor) => {
+  getResultColour = (state, type, noColor, yesColor) => {
     if(state && state[type] === true) return yesColor;
     return noColor;
   }

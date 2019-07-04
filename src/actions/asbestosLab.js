@@ -1336,41 +1336,104 @@ export const writeReportDescription = (sample) => {
   return lines;
 }
 
-export const getResultColor = (state, type, noColor, yesColor) => {
+export const getResultColour = (state, type, noColor, yesColor) => {
   if(state && state[type] === true) return yesColor;
   return noColor;
 }
 
 export const getSampleColours = sample => {
   let res = sample.result;
+  let confirm = getAllConfirmResult(sample);
+  console.log(confirm);
+  let confirmColour = 'green';
+  if (confirm === 'no') {
+    confirmColour = 'red';
+  } else if (confirm === 'asbestosTypesWrong') {
+    confirmColour = 'orange';
+  } else if (confirm === 'none') {
+    confirmColour = 'inherit';
+  }
   return {
-    cameraColor: sample.imagePathRemote ? 'green' : '#ddd',
-    receivedColor: sample.receivedByLab ? 'green' : '#ddd',
-    analysisColor: sample.analysisStart ? 'green' : '#ddd',
-    verifiedColor: sample.verified ? 'green' : '#ddd',
-    waColor: sample.waAnalysisComplete ? 'green' : 'inherit',
+    cameraColour: sample.imagePathRemote ? 'green' : '#ddd',
+    receivedColour: sample.receivedByLab ? 'green' : '#ddd',
+    analysisColour: sample.analysisStart ? 'green' : '#ddd',
+    verifiedColour: sample.verified ? 'green' : '#ddd',
+    waColour: sample.waAnalysisComplete ? 'green' : 'inherit',
+    confirmColour: confirmColour ? confirmColour : 'inherit',
 
-    chColor: getResultColor(res, 'ch', '#ddd', 'white'),
-    chDivColor: getResultColor(res, 'ch', 'white', 'red'),
+    chColour: getResultColour(res, 'ch', '#ddd', 'white'),
+    chDivColour: getResultColour(res, 'ch', 'white', 'red'),
 
-    amColor: getResultColor(res, 'am', '#ddd', 'white'),
-    amDivColor: getResultColor(res, 'am', 'white', 'red'),
+    amColour: getResultColour(res, 'am', '#ddd', 'white'),
+    amDivColour: getResultColour(res, 'am', 'white', 'red'),
 
-    crColor: getResultColor(res, 'cr', '#ddd', 'white'),
-    crDivColor: getResultColor(res, 'cr', 'white', 'red'),
+    crColour: getResultColour(res, 'cr', '#ddd', 'white'),
+    crDivColour: getResultColour(res, 'cr', 'white', 'red'),
 
-    umfColor: getResultColor(res, 'umf', '#ddd', 'white'),
-    umfDivColor: getResultColor(res, 'umf', 'white', 'red'),
+    umfColour: getResultColour(res, 'umf', '#ddd', 'white'),
+    umfDivColour: getResultColour(res, 'umf', 'white', 'red'),
 
-    noColor: getResultColor(res, 'no', '#ddd', 'green'),
-    noDivColor: getResultColor(res, 'no', 'white', 'lightgreen'),
+    noColour: getResultColour(res, 'no', '#ddd', 'green'),
+    noDivColour: getResultColour(res, 'no', 'white', 'lightgreen'),
 
-    orgColor: getResultColor(res, 'org', '#ddd', 'mediumblue'),
-    orgDivColor: getResultColor(res, 'org', 'white', 'lightblue'),
+    orgColour: getResultColour(res, 'org', '#ddd', 'mediumblue'),
+    orgDivColour: getResultColour(res, 'org', 'white', 'lightblue'),
 
-    smfColor: getResultColor(res, 'smf', '#ddd', 'mediumblue'),
-    smfDivColor: getResultColor(res, 'smf', 'white', 'lightblue'),
+    smfColour: getResultColour(res, 'smf', '#ddd', 'mediumblue'),
+    smfDivColour: getResultColour(res, 'smf', 'white', 'lightblue'),
   };
+}
+
+export const getAllConfirmResult = sample => {
+  if (sample.confirm === undefined) return 'none';
+  if (sample.result === undefined) return 'none';
+
+  let results = [];
+
+  {[...Array(sample.confirm.totalNum ? sample.confirm.totalNum : 1).keys()].map(num => {
+    if (sample.confirm[num+1] && sample.confirm[num+1].deleted !== true) {
+      results.push(getConfirmResult(sample.confirm[num+1], sample));
+    }
+  })}
+
+  console.log(results);
+
+  let perfectMatches = 0;
+  let differentNonAsbestos = 0;
+  let differentAsbestos = 0;
+  let falseResults = 0;
+  results.forEach(result => {
+    if (result === 'yes') perfectMatches += 1;
+    if (result === 'differentAsbestos') differentAsbestos += 1;
+    if (result === 'differentNonAsbestos') differentNonAsbestos += 1;
+    if (result === 'no') falseResults += 1;
+  });
+  if (falseResults > 0) return 'no';
+  if (differentAsbestos > 0) return 'asbestosTypesWrong';
+  if (differentNonAsbestos > 0) return 'nonAsbestosTypesWrong';
+  if (perfectMatches > 0) return 'yes';
+  return 'none';
+};
+
+export const getConfirmResult = (confirm, result) => {
+  let basicConfirm = getBasicResult(confirm);
+  let basicResult = getBasicResult(result);
+  if (basicConfirm !== basicResult) return 'no';
+  let differentAsbestos = false;
+  if (basicResult === 'positive') {
+    ['ch','am','cr','umf'].forEach(type => {
+      if ((result.result[type] === true && confirm.result[type] !== true) ||
+      (confirm.result[type] === true && result.result[type] !== true)) differentAsbestos = true;
+    });
+  }
+  if (differentAsbestos) return 'differentAsbestos';
+  let differentNonAsbestos = false;
+  ['org','smf'].forEach(type => {
+    if ((result.result[type] === true && confirm.result[type] !== true) ||
+    (confirm.result[type] === true && result.result[type] !== true)) differentNonAsbestos = true;
+  });
+  if (differentNonAsbestos) return 'differentNonAsbestos';
+  return 'yes';
 }
 
 export const getBasicResult = (sample) => {

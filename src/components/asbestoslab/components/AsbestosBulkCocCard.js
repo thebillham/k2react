@@ -134,7 +134,6 @@ class AsbestosBulkCocCard extends React.Component {
       let formatDate = date instanceof Date ? date : date.toDate();
       return moment(formatDate).format('D MMMM YYYY');
     });
-    console.log(samples);
     let stats = getStats(samples[job.uid], job);
 
     return (

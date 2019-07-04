@@ -75,6 +75,7 @@ import SampleLogIcon from "@material-ui/icons/Ballot";
 import SampleDetailsIcon from "@material-ui/icons/Edit";
 import HoldIcon from "@material-ui/icons/PauseCircleOutline";
 import ConfirmIcon from "@material-ui/icons/ThumbUp";
+import ThumbsDown from "@material-ui/icons/ThumbDown";
 import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 
 import { addLog, } from '../../../actions/local';
@@ -158,7 +159,7 @@ class SampleDetailsExpansion extends React.Component {
                 <Popup
                   trigger={
                     <CameraAlt className={classes.asbestosIcon}
-                      style={{color: colours.cameraColor,}}
+                      style={{color: colours.cameraColour,}}
                     />
                   }
                   position="right center"
@@ -209,7 +210,7 @@ class SampleDetailsExpansion extends React.Component {
                   }}
                 >
                 <Inbox className={classes.asbestosIcon}
-                  style={{color: colours.receivedColor}}
+                  style={{color: colours.receivedColour}}
                 />
                 </IconButton>
               </Tooltip>
@@ -221,25 +222,25 @@ class SampleDetailsExpansion extends React.Component {
                     }}
                   >
                     <AnalysisIcon className={classes.asbestosIcon}
-                      style={{color: colours.analysisColor}}
+                      style={{color: colours.analysisColour}}
                     />
                   </IconButton>
               </Tooltip>
-              {AsbestosClickyBasic(colours.chColor, colours.chDivColor, 'Chrysotile (white) asbestos detected', 'CH',
+              {AsbestosClickyBasic(colours.chColour, colours.chDivColour, 'Chrysotile (white) asbestos detected', 'CH',
               () => toggleResult("ch", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colours.amColor, colours.amDivColor, 'Amosite (brown) asbestos detected', 'AM',
+              {AsbestosClickyBasic(colours.amColour, colours.amDivColour, 'Amosite (brown) asbestos detected', 'AM',
               () => toggleResult("am", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colours.crColor, colours.crDivColor, 'Crocidolite (blue) asbestos detected', 'CR',
+              {AsbestosClickyBasic(colours.crColour, colours.crDivColour, 'Crocidolite (blue) asbestos detected', 'CR',
               () => toggleResult("cr", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colours.umfColor, colours.umfDivColor, 'Unidentified mineral fibres detected', 'UMF',
+              {AsbestosClickyBasic(colours.umfColour, colours.umfDivColour, 'Unidentified mineral fibres detected', 'UMF',
               () => toggleResult("umf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               <div style={{ width: 30 }} />
-              {AsbestosClickyBasic(colours.noColor, colours.noDivColor, 'No asbestos detected', 'NO',
+              {AsbestosClickyBasic(colours.noColour, colours.noDivColour, 'No asbestos detected', 'NO',
               () => toggleResult("no", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               <div style={{ width: 30 }} />
-              {AsbestosClickyBasic(colours.orgColor, colours.orgDivColor, 'Organic fibres detected', 'ORG',
+              {AsbestosClickyBasic(colours.orgColour, colours.orgDivColour, 'Organic fibres detected', 'ORG',
               () => toggleResult("org", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colours.smfColor, colours.smfDivColor, 'Synthetic mineral fibres detected', 'SMF',
+              {AsbestosClickyBasic(colours.smfColour, colours.smfDivColour, 'Synthetic mineral fibres detected', 'SMF',
               () => toggleResult("smf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               <Tooltip title='Verify Result is Correct'>
                 <IconButton
@@ -260,7 +261,7 @@ class SampleDetailsExpansion extends React.Component {
                     style={{
                       fontSize: 24,
                       margin: 10,
-                      color: colours.verifiedColor
+                      color: colours.verifiedColour
                     }}
                   />
                 </IconButton>
@@ -295,7 +296,7 @@ class SampleDetailsExpansion extends React.Component {
                     }}
                   >
                     <WAIcon className={classes.asbestosIcon}
-                      style={{color: colours.waColor}}
+                      style={{color: colours.waColour}}
                     />
                   </IconButton>
                 </Tooltip>
@@ -327,12 +328,14 @@ class SampleDetailsExpansion extends React.Component {
                           title: `Confirm Result for ${
                             job.jobNumber
                           }-${sample.sampleNumber.toString()}`,
-                          uid: sample.uid,
+                          sample: sample,
+                          jobUid: job.uid,
                         }
                       });
                     }}
                   >
-                    <ConfirmIcon className={classes.asbestosIcon} />
+                    {colours.confirmColour === 'red' ? <ThumbsDown className={classes.asbestosIcon} style={{ color: 'red' }} /> :
+                    <ConfirmIcon className={classes.asbestosIcon} style={{color: colours.confirmColour}} />}
                   </IconButton>
                 </Tooltip>
                 </span>}
