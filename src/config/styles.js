@@ -170,8 +170,8 @@ const styles = theme => ({
     width: '100%',
   },
   asbestosIcon: {
-    fontSize: 24,
-    margin: 5,
+    fontSize: 20,
+    margin: 6,
   },
   inputInput: {
     paddingTop: theme.spacing(1),

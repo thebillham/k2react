@@ -39,7 +39,7 @@ import {
 } from "../../../constants/modal-types";
 
 import { TickyBox, } from '../../../widgets/FormWidgets';
-import SampleDetailsExpansion from "./SampleDetailsExpansion";
+import SampleListItem from "./SampleListItem";
 
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
@@ -487,7 +487,7 @@ class AsbestosBulkCocCard extends React.Component {
                 {samples[job.uid] && Object.values(samples[job.uid]).filter(el => el.deleted === false).length > 0 &&
                   Object.values(samples[job.uid]).filter(el => el.deleted === false)
                   .map(sample => {
-                    return (<SampleDetailsExpansion
+                    return (<SampleListItem
                       key={sample.uid}
                       job={job}
                       sample={sample}

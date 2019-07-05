@@ -24,7 +24,7 @@ export const AsbestosClickyBasic = (fgColor, bgColor, tooltip, label, toggle) =>
         variant="outlined"
         style={{ margin: 5, color: fgColor }}
         onClick={event => {
-          event.stopPropagation();
+          // event.stopPropagation();
           toggle();
         }}
       >
