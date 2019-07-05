@@ -44,7 +44,7 @@ class CocLogModal extends React.Component {
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
-        onEnter={() => this.props.fetchLogs(modalProps.uid, 10)}
+        onEnter={() => this.props.fetchLogs(modalProps.uid, 20)}
         onExit={this.props.clearLog}
       >
         <DialogTitle>Change Log for {modalProps.jobNumber}</DialogTitle>

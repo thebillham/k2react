@@ -156,3 +156,22 @@ export const SampleRadioSelector = (that, sample, field, defaultValue, label, se
     {helperText && <FormHelperText style={{ width: 500, }}>{helperText}</FormHelperText>}
   </FormControl>);
 };
+
+export const TickyBox = (that, label, ref, obj, field, onClick, disabled) => {
+  return(<FormControlLabel
+    control={
+      <Checkbox
+        disabled={disabled}
+        checked={obj[field] ?
+          obj[field] :
+          false }
+        onChange={e => {
+          ref.doc(obj.uid).update({[field]: e.target.checked});
+          onClick(e.target.checked);
+        }}
+        value={field}
+      />
+    }
+    label={label}
+  />);
+};

@@ -435,15 +435,16 @@ export const holdSample = (sample, job, me) => {
   addLog("asbestosLab", log, me);
   cocsRef
     .doc(sample.cocUid)
-    .update({ versionUpToDate: false, });
+    .update({ versionUpToDate: false, mostRecentIssueSent: false,});
   asbestosSamplesRef.doc(sample.uid).update({ onHold: sample.onHold ? false : true, });
 }
 
 export const receiveAll = (samples, job, sessionID, me) => {
+  console.log(samples);
   if (samples && Object.values(samples).length > 0) {
     Object.values(samples).forEach(sample => {
       if (sample.cocUid === job.uid) {
-        if (!sample.receivedByLab) receiveSample(sample, job, sessionID, me);
+        if (!sample.receivedByLab) receiveSample(sample, job, samples, sessionID, me);
       }
     });
   }
@@ -479,7 +480,7 @@ export const receiveSample = (sample, job, samples, sessionID, me) => {
   addLog("asbestosLab", log, me);
   cocsRef
     .doc(sample.cocUid)
-    .update({ versionUpToDate: false });
+    .update({ versionUpToDate: false, mostRecentIssueSent: false, });
   if (!sample.receivedByLab) {
     asbestosSamplesRef.doc(sample.uid).update(
     {
@@ -625,7 +626,7 @@ export const toggleResult = (result, analyst, sample, job, samples, sessionID, m
 
     cocsRef
       .doc(job.uid)
-      .update({ versionUpToDate: false });
+      .update({ versionUpToDate: false, mostRecentIssueSent: false, });
 
     // Check for situation where all results are unselected
     let notBlankAnalysis = false;
@@ -691,7 +692,7 @@ export const removeResult = (sample, sessionID, me) => {
 
   cocsRef
     .doc(sample.cocUid)
-    .update({ versionUpToDate: false });
+    .update({ versionUpToDate: false, mostRecentIssueSent: false, });
   asbestosAnalysisRef
     .doc(`${sessionID}-${sample.uid}`)
     .delete();
@@ -733,7 +734,7 @@ export const verifySample = (sample, job, samples, sessionID, me) => {
 
         cocsRef
           .doc(sample.cocUid)
-          .update({ versionUpToDate: false });
+          .update({ versionUpToDate: false, mostRecentIssueSent: false, });
         if (!sample.verified) {
           sample.verifyDate = new Date();
           let cocStats = getStats(samples, job);
@@ -938,19 +939,19 @@ export const getWAAnalysisSummary = sample => {
             </Button>
           </div>
         </div>
-        { fractionWeightNum === 3 && parseFloat(fractionTotalWeight) !== parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+        { fractionWeightNum === 3 && parseFloat(fractionTotalWeight) !== parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
           The weight of all fractions does not match the total conditioned weight.
         </div>}
-        { parseFloat(subFractionTotalWeight) > parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+        { parseFloat(subFractionTotalWeight) > parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
           The weight of all analysed subfractions exceeds the total conditioned weight of the entire sample!
         </div>}
-        { allHaveTypes === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+        { allHaveTypes === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
           Not all subfractions have been assigned an asbestos type (i.e. CH/AM/CR/UMF).
         </div>}
-        { allHaveForms === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+        { allHaveForms === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
           Not all subfractions have been assigned an asbestos form (i.e. AF/FA/ACM). This will result in an incorrect concentration.
         </div>}
-        { match === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 14, }}>
+        { match === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
           The cumulative result of the analysed fractions does not match with the reported asbestos result for the entire sample. Please check.
         </div>}
       </div>
@@ -1306,7 +1307,7 @@ export const writeReportDescription = (sample) => {
 
   // ~ at start means make italic, * means make bold
   if (report['soilDescription'] === true) lines.push("~" + writeSoilDetails(sample.soilDetails));
-  if (report['layers'] === true) {
+  if (report['layers'] === true && sample.layers !== undefined && sample.layerNum !== undefined) {
     [...Array(sample.layerNum).keys()].forEach(num => {
       if (sample.layers[`layer${num+1}`] !== undefined) {
         let lay = sample.layers[`layer${num+1}`];
@@ -1744,6 +1745,11 @@ export const getStats = (samples, job) => {
   let totalReportBusinessTime = 0;
   let numReportBusinessTime = 0;
 
+  let confirmedResults = 0;
+  let confirmedResultsOK = 0;
+  let confirmedResultsConflict = 0;
+  let confirmedResultsWrong = 0;
+
   if (samples && Object.values(samples).length > 0) {
     Object.values(samples).forEach(sample => {
       if (sample.cocUid === jobID) {
@@ -1767,7 +1773,7 @@ export const getStats = (samples, job) => {
           numAnalysisBusinessTime = numAnalysisBusinessTime + 1;
           averageAnalysisBusinessTime = totalAnalysisBusinessTime / numAnalysisBusinessTime;
         }
-        if (sample.verified) {
+        if (sample.verified && sample.receivedDate && sample.verifyDate && sample.analysisDate) {
           numberVerified = numberVerified + 1;
           if (sample.turnaroundTime) {
             if (sample.turnaroundTime > maxTurnaroundTime) maxTurnaroundTime = sample.turnaroundTime;
@@ -1790,11 +1796,17 @@ export const getStats = (samples, job) => {
             }
 
             let reportBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.analysisDate.toDate()));
-            if (reportBusinessTime > maxReportBusinessTime) maxReportBusinessTime = reportBusinessTime;
             totalReportBusinessTime = totalReportBusinessTime + reportBusinessTime;
             numReportBusinessTime = numReportBusinessTime + 1;
             averageReportBusinessTime = totalReportBusinessTime / numReportBusinessTime;
           }
+        }
+        let confirm = getAllConfirmResult(sample);
+        if (confirm !== 'none') {
+          confirmedResults += 1;
+          if (confirm === 'no') confirmedResultsWrong += 1;
+          if (confirm === 'asbestosTypesWrong') confirmedResultsConflict += 1;
+          if (confirm === 'yes' || confirm === 'nonAsbestosTypesWrong') confirmedResultsOK += 1;
         }
       }
     });
@@ -1845,6 +1857,10 @@ export const getStats = (samples, job) => {
     averageAnalysisBusinessTime,
     maxReportBusinessTime,
     averageReportBusinessTime,
+    confirmedResults,
+    confirmedResultsOK,
+    confirmedResultsConflict,
+    confirmedResultsWrong,
   };
 
   if (totalSamples !== 0 && job.stats !== stats) cocsRef.doc(jobID).update({ stats });

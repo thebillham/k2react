@@ -38,6 +38,7 @@ import {
   COC_LOG
 } from "../../../constants/modal-types";
 
+import { TickyBox, } from '../../../widgets/FormWidgets';
 import SampleDetailsExpansion from "./SampleDetailsExpansion";
 
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
@@ -135,6 +136,7 @@ class AsbestosBulkCocCard extends React.Component {
       return moment(formatDate).format('D MMMM YYYY');
     });
     let stats = getStats(samples[job.uid], job);
+    console.log(stats);
 
     return (
       <ExpansionPanel
@@ -147,10 +149,10 @@ class AsbestosBulkCocCard extends React.Component {
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
           <div>
             <span style={{ fontWeight: 500, marginRight: 12, }}>{job.jobNumber}</span>
-            <span style={{ marginRight: 12, }}>{job.client} ({job.address})</span>
-            {job.waAnalysis && <WAIcon color='action' />}
-            {job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' />}
-            {job.versionUpToDate && <CheckCircleOutline color='primary' />}
+            <span>{job.client} ({job.address})</span>
+            {job.waAnalysis && <WAIcon color='action' style={{ marginLeft: 6, }} />}
+            {job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' style={{ marginLeft: 6, }} />}
+            {job.versionUpToDate && <CheckCircleOutline color='primary' style={{ marginLeft: 6, }} />}
             {job.stats && <span style={{ marginLeft: 12, fontSize: 10, fontWeight: 500, }}>{job.stats.status.toUpperCase()}</span>}
           </div>
         </ExpansionPanelSummary>
@@ -185,13 +187,13 @@ class AsbestosBulkCocCard extends React.Component {
                       </IconButton>
                     </Tooltip>
                     <Tooltip id="reca-tooltip" title={'Receive All Samples'}>
-                      <IconButton onClick={() => receiveAll(samples, job, this.props.sessionID, this.props.me)}>
+                      <IconButton onClick={() => receiveAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
                         <Inbox className={classes.asbestosIcon} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip id="analysisa-tooltip" title={'Start Analysis on All Samples'}>
                       <IconButton
-                      onClick={() => startAnalysisAll(samples, job, this.props.sessionID, this.props.me)}>
+                      onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
                         <Colorize className={classes.asbestosIcon} />
                       </IconButton>
                     </Tooltip>
@@ -346,99 +348,140 @@ class AsbestosBulkCocCard extends React.Component {
                 </div>*/}
                 <Grid container style={{ marginTop: 12, marginBottom: 12 }}>
                   <Grid item lg={3} xs={6}>
-                    Sampled by:{" "}
+                    <b>Sampled by:</b>{" "}
                     <span style={{ fontWeight: 300 }}>
                       {job.personnel && job.personnel.length > 0
                         ? job.personnel.join(", ")
                         : "Not specified"}
                     </span>
                     <br />
-                    Date(s) Sampled:{" "}
+                    <b>Date(s) Sampled:</b>{" "}
                     <span style={{ fontWeight: 300 }}>
                       {dates && dates.length > 0
                         ? dates.join(", ")
                         : "Not specified"}
                     </span>
                     <br />
-                    Analysis by:{" "}
+                    <b>Analysis by:</b>{" "}
                     <span style={{ fontWeight: 300 }}>
                       {analysts ? analysts.join(", ") : "Not specified"}
                     </span>
                   </Grid>
                   <Grid item lg={2} xs={6}>
-                    Number of Samples:{" "}
+                    <b>Total Samples:</b>{" "}
                     <span style={{ fontWeight: 300 }}>
                       {stats && stats.totalSamples}
                     </span>
                     <br />
-                    Positive Results:{" "}
-                    <span style={{ fontWeight: 300 }}>
-                      {stats && stats.numberResult > 0 ? stats.positiveSamples : 'N/A'}
-                    </span>
-                    <br />
-                    Negative Results:{" "}
-                    <span style={{ fontWeight: 300 }}>
-                      {stats && stats.numberResult > 0 ? stats.negativeSamples : 'N/A'}
-                    </span>
-                    <br />
+                    <Tooltip title={'Red: Positive samples, Green: Negative samples, Black: Total samples with results'}>
+                      <div>
+                        <b>Results:</b>{" "}
+                        <span style={{ fontWeight: 600, color: 'red' }}>
+                          {stats && stats.positiveSamples !== undefined ? stats.positiveSamples : 0}
+                        </span>-
+                        <span style={{ fontWeight: 600, color: 'green'}}>
+                          {stats && stats.negativeSamples !== undefined ? stats.negativeSamples : 0}</span>
+                        /
+                        <span style={{ fontWeight: 600 }}>
+                          {stats && parseInt(stats.positiveSamples) + parseInt(stats.negativeSamples)}
+                        </span>
+                      </div>
+                    </Tooltip>
+                    <Tooltip title={'Red: Second analysis contradicts first analysis, Orange: Second analysis shows variance in asbestos types reported, Green: First and second analysis match'}>
+                      <div>
+                        <b>Results Confirmed:</b>{" "}
+                        {stats && stats.confirmedResults !== undefined && stats.confirmedResults > 0 ?
+                          <span>
+                            <span style={{ fontWeight: 600, color: 'green'}}>
+                              {stats && stats.confirmedResultsOK !== undefined && stats.confirmedResultsOK}
+                            </span>-
+                            <span style={{ fontWeight: 600, color: 'orange'}}>
+                              {stats && stats.confirmedResultsConflict !== undefined && stats.confirmedResultsConflict}
+                            </span>-
+                            <span style={{ fontWeight: 600, color: 'red' }}>
+                              {stats && stats.confirmedResultsWrong !== undefined && stats.confirmedResultsWrong}
+                            </span>/
+                            <span style={{ fontWeight: 600 }}>
+                              {stats && stats.confirmedResults}
+                            </span>
+                          </span>
+                        : <span>N/A</span>}
+                      </div>
+                    </Tooltip>
                   </Grid>
                   <Grid item lg={3} xs={6}>
-                    Max/Avg Turnaround Time:{" "}
-                    { stats && stats.maxTurnaroundTime > 0 && stats.averageTurnaroundTime > 0 ?
-                      <span style={{ fontWeight: 300 }}>
-                        {moment.utc(stats.maxTurnaroundTime).format('HH:mm')}/{moment.utc(stats.averageTurnaroundTime).format('HH:mm')}
-                      </span>
-                      :
-                      <span style={{ fontWeight: 300 }}>N/A</span>
-                    }
-                    <br />
-                    Max/Avg Analysis Time:{" "}
-                    { stats && stats.maxAnalysisTime > 0 && stats.averageAnalysisTime > 0 ?
-                      <span style={{ fontWeight: 300 }}>
-                        {moment.utc(stats.maxAnalysisTime).format('HH:mm')}/{moment.utc(stats.averageAnalysisTime).format('HH:mm')}
-                      </span>
-                      :
-                      <span style={{ fontWeight: 300 }}>N/A</span>
-                    }
-                    <br />
-                    Max/Avg Report Time:{" "}
-                    { stats && stats.maxReportTime > 0 && stats.averageReportTime > 0 ?
-                      <span style={{ fontWeight: 300 }}>
-                        {moment.utc(stats.maxReportTime).format('HH:mm')}/{moment.utc(stats.averageReportTime).format('HH:mm')}
-                      </span>
-                      :
-                      <span style={{ fontWeight: 300 }}>N/A</span>
-                    }
-                    <br />
+                    <Tooltip title={'Max/Average Time (Business Hours Only in Brackets)'}>
+                      <div>
+                      <b>Turnaround Time:</b>{" "}
+                      { stats && stats.maxTurnaroundTime > 0 && stats.averageTurnaroundTime > 0 ?
+                        <span style={{ fontWeight: 300 }}>
+                          {moment.utc(stats.maxTurnaroundTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundTime).format('H:mm')}
+                        </span>
+                        :
+                        <span style={{ fontWeight: 300 }}>N/A</span>
+                      }{" "}
+                      ({ stats && stats.maxTurnaroundBusinessTime > 0 && stats.averageTurnaroundBusinessTime > 0 ?
+                          <span style={{ fontWeight: 300 }}>
+                            {moment.utc(stats.maxTurnaroundBusinessTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundBusinessTime).format('H:mm')}
+                          </span>
+                          :
+                          <span style={{ fontWeight: 300 }}>N/A</span>
+                      })
+                      <br />
+                      <b>Analysis Time:</b>{" "}
+                      { stats && stats.maxAnalysisTime > 0 && stats.averageAnalysisTime > 0 ?
+                        <span style={{ fontWeight: 300 }}>
+                          {moment.utc(stats.maxAnalysisTime).format('H:mm')}/{moment.utc(stats.averageAnalysisTime).format('H:mm')}
+                        </span>
+                        :
+                        <span style={{ fontWeight: 300 }}>N/A</span>
+                      }{" "}
+                      ({ stats && stats.maxAnalysisBusinessTime > 0 && stats.averageAnalysisBusinessTime > 0 ?
+                        <span style={{ fontWeight: 300 }}>
+                          {moment.utc(stats.maxAnalysisBusinessTime).format('H:mm')}/{moment.utc(stats.averageAnalysisBusinessTime).format('H:mm')}
+                        </span>
+                        :
+                        <span style={{ fontWeight: 300 }}>N/A</span>
+                      })
+                      <br />
+                      <b>Report Time:</b>{" "}
+                      { stats && stats.maxReportTime > 0 && stats.averageReportTime > 0 ?
+                        <span style={{ fontWeight: 300 }}>
+                          {moment.utc(stats.maxReportTime).format('H:mm')}/{moment.utc(stats.averageReportTime).format('H:mm')}
+                        </span>
+                        :
+                        <span style={{ fontWeight: 300 }}>N/A</span>
+                      }{" "}
+                      ({ stats && stats.maxReportBusinessTime > 0 && stats.averageReportBusinessTime > 0 ?
+                        <span style={{ fontWeight: 300 }}>
+                          {moment.utc(stats.maxReportBusinessTime).format('H:mm')}/{moment.utc(stats.averageReportBusinessTime).format('H:mm')}
+                        </span>
+                        :
+                        <span style={{ fontWeight: 300 }}>N/A</span>
+                      })
+                      </div>
+                    </Tooltip>
                   </Grid>
                   <Grid item lg={4} xs={6}>
-                    Max/Avg Business Hours Turnaround Time:{" "}
-                    { stats && stats.maxTurnaroundBusinessTime > 0 && stats.averageTurnaroundBusinessTime > 0 ?
-                      <span style={{ fontWeight: 300 }}>
-                        {moment.utc(stats.maxTurnaroundBusinessTime).format('HH:mm')}/{moment.utc(stats.averageTurnaroundBusinessTime).format('HH:mm')}
-                      </span>
-                      :
-                      <span style={{ fontWeight: 300 }}>N/A</span>
-                    }
-                    <br />
-                    Max/Avg Business Hours Analysis Time:{" "}
-                    { stats && stats.maxAnalysisBusinessTime > 0 && stats.averageAnalysisBusinessTime > 0 ?
-                      <span style={{ fontWeight: 300 }}>
-                        {moment.utc(stats.maxAnalysisBusinessTime).format('HH:mm')}/{moment.utc(stats.averageAnalysisBusinessTime).format('HH:mm')}
-                      </span>
-                      :
-                      <span style={{ fontWeight: 300 }}>N/A</span>
-                    }
-                    <br />
-                    Max/Avg Business Hours Report Time:{" "}
-                    { stats && stats.maxReportBusinessTime > 0 && stats.averageReportBusinessTime > 0 ?
-                      <span style={{ fontWeight: 300 }}>
-                        {moment.utc(stats.maxReportBusinessTime).format('HH:mm')}/{moment.utc(stats.averageReportBusinessTime).format('HH:mm')}
-                      </span>
-                      :
-                      <span style={{ fontWeight: 300 }}>N/A</span>
-                    }
-                    <br />
+                    <div>{ job.labToContactClient && TickyBox(this, 'Lab Contacted Client', cocsRef, job, 'labHasContactedClient',
+                      (checked) => {
+                        let log = {
+                          type: "Issue",
+                          log: checked ? 'Client Contacted by Lab.' : 'Unchecked Client Contacted by Lab.',
+                          chainOfCustody: job.uid,
+                        };
+                        addLog("asbestosLab", log, this.props.me);
+                      }
+                    )}
+                    { TickyBox(this, 'Latest Issue Sent', cocsRef, job, 'mostRecentIssueSent',
+                      (checked) => {
+                          let log = {
+                            type: "Issue",
+                            log: checked ? 'Latest Issue Sent to Client' : 'Unchecked Latest Issue Sent to Client.',
+                            chainOfCustody: job.uid,
+                          };
+                          addLog("asbestosLab", log, this.props.me);
+                        }, !job.versionUpToDate)}</div>
                   </Grid>
                 </Grid>
                 {samples[job.uid] && Object.values(samples[job.uid]).filter(el => el.deleted === false).length > 0 &&

@@ -1501,6 +1501,7 @@ export const addLog = (collection, log, user) => {
 export const fetchLogs = (collection, filter, filterValue, limit) => async dispatch => {
     logsRef.collection(collection)
       .where(filter, "==", filterValue)
+      .orderBy('date','desc')
       .limit(limit)
       .onSnapshot(querySnapshot => {
         var logs = [];

@@ -228,6 +228,7 @@ class ConfirmResultModal extends React.Component {
   confirmRow = (num) => {
     let colours = getSampleColours(this.state[num]);
     let resultDate = 'N/A';
+    let prevAnalyst = this.props.modalProps.sample && this.props.modalProps.sample.analyst ? this.props.modalProps.sample.analyst : null;
     if (this.state[num].date !== undefined) {
       if (this.state[num].date instanceof Date) resultDate = this.state[num].date;
       else resultDate = this.state[num].date.toDate();
@@ -241,7 +242,7 @@ class ConfirmResultModal extends React.Component {
             onChange={e => this.setAnalyst(e.target.value, num)}
             input={<Input name="analyst" id="analyst" />}
           >
-            {this.props.bulkAnalysts.map(analyst => {
+            {this.props.bulkAnalysts.filter(analyst => analyst.name !== prevAnalyst).map(analyst => {
               return (
                 <option key={analyst.uid} value={analyst.name}>
                   {analyst.name}

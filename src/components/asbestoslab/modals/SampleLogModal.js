@@ -47,7 +47,7 @@ class SampleLogModal extends React.Component {
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
-        onEnter={() => this.props.fetchLogs(modalProps.uid, 10)}
+        onEnter={() => this.props.fetchLogs(modalProps.uid, 20)}
         onExit={this.props.clearLog}
       >
         <DialogTitle>{modalProps.title ? modalProps.title : 'Sample History'}</DialogTitle>

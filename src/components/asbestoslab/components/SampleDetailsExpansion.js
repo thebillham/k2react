@@ -122,7 +122,7 @@ class SampleDetailsExpansion extends React.Component {
 
     cocsRef
       .doc(this.props.job.uid)
-      .update({ versionUpToDate: false, waAnalysis: waAnalysis, });
+      .update({ versionUpToDate: false, mostRecentIssueSent: false, waAnalysis: waAnalysis, });
     asbestosSamplesRef
       .doc(sample.uid)
       .update({ waAnalysis: !sample.waAnalysis});

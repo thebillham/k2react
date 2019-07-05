@@ -128,12 +128,14 @@ class CocModal extends React.Component {
       [type]: event.target.value,
       modified: true,
     });
-    let log = {
-      type: 'Edit',
-      log: `Sampling personnel details changed.`,
-      chainOfCustody: this.props.doc.uid,
-    };
-    addLog("asbestosLab", log, this.props.me);
+    if (this.props.doc.uid !== undefined) {
+      let log = {
+        type: 'Edit',
+        log: `Sampling personnel details changed.`,
+        chainOfCustody: this.props.doc.uid,
+      };
+      addLog("asbestosLab", log, this.props.me);
+    }
     this.props.handleSelectChange({ id: type, value: event.target.value, })
   }
 
@@ -148,12 +150,14 @@ class CocModal extends React.Component {
       dates.push(day);
     }
     this.setState({ modified: true, });
-    let log = {
-      type: 'Edit',
-      log: 'Sampling dates changed.',
-      chainOfCustody: this.props.doc.uid,
-    };
-    addLog("asbestosLab", log, this.props.me);
+    if (this.props.doc.uid !== undefined) {
+      let log = {
+        type: 'Edit',
+        log: 'Sampling dates changed.',
+        chainOfCustody: this.props.doc.uid,
+      };
+      addLog("asbestosLab", log, this.props.me);
+    }
     this.props.handleSelectChange({ id: 'dates', value: dates, })
   }
 
@@ -535,7 +539,7 @@ class CocModal extends React.Component {
                      MenuProps={{
                        PaperProps: {
                          style: {
-                           maxHeight: 48 * 4.5 + 8,
+                           maxHeight: '90vh',
                            width: 250,
                          },
                        },
@@ -787,6 +791,7 @@ class CocModal extends React.Component {
               if (!doc.dateSubmit) doc.dateSubmit = now;
               doc.lastModified = now;
               doc.versionUpToDate = false;
+              doc.mostRecentIssueSent = false;
               doc.stats = { status: 'In Transit'};
               if (Object.keys(doc.samples).length === 0) doc.stats.status = 'No Samples';
               this.props.resetWfmJob();
