@@ -136,7 +136,6 @@ class AsbestosBulkCocCard extends React.Component {
       return moment(formatDate).format('D MMMM YYYY');
     });
     let stats = getStats(samples[job.uid], job);
-    console.log(stats);
 
     return (
       <ExpansionPanel
@@ -198,22 +197,6 @@ class AsbestosBulkCocCard extends React.Component {
                       </IconButton>
                     </Tooltip>
                   </span>)}
-              {/*<Button
-                variant="outlined"
-                onClick={() => {
-                  this.props.syncJobWithWFM(job.jobNumber);
-                  this.props.showModal({
-                    modalType: COC,
-                    modalProps: {
-                      title: "Edit Chain of Custody",
-                      doc: { ...job, samples: samples[job.uid] === undefined ? {} : {...samples[job.uid]} }
-                    }
-                  });
-                }}
-              >
-                <Edit style={{ fontSize: 20, margin: 5 }} />
-                Edit
-              </Button>*/}
               <Button
                 style={{ marginLeft: 5 }}
                 variant="outlined"
@@ -227,7 +210,7 @@ class AsbestosBulkCocCard extends React.Component {
               <Button
                 style={{ marginLeft: 5 }}
                 variant="outlined"
-                // disabled={job.versionUpToDate}
+                disabled={job.versionUpToDate}
                 onClick={() => {
                   // Check if any samples have not been checked off and ask the user to verify
                   let allSamplesVerified = true;
@@ -315,37 +298,6 @@ class AsbestosBulkCocCard extends React.Component {
             </div>
             {samples[job.uid] && Object.values(samples[job.uid]).length > 0 ? (
               <div>
-                {/*<div style={{ marginTop: 12, marginBottom: 12, display: 'flex', flexDirection: 'row' }}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => togglePriority(job, this.props.me)}>
-                    <Flag color={job.priority === 1 ? 'secondary' : 'inherit'} style={{ fontSize: 20, margin: 5 }} />
-                    Mark As Urgent
-                  </Button>
-                  <Button
-                    style={{ marginLeft: 5 }}
-                    variant="outlined"
-                    onClick={() => toggleWAAnalysis(job, this.props.me)}>
-                    <WAIcon color={job.waAnalysis ? 'primary' : 'inherit'} style={{ fontSize: 20, margin: 5}} />
-                    Flag For WA Analysis
-                  </Button>
-                  <Button
-                    style={{ marginLeft: 5 }}
-                    variant="outlined"
-                    onClick={() => receiveAll(samples, job, this.props.sessionID, this.props.me)}
-                  >
-                    <Inbox style={{ fontSize: 20, margin: 5 }} />
-                    Receive All
-                  </Button>
-                  <Button
-                    style={{ marginLeft: 5 }}
-                    variant="outlined"
-                    onClick={() => startAnalysisAll(samples, job, this.props.sessionID, this.props.me)}
-                  >
-                    <Colorize style={{ fontSize: 20, margin: 5 }} />
-                    Start Analysis All
-                  </Button>
-                </div>*/}
                 <Grid container style={{ marginTop: 12, marginBottom: 12 }}>
                   <Grid item lg={3} xs={6}>
                     <b>Sampled by:</b>{" "}

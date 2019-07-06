@@ -175,3 +175,21 @@ export const TickyBox = (that, label, ref, obj, field, onClick, disabled) => {
     label={label}
   />);
 };
+
+export const SampleTextyDisplay = (label, text) => {
+  return (
+    <div>
+      <div style={{ fontWeight: 500, }}>{label}</div>
+      <div style={{ fontSize: 12, padding: 6, marginBottom: 6, fontStyle: 'italic', }}>{text}</div>
+    </div>
+  );
+}
+
+export const SampleTextyLine = (label, text) => {
+  return (
+    <div style={{ marginBottom: 6,}}>
+      <span style={{ fontWeight: 500, }}>{label}</span>
+      <span style={{ fontSize: 12, padding: 12, }}>{text}</span>
+    </div>
+  );
+}

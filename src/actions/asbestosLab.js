@@ -1395,8 +1395,6 @@ export const getAllConfirmResult = sample => {
     }
   })}
 
-  console.log(results);
-
   let perfectMatches = 0;
   let differentNonAsbestos = 0;
   let differentAsbestos = 0;

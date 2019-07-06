@@ -40,6 +40,7 @@ import {
   SAMPLE_HISTORY,
   COC_LOG,
   CONFIRM_RESULT,
+  ASBESTOS_NONANALYST_DETAILS,
 } from "../../../constants/modal-types";
 
 import Grid from "@material-ui/core/Grid";
@@ -65,7 +66,7 @@ import More from "@material-ui/icons/MoreVert";
 import AnalysisIcon from "@material-ui/icons/Colorize";
 import WAIcon from "@material-ui/icons/GroupWork";
 import SampleLogIcon from "@material-ui/icons/Ballot";
-import SampleDetailsIcon from "@material-ui/icons/Edit";
+import SampleDetailsIcon from "@material-ui/icons/Description";
 import HoldIcon from "@material-ui/icons/PauseCircleOutline";
 import ConfirmIcon from "@material-ui/icons/ThumbUp";
 import ThumbsDown from "@material-ui/icons/ThumbDown";
@@ -246,11 +247,11 @@ class SampleListItem extends React.Component {
                   />
                 </IconButton>
               </Tooltip>
-              <Tooltip id="det-tooltip" title={editor ? 'Edit Sample Details' : 'View Sample Details'}>
+              <Tooltip id="det-tooltip" title={'Sample Details'}>
                 <IconButton
                   onClick={event => {
                       this.props.showModal({
-                        modalType: ASBESTOS_SAMPLE_DETAILS,
+                        modalType: editor ? ASBESTOS_SAMPLE_DETAILS : ASBESTOS_NONANALYST_DETAILS,
                         modalProps: {
                           doc: sample,
                           job: job,
@@ -261,8 +262,9 @@ class SampleListItem extends React.Component {
                 </IconButton>
               </Tooltip>
               {job.waAnalysis &&
-                <Tooltip id="wa-tooltip" title={editor ? 'Edit WA Analysis' : 'View WA Analysis'}>
+                <Tooltip id="wa-tooltip" title={'WA Analysis'}>
                   <IconButton
+                    disabled={!editor}
                     onClick={event => {
                       this.props.showModal({
                         modalType: WA_ANALYSIS,
@@ -278,7 +280,7 @@ class SampleListItem extends React.Component {
                   </IconButton>
                 </Tooltip>
               }
-              <Tooltip id="sl-tooltip" title={'Sample Log' }>
+              <Tooltip id="sl-tooltip" title={'Sample Log'}>
                 <IconButton
                   onClick={event => {
                     this.props.showModal({
@@ -294,8 +296,9 @@ class SampleListItem extends React.Component {
                   <SampleLogIcon className={classes.asbestosIcon}/>
                 </IconButton>
               </Tooltip>
-              <Tooltip id="cr-tooltip" title={editor ? 'Confirm Result' : 'View Result Confirmation'}>
+              <Tooltip id="cr-tooltip" title={'Analysis Checks'}>
                 <IconButton
+                  disabled={!editor}
                   onClick={event => {
                     this.props.showModal({
                       modalType: CONFIRM_RESULT,

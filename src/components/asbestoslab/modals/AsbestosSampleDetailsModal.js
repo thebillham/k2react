@@ -9,7 +9,7 @@ import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS } from "../../../constants/modal-
 import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
-import { SampleTickyBox, SampleTextyBox, SampleRadioSelector, SampleTickyBoxGroup, } from '../../../widgets/FormWidgets';
+import { SampleTickyBox, SampleTextyBox, SampleRadioSelector, SampleTickyBoxGroup, SampleTextyDisplay, } from '../../../widgets/FormWidgets';
 import { AsbestosClassification } from '../../../config/strings';
 
 import { SketchPicker } from 'react-color';
@@ -149,6 +149,7 @@ class AsbestosSampleDetailsModal extends React.Component {
   render() {
     const { classes, modalProps, modalType } = this.props;
     const { sample } = this.state;
+    let editor = this.props.me.auth && this.props.me.auth['Asbestos Bulk Analysis'];
     return (
       <div>
       {sample &&
@@ -164,12 +165,14 @@ class AsbestosSampleDetailsModal extends React.Component {
         <DialogContent>
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={5}>
-              <div className={this.props.classes.subheading}>Description</div>
-              {SampleTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 3, null, null)}
-              {SampleTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 3, null, null)}
+              <div className={classes.subheading}>Description</div>
+              {editor ? SampleTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 3, null, null)
+              : SampleTextyDisplay('Sample Description',sample.labDescription)}
+              {editor ? SampleTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 3, null, null)
+              : SampleTextyDisplay('Lab Comments',sample.labComments)}
 
               <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
-                <Button
+                {editor && <Button
                   variant="outlined"
                   style={{ marginBottom: 16, marginTop: 16, textAlign: 'center' }}
                   onClick={() => {
@@ -190,7 +193,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }}
                 >
                   Edit Geotechnical Soil Description
-                </Button>
+                </Button>}
                 <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
               </div>
             </Grid>
@@ -313,7 +316,7 @@ class AsbestosSampleDetailsModal extends React.Component {
 
     if (this.state.sample.layers && this.state.sample.layers[`layer${num}`]) {
       layer = this.state.sample.layers[`layer${num}`];
-      colours = getSampleColours(layer.result);
+      colours = getSampleColours(layer);
     }
 
     const styles = reactCSS({

@@ -24,6 +24,7 @@ import WAAnalysisModal from "./modals/WAAnalysisModal";
 import SoilDetailsModal from "./modals/SoilDetailsModal";
 import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
+import AsbestosNonanalystDetailsModal from "./modals/AsbestosNonanalystDetailsModal";
 import ConfirmResultModal from "./modals/ConfirmResultModal";
 import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
@@ -130,6 +131,7 @@ class AsbestosCocs extends React.Component {
         <CocLogModal />
         <SoilDetailsModal />
         <ConfirmResultModal />
+        <AsbestosNonanalystDetailsModal />
         <Button
           variant="outlined"
           style={{ marginBottom: 16, width: 220, }}
@@ -146,59 +148,20 @@ class AsbestosCocs extends React.Component {
           New Chain of Custody
         </Button>
         <div style={{ display: 'flex', flexDirection: 'row'}}>
-          {this.state.analyst && (
-            <div
-              style={{
-                borderRadius: 4,
-                borderStyle: "solid",
-                borderWidth: 1,
-                borderColor: "#ccc",
-                width: 220,
-                marginBottom: 16,
-                marginRight: 12,
-                height: '100%',
-                padding: 12
-              }}
-            >
-              <div style={{ marginBottom: 12 }}>
-                <InputLabel style={{ marginLeft: 12 }}>
-                  Report Analysis As:
-                </InputLabel>
-              </div>
-              <div>
-                <FormControl style={{ width: 200, marginBottom: 19, }}>
-                  <InputLabel shrink>Analyst</InputLabel>
-                  <Select
-                    value={this.props.analyst}
-                    onChange={e => this.props.setAnalyst(e.target.value)}
-                    input={<Input name="analyst" id="analyst" />}
-                  >
-                    {this.props.bulkAnalysts.map(analyst => {
-                      return (
-                        <option key={analyst.uid} value={analyst.name}>
-                          {analyst.name}
-                        </option>
-                      );
-                    })}
-                  </Select>
-                </FormControl>
-              </div>
-            </div>
-          )}
           <div
             style={{
               borderRadius: 4,
               borderStyle: "solid",
               borderWidth: 1,
               borderColor: "#ccc",
-              width: 400,
+              width: 270,
               height: '100%',
               padding: 12,
             }}
           >
             <div style={{ marginBottom: 12 }}>
               <InputLabel style={{ marginLeft: 12 }}>
-                Get Chains of Custody by Job Number
+                Search by Job Number
               </InputLabel>
             </div>
             <div>
@@ -227,14 +190,14 @@ class AsbestosCocs extends React.Component {
               borderStyle: "solid",
               borderWidth: 1,
               borderColor: "#ccc",
-              width: 800,
+              width: 650,
               height: '100%',
               padding: 12
             }}
           >
             <div style={{ marginBottom: 12 }}>
               <InputLabel style={{ marginLeft: 12 }}>
-                Search Historic Chains of Custody
+                Search by Client and/or Date
               </InputLabel>
             </div>
             <div style={{ flexDirection: 'row', display: 'flex', }}>
@@ -285,6 +248,46 @@ class AsbestosCocs extends React.Component {
               </Button>
             </div>
           </div>
+
+            {this.state.analyst && (
+              <div
+                style={{
+                  borderRadius: 4,
+                  borderStyle: "solid",
+                  borderWidth: 1,
+                  borderColor: "#ccc",
+                  width: 220,
+                  marginBottom: 16,
+                  marginLeft: 12,
+                  height: '100%',
+                  padding: 12
+                }}
+              >
+                <div style={{ marginBottom: 12 }}>
+                  <InputLabel style={{ marginLeft: 12 }}>
+                    Report Analysis As:
+                  </InputLabel>
+                </div>
+                <div>
+                  <FormControl style={{ width: 200, marginBottom: 19, }}>
+                    <InputLabel shrink>Analyst</InputLabel>
+                    <Select
+                      value={this.props.analyst}
+                      onChange={e => this.props.setAnalyst(e.target.value)}
+                      input={<Input name="analyst" id="analyst" />}
+                    >
+                      {this.props.bulkAnalysts.map(analyst => {
+                        return (
+                          <option key={analyst.uid} value={analyst.name}>
+                            {analyst.name}
+                          </option>
+                        );
+                      })}
+                    </Select>
+                  </FormControl>
+                </div>
+              </div>
+            )}
         </div>
         {Object.keys(cocs).length < 1 ? (
           <div
