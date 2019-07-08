@@ -840,16 +840,17 @@ export const getWAAnalysisSummary = sample => {
       concentrationFAAF = (weightFA+weightAF)/weightConditioned*100;
     }
     return(
-      <div style={{ width: 600, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, }}>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, }}>
         <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Totals</div>
         <div style={{ flexDirection: 'row', display: 'flex', textAlign: 'right', marginTop: 14, }}>
-          <div style={{ width: 160, marginRight: 12, marginTop: 14, }}>
+          <div style={{ width: '40%'}} />
+          <div style={{ width: '35%', marginRight: 12, marginTop: 14, }}>
             <div style={{ fontWeight: 500}}>Conditioned Weight: </div>
             <div style={{ fontWeight: 500}}>Fraction Total: </div>
             <div style={{ fontWeight: 500}}>Subfraction Total: </div>
             <div style={{ fontWeight: 500}}>Asbestos Total: </div>
           </div>
-          <div style={{ width: 80, marginRight: 12, marginTop: 14, }}>
+          <div style={{ width: '25%', marginRight: 12, marginTop: 14, }}>
             <div>{weightConditioned ? <span>{parseFloat(weightConditioned).toFixed(2)}g</span> : <span>N/A</span>}</div>
             <div>{fractionWeightNum === 3 ? <span>{parseFloat(fractionTotalWeight).toFixed(2)}g</span> : <span>N/A</span>}</div>
             <div>{subFractionTotalWeight ? <span>{parseFloat(subFractionTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
@@ -857,21 +858,21 @@ export const getWAAnalysisSummary = sample => {
           </div>
         </div>
         <div style={{ flexDirection: 'row', display: 'flex', justifyContent: 'flex-end', textAlign: 'right', marginTop: 14, }}>
-          <div style={{ width: 140, marginRight: 12, }}>
+          <div style={{ width: '25%', marginRight: 12, }}>
             <div style={{ fontWeight: 500 }}>Type</div>
             <div>ACM Bonded</div>
             <div>Friable Asbestos</div>
             <div>Asbestos Fines</div>
             <div>FA/AF Total</div>
           </div>
-          <div style={{ width: 140, }}>
+          <div style={{ width: '25%', }}>
             <div style={{ fontWeight: 500 }}>Asbestos Weight</div>
             <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightACM.toFixed(6)}g</div>
             <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightFA.toFixed(6)}g</div>
             <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightAF.toFixed(6)}g</div>
             <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{(weightFA+weightAF).toFixed(6)}g</div>
           </div>
-          <div style={{ width: 200, marginRight: 14, }}>
+          <div style={{ width: '35%', marginRight: 14, }}>
             <div style={{ fontWeight: 500 }}>Asbestos Concentration</div>
             <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationACM > 0.01 ? 'red' : 'black' }}>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
             <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFA > 0.001 ? 'red' : 'black' }}>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
@@ -1336,50 +1337,50 @@ export const writeReportDescription = (sample) => {
   return lines;
 }
 
-export const getResultColour = (state, type, noColor, yesColor) => {
+export const getResultColor = (state, type, noColor, yesColor) => {
   if(state && state[type] === true) return yesColor;
   return noColor;
 }
 
-export const getSampleColours = sample => {
+export const getSampleColors = sample => {
   let res = sample.result;
   let confirm = getAllConfirmResult(sample);
-  let confirmColour = 'green';
+  let confirmColor = 'green';
   if (confirm === 'no') {
-    confirmColour = 'red';
+    confirmColor = 'red';
   } else if (confirm === 'asbestosTypesWrong') {
-    confirmColour = 'orange';
+    confirmColor = 'orange';
   } else if (confirm === 'none') {
-    confirmColour = 'inherit';
+    confirmColor = 'inherit';
   }
   return {
-    cameraColour: sample.imagePathRemote ? 'green' : '#ddd',
-    receivedColour: sample.receivedByLab ? 'green' : '#ddd',
-    analysisColour: sample.analysisStart ? 'green' : '#ddd',
-    verifiedColour: sample.verified ? 'green' : '#ddd',
-    waColour: sample.waAnalysisComplete ? 'green' : 'inherit',
-    confirmColour: confirmColour ? confirmColour : 'inherit',
+    cameraColor: sample.imagePathRemote ? 'green' : '#ddd',
+    receivedColor: sample.receivedByLab ? 'green' : '#ddd',
+    analysisColor: sample.analysisStart ? 'green' : '#ddd',
+    verifiedColor: sample.verified ? 'green' : '#ddd',
+    waColor: sample.waAnalysisComplete ? 'green' : 'inherit',
+    confirmColor: confirmColor ? confirmColor : 'inherit',
 
-    chColour: getResultColour(res, 'ch', '#ddd', 'white'),
-    chDivColour: getResultColour(res, 'ch', 'white', 'red'),
+    chColor: getResultColor(res, 'ch', '#ddd', 'white'),
+    chDivColor: getResultColor(res, 'ch', 'white', 'red'),
 
-    amColour: getResultColour(res, 'am', '#ddd', 'white'),
-    amDivColour: getResultColour(res, 'am', 'white', 'red'),
+    amColor: getResultColor(res, 'am', '#ddd', 'white'),
+    amDivColor: getResultColor(res, 'am', 'white', 'red'),
 
-    crColour: getResultColour(res, 'cr', '#ddd', 'white'),
-    crDivColour: getResultColour(res, 'cr', 'white', 'red'),
+    crColor: getResultColor(res, 'cr', '#ddd', 'white'),
+    crDivColor: getResultColor(res, 'cr', 'white', 'red'),
 
-    umfColour: getResultColour(res, 'umf', '#ddd', 'white'),
-    umfDivColour: getResultColour(res, 'umf', 'white', 'red'),
+    umfColor: getResultColor(res, 'umf', '#ddd', 'white'),
+    umfDivColor: getResultColor(res, 'umf', 'white', 'red'),
 
-    noColour: getResultColour(res, 'no', '#ddd', 'green'),
-    noDivColour: getResultColour(res, 'no', 'white', 'lightgreen'),
+    noColor: getResultColor(res, 'no', '#ddd', 'green'),
+    noDivColor: getResultColor(res, 'no', 'white', 'lightgreen'),
 
-    orgColour: getResultColour(res, 'org', '#ddd', 'mediumblue'),
-    orgDivColour: getResultColour(res, 'org', 'white', 'lightblue'),
+    orgColor: getResultColor(res, 'org', '#ddd', 'mediumblue'),
+    orgDivColor: getResultColor(res, 'org', 'white', 'lightblue'),
 
-    smfColour: getResultColour(res, 'smf', '#ddd', 'mediumblue'),
-    smfDivColour: getResultColour(res, 'smf', 'white', 'lightblue'),
+    smfColor: getResultColor(res, 'smf', '#ddd', 'mediumblue'),
+    smfDivColor: getResultColor(res, 'smf', 'white', 'lightblue'),
   };
 }
 
@@ -1500,13 +1501,20 @@ export const writeShorthandResult = result => {
     if (result[type]) detected.push(type);
   });
   if (detected.length < 1) return "N/A";
-  if (detected[0] === "no") return "NO";
   let str = '';
-  if (result["ch"]) str = "CH ";
-  if (result["am"]) str = str + "AM ";
-  if (result["cr"]) str = str + "CR ";
-  if (result["umf"]) str = str + "UMF ";
-  return str.slice(0, -1);
+  if (detected[0] === "no") str = "NO ";
+  else {
+    if (result["ch"]) str = "CH ";
+    if (result["am"]) str += "AM ";
+    if (result["cr"]) str += "CR ";
+    if (result["umf"]) str += "UMF ";
+  }
+  let other = '';
+  if (result["org"]) other = "ORG ";
+  if (result["smf"]) other += "SMF ";
+  str = str.slice(0, -1);
+  if (other !== '') str = str + " (" + other.slice(0,-1) + ")";
+  return str;
 };
 
 export const writeSoilDetails = details => {
@@ -1604,15 +1612,15 @@ export const writeSoilDetails = details => {
 
     // VISUAL CHARACTERISTICS
     let section = [];
-    if (details.colour && details.colour !== '') {
-      let colour = '';
-      if (details.colourShade && details.colourShade !== '') colour += details.colourShade + ' ';
-      if (details.colourQualifier && details.colourQualifier !== '') colour += details.colourQualifier + ' ';
-      colour += details.colour;
-      if (details.type !== 'coarse' && details.colourPattern && details.colourPattern !== '' && details.colourSecondary && details.colourSecondary !== '') {
-        colour += ', ' + details.colourPattern + ' ' + details.colourSecondary;
+    if (details.color && details.color !== '') {
+      let color = '';
+      if (details.colorShade && details.colorShade !== '') color += details.colorShade + ' ';
+      if (details.colorQualifier && details.colorQualifier !== '') color += details.colorQualifier + ' ';
+      color += details.color;
+      if (details.type !== 'coarse' && details.colorPattern && details.colorPattern !== '' && details.colorSecondary && details.colorSecondary !== '') {
+        color += ', ' + details.colorPattern + ' ' + details.colorSecondary;
       }
-      section.push(colour);
+      section.push(color);
     }
     if (details.structure && details.structure !== '') {
       section.push(details.structure);
@@ -1883,3 +1891,63 @@ export const getSoilSensitivity = details => {
   else if (ratio >=16) sensitivity = 'Quick';
   return sensitivity;
 }
+
+export const writeSampleConditioningList = conditioning => {
+  let conMap = {
+    furnace: 'Furnace',
+    flame: 'Flame',
+    lowHeat: 'Low Heat/Drying',
+    dcm: 'Dichloromethane',
+    mortarAndPestle: 'Mortar and Pestle',
+    sieved: 'Sieved',
+  };
+  let cons = [];
+
+  Object.keys(conMap).forEach(key => {
+    if (conditioning[key]) cons.push(conMap[key]);
+  });
+
+  if (cons.length > 0) return cons.join(', ');
+  else return 'No conditioning';
+}
+
+export const writeSampleDimensions = sample => {
+  let dims = [];
+  ['dimensionsL','dimensionsW','dimensionsD'].forEach(dim => {
+    if (sample[dim] !== undefined && sample[dim] !== '') dims.push(parseInt(sample[dim]));
+  });
+  let app = '';
+  if (dims.length === 3) {
+    let volMM = dims[0]*dims[1]*dims[2];
+    let volCM = volMM / 1000;
+    let volM = volMM / 1000000000;
+    if (volM > 0.1) app += volM + 'm³';
+    else if (volCM > 0.1) app += volCM + 'cm³';
+    else app = volMM += 'mm³';
+    app = ` (${app})`;
+  } else if (dims.length === 2) {
+    let areaMM = dims[0] + dims[1];
+    let areaCM = areaMM / 100;
+    let areaM = areaMM / 1000000;
+    if (areaM > 1) app += areaM + 'm²';
+    else if (areaCM > 1) app += areaCM + 'cm²';
+    else app = areaMM += 'mm²';
+    app = ` (${app})`;
+  }
+  return dims.map(dim => `${dim}mm`).join(' x ') + app;
+}
+
+export const collateLayeredResults = layers => {
+  let results = {};
+  Object.keys(layers).forEach(key => {
+    if (layers[key].result !== undefined && layers[key].result.deleted !== true) {
+      Object.keys(layers[key].result).forEach(k => {
+        if (layers[key].result[k] === true) results[k] = true;
+      });
+    }
+  });
+  if (results['no'] === true && (results['ch'] === true || results['am'] === true || results['cr'] === true || results['umf'] === true)) {
+    results['no'] = false;
+  }
+  return results;
+};

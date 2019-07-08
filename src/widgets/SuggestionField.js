@@ -85,7 +85,7 @@ const getSuggestions = (value, suggestions, that) => {
       });
 }
 
-export const SuggestionField = (that, disabled, suggestions, value, onModify) => {
+export const SuggestionField = (that, disabled, label, suggestions, value, onModify) => {
   const autosuggestProps = {
     renderInputComponent,
     getSuggestionValue,
@@ -105,8 +105,9 @@ export const SuggestionField = (that, disabled, suggestions, value, onModify) =>
     }}
     inputProps={{
       disabled: disabled,
-      value: value,
+      value: value ? value : '',
       onChange: e => {onModify(e.target.value)},
+      label: label,
     }}
     theme={{
       container: { position: 'relative',},

@@ -20,7 +20,7 @@ import {
   writeResult,
   getStats,
   writeDescription,
-  getSampleColours,
+  getSampleColors,
   getBasicResult,
   receiveSample,
   startAnalysis,
@@ -126,7 +126,7 @@ class SampleListItem extends React.Component {
     const { sample, job, samples, staff, anchorEl, classes } = this.props;
     if (sample.cocUid !== job.uid) return null;
     let result = getBasicResult(sample);
-    let colours = getSampleColours(sample);
+    let colors = getSampleColors(sample);
     let editor = this.props.me.auth && this.props.me.auth['Asbestos Bulk Analysis'];
 
     return (
@@ -145,7 +145,7 @@ class SampleListItem extends React.Component {
               <Popup
                 trigger={
                   <CameraAlt className={classes.asbestosIcon}
-                    style={{color: colours.cameraColour,}}
+                    style={{color: colors.cameraColor,}}
                   />
                 }
                 position="right center"
@@ -195,7 +195,7 @@ class SampleListItem extends React.Component {
                   }}
                 >
                 <Inbox className={classes.asbestosIcon}
-                  style={{color: colours.receivedColour}}
+                  style={{color: colors.receivedColor}}
                 />
                 </IconButton>
               </Tooltip>
@@ -206,25 +206,25 @@ class SampleListItem extends React.Component {
                     }}
                   >
                     <AnalysisIcon className={classes.asbestosIcon}
-                      style={{color: colours.analysisColour}}
+                      style={{color: colors.analysisColor}}
                     />
                   </IconButton>
               </Tooltip>
-              {AsbestosClickyBasic(colours.chColour, colours.chDivColour, 'Chrysotile (white) asbestos detected', 'CH',
+              {AsbestosClickyBasic(colors.chColor, colors.chDivColor, 'Chrysotile (white) asbestos detected', 'CH',
               () => toggleResult("ch", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colours.amColour, colours.amDivColour, 'Amosite (brown) asbestos detected', 'AM',
+              {AsbestosClickyBasic(colors.amColor, colors.amDivColor, 'Amosite (brown) asbestos detected', 'AM',
               () => toggleResult("am", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colours.crColour, colours.crDivColour, 'Crocidolite (blue) asbestos detected', 'CR',
+              {AsbestosClickyBasic(colors.crColor, colors.crDivColor, 'Crocidolite (blue) asbestos detected', 'CR',
               () => toggleResult("cr", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colours.umfColour, colours.umfDivColour, 'Unidentified mineral fibres detected', 'UMF',
+              {AsbestosClickyBasic(colors.umfColor, colors.umfDivColor, 'Unidentified mineral fibres detected', 'UMF',
               () => toggleResult("umf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               <div style={{ width: 30 }} />
-              {AsbestosClickyBasic(colours.noColour, colours.noDivColour, 'No asbestos detected', 'NO',
+              {AsbestosClickyBasic(colors.noColor, colors.noDivColor, 'No asbestos detected', 'NO',
               () => toggleResult("no", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               <div style={{ width: 30 }} />
-              {AsbestosClickyBasic(colours.orgColour, colours.orgDivColour, 'Organic fibres detected', 'ORG',
+              {AsbestosClickyBasic(colors.orgColor, colors.orgDivColor, 'Organic fibres detected', 'ORG',
               () => toggleResult("org", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colours.smfColour, colours.smfDivColour, 'Synthetic mineral fibres detected', 'SMF',
+              {AsbestosClickyBasic(colors.smfColor, colors.smfDivColor, 'Synthetic mineral fibres detected', 'SMF',
               () => toggleResult("smf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               <Tooltip title='Verify Result is Correct'>
                 <IconButton
@@ -242,7 +242,7 @@ class SampleListItem extends React.Component {
                 >
                   <CheckCircleOutline className={classes.asbestosIcon}
                     style={{
-                      color: colours.verifiedColour
+                      color: colors.verifiedColor
                     }}
                   />
                 </IconButton>
@@ -251,7 +251,7 @@ class SampleListItem extends React.Component {
                 <IconButton
                   onClick={event => {
                       this.props.showModal({
-                        modalType: editor ? ASBESTOS_SAMPLE_DETAILS : ASBESTOS_NONANALYST_DETAILS,
+                        modalType: ASBESTOS_NONANALYST_DETAILS,
                         modalProps: {
                           doc: sample,
                           job: job,
@@ -261,25 +261,6 @@ class SampleListItem extends React.Component {
                   <SampleDetailsIcon className={classes.asbestosIcon}/>
                 </IconButton>
               </Tooltip>
-              {job.waAnalysis &&
-                <Tooltip id="wa-tooltip" title={'WA Analysis'}>
-                  <IconButton
-                    disabled={!editor}
-                    onClick={event => {
-                      this.props.showModal({
-                        modalType: WA_ANALYSIS,
-                        modalProps: {
-                          doc: sample,
-                          job: job,
-                      }});
-                    }}
-                  >
-                    <WAIcon className={classes.asbestosIcon}
-                      style={{color: colours.waColour}}
-                    />
-                  </IconButton>
-                </Tooltip>
-              }
               <Tooltip id="sl-tooltip" title={'Sample Log'}>
                 <IconButton
                   onClick={event => {
@@ -296,10 +277,41 @@ class SampleListItem extends React.Component {
                   <SampleLogIcon className={classes.asbestosIcon}/>
                 </IconButton>
               </Tooltip>
-              <Tooltip id="cr-tooltip" title={'Analysis Checks'}>
+              {editor && <Tooltip id="det-tooltip" title={'Edit Sample Details'}>
                 <IconButton
-                  disabled={!editor}
                   onClick={event => {
+                      this.props.showModal({
+                        modalType: ASBESTOS_SAMPLE_DETAILS,
+                        modalProps: {
+                          doc: sample,
+                          job: job,
+                      }});
+                  }}
+                >
+                  <Edit className={classes.asbestosIcon}/>
+                </IconButton>
+              </Tooltip>}
+              {job.waAnalysis &&
+                <Tooltip id="wa-tooltip" title={editor ? 'WA Analysis' : sample.waAnalysisComplete ? 'WA Analysis Complete' : 'WA Analysis Incomplete'}>
+                  <IconButton
+                    onClick={event => editor ?
+                      this.props.showModal({
+                        modalType: WA_ANALYSIS,
+                        modalProps: {
+                          doc: sample,
+                          job: job,
+                      }}) : null
+                    }
+                  >
+                    <WAIcon className={classes.asbestosIcon}
+                      style={{color: colors.waColor}}
+                    />
+                  </IconButton>
+                </Tooltip>
+              }
+              <Tooltip id="cr-tooltip" title={editor ? 'Result Checks' : colors.confirmColor === 'red' ? 'Contradictory result given by other analyst' : colors.confirmColor === 'green' ? 'Result confirmed by another analyst' : 'Slightly different result given by other analyst'}>
+                <IconButton
+                  onClick={event => editor ?
                     this.props.showModal({
                       modalType: CONFIRM_RESULT,
                       modalProps: {
@@ -309,11 +321,11 @@ class SampleListItem extends React.Component {
                         sample: sample,
                         jobUid: job.uid,
                       }
-                    });
-                  }}
+                    }) : null
+                  }
                 >
-                  {colours.confirmColour === 'red' ? <ThumbsDown className={classes.asbestosIcon} style={{ color: 'red' }} /> :
-                  <ConfirmIcon className={classes.asbestosIcon} style={{color: colours.confirmColour}} />}
+                  {colors.confirmColor === 'red' ? <ThumbsDown className={classes.asbestosIcon} style={{ color: 'red' }} /> :
+                  <ConfirmIcon className={classes.asbestosIcon} style={{color: colors.confirmColor}} />}
                 </IconButton>
               </Tooltip>
               <Tooltip id="h-tooltip" title={sample.onHold ? 'Take Sample off Hold' : 'Put Sample on Hold'}>

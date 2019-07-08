@@ -201,7 +201,7 @@ class CocModal extends React.Component {
         {this.state.sampleEditModal && (
           <Grid container spacing={1}>
             <Grid item xs={12}>
-              {SuggestionField(this, false, 'genericLocationSuggestions', this.state.sampleEditModal.genericLocation,
+              {SuggestionField(this, false, null, 'genericLocationSuggestions', this.state.sampleEditModal.genericLocation,
                 (value) => {
                     this.setState({
                       sampleEditModal: {
@@ -214,7 +214,7 @@ class CocModal extends React.Component {
               )}
             </Grid>
             <Grid item xs={12}>
-              {SuggestionField(this, false, 'specificLocationSuggestions', this.state.sampleEditModal.specificLocation,
+              {SuggestionField(this, false, null, 'specificLocationSuggestions', this.state.sampleEditModal.specificLocation,
                 (value) => {
                     this.setState({
                       sampleEditModal: {
@@ -227,7 +227,7 @@ class CocModal extends React.Component {
               )}
             </Grid>
             <Grid item xs={12}>
-              {SuggestionField(this, false, 'descriptionSuggestions', this.state.sampleEditModal.description,
+              {SuggestionField(this, false, null, 'descriptionSuggestions', this.state.sampleEditModal.description,
                 (value) => {
                     this.setState({
                       sampleEditModal: {
@@ -240,7 +240,7 @@ class CocModal extends React.Component {
               )}
             </Grid>
             <Grid item xs={12}>
-              {SuggestionField(this, false, 'materialSuggestions', this.state.sampleEditModal.material,
+              {SuggestionField(this, false, null, 'materialSuggestions', this.state.sampleEditModal.material,
                 (value) => {
                     this.setState({
                       sampleEditModal: {
@@ -708,7 +708,7 @@ class CocModal extends React.Component {
                             </div>
                           </Grid>
                           <Grid item xs={1} style={{ paddingLeft: 12, paddingRight: 12, }}>
-                            {SuggestionField(this, disabled, 'genericLocationSuggestions',
+                            {SuggestionField(this, disabled, null, 'genericLocationSuggestions',
                               doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : '',
                               (value) => {
                                 this.setState({ modified: true, });
@@ -718,7 +718,7 @@ class CocModal extends React.Component {
                             )}
                           </Grid>
                           <Grid item xs={3} style={{ paddingLeft: 12, paddingRight: 12, }}>
-                            {SuggestionField(this, disabled, 'specificLocationSuggestions',
+                            {SuggestionField(this, disabled, null, 'specificLocationSuggestions',
                               doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : '',
                               (value) => {
                                 this.setState({ modified: true, });
@@ -728,7 +728,7 @@ class CocModal extends React.Component {
                             )}
                           </Grid>
                           <Grid item xs={4} style={{ paddingLeft: 12, paddingRight: 12, }}>
-                            {SuggestionField(this, disabled, 'descriptionSuggestions',
+                            {SuggestionField(this, disabled, null, 'descriptionSuggestions',
                               doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : '',
                               (value) => {
                                 this.setState({ modified: true, });
@@ -738,7 +738,7 @@ class CocModal extends React.Component {
                             )}
                           </Grid>
                           <Grid item xs={2} style={{ paddingLeft: 12, }}>
-                            {SuggestionField(this, disabled, 'materialSuggestions',
+                            {SuggestionField(this, disabled, null, 'materialSuggestions',
                               doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
                               (value) => {
                                 this.setState({ modified: true, });

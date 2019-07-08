@@ -22,9 +22,9 @@ import UpdateCertificateVersionModal from "./modals/UpdateCertificateVersionModa
 import QCAnalysisModal from "./modals/QCAnalysisModal";
 import WAAnalysisModal from "./modals/WAAnalysisModal";
 import SoilDetailsModal from "./modals/SoilDetailsModal";
-import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
+import AsbestosSampleEditModal from "./modals/AsbestosSampleEditModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
-import AsbestosNonanalystDetailsModal from "./modals/AsbestosNonanalystDetailsModal";
+import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
 import ConfirmResultModal from "./modals/ConfirmResultModal";
 import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
@@ -126,12 +126,12 @@ class AsbestosCocs extends React.Component {
         <SampleLogModal />
         <QCAnalysisModal />
         <WAAnalysisModal />
-        <AsbestosSampleDetailsModal />
+        <AsbestosSampleEditModal />
         <DownloadLabCertificateModal />
         <CocLogModal />
         <SoilDetailsModal />
         <ConfirmResultModal />
-        <AsbestosNonanalystDetailsModal />
+        <AsbestosSampleDetailsModal />
         <Button
           variant="outlined"
           style={{ marginBottom: 16, width: 220, }}

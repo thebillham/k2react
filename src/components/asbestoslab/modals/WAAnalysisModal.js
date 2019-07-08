@@ -9,6 +9,7 @@ import { WA_ANALYSIS, SOIL_DETAILS } from "../../../constants/modal-types";
 import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
+import { SampleTextyBox, SampleTickyBoxGroup, } from '../../../widgets/FormWidgets';
 import { SketchPicker } from 'react-color';
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
@@ -184,108 +185,22 @@ class WAAnalysisModal extends React.Component {
                   });
                 }}
               />
-              <div className={this.props.classes.subheading}>Sample Conditioning</div>
-              <FormGroup row>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sample.sampleConditioningFurnace ?
-                        sample.sampleConditioningFurnace :
-                        false }
-                      onChange={e => {
-                        this.setState({
-                          modified: true,
-                          sample: {
-                            ...sample,
-                            sampleConditioningFurnace: e.target.checked,
-                          }
-                        });
-                      }}
-                      value="sampleConditioningFurnace"
-                    />
-                  }
-                  label="Furnace"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={sample.sampleConditioningLowHeat ?
-                        sample.sampleConditioningLowHeat :
-                        false}
-                      onChange={e => {
-                        this.setState({
-                          modified: true,
-                          sample: {
-                            ...sample,
-                            sampleConditioningLowHeat: e.target.checked,
-                          }
-                        });
-                      }}
-                      value="sampleConditioningLowHeat"
-                    />
-                  }
-                  label="Low Heat/Drying"
-                />
-              </FormGroup>
+
+              {SampleTickyBoxGroup(this, sample, 'Sample Conditioning', 'sampleConditioning',
+                [{value: 'furnace', label: 'Furnace'},
+                {value: 'flame', label: 'Flame'},
+                {value: 'lowHeat', label: 'Low Heat/Drying'},
+                {value: 'dcm', label: 'Dichloromethane'},
+                {value: 'mortarAndPestle', label: 'Mortar and Pestle'},
+                {value: 'sieved', label: 'Sieved', },
+                ]
+              )}
 
               <div className={this.props.classes.subheading}>Weight</div>
               <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 14, }}>
-                <TextField
-                  id="weightReceived"
-                  label="Weight as Received"
-                  value={sample.weightReceived ? sample.weightReceived : ''}
-                  helperText="Record the weight as received (i.e. entire sample received by client)."
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        weightReceived: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <TextField
-                  id="weightAnalysed"
-                  label="Weight Analysed"
-                  style={{ marginLeft: 12, }}
-                  value={sample.weightAnalysed ? sample.weightAnalysed : ''}
-                  helperText="Record the weight analysed (i.e. portion selected for analysis)."
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        weightAnalysed: e.target.value,
-                      }
-                    });
-                  }}
-                />
-                <TextField
-                  id="weightConditioned"
-                  label="Weight Conditioned"
-                  style={{ marginLeft: 12, }}
-                  value={sample.weightConditioned ? sample.weightConditioned : ''}
-                  helperText="Record the conditioned weight (e.g. after conditioning such as furnacing)."
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      modified: true,
-                      sample: {
-                        ...sample,
-                        weightConditioned: e.target.value,
-                      }
-                    });
-                  }}
-                />
+                {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. entire sample received by client).', false, 0, 'g', null)}
+                {SampleTextyBox(this, sample, 'weightAnalysed', 'Weight Analysed', 'Record the weight analysed (i.e. portion selected for analysis).', false, 0, 'g', null)}
+                {SampleTextyBox(this, sample, 'weightConditioned', 'Weight Conditioned', 'Record the conditioned weight (e.g. after conditioning such as furnacing).', false, 0, 'g', null)}
               </div>
             </div>
             <div>

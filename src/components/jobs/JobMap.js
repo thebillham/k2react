@@ -991,7 +991,7 @@ class JobMap extends React.Component {
     return url;
   };
 
-  getColour = cat => {
+  getColor = cat => {
     var col = "other";
     if (!cat) return "#6fa1b6";
     ["show all", "asbestos", "meth", "stack", "bio", "noise", "workplace"].map(
@@ -1089,7 +1089,7 @@ class JobMap extends React.Component {
         <DialogTitle>
         {this.state.jobModal && (
           <h5
-            style={{ color: this.getColour(this.state.jobModal.category) }}
+            style={{ color: this.getColor(this.state.jobModal.category) }}
           >
             {this.state.jobModal.jobNumber}: {this.state.jobModal.client}
           </h5>)}
@@ -1104,7 +1104,7 @@ class JobMap extends React.Component {
               padding: 20
             }}
           >
-            <div style={{ color: this.getColour(this.state.jobModal.category) }}>
+            <div style={{ color: this.getColor(this.state.jobModal.category) }}>
               <h6>{this.state.jobModal.category}</h6>
             </div>
             {this.state.jobModal.geocode && (
@@ -1130,7 +1130,7 @@ class JobMap extends React.Component {
                 </div>
               )}
               {this.state.jobModal.stateHistory && (
-                <div><br /><h6 style={{ color: this.getColour(this.state.jobModal.category) }}>State History</h6>
+                <div><br /><h6 style={{ color: this.getColor(this.state.jobModal.category) }}>State History</h6>
                 { Object.keys(this.state.jobModal.stateHistory).map((key) => {
                   return (
                     <span key={key}>
@@ -1176,7 +1176,7 @@ class JobMap extends React.Component {
                 </div>
               )}
               {this.state.jobModal.activities && this.state.jobModal.activities.length > 0 && (
-                <div><br /><h6 style={{ color: this.getColour(this.state.jobModal.category) }}>Activities</h6>
+                <div><br /><h6 style={{ color: this.getColor(this.state.jobModal.category) }}>Activities</h6>
                 { this.state.jobModal.activities.map((activity) => {
                   if(activity.completed === 'Yes') {
                     return (
@@ -1274,7 +1274,7 @@ class JobMap extends React.Component {
                       key={m.wfmID}
                       dense
                       className={classes.hoverItem}
-                      style={{ color: this.getColour(m.category) }}
+                      style={{ color: this.getColor(m.category) }}
                       onClick={() => {
                         this.openJobModal(m);
                       }}
@@ -1458,11 +1458,11 @@ class JobMap extends React.Component {
                       "Workplace",
                       "Other"
                     ].map(chip => {
-                      var colour = this.getColour(chip);
+                      var color = this.getColor(chip);
                       return (
                         <Grid item key={chip}>
                           <Button
-                            style={{ fontSize: 12, color: colour }}
+                            style={{ fontSize: 12, color: color }}
                             variant="outlined"
                             color={
                               this.props.filter.filterCategory === chip
@@ -1669,12 +1669,12 @@ class JobMap extends React.Component {
                 >
                   <div>
                     <h5
-                      style={{ color: this.getColour(this.state.m.category) }}
+                      style={{ color: this.getColor(this.state.m.category) }}
                     >
                       {this.state.m.jobNumber}: {this.state.m.client}
                     </h5>
                   </div>
-                  <div style={{ color: this.getColour(this.state.m.category) }}>
+                  <div style={{ color: this.getColor(this.state.m.category) }}>
                     <h6>{this.state.m.category}</h6>
                   </div>
                   {this.state.m.geocode && (
@@ -1700,7 +1700,7 @@ class JobMap extends React.Component {
                       </div>
                     )}
                     {this.state.m.stateHistory && (
-                      <div><br /><h6 style={{ color: this.getColour(this.state.m.category) }}>State History</h6>
+                      <div><br /><h6 style={{ color: this.getColor(this.state.m.category) }}>State History</h6>
                       { Object.keys(this.state.m.stateHistory).map((key) => {
                         return (
                           <span key={key}>
@@ -1746,7 +1746,7 @@ class JobMap extends React.Component {
                       </div>
                     )}
                     {this.state.m.activities && this.state.m.activities.length > 0 && (
-                      <div><br /><h6 style={{ color: this.getColour(this.state.m.category) }}>Activities</h6>
+                      <div><br /><h6 style={{ color: this.getColor(this.state.m.category) }}>Activities</h6>
                       { this.state.m.activities.map((activity) => {
                         if(activity.completed === 'Yes') {
                           return (

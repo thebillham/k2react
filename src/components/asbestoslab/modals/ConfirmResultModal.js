@@ -24,7 +24,7 @@ import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { addLog } from "../../../actions/local";
-import { updateResultMap, getSampleColours, setAnalyst, getBasicResult, } from "../../../actions/asbestosLab";
+import { updateResultMap, getSampleColors, setAnalyst, getBasicResult, } from "../../../actions/asbestosLab";
 import { AsbestosClickyBasic, } from '../../../widgets/ButtonWidgets';
 import _ from "lodash";
 import moment from 'moment';
@@ -226,7 +226,7 @@ class ConfirmResultModal extends React.Component {
   }
 
   confirmRow = (num) => {
-    let colours = getSampleColours(this.state[num]);
+    let colors = getSampleColors(this.state[num]);
     let resultDate = 'N/A';
     let prevAnalyst = this.props.modalProps.sample && this.props.modalProps.sample.analyst ? this.props.modalProps.sample.analyst : null;
     if (this.state[num].date !== undefined) {
@@ -257,21 +257,21 @@ class ConfirmResultModal extends React.Component {
         <Button variant='outlined' aria-label='remove' onClick={() => this.deleteAnalysis(num)}><RemoveIcon /> Remove Analysis</Button>
       </div>
       <div style={{ flexDirection: 'row', display: 'flex', width: '100%'}}>
-        {AsbestosClickyBasic(colours.chColour, colours.chDivColour, 'Chrysotile (white) asbestos detected', 'CH',
+        {AsbestosClickyBasic(colors.chColor, colors.chDivColor, 'Chrysotile (white) asbestos detected', 'CH',
         () => this.toggleResult('ch', num))}
-        {AsbestosClickyBasic(colours.amColour, colours.amDivColour, 'Amosite (brown) asbestos detected', 'AM',
+        {AsbestosClickyBasic(colors.amColor, colors.amDivColor, 'Amosite (brown) asbestos detected', 'AM',
         () => this.toggleResult("am", num))}
-        {AsbestosClickyBasic(colours.crColour, colours.crDivColour, 'Crocidolite (blue) asbestos detected', 'CR',
+        {AsbestosClickyBasic(colors.crColor, colors.crDivColor, 'Crocidolite (blue) asbestos detected', 'CR',
         () => this.toggleResult("cr", num))}
-        {AsbestosClickyBasic(colours.umfColour, colours.umfDivColour, 'Unidentified mineral fibres detected', 'UMF',
+        {AsbestosClickyBasic(colors.umfColor, colors.umfDivColor, 'Unidentified mineral fibres detected', 'UMF',
         () => this.toggleResult("umf", num))}
         <div style={{ width: 30 }} />
-        {AsbestosClickyBasic(colours.noColour, colours.noDivColour, 'No asbestos detected', 'NO',
+        {AsbestosClickyBasic(colors.noColor, colors.noDivColor, 'No asbestos detected', 'NO',
         () => this.toggleResult("no", num))}
         <div style={{ width: 30 }} />
-        {AsbestosClickyBasic(colours.orgColour, colours.orgDivColour, 'Organic fibres detected', 'ORG',
+        {AsbestosClickyBasic(colors.orgColor, colors.orgDivColor, 'Organic fibres detected', 'ORG',
         () => this.toggleResult("org", num))}
-        {AsbestosClickyBasic(colours.smfColour, colours.smfDivColour, 'Synthetic mineral fibres detected', 'SMF',
+        {AsbestosClickyBasic(colors.smfColor, colors.smfDivColor, 'Synthetic mineral fibres detected', 'SMF',
         () => this.toggleResult("smf", num))}
       </div>
       <TextField

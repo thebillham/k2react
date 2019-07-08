@@ -603,13 +603,13 @@ class SoilDetailsModal extends React.Component {
                 <InputLabel>Shade</InputLabel>
                 <Select
                   native
-                  value={sample.colourShade ? sample.colourShade : ""}
+                  value={sample.colorShade ? sample.colorShade : ""}
                   onChange={e => {
                     this.setState({
                       modified: true,
                       sample: {
                         ...sample,
-                        colourShade: e.target.value,
+                        colorShade: e.target.value,
                       }
                     });
                   }}
@@ -626,18 +626,18 @@ class SoilDetailsModal extends React.Component {
                 <InputLabel>Qualifier</InputLabel>
                 <Select
                   native
-                  value={sample.colourQualifier ? sample.colourQualifier : ""}
+                  value={sample.colorQualifier ? sample.colorQualifier : ""}
                   onChange={e => {
                     this.setState({
                       modified: true,
                       sample: {
                         ...sample,
-                        colourQualifier: e.target.value,
+                        colorQualifier: e.target.value,
                       }
                     });
                   }}
                   inputProps={{
-                    name: 'colourQualifier',
+                    name: 'colorQualifier',
                   }}
                 >
                   <option value="" />
@@ -651,21 +651,21 @@ class SoilDetailsModal extends React.Component {
                 </Select>
               </FormControl>
               <FormControl>
-                <InputLabel>Colour</InputLabel>
+                <InputLabel>Color</InputLabel>
                 <Select
                   native
-                  value={sample.colour ? sample.colour : ""}
+                  value={sample.color ? sample.color : ""}
                   onChange={e => {
                     this.setState({
                       modified: true,
                       sample: {
                         ...sample,
-                        colour: e.target.value,
+                        color: e.target.value,
                       }
                     });
                   }}
                   inputProps={{
-                    name: 'colour',
+                    name: 'color',
                   }}
                 >
                   <option value="" />
@@ -684,21 +684,21 @@ class SoilDetailsModal extends React.Component {
               { sample.type === 'fine' && <span>
 
               <FormControl>
-                <InputLabel>Colour</InputLabel>
+                <InputLabel>Color</InputLabel>
                 <Select
                   native
-                  value={sample.colourPattern ? sample.colourPattern : ""}
+                  value={sample.colorPattern ? sample.colorPattern : ""}
                   onChange={e => {
                     this.setState({
                       modified: true,
                       sample: {
                         ...sample,
-                        colourPattern: e.target.value,
+                        colorPattern: e.target.value,
                       }
                     });
                   }}
                   inputProps={{
-                    name: 'colourPattern',
+                    name: 'colorPattern',
                   }}
                 >
                   <option value="" />
@@ -709,21 +709,21 @@ class SoilDetailsModal extends React.Component {
                 </Select>
               </FormControl>
               <FormControl>
-                <InputLabel>Colour</InputLabel>
+                <InputLabel>Color</InputLabel>
                 <Select
                   native
-                  value={sample.colourSecondary ? sample.colourSecondary : ""}
+                  value={sample.colorSecondary ? sample.colorSecondary : ""}
                   onChange={e => {
                     this.setState({
                       modified: true,
                       sample: {
                         ...sample,
-                        colourSecondary: e.target.value,
+                        colorSecondary: e.target.value,
                       }
                     });
                   }}
                   inputProps={{
-                    name: 'colourSecondary',
+                    name: 'colorSecondary',
                   }}
                 >
                   <option value="" />
@@ -955,7 +955,7 @@ class SoilDetailsModal extends React.Component {
                 }}
               >
                 <option value="" />
-                <option value={'homogenous'}>Homogenous (lack of visible bedding and same colour and appearance)</option>
+                <option value={'homogenous'}>Homogenous (lack of visible bedding and same color and appearance)</option>
                 <option value={'bedded'}>Bedded (presence of layers)</option>
                 <option value={'fissured'}>Fissured (breaks along definite planes of fracture with little resistance to fracturing)</option>
                 <option value={'polished'}>Polished (fracture planes are polished or glossy)</option>
