@@ -9,7 +9,7 @@ import { ASBESTOS_NONANALYST_DETAILS, } from "../../../constants/modal-types";
 import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
-import { SampleTextyDisplay, SampleTextyLine, } from '../../../widgets/FormWidgets';
+import { SampleTextyDisplay, SampleTextyLine, AsbButton, } from '../../../widgets/FormWidgets';
 import { AsbestosClassification } from '../../../config/strings';
 
 import { SketchPicker } from 'react-color';
@@ -35,6 +35,9 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import UploadIcon from "@material-ui/icons/CloudUpload";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
+import Good from "@material-ui/icons/ThumbUp";
+import Half from "@material-ui/icons/ThumbsUpDown";
+import Bad from "@material-ui/icons/ThumbDown";
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { addLog, } from "../../../actions/local";
 import moment from "moment";
@@ -50,6 +53,7 @@ import {
   writeSampleConditioningList,
   writeSampleDimensions,
   collateLayeredResults,
+  getConfirmResult,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
@@ -62,6 +66,7 @@ const defaultColor = {
   b: '150',
   a: '0',
 };
+
 
 const mapStateToProps = state => {
   return {
@@ -126,6 +131,15 @@ class AsbestosSampleDetailsModal extends React.Component {
         else if (sample.receivedByLab) status = 'Received By Lab';
     }
     if (sample.onHold) status = status + " (ON HOLD)";
+    let colors = getSampleColors(sample);
+    let layersResult = null;
+    let soilResult = null;
+    if (sample.layers) layersResult = getConfirmResult({result: collateLayeredResults(sample.layers)}, sample);
+    if (sample.waSoilAnalysis) soilResult = getConfirmResult({result: collateLayeredResults(sample.waSoilAnalysis)}, sample);
+
+    const good = (<Good style={{ color: 'green', fontSize: 14, }}/>);
+    const half = (<Bad style={{ color: 'orange', fontSize: 14, }}/>);
+    const bad = (<Bad style={{ color: 'red', fontSize: 14, }}/>);
 
     return (
       <div>
@@ -137,36 +151,50 @@ class AsbestosSampleDetailsModal extends React.Component {
         fullWidth={true}
       >
         <DialogTitle>{`Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber}`}</DialogTitle>
-        <DialogContent>
+        {sample && <DialogContent>
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={6}>
               <div className={classes.informationBox}>
                 <div className={classes.heading}>Basic Information</div>
-                {SampleTextyLine('Status', status)}
+                {SampleTextyLine('Status', status.toUpperCase())}
                 {SampleTextyLine('Generic Location',sample.genericLocation)}
                 {SampleTextyLine('Specific Location',sample.specificLocation)}
                 {SampleTextyLine('Short Description',sample.description)}
-                {SampleTextyLine('Material', sample.material.charAt(0).toUpperCase() + sample.material.slice(1))}
-                {SampleTextyLine('Sampling Personnel',
-                  job.personnel && job.personnel.length > 0
-                    ? job.personnel.join(", ")
-                    : "Not specified")}
-                {SampleTextyLine('Sampling Date(s)',
-                  dates && dates.length > 0
-                    ? dates.join(", ")
-                    : "Not specified")}
-                {SampleTextyLine('Analyst', sample.analyst ? sample.analyst : "Not analysed")}
-                {SampleTextyLine('Analysis Date', analysisDate)}
+                {SampleTextyLine('Material', sample.material && sample.material.charAt(0).toUpperCase() + sample.material.slice(1))}
               </div>
               <div className={classes.informationBox}>
                 <div className={classes.heading}>Results</div>
-                {SampleTextyLine('Basic Result', getBasicResult(sample))}
-                {SampleTextyLine('Reported Results', sample.result ? `${writeShorthandResult(sample.result)} (${sample.analyst}) ${sample.verified ? ' NOT VERIFIED' : ''}` : 'No result')}
-                {sample.layers && SampleTextyLine('Sample Detail Results', writeShorthandResult(collateLayeredResults(sample.layers)))}
-                {sample.waSoilAnalysis && SampleTextyLine('WA Standard Results', writeShorthandResult(collateLayeredResults(sample.waSoilAnalysis)))}
+                <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 12, }}>
+                  {AsbButton(colors,'ch',null)}
+                  {AsbButton(colors,'am',null)}
+                  {AsbButton(colors,'cr',null)}
+                  {AsbButton(colors,'umf',null)}
+                  {AsbButton(colors,'no',null)}
+                  {AsbButton(colors,'org',null)}
+                  {AsbButton(colors,'smf',null)}
+                </div>
+                {SampleTextyLine('Analyst', sample.analyst ? sample.analyst : "Not analysed")}
+                {SampleTextyLine('Analysis Date', analysisDate)}
+                {sample.analysisUser && sample.analysisUser.name !== sample.analyst && SampleTextyLine('Analysis Recorded By', sample.analysisUser.name)}
+                {SampleTextyLine('Result Verified?', sample.verified ? 'Yes' : 'No')}
+                {sample.verifyUser && SampleTextyLine('Result Verified By', sample.verifyUser.name)}
+                {sample.layers && <div style={{ display: 'flex', flexDirection: 'row', }}>
+                  <div style={{ width: '60%'}}>{SampleTextyLine('Sample Detail Results', writeShorthandResult(collateLayeredResults(sample.layers)))}</div>
+                  <div style={{ width: '40%'}}>{(layersResult === 'yes' || layersResult === 'differentNonAsbestos') ? good : layersResult === 'no' ? bad : layersResult === 'none' ? '' : half}</div>
+                </div>}
+                {sample.waSoilAnalysis && <div style={{ display: 'flex', flexDirection: 'row', }}>
+                  <div style={{ width: '60%'}}>{SampleTextyLine('WA Standard Results', writeShorthandResult(collateLayeredResults(sample.waSoilAnalysis)))}</div>
+                  <div style={{ width: '40%'}}>{(soilResult === 'yes' || soilResult === 'differentNonAsbestos') ? good : soilResult === 'no' ? bad : soilResult === 'none' ? '' : half}</div>
+                </div>}
                 {sample.confirm && Object.keys(sample.confirm).map(key => {
-                  if (sample.confirm[key] !== undefined && sample.confirm[key] !== undefined && sample.confirm[key].deleted !== true && sample.confirm[key].analyst !== undefined) return <div key={key}>{SampleTextyLine(`Sample Check ${key}`, `${writeShorthandResult(sample.confirm[key].result)} (${sample.confirm[key].analyst})`)}</div>;
-                  else return null;
+                  if (sample.confirm[key] !== undefined && sample.confirm[key] !== undefined &&
+                    sample.confirm[key].deleted !== true && sample.confirm[key].analyst !== undefined) {
+                    let check = getConfirmResult(sample.confirm[key], sample);
+                    return <div key={key} style={{ display: 'flex', flexDirection: 'row', }}>
+                      <div style={{ width: '60%'}}>{SampleTextyLine(`Sample Check ${key}`, `${writeShorthandResult(sample.confirm[key].result)} (${sample.confirm[key].analyst})`)}</div>
+                      <div style={{ width: '40%'}}>{(check === 'yes' || check === 'differentNonAsbestos') ? good : check === 'no' ? bad : check === 'none' ? '' : half}</div>
+                    </div>
+                  } else return null;
                 })}
               </div>
               <div className={classes.informationBox}>
@@ -197,6 +225,14 @@ class AsbestosSampleDetailsModal extends React.Component {
             <Grid item xs={6}>
               <div className={classes.informationBox}>
                 <div className={classes.heading}>Sample Details</div>
+                {SampleTextyLine('Sampling Personnel',
+                  job.personnel && job.personnel.length > 0
+                    ? job.personnel.join(", ")
+                    : "Not specified")}
+                {SampleTextyLine('Sampling Date(s)',
+                  dates && dates.length > 0
+                    ? dates.join(", ")
+                    : "Not specified")}
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                   {SampleTextyDisplay('Weight Received',sample.weightReceived ? sample.weightReceived + 'g' : 'N/A')}
                   {SampleTextyDisplay('Weight Analysed',sample.weightAnalysed ? sample.weightAnalysed + 'g' : 'N/A')}
@@ -206,8 +242,13 @@ class AsbestosSampleDetailsModal extends React.Component {
                 {SampleTextyDisplay('Lab Sample Description',sample.labDescription ? sample.labDescription : 'N/A')}
                 {SampleTextyDisplay('Lab Observations/Comments', sample.labComments ? sample.labComments : 'N/A')}
                 {sample.soilDetails && SampleTextyDisplay('Geotechnical Soil Details', writeSoilDetails(sample.soilDetails))}
-                {sample.layers && sample.layers[`layer1`] !== undefined && Object.keys(sample.layers[`layer1`].result).length > 0 &&
-                  SampleTextyDisplay('Layers', [...Array(sample.layerNum ? sample.layerNum : 5).keys()].map(num => this.getLayerRow(num+1)))}
+                {sample.layers &&
+                  ((sample.layers[`layer1`] !== undefined && Object.keys(sample.layers[`layer1`].result).length > 0) ||
+                  (sample.layers[`layer2`] !== undefined && Object.keys(sample.layers[`layer2`].result).length > 0) ||
+                  (sample.layers[`layer3`] !== undefined && Object.keys(sample.layers[`layer3`].result).length > 0) ||
+                  (sample.layers[`layer4`] !== undefined && Object.keys(sample.layers[`layer4`].result).length > 0) ||
+                  (sample.layers[`layer5`] !== undefined && Object.keys(sample.layers[`layer5`].result).length > 0)) &&
+                  SampleTextyDisplay('Layers', [...Array(sample.layerNum ? sample.layerNum : 5).keys()].filter(num => sample.layers[`layer${num+1}`] && sample.layers[`layer${num+1}`].description !== '' && sample.layers[`layer${num+1}`].description !== undefined).map(num => this.getLayerRow(num+1)))}
               </div>
               <div className={classes.informationBox}>
                 <div className={classes.heading}>Analysis Details</div>
@@ -224,7 +265,7 @@ class AsbestosSampleDetailsModal extends React.Component {
               </div>
             </Grid>
           </Grid>
-        </DialogContent>
+        </DialogContent>}
         <DialogActions>
           <Button onClick={() => this.props.hideModal()} color="primary">OK</Button>
         </DialogActions>
@@ -234,7 +275,6 @@ class AsbestosSampleDetailsModal extends React.Component {
   }
 
   getLayerRow = (num) => {
-    console.log(num);
     let layer = {};
     let colors = {};
     let sample = this.props.modalProps.doc;
@@ -280,7 +320,7 @@ class AsbestosSampleDetailsModal extends React.Component {
           {num}
         </div>
         <div style={{width: '25%'}}>
-          {layer.description ? layer.description : 'No description'}
+          {layer.description ? `${layer.description.charAt(0).toUpperCase()}${layer.description.slice(1)}` : 'No description'}
         </div>
         <div style={{ width: '20%'}}>
           {writeShorthandResult(layer.result)}

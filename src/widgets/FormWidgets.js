@@ -11,6 +11,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Radio from '@material-ui/core/Radio';
 import Tooltip from '@material-ui/core/Tooltip';
+import Button from '@material-ui/core/Button';
 
 export const SampleTickyBox = (that, label, sample, field) => {
   return(<FormControlLabel
@@ -192,4 +193,23 @@ export const SampleTextyLine = (label, text) => {
       <span style={{ fontSize: 12, padding: 12, }}>{text}</span>
     </div>
   );
+}
+
+export const AsbButton = (colors, label, onClick) => {
+  return (
+    <div
+      style={{
+        backgroundColor: colors[`${label}DivColor`],
+        borderRadius: 5
+      }}
+    >
+      <Button
+        variant="outlined"
+        style={{ margin: 5, color: colors[`${label}Color`]}}
+        onClick={onClick}
+      >
+        {label.toUpperCase()}
+      </Button>
+    </div>
+  )
 }

@@ -1120,6 +1120,52 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
   return report;
 };
 
+export const writeVersionJson2 = (job, samples, version, staffList, me) => {
+  let aaNumbers = getAANumbers(staffList);
+  let sampleNumbers = [];
+  let sampleDescriptions = [];
+  let sampleResults = [];
+  samples &&
+    Object.values(samples).forEach(sample => {
+      if (sample.verified && sample.cocUid === job.uid) {
+        let sampleMap = {};
+        if (sample.disabled || sample.onHold) return;
+        sampleNumbers.push(sample.sampleNumber);
+        sampleDescriptions.push(writeReportDescription(sample));
+        sampleResults.push(writeResult(sample.result));
+      }
+    });
+  let analysts = getAnalysts(job, samples, true);
+  let report = {
+    jobNumber: job.jobNumber,
+    client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
+    address: job.address,
+    date: job.dates
+      .sort((b, a) => {
+        let aDate = a instanceof Date ? a : a.toDate();
+        let bDate = b instanceof Date ? b : b.toDate();
+        return new Date(bDate - aDate);
+      })
+      .map(date => {
+        let formatDate = date instanceof Date ? date : date.toDate();
+        return moment(formatDate).format('D MMMM YYYY');
+      })
+      .join(", "),
+    // ktp: 'Stuart Keer-Keer',
+    personnel: job.personnel.sort(),
+    assessors: job.personnel.sort().map(staff => {
+      return aaNumbers[staff];
+    }),
+    analysts: analysts ? analysts : ["Not specified"],
+    version: version ? version : 1,
+    sampleNumbers: sampleNumbers,
+    sampleDescriptions: sampleDescriptions,
+    sampleResults: sampleResults,
+  };
+  console.log(report);
+  return report;
+};
+
 export const issueLabReport = (job, samples, version, changes, staffList, me) => {
   // first check all samples have been checked
   // if not version 1, prompt for reason for new version
@@ -1307,17 +1353,19 @@ export const writeReportDescription = (sample) => {
   if ((location + fullDesc).length > 0) lines.push(location.length > 0 && fullDesc.length > 0 ? location + ': ' + fullDesc : location + fullDesc);
 
   // ~ at start means make italic, * means make bold
-  if (report['soilDescription'] === true) lines.push("~" + writeSoilDetails(sample.soilDetails));
+  let soilDetails = writeSoilDetails(sample.soilDetails);
+  if (soilDetails !== 'No details.') lines.push("~" + soilDetails);
   if (report['layers'] === true && sample.layers !== undefined && sample.layerNum !== undefined) {
+    let layArray = [];
     [...Array(sample.layerNum).keys()].forEach(num => {
       if (sample.layers[`layer${num+1}`] !== undefined) {
         let lay = sample.layers[`layer${num+1}`];
-        console.log(lay);
-        let layStr = 'L' + (num+1).toString() + ': ' + lay.description;
-        if (getBasicResult(lay) === 'positive') layStr = '*' + layStr;
-        if (lay.description !== undefined) lines.push(layStr);
+        let layStr = 'L' + (num+1).toString() + ': ' + lay.description.charAt(0).toUpperCase() + lay.description.slice(1);
+        if (getBasicResult(lay) === 'positive') layStr = layStr + '†';
+        if (lay.description !== undefined) layArray.push(layStr);
       }
     });
+    if (layArray.length > 0) lines.push(layArray.join(' / '));
   }
   let dimensions = '';
   if (report['dimensions'] === true) {
@@ -1332,9 +1380,7 @@ export const writeReportDescription = (sample) => {
     if (sample.weightAnalysed) dimensions = dimensions + sample.weightAnalysed + "g"
   }
   if (dimensions.length > 0) lines.push(dimensions);
-  console.log('LINES');
-  console.log(lines);
-  return lines;
+  return lines.join('@~');
 }
 
 export const getResultColor = (state, type, noColor, yesColor) => {
@@ -1416,6 +1462,7 @@ export const getAllConfirmResult = sample => {
 export const getConfirmResult = (confirm, result) => {
   let basicConfirm = getBasicResult(confirm);
   let basicResult = getBasicResult(result);
+  if (basicConfirm === 'none' || basicResult === 'none') return 'none';
   if (basicConfirm !== basicResult) return 'no';
   let differentAsbestos = false;
   if (basicResult === 'positive') {
@@ -1463,9 +1510,8 @@ export const writeResult = result => {
   });
   if (detected.length < 1) return "Not Analysed";
   let others = '';
-  if (result["org"]) others = "Organic Fibres\n";
-  if (result["smf"]) others = others + "Synthetic Mineral Fibres\n";
-  if (others.length > 0) others = "\n" + others;
+  if (result["org"]) others = "\nOrganic Fibres";
+  if (result["smf"]) others = others + "\nSynthetic Mineral Fibres";
   if (result["no"]) return "No Asbestos Detected" + others;
   let asbestos = [];
   if (result["ch"]) asbestos.push("Chrysotile");
@@ -1819,7 +1865,8 @@ export const getStats = (samples, job) => {
   }
 
   if (versionUpToDate) {
-    status = 'Issued';
+    if (job.mostRecentIssueSent) status = 'Issued and Sent';
+    else status = 'Issued';
   } else if (totalSamples === 0) {
     status = 'No Samples';
   } else if (numberReceived === 0) {
