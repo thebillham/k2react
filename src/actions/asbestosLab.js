@@ -1,6 +1,7 @@
 import {
   EDIT_MODAL_DOC,
   EDIT_MODAL_SAMPLE,
+  DELETE_COC,
   GET_ASBESTOS_ANALYSIS,
   GET_AIR_ANALYSTS,
   GET_BULK_ANALYSTS,
@@ -42,6 +43,7 @@ export const resetAsbestosLab = () => dispatch => {
 //
 
 export const fetchCocs = update => async dispatch => {
+  console.log('Fetching COCs');
   // Make all calls update for now
   update = true;
   if (update) {
@@ -1088,6 +1090,7 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeReportDescription(sample);
         sampleMap["result"] = writeResult(sample.result);
+        sampleMap["checks"] = writeChecks(sample);
         sampleList.push(sampleMap);
       }
     });
@@ -1236,7 +1239,7 @@ export const printLabReport = (job, version, me, showModal) => {
   // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
 };
 
-export const deleteCoc = (job, me) => {
+export const deleteCoc = (job, me) => dispatch => {
   if (
     window.confirm("Are you sure you wish to delete this Chain of Custody?")
   ) {
@@ -1248,6 +1251,7 @@ export const deleteCoc = (job, me) => {
           sample: sample.uid,
           chainOfCustody: job.uid,
         };
+        addLog("asbestosLab", log, me);
         asbestosSamplesRef.doc(sample.uid).update({ deleted: true })
       }
     });
@@ -1256,9 +1260,12 @@ export const deleteCoc = (job, me) => {
       log: "Chain of Custody deleted.",
       chainOfCustody: job.uid,
     };
+    addLog("asbestosLab", log, me);
     cocsRef
       .doc(job.uid)
       .update({ deleted: true, });
+
+    dispatch({ type: DELETE_COC, payload: job.uid });
   } else return;
 };
 
@@ -1366,6 +1373,7 @@ export const writeReportDescription = (sample) => {
       }
     });
     if (layArray.length > 0) lines.push(layArray.join(' / '));
+    console.log(layArray);
   }
   let dimensions = '';
   if (report['dimensions'] === true) {
@@ -1481,6 +1489,11 @@ export const getConfirmResult = (confirm, result) => {
   return 'yes';
 }
 
+export const writeChecks = (sample) => {
+  let checks = [];
+  return checks;
+}
+
 export const getBasicResult = (sample) => {
   let result = "none";
   if (
@@ -1510,8 +1523,10 @@ export const writeResult = result => {
   });
   if (detected.length < 1) return "Not Analysed";
   let others = '';
-  if (result["org"]) others = "\nOrganic Fibres";
-  if (result["smf"]) others = others + "\nSynthetic Mineral Fibres";
+  let otherArray = [];
+  if (result["org"]) otherArray.push("Organic Fibres");
+  if (result["smf"]) otherArray.push("Synthetic Mineral Fibres");
+  if (otherArray.length > 0) others = `~@(${otherArray.join(', ')})`
   if (result["no"]) return "No Asbestos Detected" + others;
   let asbestos = [];
   if (result["ch"]) asbestos.push("Chrysotile");
@@ -1537,7 +1552,8 @@ export const writeResult = result => {
       }
     }
   });
-  return str.charAt(0).toUpperCase() + str.slice(1) + " Detected" + others;
+  // Don't show other fibres with positives to avoid confusion
+  return str.charAt(0).toUpperCase() + str.slice(1) + " Detected";
 };
 
 export const writeShorthandResult = result => {

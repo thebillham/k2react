@@ -1,4 +1,5 @@
 import {
+  DELETE_COC,
   GET_ASBESTOS_ANALYSIS,
   GET_AIR_ANALYSTS,
   GET_ASBESTOS_SAMPLES,
@@ -56,6 +57,13 @@ export default function asbestosLabReducer(state = asbestosLabInit, action) {
           ...state.cocs,
           ...action.payload
         }
+      };
+    case DELETE_COC:
+      let newCocs = state.cocs;
+      delete newCocs[action.payload];
+      console.log(newCocs);
+      return { ...state,
+        cocs: { ...state.cocs }
       };
     case GET_ASBESTOS_ANALYSIS:
       if (action.update) stateRef.doc("asbestosAnalysis").set(action.payload);

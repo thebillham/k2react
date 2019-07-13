@@ -297,7 +297,7 @@ class SoilDetailsModal extends React.Component {
                     <option value={'finetocoarse'}>Fine to Coarse (2-60mm)</option>
                   </Select>
                 </FormControl>}
-                { (sample.majorFractionType === 'sand' || sample.majorFractionType === 'organicsand') &&
+                { (sample.majorFractionType === 'sand' || sample.majorFractionType === 'organic sand') &&
                 <FormControl>
                   <InputLabel>Particle Size Range</InputLabel>
                   <Select
@@ -423,10 +423,10 @@ class SoilDetailsModal extends React.Component {
                       <option value={'clay'}>{`Clay (fine, plastic, cohesive, <0.002mm)`}</option>
                     </optgroup>
                     <optgroup label="Organic">
-                      <option value={'organic topsoil'}>Topsoil (surficial organic soil that may contain living matter)</option>
-                      <option value={'organic sand'}>Organic Sand (contains finely divided organic matter)</option>
-                      <option value={'organic clay'}>Organic Clay (contains finely divided organic matter)</option>
-                      <option value={'organic silt'}>Organic Silt (contains finely divided organic matter)</option>
+                      <option value={'topsoil'}>Topsoil (surficial organic soil that may contain living matter)</option>
+                      <option value={'organicsand'}>Organic Sand (contains finely divided organic matter)</option>
+                      <option value={'organicclay'}>Organic Clay (contains finely divided organic matter)</option>
+                      <option value={'organicsilt'}>Organic Silt (contains finely divided organic matter)</option>
                       <option value={'peat'}>Peat (plant remains)</option>
                     </optgroup>
                   </Select>

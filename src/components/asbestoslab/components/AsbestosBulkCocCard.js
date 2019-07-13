@@ -87,7 +87,7 @@ const mapDispatchToProps = dispatch => {
     syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
     logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
     setSessionID: session => dispatch(setSessionID(session)),
-    deleteCoc: (coc, cocs) => dispatch(deleteCoc(coc, cocs)),
+    deleteCoc: (coc, me) => dispatch(deleteCoc(coc, me)),
   };
 };
 
@@ -136,7 +136,7 @@ class AsbestosBulkCocCard extends React.Component {
       return moment(formatDate).format('D MMMM YYYY');
     });
     let stats = getStats(samples[job.uid], job);
-
+    if (job.deleted === true) return (<div />);
     return (
       <ExpansionPanel
         style={{ width: '100%'}}
@@ -291,7 +291,7 @@ class AsbestosBulkCocCard extends React.Component {
                     );
                   })}
                 <Divider />
-                <MenuItem onClick={this.deleteCoc}>
+                <MenuItem onClick={() => this.props.deleteCoc(job, this.props.me)}>
                   Delete Chain of Custody
                 </MenuItem>
               </Menu>
