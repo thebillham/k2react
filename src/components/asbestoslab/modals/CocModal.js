@@ -169,7 +169,8 @@ class CocModal extends React.Component {
       this.props.setModalError('Asbestos job numbers must begin with "AS"');
     } else {
       this.props.setModalError(null);
-      this.props.syncJobWithWFM(jobNumber, true);
+      let isNewCoc = this.props.doc.uid === undefined;
+      this.props.syncJobWithWFM(jobNumber, isNewCoc);
       let uid = this.props.doc.uid;
       // console.log('wfmsync fetch samples');
       this.props.fetchSamples(uid, jobNumber, true);

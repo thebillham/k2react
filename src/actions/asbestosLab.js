@@ -1085,8 +1085,10 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
   samples &&
     Object.values(samples).forEach(sample => {
       if (sample.verified && sample.cocUid === job.uid) {
-        let sampleMap = {};
         if (sample.disabled || sample.onHold) return;
+        if (job.waAnalysis && !sample.waAnalysisComplete) return;
+        let sampleMap = {};
+        if (job.waAnalysis) sampleMap["wa"] = writeWAAnalysis(sample);
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeReportDescription(sample);
         sampleMap["result"] = writeResult(sample.result);
@@ -1098,7 +1100,9 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
   let report = {
     jobNumber: job.jobNumber,
     client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
-    address: job.address,
+    contactName: job.contactName ? job.contactName : '',
+    contactEmail: job.contactEmail ? job.contactEmail : '',
+    address: job.address ? job.address : '',
     date: job.dates
       .sort((b, a) => {
         let aDate = a instanceof Date ? a : a.toDate();
@@ -1491,7 +1495,20 @@ export const getConfirmResult = (confirm, result) => {
 
 export const writeChecks = (sample) => {
   let checks = [];
+  if (sample.confirm === undefined || sample.confirm.totalNum === undefined || sample.confirm.totalNum < 1) return checks;
+  Object.keys(sample.confirm).forEach(key => {
+    if (sample.confirm[key].deleted !== true && sample.confirm[key].analyst !== sample.analyst &&
+      (getConfirmResult(sample.confirm[key], sample) === 'yes' || getConfirmResult(sample.confirm[key], sample) === 'differentNonAsbestos')) {
+        checks.push(sample.confirm[key].analyst);
+      }
+  });
+  console.log(checks);
   return checks;
+}
+
+export const writeWAAnalysis = sample => {
+  let wa = {};
+  return wa;
 }
 
 export const getBasicResult = (sample) => {
@@ -1526,7 +1543,7 @@ export const writeResult = result => {
   let otherArray = [];
   if (result["org"]) otherArray.push("Organic Fibres");
   if (result["smf"]) otherArray.push("Synthetic Mineral Fibres");
-  if (otherArray.length > 0) others = `~@(${otherArray.join(', ')})`
+  if (otherArray.length > 0) others = `@~(${otherArray.join(', ')})`
   if (result["no"]) return "No Asbestos Detected" + others;
   let asbestos = [];
   if (result["ch"]) asbestos.push("Chrysotile");
