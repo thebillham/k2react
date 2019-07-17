@@ -56,7 +56,7 @@ const defaultColor = {
   r: '150',
   g: '150',
   b: '150',
-  a: '0',
+  a: '1',
 };
 
 const mapStateToProps = state => {
@@ -227,7 +227,9 @@ class AsbestosSampleEditModal extends React.Component {
             <Grid item xs={5}>
               <div className={this.props.classes.subheading}>Classification</div>
               {SampleRadioSelector(this, sample, 'classification', 'homo', 'Classification',
-                [{value: 'homo', label: 'Homogenous', tooltip: 'Uniform distribution of fibres of any type through the entire sample or in each discernibly discrete layer of the sample (sprayed asbestos, asbestos-cement, mastic, vermiculite)'},
+                [{value: 'homo', label: 'Homogenous', tooltip: 'Uniform distribution of fibres of any type through the entire sample or in each discernibly discrete layer of the sample (sprayed asbestos, mastic, vermiculite)'},
+                {value: 'homolayers', label: 'Homogenous Layers', tooltip: 'Uniform distribution of fibres of any type through each discernibly discrete layer of the sample (asbestos-cement, paper-backed vinyl)'},
+                {value: 'mixedlayers', label: 'Mixed Layers', tooltip: 'Mix of homogenous and non-homogenous layers (asbestos-cement with soil attached)'},
                 {value: 'nonhomo', label: 'Non-homogenous', tooltip: 'Small, discrete amounts of asbestos distributed unevenly in a large body of non-asbestos material (e.g. dust, soil)'},
                 {value: 'soil', label: 'Soil'},{value: 'ore', label: 'Ore'}],
               )}

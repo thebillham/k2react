@@ -202,7 +202,7 @@ class CocModal extends React.Component {
         {this.state.sampleEditModal && (
           <Grid container spacing={1}>
             <Grid item xs={12}>
-              {SuggestionField(this, false, null, 'genericLocationSuggestions', this.state.sampleEditModal.genericLocation,
+              {SuggestionField(this, false, 'Generic Location', 'genericLocationSuggestions', this.state.sampleEditModal.genericLocation,
                 (value) => {
                     this.setState({
                       sampleEditModal: {
@@ -215,7 +215,7 @@ class CocModal extends React.Component {
               )}
             </Grid>
             <Grid item xs={12}>
-              {SuggestionField(this, false, null, 'specificLocationSuggestions', this.state.sampleEditModal.specificLocation,
+              {SuggestionField(this, false, 'Specific Location', 'specificLocationSuggestions', this.state.sampleEditModal.specificLocation,
                 (value) => {
                     this.setState({
                       sampleEditModal: {
@@ -228,7 +228,7 @@ class CocModal extends React.Component {
               )}
             </Grid>
             <Grid item xs={12}>
-              {SuggestionField(this, false, null, 'descriptionSuggestions', this.state.sampleEditModal.description,
+              {SuggestionField(this, false, 'Description/Item', 'descriptionSuggestions', this.state.sampleEditModal.description,
                 (value) => {
                     this.setState({
                       sampleEditModal: {
@@ -241,7 +241,7 @@ class CocModal extends React.Component {
               )}
             </Grid>
             <Grid item xs={12}>
-              {SuggestionField(this, false, null, 'materialSuggestions', this.state.sampleEditModal.material,
+              {SuggestionField(this, false, 'Material', 'materialSuggestions', this.state.sampleEditModal.material,
                 (value) => {
                     this.setState({
                       sampleEditModal: {

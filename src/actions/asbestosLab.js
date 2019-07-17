@@ -1079,14 +1079,38 @@ export const getAnalysts = (job, samples, report) => {
   return list;
 };
 
+export const mapQuals = staffList => {
+  let staffQuals = {};
+  Object.values(staffList).forEach(staff => {
+    let newStr = staff.name;
+    let quals = [];
+    if (staff.tertiary !== undefined && staff.tertiary !== '') quals.push(staff.tertiary);
+    if (staff.ip402 === true) quals.push('BOHS IP402');
+    if (staff.aanumber !== undefined && staff.aanumber !== '') quals.push('Asbestos Assessor No. ' + staff.aanumber);
+    if (quals.length > 0) newStr = `${newStr} (${quals.join(', ')})`;
+    staffQuals[staff.name] = newStr;
+  });
+  staffQuals["Client"] = "Client";
+  console.log(staffQuals);
+  return staffQuals;
+}
+
 export const writeVersionJson = (job, samples, version, staffList, me) => {
-  let aaNumbers = getAANumbers(staffList);
+  // let aaNumbers = getAANumbers(staffList);
+  let quals = mapQuals(staffList);
+  console.log(quals);
   let sampleList = [];
+  let receivedDates = [];
+  let analysisDates = [];
   samples &&
     Object.values(samples).forEach(sample => {
       if (sample.verified && sample.cocUid === job.uid) {
         if (sample.disabled || sample.onHold) return;
-        if (job.waAnalysis && !sample.waAnalysisComplete) return;
+        // if (job.waAnalysis && !sample.waAnalysisComplete) return;
+        if (receivedDates.indexOf(moment(sample.receivedDate instanceof Date ? sample.receivedDate : sample.receivedDate.toDate()).format('D MMMM YYYY')) === -1)
+          receivedDates.push(moment(sample.receivedDate instanceof Date ? sample.receivedDate : sample.receivedDate.toDate()).format('D MMMM YYYY'));
+        if (analysisDates.indexOf(moment(sample.analysisDate instanceof Date ? sample.analysisDate : sample.analysisDate.toDate()).format('D MMMM YYYY')) === -1)
+          analysisDates.push(moment(sample.analysisDate instanceof Date ? sample.analysisDate : sample.analysisDate.toDate()).format('D MMMM YYYY'));
         let sampleMap = {};
         if (job.waAnalysis) sampleMap["wa"] = writeWAAnalysis(sample);
         sampleMap["no"] = sample.sampleNumber;
@@ -1103,22 +1127,14 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
     contactName: job.contactName ? job.contactName : '',
     contactEmail: job.contactEmail ? job.contactEmail : '',
     address: job.address ? job.address : '',
-    date: job.dates
-      .sort((b, a) => {
-        let aDate = a instanceof Date ? a : a.toDate();
-        let bDate = b instanceof Date ? b : b.toDate();
-        return new Date(bDate - aDate);
-      })
-      .map(date => {
-        let formatDate = date instanceof Date ? date : date.toDate();
-        return moment(formatDate).format('D MMMM YYYY');
-      })
-      .join(", "),
+    sampleDate: prettifyDates(job.dates.map(date => date.toDate())),
+    analysisDate: prettifyDates(analysisDates),
+    receivedDate: prettifyDates(receivedDates),
     // ktp: 'Stuart Keer-Keer',
-    personnel: job.personnel.sort(),
-    assessors: job.personnel.sort().map(staff => {
-      return aaNumbers[staff];
-    }),
+    personnel: job.personnel.sort().map(staff => quals[staff]),
+    // assessors: job.personnel.sort().map(staff => {
+    //   return aaNumbers[staff];
+    // }),
     analysts: analysts ? analysts : ["Not specified"],
     version: version ? version : 1,
     samples: sampleList
@@ -1900,6 +1916,8 @@ export const getStats = (samples, job) => {
   if (versionUpToDate) {
     if (job.mostRecentIssueSent) status = 'Issued and Sent';
     else status = 'Issued';
+  } else if (job.currentVersion !== undefined) {
+    status = 'Requires Reissue';
   } else if (totalSamples === 0) {
     status = 'No Samples';
   } else if (numberReceived === 0) {
@@ -2031,3 +2049,35 @@ export const collateLayeredResults = layers => {
   }
   return results;
 };
+
+export const prettifyDates = dates => {
+  let pretty = dates
+    .sort((b, a) => {
+      let aDate = moment(a);
+      let bDate = moment(b);
+      return new Date(bDate - aDate);
+    })
+    .map(date => {
+      let formatDate = date;
+      if (moment(date).isValid() === false) {
+        formatDate = new Date(date);
+      }
+      return moment(formatDate).format('D MMMM YYYY');
+    })
+    .join(", ");
+  console.log(pretty);
+  return pretty;
+}
+
+export const checkVerifyIssues = sample => {
+  let issues = [];
+  // Check result against...
+  // Confirm/Checks
+  // WA Analysis
+  // Sample Details
+  // Check Sample has Result
+  // WA Analysis for job but this sample hasn't been checked as completed WA Analysis
+  // Missing data -> No material, item, location, none or more than one sampling personnel, none or more than one date, no size or weight
+  // If no result, give reason of either Not Analysed, Sample Size too Small, Sample Contaminated
+  return issues;
+}

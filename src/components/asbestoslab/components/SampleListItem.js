@@ -27,6 +27,7 @@ import {
   toggleResult,
   holdSample,
   verifySample,
+  checkVerifyIssues,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
 import { AsbestosClickyBasic, } from '../../../widgets/ButtonWidgets';
@@ -41,6 +42,7 @@ import {
   COC_LOG,
   CONFIRM_RESULT,
   ASBESTOS_NONANALYST_DETAILS,
+  VERIFY_ISSUES_ASBESTOS,
 } from "../../../constants/modal-types";
 
 import Grid from "@material-ui/core/Grid";
@@ -229,15 +231,17 @@ class SampleListItem extends React.Component {
               <Tooltip title='Verify Result is Correct'>
                 <IconButton
                   onClick={event => {
-                    if (
-                      (!sample.verified &&
-                      getBasicResult(sample) === "none" &&
-                      !window.confirm(
-                        "No asbestos result has been recorded for this sample. This will appear as 'Not analysed' in the test certificate. Proceed?"
-                      )) || sample.onHold
-                    )
-                      return;
-                    verifySample(sample, job, samples[job.uid], this.props.sessionID, this.props.me,);
+                    let issues = checkVerifyIssues(sample);
+                    if (issues.length > 0) {
+                        this.props.showModal({
+                          modalType: VERIFY_ISSUES_ASBESTOS,
+                          modalProps: {
+                            sample,
+                            issues,
+                            verify: () => verifySample(sample, job, samples[job.uid], this.props.sessionID, this.props.me,),
+                          }
+                        });
+                    } else verifySample(sample, job, samples[job.uid], this.props.sessionID, this.props.me,);
                   }}
                 >
                   <CheckCircleOutline className={classes.asbestosIcon}
