@@ -251,6 +251,20 @@ class SampleListItem extends React.Component {
                   />
                 </IconButton>
               </Tooltip>
+              {editor && <Tooltip id="det-tooltip" title={'Edit Sample Details'}>
+                <IconButton
+                  onClick={event => {
+                      this.props.showModal({
+                        modalType: ASBESTOS_SAMPLE_DETAILS,
+                        modalProps: {
+                          doc: sample,
+                          job: job,
+                      }});
+                  }}
+                >
+                  <Edit className={classes.asbestosIcon}/>
+                </IconButton>
+              </Tooltip>}
               <Tooltip id="det-tooltip" title={'Sample Details'}>
                 <IconButton
                   onClick={event => {
@@ -281,20 +295,6 @@ class SampleListItem extends React.Component {
                   <SampleLogIcon className={classes.asbestosIcon}/>
                 </IconButton>
               </Tooltip>
-              {editor && <Tooltip id="det-tooltip" title={'Edit Sample Details'}>
-                <IconButton
-                  onClick={event => {
-                      this.props.showModal({
-                        modalType: ASBESTOS_SAMPLE_DETAILS,
-                        modalProps: {
-                          doc: sample,
-                          job: job,
-                      }});
-                  }}
-                >
-                  <Edit className={classes.asbestosIcon}/>
-                </IconButton>
-              </Tooltip>}
               {job.waAnalysis &&
                 <Tooltip id="wa-tooltip" title={editor ? 'WA Analysis' : sample.waAnalysisComplete ? 'WA Analysis Complete' : 'WA Analysis Incomplete'}>
                   <IconButton

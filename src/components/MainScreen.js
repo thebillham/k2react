@@ -374,13 +374,13 @@ class MainScreen extends React.Component {
               </ListItem>
             </List>
           </Collapse>
-        <Divider />
+        {/*<Divider />
         <ListItem button component={Link} to="/inventory">
           <ListItemIcon>
             <InventoryIcon className={classes.accentButton} />
           </ListItemIcon>
           <ListItemText primary="Inventory" />
-        </ListItem>
+        </ListItem>*/}
         <Divider />
           <ListItem
             button

@@ -1335,12 +1335,12 @@ export const sortSamples = samples => {
 
 export const writeDescription = (sample) => {
   var str = '';
-  if (sample.locationgeneric) str = sample.locationgeneric;
-  if (sample.locationdetailed) {
+  if (sample.genericLocation) str = sample.genericLocation;
+  if (sample.specificLocation) {
     if (str === '') {
-      str = sample.locationdetailed;
+      str = sample.specificLocation;
     } else {
-      str = str + ' - ' + sample.locationdetailed;
+      str = str + ' - ' + sample.specificLocation;
     }
   }
   if (str !== '') str = str + ': ';

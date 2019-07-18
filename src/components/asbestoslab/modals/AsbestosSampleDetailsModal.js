@@ -120,8 +120,8 @@ class AsbestosSampleDetailsModal extends React.Component {
     let timeInLab = sample && sample.receivedDate ? moment(endTime).diff(sample.receivedDate.toDate()) : null;
 
     let timeInLabBusiness = sample && sample.receivedDate ? moment(endTime).workingDiff(sample.receivedDate.toDate()) : null;
-    console.log(timeInLab);
-    console.log(timeInLabBusiness);
+    // console.log(timeInLab);
+    // console.log(timeInLabBusiness);
 
     let status = 'In Transit';
     if (sample) {
