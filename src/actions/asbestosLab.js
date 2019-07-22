@@ -1851,7 +1851,7 @@ export const getStats = (samples, job) => {
   let confirmedResultsConflict = 0;
   let confirmedResultsWrong = 0;
 
-  if (samples && Object.values(samples).length > 0) {
+  if (samples && Object.values(samples).length === job.sampleList.length) {
     Object.values(samples).forEach(sample => {
       if (sample.cocUid === jobID) {
         totalSamples = totalSamples + 1;

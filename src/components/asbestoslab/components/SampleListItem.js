@@ -76,6 +76,7 @@ import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 
 import { addLog, } from '../../../actions/local';
 
+// const {whyDidYouUpdate} = require('why-did-you-update');
 import Popup from "reactjs-popup";
 
 const mapStateToProps = state => {
@@ -96,6 +97,20 @@ const mapDispatchToProps = dispatch => {
 };
 
 class SampleListItem extends React.Component {
+  // static whyDidYouRender = true;
+
+  shouldComponentUpdate(nextProps) {
+    // return false;
+    if (this.props.sample !== nextProps.sample) {
+      console.log(this.props.sample);
+      console.log(nextProps.sample);
+      return true;
+    } else {
+      // console.log('Blocked re-render of SampleList');
+      return false;
+    }
+  }
+
   toggleWAAnalysis = () => {
     let sample = this.props.sample;
     let log = {
@@ -126,6 +141,7 @@ class SampleListItem extends React.Component {
 
   render() {
     const { sample, job, samples, staff, anchorEl, classes } = this.props;
+    console.log(`Sample ${sample.jobNumber}-${sample.sampleNumber} Rendering`);
     if (sample.cocUid !== job.uid) return null;
     let result = getBasicResult(sample);
     let colors = getSampleColors(sample);

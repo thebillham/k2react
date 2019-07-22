@@ -155,7 +155,7 @@ class MainScreen extends React.Component {
     this.props.fetchMe();
     this.props.initConstants();
     this.props.fetchGeocodes();
-    this.props.fetchAssets();
+    // this.props.fetchAssets();
     if (!this.state.staff) this.props.fetchStaff();
     // this.props.fixIds();
     // constRef.set(this.props.state.const);

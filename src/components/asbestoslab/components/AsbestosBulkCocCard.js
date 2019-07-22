@@ -40,6 +40,7 @@ import {
 
 import { TickyBox, } from '../../../widgets/FormWidgets';
 import SampleListItem from "./SampleListItem";
+import AsbestosBulkCocSummary from "./AsbestosBulkCocSummary";
 
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
@@ -92,6 +93,7 @@ const mapDispatchToProps = dispatch => {
 };
 
 class AsbestosBulkCocCard extends React.Component {
+  // static whyDidYouRender = true;
   state = {
     samples: {},
     bulkAnalyst: "",
@@ -111,6 +113,24 @@ class AsbestosBulkCocCard extends React.Component {
     this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };
 
+  shouldComponentUpdate(nextProps) {
+    if (this.props.samples && this.props.samples[this.props.job.uid] &&
+    Object.keys(this.props.samples[this.props.job.uid]).length !== this.props.job.sampleList.length &&
+    Object.keys(nextProps.samples[nextProps.job.uid]).length !== nextProps.job.sampleList.length
+   ) {
+    // Object.keys(this.props.samples[this.props.job.uid]).length !== Object.keys(nextProps.samples[nextProps.job.uid]).length) {
+      // console.log(Object.keys(this.props.samples[this.props.job.uid]).length);
+      // console.log(this.props.job.sampleList.length);
+      return true;
+    } else {
+      // console.log('Blocked re-render of BulkCOC');
+      // console.log(this.props.samples && this.props.samples[this.props.job.uid] && Object.keys(this.props.samples[this.props.job.uid]).length);
+      // console.log(this.props.job.sampleList.length);
+      // console.log(nextProps.samples && nextProps.samples[this.props.job.uid] && Object.keys(nextProps.samples[nextProps.job.uid]).length);
+      return false;
+    }
+  }
+
   sampleAnchorMenu = (number, target) => {
     this.setState({
       sampleAnchorEl: {
@@ -129,14 +149,14 @@ class AsbestosBulkCocCard extends React.Component {
     const { job, samples, classes } = this.props;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
+    if (job.deleted === true) return (<div />);
     let analysts = getAnalysts(job, samples[job.uid], false);
 
     let dates = job.dates.map(date => {
       let formatDate = date instanceof Date ? date : date.toDate();
       return moment(formatDate).format('D MMMM YYYY');
     });
-    let stats = getStats(samples[job.uid], job);
-    if (job.deleted === true) return (<div />);
+    console.log(`${job.jobNumber} rendering`);
     return (
       <ExpansionPanel
         style={{ width: '100%'}}
@@ -298,144 +318,7 @@ class AsbestosBulkCocCard extends React.Component {
             </div>
             {samples[job.uid] && Object.values(samples[job.uid]).length > 0 ? (
               <div>
-                <Grid container style={{ marginTop: 12, marginBottom: 12 }}>
-                  <Grid item lg={3} xs={6}>
-                    <b>Sampled by:</b>{" "}
-                    <span style={{ fontWeight: 300 }}>
-                      {job.personnel && job.personnel.length > 0
-                        ? job.personnel.join(", ")
-                        : "Not specified"}
-                    </span>
-                    <br />
-                    <b>Date(s) Sampled:</b>{" "}
-                    <span style={{ fontWeight: 300 }}>
-                      {dates && dates.length > 0
-                        ? dates.join(", ")
-                        : "Not specified"}
-                    </span>
-                    <br />
-                    <b>Analysis by:</b>{" "}
-                    <span style={{ fontWeight: 300 }}>
-                      {analysts ? analysts.join(", ") : "Not specified"}
-                    </span>
-                  </Grid>
-                  <Grid item lg={2} xs={6}>
-                    <b>Total Samples:</b>{" "}
-                    <span style={{ fontWeight: 300 }}>
-                      {stats && stats.totalSamples}
-                    </span>
-                    <br />
-                    <Tooltip title={'Red: Positive samples, Green: Negative samples, Black: Total samples with results'}>
-                      <div>
-                        <b>Results:</b>{" "}
-                        <span style={{ fontWeight: 600, color: 'red' }}>
-                          {stats && stats.positiveSamples !== undefined ? stats.positiveSamples : 0}
-                        </span>-
-                        <span style={{ fontWeight: 600, color: 'green'}}>
-                          {stats && stats.negativeSamples !== undefined ? stats.negativeSamples : 0}</span>
-                        /
-                        <span style={{ fontWeight: 600 }}>
-                          {stats && parseInt(stats.positiveSamples) + parseInt(stats.negativeSamples)}
-                        </span>
-                      </div>
-                    </Tooltip>
-                    <Tooltip title={'Red: Second analysis contradicts first analysis, Orange: Second analysis shows variance in asbestos types reported, Green: First and second analysis match'}>
-                      <div>
-                        <b>Results Confirmed:</b>{" "}
-                        {stats && stats.confirmedResults !== undefined && stats.confirmedResults > 0 ?
-                          <span>
-                            <span style={{ fontWeight: 600, color: 'green'}}>
-                              {stats && stats.confirmedResultsOK !== undefined && stats.confirmedResultsOK}
-                            </span>-
-                            <span style={{ fontWeight: 600, color: 'orange'}}>
-                              {stats && stats.confirmedResultsConflict !== undefined && stats.confirmedResultsConflict}
-                            </span>-
-                            <span style={{ fontWeight: 600, color: 'red' }}>
-                              {stats && stats.confirmedResultsWrong !== undefined && stats.confirmedResultsWrong}
-                            </span>/
-                            <span style={{ fontWeight: 600 }}>
-                              {stats && stats.confirmedResults}
-                            </span>
-                          </span>
-                        : <span>N/A</span>}
-                      </div>
-                    </Tooltip>
-                  </Grid>
-                  <Grid item lg={3} xs={6}>
-                    <Tooltip title={'Max/Average Time (Business Hours Only in Brackets)'}>
-                      <div>
-                      <b>Turnaround Time:</b>{" "}
-                      { stats && stats.maxTurnaroundTime > 0 && stats.averageTurnaroundTime > 0 ?
-                        <span style={{ fontWeight: 300 }}>
-                          {moment.utc(stats.maxTurnaroundTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundTime).format('H:mm')}
-                        </span>
-                        :
-                        <span style={{ fontWeight: 300 }}>N/A</span>
-                      }{" "}
-                      ({ stats && stats.maxTurnaroundBusinessTime > 0 && stats.averageTurnaroundBusinessTime > 0 ?
-                          <span style={{ fontWeight: 300 }}>
-                            {moment.utc(stats.maxTurnaroundBusinessTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundBusinessTime).format('H:mm')}
-                          </span>
-                          :
-                          <span style={{ fontWeight: 300 }}>N/A</span>
-                      })
-                      <br />
-                      <b>Analysis Time:</b>{" "}
-                      { stats && stats.maxAnalysisTime > 0 && stats.averageAnalysisTime > 0 ?
-                        <span style={{ fontWeight: 300 }}>
-                          {moment.utc(stats.maxAnalysisTime).format('H:mm')}/{moment.utc(stats.averageAnalysisTime).format('H:mm')}
-                        </span>
-                        :
-                        <span style={{ fontWeight: 300 }}>N/A</span>
-                      }{" "}
-                      ({ stats && stats.maxAnalysisBusinessTime > 0 && stats.averageAnalysisBusinessTime > 0 ?
-                        <span style={{ fontWeight: 300 }}>
-                          {moment.utc(stats.maxAnalysisBusinessTime).format('H:mm')}/{moment.utc(stats.averageAnalysisBusinessTime).format('H:mm')}
-                        </span>
-                        :
-                        <span style={{ fontWeight: 300 }}>N/A</span>
-                      })
-                      <br />
-                      <b>Report Time:</b>{" "}
-                      { stats && stats.maxReportTime > 0 && stats.averageReportTime > 0 ?
-                        <span style={{ fontWeight: 300 }}>
-                          {moment.utc(stats.maxReportTime).format('H:mm')}/{moment.utc(stats.averageReportTime).format('H:mm')}
-                        </span>
-                        :
-                        <span style={{ fontWeight: 300 }}>N/A</span>
-                      }{" "}
-                      ({ stats && stats.maxReportBusinessTime > 0 && stats.averageReportBusinessTime > 0 ?
-                        <span style={{ fontWeight: 300 }}>
-                          {moment.utc(stats.maxReportBusinessTime).format('H:mm')}/{moment.utc(stats.averageReportBusinessTime).format('H:mm')}
-                        </span>
-                        :
-                        <span style={{ fontWeight: 300 }}>N/A</span>
-                      })
-                      </div>
-                    </Tooltip>
-                  </Grid>
-                  <Grid item lg={4} xs={6}>
-                    <div>{ job.labToContactClient && TickyBox(this, 'Lab Contacted Client', cocsRef, job, 'labHasContactedClient',
-                      (checked) => {
-                        let log = {
-                          type: "Issue",
-                          log: checked ? 'Client Contacted by Lab.' : 'Unchecked Client Contacted by Lab.',
-                          chainOfCustody: job.uid,
-                        };
-                        addLog("asbestosLab", log, this.props.me);
-                      }
-                    )}
-                    { TickyBox(this, 'Latest Issue Sent', cocsRef, job, 'mostRecentIssueSent',
-                      (checked) => {
-                          let log = {
-                            type: "Issue",
-                            log: checked ? 'Latest Issue Sent to Client' : 'Unchecked Latest Issue Sent to Client.',
-                            chainOfCustody: job.uid,
-                          };
-                          addLog("asbestosLab", log, this.props.me);
-                        }, !job.versionUpToDate)}</div>
-                  </Grid>
-                </Grid>
+                <AsbestosBulkCocSummary job={job} analysts={analysts} dates={dates} />
                 {samples[job.uid] && Object.values(samples[job.uid]).filter(el => el.deleted === false).length > 0 &&
                   Object.values(samples[job.uid]).filter(el => el.deleted === false)
                   .map(sample => {

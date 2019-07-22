@@ -70,6 +70,7 @@ const mapDispatchToProps = dispatch => {
 };
 
 class AsbestosCocs extends React.Component {
+  // static whyDidYouRender = true;
   state = {
     analyst: false,
     searchClient: '',
@@ -93,6 +94,18 @@ class AsbestosCocs extends React.Component {
       }
     }
   };
+
+  shouldComponentUpdate(nextProps) {
+    if (Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length) {
+      console.log(this.props);
+      console.log(nextProps);
+      console.log('Cocs length doesnt match');
+      return true;
+    } else {
+      console.log('Blocked re-render of AsbestosCoc');
+      return false;
+    }
+  }
 
   searchCocs = (searchTerm) => {
     if (searchTerm === 'jobNumber') {
@@ -118,6 +131,8 @@ class AsbestosCocs extends React.Component {
       },
       holidays: [],
     });
+
+    console.log('Asbestos Cocs Re-Rendering');
 
     return (
       <div style={{ marginTop: 80 }}>

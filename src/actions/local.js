@@ -1492,8 +1492,8 @@ export const addLog = (collection, log, user) => {
     userName: user.name,
   };
 
-  console.log('Adding Log');
-  console.log(log);
+  // console.log('Adding Log');
+  // console.log(log);
 
   logsRef.collection(collection).doc(uid).set(log);
 };
