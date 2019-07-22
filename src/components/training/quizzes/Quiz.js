@@ -15,7 +15,7 @@ import {
   usersRef,
   questionsRef
 } from "../../../config/firebase";
-import { formStyles } from "../../../config/styles";
+import { styles } from "../../../config/styles";
 import TrueFalseQuestion from "./questions/TrueFalseQuestion";
 import MultiMultiQuestion from "./questions/MultiMultiQuestion";
 import MultiSingleQuestion from "./questions/MultiSingleQuestion";
@@ -541,4 +541,4 @@ class Quiz extends React.Component {
   }
 }
 
-export default withStyles(formStyles)(connect(mapStateToProps)(Quiz));
+export default withStyles(styles)(connect(mapStateToProps)(Quiz));

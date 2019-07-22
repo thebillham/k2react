@@ -115,18 +115,11 @@ class AsbestosBulkCocCard extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     if (this.props.samples && this.props.samples[this.props.job.uid] &&
-    Object.keys(this.props.samples[this.props.job.uid]).length !== this.props.job.sampleList.length &&
-    Object.keys(nextProps.samples[nextProps.job.uid]).length !== nextProps.job.sampleList.length
+    // Object.keys(this.props.samples[this.props.job.uid]).length === this.props.job.sampleList.length &&
+    Object.keys(nextProps.samples[nextProps.job.uid]).length === nextProps.job.sampleList.length
    ) {
-    // Object.keys(this.props.samples[this.props.job.uid]).length !== Object.keys(nextProps.samples[nextProps.job.uid]).length) {
-      // console.log(Object.keys(this.props.samples[this.props.job.uid]).length);
-      // console.log(this.props.job.sampleList.length);
       return true;
     } else {
-      // console.log('Blocked re-render of BulkCOC');
-      // console.log(this.props.samples && this.props.samples[this.props.job.uid] && Object.keys(this.props.samples[this.props.job.uid]).length);
-      // console.log(this.props.job.sampleList.length);
-      // console.log(nextProps.samples && nextProps.samples[this.props.job.uid] && Object.keys(nextProps.samples[nextProps.job.uid]).length);
       return false;
     }
   }
@@ -167,16 +160,16 @@ class AsbestosBulkCocCard extends React.Component {
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
           <div>
-            <span style={{ fontWeight: 500, marginRight: 12, }}>{job.jobNumber}</span>
+            <span className={classes.boldSmallText}>{job.jobNumber}</span>
             <span>{job.client} ({job.address})</span>
-            {job.waAnalysis && <WAIcon color='action' style={{ marginLeft: 6, }} />}
-            {job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' style={{ marginLeft: 6, }} />}
-            {job.versionUpToDate && <CheckCircleOutline color='primary' style={{ marginLeft: 6, }} />}
-            {job.stats && <span style={{ marginLeft: 12, fontSize: 10, fontWeight: 500, }}>{job.stats.status.toUpperCase()}</span>}
+            {job.waAnalysis && <WAIcon color='action' className={classes.marginLeftSmall} />}
+            {job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' className={classes.marginLeftSmall} />}
+            {job.versionUpToDate && <CheckCircleOutline color='primary' className={classes.marginLeftSmall} />}
+            {job.stats && <span className={classes.boldSmallText}>{job.stats.status}</span>}
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <div style={{ width: '100%', maxWidth: '1800px'}}>
+          <div className={classes.fullWidth}>
             <div>
               <Tooltip id="h-tooltip" title={'Edit Chain of Custody'}>
                 <IconButton
@@ -190,45 +183,44 @@ class AsbestosBulkCocCard extends React.Component {
                       }
                     });
                   }}>
-                  <Edit className={classes.asbestosIcon} />
+                  <Edit className={classes.iconRegular} />
                 </IconButton>
               </Tooltip>
               {samples[job.uid] && Object.values(samples[job.uid]).length > 0 && (
                   <span>
                     <Tooltip id="pr-tooltip" title={'Flag as Priority'}>
                       <IconButton onClick={() => togglePriority(job, this.props.me)}>
-                        <Flag color={job.priority === 1 ? 'secondary' : 'inherit'} className={classes.asbestosIcon} />
+                        <Flag color={job.priority === 1 ? 'secondary' : 'inherit'} className={classes.iconRegular} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip id="waa-tooltip" title={'Request Western Australian Standard Analysis'}>
                       <IconButton onClick={() => toggleWAAnalysis(job, this.props.me)}>
-                        <WAIcon color={job.waAnalysis ? 'primary' : 'inherit'} className={classes.asbestosIcon} />
+                        <WAIcon color={job.waAnalysis ? 'primary' : 'inherit'} className={classes.iconRegular} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip id="reca-tooltip" title={'Receive All Samples'}>
                       <IconButton onClick={() => receiveAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
-                        <Inbox className={classes.asbestosIcon} />
+                        <Inbox className={classes.iconRegular} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip id="analysisa-tooltip" title={'Start Analysis on All Samples'}>
                       <IconButton
                       onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
-                        <Colorize className={classes.asbestosIcon} />
+                        <Colorize className={classes.iconRegular} />
                       </IconButton>
                     </Tooltip>
                   </span>)}
               <Button
-                style={{ marginLeft: 5 }}
+                className={classes.buttonTextRegular}
                 variant="outlined"
                 onClick={() => {
                   printCoc(job, samples[job.uid], this.props.me, this.props.staff);
                 }}
               >
-                <Print style={{ fontSize: 20, margin: 5 }} /> Print Chain of
-                Custody
+                <Print className={classes.iconRegular} /> Print Chain of Custody
               </Button>
               <Button
-                style={{ marginLeft: 5 }}
+                className={classes.buttonTextRegular}
                 variant="outlined"
                 disabled={job.versionUpToDate}
                 onClick={() => {
@@ -254,18 +246,18 @@ class AsbestosBulkCocCard extends React.Component {
                   }
                 }}
               >
-                <Send style={{ fontSize: 20, margin: 5 }} />
+                <Send className={classes.iconRegular} />
                 Issue Version {version}
               </Button>
               <Button
-                style={{ marginLeft: 5 }}
+                className={classes.buttonTextRegular}
                 variant="outlined"
                 disabled={!job.currentVersion || !job.versionUpToDate}
                 onClick={() => {
                   printLabReport(job, job.currentVersion, this.props.me, this.props.showModal);
                 }}
               >
-                <Save style={{ fontSize: 20, margin: 5 }} /> Download Test
+                <Save className={classes.iconRegular} /> Download Test
                 Certificate
               </Button>
               <IconButton
@@ -333,15 +325,7 @@ class AsbestosBulkCocCard extends React.Component {
                 )}
               </div>
             ) : (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: 80.0,
-                }}
-              >
+              <div className={classes.flexRowCentered}>
                 No samples
               </div>
             )}

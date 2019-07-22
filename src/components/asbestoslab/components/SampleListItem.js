@@ -100,10 +100,8 @@ class SampleListItem extends React.Component {
   // static whyDidYouRender = true;
 
   shouldComponentUpdate(nextProps) {
-    // return false;
+    // return true;
     if (this.props.sample !== nextProps.sample) {
-      console.log(this.props.sample);
-      console.log(nextProps.sample);
       return true;
     } else {
       // console.log('Blocked re-render of SampleList');
@@ -151,18 +149,10 @@ class SampleListItem extends React.Component {
       <ListItem key={sample.uid} className={classes.hoverItem}>
         <Grid container>
           <Grid item xs={12} xl={3}>
-            <div style={{
-              textOverflow: "ellipsis",
-              // whiteSpace: "nowrap",
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              overflow: "hidden",
-            }}>
+            <div className={classes.flexRowLeftAlignEllipsis}>
               <Popup
                 trigger={
-                  <CameraAlt className={classes.asbestosIcon}
+                  <CameraAlt className={classes.iconRegular}
                     style={{color: colors.cameraColor,}}
                   />
                 }
@@ -179,41 +169,23 @@ class SampleListItem extends React.Component {
                   : <span />
                 }
               </Popup>
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: "#aaa",
-                  marginRight: 10,
-                  color: "#fff",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  display: "flex",
-                  fontWeight: "bold"
-                }}
-              >
+              <div className={classes.circleShaded}>
                 {sample.sampleNumber}
               </div>
               {writeDescription(sample)}
-              {sample.onHold && <div style={{ fontWeight: 'bold', marginLeft: 12, color: 'red' }}>ON HOLD</div>}
+              {sample.onHold && <div className={classes.boldRedWarningText}>ON HOLD</div>}
             </div>
           </Grid>
-          <Grid item xs={12} xl={9}>
-            <div style={{
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              display: 'flex',
-              flexDirection: 'row',
-            }}>
+          <Grid item xs={12} xl={6}>
+            <div className={classes.flexRowRightAlign}>
               <Tooltip title='Mark as Received by Lab'>
                 <IconButton
                   onClick={event => {
                     receiveSample(sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                   }}
                 >
-                <Inbox className={classes.asbestosIcon}
-                  style={{color: colors.receivedColor}}
+                <Inbox className={classes.iconRegular}
+                  style={colors.receivedColor}
                 />
                 </IconButton>
               </Tooltip>
@@ -223,8 +195,8 @@ class SampleListItem extends React.Component {
                       startAnalysis(sample, job, this.props.sessionID, samples[job.uid], this.props.me);
                     }}
                   >
-                    <AnalysisIcon className={classes.asbestosIcon}
-                      style={{color: colors.analysisColor}}
+                    <AnalysisIcon className={classes.iconRegular}
+                      style={colors.analysisColor}
                     />
                   </IconButton>
               </Tooltip>
@@ -236,10 +208,10 @@ class SampleListItem extends React.Component {
               () => toggleResult("cr", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               {AsbestosClickyBasic(colors.umfColor, colors.umfDivColor, 'Unidentified mineral fibres detected', 'UMF',
               () => toggleResult("umf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              <div style={{ width: 30 }} />
+              <div className={classes.spacerSmall} />
               {AsbestosClickyBasic(colors.noColor, colors.noDivColor, 'No asbestos detected', 'NO',
               () => toggleResult("no", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              <div style={{ width: 30 }} />
+              <div className={classes.spacerSmall} />
               {AsbestosClickyBasic(colors.orgColor, colors.orgDivColor, 'Organic fibres detected', 'ORG',
               () => toggleResult("org", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               {AsbestosClickyBasic(colors.smfColor, colors.smfDivColor, 'Synthetic mineral fibres detected', 'SMF',
@@ -260,13 +232,15 @@ class SampleListItem extends React.Component {
                     } else verifySample(sample, job, samples[job.uid], this.props.sessionID, this.props.me,);
                   }}
                 >
-                  <CheckCircleOutline className={classes.asbestosIcon}
-                    style={{
-                      color: colors.verifiedColor
-                    }}
+                  <CheckCircleOutline className={classes.iconRegular}
+                    style={colors.verifiedColor}
                   />
                 </IconButton>
               </Tooltip>
+            {/*</div>
+          </Grid>
+          <Grid item xs={12} xl={3}>
+            <div className={classes.flexRowLeftAlignEllipsis}>*/}
               {editor && <Tooltip id="det-tooltip" title={'Edit Sample Details'}>
                 <IconButton
                   onClick={event => {
@@ -278,7 +252,7 @@ class SampleListItem extends React.Component {
                       }});
                   }}
                 >
-                  <Edit className={classes.asbestosIcon}/>
+                  <Edit className={classes.iconRegular}/>
                 </IconButton>
               </Tooltip>}
               <Tooltip id="det-tooltip" title={'Sample Details'}>
@@ -292,7 +266,7 @@ class SampleListItem extends React.Component {
                       }});
                   }}
                 >
-                  <SampleDetailsIcon className={classes.asbestosIcon}/>
+                  <SampleDetailsIcon className={classes.iconRegular}/>
                 </IconButton>
               </Tooltip>
               <Tooltip id="sl-tooltip" title={'Sample Log'}>
@@ -308,7 +282,7 @@ class SampleListItem extends React.Component {
                     }});
                   }}
                 >
-                  <SampleLogIcon className={classes.asbestosIcon}/>
+                  <SampleLogIcon className={classes.iconRegular}/>
                 </IconButton>
               </Tooltip>
               {job.waAnalysis &&
@@ -323,8 +297,8 @@ class SampleListItem extends React.Component {
                       }}) : null
                     }
                   >
-                    <WAIcon className={classes.asbestosIcon}
-                      style={{color: colors.waColor}}
+                    <WAIcon className={classes.iconRegular}
+                      style={colors.waColor}
                     />
                   </IconButton>
                 </Tooltip>
@@ -344,16 +318,17 @@ class SampleListItem extends React.Component {
                     }) : null
                   }
                 >
-                  {colors.confirmColor === 'red' ? <ThumbsDown className={classes.asbestosIcon} style={{ color: 'red' }} /> :
-                  <ConfirmIcon className={classes.asbestosIcon} style={{color: colors.confirmColor}} />}
+                  {colors.confirmColor === 'red' ? <ThumbsDown className={classes.iconRegularRed} /> :
+                  <ConfirmIcon style={colors.confirmColor} />}
                 </IconButton>
               </Tooltip>
               <Tooltip id="h-tooltip" title={sample.onHold ? 'Take Sample off Hold' : 'Put Sample on Hold'}>
                 <IconButton
                   onClick={event => {
+                    console.log('Clicked');
                     holdSample(sample, job, this.props.me);
                   }}>
-                  <HoldIcon className={classes.asbestosIcon} style={{color: sample.onHold ? 'red' : 'inherit'}} />
+                  <HoldIcon className={sample.onHold ? classes.iconRegularRed : classes.iconRegular} />
                 </IconButton>
               </Tooltip>
             </div>

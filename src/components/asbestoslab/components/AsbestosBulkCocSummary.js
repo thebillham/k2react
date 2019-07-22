@@ -75,10 +75,11 @@ class AsbestosBulkCocSummary extends React.Component {
   // static whyDidYouRender = true;
 
   shouldComponentUpdate(nextProps) {
-    return true;
     if (this.props.job !== nextProps.job ||
-      this.props.samples && this.props.samples[this.props.job.uid] && Object.values(this.props.samples[this.props.job.uid]).length < 1) {
-      return true;
+      (this.props.samples && this.props.samples[this.props.job.uid] &&
+      Object.keys(this.props.samples[this.props.job.uid]).length < this.props.job.sampleList.length &&
+      Object.keys(nextProps.samples[nextProps.job.uid]).length === nextProps.job.sampleList.length)) {
+        return true;
     } else {
       // console.log('Blocked re-render of Summary');
       return false;
@@ -93,43 +94,43 @@ class AsbestosBulkCocSummary extends React.Component {
     let stats = getStats(samples[job.uid], job);
     console.log(`${job.jobNumber} summary rendering`);
     return (
-      <Grid container style={{ marginTop: 12, marginBottom: 12 }}>
+      <Grid container className={classes.marginTopBottom}>
         <Grid item lg={3} xs={6}>
           <b>Sampled by:</b>{" "}
-          <span style={{ fontWeight: 300 }}>
+          <span className={ classes.lightMild }>
             {job.personnel && job.personnel.length > 0
               ? job.personnel.join(", ")
               : "Not specified"}
           </span>
           <br />
           <b>Date(s) Sampled:</b>{" "}
-          <span style={{ fontWeight: 300 }}>
+          <span className={ classes.lightMild }>
             {dates && dates.length > 0
               ? dates.join(", ")
               : "Not specified"}
           </span>
           <br />
           <b>Analysis by:</b>{" "}
-          <span style={{ fontWeight: 300 }}>
+          <span className={ classes.lightMild }>
             {analysts ? analysts.join(", ") : "Not specified"}
           </span>
         </Grid>
         <Grid item lg={2} xs={6}>
           <b>Total Samples:</b>{" "}
-          <span style={{ fontWeight: 300 }}>
+          <span className={ classes.lightMild }>
             {stats && stats.totalSamples}
           </span>
           <br />
           <Tooltip title={'Red: Positive samples, Green: Negative samples, Black: Total samples with results'}>
             <div>
               <b>Results:</b>{" "}
-              <span style={{ fontWeight: 600, color: 'red' }}>
+              <span className={classes.boldRed}>
                 {stats && stats.positiveSamples !== undefined ? stats.positiveSamples : 0}
               </span>-
-              <span style={{ fontWeight: 600, color: 'green'}}>
+              <span className={classes.boldGreen}>
                 {stats && stats.negativeSamples !== undefined ? stats.negativeSamples : 0}</span>
               /
-              <span style={{ fontWeight: 600 }}>
+              <span className={classes.boldBlack}>
                 {stats && parseInt(stats.positiveSamples) + parseInt(stats.negativeSamples)}
               </span>
             </div>
@@ -139,16 +140,16 @@ class AsbestosBulkCocSummary extends React.Component {
               <b>Results Confirmed:</b>{" "}
               {stats && stats.confirmedResults !== undefined && stats.confirmedResults > 0 ?
                 <span>
-                  <span style={{ fontWeight: 600, color: 'green'}}>
+                  <span className={classes.boldGreen}>
                     {stats && stats.confirmedResultsOK !== undefined && stats.confirmedResultsOK}
                   </span>-
-                  <span style={{ fontWeight: 600, color: 'orange'}}>
+                  <span className={classes.boldOrange}>
                     {stats && stats.confirmedResultsConflict !== undefined && stats.confirmedResultsConflict}
                   </span>-
-                  <span style={{ fontWeight: 600, color: 'red' }}>
+                  <span className={classes.boldRed}>
                     {stats && stats.confirmedResultsWrong !== undefined && stats.confirmedResultsWrong}
                   </span>/
-                  <span style={{ fontWeight: 600 }}>
+                  <span className={classes.boldBlack}>
                     {stats && stats.confirmedResults}
                   </span>
                 </span>
@@ -161,50 +162,50 @@ class AsbestosBulkCocSummary extends React.Component {
             <div>
             <b>Turnaround Time:</b>{" "}
             { stats && stats.maxTurnaroundTime > 0 && stats.averageTurnaroundTime > 0 ?
-              <span style={{ fontWeight: 300 }}>
+              <span className={ classes.lightMild }>
                 {moment.utc(stats.maxTurnaroundTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundTime).format('H:mm')}
               </span>
               :
-              <span style={{ fontWeight: 300 }}>N/A</span>
+              <span className={ classes.lightMild }>N/A</span>
             }{" "}
             ({ stats && stats.maxTurnaroundBusinessTime > 0 && stats.averageTurnaroundBusinessTime > 0 ?
-                <span style={{ fontWeight: 300 }}>
+                <span className={ classes.lightMild }>
                   {moment.utc(stats.maxTurnaroundBusinessTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundBusinessTime).format('H:mm')}
                 </span>
                 :
-                <span style={{ fontWeight: 300 }}>N/A</span>
+                <span className={ classes.lightMild }>N/A</span>
             })
             <br />
             <b>Analysis Time:</b>{" "}
             { stats && stats.maxAnalysisTime > 0 && stats.averageAnalysisTime > 0 ?
-              <span style={{ fontWeight: 300 }}>
+              <span className={ classes.lightMild }>
                 {moment.utc(stats.maxAnalysisTime).format('H:mm')}/{moment.utc(stats.averageAnalysisTime).format('H:mm')}
               </span>
               :
-              <span style={{ fontWeight: 300 }}>N/A</span>
+              <span className={ classes.lightMild }>N/A</span>
             }{" "}
             ({ stats && stats.maxAnalysisBusinessTime > 0 && stats.averageAnalysisBusinessTime > 0 ?
-              <span style={{ fontWeight: 300 }}>
+              <span className={ classes.lightMild }>
                 {moment.utc(stats.maxAnalysisBusinessTime).format('H:mm')}/{moment.utc(stats.averageAnalysisBusinessTime).format('H:mm')}
               </span>
               :
-              <span style={{ fontWeight: 300 }}>N/A</span>
+              <span className={ classes.lightMild }>N/A</span>
             })
             <br />
             <b>Report Time:</b>{" "}
             { stats && stats.maxReportTime > 0 && stats.averageReportTime > 0 ?
-              <span style={{ fontWeight: 300 }}>
+              <span className={ classes.lightMild }>
                 {moment.utc(stats.maxReportTime).format('H:mm')}/{moment.utc(stats.averageReportTime).format('H:mm')}
               </span>
               :
-              <span style={{ fontWeight: 300 }}>N/A</span>
+              <span className={ classes.lightMild }>N/A</span>
             }{" "}
             ({ stats && stats.maxReportBusinessTime > 0 && stats.averageReportBusinessTime > 0 ?
-              <span style={{ fontWeight: 300 }}>
+              <span className={ classes.lightMild }>
                 {moment.utc(stats.maxReportBusinessTime).format('H:mm')}/{moment.utc(stats.averageReportBusinessTime).format('H:mm')}
               </span>
               :
-              <span style={{ fontWeight: 300 }}>N/A</span>
+              <span className={ classes.lightMild }>N/A</span>
             })
             </div>
           </Tooltip>

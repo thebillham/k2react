@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 // import { Document, Page } from 'react-pdf';
 import { withStyles } from "@material-ui/core/styles";
-import { formStyles } from "../../config/styles";
+import { styles } from "../../config/styles";
 import { DOCUMENT } from "../../constants/modal-types";
 
 import Typography from "@material-ui/core/Typography";
@@ -297,7 +297,7 @@ class DocumentViewer extends React.Component {
   }
 }
 
-export default withStyles(formStyles)(
+export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps

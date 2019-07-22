@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { withStyles } from "@material-ui/core/styles";
 
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -14,15 +15,10 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 export const AsbestosClickyBasic = (fgColor, bgColor, tooltip, label, toggle) => {
   return(<Tooltip title={tooltip}>
-    <div
-      style={{
-        backgroundColor: bgColor,
-        borderRadius: 5
-      }}
-    >
+    <div style={bgColor}>
       <Button
         variant="outlined"
-        style={{ margin: 5, color: fgColor }}
+        style={fgColor}
         onClick={event => {
           // event.stopPropagation();
           toggle();

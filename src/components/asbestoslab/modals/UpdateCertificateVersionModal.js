@@ -1,7 +1,7 @@
 import React from "react";
 import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
-import { modalStyles } from "../../../config/styles";
+import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
 import { UPDATE_CERTIFICATE_VERSION } from "../../../constants/modal-types";
@@ -85,7 +85,7 @@ class UpdateCertificateVersionModal extends React.Component {
   }
 }
 
-export default withStyles(modalStyles)(
+export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps

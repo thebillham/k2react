@@ -1,6 +1,6 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
-import { modalStyles } from "../../../config/styles";
+import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
 import { VERIFY_ISSUES_ASBESTOS } from "../../../constants/modal-types";
@@ -70,7 +70,7 @@ class VerifyCheckModal extends React.Component {
   }
 }
 
-export default withStyles(modalStyles)(
+export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps

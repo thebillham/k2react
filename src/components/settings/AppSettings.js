@@ -2,7 +2,7 @@ import React from "react";
 // import ReactDOM from 'react-dom';
 // import { WithContext as ReactTags } from 'react-tag-input';
 import { withStyles } from "@material-ui/core/styles";
-import { modalStyles } from "../../config/styles";
+import { styles } from "../../config/styles";
 import { connect } from "react-redux";
 // import store from '../../store';
 import { APP_SETTINGS } from "../../constants/modal-types";
@@ -999,7 +999,7 @@ class AppSettings extends React.Component {
   }
 }
 
-export default withStyles(modalStyles)(
+export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps

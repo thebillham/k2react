@@ -15,6 +15,7 @@ import {
   SET_ANALYSIS_SESSION_ID,
 } from "../constants/action-types";
 import { DOWNLOAD_LAB_CERTIFICATE } from "../constants/modal-types";
+import { styles } from "../config/styles";
 import moment from "moment";
 import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
@@ -422,6 +423,7 @@ export const logSample = (coc, sample, cocStats) => dispatch => {
 //
 
 export const holdSample = (sample, job, me) => {
+  console.log('Sample on hold');
   let log = {
     type: "Analysis",
     log: sample.onHold
@@ -774,6 +776,23 @@ export const verifySample = (sample, job, samples, sessionID, me) => {
 const fractionNames = ['gt7','to7','lt2'];
 const layerNum = 5;
 
+const waStyle = { display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, };
+const totalStyle = { fontWeight: 500, fontSize: 16, textAlign: 'center', };
+const waBoxStyle = { flexDirection: 'row', display: 'flex', justifyContent: 'flex-end', textAlign: 'right', marginTop: 14, };
+const bufferStyle = { width: '40%'};
+const waSubheading = { fontWeight: 500 };
+const waSubheadingBoxStyle = { width: '35%', marginRight: 12, marginTop: 14, fontWeight: 500, };
+const waWeightStyle = { width: '25%', marginRight: 12, marginTop: 14, };
+const waWeightStyle2 = { width: '25%', };
+const bottomDottedStyle = { borderBottomStyle: 'dotted', borderBottomWidth: 1};
+const waConcStyle = { width: '35%', marginRight: 14, };
+const waDivRed = {backgroundColor: 'red', borderRadius: 5};
+const waDivWhite = {backgroundColor: 'white', borderRadius: 5};
+const blackTextStyle = { color: 'black' };
+const redTextStyle = { color: 'red' };
+const whiteTextStyle = { color: 'white', margin: 5 };
+const lightGreyTextStyle = { color: '#ddd', margin: 5 };
+
 export const getWAAnalysisSummary = sample => {
     let weightACM = 0;
     let weightFA = 0;
@@ -842,119 +861,97 @@ export const getWAAnalysisSummary = sample => {
       concentrationFAAF = (weightFA+weightAF)/weightConditioned*100;
     }
     return(
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, }}>
-        <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Totals</div>
-        <div style={{ flexDirection: 'row', display: 'flex', textAlign: 'right', marginTop: 14, }}>
-          <div style={{ width: '40%'}} />
-          <div style={{ width: '35%', marginRight: 12, marginTop: 14, }}>
-            <div style={{ fontWeight: 500}}>Conditioned Weight: </div>
-            <div style={{ fontWeight: 500}}>Fraction Total: </div>
-            <div style={{ fontWeight: 500}}>Subfraction Total: </div>
-            <div style={{ fontWeight: 500}}>Asbestos Total: </div>
+      <div style={waStyle}>
+        <div style={totalStyle}>Totals</div>
+        <div style={waBoxStyle}>
+          <div style={bufferStyle} />
+          <div style={waSubheadingBoxStyle}>
+            <div>Conditioned Weight: </div>
+            <div>Fraction Total: </div>
+            <div>Subfraction Total: </div>
+            <div>Asbestos Total: </div>
           </div>
-          <div style={{ width: '25%', marginRight: 12, marginTop: 14, }}>
+          <div style={waWeightStyle}>
             <div>{weightConditioned ? <span>{parseFloat(weightConditioned).toFixed(2)}g</span> : <span>N/A</span>}</div>
             <div>{fractionWeightNum === 3 ? <span>{parseFloat(fractionTotalWeight).toFixed(2)}g</span> : <span>N/A</span>}</div>
             <div>{subFractionTotalWeight ? <span>{parseFloat(subFractionTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
             <div>{asbestosTotalWeight > 0 ? <span>{parseFloat(asbestosTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
           </div>
         </div>
-        <div style={{ flexDirection: 'row', display: 'flex', justifyContent: 'flex-end', textAlign: 'right', marginTop: 14, }}>
-          <div style={{ width: '25%', marginRight: 12, }}>
-            <div style={{ fontWeight: 500 }}>Type</div>
+        <div style={waBoxStyle}>
+          <div style={waWeightStyle}>
+            <div style={waSubheading}>Type</div>
             <div>ACM Bonded</div>
             <div>Friable Asbestos</div>
             <div>Asbestos Fines</div>
             <div>FA/AF Total</div>
           </div>
-          <div style={{ width: '25%', }}>
-            <div style={{ fontWeight: 500 }}>Asbestos Weight</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightACM.toFixed(6)}g</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightFA.toFixed(6)}g</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightAF.toFixed(6)}g</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{(weightFA+weightAF).toFixed(6)}g</div>
+          <div style={waWeightStyle2}>
+            <div style={waSubheading}>Asbestos Weight</div>
+            <div style={bottomDottedStyle}>{weightACM.toFixed(6)}g</div>
+            <div style={bottomDottedStyle}>{weightFA.toFixed(6)}g</div>
+            <div style={bottomDottedStyle}>{weightAF.toFixed(6)}g</div>
+            <div style={bottomDottedStyle}>{(weightFA+weightAF).toFixed(6)}g</div>
           </div>
-          <div style={{ width: '35%', marginRight: 14, }}>
-            <div style={{ fontWeight: 500 }}>Asbestos Concentration</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationACM > 0.01 ? 'red' : 'black' }}>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFA > 0.001 ? 'red' : 'black' }}>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationAF > 0.001 ? 'red' : 'black' }}>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFAAF > 0.001 ? 'red' : 'black' }}>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+          <div style={waConcStyle}>
+            <div style={waSubheading}>Asbestos Concentration</div>
+            <div style={bottomDottedStyle}>{weightConditioned ? <span style={concentrationACM > 0.01 ? {redTextStyle} : {blackTextStyle} }>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={bottomDottedStyle}>{weightConditioned ? <span style={concentrationFA > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={bottomDottedStyle}>{weightConditioned ? <span style={concentrationAF > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={bottomDottedStyle}>{weightConditioned ? <span style={concentrationFAAF > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
           </div>
         </div>
-        <div
-          style={{ display: "flex", flexDirection: "row", justifyContent: 'flex-end', marginTop: 14, marginBottom: 14, }}
-        >
-          <div
-            style={{
-              backgroundColor: ch ? 'red' : 'white',
-              borderRadius: 5
-            }}
-          >
+        <div style={waBoxStyle}>
+          <div style={ch ? waDivRed : waDivWhite}>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: ch ? 'white' : '#ddd' }}
+              style={ch ? whiteTextStyle : lightGreyTextStyle}
               onClick={null}
             >
               CH
             </Button>
           </div>
-          <div
-            style={{
-              backgroundColor: am ? 'red' : 'white',
-              borderRadius: 5
-            }}
-          >
+          <div style={am ? waDivRed : waDivWhite}>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: am ? 'white' : '#ddd' }}
+              style={am ? whiteTextStyle : lightGreyTextStyle}
               onClick={null}
             >
               AM
             </Button>
           </div>
-          <div
-            style={{
-              backgroundColor: cr ? 'red' : 'white',
-              borderRadius: 5
-            }}
-          >
+          <div style={cr ? waDivRed : waDivWhite}>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: cr ? 'white' : '#ddd' }}
+              style={cr ? whiteTextStyle : lightGreyTextStyle}
               onClick={null}
             >
               CR
             </Button>
           </div>
-          <div
-            style={{
-              backgroundColor: umf ? 'red' : 'white',
-              borderRadius: 5
-            }}
-          >
+          <div style={umf ? waDivRed : waDivWhite}>
             <Button
               variant="outlined"
-              style={{ margin: 5, color: umf ? 'white' : '#ddd' }}
+              style={umf ? whiteTextStyle : lightGreyTextStyle}
               onClick={null}
             >
               UMF
             </Button>
           </div>
         </div>
-        { fractionWeightNum === 3 && parseFloat(fractionTotalWeight) !== parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
+        { fractionWeightNum === 3 && parseFloat(fractionTotalWeight) !== parseFloat(weightConditioned) && <div className={styles.warningTextLight}>
           The weight of all fractions does not match the total conditioned weight.
         </div>}
-        { parseFloat(subFractionTotalWeight) > parseFloat(weightConditioned) && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
+        { parseFloat(subFractionTotalWeight) > parseFloat(weightConditioned) && <div className={styles.warningTextLight}>
           The weight of all analysed subfractions exceeds the total conditioned weight of the entire sample!
         </div>}
-        { allHaveTypes === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
+        { allHaveTypes === false && <div className={styles.warningTextLight}>
           Not all subfractions have been assigned an asbestos type (i.e. CH/AM/CR/UMF).
         </div>}
-        { allHaveForms === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
+        { allHaveForms === false && <div className={styles.warningTextLight}>
           Not all subfractions have been assigned an asbestos form (i.e. AF/FA/ACM). This will result in an incorrect concentration.
         </div>}
-        { match === false && <div style={{ color: '#a0a0a0', fontWeight: 100, fontSize: 12, }}>
+        { match === false && <div className={styles.warningTextLight}>
           The cumulative result of the analysed fractions does not match with the reported asbestos result for the entire sample. Please check.
         </div>}
       </div>
@@ -1079,40 +1076,14 @@ export const getAnalysts = (job, samples, report) => {
   return list;
 };
 
-export const mapQuals = staffList => {
-  let staffQuals = {};
-  Object.values(staffList).forEach(staff => {
-    let newStr = staff.name;
-    let quals = [];
-    if (staff.tertiary !== undefined && staff.tertiary !== '') quals.push(staff.tertiary);
-    if (staff.ip402 === true) quals.push('BOHS IP402');
-    if (staff.aanumber !== undefined && staff.aanumber !== '') quals.push('Asbestos Assessor No. ' + staff.aanumber);
-    if (quals.length > 0) newStr = `${newStr} (${quals.join(', ')})`;
-    staffQuals[staff.name] = newStr;
-  });
-  staffQuals["Client"] = "Client";
-  console.log(staffQuals);
-  return staffQuals;
-}
-
 export const writeVersionJson = (job, samples, version, staffList, me) => {
-  // let aaNumbers = getAANumbers(staffList);
-  let quals = mapQuals(staffList);
-  console.log(quals);
+  let aaNumbers = getAANumbers(staffList);
   let sampleList = [];
-  let receivedDates = [];
-  let analysisDates = [];
   samples &&
     Object.values(samples).forEach(sample => {
       if (sample.verified && sample.cocUid === job.uid) {
-        if (sample.disabled || sample.onHold) return;
-        // if (job.waAnalysis && !sample.waAnalysisComplete) return;
-        if (receivedDates.indexOf(moment(sample.receivedDate instanceof Date ? sample.receivedDate : sample.receivedDate.toDate()).format('D MMMM YYYY')) === -1)
-          receivedDates.push(moment(sample.receivedDate instanceof Date ? sample.receivedDate : sample.receivedDate.toDate()).format('D MMMM YYYY'));
-        if (analysisDates.indexOf(moment(sample.analysisDate instanceof Date ? sample.analysisDate : sample.analysisDate.toDate()).format('D MMMM YYYY')) === -1)
-          analysisDates.push(moment(sample.analysisDate instanceof Date ? sample.analysisDate : sample.analysisDate.toDate()).format('D MMMM YYYY'));
         let sampleMap = {};
-        if (job.waAnalysis) sampleMap["wa"] = writeWAAnalysis(sample);
+        if (sample.disabled || sample.onHold) return;
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeReportDescription(sample);
         sampleMap["result"] = writeResult(sample.result);
@@ -1124,17 +1095,23 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
   let report = {
     jobNumber: job.jobNumber,
     client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
-    contactName: job.contactName ? job.contactName : '',
-    contactEmail: job.contactEmail ? job.contactEmail : '',
-    address: job.address ? job.address : '',
-    sampleDate: prettifyDates(job.dates.map(date => date.toDate())),
-    analysisDate: prettifyDates(analysisDates),
-    receivedDate: prettifyDates(receivedDates),
+    address: job.address,
+    date: job.dates
+      .sort((b, a) => {
+        let aDate = a instanceof Date ? a : a.toDate();
+        let bDate = b instanceof Date ? b : b.toDate();
+        return new Date(bDate - aDate);
+      })
+      .map(date => {
+        let formatDate = date instanceof Date ? date : date.toDate();
+        return moment(formatDate).format('D MMMM YYYY');
+      })
+      .join(", "),
     // ktp: 'Stuart Keer-Keer',
-    personnel: job.personnel.sort().map(staff => quals[staff]),
-    // assessors: job.personnel.sort().map(staff => {
-    //   return aaNumbers[staff];
-    // }),
+    personnel: job.personnel.sort(),
+    assessors: job.personnel.sort().map(staff => {
+      return aaNumbers[staff];
+    }),
     analysts: analysts ? analysts : ["Not specified"],
     version: version ? version : 1,
     samples: sampleList
@@ -1293,6 +1270,9 @@ export const deleteCoc = (job, me) => dispatch => {
 // HELPER FUNCTIONS
 //
 
+const highlightGreenStyle = { color: 'green', marginBottom: 12, backgroundColor: '#eee', };
+const highlightRedStyle = { color: 'red', marginBottom: 12, backgroundColor: '#eee', }
+
 export const analyticalCriteraOK = sample => {
   let color = 'black';
   let text = '';
@@ -1318,7 +1298,7 @@ export const analyticalCriteraOK = sample => {
     text = 'Fibres must have positive dispersion staining and morphology identification';
     color = 'red';
   }
-  return (<div style={{ color: color, marginBottom: 12, backgroundColor: '#eee', }}>{text}</div>);
+  return (<div style={color === 'red' ? highlightRedStyle : highlightGreenStyle}>{text}</div>);
 };
 
 export const sortSamples = samples => {
@@ -1335,12 +1315,12 @@ export const sortSamples = samples => {
 
 export const writeDescription = (sample) => {
   var str = '';
-  if (sample.genericLocation) str = sample.genericLocation;
-  if (sample.specificLocation) {
+  if (sample.locationgeneric) str = sample.locationgeneric;
+  if (sample.locationdetailed) {
     if (str === '') {
-      str = sample.specificLocation;
+      str = sample.locationdetailed;
     } else {
-      str = str + ' - ' + sample.specificLocation;
+      str = str + ' - ' + sample.locationdetailed;
     }
   }
   if (str !== '') str = str + ': ';
@@ -1416,45 +1396,112 @@ export const getResultColor = (state, type, noColor, yesColor) => {
   return noColor;
 }
 
+const redBg = {
+  borderRadius: 5,
+  margin: 5,
+  backgroundColor: 'red',
+};
+
+const greenBg = {
+  borderRadius: 5,
+  margin: 5,
+  backgroundColor: 'lightgreen',
+};
+
+const blueBg = {
+  borderRadius: 5,
+  margin: 5,
+  backgroundColor: 'lightblue',
+};
+
+const greyBg = {
+  margin: 5,
+  backgroundColor: 'white',
+};
+
+const redFg = {
+  margin: 5,
+  color: 'white',
+};
+
+const greenFg = {
+  margin: 5,
+  color: 'green',
+};
+
+const blueFg = {
+  margin: 5,
+  color: 'mediumblue',
+};
+
+const greyFg = {
+  margin: 5,
+  color: '#ddd',
+};
+
+const redIcon = {
+  color: 'red',
+  fontSize: 20,
+  margin: 6,
+};
+
+const greenIcon = {
+  color: 'green',
+  fontSize: 20,
+  margin: 6,
+};
+
+const orangeIcon = {
+  color: 'orange',
+  fontSize: 20,
+  margin: 6,
+};
+
+const greyIcon = {
+  color: '#ddd',
+  fontSize: 20,
+  margin: 6,
+};
+
 export const getSampleColors = sample => {
   let res = sample.result;
   let confirm = getAllConfirmResult(sample);
-  let confirmColor = 'green';
+  let confirmColor = greenIcon;
   if (confirm === 'no') {
-    confirmColor = 'red';
+    confirmColor = redIcon;
   } else if (confirm === 'asbestosTypesWrong') {
-    confirmColor = 'orange';
+    confirmColor = orangeIcon;
   } else if (confirm === 'none') {
-    confirmColor = 'inherit';
+    confirmColor = greyIcon;
   }
   return {
-    cameraColor: sample.imagePathRemote ? 'green' : '#ddd',
-    receivedColor: sample.receivedByLab ? 'green' : '#ddd',
-    analysisColor: sample.analysisStart ? 'green' : '#ddd',
-    verifiedColor: sample.verified ? 'green' : '#ddd',
-    waColor: sample.waAnalysisComplete ? 'green' : 'inherit',
-    confirmColor: confirmColor ? confirmColor : 'inherit',
+    cameraColor: sample.imagePathRemote ? greenIcon : greyIcon,
+    receivedColor: sample.receivedByLab ? greenIcon : greyIcon,
+    analysisColor: sample.analysisStart ? greenIcon : greyIcon,
+    verifiedColor: sample.verified ? greenIcon : greyIcon,
+    waColor: sample.waAnalysisComplete ? greenIcon : greyIcon,
+    confirmColor: confirmColor ? confirmColor : greyIcon,
 
-    chColor: getResultColor(res, 'ch', '#ddd', 'white'),
-    chDivColor: getResultColor(res, 'ch', 'white', 'red'),
+    chColor: getResultColor(res, 'ch', greyFg, redFg),
+    chDivColor: getResultColor(res, 'ch', greyBg, redBg),
 
-    amColor: getResultColor(res, 'am', '#ddd', 'white'),
-    amDivColor: getResultColor(res, 'am', 'white', 'red'),
+    amColor: getResultColor(res, 'am', greyFg, redFg),
+    amDivColor: getResultColor(res, 'am', greyBg, redBg),
 
-    crColor: getResultColor(res, 'cr', '#ddd', 'white'),
-    crDivColor: getResultColor(res, 'cr', 'white', 'red'),
+    crColor: getResultColor(res, 'cr', greyFg, redFg),
+    crDivColor: getResultColor(res, 'cr', greyBg, redBg),
 
-    umfColor: getResultColor(res, 'umf', '#ddd', 'white'),
-    umfDivColor: getResultColor(res, 'umf', 'white', 'red'),
+    umfColor: getResultColor(res, 'umf', greyFg, redFg),
+    umfDivColor: getResultColor(res, 'umf', greyBg, redBg),
 
-    noColor: getResultColor(res, 'no', '#ddd', 'green'),
-    noDivColor: getResultColor(res, 'no', 'white', 'lightgreen'),
+    noColor: getResultColor(res, 'no', greyFg, greenFg),
+    noDivColor: getResultColor(res, 'no', greyBg, greenBg),
 
-    orgColor: getResultColor(res, 'org', '#ddd', 'mediumblue'),
-    orgDivColor: getResultColor(res, 'org', 'white', 'lightblue'),
+    orgColor: getResultColor(res, 'org', greyFg, blueFg),
+    orgDivColor: getResultColor(res, 'org', greyBg, blueBg),
 
-    smfColor: getResultColor(res, 'smf', '#ddd', 'mediumblue'),
-    smfDivColor: getResultColor(res, 'smf', 'white', 'lightblue'),
+    smfColor: getResultColor(res, 'smf', greyFg, blueFg),
+    smfDivColor: getResultColor(res, 'smf', greyBg, blueBg),
   };
 }
 
@@ -1511,20 +1558,7 @@ export const getConfirmResult = (confirm, result) => {
 
 export const writeChecks = (sample) => {
   let checks = [];
-  if (sample.confirm === undefined || sample.confirm.totalNum === undefined || sample.confirm.totalNum < 1) return checks;
-  Object.keys(sample.confirm).forEach(key => {
-    if (sample.confirm[key].deleted !== true && sample.confirm[key].analyst !== sample.analyst &&
-      (getConfirmResult(sample.confirm[key], sample) === 'yes' || getConfirmResult(sample.confirm[key], sample) === 'differentNonAsbestos')) {
-        checks.push(sample.confirm[key].analyst);
-      }
-  });
-  console.log(checks);
   return checks;
-}
-
-export const writeWAAnalysis = sample => {
-  let wa = {};
-  return wa;
 }
 
 export const getBasicResult = (sample) => {
@@ -1545,7 +1579,7 @@ export const getBasicResult = (sample) => {
 export const traceAnalysisRequired = sample => {
   let text = 'Trace Analysis Required';
   if (sample.classification === 'homo' && sample.asbestosEvident === true) text = 'No Trace Analysis Required';
-  return (<div style={{ marginBottom: 12, backgroundColor: '#eee',}}>{text}</div>);
+  return (<div className={styles.highlightBoxBlack}>{text}</div>);
 }
 
 export const writeResult = result => {
@@ -1559,7 +1593,7 @@ export const writeResult = result => {
   let otherArray = [];
   if (result["org"]) otherArray.push("Organic Fibres");
   if (result["smf"]) otherArray.push("Synthetic Mineral Fibres");
-  if (otherArray.length > 0) others = `@~(${otherArray.join(', ')})`
+  if (otherArray.length > 0) others = `~@(${otherArray.join(', ')})`
   if (result["no"]) return "No Asbestos Detected" + others;
   let asbestos = [];
   if (result["ch"]) asbestos.push("Chrysotile");
@@ -1851,7 +1885,7 @@ export const getStats = (samples, job) => {
   let confirmedResultsConflict = 0;
   let confirmedResultsWrong = 0;
 
-  if (samples && Object.values(samples).length === job.sampleList.length) {
+  if (samples && Object.values(samples).length > 0) {
     Object.values(samples).forEach(sample => {
       if (sample.cocUid === jobID) {
         totalSamples = totalSamples + 1;
@@ -1916,8 +1950,6 @@ export const getStats = (samples, job) => {
   if (versionUpToDate) {
     if (job.mostRecentIssueSent) status = 'Issued and Sent';
     else status = 'Issued';
-  } else if (job.currentVersion !== undefined) {
-    status = 'Requires Reissue';
   } else if (totalSamples === 0) {
     status = 'No Samples';
   } else if (numberReceived === 0) {
@@ -2050,34 +2082,7 @@ export const collateLayeredResults = layers => {
   return results;
 };
 
-export const prettifyDates = dates => {
-  let pretty = dates
-    .sort((b, a) => {
-      let aDate = moment(a);
-      let bDate = moment(b);
-      return new Date(bDate - aDate);
-    })
-    .map(date => {
-      let formatDate = date;
-      if (moment(date).isValid() === false) {
-        formatDate = new Date(date);
-      }
-      return moment(formatDate).format('D MMMM YYYY');
-    })
-    .join(", ");
-  console.log(pretty);
-  return pretty;
-}
-
-export const checkVerifyIssues = sample => {
+export const checkVerifyIssues = () => {
   let issues = [];
-  // Check result against...
-  // Confirm/Checks
-  // WA Analysis
-  // Sample Details
-  // Check Sample has Result
-  // WA Analysis for job but this sample hasn't been checked as completed WA Analysis
-  // Missing data -> No material, item, location, none or more than one sampling personnel, none or more than one date, no size or weight
-  // If no result, give reason of either Not Analysed, Sample Size too Small, Sample Contaminated
   return issues;
-}
+};

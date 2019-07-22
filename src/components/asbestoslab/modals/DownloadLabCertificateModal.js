@@ -1,6 +1,6 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
-import { modalStyles } from "../../../config/styles";
+import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
 import { DOWNLOAD_LAB_CERTIFICATE } from "../../../constants/modal-types";
@@ -108,7 +108,7 @@ class DownloadLabCertificateModal extends React.Component {
   }
 }
 
-export default withStyles(modalStyles)(
+export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps

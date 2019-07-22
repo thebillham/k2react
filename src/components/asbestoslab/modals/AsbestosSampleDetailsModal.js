@@ -2,7 +2,7 @@ import React from "react";
 import reactCSS from 'reactcss';
 import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
-import { modalStyles } from "../../../config/styles";
+import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
 import { ASBESTOS_NONANALYST_DETAILS, } from "../../../constants/modal-types";
@@ -333,7 +333,7 @@ class AsbestosSampleDetailsModal extends React.Component {
   }
 }
 
-export default withStyles(modalStyles)(
+export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps

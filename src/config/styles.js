@@ -2,7 +2,7 @@ import { fade } from '@material-ui/core/styles/colorManipulator';
 
 const drawerWidth = 240;
 
-const modalStyles = theme => ({
+const styles = theme => ({
   accentButton: {
     color: theme.palette.secondary.main,
   },
@@ -53,9 +53,10 @@ const modalStyles = theme => ({
     marginBottom: theme.spacing(2),
     width: 500,
   },
-});
 
-const formStyles = theme => ({
+  root: {
+    display: 'flex',
+  },
 
   paper: {
     ...theme.mixins.gutters(),
@@ -80,6 +81,7 @@ const formStyles = theme => ({
     color: '#444',
     // marginBottom: theme.spacing(2),
   },
+
   labels: {
     marginTop: theme.spacing(2),
     marginLeft: theme.spacing(1),
@@ -87,6 +89,7 @@ const formStyles = theme => ({
     fontWeight: 'bold',
     // marginBottom: theme.spacing(2),
   },
+
   container: {
     marginTop: theme.spacing(10),
     justifyContent: 'center',
@@ -112,28 +115,18 @@ const formStyles = theme => ({
     fontWeight: 500,
     fontSize: 16,
   },
-});
 
-const styles = theme => ({
-  root: {
-    display: 'flex',
-  },
-  textField: {
-    marginLeft: theme.spacing(1),
-    marginRight: theme.spacing(1),
-    fontSize: 12,
-    // marginBottom: theme.spacing(2),
-    width: 500,
-  },
   hoverItem: {
       // backgroundColor: "#fff",
       "&:hover": {
           backgroundColor: "#eee"
       }
   },
+
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
   },
+
   toolbarIcon: {
     display: 'flex',
     alignItems: 'center',
@@ -141,6 +134,7 @@ const styles = theme => ({
     padding: '0 8px',
     ...theme.mixins.toolbar,
   },
+
   search: {
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
@@ -156,6 +150,7 @@ const styles = theme => ({
       width: 'auto',
     },
   },
+
   searchIcon: {
     width: theme.spacing(9),
     height: '100%',
@@ -165,14 +160,12 @@ const styles = theme => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   inputRoot: {
     color: 'inherit',
     width: '100%',
   },
-  asbestosIcon: {
-    fontSize: 20,
-    margin: 6,
-  },
+
   inputInput: {
     paddingTop: theme.spacing(1),
     paddingRight: theme.spacing(1),
@@ -193,6 +186,7 @@ const styles = theme => ({
       duration: theme.transitions.duration.leavingScreen,
     }),
   },
+
   appBarShift: {
     marginLeft: drawerWidth,
     width: `calc(100% - ${drawerWidth}px)`,
@@ -201,19 +195,24 @@ const styles = theme => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
   },
+
   accentButton: {
     color: theme.palette.secondary.main,
   },
+
   menuButton: {
     marginLeft: 12,
     marginRight: 36,
   },
+
   menuButtonHidden: {
     display: 'none',
   },
+
   title: {
     flexGrow: 1,
   },
+
   labels: {
     marginTop: theme.spacing(2),
     marginLeft: theme.spacing(1),
@@ -221,6 +220,7 @@ const styles = theme => ({
     fontWeight: 'bold',
     // marginBottom: theme.spacing(2),
   },
+
   drawerPaper: {
     background: '#fff',
     position: 'relative',
@@ -231,6 +231,7 @@ const styles = theme => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
   },
+
   drawerPaperClose: {
     overflowX: 'hidden',
     transition: theme.transitions.create('width', {
@@ -242,6 +243,7 @@ const styles = theme => ({
       width: theme.spacing(9),
     },
   },
+
   appBarSpacer: theme.mixins.toolbar,
 
   content: {
@@ -254,29 +256,37 @@ const styles = theme => ({
   chartContainer: {
     marginLeft: -22,
   },
+
   tableContainer: {
     height: 320,
   },
+
   button: {
     color: "#fff",
   },
+
   avatar: {
     margin: 10,
   },
+
   nested: {
     paddingLeft: theme.spacing(5),
   },
+
   subitem: {
     fontSize: 8,
   },
+
   fineprint: {
     fontSize: 12,
   },
+
   paleLarge: {
     fontSize: 48,
     fontWeight: 100,
     color: '#bbb',
   },
+
   notifications: {
     fontSize: 12,
     display: 'flex',
@@ -319,6 +329,153 @@ const styles = theme => ({
   cardHeaderAlt: {
     backgroundColor: theme.palette.secondary.dark
   },
+
+  // Icon Styles
+
+  iconRegular: {
+    fontSize: 20,
+    margin: 6,
+  },
+
+  iconRegularRed: {
+    fontSize: 20,
+    margin: 6,
+    color: 'red',
+  },
+
+  iconRegularGreen: {
+    fontSize: 20,
+    margin: 6,
+    color: 'green',
+  },
+
+  iconRegularOrange: {
+    fontSize: 20,
+    margin: 6,
+    color: 'orange',
+  },
+
+  // Button Styles
+
+  buttonTextRegular: {
+    fontSize: 12,
+    fontVariant: 'small-caps',
+    margin: 6,
+  },
+
+  // Text Styles
+
+  warningTextLight: {
+    color: '#a0a0a0',
+    fontWeight: 100,
+    fontSize: 12,
+  },
+
+  boldSmallText: {
+    marginLeft: 12,
+    marginRight: 12,
+    fontSize: 12,
+    fontVariant: 'small-caps',
+    fontWeight: 500,
+  },
+
+  boldRedWarningText: {
+    fontWeight: 'bold',
+    marginLeft: 12,
+    color: 'red'
+  },
+
+  lightMild: {
+    fontWeight: 300,
+  },
+
+  boldRed: {
+    fontWeight: 600,
+    color: 'red',
+  },
+
+  boldGreen: {
+    fontWeight: 600,
+    color: 'green',
+  },
+
+  boldOrange: {
+    fontWeight: 600,
+    color: 'orange',
+  },
+
+  boldBlack: {
+    fontWeight: 600,
+    color: 'black',
+  },
+
+  // Text Boxes
+
+  highlightBoxBlack: {
+    marginBottom: 12,
+    backgroundColor: '#eee',
+  },
+
+  circleShaded: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#aaa",
+    marginRight: 10,
+    color: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  // Padding/Margins
+
+  marginLeftSmall: {
+    marginLeft: 6,
+  },
+
+  marginTopBottom: {
+    marginTop: 12,
+    marginBottom: 12,
+  },
+
+  spacerSmall: {
+    width: 30,
+  },
+
+  // Sizes
+
+  fullWidth: {
+    width: '100%',
+    maxWidth: '1800px',
+  },
+
+  // Container
+  flexRowLeftAlignEllipsis: {
+    textOverflow: "ellipsis",
+    // whiteSpace: "nowrap",
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    overflow: "hidden",
+  },
+
+  flexRowRightAlign: {
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+  },
+
+  flexRowCentered: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 80.0,
+  },
 });
 
-export { styles, modalStyles, formStyles };
+export { styles, };

@@ -69,6 +69,18 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+const flexRowStyle = { display: 'flex', flexDirection: 'row'};
+const searchBoxStyle = {
+  borderRadius: 4,
+  marginLeft: 12,
+  borderStyle: "solid",
+  borderWidth: 1,
+  borderColor: "#ccc",
+  width: 650,
+  height: '100%',
+  padding: 12
+};
+
 class AsbestosCocs extends React.Component {
   // static whyDidYouRender = true;
   state = {
@@ -97,12 +109,8 @@ class AsbestosCocs extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     if (Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length) {
-      console.log(this.props);
-      console.log(nextProps);
-      console.log('Cocs length doesnt match');
       return true;
     } else {
-      console.log('Blocked re-render of AsbestosCoc');
       return false;
     }
   }
@@ -162,7 +170,7 @@ class AsbestosCocs extends React.Component {
         >
           New Chain of Custody
         </Button>
-        <div style={{ display: 'flex', flexDirection: 'row'}}>
+        <div style={flexRowStyle}>
           <div
             style={{
               borderRadius: 4,
@@ -199,16 +207,7 @@ class AsbestosCocs extends React.Component {
             </div>
           </div>
           <div
-            style={{
-              borderRadius: 4,
-              marginLeft: 12,
-              borderStyle: "solid",
-              borderWidth: 1,
-              borderColor: "#ccc",
-              width: 650,
-              height: '100%',
-              padding: 12
-            }}
+            style={searchBoxStyle}
           >
             <div style={{ marginBottom: 12 }}>
               <InputLabel style={{ marginLeft: 12 }}>

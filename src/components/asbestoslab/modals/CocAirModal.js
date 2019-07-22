@@ -1,7 +1,7 @@
 import React from 'react';
 // import { WithContext as ReactTags } from 'react-tag-input';
 import { withStyles } from '@material-ui/core/styles';
-import { modalStyles } from '../../../config/styles';
+import { styles } from '../../../config/styles';
 import { connect } from 'react-redux';
 // import store from '../../store';
 import { COC } from '../../../constants/modal-types';
@@ -1151,4 +1151,4 @@ function getSuggestions(value, that) {
 
 const getSuggestionValue = suggestion => suggestion.label;
 
-export default withStyles(modalStyles)(connect(mapStateToProps, mapDispatchToProps)(CocModal));
+export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(CocModal));

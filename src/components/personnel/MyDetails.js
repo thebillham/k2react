@@ -1,7 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { withStyles } from "@material-ui/core/styles";
-import { formStyles } from "../../config/styles";
+import { styles } from "../../config/styles";
 
 import Grid from "@material-ui/core/Grid";
 import ListItem from "@material-ui/core/ListItem";
@@ -824,7 +824,7 @@ class UserDetails extends React.Component {
   }
 }
 
-export default withStyles(formStyles)(
+export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
