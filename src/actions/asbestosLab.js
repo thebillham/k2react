@@ -15,6 +15,7 @@ import {
   SET_ANALYSIS_SESSION_ID,
 } from "../constants/action-types";
 import { DOWNLOAD_LAB_CERTIFICATE } from "../constants/modal-types";
+import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../config/styles";
 import moment from "moment";
 import momentbusinessdays from "moment-business-days";
@@ -1396,114 +1397,50 @@ export const getResultColor = (state, type, noColor, yesColor) => {
   return noColor;
 }
 
-const redBg = {
-  borderRadius: 5,
-  margin: 5,
-  backgroundColor: 'red',
-};
-
-const greenBg = {
-  borderRadius: 5,
-  margin: 5,
-  backgroundColor: 'lightgreen',
-};
-
-const blueBg = {
-  borderRadius: 5,
-  margin: 5,
-  backgroundColor: 'lightblue',
-};
-
-const greyBg = {
-  margin: 5,
-  backgroundColor: 'white',
-};
-
-const redFg = {
-  margin: 5,
-  color: 'white',
-};
-
-const greenFg = {
-  margin: 5,
-  color: 'green',
-};
-
-const blueFg = {
-  margin: 5,
-  color: 'mediumblue',
-};
-
-const greyFg = {
-  margin: 5,
-  color: '#ddd',
-};
-
-const redIcon = {
-  color: 'red',
-  fontSize: 20,
-  margin: 6,
-};
-
-const greenIcon = {
-  color: 'green',
-  fontSize: 20,
-  margin: 6,
-};
-
-const orangeIcon = {
-  color: 'orange',
-  fontSize: 20,
-  margin: 6,
-};
-
-const greyIcon = {
-  color: '#ddd',
-  fontSize: 20,
-  margin: 6,
-};
-
-export const getSampleColors = sample => {
+export const getSampleColors = (sample) => {
   let res = sample.result;
+  console.log(res);
   let confirm = getAllConfirmResult(sample);
-  let confirmColor = greenIcon;
+  let confirmColor = styles.greenIcon;
   if (confirm === 'no') {
-    confirmColor = redIcon;
+    confirmColor = styles.redIcon;
   } else if (confirm === 'asbestosTypesWrong') {
-    confirmColor = orangeIcon;
+    confirmColor = styles.orangeIcon;
   } else if (confirm === 'none') {
-    confirmColor = greyIcon;
+    confirmColor = styles.greyIcon;
   }
-  return {
-    cameraColor: sample.imagePathRemote ? greenIcon : greyIcon,
-    receivedColor: sample.receivedByLab ? greenIcon : greyIcon,
-    analysisColor: sample.analysisStart ? greenIcon : greyIcon,
-    verifiedColor: sample.verified ? greenIcon : greyIcon,
-    waColor: sample.waAnalysisComplete ? greenIcon : greyIcon,
-    confirmColor: confirmColor ? confirmColor : greyIcon,
+  let returnMap = {
+    cameraColor: sample.imagePathRemote ? styles.greenIcon : styles.greyIcon,
+    receivedColor: sample.receivedByLab ? styles.greenIcon : styles.greyIcon,
+    analysisColor: sample.analysisStart ? styles.greenIcon : styles.greyIcon,
+    verifiedColor: sample.verified ? styles.greenIcon : styles.greyIcon,
+    waColor: sample.waAnalysisComplete ? styles.greenIcon : styles.greyIcon,
+    confirmColor: confirmColor ? confirmColor : styles.greyIcon,
 
-    chColor: getResultColor(res, 'ch', greyFg, redFg),
-    chDivColor: getResultColor(res, 'ch', greyBg, redBg),
+    chColor: getResultColor(res, 'ch', styles.greyFg, styles.redFg),
+    chDivColor: getResultColor(res, 'ch', styles.greyBg, styles.redBg),
 
-    amColor: getResultColor(res, 'am', greyFg, redFg),
-    amDivColor: getResultColor(res, 'am', greyBg, redBg),
+    amColor: getResultColor(res, 'am', styles.greyFg, styles.redFg),
+    amDivColor: getResultColor(res, 'am', styles.greyBg, styles.redBg),
 
-    crColor: getResultColor(res, 'cr', greyFg, redFg),
-    crDivColor: getResultColor(res, 'cr', greyBg, redBg),
+    crColor: getResultColor(res, 'cr', styles.greyFg, styles.redFg),
+    crDivColor: getResultColor(res, 'cr', styles.greyBg, styles.redBg),
 
-    umfColor: getResultColor(res, 'umf', greyFg, redFg),
-    umfDivColor: getResultColor(res, 'umf', greyBg, redBg),
+    umfColor: getResultColor(res, 'umf', styles.greyFg, styles.redFg),
+    umfDivColor: getResultColor(res, 'umf', styles.greyBg, styles.redBg),
 
-    noColor: getResultColor(res, 'no', greyFg, greenFg),
-    noDivColor: getResultColor(res, 'no', greyBg, greenBg),
+    noColor: getResultColor(res, 'no', styles.greyFg, styles.greenFg),
+    noDivColor: getResultColor(res, 'no', styles.greyBg, styles.greenBg),
 
-    orgColor: getResultColor(res, 'org', greyFg, blueFg),
-    orgDivColor: getResultColor(res, 'org', greyBg, blueBg),
+    orgColor: getResultColor(res, 'org', styles.greyFg, styles.blueFg),
+    orgDivColor: getResultColor(res, 'org', styles.greyBg, styles.blueBg),
 
-    smfColor: getResultColor(res, 'smf', greyFg, blueFg),
-    smfDivColor: getResultColor(res, 'smf', greyBg, blueBg),
+    smfColor: getResultColor(res, 'smf', styles.greyFg, styles.blueFg),
+    smfDivColor: getResultColor(res, 'smf', styles.greyBg, styles.blueBg),
   };
-}
+  console.log(returnMap);
+  return withStyles(styles)(returnMap);
+};
 
 export const getAllConfirmResult = sample => {
   if (sample.confirm === undefined) return 'none';

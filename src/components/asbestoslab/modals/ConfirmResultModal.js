@@ -226,6 +226,8 @@ class ConfirmResultModal extends React.Component {
   }
 
   confirmRow = (num) => {
+    console.log(this.state);
+    console.log(num);
     let colors = getSampleColors(this.state[num]);
     let resultDate = 'N/A';
     let prevAnalyst = this.props.modalProps.sample && this.props.modalProps.sample.analyst ? this.props.modalProps.sample.analyst : null;

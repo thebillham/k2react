@@ -131,7 +131,7 @@ class AsbestosSampleDetailsModal extends React.Component {
         else if (sample.receivedByLab) status = 'Received By Lab';
     }
     if (sample.onHold) status = status + " (ON HOLD)";
-    let colors = getSampleColors(sample);
+    let colors = getSampleColors(sample, classes);
     let layersResult = null;
     let soilResult = null;
     if (sample.layers) layersResult = getConfirmResult({result: collateLayeredResults(sample.layers)}, sample);

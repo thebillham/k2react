@@ -142,7 +142,7 @@ class SampleListItem extends React.Component {
     console.log(`Sample ${sample.jobNumber}-${sample.sampleNumber} Rendering`);
     if (sample.cocUid !== job.uid) return null;
     let result = getBasicResult(sample);
-    let colors = getSampleColors(sample);
+    let colors = getSampleColors(sample, classes);
     let editor = this.props.me.auth && this.props.me.auth['Asbestos Bulk Analysis'];
 
     return (
@@ -184,8 +184,7 @@ class SampleListItem extends React.Component {
                     receiveSample(sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                   }}
                 >
-                <Inbox className={classes.iconRegular}
-                  style={colors.receivedColor}
+                <Inbox className={colors.receivedColor}
                 />
                 </IconButton>
               </Tooltip>
@@ -195,8 +194,7 @@ class SampleListItem extends React.Component {
                       startAnalysis(sample, job, this.props.sessionID, samples[job.uid], this.props.me);
                     }}
                   >
-                    <AnalysisIcon className={classes.iconRegular}
-                      style={colors.analysisColor}
+                    <AnalysisIcon className={colors.analysisColor}
                     />
                   </IconButton>
               </Tooltip>

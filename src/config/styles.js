@@ -363,6 +363,73 @@ const styles = theme => ({
     margin: 6,
   },
 
+  redBg: {
+    borderRadius: 5,
+    margin: 5,
+    backgroundColor: 'red',
+  },
+
+  greenBg: {
+    borderRadius: 5,
+    margin: 5,
+    backgroundColor: 'lightgreen',
+  },
+
+  blueBg: {
+    borderRadius: 5,
+    margin: 5,
+    backgroundColor: 'lightblue',
+  },
+
+  greyBg: {
+    margin: 5,
+    backgroundColor: 'white',
+  },
+
+  redFg: {
+    margin: 5,
+    color: 'white',
+  },
+
+  greenFg: {
+    margin: 5,
+    color: 'green',
+  },
+
+  blueFg: {
+    margin: 5,
+    color: 'mediumblue',
+  },
+
+  greyFg: {
+    margin: 5,
+    color: '#ddd',
+  },
+
+  redIcon: {
+    color: 'red',
+    fontSize: 20,
+    margin: 6,
+  },
+
+  greenIcon: {
+    color: 'green',
+    fontSize: 20,
+    margin: 6,
+  },
+
+  orangeIcon: {
+    color: 'orange',
+    fontSize: 20,
+    margin: 6,
+  },
+
+  greyIcon: {
+    color: '#ddd',
+    fontSize: 20,
+    margin: 6,
+  },
+
   // Text Styles
 
   warningTextLight: {
