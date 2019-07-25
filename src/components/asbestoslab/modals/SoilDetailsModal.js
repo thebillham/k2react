@@ -116,7 +116,7 @@ class SoilDetailsModal extends React.Component {
           <hr />
           <div>
             <div className={classes.heading}>Soil Name</div>
-            <div className={classes.subheading}>Type</div>
+            <div className={classes.subHeading}>Type</div>
             <FormControl component="fieldset">
               <RadioGroup
                 aria-label="Type"
@@ -597,7 +597,7 @@ class SoilDetailsModal extends React.Component {
           <hr />
           <div>
             <div className={classes.heading} style={{ marginTop: 12, }}>Sample Characteristics</div>
-            <div className={classes.subheading}>Colour</div>
+            <div className={classes.subHeading}>Colour</div>
             <div style={{ display: 'flex', flexDirection: 'row', }}>
               <FormControl>
                 <InputLabel>Shade</InputLabel>

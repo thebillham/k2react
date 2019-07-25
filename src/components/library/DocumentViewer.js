@@ -153,7 +153,7 @@ class DocumentViewer extends React.Component {
               </div>
             ) : (
               <div>
-                <Typography className={classes.labels}>{doc.title}</Typography>
+                <Typography className={classes.subHeading}>{doc.title}</Typography>
                 <Typography className={classes.note}>
                   <i>{doc.subtitle}</i>
                 </Typography>

@@ -2,12 +2,15 @@ import React, { Component } from "react";
 import FirebaseAuth from "react-firebaseui/FirebaseAuth";
 import firebase, { auth } from "../config/firebase.js";
 import Button from "@material-ui/core/Button";
-import "../App.css";
+import { withStyles } from "@material-ui/core/styles";
+import { styles } from "../config/styles";
+// import "../App.css";
 import img_Logo from "../images/logo.png";
 import ApiCalendar from "react-google-calendar-api";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import { sendSlackMessage } from "../Slack";
 
-export default class K2SignInScreen extends Component {
+class K2SignInScreen extends Component {
   constructor(props) {
     super(props);
 
@@ -40,47 +43,40 @@ export default class K2SignInScreen extends Component {
   }
 
   render() {
-    const style_background = {
-      width: "100%",
-      height: "100%"
-    };
-    const style_background_outer = {
-      backgroundColor: "#f6f6f6",
-      pointerEvents: "none"
-    };
-    const style_image = {
-      height: "auto",
-      pointerEvents: "none"
-    };
-
+    const { mode, classes, handleLogOut } = this.props;
     return (
-      <div className="AppScreen K2SignInScreen">
-        <div className="background">
-          <div
-            className="appBg containerMinHeight elBackground"
-            style={style_background_outer}
-          >
-            <div style={style_background} />
-          </div>
-        </div>
-        <div className="screenFgContainer">
-          <div className="foreground">
-            <img
-              className="elImage"
-              style={style_image}
-              src={img_Logo}
-              alt=""
+      <div>
+        <img
+          className={classes.signInImage}
+          src={img_Logo}
+          alt="K2 Environmental Ltd"
+        />
+        { mode === 'initial' &&
+          <div className={classes.signInFirebase}>
+            {/* <Button onClick='handleSignIn()'>Sign In</Button> */}
+            <FirebaseAuth
+              uiConfig={this.firebaseUIConfig}
+              firebaseAuth={auth}
             />
-            <div className="elFirebaseLogin">
-              {/* <Button onClick='handleSignIn()'>Sign In</Button> */}
-              <FirebaseAuth
-                uiConfig={this.firebaseUIConfig}
-                firebaseAuth={auth}
-              />
+          </div>
+        }
+        { mode === 'loginFailed' &&
+          <div className={classes.flexRowCentered}>
+            <Button variant="outlined" className={classes.signInLogOut} onClick={handleLogOut}>
+              Log Out {auth.currentUser.displayName}
+            </Button>
+            <div className={classes.signInWarning}>
+              You have not been authorised to view this site. Please
+              wait for the{" "}<a href="mailto:ben@k2.co.nz">site admin</a>{" "}to create your account.
             </div>
           </div>
-        </div>
+        }
+        { mode === 'loading' &&
+          <CircularProgress className={classes.signInCircle} size={'330px'} thickness={2.5} />
+        }
       </div>
     );
   }
 }
+
+export default withStyles(styles)(K2SignInScreen);

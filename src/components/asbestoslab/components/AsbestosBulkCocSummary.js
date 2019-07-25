@@ -94,36 +94,36 @@ class AsbestosBulkCocSummary extends React.Component {
     let stats = getStats(samples[job.uid], job);
     console.log(`${job.jobNumber} summary rendering`);
     return (
-      <Grid container className={classes.marginTopBottom}>
+      <Grid container direction="row" className={classes.marginTopBottomSmall} alignItems="flex-start" justify="center">
         <Grid item lg={3} xs={6}>
-          <b>Sampled by:</b>{" "}
-          <span className={ classes.lightMild }>
+          <span className={classes.headingInline}>Sampled by:</span>{" "}
+          <span className={ classes.infoLight }>
             {job.personnel && job.personnel.length > 0
               ? job.personnel.join(", ")
               : "Not specified"}
           </span>
           <br />
-          <b>Date(s) Sampled:</b>{" "}
-          <span className={ classes.lightMild }>
+          <span className={classes.headingInline}>Date(s) Sampled:</span>{" "}
+          <span className={ classes.infoLight }>
             {dates && dates.length > 0
               ? dates.join(", ")
               : "Not specified"}
           </span>
           <br />
-          <b>Analysis by:</b>{" "}
-          <span className={ classes.lightMild }>
+          <span className={classes.headingInline}>Analysis by:</span>{" "}
+          <span className={ classes.infoLight }>
             {analysts ? analysts.join(", ") : "Not specified"}
           </span>
         </Grid>
         <Grid item lg={2} xs={6}>
-          <b>Total Samples:</b>{" "}
-          <span className={ classes.lightMild }>
+          <span className={classes.headingInline}>Total Samples:</span>{" "}
+          <span className={ classes.infoLight }>
             {stats && stats.totalSamples}
           </span>
           <br />
           <Tooltip title={'Red: Positive samples, Green: Negative samples, Black: Total samples with results'}>
-            <div>
-              <b>Results:</b>{" "}
+            <div className={classes.infoLight}>
+              <span className={classes.headingInline}>Results:</span>{" "}
               <span className={classes.boldRed}>
                 {stats && stats.positiveSamples !== undefined ? stats.positiveSamples : 0}
               </span>-
@@ -137,9 +137,9 @@ class AsbestosBulkCocSummary extends React.Component {
           </Tooltip>
           <Tooltip title={'Red: Second analysis contradicts first analysis, Orange: Second analysis shows variance in asbestos types reported, Green: First and second analysis match'}>
             <div>
-              <b>Results Confirmed:</b>{" "}
+              <span className={classes.headingInline}>Results Confirmed:</span>{" "}
               {stats && stats.confirmedResults !== undefined && stats.confirmedResults > 0 ?
-                <span>
+                <span className={classes.infoLight}>
                   <span className={classes.boldGreen}>
                     {stats && stats.confirmedResultsOK !== undefined && stats.confirmedResultsOK}
                   </span>-
@@ -160,58 +160,58 @@ class AsbestosBulkCocSummary extends React.Component {
         <Grid item lg={3} xs={6}>
           <Tooltip title={'Max/Average Time (Business Hours Only in Brackets)'}>
             <div>
-            <b>Turnaround Time:</b>{" "}
+            <span className={classes.headingInline}>Turnaround Time:</span>{" "}
             { stats && stats.maxTurnaroundTime > 0 && stats.averageTurnaroundTime > 0 ?
-              <span className={ classes.lightMild }>
+              <span className={ classes.infoLight }>
                 {moment.utc(stats.maxTurnaroundTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundTime).format('H:mm')}
               </span>
               :
-              <span className={ classes.lightMild }>N/A</span>
+              <span className={ classes.infoLight }>N/A</span>
             }{" "}
             ({ stats && stats.maxTurnaroundBusinessTime > 0 && stats.averageTurnaroundBusinessTime > 0 ?
-                <span className={ classes.lightMild }>
+                <span className={ classes.infoLight }>
                   {moment.utc(stats.maxTurnaroundBusinessTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundBusinessTime).format('H:mm')}
                 </span>
                 :
-                <span className={ classes.lightMild }>N/A</span>
+                <span className={ classes.infoLight }>N/A</span>
             })
             <br />
-            <b>Analysis Time:</b>{" "}
+            <span className={classes.headingInline}>Analysis Time:</span>{" "}
             { stats && stats.maxAnalysisTime > 0 && stats.averageAnalysisTime > 0 ?
-              <span className={ classes.lightMild }>
+              <span className={ classes.infoLight }>
                 {moment.utc(stats.maxAnalysisTime).format('H:mm')}/{moment.utc(stats.averageAnalysisTime).format('H:mm')}
               </span>
               :
-              <span className={ classes.lightMild }>N/A</span>
+              <span className={ classes.infoLight }>N/A</span>
             }{" "}
             ({ stats && stats.maxAnalysisBusinessTime > 0 && stats.averageAnalysisBusinessTime > 0 ?
-              <span className={ classes.lightMild }>
+              <span className={ classes.infoLight }>
                 {moment.utc(stats.maxAnalysisBusinessTime).format('H:mm')}/{moment.utc(stats.averageAnalysisBusinessTime).format('H:mm')}
               </span>
               :
-              <span className={ classes.lightMild }>N/A</span>
+              <span className={ classes.infoLight }>N/A</span>
             })
             <br />
-            <b>Report Time:</b>{" "}
+            <span className={classes.headingInline}>Report Time:</span>{" "}
             { stats && stats.maxReportTime > 0 && stats.averageReportTime > 0 ?
-              <span className={ classes.lightMild }>
+              <span className={ classes.infoLight }>
                 {moment.utc(stats.maxReportTime).format('H:mm')}/{moment.utc(stats.averageReportTime).format('H:mm')}
               </span>
               :
-              <span className={ classes.lightMild }>N/A</span>
+              <span className={ classes.infoLight }>N/A</span>
             }{" "}
             ({ stats && stats.maxReportBusinessTime > 0 && stats.averageReportBusinessTime > 0 ?
-              <span className={ classes.lightMild }>
+              <span className={ classes.infoLight }>
                 {moment.utc(stats.maxReportBusinessTime).format('H:mm')}/{moment.utc(stats.averageReportBusinessTime).format('H:mm')}
               </span>
               :
-              <span className={ classes.lightMild }>N/A</span>
+              <span className={ classes.infoLight }>N/A</span>
             })
             </div>
           </Tooltip>
         </Grid>
         <Grid item lg={4} xs={6}>
-          <div>{ job.labToContactClient && TickyBox(this, 'Lab Contacted Client', cocsRef, job, 'labHasContactedClient',
+          { job.labToContactClient && TickyBox(this, 'Lab Contacted Client', cocsRef, job, 'labHasContactedClient',
             (checked) => {
               let log = {
                 type: "Issue",
@@ -229,7 +229,8 @@ class AsbestosBulkCocSummary extends React.Component {
                   chainOfCustody: job.uid,
                 };
                 addLog("asbestosLab", log, this.props.me);
-              }, !job.versionUpToDate)}</div>
+              }, !job.versionUpToDate)}
+          <div/>
         </Grid>
       </Grid>
     );

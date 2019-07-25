@@ -150,7 +150,7 @@ class WAAnalysisModal extends React.Component {
                 }
                 label="WA Analysis Complete"
               />
-              <div className={this.props.classes.subheading}>Description</div>
+              <div className={this.props.classes.subHeading}>Description</div>
               <TextField
                 id="labDescription"
                 style={{ width: '100%' }}
@@ -196,7 +196,7 @@ class WAAnalysisModal extends React.Component {
                 ]
               )}
 
-              <div className={this.props.classes.subheading}>Weight</div>
+              <div className={this.props.classes.subHeading}>Weight</div>
               <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 14, }}>
                 {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. entire sample received by client).', false, 0, 'g', null)}
                 {SampleTextyBox(this, sample, 'weightAnalysed', 'Weight Analysed', 'Record the weight analysed (i.e. portion selected for analysis).', false, 0, 'g', null)}
@@ -335,7 +335,7 @@ class WAAnalysisModal extends React.Component {
               });
             }}
           />
-          <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
+          <div className={this.props.classes.subHeading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
             Subfractions
             <IconButton size='small' aria-label='add' style={{ marginLeft: 12 }} onClick={() => this.addLayer(fraction)}><AddIcon /></IconButton>
             <IconButton size='small' aria-label='remove' style={{ marginLeft: 12 }} onClick={() => this.removeLayer(fraction)}><RemoveIcon /></IconButton>

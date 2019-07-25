@@ -168,7 +168,7 @@ class AsbestosSampleEditModal extends React.Component {
         <DialogContent>
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={5}>
-              <div className={classes.subheading}>Description</div>
+              <div className={classes.subHeading}>Description</div>
               {editor ? SampleTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 3, null, null)
               : SampleTextyDisplay('Sample Description',sample.labDescription)}
               {editor ? SampleTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 3, null, null)
@@ -202,17 +202,17 @@ class AsbestosSampleEditModal extends React.Component {
             </Grid>
             <Grid item xs={1} />
             <Grid item xs={6}>
-              <div className={this.props.classes.subheading}>Sampling Method</div>
+              <div className={classes.subHeading}>Sampling Method</div>
                 {SampleRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
                   [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
-              <div className={this.props.classes.subheading}>Weight</div>
-              <div style={{ display: 'flex', flexDirection: 'row'}}>
+              <div className={classes.subHeading}>Weight</div>
+              <div className={classes.flexRow}>
                 {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. before any conditioning).', false, 0, 'g', null)}
                 <div style={{ width: 200 }} />
                 {SampleTextyBox(this, sample, 'weightAnalysed', 'Weight Analysed', 'Record the weight analysed (e.g. after conditioning such as furnacing).', false, 0, 'g', null)}
               </div>
 
-              <div className={this.props.classes.subheading}>Dimensions</div>
+              <div className={classes.subHeading}>Dimensions</div>
               <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
                 {SampleTextyBox(this, sample, 'dimensionsL', 'Length', null, false, 0, 'mm', null)}
                 <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
@@ -225,7 +225,7 @@ class AsbestosSampleEditModal extends React.Component {
           <Divider />
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={5}>
-              <div className={this.props.classes.subheading}>Classification</div>
+              <div className={classes.subHeading}>Classification</div>
               {SampleRadioSelector(this, sample, 'classification', 'homo', 'Classification',
                 [{value: 'homo', label: 'Homogenous', tooltip: 'Uniform distribution of fibres of any type through the entire sample or in each discernibly discrete layer of the sample (sprayed asbestos, mastic, vermiculite)'},
                 {value: 'homolayers', label: 'Homogenous Layers', tooltip: 'Uniform distribution of fibres of any type through each discernibly discrete layer of the sample (asbestos-cement, paper-backed vinyl)'},
@@ -265,7 +265,7 @@ class AsbestosSampleEditModal extends React.Component {
             </Grid>
             <Grid item xs={1} />
             <Grid item xs={6}>
-              <div className={this.props.classes.informationBox}>
+              <div className={classes.informationBox}>
                 {AsbestosClassification(sample.classification)}
               </div>
             </Grid>
@@ -273,7 +273,7 @@ class AsbestosSampleEditModal extends React.Component {
           <Divider />
           <Grid container>
             <Grid item xs={12}>
-              <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
+              <div className={this.props.classes.subHeading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
                 Layers
                 <IconButton size='small' aria-label='add' style={{ marginLeft: 12 }} onClick={this.addLayer}><AddIcon /></IconButton>
                 <IconButton size='small' aria-label='remove' style={{ marginLeft: 12 }} onClick={this.removeLayer}><RemoveIcon /></IconButton>

@@ -69,18 +69,6 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const flexRowStyle = { display: 'flex', flexDirection: 'row'};
-const searchBoxStyle = {
-  borderRadius: 4,
-  marginLeft: 12,
-  borderStyle: "solid",
-  borderWidth: 1,
-  borderColor: "#ccc",
-  width: 650,
-  height: '100%',
-  padding: 12
-};
-
 class AsbestosCocs extends React.Component {
   // static whyDidYouRender = true;
   state = {
@@ -124,7 +112,7 @@ class AsbestosCocs extends React.Component {
   }
 
   render() {
-    const { cocs } = this.props;
+    const { cocs, classes } = this.props;
     moment.tz.setDefault("Pacific/Auckland");
     moment.updateLocale('en', {
       // workingWeekdays: [1,2,3,4,5],
@@ -157,7 +145,7 @@ class AsbestosCocs extends React.Component {
         <AsbestosSampleDetailsModal />
         <Button
           variant="outlined"
-          style={{ marginBottom: 16, width: 220, }}
+          className={classes.marginBottomSmall}
           onClick={() => {
             this.props.showModal({
               modalType: COC,
@@ -170,25 +158,11 @@ class AsbestosCocs extends React.Component {
         >
           New Chain of Custody
         </Button>
-        <div style={flexRowStyle}>
-          <div
-            style={{
-              borderRadius: 4,
-              borderStyle: "solid",
-              borderWidth: 1,
-              borderColor: "#ccc",
-              width: 270,
-              height: '100%',
-              padding: 12,
-            }}
-          >
-            <div style={{ marginBottom: 12 }}>
-              <InputLabel style={{ marginLeft: 12 }}>
-                Search by Job Number
-              </InputLabel>
-            </div>
+        <div className={classes.flexRow}>
+          <div className={classes.searchBoxRoot}>
+            <InputLabel className={classes.marginLeftBottomSmall}>Search by Job Number</InputLabel>
             <div>
-              <FormControl style={{ width: 150, marginRight: 8, }}>
+              <FormControl>
                 <InputLabel shrink>Job Number</InputLabel>
                 <Input
                   id="searchJobNumber"
@@ -198,24 +172,18 @@ class AsbestosCocs extends React.Component {
                 />
               </FormControl>
               <Button
-                variant="outlined"
-                style={{ marginTop: 16, marginBottom: 16 }}
+                className={classes.buttonGo}
                 onClick={() => this.props.fetchCocsByJobNumber(`AS${this.state.searchJobNumber}`)}
               >
                 Go
               </Button>
             </div>
           </div>
-          <div
-            style={searchBoxStyle}
-          >
-            <div style={{ marginBottom: 12 }}>
-              <InputLabel style={{ marginLeft: 12 }}>
-                Search by Client and/or Date
-              </InputLabel>
-            </div>
-            <div style={{ flexDirection: 'row', display: 'flex', }}>
-              <FormControl style={{ width: 400}}>
+          <div className={classes.spacerSmall} />
+          <div className={classes.searchBoxRoot} >
+            <InputLabel className={classes.marginLeftBottomSmall}>Search by Client and/or Date</InputLabel>
+            <div className={classes.flexRow}>
+              <FormControl className={classes.formSelectClient}>
                 <InputLabel shrink>Client</InputLabel>
                 <Select
                   value={this.state.searchClient}
@@ -238,6 +206,7 @@ class AsbestosCocs extends React.Component {
                 label="From"
                 type="date"
                 value={this.state.searchStartDate}
+                className={classes.formSelectDate}
                 onChange={e => this.setState({ searchStartDate: e.target.value})}
                 InputLabelProps={{
                   shrink: true,
@@ -247,6 +216,7 @@ class AsbestosCocs extends React.Component {
                 id="searchEndDate"
                 label="To"
                 type="date"
+                className={classes.formSelectDate}
                 value={this.state.searchEndDate}
                 onChange={e => this.setState({ searchEndDate: e.target.value})}
                 InputLabelProps={{
@@ -254,65 +224,42 @@ class AsbestosCocs extends React.Component {
                 }}
               />
               <Button
-                variant="outlined"
-                style={{ marginTop: 16, marginBottom: 16, marginLeft: 9, }}
+                className={classes.buttonGo}
                 onClick={() => this.props.fetchCocsBySearch(this.state.searchClient, this.state.searchStartDate, this.state.searchEndDate)}
               >
                 Go
               </Button>
             </div>
           </div>
-
-            {this.state.analyst && (
-              <div
-                style={{
-                  borderRadius: 4,
-                  borderStyle: "solid",
-                  borderWidth: 1,
-                  borderColor: "#ccc",
-                  width: 220,
-                  marginBottom: 16,
-                  marginLeft: 12,
-                  height: '100%',
-                  padding: 12
-                }}
-              >
-                <div style={{ marginBottom: 12 }}>
-                  <InputLabel style={{ marginLeft: 12 }}>
-                    Report Analysis As:
-                  </InputLabel>
-                </div>
-                <div>
-                  <FormControl style={{ width: 200, marginBottom: 19, }}>
-                    <InputLabel shrink>Analyst</InputLabel>
-                    <Select
-                      value={this.props.analyst}
-                      onChange={e => this.props.setAnalyst(e.target.value)}
-                      input={<Input name="analyst" id="analyst" />}
-                    >
-                      {this.props.bulkAnalysts.map(analyst => {
-                        return (
-                          <option key={analyst.uid} value={analyst.name}>
-                            {analyst.name}
-                          </option>
-                        );
-                      })}
-                    </Select>
-                  </FormControl>
-                </div>
+          <div className={classes.spacerSmall} />
+          {this.state.analyst && (
+            <div className={classes.searchBoxRoot}>
+              <InputLabel className={classes.marginLeftBottomSmall}>
+                Report Analysis As:
+              </InputLabel>
+              <div>
+                <FormControl className={classes.formSelectStaff}>
+                  <InputLabel shrink>Analyst</InputLabel>
+                  <Select
+                    value={this.props.analyst}
+                    onChange={e => this.props.setAnalyst(e.target.value)}
+                    input={<Input name="analyst" id="analyst" />}
+                  >
+                    {this.props.bulkAnalysts.map(analyst => {
+                      return (
+                        <option key={analyst.uid} value={analyst.name}>
+                          {analyst.name}
+                        </option>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
               </div>
-            )}
+            </div>
+          )}
         </div>
         {Object.keys(cocs).length < 1 ? (
-          <div
-            style={{
-              marginTop: 16,
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-          >
+          <div className={classes.flexRowCentered}>
             No CoCs found.
             {/*<CircularProgress
               style={{
@@ -321,7 +268,7 @@ class AsbestosCocs extends React.Component {
             />*/}
           </div>
         ) : (
-          <div style={{ marginTop: 16, }}>
+          <div className={classes.marginTopSmall}>
             {Object.keys(cocs)
               .filter(job => {
                 let res = true;

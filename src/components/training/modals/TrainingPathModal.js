@@ -214,7 +214,7 @@ class TrainingModuleModal extends React.Component {
             Title Photo
           </InputLabel>
           <label>
-            <UploadIcon className={classes.accentButton} />
+            <UploadIcon className={classes.colorAccent} />
             <input
               id="attr_upload_file"
               type="file"

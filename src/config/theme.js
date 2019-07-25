@@ -16,6 +16,18 @@ export default createMuiTheme({
       main: "#FF2D00",
       light: "#ff5733"
     },
+    indicators: {
+      bad: 'red',
+      badText: 'white',
+      warning: 'orange',
+      warningText: 'black',
+      ok: 'lightgreen',
+      okText: 'green',
+      benign: 'lightblue',
+      benignText: 'blue',
+      off: 'white',
+      offText: '#ddd',
+    },
     jobs: {
       workplace: '#a2539c',
       stack: '#e33714',
@@ -41,11 +53,6 @@ export default createMuiTheme({
       root: {
         fontSize: 12,
       },
-    },
-    MuiButton: {
-      root: {
-        fontSize: 10,
-      }
     },
     MuiListItemText: {
       primary: {

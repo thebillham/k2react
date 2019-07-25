@@ -1121,52 +1121,6 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
   return report;
 };
 
-export const writeVersionJson2 = (job, samples, version, staffList, me) => {
-  let aaNumbers = getAANumbers(staffList);
-  let sampleNumbers = [];
-  let sampleDescriptions = [];
-  let sampleResults = [];
-  samples &&
-    Object.values(samples).forEach(sample => {
-      if (sample.verified && sample.cocUid === job.uid) {
-        let sampleMap = {};
-        if (sample.disabled || sample.onHold) return;
-        sampleNumbers.push(sample.sampleNumber);
-        sampleDescriptions.push(writeReportDescription(sample));
-        sampleResults.push(writeResult(sample.result));
-      }
-    });
-  let analysts = getAnalysts(job, samples, true);
-  let report = {
-    jobNumber: job.jobNumber,
-    client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
-    address: job.address,
-    date: job.dates
-      .sort((b, a) => {
-        let aDate = a instanceof Date ? a : a.toDate();
-        let bDate = b instanceof Date ? b : b.toDate();
-        return new Date(bDate - aDate);
-      })
-      .map(date => {
-        let formatDate = date instanceof Date ? date : date.toDate();
-        return moment(formatDate).format('D MMMM YYYY');
-      })
-      .join(", "),
-    // ktp: 'Stuart Keer-Keer',
-    personnel: job.personnel.sort(),
-    assessors: job.personnel.sort().map(staff => {
-      return aaNumbers[staff];
-    }),
-    analysts: analysts ? analysts : ["Not specified"],
-    version: version ? version : 1,
-    sampleNumbers: sampleNumbers,
-    sampleDescriptions: sampleDescriptions,
-    sampleResults: sampleResults,
-  };
-  console.log(report);
-  return report;
-};
-
 export const issueLabReport = (job, samples, version, changes, staffList, me) => {
   // first check all samples have been checked
   // if not version 1, prompt for reason for new version

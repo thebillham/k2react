@@ -30,7 +30,8 @@ import {
   checkVerifyIssues,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
-import { AsbestosClickyBasic, } from '../../../widgets/ButtonWidgets';
+import { AsbestosClickyBasic } from '../../../widgets/ButtonWidgets';
+import { SampleTextyBox } from '../../../widgets/FormWidgets';
 import { showModal } from "../../../actions/modal";
 import {
   COC,
@@ -147,9 +148,12 @@ class SampleListItem extends React.Component {
 
     return (
       <ListItem key={sample.uid} className={classes.hoverItem}>
-        <Grid container>
+        <Grid container className={classes.fullWidth} justify="space-around">
           <Grid item xs={12} xl={3}>
             <div className={classes.flexRowLeftAlignEllipsis}>
+              <div className={classes.circleShaded}>
+                {sample.sampleNumber}
+              </div>
               <Popup
                 trigger={
                   <CameraAlt className={classes.iconRegular}
@@ -169,14 +173,25 @@ class SampleListItem extends React.Component {
                   : <span />
                 }
               </Popup>
-              <div className={classes.circleShaded}>
-                {sample.sampleNumber}
-              </div>
+              <Tooltip id="det-tooltip" title={'Sample Details'}>
+                <IconButton
+                  onClick={event => {
+                      this.props.showModal({
+                        modalType: ASBESTOS_NONANALYST_DETAILS,
+                        modalProps: {
+                          doc: sample,
+                          job: job,
+                      }});
+                  }}
+                >
+                  <SampleDetailsIcon className={classes.iconRegular}/>
+                </IconButton>
+              </Tooltip>
               {writeDescription(sample)}
               {sample.onHold && <div className={classes.boldRedWarningText}>ON HOLD</div>}
             </div>
           </Grid>
-          <Grid item xs={12} xl={6}>
+          <Grid item xs={12} xl={9}>
             <div className={classes.flexRowRightAlign}>
               <Tooltip title='Mark as Received by Lab'>
                 <IconButton
@@ -214,6 +229,7 @@ class SampleListItem extends React.Component {
               () => toggleResult("org", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               {AsbestosClickyBasic(colors.smfColor, colors.smfDivColor, 'Synthetic mineral fibres detected', 'SMF',
               () => toggleResult("smf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
+              {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. before any conditioning).', false, 0, 'g', null)}
               <Tooltip title='Verify Result is Correct'>
                 <IconButton
                   onClick={event => {
@@ -253,20 +269,6 @@ class SampleListItem extends React.Component {
                   <Edit className={classes.iconRegular}/>
                 </IconButton>
               </Tooltip>}
-              <Tooltip id="det-tooltip" title={'Sample Details'}>
-                <IconButton
-                  onClick={event => {
-                      this.props.showModal({
-                        modalType: ASBESTOS_NONANALYST_DETAILS,
-                        modalProps: {
-                          doc: sample,
-                          job: job,
-                      }});
-                  }}
-                >
-                  <SampleDetailsIcon className={classes.iconRegular}/>
-                </IconButton>
-              </Tooltip>
               <Tooltip id="sl-tooltip" title={'Sample Log'}>
                 <IconButton
                   onClick={event => {

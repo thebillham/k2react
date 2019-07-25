@@ -203,7 +203,7 @@ class ConfirmResultModal extends React.Component {
           {[...Array(this.state.totalNum ? this.state.totalNum : 1).keys()].map(num => {
             if (this.state[num+1].deleted !== true) return this.confirmRow(num+1);
           })}
-          <div className={this.props.classes.subheading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
+          <div className={this.props.classes.subHeading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
             <Button variant='outlined' aria-label='add' onClick={this.addAnalysis}><AddIcon /> Add Analysis</Button>
           </div>
         </DialogContent>

@@ -356,7 +356,7 @@ class Quiz extends React.Component {
               </div>
             ) : (
               <div>
-                <Typography className={classes.labels}>{quiz.title}</Typography>
+                <Typography className={classes.subHeading}>{quiz.title}</Typography>
                 <Typography className={classes.note}>{quiz.desc}</Typography>
                 <Typography className={classes.note}>
                   <b>Date completed: </b>

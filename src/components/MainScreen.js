@@ -39,14 +39,14 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Collapse from "@material-ui/core/Collapse";
 
 // Icons
-// import DashboardIcon from '@material-ui/icons/Dashboard';
+import DashboardIcon from '@material-ui/icons/Dashboard';
 import NoticeboardIcon from "@material-ui/icons/SpeakerNotes";
 import JobsIcon from "@material-ui/icons/Assignment";
 import MapIcon from "@material-ui/icons/Map";
 import LabIcon from "@material-ui/icons/Colorize";
 import StaffIcon from "@material-ui/icons/People";
 import MyDetailsIcon from "@material-ui/icons/Person";
-// import VehiclesIcon from "@material-ui/icons/DirectionsCar";
+import VehiclesIcon from "@material-ui/icons/DirectionsCar";
 import DevIcon from "@material-ui/icons/HourglassEmpty";
 import TrainingIcon from "@material-ui/icons/School";
 import QuizIcon from "@material-ui/icons/ContactSupport";
@@ -113,6 +113,7 @@ const Quiz = lazy(() => import("./training/quizzes/Quiz"));
 
 const Library = lazy(() => import("./library/Library"));
 const DocumentViewer = lazy(() => import("./library/DocumentViewer"));
+const K2SignInScreen = lazy(() => import("./K2SignInScreen"));
 
 const mapStateToProps = state => {
   return { state };
@@ -254,7 +255,7 @@ class MainScreen extends React.Component {
         classes={{
           paper: classNames(
             classes.drawerPaper,
-            classes.accentButton,
+            classes.colorAccent,
             !this.state.openDrawer && classes.drawerPaperClose
           )
         }}
@@ -263,7 +264,7 @@ class MainScreen extends React.Component {
         <div className={classes.toolbarIcon}>
           <IconButton
             onClick={this.handleDrawerClose}
-            className={classes.accentButton}
+            className={classes.colorAccent}
           >
             <ChevronLeftIcon />
           </IconButton>
@@ -276,7 +277,7 @@ class MainScreen extends React.Component {
             to="/noticeboard"
           >
             <ListItemIcon>
-              <NoticeboardIcon className={classes.accentButton} />
+              <NoticeboardIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Noticeboard" />
           </ListItem>
@@ -289,7 +290,7 @@ class MainScreen extends React.Component {
             to="/staff"
           >
             <ListItemIcon>
-              <StaffIcon className={classes.accentButton} />
+              <StaffIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Staff" />
           </ListItem>
@@ -299,7 +300,7 @@ class MainScreen extends React.Component {
             to="/mydetails"
           >
             <ListItemIcon>
-              <MyDetailsIcon className={classes.accentButton} />
+              <MyDetailsIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="My Details" />
             {/*{this.state.openMyDetails ? <ExpandLess /> : <ExpandMore /> }*/}
@@ -307,13 +308,13 @@ class MainScreen extends React.Component {
         <Divider />
           <ListItem button component={Link} to="/jobs/sites">
             <ListItemIcon>
-              <SiteIcon className={classes.accentButton} />
+              <SiteIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Sites" />
           </ListItem>
           <ListItem button component={Link} to="/jobs/map">
             <ListItemIcon>
-              <MapIcon className={classes.accentButton} />
+              <MapIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Jobs Map" />
           </ListItem>
@@ -321,7 +322,7 @@ class MainScreen extends React.Component {
         <Divider />
           <ListItem button onClick={this.handleAsbestosClick}>
             <ListItemIcon>
-              <LabIcon className={classes.accentButton} />
+              <LabIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Asbestos Lab" />
             {this.state.openAsbestos ? <ExpandLess /> : <ExpandMore />}
@@ -332,10 +333,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/asbestoslab"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <CocIcon className={classes.accentButton} />
+                  <CocIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Chains of Custody" />
               </ListItem>
@@ -343,10 +344,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/asbestossamplelog"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <LogIcon className={classes.accentButton} />
+                  <LogIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Sample Log" />
               </ListItem>
@@ -354,10 +355,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/asbestosqc"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <QCIcon className={classes.accentButton} />
+                  <QCIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Quality Control" />
               </ListItem>
@@ -365,10 +366,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/asbestosstats"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <StatsIcon className={classes.accentButton} />
+                  <StatsIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Stats" />
               </ListItem>
@@ -377,7 +378,7 @@ class MainScreen extends React.Component {
         {/*<Divider />
         <ListItem button component={Link} to="/inventory">
           <ListItemIcon>
-            <InventoryIcon className={classes.accentButton} />
+            <InventoryIcon className={classes.colorAccent} />
           </ListItemIcon>
           <ListItemText primary="Inventory" />
         </ListItem>*/}
@@ -387,7 +388,7 @@ class MainScreen extends React.Component {
             onClick={this.handleTrainingClick}
           >
             <ListItemIcon>
-              <TrainingIcon className={classes.accentButton} />
+              <TrainingIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Training" />
             {this.state.openTraining ? <ExpandLess /> : <ExpandMore />}
@@ -398,10 +399,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/training/overview"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <TrainingOverviewIcon className={classes.accentButton} />
+                  <TrainingOverviewIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Overview" />
               </ListItem>
@@ -409,10 +410,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/training/paths"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <TrainingPathIcon className={classes.accentButton} />
+                  <TrainingPathIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Training Paths" />
               </ListItem>
@@ -421,10 +422,10 @@ class MainScreen extends React.Component {
               button
               component={Link}
               to="/quizzes"
-              className={classes.nested}
+              className={classes.drawerNested}
             >
               <ListItemIcon>
-                <QuizIcon className={classes.accentButton} />
+                <QuizIcon className={classes.colorAccent} />
               </ListItemIcon>
               <ListItemText primary="Quizzes" />
             </ListItem>
@@ -432,10 +433,10 @@ class MainScreen extends React.Component {
               button
               component={Link}
               to="/training/readinglog"
-              className={classes.nested}
+              className={classes.drawerNested}
             >
               <ListItemIcon>
-                <ReadingLogIcon className={classes.accentButton} />
+                <ReadingLogIcon className={classes.colorAccent} />
               </ListItemIcon>
               <ListItemText
                 primary="Reading Log"
@@ -450,7 +451,7 @@ class MainScreen extends React.Component {
           to="/library"
         >
           <ListItemIcon>
-            <LibraryIcon className={classes.accentButton} />
+            <LibraryIcon className={classes.colorAccent} />
           </ListItemIcon>
           <ListItemText primary="Library" />
         </ListItem>
@@ -469,7 +470,7 @@ class MainScreen extends React.Component {
                 }}
               >
                 <ListItemIcon>
-                  <SettingsIcon className={classes.accentButton} />
+                  <SettingsIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="App Settings" />
               </ListItem>
@@ -480,7 +481,7 @@ class MainScreen extends React.Component {
                 }}
               >
                 <ListItemIcon>
-                  <UpdateIcon className={classes.accentButton} />
+                  <UpdateIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Update Data" />
               </ListItem>
@@ -490,7 +491,7 @@ class MainScreen extends React.Component {
         {/*<Divider />
           <ListItem button onClick={this.handleDevClick}>
             <ListItemIcon>
-              <DevIcon className={classes.accentButton} />
+              <DevIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="In Development" />
             {this.state.openDev ? <ExpandLess /> : <ExpandMore />}
@@ -501,10 +502,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/vehicles"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <VehiclesIcon className={classes.accentButton} />
+                  <VehiclesIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Vehicles" className={classes.subitem} />
               </ListItem>*/}
@@ -513,10 +514,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/jobs"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <JobsIcon className={classes.accentButton} />
+                  <JobsIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Jobs" />
               </ListItem>
@@ -525,23 +526,23 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/incidents"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <IncidentIcon className={classes.accentButton} />
+                  <IncidentIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Incidents" />
               </ListItem>*/}
 
-              {/*<ListItem button component={Link} to="/mydetails/training" className={classes.nested}>
+              {/*<ListItem button component={Link} to="/mydetails/training" className={classes.drawerNested}>
                   <ListItemIcon>
-                    <MyDetailsIcon className={classes.accentButton} />
+                    <MyDetailsIcon className={classes.colorAccent} />
                   </ListItemIcon>
                   <ListItemText primary="Training" className={classes.subitem} />
                 </ListItem>
-                <ListItem button component={Link} to="/mydetails/jobs" className={classes.nested}>
+                <ListItem button component={Link} to="/mydetails/jobs" className={classes.drawerNested}>
                   <ListItemIcon>
-                    <MyDetailsIcon className={classes.accentButton} />
+                    <MyDetailsIcon className={classes.colorAccent} />
                   </ListItemIcon>
                   <ListItemText primary="Job History" className={classes.subitem} />
                 </ListItem>
@@ -550,10 +551,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/tools"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <ToolsIcon className={classes.accentButton} />
+                  <ToolsIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Tools" />
               </ListItem>
@@ -562,10 +563,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/help"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <HelpIcon className={classes.accentButton} />
+                  <HelpIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Help" />
               </ListItem>
@@ -573,10 +574,10 @@ class MainScreen extends React.Component {
                 button
                 component={Link}
                 to="/updates"
-                className={classes.nested}
+                className={classes.drawerNested}
               >
                 <ListItemIcon>
-                  <UpdatesIcon className={classes.accentButton} />
+                  <UpdatesIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Version Updates" />
               </ListItem>
@@ -589,27 +590,14 @@ class MainScreen extends React.Component {
     return (
       <React.Fragment>
         {this.props.state.display.initialLoading ? (
-          <div className="AppScreen K2SignInScreen">
-            <div className="background">
-              <div
-                className="appBg containerMinHeight elBackground"
-                style={{ backgroundColor: "#f6f6f6", pointerEvents: "none" }}
-              >
-                <div style={{ width: "100%", height: "100%" }} />
-              </div>
-            </div>
-            <div className="screenFgContainer">
-              <div className="foreground">
-                <img className="elImage" src={img_Logo} alt="" />
-                <CircularProgress className="elCircular" size={200} />
-              </div>
-            </div>
-          </div>
+          <Suspense fallback={<CircularProgress className={classes.signInCircle} />}>
+            <K2SignInScreen mode='loading' />
+          </Suspense>
         ) : (
           <div>
             <CssBaseline />
             {this.props.state.local.me &&
-            this.props.state.local.me.key === "47Z@g*dy!EYGL%fMnOReuTJeB1$" ? (
+            this.props.state.local.me.key == process.env.REACT_APP_K2_STAFF_KEY ? (
               // && this.props.state.local.staff[auth.currentUser.uid].gmail == auth.currentUser.email)
               <div className={classes.root}>
                 <AppBar
@@ -644,161 +632,160 @@ class MainScreen extends React.Component {
                         </IconButton>*/}
                     {/* Toolbar heading and breadcrumbs go here */}
                     <Typography
-                      variant="h6"
                       color="inherit"
                       noWrap
-                      className={classes.title}
+                      className={classes.pageTitle}
                     >
                       <Switch>
                         <Route
                           exact
                           path="/"
-                          render={() => <div>Noticeboard</div>}
+                          render={() => <span><NoticeboardIcon /> Noticeboard</span>}
                         />
                         <Route
                           path="/dashboard"
-                          render={() => <div>Dashboard</div>}
+                          render={() => <span><DashboardIcon /> Dashboard</span>}
                         />
                         <Route
                           path="/noticeboard"
-                          render={() => <div>Noticeboard</div>}
+                          render={() => <span><NoticeboardIcon /> Noticeboard</span>}
                         />
                         <Route
                           path="/incidents"
-                          render={() => <div>Incidents</div>}
+                          render={() => <span><IncidentIcon /> Incidents</span>}
                         />
                         <Route
                           exact
                           path="/jobs"
-                          render={() => <div>Jobs</div>}
+                          render={() => <span><JobsIcon /> Jobs</span>}
                         />
                         <Route
                           path="/jobs/map"
-                          render={() => <div>Jobs Map</div>}
+                          render={() => <span><MapIcon /> Jobs Map</span>}
                         />
                         <Route
                           path="/jobs/sites"
-                          render={() => <div>Sites</div>}
+                          render={() => <span><SiteIcon /> Sites</span>}
                         />
                         <Route
                           path="/asbestoslab"
-                          render={() => <div>Asbestos Lab: COCs</div>}
+                          render={() => <span><CocIcon /> Asbestos Lab: COCs</span>}
                         />
                         <Route
                           path="/asbestossamplelog"
-                          render={() => <div>Asbestos Lab: Sample Log</div>}
+                          render={() => <span><LogIcon /> Asbestos Lab: Sample Log</span>}
                         />
                         <Route
                           path="/asbestosqc"
-                          render={() => <div>Asbestos Lab: Quality Control</div>}
+                          render={() => <span><AsbestosQualityControl /> Asbestos Lab: Quality Control</span>}
                         />
                         <Route
                           path="/asbestosstats"
-                          render={() => <div>Asbestos Lab: Stats</div>}
+                          render={() => <span><StatsIcon /> Asbestos Lab: Stats</span>}
                         />
                         <Route
                           exact
                           path="/staff"
-                          render={() => <div>Staff</div>}
+                          render={() => <span><StaffIcon /> Staff</span>}
                         />
                         <Route
                           exact
                           path="/inventory"
-                          render={() => <div>Inventory</div>}
+                          render={() => <span><InventoryIcon /> Inventory</span>}
                         />
                         <Route
                           exact
                           path="/vehicles"
-                          render={() => <div>Vehicles</div>}
+                          render={() => <span><VehiclesIcon /> Vehicles</span>}
                         />
                         <Route
                           path="/staff/details"
-                          render={() => <div>Staff Details</div>}
+                          render={() => <span><StaffIcon /> Staff Details</span>}
                         />
                         <Route
                           exact
                           path="/staff/jobs"
-                          render={() => <div>Staff Jobs</div>}
+                          render={() => <span><StaffIcon /> Staff Jobs</span>}
                         />
                         <Route
                           exact
                           path="/staff/training"
-                          render={() => <div>Staff Training</div>}
+                          render={() => <span><TrainingIcon /> Staff Training</span>}
                         />
                         <Route
                           exact
                           path="/mydetails"
-                          render={() => <div>My Details</div>}
+                          render={() => <span><MyDetailsIcon /> My Details</span>}
                         />
                         <Route
                           exact
                           path="/mydetails/training"
-                          render={() => <div>My Training</div>}
+                          render={() => <span><TrainingIcon /> My Training</span>}
                         />
                         <Route
                           exact
                           path="/mydetails/jobs"
-                          render={() => <div>My Job History</div>}
+                          render={() => <span><JobsIcon /> My Job History</span>}
                         />
                         <Route
                           exact
                           path="/mydetails/readinglog"
-                          render={() => <div>My Reading Log</div>}
+                          render={() => <span><ReadingLogIcon /> My Reading Log</span>}
                         />
                         <Route
                           exact
                           path="/mydetails/preferences"
-                          render={() => <div>App Preferences</div>}
+                          render={() => <span>App Preferences</span>}
                         />
                         <Route
                           exact
                           path="/training"
-                          render={() => <div>Training Paths</div>}
+                          render={() => <span><TrainingPathIcon /> Training Paths</span>}
                         />
                         <Route
                           exact
                           path="/training/paths"
-                          render={() => <div>Training Paths</div>}
+                          render={() => <span><TrainingPathIcon /> Training Paths</span>}
                         />
                         <Route
                           exact
                           path="/training/overview"
-                          render={() => <div>Training Overview</div>}
+                          render={() => <span><TrainingOverviewIcon /> Training Overview</span>}
                         />
                         <Route
                           path="/training/path"
-                          render={() => <div>Training Path</div>}
+                          render={() => <span><TrainingPathIcon /> Training Path</span>}
                         />
                         <Route
                           path="/training/readinglog"
-                          render={() => <div>Reading Log</div>}
+                          render={() => <span><ReadingLogIcon /> Reading Log</span>}
                         />
                         <Route
                           path="/method"
-                          render={() => <div>Method</div>}
+                          render={() => <span>Method</span>}
                         />
                         <Route
                           path="/quizzes"
-                          render={() => <div>Quizzes</div>}
+                          render={() => <span><QuizIcon /> Quizzes</span>}
                         />
                         <Route
                           path="/questions"
-                          render={() => <div>Questions</div>}
+                          render={() => <span><QuizIcon /> Questions</span>}
                         />
-                        <Route path="/quiz/" render={() => <div>Quiz</div>} />
-                        <Route path="/tools" render={() => <div>Tools</div>} />
+                        <Route path="/quiz/" render={() => <span><QuizIcon /> Quiz</span>} />
+                        <Route path="/tools" render={() => <span><ToolsIcon /> Tools</span>} />
                         <Route
                           path="/library"
-                          render={() => <div>Library</div>}
+                          render={() => <span><LibraryIcon /> Library</span>}
                         />
                         <Route
                           path="/document"
-                          render={() => <div>Library</div>}
+                          render={() => <span><LibraryIcon /> Library</span>}
                         />
-                        <Route path="/help" render={() => <div>Help</div>} />
+                        <Route path="/help" render={() => <span><HelpIcon /> Help</span>} />
                         <Route
                           path="/updates"
-                          render={() => <div>Version Updates</div>}
+                          render={() => <span><UpdatesIcon /> Version Updates</span>}
                         />
                       </Switch>
                     </Typography>
@@ -855,21 +842,7 @@ class MainScreen extends React.Component {
                   <AppSettings />
                   <UpdateData />
                   {/* All locations are matched to their components here */}
-                  <Suspense
-                    fallback={
-                      <div
-                        style={{
-                          marginTop: 80,
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          height: 200
-                        }}
-                      >
-                        <CircularProgress />
-                      </div>
-                    }
-                  >
+                  <Suspense fallback={<CircularProgress className={classes.signInCircle} />}>
                     <Switch>
                       <Route exact path="/staff" render={props => <Staff {...props} />} />
                       <Route
@@ -958,45 +931,9 @@ class MainScreen extends React.Component {
                 </main>
               </div>
             ) : (
-              <div className="AppScreen K2SignInScreen">
-                <div className="background">
-                  <div
-                    className="appBg containerMinHeight elBackground"
-                    style={{
-                      backgroundColor: "#f6f6f6",
-                      pointerEvents: "none"
-                    }}
-                  >
-                    <div style={{ width: "100%", height: "100%" }} />
-                  </div>
-                </div>
-                <div className="screenFgContainer">
-                  <div className="foreground">
-                    <img className="elImage" src={img_Logo} alt="" />
-                    <div className="elFirebaseLogin">
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "100%"
-                        }}
-                      >
-                        <Button variant="outlined" onClick={this.handleLogOut}>
-                          Log Out {displayName}
-                        </Button>
-                        <div style={{ marginTop: 20 }}>
-                          You have not been authorised to view this site. Please
-                          wait for the{" "}
-                          <a href="mailto:ben@k2.co.nz">site admin</a> to create
-                          your account.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <Suspense fallback={<CircularProgress className={classes.signInCircle} />}>
+                <K2SignInScreen mode='loginFailed' handleLogOut={this.handleLogOut} />
+              </Suspense>
             )}
           </div>
         )}

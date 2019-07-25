@@ -1,370 +1,370 @@
-.App {
-  /* Base font style */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", sans-serif;
-  font-size: 15.1px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: rgba(0, 0, 0, 0.85);
-  background-color: #fbfbfb;
-}
-
-.App .baseFont * {
-  /* Base font style override for UI framework components */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", sans-serif;
-  font-size: 15.1px;
-}
-
-.App .appBg {
-  background-color: #f6f6f6;
-}
-
-.App .cardBg {
-  background-color: white;
-}
-
-.App .baseTextBg {
-  /* Base text color as background */
-  background-color: rgba(0, 0, 0, 0.85);
-}
-
-.App .secondaryTextColor {
-  color: rgba(0, 0, 0, 0.5);
-}
-
-.App .secondaryTextBg {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.App .primaryTextColor {
-  color: #49a788;
-}
-
-.App .primaryBg {
-  background-color: #49a788;
-}
-
-.App .highlightTextColor {
-  color: #ff4500;
-}
-
-.App .highlightBg {
-  background-color: #ff4500;
-}
-
-/* Styles to customize the UI framework plugin (MUI, https://muicss.com) */
-.mui-btn {
-  padding-left: 0;
-  padding-right: 0;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-.mui-btn--primary {
-  background-color: #49a788;
-}
-.mui-btn--primary:active,
-.mui-btn--primary:focus,
-.mui-btn--primary:hover {
-  background-color: #58ae94;
-}
-.mui-btn--accent {
-  background-color: #ff4500;
-}
-.mui-btn--accent:active,
-.mui-btn--accent:focus,
-.mui-btn--accent:hover {
-  background-color: #ff5e16;
-}
-.mui-textfield {
-  /* Reset UI framework styling that affects layout */
-  padding-top: 0;
-  margin-bottom: 0;
-}
-.mui-checkbox,
-.mui-radio {
-  /* Reset UI framework styling that affects layout */
-  margin-top: 0;
-  margin-bottom: 0;
-}
-.mui-select {
-  /* Reset UI framework styling that affects layout */
-  padding-top: 0;
-  margin-bottom: 0;
-}
-.mui-btn + .mui-btn {
-  /* Reset UI framework styling that affects layout */
-  margin-left: 0;
-}
-.mui-btn--fab {
-  /* Reset UI framework styling that breaks compositing */
-  z-index: auto;
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
+  .App {
+    /* Base font style */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+      "Ubuntu", sans-serif;
+    font-size: 15.1px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: rgba(0, 0, 0, 0.85);
+    background-color: #fbfbfb;
   }
-  100% {
-    opacity: 1;
+
+  .App .baseFont * {
+    /* Base font style override for UI framework components */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+      "Ubuntu", sans-serif;
+    font-size: 15.1px;
   }
-}
-@keyframes slideIn_right {
-  0% {
-    transform: translateX(100%);
+
+  .App .appBg {
+    background-color: #f6f6f6;
   }
-  100% {
-    transform: translateX(0);
+
+  .App .cardBg {
+    background-color: white;
   }
-}
-@keyframes slideIn_bottom {
-  0% {
-    transform: translateY(100%);
+
+  .App .baseTextBg {
+    /* Base text color as background */
+    background-color: rgba(0, 0, 0, 0.85);
   }
-  100% {
-    transform: translateY(0);
+
+  .App .secondaryTextColor {
+    color: rgba(0, 0, 0, 0.5);
   }
-}
 
-/* App-wide text styles specified in React Studio */
-.App .actionFont {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", sans-serif;
-  font-size: 14.2px;
-  font-weight: 400;
-}
-.App .actionFont * {
-  font-size: 14.2px;
-}
-.App .headlineFont {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", sans-serif;
-  font-size: 19.4px;
-  font-weight: 400;
-}
-.App .headlineFont * {
-  font-size: 19.4px;
-}
-.App .navBar {
-  background-color: #49a788;
-  color: black;
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", sans-serif;
-  font-size: 18px;
-}
-
-.App .navBar a {
-  color: black;
-}
-
-.App .navBar .title {
-  position: absolute;
-  width: 100%;
-  text-align: center;
-  padding: 4px;
-  margin-top: 14px;
-}
-
-.App .navBar .backBtn {
-  position: absolute;
-  padding: 4px;
-  margin-left: 14px;
-  margin-top: 14px;
-  cursor: pointer;
-}
-
-@media (min-width: 320px) {
-  .mui-container {
-    max-width: 320px;
+  .App .secondaryTextBg {
+    background-color: rgba(0, 0, 0, 0.5);
   }
-}
-@media (min-width: 568px) {
-  .mui-container {
-    max-width: 568px;
+
+  .App .primaryTextColor {
+    color: #49a788;
   }
-}
-@media (min-width: 768px) {
-  .mui-container {
-    max-width: 768px;
+
+  .App .primaryBg {
+    background-color: #49a788;
   }
-}
-@media (min-width: 1024px) {
-  .mui-container {
-    max-width: 1024px;
+
+  .App .highlightTextColor {
+    color: #ff4500;
   }
-}
 
-.AppScreen {
-  padding-left: 0;
-  padding-right: 0;
-  position: absolute;
-  width: 100%;
-}
+  .App .highlightBg {
+    background-color: #ff4500;
+  }
 
-.App .background {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-}
+  /* Styles to customize the UI framework plugin (MUI, https://muicss.com) */
+  .mui-btn {
+    padding-left: 0;
+    padding-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .mui-btn--primary {
+    background-color: #49a788;
+  }
+  .mui-btn--primary:active,
+  .mui-btn--primary:focus,
+  .mui-btn--primary:hover {
+    background-color: #58ae94;
+  }
+  .mui-btn--accent {
+    background-color: #ff4500;
+  }
+  .mui-btn--accent:active,
+  .mui-btn--accent:focus,
+  .mui-btn--accent:hover {
+    background-color: #ff5e16;
+  }
+  .mui-textfield {
+    /* Reset UI framework styling that affects layout */
+    padding-top: 0;
+    margin-bottom: 0;
+  }
+  .mui-checkbox,
+  .mui-radio {
+    /* Reset UI framework styling that affects layout */
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .mui-select {
+    /* Reset UI framework styling that affects layout */
+    padding-top: 0;
+    margin-bottom: 0;
+  }
+  .mui-btn + .mui-btn {
+    /* Reset UI framework styling that affects layout */
+    margin-left: 0;
+  }
+  .mui-btn--fab {
+    /* Reset UI framework styling that breaks compositing */
+    z-index: auto;
+  }
 
-.App .layoutFlow {
-  position: relative;
-  left: 0;
-  top: 0;
-  width: 100%;
-  float: left;
-}
-.App .layoutFlow:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-.App .layoutFlow .flowRow {
-  position: relative;
-  width: 100%;
-}
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes slideIn_right {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  @keyframes slideIn_bottom {
+    0% {
+      transform: translateY(100%);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
 
-.App .screenFgContainer {
-  /* Items in the foreground group within a screen are placed with fixed positioning */
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-}
-.App .foreground {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-}
-.App .compContent {
-  position: relative;
-  left: 0;
-  top: 0;
-  width: 100%;
-}
+  /* App-wide text styles specified in React Studio */
+  .App .actionFont {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+      "Ubuntu", sans-serif;
+    font-size: 14.2px;
+    font-weight: 400;
+  }
+  .App .actionFont * {
+    font-size: 14.2px;
+  }
+  .App .headlineFont {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+      "Ubuntu", sans-serif;
+    font-size: 19.4px;
+    font-weight: 400;
+  }
+  .App .headlineFont * {
+    font-size: 19.4px;
+  }
+  .App .navBar {
+    background-color: #49a788;
+    color: black;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+      "Ubuntu", sans-serif;
+    font-size: 18px;
+  }
 
-.App ul {
-  margin: 0;
-  padding: 0;
-}
-.App li {
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
-  position: relative;
-}
-.App .hasNestedComps {
-  position: relative;
-}
-.App .hasNestedComps:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-.App .hasNestedComps .background {
-  position: absolute;
-}
-.App .hasNestedComps .layoutFlow {
-  position: relative;
-}
-.App .hasNestedComps .foreground {
-  position: absolute;
-}
-.App .bottomAlignedContent {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-}
+  .App .navBar a {
+    color: black;
+  }
 
-/* Narrowest size for this element's responsive layout */
-.K2SignInScreen > .background > .elBackground {
-  position: absolute;
-  left: 0px;
-  right: 0px;
-  top: 0px;
-  width: 100%;
-  height: 100%;
-}
-@media (min-width: 568px) {
+  .App .navBar .title {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    padding: 4px;
+    margin-top: 14px;
+  }
+
+  .App .navBar .backBtn {
+    position: absolute;
+    padding: 4px;
+    margin-left: 14px;
+    margin-top: 14px;
+    cursor: pointer;
+  }
+
+  @media (min-width: 320px) {
+    .mui-container {
+      max-width: 320px;
+    }
+  }
+  @media (min-width: 568px) {
+    .mui-container {
+      max-width: 568px;
+    }
+  }
+  @media (min-width: 768px) {
+    .mui-container {
+      max-width: 768px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .mui-container {
+      max-width: 1024px;
+    }
+  }
+
+  .AppScreen {
+    padding-left: 0;
+    padding-right: 0;
+    position: absolute;
+    width: 100%;
+  }
+
+  .App .background {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .App .layoutFlow {
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 100%;
+    float: left;
+  }
+  .App .layoutFlow:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  .App .layoutFlow .flowRow {
+    position: relative;
+    width: 100%;
+  }
+
+  .App .screenFgContainer {
+    /* Items in the foreground group within a screen are placed with fixed positioning */
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .App .foreground {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .App .compContent {
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .App ul {
+    margin: 0;
+    padding: 0;
+  }
+  .App li {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    position: relative;
+  }
+  .App .hasNestedComps {
+    position: relative;
+  }
+  .App .hasNestedComps:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  .App .hasNestedComps .background {
+    position: absolute;
+  }
+  .App .hasNestedComps .layoutFlow {
+    position: relative;
+  }
+  .App .hasNestedComps .foreground {
+    position: absolute;
+  }
+  .App .bottomAlignedContent {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+
+  /* Narrowest size for this element's responsive layout */
   .K2SignInScreen > .background > .elBackground {
+    position: absolute;
     left: 0px;
     right: 0px;
     top: 0px;
     width: 100%;
     height: 100%;
   }
-}
-@media (min-width: 768px) {
-  .K2SignInScreen > .background > .elBackground {
-    left: 0px;
-    right: 0px;
-    top: 0px;
-    width: 100%;
-    height: 100%;
+  @media (min-width: 568px) {
+    .K2SignInScreen > .background > .elBackground {
+      left: 0px;
+      right: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+    }
   }
-}
-@media (min-width: 1024px) {
-  .K2SignInScreen > .background > .elBackground {
-    left: 0px;
-    right: 0px;
-    top: 0px;
-    width: 100%;
-    height: 100%;
+  @media (min-width: 768px) {
+    .K2SignInScreen > .background > .elBackground {
+      left: 0px;
+      right: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+    }
   }
-}
+  @media (min-width: 1024px) {
+    .K2SignInScreen > .background > .elBackground {
+      left: 0px;
+      right: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+    }
+  }
 
-/* Narrowest size for this element's responsive layout */
-.K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
-  position: absolute;
-  left: calc(50% + -158px);
-  top: 374px;
-  width: 317px;
-  height: 91px;
-}
-@media (min-width: 568px) {
+  /* Narrowest size for this element's responsive layout */
   .K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
+    position: absolute;
     left: calc(50% + -158px);
     top: 374px;
     width: 317px;
     height: 91px;
   }
-}
-@media (min-width: 768px) {
-  .K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
-    left: calc(50% + -158px);
-    top: 374px;
-    width: 315px;
-    height: 90px;
+  @media (min-width: 568px) {
+    .K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
+      left: calc(50% + -158px);
+      top: 374px;
+      width: 317px;
+      height: 91px;
+    }
   }
-}
-@media (min-width: 1024px) {
-  .K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
-    left: calc(50% + -158px);
-    top: 374px;
-    width: 315px;
-    height: 90px;
+  @media (min-width: 768px) {
+    .K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
+      left: calc(50% + -158px);
+      top: 374px;
+      width: 315px;
+      height: 90px;
+    }
   }
-}
+  @media (min-width: 1024px) {
+    .K2SignInScreen > .screenFgContainer > .foreground > .elFirebaseLogin {
+      left: calc(50% + -158px);
+      top: 374px;
+      width: 315px;
+      height: 90px;
+    }
+  }
 
-/* Narrowest size for this element's responsive layout */
-.K2SignInScreen > .screenFgContainer > .foreground > .elImage {
-  position: absolute;
-  left: calc(50% + -68px);
-  top: 228px;
-  width: 136px;
-  height: 136px;
-}
+  /* Narrowest size for this element's responsive layout */
+  .K2SignInScreen > .screenFgContainer > .foreground > .elImage {
+    position: absolute;
+    left: calc(50% + -68px);
+    top: 228px;
+    width: 136px;
+    height: 136px;
+  }
 
-/* Narrowest size for this element's responsive layout */
-.K2SignInScreen > .screenFgContainer > .foreground > .elCircular {
-  position: absolute;
-  left: calc(50% + -102px);
-  top: 194px;
-}
+  /* Narrowest size for this element's responsive layout */
+  .K2SignInScreen > .screenFgContainer > .foreground > .elCircular {
+    position: absolute;
+    left: calc(50% + -102px);
+    top: 194px;
+  }

@@ -370,7 +370,7 @@ class DocumentModal extends React.Component {
             doc.docType === "File" ||
             doc.docType === "Image") && (
             <label>
-              <UploadIcon className={classes.accentButton} />
+              <UploadIcon className={classes.colorAccent} />
               <input
                 id="attr_upload_file"
                 type="file"

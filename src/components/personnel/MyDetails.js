@@ -284,7 +284,7 @@ class UserDetails extends React.Component {
                       />
                     </ListItem>
                     <ListItem>
-                      <Typography className={classes.labels}>
+                      <Typography className={classes.subHeading}>
                         Contact Information
                       </Typography>
                     </ListItem>
@@ -326,7 +326,7 @@ class UserDetails extends React.Component {
                   </Grid>
                   <Grid item xs={12} sm={9} md={8} lg={7} xl={6}>
                     <ListItem>
-                      <Typography className={classes.labels}>
+                      <Typography className={classes.subHeading}>
                         Personal Contact Information
                       </Typography>
                     </ListItem>
@@ -418,7 +418,7 @@ class UserDetails extends React.Component {
                 <Grid container justify="center" direction="row">
                   <Grid item xs={12} sm={9} md={8} lg={7} xl={6}>
                     <ListItem>
-                      <Typography className={classes.labels}>Mask</Typography>
+                      <Typography className={classes.subHeading}>Mask</Typography>
                     </ListItem>
                     <ListItem>
                       {user.maskfit === "OK" ? (
@@ -517,7 +517,7 @@ class UserDetails extends React.Component {
                   </Grid>
                   <Grid item xs={12} sm={9} md={8} lg={7} xl={6}>
                     <ListItem>
-                      <Typography className={classes.labels}>
+                      <Typography className={classes.subHeading}>
                         Other PPE
                       </Typography>
                     </ListItem>
@@ -608,7 +608,7 @@ class UserDetails extends React.Component {
                 <Grid container justify="center" direction="row">
                   <Grid item xs={12} sm={9} md={8} lg={7} xl={6}>
                     <ListItem>
-                      <Typography className={classes.labels}>
+                      <Typography className={classes.subHeading}>
                         Primary Emergency Contact
                       </Typography>
                     </ListItem>
@@ -685,7 +685,7 @@ class UserDetails extends React.Component {
                   </Grid>
                   <Grid item xs={12} sm={9} md={8} lg={7} xl={6}>
                     <ListItem>
-                      <Typography className={classes.labels}>
+                      <Typography className={classes.subHeading}>
                         Secondary Emergency Contact
                       </Typography>
                     </ListItem>

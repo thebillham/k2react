@@ -428,7 +428,7 @@ class QuestionModal extends React.Component {
 
               <InputLabel style={{ fontSize: 12, marginTop: 4 }}>Upload Scanned Image (Image files are preferred over PDF)</InputLabel>
               <label>
-                <UploadIcon className={classes.accentButton} />
+                <UploadIcon className={classes.colorAccent} />
                 <input id='attr_upload_file' type='file' style={{display: 'none'}} onChange={e =>
                 {
                   if (doc.fileUrl) {

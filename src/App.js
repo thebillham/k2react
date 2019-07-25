@@ -43,7 +43,7 @@ class App extends Component {
         {auth.currentUser ? (
           <MainScreen key="mainscreen" />
         ) : (
-          <K2SignInScreen />
+          <K2SignInScreen mode="initial" />
         )}
       </div>
     );

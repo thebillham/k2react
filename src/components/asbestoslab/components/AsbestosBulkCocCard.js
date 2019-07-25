@@ -152,7 +152,7 @@ class AsbestosBulkCocCard extends React.Component {
     console.log(`${job.jobNumber} rendering`);
     return (
       <ExpansionPanel
-        style={{ width: '100%'}}
+        className={classes.fullWidth}
         onChange={(event, ex) => {
           if (!job.samples) this.getSamples(ex, job.uid, job.jobNumber);
           this.setState({ expanded: ex });
@@ -211,17 +211,16 @@ class AsbestosBulkCocCard extends React.Component {
                     </Tooltip>
                   </span>)}
               <Button
-                className={classes.buttonTextRegular}
-                variant="outlined"
+                className={classes.buttonIconText}
                 onClick={() => {
                   printCoc(job, samples[job.uid], this.props.me, this.props.staff);
                 }}
               >
                 <Print className={classes.iconRegular} /> Print Chain of Custody
               </Button>
+              <span className={classes.spacerSmall} />
               <Button
-                className={classes.buttonTextRegular}
-                variant="outlined"
+                className={classes.buttonIconText}
                 disabled={job.versionUpToDate}
                 onClick={() => {
                   // Check if any samples have not been checked off and ask the user to verify
@@ -249,9 +248,9 @@ class AsbestosBulkCocCard extends React.Component {
                 <Send className={classes.iconRegular} />
                 Issue Version {version}
               </Button>
+              <span className={classes.spacerSmall} />
               <Button
-                className={classes.buttonTextRegular}
-                variant="outlined"
+                className={classes.buttonIconText}
                 disabled={!job.currentVersion || !job.versionUpToDate}
                 onClick={() => {
                   printLabReport(job, job.currentVersion, this.props.me, this.props.showModal);

@@ -267,6 +267,8 @@ class AsbestosSampleDetailsModal extends React.Component {
           </Grid>
         </DialogContent>}
         <DialogActions>
+          <Button onClick={() => this.props.hideModal()} color="inherit">Previous</Button>
+          <Button onClick={() => this.props.hideModal()} color="secondary">Next</Button>
           <Button onClick={() => this.props.hideModal()} color="primary">OK</Button>
         </DialogActions>
       </Dialog>}

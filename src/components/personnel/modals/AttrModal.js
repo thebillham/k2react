@@ -338,7 +338,7 @@ class AttrModal extends React.Component {
                   Upload Scanned Image (Image files are preferred over PDF)
                 </InputLabel>
                 <label>
-                  <UploadIcon className={classes.accentButton} />
+                  <UploadIcon className={classes.colorAccent} />
                   <input
                     id="attr_upload_file"
                     type="file"
