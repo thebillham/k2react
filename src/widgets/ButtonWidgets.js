@@ -14,8 +14,6 @@ import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 
 export const AsbestosClickyBasic = (fgColor, bgColor, tooltip, label, toggle) => {
-  console.log(bgColor);
-  console.log(fgColor);
   return(<Tooltip title={tooltip}>
     <div className={bgColor}>
       <Button

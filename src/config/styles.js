@@ -528,27 +528,81 @@ const styles = theme => ({
   },
 
   colorBad: {
+    borderRadius: 5,
+    margin: 5,
     backgroundColor: theme.palette.indicators.bad,
     color: theme.palette.indicators.badText,
   },
 
   colorWarning: {
+    borderRadius: 5,
+    margin: 5,
     backgroundColor: theme.palette.indicators.warning,
     color: theme.palette.indicators.warningText,
   },
 
   colorOK: {
+    borderRadius: 5,
+    margin: 5,
     backgroundColor: theme.palette.indicators.ok,
     color: theme.palette.indicators.okText,
   },
 
   colorBenign: {
+    borderRadius: 5,
+    margin: 5,
     backgroundColor: theme.palette.indicators.benign,
     color: theme.palette.indicators.benignText,
   },
 
   colorOff: {
+    borderRadius: 5,
+    margin: 5,
     backgroundColor: theme.palette.indicators.off,
+    color: theme.palette.indicators.offText,
+  },
+
+  colorsDivBad: {
+    borderRadius: 5,
+    margin: 5,
+    backgroundColor: theme.palette.indicators.bad,
+  },
+
+  colorsButtonBad: {
+    margin: 5,
+    color: theme.palette.indicators.badText,
+  },
+
+  colorsDivOk: {
+    borderRadius: 5,
+    margin: 5,
+    backgroundColor: theme.palette.indicators.ok,
+  },
+
+  colorsButtonOk: {
+    margin: 5,
+    color: theme.palette.indicators.okText,
+  },
+
+  colorsDivBenign: {
+    borderRadius: 5,
+    margin: 5,
+    backgroundColor: theme.palette.indicators.benign,
+  },
+
+  colorsButtonBenign: {
+    margin: 5,
+    color: theme.palette.indicators.benignText,
+  },
+
+  colorsDivOff: {
+    borderRadius: 5,
+    margin: 5,
+    backgroundColor: theme.palette.indicators.off,
+  },
+
+  colorsButtonOff: {
+    margin: 5,
     color: theme.palette.indicators.offText,
   },
 

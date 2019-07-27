@@ -154,17 +154,11 @@ class SampleListItem extends React.Component {
               <div className={classes.circleShaded}>
                 {sample.sampleNumber}
               </div>
-              <Popup
-                trigger={
-                  <CameraAlt className={classes.iconRegular}
-                    style={{color: colors.cameraColor,}}
-                  />
-                }
+              {sample.imagePathRemote && <Popup
+                trigger={<CameraAlt className={classes.iconRegularGreen} />}
                 position="right center"
                 on="hover"
-                disabled={sample.imagePathRemote == null}
-              >
-                {sample.imagePathRemote ?
+                >
                   <img
                     alt=""
                     src={sample.imagePathRemote}
@@ -172,7 +166,7 @@ class SampleListItem extends React.Component {
                   />
                   : <span />
                 }
-              </Popup>
+              </Popup>}
               <Tooltip id="det-tooltip" title={'Sample Details'}>
                 <IconButton
                   onClick={event => {
@@ -199,7 +193,7 @@ class SampleListItem extends React.Component {
                     receiveSample(sample, job, samples[job.uid], this.props.sessionID, this.props.me);
                   }}
                 >
-                <Inbox className={colors.receivedColor}
+                <Inbox className={sample.receivedByLab ? classes.iconRegularGreen : classes.iconRegular}
                 />
                 </IconButton>
               </Tooltip>
@@ -209,27 +203,27 @@ class SampleListItem extends React.Component {
                       startAnalysis(sample, job, this.props.sessionID, samples[job.uid], this.props.me);
                     }}
                   >
-                    <AnalysisIcon className={colors.analysisColor}
+                    <AnalysisIcon className={sample.analysisStart ? classes.iconRegularGreen : classes.iconRegular}
                     />
                   </IconButton>
               </Tooltip>
-              {AsbestosClickyBasic(colors.chColor, colors.chDivColor, 'Chrysotile (white) asbestos detected', 'CH',
+              {AsbestosClickyBasic(classes[`colorsButton${colors.ch}`], classes[`colorsDiv${colors.ch}`], 'Chrysotile (white) asbestos detected', 'CH',
               () => toggleResult("ch", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colors.amColor, colors.amDivColor, 'Amosite (brown) asbestos detected', 'AM',
+              {AsbestosClickyBasic(classes[`colorsButton${colors.am}`], classes[`colorsDiv${colors.am}`], 'Amosite (brown) asbestos detected', 'AM',
               () => toggleResult("am", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colors.crColor, colors.crDivColor, 'Crocidolite (blue) asbestos detected', 'CR',
+              {AsbestosClickyBasic(classes[`colorsButton${colors.cr}`], classes[`colorsDiv${colors.cr}`], 'Crocidolite (blue) asbestos detected', 'CR',
               () => toggleResult("cr", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colors.umfColor, colors.umfDivColor, 'Unidentified mineral fibres detected', 'UMF',
+              {AsbestosClickyBasic(classes[`colorsButton${colors.umf}`], classes[`colorsDiv${colors.umf}`], 'Unidentified mineral fibres detected', 'UMF',
               () => toggleResult("umf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               <div className={classes.spacerSmall} />
-              {AsbestosClickyBasic(colors.noColor, colors.noDivColor, 'No asbestos detected', 'NO',
+              {AsbestosClickyBasic(classes[`colorsButton${colors.no}`], classes[`colorsDiv${colors.no}`], 'No asbestos detected', 'NO',
               () => toggleResult("no", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
               <div className={classes.spacerSmall} />
-              {AsbestosClickyBasic(colors.orgColor, colors.orgDivColor, 'Organic fibres detected', 'ORG',
+              {AsbestosClickyBasic(classes[`colorsButton${colors.org}`], classes[`colorsDiv${colors.org}`], 'Organic fibres detected', 'ORG',
               () => toggleResult("org", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(colors.smfColor, colors.smfDivColor, 'Synthetic mineral fibres detected', 'SMF',
+              {AsbestosClickyBasic(classes[`colorsButton${colors.smf}`], classes[`colorsDiv${colors.smf}`], 'Synthetic mineral fibres detected', 'SMF',
               () => toggleResult("smf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. before any conditioning).', false, 0, 'g', null)}
+              {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', null, false, 0, 'g', null)}
               <Tooltip title='Verify Result is Correct'>
                 <IconButton
                   onClick={event => {
@@ -246,9 +240,7 @@ class SampleListItem extends React.Component {
                     } else verifySample(sample, job, samples[job.uid], this.props.sessionID, this.props.me,);
                   }}
                 >
-                  <CheckCircleOutline className={classes.iconRegular}
-                    style={colors.verifiedColor}
-                  />
+                  <CheckCircleOutline className={sample.verified ? classes.iconRegularGreen : classes.iconRegular} />
                 </IconButton>
               </Tooltip>
             {/*</div>
@@ -297,9 +289,7 @@ class SampleListItem extends React.Component {
                       }}) : null
                     }
                   >
-                    <WAIcon className={classes.iconRegular}
-                      style={colors.waColor}
-                    />
+                    <WAIcon className={sample.waAnalysisComplete ? classes.iconRegularGreen : classes.iconRegular} />
                   </IconButton>
                 </Tooltip>
               }

@@ -188,7 +188,7 @@ class AsbestosBulkCocCard extends React.Component {
               </Tooltip>
               {samples[job.uid] && Object.values(samples[job.uid]).length > 0 && (
                   <span>
-                    <Tooltip id="pr-tooltip" title={'Flag as Priority'}>
+                    {/*<Tooltip id="pr-tooltip" title={'Flag as Priority'}>
                       <IconButton onClick={() => togglePriority(job, this.props.me)}>
                         <Flag color={job.priority === 1 ? 'secondary' : 'inherit'} className={classes.iconRegular} />
                       </IconButton>
@@ -197,13 +197,19 @@ class AsbestosBulkCocCard extends React.Component {
                       <IconButton onClick={() => toggleWAAnalysis(job, this.props.me)}>
                         <WAIcon color={job.waAnalysis ? 'primary' : 'inherit'} className={classes.iconRegular} />
                       </IconButton>
-                    </Tooltip>
-                    <Tooltip id="reca-tooltip" title={'Receive All Samples'}>
+                    </Tooltip>*/}
+                    <Tooltip id="reca-tooltip" title={'Receive Samples'}>
                       <IconButton onClick={() => receiveAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
                         <Inbox className={classes.iconRegular} />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip id="analysisa-tooltip" title={'Start Analysis on All Samples'}>
+                    <Tooltip id="analysisa-tooltip" title={'Start Analysis'}>
+                      <IconButton
+                      onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
+                        <Colorize className={classes.iconRegular} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={'Record Analysis'}>
                       <IconButton
                       onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
                         <Colorize className={classes.iconRegular} />

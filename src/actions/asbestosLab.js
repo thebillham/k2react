@@ -1346,53 +1346,38 @@ export const writeReportDescription = (sample) => {
   return lines.join('@~');
 }
 
-export const getResultColor = (state, type, noColor, yesColor) => {
+export const getResultColor = (state, type, yesColor) => {
   if(state && state[type] === true) return yesColor;
-  return noColor;
+  return 'Off';
 }
 
 export const getSampleColors = (sample) => {
   let res = sample.result;
   console.log(res);
   let confirm = getAllConfirmResult(sample);
-  let confirmColor = styles.greenIcon;
+  let confirmColor = 'Green';
   if (confirm === 'no') {
-    confirmColor = styles.redIcon;
+    confirmColor = 'Red';
   } else if (confirm === 'asbestosTypesWrong') {
-    confirmColor = styles.orangeIcon;
+    confirmColor = 'Orange';
   } else if (confirm === 'none') {
-    confirmColor = styles.greyIcon;
+    confirmColor = '';
   }
   let returnMap = {
-    cameraColor: sample.imagePathRemote ? styles.greenIcon : styles.greyIcon,
-    receivedColor: sample.receivedByLab ? styles.greenIcon : styles.greyIcon,
-    analysisColor: sample.analysisStart ? styles.greenIcon : styles.greyIcon,
-    verifiedColor: sample.verified ? styles.greenIcon : styles.greyIcon,
-    waColor: sample.waAnalysisComplete ? styles.greenIcon : styles.greyIcon,
-    confirmColor: confirmColor ? confirmColor : styles.greyIcon,
-
-    chColor: getResultColor(res, 'ch', styles.greyFg, styles.redFg),
-    chDivColor: getResultColor(res, 'ch', styles.greyBg, styles.redBg),
-
-    amColor: getResultColor(res, 'am', styles.greyFg, styles.redFg),
-    amDivColor: getResultColor(res, 'am', styles.greyBg, styles.redBg),
-
-    crColor: getResultColor(res, 'cr', styles.greyFg, styles.redFg),
-    crDivColor: getResultColor(res, 'cr', styles.greyBg, styles.redBg),
-
-    umfColor: getResultColor(res, 'umf', styles.greyFg, styles.redFg),
-    umfDivColor: getResultColor(res, 'umf', styles.greyBg, styles.redBg),
-
-    noColor: getResultColor(res, 'no', styles.greyFg, styles.greenFg),
-    noDivColor: getResultColor(res, 'no', styles.greyBg, styles.greenBg),
-
-    orgColor: getResultColor(res, 'org', styles.greyFg, styles.blueFg),
-    orgDivColor: getResultColor(res, 'org', styles.greyBg, styles.blueBg),
-
-    smfColor: getResultColor(res, 'smf', styles.greyFg, styles.blueFg),
-    smfDivColor: getResultColor(res, 'smf', styles.greyBg, styles.blueBg),
+    // cameraColor: sample.imagePathRemote ? styles.greenIcon : styles.greyIcon,
+    // receivedColor: sample.receivedByLab ? styles.greenIcon : styles.greyIcon,
+    // analysisColor: sample.analysisStart ? styles.greenIcon : styles.greyIcon,
+    // verifiedColor: sample.verified ? styles.greenIcon : styles.greyIcon,
+    // waColor: sample.waAnalysisComplete ? styles.greenIcon : styles.greyIcon,
+    confirm: confirmColor ? confirmColor : '',
+    ch: getResultColor(res, 'ch', 'Bad'),
+    am: getResultColor(res, 'am', 'Bad'),
+    cr: getResultColor(res, 'cr', 'Bad'),
+    umf: getResultColor(res, 'umf', 'Bad'),
+    no: getResultColor(res, 'no', 'Ok'),
+    org: getResultColor(res, 'org', 'Benign'),
+    smf: getResultColor(res, 'smf', 'Benign'),
   };
-  console.log(returnMap);
   return withStyles(styles)(returnMap);
 };
 
