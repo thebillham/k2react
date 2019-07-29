@@ -14,7 +14,7 @@ import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 
 export const AsbestosClickyBasic = (fgColor, bgColor, tooltip, label, toggle) => {
-  return(<Tooltip title={tooltip}>
+  return(<Tooltip title={tooltip} key={label}>
     <div className={bgColor}>
       <Button
         variant="outlined"

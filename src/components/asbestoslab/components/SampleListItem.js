@@ -31,7 +31,7 @@ import {
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM } from "../../../actions/local";
 import { AsbestosClickyBasic } from '../../../widgets/ButtonWidgets';
-import { SampleTextyBox } from '../../../widgets/FormWidgets';
+import { SampleTextyBox, AsbButton } from '../../../widgets/FormWidgets';
 import { showModal } from "../../../actions/modal";
 import {
   COC,
@@ -140,15 +140,15 @@ class SampleListItem extends React.Component {
 
   render() {
     const { sample, job, samples, staff, anchorEl, classes } = this.props;
-    console.log(`Sample ${sample.jobNumber}-${sample.sampleNumber} Rendering`);
     if (sample.cocUid !== job.uid) return null;
     let result = getBasicResult(sample);
     let colors = getSampleColors(sample, classes);
     let editor = this.props.me.auth && this.props.me.auth['Asbestos Bulk Analysis'];
+    let noResults = true;
 
     return (
       <ListItem key={sample.uid} className={classes.hoverItem}>
-        <Grid container className={classes.fullWidth} justify="space-around">
+        <Grid container className={classes.fullWidth}>
           <Grid item xs={12} xl={3}>
             <div className={classes.flexRowLeftAlignEllipsis}>
               <div className={classes.circleShaded}>
@@ -187,66 +187,17 @@ class SampleListItem extends React.Component {
           </Grid>
           <Grid item xs={12} xl={9}>
             <div className={classes.flexRowRightAlign}>
-              <Tooltip title='Mark as Received by Lab'>
-                <IconButton
-                  onClick={event => {
-                    receiveSample(sample, job, samples[job.uid], this.props.sessionID, this.props.me);
-                  }}
-                >
-                <Inbox className={sample.receivedByLab ? classes.iconRegularGreen : classes.iconRegular}
-                />
-                </IconButton>
+              <Tooltip title={sample.receivedByLab ? 'Received by lab' : 'Not yet received by lab'}>
+                <Inbox className={sample.receivedByLab ? classes.iconRegularGreen : classes.iconRegular} />
               </Tooltip>
-              <Tooltip title='Start Analysis'>
-                  <IconButton
-                    onClick={event => {
-                      startAnalysis(sample, job, this.props.sessionID, samples[job.uid], this.props.me);
-                    }}
-                  >
-                    <AnalysisIcon className={sample.analysisStart ? classes.iconRegularGreen : classes.iconRegular}
-                    />
-                  </IconButton>
+              <Tooltip title={sample.analysisStart ? 'Analysis begun' : 'Analysis not yet begun'}>
+                <AnalysisIcon className={sample.analysisStart ? classes.iconRegularGreen : classes.iconRegular} />
               </Tooltip>
-              {AsbestosClickyBasic(classes[`colorsButton${colors.ch}`], classes[`colorsDiv${colors.ch}`], 'Chrysotile (white) asbestos detected', 'CH',
-              () => toggleResult("ch", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(classes[`colorsButton${colors.am}`], classes[`colorsDiv${colors.am}`], 'Amosite (brown) asbestos detected', 'AM',
-              () => toggleResult("am", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(classes[`colorsButton${colors.cr}`], classes[`colorsDiv${colors.cr}`], 'Crocidolite (blue) asbestos detected', 'CR',
-              () => toggleResult("cr", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(classes[`colorsButton${colors.umf}`], classes[`colorsDiv${colors.umf}`], 'Unidentified mineral fibres detected', 'UMF',
-              () => toggleResult("umf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              <div className={classes.spacerSmall} />
-              {AsbestosClickyBasic(classes[`colorsButton${colors.no}`], classes[`colorsDiv${colors.no}`], 'No asbestos detected', 'NO',
-              () => toggleResult("no", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              <div className={classes.spacerSmall} />
-              {AsbestosClickyBasic(classes[`colorsButton${colors.org}`], classes[`colorsDiv${colors.org}`], 'Organic fibres detected', 'ORG',
-              () => toggleResult("org", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {AsbestosClickyBasic(classes[`colorsButton${colors.smf}`], classes[`colorsDiv${colors.smf}`], 'Synthetic mineral fibres detected', 'SMF',
-              () => toggleResult("smf", this.props.analyst, sample, job, samples[job.uid], this.props.sessionID, this.props.me))}
-              {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', null, false, 0, 'g', null)}
-              <Tooltip title='Verify Result is Correct'>
-                <IconButton
-                  onClick={event => {
-                    let issues = checkVerifyIssues(sample);
-                    if (issues.length > 0) {
-                        this.props.showModal({
-                          modalType: VERIFY_ISSUES_ASBESTOS,
-                          modalProps: {
-                            sample,
-                            issues,
-                            verify: () => verifySample(sample, job, samples[job.uid], this.props.sessionID, this.props.me,),
-                          }
-                        });
-                    } else verifySample(sample, job, samples[job.uid], this.props.sessionID, this.props.me,);
-                  }}
-                >
-                  <CheckCircleOutline className={sample.verified ? classes.iconRegularGreen : classes.iconRegular} />
-                </IconButton>
+              {['ch','am','cr','umf','no','org','smf'].map(res => AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`],res,null))}
+              <Tooltip title={'Weight on Receipt'}><div className={classes.roundButtonShaded}>{sample.weightReceived ? `${sample.weightReceived}g` : 'No Weight'}</div></Tooltip>
+              <Tooltip title={sample.verified ? 'Result verified' : 'Result not yet verified'}>
+                <CheckCircleOutline className={sample.verified ? classes.iconRegularGreen : classes.iconRegular} />
               </Tooltip>
-            {/*</div>
-          </Grid>
-          <Grid item xs={12} xl={3}>
-            <div className={classes.flexRowLeftAlignEllipsis}>*/}
               {editor && <Tooltip id="det-tooltip" title={'Edit Sample Details'}>
                 <IconButton
                   onClick={event => {
@@ -261,22 +212,6 @@ class SampleListItem extends React.Component {
                   <Edit className={classes.iconRegular}/>
                 </IconButton>
               </Tooltip>}
-              <Tooltip id="sl-tooltip" title={'Sample Log'}>
-                <IconButton
-                  onClick={event => {
-                    this.props.showModal({
-                      modalType: SAMPLE_HISTORY,
-                      modalProps: {
-                        title: `Sample History for ${
-                          job.jobNumber
-                        }-${sample.sampleNumber.toString()}`,
-                        ...sample,
-                    }});
-                  }}
-                >
-                  <SampleLogIcon className={classes.iconRegular}/>
-                </IconButton>
-              </Tooltip>
               {job.waAnalysis &&
                 <Tooltip id="wa-tooltip" title={editor ? 'WA Analysis' : sample.waAnalysisComplete ? 'WA Analysis Complete' : 'WA Analysis Incomplete'}>
                   <IconButton
@@ -319,6 +254,22 @@ class SampleListItem extends React.Component {
                     holdSample(sample, job, this.props.me);
                   }}>
                   <HoldIcon className={sample.onHold ? classes.iconRegularRed : classes.iconRegular} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip id="sl-tooltip" title={'Sample Log'}>
+                <IconButton
+                  onClick={event => {
+                    this.props.showModal({
+                      modalType: SAMPLE_HISTORY,
+                      modalProps: {
+                        title: `Sample History for ${
+                          job.jobNumber
+                        }-${sample.sampleNumber.toString()}`,
+                        ...sample,
+                    }});
+                  }}
+                >
+                  <SampleLogIcon className={classes.iconRegular}/>
                 </IconButton>
               </Tooltip>
             </div>

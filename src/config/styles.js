@@ -527,82 +527,47 @@ const styles = theme => ({
     color: theme.palette.secondary.main,
   },
 
-  colorBad: {
-    borderRadius: 5,
-    margin: 5,
-    backgroundColor: theme.palette.indicators.bad,
-    color: theme.palette.indicators.badText,
-  },
-
-  colorWarning: {
-    borderRadius: 5,
-    margin: 5,
-    backgroundColor: theme.palette.indicators.warning,
-    color: theme.palette.indicators.warningText,
-  },
-
-  colorOK: {
-    borderRadius: 5,
-    margin: 5,
-    backgroundColor: theme.palette.indicators.ok,
-    color: theme.palette.indicators.okText,
-  },
-
-  colorBenign: {
-    borderRadius: 5,
-    margin: 5,
-    backgroundColor: theme.palette.indicators.benign,
-    color: theme.palette.indicators.benignText,
-  },
-
-  colorOff: {
-    borderRadius: 5,
-    margin: 5,
-    backgroundColor: theme.palette.indicators.off,
-    color: theme.palette.indicators.offText,
-  },
-
   colorsDivBad: {
     borderRadius: 5,
-    margin: 5,
+    margin: 2,
     backgroundColor: theme.palette.indicators.bad,
   },
 
   colorsButtonBad: {
-    margin: 5,
+    margin: 3,
     color: theme.palette.indicators.badText,
   },
 
   colorsDivOk: {
     borderRadius: 5,
-    margin: 5,
+    margin: 2,
     backgroundColor: theme.palette.indicators.ok,
   },
 
   colorsButtonOk: {
-    margin: 5,
+    margin: 3,
     color: theme.palette.indicators.okText,
   },
 
   colorsDivBenign: {
     borderRadius: 5,
-    margin: 5,
+    margin: 2,
     backgroundColor: theme.palette.indicators.benign,
   },
 
   colorsButtonBenign: {
-    margin: 5,
+    margin: 3,
     color: theme.palette.indicators.benignText,
   },
 
   colorsDivOff: {
     borderRadius: 5,
-    margin: 5,
+    margin: 2,
     backgroundColor: theme.palette.indicators.off,
   },
 
   colorsButtonOff: {
-    margin: 5,
+    margin: 3,
     color: theme.palette.indicators.offText,
   },
 
@@ -620,6 +585,20 @@ const styles = theme => ({
     backgroundColor: "#aaa",
     marginRight: theme.spacing(1),
     color: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  roundButtonShaded: {
+    width: 80,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#aaa',
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    color: '#fff',
     justifyContent: "center",
     alignItems: "center",
     display: "flex",
@@ -698,6 +677,21 @@ const styles = theme => ({
     flexDirection: 'row',
   },
 
+  flexRowCenter: {
+    flexDirection: 'row',
+    display: 'flex',
+    alignItems: 'center'
+  },
+
+  flexRowHover: {
+    flexDirection: 'row',
+    display: 'flex',
+    alignItems: 'center',
+    "&:hover": {
+        backgroundColor: "#eee"
+    },
+  },
+
   flexRowLeftAlignEllipsis: {
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
@@ -711,7 +705,7 @@ const styles = theme => ({
 
   flexRowRightAlign: {
     width: '100%',
-    justify: 'flex-end',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     display: 'flex',
     flexDirection: 'row',

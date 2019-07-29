@@ -124,6 +124,11 @@ export const handleModalChange = target => dispatch => {
       type: EDIT_MODAL_DOC_COMMENT,
       payload: target.value,
     })
+  } else if (target.id === 'doc') {
+    dispatch({
+      type: EDIT_MODAL,
+      payload: {doc: target.value},
+    });
   } else {
     dispatch({
       type: EDIT_MODAL_DOC,

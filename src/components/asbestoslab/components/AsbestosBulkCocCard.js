@@ -33,6 +33,7 @@ import { syncJobWithWFM, addLog, } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
   COC,
+  COC_STATS,
   DOWNLOAD_LAB_CERTIFICATE,
   UPDATE_CERTIFICATE_VERSION,
   COC_LOG
@@ -54,15 +55,16 @@ import Divider from "@material-ui/core/Divider";
 import Tooltip from "@material-ui/core/Tooltip";
 
 import ExpandMore from "@material-ui/icons/ExpandMore";
-import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
-import Edit from "@material-ui/icons/Edit";
-import Inbox from "@material-ui/icons/Inbox";
-import Save from "@material-ui/icons/SaveAlt";
-import Print from "@material-ui/icons/Print";
-import Send from "@material-ui/icons/Send";
-import Flag from "@material-ui/icons/Flag";
-import More from "@material-ui/icons/MoreVert";
-import Colorize from "@material-ui/icons/Colorize";
+import EditIcon from "@material-ui/icons/Edit";
+import ReceiveIcon from "@material-ui/icons/Inbox";
+import DownloadIcon from "@material-ui/icons/SaveAlt";
+import PrintCocIcon from "@material-ui/icons/Print";
+import IssueVersionIcon from "@material-ui/icons/Send";
+import RecordAnalysisIcon from "@material-ui/icons/HowToVote";
+import VerifyIcon from "@material-ui/icons/CheckCircleOutline";
+import UrgentIcon from "@material-ui/icons/Flag";
+import MoreIcon from "@material-ui/icons/MoreVert";
+import StartAnalysisIcon from "@material-ui/icons/Colorize";
 import WAIcon from "@material-ui/icons/GroupWork";
 
 const mapStateToProps = state => {
@@ -163,8 +165,8 @@ class AsbestosBulkCocCard extends React.Component {
             <span className={classes.boldSmallText}>{job.jobNumber}</span>
             <span>{job.client} ({job.address})</span>
             {job.waAnalysis && <WAIcon color='action' className={classes.marginLeftSmall} />}
-            {job.priority === 1 && !job.versionUpToDate && <Flag color='secondary' className={classes.marginLeftSmall} />}
-            {job.versionUpToDate && <CheckCircleOutline color='primary' className={classes.marginLeftSmall} />}
+            {job.priority === 1 && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
+            {job.versionUpToDate && <VerifyIcon color='primary' className={classes.marginLeftSmall} />}
             {job.stats && <span className={classes.boldSmallText}>{job.stats.status}</span>}
           </div>
         </ExpansionPanelSummary>
@@ -183,47 +185,37 @@ class AsbestosBulkCocCard extends React.Component {
                       }
                     });
                   }}>
-                  <Edit className={classes.iconRegular} />
+                  <EditIcon className={classes.iconRegular} />
                 </IconButton>
               </Tooltip>
-              {samples[job.uid] && Object.values(samples[job.uid]).length > 0 && (
-                  <span>
-                    {/*<Tooltip id="pr-tooltip" title={'Flag as Priority'}>
-                      <IconButton onClick={() => togglePriority(job, this.props.me)}>
-                        <Flag color={job.priority === 1 ? 'secondary' : 'inherit'} className={classes.iconRegular} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip id="waa-tooltip" title={'Request Western Australian Standard Analysis'}>
-                      <IconButton onClick={() => toggleWAAnalysis(job, this.props.me)}>
-                        <WAIcon color={job.waAnalysis ? 'primary' : 'inherit'} className={classes.iconRegular} />
-                      </IconButton>
-                    </Tooltip>*/}
-                    <Tooltip id="reca-tooltip" title={'Receive Samples'}>
-                      <IconButton onClick={() => receiveAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
-                        <Inbox className={classes.iconRegular} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip id="analysisa-tooltip" title={'Start Analysis'}>
-                      <IconButton
-                      onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
-                        <Colorize className={classes.iconRegular} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={'Record Analysis'}>
-                      <IconButton
-                      onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
-                        <Colorize className={classes.iconRegular} />
-                      </IconButton>
-                    </Tooltip>
-                  </span>)}
-              <Button
-                className={classes.buttonIconText}
-                onClick={() => {
-                  printCoc(job, samples[job.uid], this.props.me, this.props.staff);
-                }}
-              >
-                <Print className={classes.iconRegular} /> Print Chain of Custody
-              </Button>
+              <Tooltip title={'Print Chain of Custody'}>
+                <IconButton onClick={() => {printCoc(job, samples[job.uid], this.props.me, this.props.staff)}}>
+                  <PrintCocIcon className={classes.iconRegular} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip id="reca-tooltip" title={'Receive Samples'}>
+                <IconButton onClick={() => receiveAll(samples[job.uid], job, this.props.sessionID, this.props.me)} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+                  <ReceiveIcon className={classes.iconRegular} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+                <IconButton
+                onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
+                  <StartAnalysisIcon className={classes.iconRegular} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={'Record Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+                <IconButton
+                onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
+                  <RecordAnalysisIcon className={classes.iconRegular} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={'Record Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+                <IconButton
+                onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
+                  <VerifyIcon className={classes.iconRegular} />
+                </IconButton>
+              </Tooltip>
               <span className={classes.spacerSmall} />
               <Button
                 className={classes.buttonIconText}
@@ -251,7 +243,7 @@ class AsbestosBulkCocCard extends React.Component {
                   }
                 }}
               >
-                <Send className={classes.iconRegular} />
+                <IssueVersionIcon className={classes.iconRegular} />
                 Issue Version {version}
               </Button>
               <span className={classes.spacerSmall} />
@@ -262,7 +254,7 @@ class AsbestosBulkCocCard extends React.Component {
                   printLabReport(job, job.currentVersion, this.props.me, this.props.showModal);
                 }}
               >
-                <Save className={classes.iconRegular} /> Download Test
+                <DownloadIcon className={classes.iconRegular} /> Download Test
                 Certificate
               </Button>
               <IconButton
@@ -270,7 +262,7 @@ class AsbestosBulkCocCard extends React.Component {
                   this.setState({ cocAnchorEl: event.currentTarget });
                 }}
               >
-                <More />
+                <MoreIcon />
               </IconButton>
               <Menu
                 id="coc-menu"
@@ -308,6 +300,17 @@ class AsbestosBulkCocCard extends React.Component {
                     );
                   })}
                 <Divider />
+                <MenuItem
+                  onClick={() => {
+                    this.props.showModal({
+                      modalType: COC_STATS,
+                      modalProps: {
+                        ...job,
+                      }
+                    });
+                  }}>
+                  View Stats
+                </MenuItem>
                 <MenuItem onClick={() => this.props.deleteCoc(job, this.props.me)}>
                   Delete Chain of Custody
                 </MenuItem>

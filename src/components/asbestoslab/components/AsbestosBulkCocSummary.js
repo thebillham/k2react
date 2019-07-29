@@ -91,7 +91,7 @@ class AsbestosBulkCocSummary extends React.Component {
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
 
-    let stats = getStats(samples[job.uid], job);
+    // let stats = getStats(samples[job.uid], job);
     console.log(`${job.jobNumber} summary rendering`);
     return (
       <Grid container direction="row" className={classes.marginTopBottomSmall} alignItems="flex-start" justify="center">
@@ -115,102 +115,7 @@ class AsbestosBulkCocSummary extends React.Component {
             {analysts ? analysts.join(", ") : "Not specified"}
           </span>
         </Grid>
-        <Grid item lg={2} xs={6}>
-          <span className={classes.headingInline}>Total Samples:</span>{" "}
-          <span className={ classes.infoLight }>
-            {stats && stats.totalSamples}
-          </span>
-          <br />
-          <Tooltip title={'Red: Positive samples, Green: Negative samples, Black: Total samples with results'}>
-            <div className={classes.infoLight}>
-              <span className={classes.headingInline}>Results:</span>{" "}
-              <span className={classes.boldRed}>
-                {stats && stats.positiveSamples !== undefined ? stats.positiveSamples : 0}
-              </span>-
-              <span className={classes.boldGreen}>
-                {stats && stats.negativeSamples !== undefined ? stats.negativeSamples : 0}</span>
-              /
-              <span className={classes.boldBlack}>
-                {stats && parseInt(stats.positiveSamples) + parseInt(stats.negativeSamples)}
-              </span>
-            </div>
-          </Tooltip>
-          <Tooltip title={'Red: Second analysis contradicts first analysis, Orange: Second analysis shows variance in asbestos types reported, Green: First and second analysis match'}>
-            <div>
-              <span className={classes.headingInline}>Results Confirmed:</span>{" "}
-              {stats && stats.confirmedResults !== undefined && stats.confirmedResults > 0 ?
-                <span className={classes.infoLight}>
-                  <span className={classes.boldGreen}>
-                    {stats && stats.confirmedResultsOK !== undefined && stats.confirmedResultsOK}
-                  </span>-
-                  <span className={classes.boldOrange}>
-                    {stats && stats.confirmedResultsConflict !== undefined && stats.confirmedResultsConflict}
-                  </span>-
-                  <span className={classes.boldRed}>
-                    {stats && stats.confirmedResultsWrong !== undefined && stats.confirmedResultsWrong}
-                  </span>/
-                  <span className={classes.boldBlack}>
-                    {stats && stats.confirmedResults}
-                  </span>
-                </span>
-              : <span>N/A</span>}
-            </div>
-          </Tooltip>
-        </Grid>
-        <Grid item lg={3} xs={6}>
-          <Tooltip title={'Max/Average Time (Business Hours Only in Brackets)'}>
-            <div>
-            <span className={classes.headingInline}>Turnaround Time:</span>{" "}
-            { stats && stats.maxTurnaroundTime > 0 && stats.averageTurnaroundTime > 0 ?
-              <span className={ classes.infoLight }>
-                {moment.utc(stats.maxTurnaroundTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundTime).format('H:mm')}
-              </span>
-              :
-              <span className={ classes.infoLight }>N/A</span>
-            }{" "}
-            ({ stats && stats.maxTurnaroundBusinessTime > 0 && stats.averageTurnaroundBusinessTime > 0 ?
-                <span className={ classes.infoLight }>
-                  {moment.utc(stats.maxTurnaroundBusinessTime).format('H:mm')}/{moment.utc(stats.averageTurnaroundBusinessTime).format('H:mm')}
-                </span>
-                :
-                <span className={ classes.infoLight }>N/A</span>
-            })
-            <br />
-            <span className={classes.headingInline}>Analysis Time:</span>{" "}
-            { stats && stats.maxAnalysisTime > 0 && stats.averageAnalysisTime > 0 ?
-              <span className={ classes.infoLight }>
-                {moment.utc(stats.maxAnalysisTime).format('H:mm')}/{moment.utc(stats.averageAnalysisTime).format('H:mm')}
-              </span>
-              :
-              <span className={ classes.infoLight }>N/A</span>
-            }{" "}
-            ({ stats && stats.maxAnalysisBusinessTime > 0 && stats.averageAnalysisBusinessTime > 0 ?
-              <span className={ classes.infoLight }>
-                {moment.utc(stats.maxAnalysisBusinessTime).format('H:mm')}/{moment.utc(stats.averageAnalysisBusinessTime).format('H:mm')}
-              </span>
-              :
-              <span className={ classes.infoLight }>N/A</span>
-            })
-            <br />
-            <span className={classes.headingInline}>Report Time:</span>{" "}
-            { stats && stats.maxReportTime > 0 && stats.averageReportTime > 0 ?
-              <span className={ classes.infoLight }>
-                {moment.utc(stats.maxReportTime).format('H:mm')}/{moment.utc(stats.averageReportTime).format('H:mm')}
-              </span>
-              :
-              <span className={ classes.infoLight }>N/A</span>
-            }{" "}
-            ({ stats && stats.maxReportBusinessTime > 0 && stats.averageReportBusinessTime > 0 ?
-              <span className={ classes.infoLight }>
-                {moment.utc(stats.maxReportBusinessTime).format('H:mm')}/{moment.utc(stats.averageReportBusinessTime).format('H:mm')}
-              </span>
-              :
-              <span className={ classes.infoLight }>N/A</span>
-            })
-            </div>
-          </Tooltip>
-        </Grid>
-        <Grid item lg={4} xs={6}>
+        <Grid item lg={8} xs={6}>
           { job.labToContactClient && TickyBox(this, 'Lab Contacted Client', cocsRef, job, 'labHasContactedClient',
             (checked) => {
               let log = {

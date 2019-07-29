@@ -195,21 +195,25 @@ export const SampleTextyLine = (label, text) => {
   );
 }
 
-export const AsbButton = (colors, label, onClick) => {
+export const AsbButton = (fgColor, bgColor, label, onClick) => {
+  let tooltip = 'Chrysotile (white) asbsetos';
+  if (label === 'am') tooltip = 'Amosite (brown) asbestos';
+  else if (label === 'cr') tooltip = 'Crocidolite (blue) asbestos';
+  else if (label === 'no') tooltip = 'No asbestos';
+  else if (label === 'umf') tooltip = 'Unidentified mineral fibres';
+  else if (label === 'org') tooltip = 'Organic fibres (e.g. cellulose)';
+  else if (label === 'smf') tooltip = 'Synthetic mineral fibres (e.g. fibreglass, nylon)';
   return (
-    <div
-      style={{
-        backgroundColor: colors[`${label}DivColor`],
-        borderRadius: 5
-      }}
-    >
-      <Button
-        variant="outlined"
-        style={{ margin: 5, color: colors[`${label}Color`]}}
-        onClick={onClick}
-      >
-        {label.toUpperCase()}
-      </Button>
-    </div>
+    <Tooltip title={tooltip} key={label}>
+      <div className={bgColor}>
+        <Button
+          variant="outlined"
+          className={fgColor}
+          onClick={onClick}
+        >
+          {label.toUpperCase()}
+        </Button>
+      </div>
+    </Tooltip>
   )
 }

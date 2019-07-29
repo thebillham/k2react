@@ -38,7 +38,7 @@ import RemoveIcon from "@material-ui/icons/Remove";
 import Good from "@material-ui/icons/ThumbUp";
 import Half from "@material-ui/icons/ThumbsUpDown";
 import Bad from "@material-ui/icons/ThumbDown";
-import { hideModal, showModalSecondary, } from "../../../actions/modal";
+import { hideModal, showModalSecondary, handleModalChange } from "../../../actions/modal";
 import { addLog, } from "../../../actions/local";
 import moment from "moment";
 import {
@@ -72,6 +72,7 @@ const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
+    samples: state.asbestosLab.samples,
     me: state.local.me,
   };
 };
@@ -79,10 +80,35 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     hideModal: () => dispatch(hideModal()),
+    handleModalChange: (target) => dispatch(handleModalChange(target)),
   };
 };
 
 class AsbestosSampleDetailsModal extends React.Component {
+  previousSample = () => {
+    let takeThisSample = false;
+    Object.values(this.props.samples[this.props.modalProps.job.uid]).reverse().forEach(sample => {
+      if (takeThisSample) {
+        console.log(sample);
+        this.props.handleModalChange({id: 'doc', value: {...sample}});
+        takeThisSample = false;
+      }
+      if (sample.uid === this.props.modalProps.doc.uid) takeThisSample = true;
+    });
+  };
+
+  nextSample = () => {
+    let takeThisSample = false;
+    Object.values(this.props.samples[this.props.modalProps.job.uid]).forEach(sample => {
+      if (takeThisSample) {
+        console.log(sample);
+        this.props.handleModalChange({id: 'doc', value: {...sample}});
+        takeThisSample = false;
+      }
+      if (sample.uid === this.props.modalProps.doc.uid) takeThisSample = true;
+    });
+  };
+
   render() {
     const { classes, modalProps, modalType } = this.props;
     let sample = modalProps.doc;
@@ -165,13 +191,9 @@ class AsbestosSampleDetailsModal extends React.Component {
               <div className={classes.informationBox}>
                 <div className={classes.heading}>Results</div>
                 <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 12, }}>
-                  {AsbButton(colors,'ch',null)}
-                  {AsbButton(colors,'am',null)}
-                  {AsbButton(colors,'cr',null)}
-                  {AsbButton(colors,'umf',null)}
-                  {AsbButton(colors,'no',null)}
-                  {AsbButton(colors,'org',null)}
-                  {AsbButton(colors,'smf',null)}
+                  {['ch','am','cr','umf','no','org','smf'].map(res => {
+                    if (sample.result[res] === true) return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res, null);
+                  })}
                 </div>
                 {SampleTextyLine('Analyst', sample.analyst ? sample.analyst : "Not analysed")}
                 {SampleTextyLine('Analysis Date', analysisDate)}
@@ -267,9 +289,9 @@ class AsbestosSampleDetailsModal extends React.Component {
           </Grid>
         </DialogContent>}
         <DialogActions>
-          <Button onClick={() => this.props.hideModal()} color="inherit">Previous</Button>
-          <Button onClick={() => this.props.hideModal()} color="secondary">Next</Button>
-          <Button onClick={() => this.props.hideModal()} color="primary">OK</Button>
+          <Button onClick={() => this.previousSample()} color="inherit" disabled={job.sampleList[0] === sample.uid}>Previous</Button>
+          <Button onClick={() => this.nextSample()} color="secondary" disabled={job.sampleList[job.sampleList.length - 1] === sample.uid}>Next</Button>
+          <Button onClick={this.props.hideModal} color="primary">OK</Button>
         </DialogActions>
       </Dialog>}
       </div>

@@ -1,15 +1,16 @@
 import React from "react";
 import reactCSS from 'reactcss';
 import { WithContext as ReactTags } from "react-tag-input";
-import { withStyles } from "@material-ui/core/styles";
+import { withStyles, } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
+import classNames from 'classnames';
 import store from "../../../store";
 import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS } from "../../../constants/modal-types";
 import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
-import { SampleTickyBox, SampleTextyBox, SampleRadioSelector, SampleTickyBoxGroup, SampleTextyDisplay, } from '../../../widgets/FormWidgets';
+import { SampleTickyBox, SampleTextyBox, SampleRadioSelector, SampleTickyBoxGroup, SampleTextyDisplay, AsbButton } from '../../../widgets/FormWidgets';
 import { AsbestosClassification } from '../../../config/strings';
 
 import { SketchPicker } from 'react-color';
@@ -64,6 +65,7 @@ const mapStateToProps = state => {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     me: state.local.me,
+    samples: state.asbestosLab.samples,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
   };
 };
@@ -102,7 +104,6 @@ class AsbestosSampleEditModal extends React.Component {
   }
 
   handleColorClick = (num) => {
-    console.log(this.state.displayColorPicker);
     this.setState({ displayColorPicker: {
         ...this.state.displayColorPicker,
         [num]: !this.state.displayColorPicker[num],
@@ -111,7 +112,6 @@ class AsbestosSampleEditModal extends React.Component {
   };
 
   handleColorClose = (num) => {
-    console.log(this.state.displayColorPicker);
     this.setState({ displayColorPicker: {
         ...this.state.displayColorPicker,
         [num]: false,
@@ -148,6 +148,53 @@ class AsbestosSampleEditModal extends React.Component {
       }
     });
   };
+
+  previousSample = () => {
+    if (this.state.modified) this.saveSample();
+    let takeThisSample = false;
+    Object.values(this.props.samples[this.props.modalProps.job.uid]).reverse().forEach(sample => {
+      if (takeThisSample) {
+        this.setState({
+          modified: false,
+          sample: sample,
+        });
+        takeThisSample = false;
+      }
+      if (sample.uid === this.state.sample.uid) takeThisSample = true;
+    });
+  };
+
+  nextSample = () => {
+    if (this.state.modified) this.saveSample();
+    let takeThisSample = false;
+    Object.values(this.props.samples[this.props.modalProps.job.uid]).forEach(sample => {
+      if (takeThisSample) {
+        this.setState({
+          modified: false,
+          sample: sample,
+        });
+        takeThisSample = false;
+      }
+      if (sample.uid === this.state.sample.uid) takeThisSample = true;
+    });
+  };
+
+  saveSample = () => {
+    const { sample } = this.state;
+    asbestosSamplesRef
+      .doc(sample.uid)
+      .update(sample);
+
+    let log = {
+      type: "Analysis",
+      log: `Sample ${sample.sampleNumber} (${sample.description} ${
+            sample.material
+          }) details edited.`,
+      sample: sample.uid,
+      chainOfCustody: sample.cocUid,
+    };
+    addLog("asbestosLab", log, this.props.me);
+  }
 
   render() {
     const { classes, modalProps, modalType } = this.props;
@@ -223,6 +270,19 @@ class AsbestosSampleEditModal extends React.Component {
             </Grid>
           </Grid>
           <Divider />
+          <Grid container>
+            <Grid item xs={12}>
+              <div className={classNames(classes.subHeading, classes.flexRowCenter)}>
+                Layers
+                <IconButton size='small' aria-label='add' className={classes.marginLeftSmall} onClick={this.addLayer}><AddIcon /></IconButton>
+                <IconButton size='small' aria-label='remove' className={classes.marginLeftSmall} onClick={this.removeLayer}><RemoveIcon /></IconButton>
+              </div>
+              {[...Array(sample && sample.layerNum ? sample.layerNum : layerNum).keys()].map(num => {
+                return this.getLayerRow(num+1);
+              })}
+            </Grid>
+          </Grid>
+          <Divider />
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={5}>
               <div className={classes.subHeading}>Classification</div>
@@ -270,40 +330,16 @@ class AsbestosSampleEditModal extends React.Component {
               </div>
             </Grid>
           </Grid>
-          <Divider />
-          <Grid container>
-            <Grid item xs={12}>
-              <div className={this.props.classes.subHeading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
-                Layers
-                <IconButton size='small' aria-label='add' style={{ marginLeft: 12 }} onClick={this.addLayer}><AddIcon /></IconButton>
-                <IconButton size='small' aria-label='remove' style={{ marginLeft: 12 }} onClick={this.removeLayer}><RemoveIcon /></IconButton>
-              </div>
-              {[...Array(sample && sample.layerNum ? sample.layerNum : layerNum).keys()].map(num => {
-                return this.getLayerRow(num+1);
-              })}
-            </Grid>
-          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => this.props.hideModal()} color="secondary">
             Cancel
           </Button>
-          <Button disabled={!this.state.modified}
-            onClick={() => {
-              asbestosSamplesRef
-                .doc(sample.uid)
-                .update(sample);
+          <Button onClick={() => this.previousSample()} color="inherit" disabled={modalProps && modalProps.job && modalProps.job.sampleList && modalProps.job.sampleList[0] === sample.uid}>Previous</Button>
+          <Button onClick={() => this.nextSample()} color="secondary" disabled={modalProps && modalProps.job && modalProps.job.sampleList && modalProps.job.sampleList[modalProps.job.sampleList.length - 1] === sample.uid}>Next</Button>
+          <Button onClick={() => {
+              if (this.state.modified) this.saveSample();
               this.props.hideModal();
-
-              let log = {
-                type: "Analysis",
-                log: `Sample ${sample.sampleNumber} (${sample.description} ${
-                      sample.material
-                    }) details edited.`,
-                sample: sample.uid,
-                chainOfCustody: sample.cocUid,
-              };
-              addLog("asbestosLab", log, this.props.me);
             }}
             color="primary"
           >
@@ -318,6 +354,7 @@ class AsbestosSampleEditModal extends React.Component {
   getLayerRow = (num) => {
     let layer = {};
     let colors = {};
+    const { classes } = this.props;
 
     if (this.state.sample.layers && this.state.sample.layers[`layer${num}`]) {
       layer = this.state.sample.layers[`layer${num}`];
@@ -357,21 +394,8 @@ class AsbestosSampleEditModal extends React.Component {
     });
 
     return(
-      <div key={num} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }} className={this.props.classes.hoverItem}>
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: "#aaa",
-            marginRight: 10,
-            color: "#fff",
-            justifyContent: "center",
-            alignItems: "center",
-            display: "flex",
-            fontWeight: "bold"
-          }}
-        >
+      <div key={num} className={classes.flexRowHover}>
+        <div className={classes.circleShaded}>
           {num}
         </div>
         {SuggestionField(this, false, 'Description', 'materialSuggestions', layer.description,
@@ -380,7 +404,7 @@ class AsbestosSampleEditModal extends React.Component {
             }
         )}
 
-        <div style={{ marginRight: 12,}}>
+        <div className={classes.marginRight}>
           <div style={ styles.swatch } onClick={ () => this.handleColorClick(num) }>
             <div style={ styles.color } />
           </div>
@@ -393,140 +417,16 @@ class AsbestosSampleEditModal extends React.Component {
         <TextField
           id={`l${num}Concentration`}
           label="Asbestos %"
-          style={{ marginRight: 14, }}
+          className={classes.marginRight}
           value={layer.concentration ? layer.concentration : 0}
           onChange={e => {
             this.setLayerVar('concentration',num,e.target.value);
           }}
         />
-        <div
-          style={{
-            backgroundColor: colors.chDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Chrysotile (white) asbestos detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: colors.chColor }}
-              onClick={e => {
-                this.toggleLayerRes('ch', num, layer, true);
-              }}
-            >
-              CH
-            </Button>
-          </Tooltip>
-        </div>
-        <div
-          style={{
-            backgroundColor: colors.amDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Amosite (brown) asbestos detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: colors.amColor }}
-              onClick={e => {
-                this.toggleLayerRes('am', num, layer, true);
-              }}
-            >
-              AM
-            </Button>
-          </Tooltip>
-        </div>
-        <div
-          style={{
-            backgroundColor: colors.crDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Crocidolite (blue) asbestos detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: colors.crColor }}
-              onClick={e => {
-                this.toggleLayerRes('cr', num, layer, true);
-              }}
-            >
-              CR
-            </Button>
-          </Tooltip>
-        </div>
-        <div
-          style={{
-            backgroundColor: colors.umfDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Unidentified mineral fibres detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: colors.umfColor }}
-              onClick={e => {
-                this.toggleLayerRes('umf', num, layer, true);
-              }}
-            >
-              UMF
-            </Button>
-          </Tooltip>
-        </div>
-        <div style={{ width: 40, }} />
-        <div
-          style={{
-            backgroundColor: colors.noDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='No asbestos detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: colors.noColor }}
-              onClick={e => {
-                this.removeLayerPositives(num);
-              }}
-            >
-              NO
-            </Button>
-          </Tooltip>
-        </div>
-        <div style={{ width: 40, }} />
-        <div
-          style={{
-            backgroundColor: colors.orgDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Organic fibres detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: colors.orgColor }}
-              onClick={e => {
-                this.toggleLayerRes('org', num, layer,);
-              }}
-            >
-              ORG
-            </Button>
-          </Tooltip>
-        </div>
-        <div
-          style={{
-            backgroundColor: colors.smfDivColor,
-            borderRadius: 14,
-          }}
-        >
-          <Tooltip title='Synthetic mineral fibres or MMMF detected'>
-            <Button
-              variant="outlined"
-              style={{ margin: 5, color: colors.smfColor }}
-              onClick={e => {
-                this.toggleLayerRes('smf', num, layer,);
-              }}
-            >
-              SMF
-            </Button>
-          </Tooltip>
-        </div>
+        {['ch','am','cr','umf','no','org','smf'].map(res => {
+          return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res,
+          e => this.toggleLayerRes('ch', num, layer, true))
+        })}
     </div>
     );
   }

@@ -25,7 +25,7 @@ import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { addLog } from "../../../actions/local";
 import { updateResultMap, getSampleColors, setAnalyst, getBasicResult, } from "../../../actions/asbestosLab";
-import { AsbestosClickyBasic, } from '../../../widgets/ButtonWidgets';
+import { AsbButton, } from '../../../widgets/FormWidgets';
 import _ from "lodash";
 import moment from 'moment';
 
@@ -226,8 +226,7 @@ class ConfirmResultModal extends React.Component {
   }
 
   confirmRow = (num) => {
-    console.log(this.state);
-    console.log(num);
+    const { classes } = this.props;
     let colors = getSampleColors(this.state[num]);
     let resultDate = 'N/A';
     let prevAnalyst = this.props.modalProps.sample && this.props.modalProps.sample.analyst ? this.props.modalProps.sample.analyst : null;
@@ -258,23 +257,10 @@ class ConfirmResultModal extends React.Component {
         </div>
         <Button variant='outlined' aria-label='remove' onClick={() => this.deleteAnalysis(num)}><RemoveIcon /> Remove Analysis</Button>
       </div>
-      <div style={{ flexDirection: 'row', display: 'flex', width: '100%'}}>
-        {AsbestosClickyBasic(colors.chColor, colors.chDivColor, 'Chrysotile (white) asbestos detected', 'CH',
-        () => this.toggleResult('ch', num))}
-        {AsbestosClickyBasic(colors.amColor, colors.amDivColor, 'Amosite (brown) asbestos detected', 'AM',
-        () => this.toggleResult("am", num))}
-        {AsbestosClickyBasic(colors.crColor, colors.crDivColor, 'Crocidolite (blue) asbestos detected', 'CR',
-        () => this.toggleResult("cr", num))}
-        {AsbestosClickyBasic(colors.umfColor, colors.umfDivColor, 'Unidentified mineral fibres detected', 'UMF',
-        () => this.toggleResult("umf", num))}
-        <div style={{ width: 30 }} />
-        {AsbestosClickyBasic(colors.noColor, colors.noDivColor, 'No asbestos detected', 'NO',
-        () => this.toggleResult("no", num))}
-        <div style={{ width: 30 }} />
-        {AsbestosClickyBasic(colors.orgColor, colors.orgDivColor, 'Organic fibres detected', 'ORG',
-        () => this.toggleResult("org", num))}
-        {AsbestosClickyBasic(colors.smfColor, colors.smfDivColor, 'Synthetic mineral fibres detected', 'SMF',
-        () => this.toggleResult("smf", num))}
+      <div className={classes.flexRow}>
+        {['ch','am','cr','umf','no','org','smf'].map(res => {
+          return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`],res, () => this.toggleResult(res, num))
+        })}
       </div>
       <TextField
         id="comments"
@@ -282,7 +268,7 @@ class ConfirmResultModal extends React.Component {
         value={this.state[num].comment ? this.state[num].comment : ''}
         multiline
         rows={5}
-        className={this.props.classes.dialogField}
+        className={classes.dialogField}
         onChange={e => {
           this.setComment(e.target.value, num);
         }}

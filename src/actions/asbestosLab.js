@@ -1353,7 +1353,6 @@ export const getResultColor = (state, type, yesColor) => {
 
 export const getSampleColors = (sample) => {
   let res = sample.result;
-  console.log(res);
   let confirm = getAllConfirmResult(sample);
   let confirmColor = 'Green';
   if (confirm === 'no') {
@@ -1693,6 +1692,57 @@ export const writeSoilDetails = details => {
     finalStr = 'No details.';
   }
   return finalStr;
+};
+
+export const getStatus = (samples, job) => {
+  let jobID = job.uid;
+  let versionUpToDate = job.versionUpToDate;
+  let status = '';
+  let totalSamples = 0;
+
+  let numberReceived = 0;
+  let numberAnalysisStarted = 0;
+  let numberResult = 0;
+  let numberVerified = 0;
+
+  if (samples && Object.values(samples).length > 0) {
+    Object.values(samples).forEach(sample => {
+      if (sample.cocUid === jobID) {
+        totalSamples = totalSamples + 1;
+        if (sample.receivedByLab) numberReceived = numberReceived + 1;
+        if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
+        if (sample.verified && sample.receivedDate && sample.verifyDate && sample.analysisDate) numberVerified = numberVerified + 1;
+      }
+    });
+  }
+
+  if (versionUpToDate) {
+    if (job.mostRecentIssueSent) status = 'Issued and Sent';
+    else status = 'Issued';
+  } else if (totalSamples === 0) {
+    status = 'No Samples';
+  } else if (numberReceived === 0) {
+    status = 'In Transit';
+  } else if (numberAnalysisStarted === 0) {
+    status = 'Received By Lab';
+  } else if (numberResult === 0) {
+    status = 'Analysis Begun';
+  } else if (numberResult === totalSamples && numberVerified === 0) {
+    status = 'Analysis Complete';
+  } else if (numberVerified === totalSamples) {
+    status = 'Ready For Issue';
+  } else if (numberVerified > 0) {
+    status = 'Analysis Partially Verified';
+  } else if (numberResult > 0) {
+    status = 'Analysis Partially Complete';
+  } else if (numberAnalysisStarted > 0) {
+    status = 'Analysis Begun on Some Samples';
+  } else if (numberReceived > 0) {
+    status = 'Partially Received By Lab';
+  }
+
+  if (totalSamples !== 0 && job.status !== status) cocsRef.doc(jobID).update({ status });
+  return status;
 };
 
 export const getStats = (samples, job) => {
