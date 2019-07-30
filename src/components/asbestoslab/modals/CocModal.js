@@ -5,7 +5,6 @@ import { styles } from '../../../config/styles';
 import { connect } from 'react-redux';
 // import store from '../../store';
 import { COC } from '../../../constants/modal-types';
-import { auth } from '../../../config/firebase';
 import '../../../config/tags.css';
 // import { sendSlackMessage } from '../../Slack';
 
@@ -21,18 +20,13 @@ import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
 import MenuItem from '@material-ui/core/MenuItem';
 import Checkbox from '@material-ui/core/Checkbox';
-import FormLabel from '@material-ui/core/FormLabel';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from "@material-ui/core/Switch";
-import Radio from '@material-ui/core/Radio';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import IconButton from '@material-ui/core/IconButton';
 import Chip from '@material-ui/core/Chip';
-import Paper from '@material-ui/core/Paper'
 import Select from '@material-ui/core/Select';
 import { SuggestionField } from '../../../widgets/SuggestionField';
 
@@ -45,7 +39,6 @@ import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModal
 import { fetchStaff, syncJobWithWFM, resetWfmJob, addLog, } from '../../../actions/local';
 import { fetchSamples, handleCocSubmit, handleSampleChange } from '../../../actions/asbestosLab';
 import _ from 'lodash';
-import { asbestosSamplesRef } from "../../../config/firebase";
 
 const mapStateToProps = state => {
   return {
@@ -265,7 +258,7 @@ class CocModal extends React.Component {
               />
               Move this sample to number
               <Input
-                style={{ width: 45, marginLeft: 12, marginRight: 12, }}
+                className={classes.formInputNumber}
                 type='number'
                 value={this.state.sampleSwap}
                 onChange={(event) => this.setState({

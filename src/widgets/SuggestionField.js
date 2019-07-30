@@ -126,3 +126,61 @@ export const SuggestionField = (that, disabled, label, suggestions, value, onMod
     )}
   />);
 }
+
+export const SuggestionFieldSample = (that, disabled, label, field) => {
+  const value = that.state.sample[field];
+  const suggestions = `${field}Suggestions`;
+  const autosuggestProps = {
+    renderInputComponent,
+    getSuggestionValue,
+    renderSuggestion,
+    theme: {
+      container: { position: 'relative',},
+      suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
+      suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
+      suggestion: {display: 'block', },
+    },
+  };
+  return (<Autosuggest
+    {...autosuggestProps}
+    suggestions = {that.state[suggestions]}
+    onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
+      that.setState({
+        modified: true,
+        sample: {
+          ...that.state.sample,
+          [field]: suggestionValue,
+        }
+      });
+    }}
+    inputProps={{
+      disabled: disabled,
+      value: value ? value : '',
+      onChange: e => {
+        that.setState({
+          modified: true,
+          sample: {
+            ...that.state.sample,
+            [field]: e.target.value,
+          }
+        });
+      },
+      label: label,
+    }}
+    theme={{
+      container: { position: 'relative',},
+      suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
+      suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
+      suggestion: {display: 'block', },
+    }}
+    onSuggestionsFetchRequested={({value, reason}) => {
+      handleSuggestionFetchRequested(that, suggestions, value)
+    }}
+    onSuggestionsClearRequested={() => handleSuggestionsClearRequested(that, suggestions)}
+    renderSuggestionsContainer={options => (
+      <Paper {...options.containerProps} square>
+        {options.children}
+      </Paper>
+    )}
+  />);
+}

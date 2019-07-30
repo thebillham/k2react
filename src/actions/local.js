@@ -1079,7 +1079,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
                   console.log(contact);
                   wfmContact.contactID = contactID;
                   wfmContact.contactName = contact.Name;
-                  wfmContact.contactEmail = contact.Email;
+                  wfmContact.contactEmail = contact.Email.toLowerCase();
                   dispatch({
                     type: GET_WFM_CONTACT,
                     payload: wfmContact,

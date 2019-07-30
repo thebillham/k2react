@@ -461,18 +461,7 @@ class Staff extends React.Component {
                             position="bottom center"
                             on="hover"
                           >
-                            <div
-                              style={{
-                                borderRadius: 20,
-                                display: "inline-flex",
-                                backgroundColor: "darkgrey",
-                                color: "white",
-                                whiteSpace: "nowrap",
-                                fontSize: 96,
-                                padding: 48,
-                                margin: -8
-                              }}
-                            >
+                            <div className={classes.popupPhoneNumber}>
                               {user.workphone}
                             </div>
                           </Popup>

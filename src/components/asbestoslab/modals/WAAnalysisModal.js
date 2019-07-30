@@ -1,23 +1,15 @@
 import React from "react";
-import reactCSS from 'reactcss';
-import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
-import store from "../../../store";
 import { WA_ANALYSIS, SOIL_DETAILS } from "../../../constants/modal-types";
-import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import { SampleTextyBox, SampleTickyBoxGroup, } from '../../../widgets/FormWidgets';
-import { SketchPicker } from 'react-color';
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import Tooltip from "@material-ui/core/Tooltip";
-import Divider from "@material-ui/core/Divider";
 import Dialog from "@material-ui/core/Dialog";
-import Grid from "@material-ui/core/Grid";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -30,8 +22,6 @@ import Switch from "@material-ui/core/Switch";
 import Checkbox from "@material-ui/core/Checkbox";
 import FormLabel from "@material-ui/core/FormLabel";
 import TextField from "@material-ui/core/TextField";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import UploadIcon from "@material-ui/icons/CloudUpload";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, showModalSecondary } from "../../../actions/modal";
@@ -40,7 +30,6 @@ import { addLog, } from '../../../actions/local';
 import {
   asbestosSamplesRef
 } from "../../../config/firebase";
-import _ from "lodash";
 
 const waLayerNum = 5;
 
@@ -372,8 +361,7 @@ class WAAnalysisModal extends React.Component {
   }
 
   getSubfractionRow = (num, fraction) => {
-    let chColor, amColor, crColor, umfColor, noColor, orgColor, smfColor = '#ddd';
-    let chDivColor, amDivColor, crDivColor, umfDivColor, noDivColor, orgDivColor, smfDivColor = 'white';
+    const { classes } = this.props;
 
     let layer = {};
 
@@ -383,19 +371,8 @@ class WAAnalysisModal extends React.Component {
 
     return(
       <div key={num+fraction}>
-        <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }} className={this.props.classes.hoverItem}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              marginRight: 10,
-              color: "#fff",
-              justifyContent: "center",
-              alignItems: "center",
-              display: "flex",
-              fontWeight: "bold"
-            }}
-          >
+        <div className={classes.flexRowHover}>
+          <div className={classes.circleShaded}>
             {num}
           </div>
           <TextField

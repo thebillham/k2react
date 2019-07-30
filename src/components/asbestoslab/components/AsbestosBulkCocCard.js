@@ -2,52 +2,41 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
-import {
-  cocsRef,
-  firebase,
-  auth,
-  asbestosSamplesRef
-} from "../../../config/firebase";
 import moment from "moment";
 import {
   fetchCocs,
   fetchSamples,
   logSample,
-  writeResult,
   setSessionID,
   deleteCoc,
-  getStats,
-  removeResult,
-  verifySample,
   startAnalysisAll,
   receiveAll,
-  togglePriority,
-  toggleWAAnalysis,
-  sortSamples,
   getAnalysts,
   printCoc,
   printLabReport,
   issueLabReport,
 } from "../../../actions/asbestosLab";
-import { syncJobWithWFM, addLog, } from "../../../actions/local";
+import { syncJobWithWFM, } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
+  ASBESTOS_SAMPLE_DETAILS,
   COC,
   COC_STATS,
-  DOWNLOAD_LAB_CERTIFICATE,
+  COC_RECEIVE,
+  COC_START_ANALYSIS,
+  COC_VERIFY,
   UPDATE_CERTIFICATE_VERSION,
   COC_LOG
 } from "../../../constants/modal-types";
 
-import { TickyBox, } from '../../../widgets/FormWidgets';
 import SampleListItem from "./SampleListItem";
 import AsbestosBulkCocSummary from "./AsbestosBulkCocSummary";
 
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import Button from "@material-ui/core/Button";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -193,26 +182,46 @@ class AsbestosBulkCocCard extends React.Component {
                   <PrintCocIcon className={classes.iconRegular} />
                 </IconButton>
               </Tooltip>
-              <Tooltip id="reca-tooltip" title={'Receive Samples'}>
-                <IconButton onClick={() => receiveAll(samples[job.uid], job, this.props.sessionID, this.props.me)} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+              <Tooltip id="reca-tooltip" title={'Receive Samples'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                  onClick={event => {
+                      this.props.showModal({
+                        modalType: COC_RECEIVE,
+                        modalProps: { job: job, }});
+                  }}>
                   <ReceiveIcon className={classes.iconRegular} />
                 </IconButton>
               </Tooltip>
               <Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
-                <IconButton
-                onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
+                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                  onClick={event => {
+                      this.props.showModal({
+                        modalType: COC_START_ANALYSIS,
+                        modalProps: { job: job, }});
+                  }}>
                   <StartAnalysisIcon className={classes.iconRegular} />
                 </IconButton>
               </Tooltip>
               <Tooltip title={'Record Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
-                <IconButton
-                onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
+                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                  onClick={event => {
+                      this.props.showModal({
+                        modalType: ASBESTOS_SAMPLE_DETAILS,
+                        modalProps: {
+                          doc: Object.values(samples[job.uid])[0],
+                          job: job,
+                      }});
+                  }}>
                   <RecordAnalysisIcon className={classes.iconRegular} />
                 </IconButton>
               </Tooltip>
-              <Tooltip title={'Record Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
-                <IconButton
-                onClick={() => startAnalysisAll(samples[job.uid], job, this.props.sessionID, this.props.me)}>
+              <Tooltip title={'Verify Results'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                  onClick={event => {
+                      this.props.showModal({
+                        modalType: COC_VERIFY,
+                        modalProps: { job: job, }});
+                  }}>
                   <VerifyIcon className={classes.iconRegular} />
                 </IconButton>
               </Tooltip>
@@ -316,11 +325,10 @@ class AsbestosBulkCocCard extends React.Component {
                 </MenuItem>
               </Menu>
             </div>
-            {samples[job.uid] && Object.values(samples[job.uid]).length > 0 ? (
+            {samples[job.uid] && Object.values(samples[job.uid]).filter(el => el.deleted === false).length > 0 ? (
               <div>
                 <AsbestosBulkCocSummary job={job} analysts={analysts} dates={dates} />
-                {samples[job.uid] && Object.values(samples[job.uid]).filter(el => el.deleted === false).length > 0 &&
-                  Object.values(samples[job.uid]).filter(el => el.deleted === false)
+                {Object.values(samples[job.uid]).filter(el => el.deleted === false)
                   .map(sample => {
                     return (<SampleListItem
                       key={sample.uid}
@@ -333,8 +341,8 @@ class AsbestosBulkCocCard extends React.Component {
                 )}
               </div>
             ) : (
-              <div className={classes.flexRowCentered}>
-                No samples
+              <div className={classes.marginTopSmall}>
+                <LinearProgress color="secondary" />
               </div>
             )}
           </div>

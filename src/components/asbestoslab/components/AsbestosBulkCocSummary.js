@@ -4,65 +4,12 @@ import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import {
   cocsRef,
-  firebase,
-  auth,
-  asbestosSamplesRef
 } from "../../../config/firebase";
 import moment from "moment";
-import {
-  fetchCocs,
-  fetchSamples,
-  logSample,
-  writeResult,
-  setSessionID,
-  deleteCoc,
-  getStats,
-  removeResult,
-  verifySample,
-  startAnalysisAll,
-  receiveAll,
-  togglePriority,
-  toggleWAAnalysis,
-  sortSamples,
-  getAnalysts,
-  printCoc,
-  printLabReport,
-  issueLabReport,
-} from "../../../actions/asbestosLab";
-import { syncJobWithWFM, addLog, } from "../../../actions/local";
-import { showModal } from "../../../actions/modal";
-import {
-  COC,
-  DOWNLOAD_LAB_CERTIFICATE,
-  UPDATE_CERTIFICATE_VERSION,
-  COC_LOG
-} from "../../../constants/modal-types";
+import { addLog, } from "../../../actions/local";
 
 import { TickyBox, } from '../../../widgets/FormWidgets';
-import SampleListItem from "./SampleListItem";
-
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import Button from "@material-ui/core/Button";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import Divider from "@material-ui/core/Divider";
-import Tooltip from "@material-ui/core/Tooltip";
-
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
-import Edit from "@material-ui/icons/Edit";
-import Inbox from "@material-ui/icons/Inbox";
-import Save from "@material-ui/icons/SaveAlt";
-import Print from "@material-ui/icons/Print";
-import Send from "@material-ui/icons/Send";
-import Flag from "@material-ui/icons/Flag";
-import More from "@material-ui/icons/MoreVert";
-import Colorize from "@material-ui/icons/Colorize";
-import WAIcon from "@material-ui/icons/GroupWork";
 
 const mapStateToProps = state => {
   return {

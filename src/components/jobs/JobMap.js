@@ -1491,7 +1491,7 @@ class JobMap extends React.Component {
 
                       Only show jobs/leads that haven't been updated for
                       <Input
-                        style={{ width: 45, marginLeft: 12, marginRight: 12, }}
+                        className={classes.formInputNumber}
                         type='number'
                         value={this.props.filter.updatedInTheLast}
                         onChange={(event) => this.props.filterMap({
@@ -1516,7 +1516,7 @@ class JobMap extends React.Component {
 
                       Only show jobs/leads that were created in the last
                       <Input
-                        style={{ width: 45, marginLeft: 12, marginRight: 12, }}
+                        className={classes.formInputNumber}
                         type='number'
                         value={this.props.filter.createdInTheLast}
                         onChange={(event) => { this.props.filterMap({
@@ -1543,7 +1543,7 @@ class JobMap extends React.Component {
 
                       Only show jobs/leads that were completed in the last
                       <Input
-                        style={{ width: 45, marginLeft: 12, marginRight: 12, }}
+                        className={classes.formInputNumber}
                         type='number'
                         value={this.props.filter.completedInTheLast}
                         onChange={(event) => this.props.filterMap({
@@ -1568,7 +1568,7 @@ class JobMap extends React.Component {
 
                       Only show leads that have actions overdue by
                       <Input
-                        style={{ width: 45, marginLeft: 12, marginRight: 12, }}
+                        className={classes.formInputNumber}
                         type='number'
                         value={this.props.filter.actionsOverdueBy}
                         onChange={(event) => this.props.filterMap({

@@ -1,53 +1,28 @@
 import React from "react";
 import reactCSS from 'reactcss';
-import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
-import store from "../../../store";
 import { ASBESTOS_NONANALYST_DETAILS, } from "../../../constants/modal-types";
-import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import { SampleTextyDisplay, SampleTextyLine, AsbButton, } from '../../../widgets/FormWidgets';
-import { AsbestosClassification } from '../../../config/strings';
 
-import { SketchPicker } from 'react-color';
 import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Tooltip from "@material-ui/core/Tooltip";
-import Divider from "@material-ui/core/Divider";
 import Dialog from "@material-ui/core/Dialog";
 import Grid from "@material-ui/core/Grid";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
-import FormGroup from "@material-ui/core/FormGroup";
-import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import Radio from "@material-ui/core/Radio";
-import Checkbox from "@material-ui/core/Checkbox";
-import FormLabel from "@material-ui/core/FormLabel";
-import TextField from "@material-ui/core/TextField";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import UploadIcon from "@material-ui/icons/CloudUpload";
-import AddIcon from "@material-ui/icons/Add";
-import RemoveIcon from "@material-ui/icons/Remove";
 import Good from "@material-ui/icons/ThumbUp";
 import Half from "@material-ui/icons/ThumbsUpDown";
 import Bad from "@material-ui/icons/ThumbDown";
-import { hideModal, showModalSecondary, handleModalChange } from "../../../actions/modal";
-import { addLog, } from "../../../actions/local";
+import { hideModal, handleModalChange } from "../../../actions/modal";
 import moment from "moment";
 import {
-  handleSampleChange,
   writeSoilDetails,
   getSampleColors,
-  getBasicResult,
   analyticalCriteraOK,
-  traceAnalysisRequired,
   writeShorthandResult,
   getWAAnalysisSummary,
   writeSampleConditioningList,
@@ -59,14 +34,6 @@ import {
   asbestosSamplesRef
 } from "../../../config/firebase";
 import _ from "lodash";
-
-const defaultColor = {
-  r: '150',
-  g: '150',
-  b: '150',
-  a: '1',
-};
-
 
 const mapStateToProps = state => {
   return {
@@ -177,7 +144,7 @@ class AsbestosSampleDetailsModal extends React.Component {
         fullWidth={true}
       >
         <DialogTitle>{`Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber}`}</DialogTitle>
-        {sample && <DialogContent>
+        {modalType === ASBESTOS_NONANALYST_DETAILS && <DialogContent>
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={6}>
               <div className={classes.informationBox}>
@@ -192,7 +159,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                 <div className={classes.heading}>Results</div>
                 <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 12, }}>
                   {['ch','am','cr','umf','no','org','smf'].map(res => {
-                    if (sample.result[res] === true) return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res, null);
+                    if (sample.resuts && sample.result[res] === true) return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res, null);
                   })}
                 </div>
                 {SampleTextyLine('Analyst', sample.analyst ? sample.analyst : "Not analysed")}

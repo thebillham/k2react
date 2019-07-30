@@ -1,42 +1,29 @@
 import React from "react";
-import reactCSS from 'reactcss';
-import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles, } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import classNames from 'classnames';
-import store from "../../../store";
 import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS } from "../../../constants/modal-types";
-import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 
-import { SampleTickyBox, SampleTextyBox, SampleRadioSelector, SampleTickyBoxGroup, SampleTextyDisplay, AsbButton } from '../../../widgets/FormWidgets';
+import { SampleTickyBox, SampleTextyBox, SampleRadioSelector, SampleTickyBoxGroup, AsbButton } from '../../../widgets/FormWidgets';
 import { AsbestosClassification } from '../../../config/strings';
 
 import { SketchPicker } from 'react-color';
 import Button from "@material-ui/core/Button";
+import InputLabel from "@material-ui/core/InputLabel";
 import IconButton from "@material-ui/core/IconButton";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Tooltip from "@material-ui/core/Tooltip";
+import Input from "@material-ui/core/Input";
 import Divider from "@material-ui/core/Divider";
 import Dialog from "@material-ui/core/Dialog";
 import Grid from "@material-ui/core/Grid";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
-import FormGroup from "@material-ui/core/FormGroup";
-import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import Radio from "@material-ui/core/Radio";
-import Checkbox from "@material-ui/core/Checkbox";
-import FormLabel from "@material-ui/core/FormLabel";
 import TextField from "@material-ui/core/TextField";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import UploadIcon from "@material-ui/icons/CloudUpload";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
-import { SuggestionField } from '../../../widgets/SuggestionField';
+import { SuggestionField, SuggestionFieldSample, } from '../../../widgets/SuggestionField';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { addLog, } from "../../../actions/local";
 import {
@@ -49,7 +36,6 @@ import {
 import {
   asbestosSamplesRef
 } from "../../../config/firebase";
-import _ from "lodash";
 
 const layerNum = 5;
 
@@ -66,6 +52,9 @@ const mapStateToProps = state => {
     modalProps: state.modal.modalProps,
     me: state.local.me,
     samples: state.asbestosLab.samples,
+    genericLocationSuggestions: state.const.genericLocationSuggestions,
+    specificLocationSuggestions: state.const.specificLocationSuggestions,
+    descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
   };
 };
@@ -83,6 +72,9 @@ class AsbestosSampleEditModal extends React.Component {
     sample: {},
     displayColorPicker: {},
     modified: false,
+    genericLocationSuggestions: [],
+    specificLocationSuggestions: [],
+    descriptionSuggestions: [],
     materialSuggestions: [],
   };
 
@@ -199,7 +191,6 @@ class AsbestosSampleEditModal extends React.Component {
   render() {
     const { classes, modalProps, modalType } = this.props;
     const { sample } = this.state;
-    let editor = this.props.me.auth && this.props.me.auth['Asbestos Bulk Analysis'];
     return (
       <div>
       {sample &&
@@ -215,14 +206,17 @@ class AsbestosSampleEditModal extends React.Component {
         <DialogContent>
           <Grid container alignItems='flex-start' justify='flex-end'>
             <Grid item xs={5}>
-              <div className={classes.subHeading}>Description</div>
-              {editor ? SampleTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 3, null, null)
-              : SampleTextyDisplay('Sample Description',sample.labDescription)}
-              {editor ? SampleTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 3, null, null)
-              : SampleTextyDisplay('Lab Comments',sample.labComments)}
+              <div className={classes.subHeading}>Basic Information</div>
+              {SuggestionFieldSample(this, false, 'Generic Location', 'genericLocation')}
+              {SuggestionFieldSample(this, false, 'Specific Location', 'specificLocation')}
+              {SuggestionFieldSample(this, false, 'Description', 'description')}
+              {SuggestionFieldSample(this, false, 'Material', 'material')}
+              <div className={classes.subHeading}>Lab Description</div>
+              {SampleTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 3, null, null)}
+              {SampleTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 3, null, null)}
 
-              <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
-                {editor && <Button
+              {sample.material === 'soil' && <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
+                <Button
                   variant="outlined"
                   style={{ marginBottom: 16, marginTop: 16, textAlign: 'center' }}
                   onClick={() => {
@@ -243,29 +237,52 @@ class AsbestosSampleEditModal extends React.Component {
                   }}
                 >
                   Edit Geotechnical Soil Description
-                </Button>}
+                </Button>
                 <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
-              </div>
+              </div>}
             </Grid>
             <Grid item xs={1} />
             <Grid item xs={6}>
               <div className={classes.subHeading}>Sampling Method</div>
                 {SampleRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
                   [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
-              <div className={classes.subHeading}>Weight</div>
+                  {sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab' &&
+                  <div>
+                    <InputLabel>{`Number of ${sample.samplingMethod}s`}</InputLabel>
+                    <Input
+                      className={classes.formInputNumber}
+                      type='number'
+                      value={sample.sampleQuantity}
+                      onChange={(event) => this.setState({
+                        modified: true,
+                        sample: {
+                          ...this.state.sample,
+                          sampleQuantity: event.target.value,
+                        }
+                      })}
+                      inputProps={{
+                        min: 1,
+                      }}
+                    />
+                  </div>}
+              <div className={classes.subHeading}>Weights</div>
               <div className={classes.flexRow}>
-                {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. before any conditioning).', false, 0, 'g', null)}
-                <div style={{ width: 200 }} />
-                {SampleTextyBox(this, sample, 'weightAnalysed', 'Weight Analysed', 'Record the weight analysed (e.g. after conditioning such as furnacing).', false, 0, 'g', null)}
+                <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null)}</div>
+                <div className={classes.spacerSmall} />
+                <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightSubsample', 'Weight of Subsample', 'Record the weight of the subsample if the entire sample is not analysed.', false, 0, 'g', null)}</div>
+                <div className={classes.spacerSmall} />
+                <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightDry', 'Dry Weight', 'Record the weight after drying (~105°).', false, 0, 'g', null)}</div>
+                <div className={classes.spacerSmall} />
+                <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightAshed', 'Ashed Weight', 'Record the weight after ashing (~400°).', false, 0, 'g', null)}</div>
               </div>
 
               <div className={classes.subHeading}>Dimensions</div>
               <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                {SampleTextyBox(this, sample, 'dimensionsL', 'Length', null, false, 0, 'mm', null)}
-                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
-                {SampleTextyBox(this, sample, 'dimensionsW', 'Width', null, false, 0, 'mm', null)}
-                <span style={{ fontWeight: 450, fontSize: 12, margin: 14, }}>X</span>
-                {SampleTextyBox(this, sample, 'dimensionsD', 'Depth/Thickness', null, false, 0, 'mm', null)}
+                <div className={classes.formInputSmall}>{SampleTextyBox(this, sample, 'dimensionsL', 'Length', null, false, 0, 'mm', null)}</div>
+                <span className={classes.timesSymbol}>X</span>
+                <div className={classes.formInputSmall}>{SampleTextyBox(this, sample, 'dimensionsW', 'Width', null, false, 0, 'mm', null)}</div>
+                <span className={classes.timesSymbol}>X</span>
+                <div className={classes.formInputSmall}>{SampleTextyBox(this, sample, 'dimensionsD', 'Depth/Thickness', null, false, 0, 'mm', null)}</div>
               </div>
             </Grid>
           </Grid>
@@ -361,38 +378,6 @@ class AsbestosSampleEditModal extends React.Component {
       colors = getSampleColors(layer);
     }
 
-    const styles = reactCSS({
-      'default': {
-        color: {
-          width: '36px',
-          height: '14px',
-          borderRadius: '12px',
-          background: `rgba(${ layer.color ? layer.color.r : null }, ${ layer.color ? layer.color.g : null }, ${ layer.color ? layer.color.b : null }, ${ layer.color ? layer.color.a : null })`,
-        },
-        swatch: {
-          padding: '5px',
-          background: '#fff',
-          borderRadius: '12px',
-          boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
-          display: 'inline-block',
-          cursor: 'pointer',
-        },
-        popover: {
-          position: 'fixed',
-          top: '45%',
-          left: '45%',
-          zIndex: '2',
-        },
-        cover: {
-          position: 'fixed',
-          top: '0px',
-          right: '0px',
-          bottom: '0px',
-          left: '0px',
-        },
-      },
-    });
-
     return(
       <div key={num} className={classes.flexRowHover}>
         <div className={classes.circleShaded}>
@@ -405,11 +390,11 @@ class AsbestosSampleEditModal extends React.Component {
         )}
 
         <div className={classes.marginRight}>
-          <div style={ styles.swatch } onClick={ () => this.handleColorClick(num) }>
-            <div style={ styles.color } />
+          <div className={ classes.colorPickerSwatch } onClick={ () => this.handleColorClick(num) }>
+            <div className={classes.colorPickerColor} style={{ background: `rgba(${ layer.color ? layer.color.r : null }, ${ layer.color ? layer.color.g : null }, ${ layer.color ? layer.color.b : null }, ${ layer.color ? layer.color.a : null })` }} />
           </div>
-          { this.state.displayColorPicker[num] ? <div style={ styles.popover }>
-            <div style={ styles.cover } onClick={ () => this.handleColorClose(num) }/>
+          { this.state.displayColorPicker[num] ? <div className={ classes.colorPickerPopover }>
+            <div className={ classes.colorPickerCover } onClick={ () => this.handleColorClose(num) }/>
             <SketchPicker color={ this.state.sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
           </div> : null }
 

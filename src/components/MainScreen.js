@@ -29,6 +29,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import IconButton from "@material-ui/core/IconButton";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
@@ -842,7 +843,10 @@ class MainScreen extends React.Component {
                   <AppSettings />
                   <UpdateData />
                   {/* All locations are matched to their components here */}
-                  <Suspense fallback={<CircularProgress className={classes.signInCircle} />}>
+                  <Suspense fallback={
+                    <div className={classes.marginTopLarge}>
+                      <LinearProgress color="secondary" />
+                    </div>}>
                     <Switch>
                       <Route exact path="/staff" render={props => <Staff {...props} />} />
                       <Route

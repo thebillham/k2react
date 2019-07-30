@@ -25,6 +25,7 @@ import SoilDetailsModal from "./modals/SoilDetailsModal";
 import AsbestosSampleEditModal from "./modals/AsbestosSampleEditModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
 import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
+import AsbestosReceiveSamplesModal from "./modals/AsbestosReceiveSamplesModal";
 import ConfirmResultModal from "./modals/ConfirmResultModal";
 import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
@@ -34,6 +35,7 @@ import AsbestosBulkCocCard from "./components/AsbestosBulkCocCard";
 import Button from "@material-ui/core/Button";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Select from "@material-ui/core/Select";
@@ -143,6 +145,7 @@ class AsbestosCocs extends React.Component {
         <SoilDetailsModal />
         <ConfirmResultModal />
         <AsbestosSampleDetailsModal />
+        <AsbestosReceiveSamplesModal />
         <Button
           variant="outlined"
           className={classes.marginBottomSmall}
@@ -258,46 +261,60 @@ class AsbestosCocs extends React.Component {
             </div>
           )}
         </div>
-        {Object.keys(cocs).length < 1 ? (
-          <div className={classes.flexRowCentered}>
-            No CoCs found.
-            {/*<CircularProgress
-              style={{
-                margin: 40
-              }}
-            />*/}
-          </div>
-        ) : (
-          <div className={classes.marginTopSmall}>
-            {Object.keys(cocs)
-              .filter(job => {
-                let res = true;
-                if (this.props.search) {
-                  let terms = this.props.search.split(" ");
-                  let search =
-                    job + " " + cocs[job].client + " " + cocs[job].address;
-                  terms.forEach(term => {
-                    if (!search.toLowerCase().includes(term.toLowerCase()))
-                      res = false;
-                  });
-                }
-                if (this.state.searchClient !== "" && cocs[job].client !== this.state.searchClient) res = false;
-                if (this.state.searchStartDate !== "" && moment(cocs[job].lastModified.toDate()).isBefore(new Date(this.state.searchStartDate), 'day')) res = false;
-                if (this.state.searchEndDate !== "" && moment(cocs[job].lastModified.toDate()).isAfter(new Date(this.state.searchEndDate), 'day')) res = false;
-                if (this.state.searchJobNumber !== "" && cocs[job].jobNumber.includes(this.state.searchJobNumber.toUpperCase()) === false) res = false;
-                if (cocs[job].deleted === true) res = false;
-                return res;
-              })
-              .map(job => {
-                // what is the version thing doing
-                let version = 1;
-                // console.log(cocs[job]);
-                if (cocs[job].reportversion)
-                  version = cocs[job].reportversion + 1;
-                return <AsbestosBulkCocCard key={job} job={cocs[job]} />;
-              })}
-          </div>
-        )}
+        {Object.keys(cocs)
+          .filter(job => {
+            let res = true;
+            if (this.props.search) {
+              let terms = this.props.search.split(" ");
+              let search =
+                job + " " + cocs[job].client + " " + cocs[job].address;
+              terms.forEach(term => {
+                if (!search.toLowerCase().includes(term.toLowerCase()))
+                  res = false;
+              });
+            }
+            if (this.state.searchClient !== "" && cocs[job].client !== this.state.searchClient) res = false;
+            if (this.state.searchStartDate !== "" && moment(cocs[job].lastModified.toDate()).isBefore(new Date(this.state.searchStartDate), 'day')) res = false;
+            if (this.state.searchEndDate !== "" && moment(cocs[job].lastModified.toDate()).isAfter(new Date(this.state.searchEndDate), 'day')) res = false;
+            if (this.state.searchJobNumber !== "" && cocs[job].jobNumber.includes(this.state.searchJobNumber.toUpperCase()) === false) res = false;
+            if (cocs[job].deleted === true) res = false;
+            return res;
+          }).length < 1 ? (
+            <div className={classes.marginTopSmall}>
+              <LinearProgress color="secondary" />
+            </div>
+          ) : (
+            <div className={classes.marginTopSmall}>
+              {Object.keys(cocs)
+                .filter(job => {
+                  let res = true;
+                  if (this.props.search) {
+                    let terms = this.props.search.split(" ");
+                    let search =
+                      job + " " + cocs[job].client + " " + cocs[job].address;
+                    terms.forEach(term => {
+                      if (!search.toLowerCase().includes(term.toLowerCase()))
+                        res = false;
+                    });
+                  }
+                  if (this.state.searchClient !== "" && cocs[job].client !== this.state.searchClient) res = false;
+                  if (this.state.searchStartDate !== "" && moment(cocs[job].lastModified.toDate()).isBefore(new Date(this.state.searchStartDate), 'day')) res = false;
+                  if (this.state.searchEndDate !== "" && moment(cocs[job].lastModified.toDate()).isAfter(new Date(this.state.searchEndDate), 'day')) res = false;
+                  if (this.state.searchJobNumber !== "" && cocs[job].jobNumber.includes(this.state.searchJobNumber.toUpperCase()) === false) res = false;
+                  if (cocs[job].deleted === true) res = false;
+                  return res;
+                })
+                .map(job => {
+                  // what is the version thing doing
+                  let version = 1;
+                  // console.log(cocs[job]);
+                  if (cocs[job].reportversion)
+                    version = cocs[job].reportversion + 1;
+                  return <AsbestosBulkCocCard key={job} job={cocs[job]} />;
+                })}
+            </div>
+          )
+        }
       </div>
     );
   }

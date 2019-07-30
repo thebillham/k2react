@@ -165,13 +165,6 @@ const styles = theme => ({
     paddingLeft: theme.spacing(5),
   },
 
-  hoverItem: {
-      // backgroundColor: "#fff",
-      "&:hover": {
-          backgroundColor: "#eee"
-      }
-  },
-
   informationBox: {
     backgroundColor: '#eee',
     borderStyle: 'solid',
@@ -522,6 +515,11 @@ const styles = theme => ({
     color: 'black',
   },
 
+  timesSymbol: {
+    fontWeight: 450,
+    fontSize: 12,
+  },
+
   // Colors
   colorAccent: {
     color: theme.palette.secondary.main,
@@ -605,6 +603,17 @@ const styles = theme => ({
     fontWeight: "bold"
   },
 
+  popupPhoneNumber: {
+    borderRadius: 20,
+    display: "inline-flex",
+    backgroundColor: "darkgrey",
+    color: "white",
+    whiteSpace: "nowrap",
+    fontSize: 96,
+    padding: 48,
+    margin: -8
+  },
+
   // SEARCH BOXES
   searchBoxRoot: {
     borderRadius: 4,
@@ -632,6 +641,24 @@ const styles = theme => ({
     width: '200px',
   },
 
+  formInputNumber: {
+    width: 45,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+  },
+
+  formInputSmall: {
+    width: 100,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+  },
+
+  formInputMedium: {
+    width: 175,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+  },
+
   // PADDING/MARGINS
 
   marginLeftSmall: {
@@ -652,6 +679,10 @@ const styles = theme => ({
     marginTop: theme.spacing(1),
   },
 
+  marginTopLarge: {
+    marginTop: 90,
+  },
+
   marginBottomSmall: {
     marginBottom: theme.spacing(1),
   },
@@ -660,7 +691,7 @@ const styles = theme => ({
     width: theme.spacing(1),
   },
 
-  spaceMedium: {
+  spacerMedium: {
     width: theme.spacing(2),
   },
 
@@ -717,6 +748,38 @@ const styles = theme => ({
     alignItems: "center",
     justifyContent: "center",
     height: 80.0,
+  },
+
+  // COLOUR PICKER
+
+  colorPickerSwatch: {
+    padding: '5px',
+    background: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
+    display: 'inline-block',
+    cursor: 'pointer',
+  },
+
+  colorPickerPopover: {
+    position: 'fixed',
+    top: '45%',
+    left: '45%',
+    zIndex: '2',
+  },
+
+  colorPickerCover: {
+    position: 'fixed',
+    top: '0px',
+    right: '0px',
+    bottom: '0px',
+    left: '0px',
+  },
+
+  colorPickerColor: {
+    width: '36px',
+    height: '14px',
+    borderRadius: '12px',
   },
 });
 

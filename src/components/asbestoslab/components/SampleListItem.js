@@ -4,68 +4,32 @@ import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import {
   cocsRef,
-  asbestosAnalysisRef,
-  firebase,
-  auth,
   asbestosSamplesRef,
 } from "../../../config/firebase";
-import moment from "moment";
-import momentbusinessdays from "moment-business-days";
-import momenttimezone from "moment-timezone";
-import momentbusinesstime from "moment-business-time";
 import {
-  fetchCocs,
-  fetchSamples,
-  logSample,
-  writeResult,
-  getStats,
   writeDescription,
   getSampleColors,
   getBasicResult,
-  receiveSample,
-  startAnalysis,
-  toggleResult,
   holdSample,
-  verifySample,
-  checkVerifyIssues,
 } from "../../../actions/asbestosLab";
-import { syncJobWithWFM } from "../../../actions/local";
-import { AsbestosClickyBasic } from '../../../widgets/ButtonWidgets';
-import { SampleTextyBox, AsbButton } from '../../../widgets/FormWidgets';
+import { AsbButton } from '../../../widgets/FormWidgets';
 import { showModal } from "../../../actions/modal";
 import {
-  COC,
   ASBESTOS_SAMPLE_DETAILS,
-  DOWNLOAD_LAB_CERTIFICATE,
-  UPDATE_CERTIFICATE_VERSION,
   WA_ANALYSIS,
   SAMPLE_HISTORY,
-  COC_LOG,
   CONFIRM_RESULT,
   ASBESTOS_NONANALYST_DETAILS,
-  VERIFY_ISSUES_ASBESTOS,
 } from "../../../constants/modal-types";
 
 import Grid from "@material-ui/core/Grid";
-import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import IconButton from "@material-ui/core/IconButton";
-import Button from "@material-ui/core/Button";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import Divider from "@material-ui/core/Divider";
 import Tooltip from "@material-ui/core/Tooltip";
 
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import Edit from "@material-ui/icons/Edit";
-import Inbox from "@material-ui/icons/Inbox";
-import Save from "@material-ui/icons/SaveAlt";
-import CameraAlt from "@material-ui/icons/CameraAlt";
-import Print from "@material-ui/icons/Print";
-import Send from "@material-ui/icons/Send";
-import Flag from "@material-ui/icons/Flag";
-import More from "@material-ui/icons/MoreVert";
+import EditIcon from "@material-ui/icons/Edit";
+import ReceiveIcon from "@material-ui/icons/Inbox";
+import CameraIcon from "@material-ui/icons/CameraAlt";
 import AnalysisIcon from "@material-ui/icons/Colorize";
 import WAIcon from "@material-ui/icons/GroupWork";
 import SampleLogIcon from "@material-ui/icons/Ballot";
@@ -155,7 +119,7 @@ class SampleListItem extends React.Component {
                 {sample.sampleNumber}
               </div>
               {sample.imagePathRemote && <Popup
-                trigger={<CameraAlt className={classes.iconRegularGreen} />}
+                trigger={<CameraIcon className={classes.iconRegularGreen} />}
                 position="right center"
                 on="hover"
                 >
@@ -188,7 +152,7 @@ class SampleListItem extends React.Component {
           <Grid item xs={12} xl={9}>
             <div className={classes.flexRowRightAlign}>
               <Tooltip title={sample.receivedByLab ? 'Received by lab' : 'Not yet received by lab'}>
-                <Inbox className={sample.receivedByLab ? classes.iconRegularGreen : classes.iconRegular} />
+                <ReceiveIcon className={sample.receivedByLab ? classes.iconRegularGreen : classes.iconRegular} />
               </Tooltip>
               <Tooltip title={sample.analysisStart ? 'Analysis begun' : 'Analysis not yet begun'}>
                 <AnalysisIcon className={sample.analysisStart ? classes.iconRegularGreen : classes.iconRegular} />
@@ -209,7 +173,7 @@ class SampleListItem extends React.Component {
                       }});
                   }}
                 >
-                  <Edit className={classes.iconRegular}/>
+                  <EditIcon className={classes.iconRegular}/>
                 </IconButton>
               </Tooltip>}
               {job.waAnalysis &&
