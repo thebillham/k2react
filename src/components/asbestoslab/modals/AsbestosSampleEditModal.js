@@ -32,6 +32,8 @@ import {
   getSampleColors,
   analyticalCriteraOK,
   traceAnalysisRequired,
+  toggleResult,
+  updateResultMap,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
@@ -51,7 +53,9 @@ const mapStateToProps = state => {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     me: state.local.me,
+    analyst: state.asbestosLab.analyst,
     samples: state.asbestosLab.samples,
+    sessionID: state.asbestosLab.sessionID,
     genericLocationSuggestions: state.const.genericLocationSuggestions,
     specificLocationSuggestions: state.const.specificLocationSuggestions,
     descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
@@ -76,6 +80,7 @@ class AsbestosSampleEditModal extends React.Component {
     specificLocationSuggestions: [],
     descriptionSuggestions: [],
     materialSuggestions: [],
+    result: {},
   };
 
   loadProps = () => {
@@ -87,7 +92,8 @@ class AsbestosSampleEditModal extends React.Component {
       }
     });
     this.setState({
-      sample
+      sample,
+      result: sample.result,
     });
   }
 
@@ -109,6 +115,51 @@ class AsbestosSampleEditModal extends React.Component {
         [num]: false,
       }
     })
+  };
+
+  handleResultClick = (res) => {
+    const { me, analyst, sessionID, } = this.props;
+    const { sample } = this.state;
+    let override = false;
+    if (
+      me.auth &&
+      (me.auth["Asbestos Bulk Analysis"] ||
+        me.auth["Asbestos Admin"])
+    ) {
+      // Check analyst has been selected
+      if (analyst === "") {
+        window.alert(
+          "Select analyst from the dropdown at the top of the page."
+        );
+      }
+      // Check if this sample has already been analysed
+      if (sample.sessionID !== sessionID && sample.result && !this.state.override) {
+        if (
+          window.confirm(
+            "This sample has already been analysed. Do you wish to override the result?"
+          )
+        ) {
+          override = true;
+        } else {
+          return;
+        }
+      }
+
+      let newMap = updateResultMap(res, this.state.result);
+
+      this.setState({
+        result: newMap,
+        modified: true,
+        override,
+      })
+
+      // Check for situation where all results are unselected
+
+    } else {
+      window.alert(
+        "You don't have sufficient permissions to set asbestos results."
+      );
+    }
   };
 
   addLayer = () => {
@@ -149,6 +200,7 @@ class AsbestosSampleEditModal extends React.Component {
         this.setState({
           modified: false,
           sample: sample,
+          result: sample.result,
         });
         takeThisSample = false;
       }
@@ -164,6 +216,7 @@ class AsbestosSampleEditModal extends React.Component {
         this.setState({
           modified: false,
           sample: sample,
+          result: sample.result,
         });
         takeThisSample = false;
       }
@@ -172,7 +225,7 @@ class AsbestosSampleEditModal extends React.Component {
   };
 
   saveSample = () => {
-    const { sample } = this.state;
+    const { sample, override } = this.state;
     asbestosSamplesRef
       .doc(sample.uid)
       .update(sample);
@@ -189,8 +242,9 @@ class AsbestosSampleEditModal extends React.Component {
   }
 
   render() {
-    const { classes, modalProps, modalType } = this.props;
+    const { classes, modalProps, modalType, samples } = this.props;
     const { sample } = this.state;
+    let colors = getSampleColors(this.state);
     return (
       <div>
       {sample &&
@@ -244,9 +298,10 @@ class AsbestosSampleEditModal extends React.Component {
             <Grid item xs={1} />
             <Grid item xs={6}>
               <div className={classes.subHeading}>Sampling Method</div>
+                <div className={classes.flexRowLeftDown}>
                 {SampleRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
                   [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
-                  {sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab' &&
+                  {(sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab') &&
                   <div>
                     <InputLabel>{`Number of ${sample.samplingMethod}s`}</InputLabel>
                     <Input
@@ -265,6 +320,7 @@ class AsbestosSampleEditModal extends React.Component {
                       }}
                     />
                   </div>}
+                </div>
               <div className={classes.subHeading}>Weights</div>
               <div className={classes.flexRow}>
                 <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null)}</div>
@@ -289,6 +345,13 @@ class AsbestosSampleEditModal extends React.Component {
           <Divider />
           <Grid container>
             <Grid item xs={12}>
+              <div className={classes.flexRowLeftAlignEllipsis}><div className={classes.subHeading}>Result</div></div>
+              <div className={classes.flexRowRightAlign}>
+                {['ch','am','cr','umf','no','org','smf'].map(res => {
+                  return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res, () => this.handleResultClick(res))
+                })}
+              </div>
+              <Divider />
               <div className={classNames(classes.subHeading, classes.flexRowCenter)}>
                 Layers
                 <IconButton size='small' aria-label='add' className={classes.marginLeftSmall} onClick={this.addLayer}><AddIcon /></IconButton>
@@ -297,6 +360,9 @@ class AsbestosSampleEditModal extends React.Component {
               {[...Array(sample && sample.layerNum ? sample.layerNum : layerNum).keys()].map(num => {
                 return this.getLayerRow(num+1);
               })}
+              <Divider />
+              <div className={classNames(classes.subHeading, classes.flexRowCenter)}>Result Checks</div>
+
             </Grid>
           </Grid>
           <Divider />
@@ -408,10 +474,12 @@ class AsbestosSampleEditModal extends React.Component {
             this.setLayerVar('concentration',num,e.target.value);
           }}
         />
-        {['ch','am','cr','umf','no','org','smf'].map(res => {
-          return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res,
-          e => this.toggleLayerRes('ch', num, layer, true))
-        })}
+        <div className={classes.flexRowRightAlign}>
+          {['ch','am','cr','umf','no','org','smf'].map(res => {
+            return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res,
+            e => this.toggleLayerRes(res, num, layer, true))
+          })}
+        </div>
     </div>
     );
   }

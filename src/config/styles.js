@@ -323,6 +323,7 @@ const styles = theme => ({
   iconRegular: {
     fontSize: 20,
     margin: 6,
+    color: 'grey',
   },
 
   iconRegularRed: {
@@ -580,7 +581,20 @@ const styles = theme => ({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#aaa",
+    backgroundColor: theme.palette.app.shaded,
+    marginRight: theme.spacing(1),
+    color: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  circleShadedHighlighted: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.palette.app.shadedHighlighted,
     marginRight: theme.spacing(1),
     color: "#fff",
     justifyContent: "center",
@@ -593,10 +607,80 @@ const styles = theme => ({
     width: 80,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#aaa',
+    backgroundColor: theme.palette.app.shaded,
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
-    color: '#fff',
+    color: 'white',
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  roundButtonShadedGreen: {
+    width: 80,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: theme.palette.indicators.ok,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    color: theme.palette.indicators.okText,
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  roundButtonShadedRed: {
+    width: 80,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: theme.palette.indicators.bad,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    color: theme.palette.indicators.badText,
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  roundButtonShadedLong: {
+    width: 200,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: theme.palette.app.shaded,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    color: 'white',
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  roundButtonShadedLongGreen: {
+    width: 200,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: theme.palette.indicators.ok,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    color: theme.palette.indicators.okText,
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  roundButtonShadedLongRed: {
+    width: 200,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: theme.palette.indicators.bad,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    color: theme.palette.indicators.badText,
     justifyContent: "center",
     alignItems: "center",
     display: "flex",
@@ -719,7 +803,17 @@ const styles = theme => ({
     display: 'flex',
     alignItems: 'center',
     "&:hover": {
-        backgroundColor: "#eee"
+        backgroundColor: theme.palette.app.hover
+    },
+  },
+
+  flexRowHoverHighlighted: {
+    flexDirection: 'row',
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: theme.palette.app.highlight,
+    "&:hover": {
+        backgroundColor: theme.palette.app.hoverHighlight
     },
   },
 
@@ -732,6 +826,14 @@ const styles = theme => ({
     justifyContent: 'flex-start',
     alignItems: 'center',
     overflow: "hidden",
+  },
+
+  flexRowLeftDown: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
   },
 
   flexRowRightAlign: {
@@ -754,7 +856,7 @@ const styles = theme => ({
 
   colorPickerSwatch: {
     padding: '5px',
-    background: '#fff',
+    background: 'white',
     borderRadius: '12px',
     boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
     display: 'inline-block',

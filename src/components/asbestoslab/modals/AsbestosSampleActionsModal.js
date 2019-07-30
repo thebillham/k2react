@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { COC_RECEIVE } from "../../../constants/modal-types";
+import { COC_SAMPLE_ACTIONS } from "../../../constants/modal-types";
 import { asbestosSamplesRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -16,13 +16,16 @@ import DialogActions from "@material-ui/core/DialogActions";
 import IconButton from "@material-ui/core/IconButton";
 import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
+import Tooltip from "@material-ui/core/Tooltip";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import ReceiveIcon from "@material-ui/icons/Inbox";
+import StartAnalysisIcon from "@material-ui/icons/Colorize";
+import VerifyIcon from "@material-ui/icons/CheckCircleOutline";
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { addLog } from "../../../actions/local";
-import { writeDescription, receiveSample, } from "../../../actions/asbestosLab";
+import { writeDescription, receiveSample, startAnalysis, verifySample, writeShorthandResult, getBasicResult, } from "../../../actions/asbestosLab";
 import _ from "lodash";
 import moment from 'moment';
 
@@ -39,14 +42,10 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     hideModal: () => dispatch(hideModal()),
-    handleModalChange: _.debounce(
-      target => dispatch(handleModalChange(target)),
-      300
-    )
   };
 };
 
-class AsbestosReceiveSamplesModal extends React.Component {
+class AsbestosSampleActionsModal extends React.Component {
   state = {
     samples: {}
   };
@@ -58,8 +57,10 @@ class AsbestosReceiveSamplesModal extends React.Component {
         uid: sample.uid,
         number: sample.sampleNumber,
         description: writeDescription(sample),
-        receivedOriginally: sample.receivedByLab,
-        receivedNow: sample.receivedByLab,
+        original: sample[this.props.modalProps.field],
+        now: sample[this.props.modalProps.field],
+        result: sample.result,
+        weightReceived: sample.weightReceived,
       };
     });
 
@@ -68,46 +69,39 @@ class AsbestosReceiveSamplesModal extends React.Component {
     });
   };
 
-  handleReceiveClick = sample => {
-    let receivedDate = null;
-    let receivedUser = null;
-    let receivedNow = false;
-    if (!sample.receivedNow) {
-      receivedUser = {
-        name: this.props.me.name,
-        id: this.props.me.uid,
-      };
-      receivedDate = new Date();
-      receivedNow = true;
+  handleClick = sample => {
+    let startDate = null;
+    let now = false;
+    if (!sample.now) {
+      startDate = new Date();
+      now = true;
     }
     this.setState({
       samples: {
         ...this.state.samples,
         [sample.number]: {
           ...this.state.samples[sample.number],
-          receivedNow,
-          receivedUser,
-          receivedDate,
+          now,
+          startDate,
         }
       }
     })
   };
 
-  handleReceiveAll = () => {
+  handleClickAll = () => {
     Object.values(this.state.samples).forEach(sample => {
-      if (!sample.receivedNow) this.handleReceiveClick(sample);
+      if (!sample[this.props.modalProps.field]) this.handleClick(sample);
     });
   }
 
   submit = () => {
-    let logDesc = '';
-    let receivedArray = [];
-    let unreceivedArray = [];
     let res = true;
     let close = true;
     Object.values(this.state.samples).forEach(sample => {
-      if (sample.receivedOriginally !== sample.receivedNow) {
-        res = receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.receivedDate);
+      if (sample.original !== sample.now) {
+        if (this.props.modalProps.field === 'receivedByLab') res = receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+        if (this.props.modalProps.field === 'analysisStart') res = startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+        if (this.props.modalProps.field === 'verified') res = verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
         if (!res) {
           this.setState({
             samples: {
@@ -129,33 +123,47 @@ class AsbestosReceiveSamplesModal extends React.Component {
   render() {
     const { classes, modalProps, modalType, } = this.props;
     return (
-      modalType === COC_RECEIVE ? <Dialog
-        open={modalType === COC_RECEIVE}
+      modalType === COC_SAMPLE_ACTIONS ? <Dialog
+        open={modalType === COC_SAMPLE_ACTIONS}
         onClose={this.props.hideModal}
-        maxWidth="sm"
+        maxWidth={modalProps.field === 'verified' ? "md" : "sm"}
         fullWidth={true}
         onEnter={this.handleEnter}
       >
-        <DialogTitle>{modalProps.title ? modalProps.title : 'Receive Samples'}</DialogTitle>
+        <DialogTitle>{modalProps.title ? modalProps.title : ''}</DialogTitle>
         <DialogContent>
           <Button
             className={classes.buttonIconText}
-            onClick={this.handleReceiveAll}
+            onClick={this.handleClickAll}
           >
-            <ReceiveIcon className={classes.iconRegular} /> Receive All Samples
+            {modalProps.field === 'receivedByLab' && <span><ReceiveIcon className={classes.iconRegular} /> Receive All Samples</span>}
+            {modalProps.field === 'analysisStart' && <span><StartAnalysisIcon className={classes.iconRegular} /> Start Analysis On All Samples</span>}
+            {modalProps.field === 'verified' && <span><VerifyIcon className={classes.iconRegular} /> Verify All Samples</span>}
+
           </Button>
-          {Object.values(this.state.samples).map(sample => (
-            <div key={sample.number}>
+          {Object.values(this.state.samples).map(sample => (<div key={sample.number}>
               <div className={sample.highlighted ? classes.flexRowHoverHighlighted : classes.flexRowHover}>
                 <div className={classes.flexRowLeftAlignEllipsis}>
-                  <div className={classes.circleShaded}>
+                  <div className={classes.spacerSmall} />
+                  <div className={sample.now ? classes.circleShadedHighlighted : classes.circleShaded}>
                     {sample.number}
                   </div>
                   <div>{sample.description}</div>
                 </div>
                 <div className={classes.flexRowRightAlign}>
-                  <IconButton onClick={() => this.handleReceiveClick(sample)}>
-                    <ReceiveIcon className={sample.receivedNow ? classes.iconRegularGreen : classes.iconRegular}/>
+                  {modalProps.field === 'verified' &&
+                    <span className={classes.flexRow}>
+                      <span className={getBasicResult(sample) === 'none' ? classes.roundButtonShadedLong : getBasicResult(sample) === 'negative' ? classes.roundButtonShadedLongGreen : classes.roundButtonShadedLongRed}>
+                        {writeShorthandResult(sample.result)}
+                      </span>
+                      <span className={classes.spacerSmall} />
+                      <Tooltip title={'Weight on Receipt'}><div className={classes.roundButtonShaded}>{sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}</div></Tooltip>
+                    </span>
+                  }
+                  <IconButton onClick={() => this.handleClick(sample)}>
+                    {modalProps.field === 'receivedByLab' && <ReceiveIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
+                    {modalProps.field === 'analysisStart' && <StartAnalysisIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
+                    {modalProps.field === 'verified' && <VerifyIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
                   </IconButton>
                 </div>
               </div>
@@ -186,5 +194,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(AsbestosReceiveSamplesModal)
+  )(AsbestosSampleActionsModal)
 );

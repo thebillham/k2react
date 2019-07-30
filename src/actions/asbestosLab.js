@@ -455,24 +455,22 @@ export const receiveAll = (samples, job, sessionID, me) => {
   }
 };
 
-export const receiveSample = (sample, job, samples, sessionID, me) => {
-  console.log(me);
-  let receivedDate = new Date();
+export const receiveSample = (sample, job, samples, sessionID, me, startDate) => {
   if (sample.receivedByLab && sample.verified) {
-    if (window.confirm('The sample result has already been verified. Removing from the lab will remove the analysis result and verification. Continue?')) {
+    if (window.confirm(`The sample result for ${sample.jobNumber}-${sample.sampleNumber} has already been verified. Removing from the lab will remove the analysis result and verification. Continue?`)) {
       removeResult(sample, sessionID, me);
       startAnalysis(sample, job, samples, sessionID, me);
       verifySample(sample, job, samples, sessionID, me);
-    } else return;
+    } else return false;
   } else if (sample.receivedByLab && sample.result) {
-    if (window.confirm('The sample result has already been logged. Removing from the lab will remove the analysis result. Continue?')) {
+    if (window.confirm(`The sample result for ${sample.jobNumber}-${sample.sampleNumber} has already been logged. Removing from the lab will remove the analysis result. Continue?`)) {
       removeResult(sample, sessionID, me);
       startAnalysis(sample, job, samples, sessionID, me);
-    } else return;
+    } else return false;
   }
   let log = {
     type: "Received",
-    log: receivedDate
+    log: !sample.receivedByLab
       ? `Sample ${sample.sampleNumber} (${sample.description} ${
           sample.material
         }) received by lab.`
@@ -491,7 +489,7 @@ export const receiveSample = (sample, job, samples, sessionID, me) => {
     {
       receivedByLab: true,
       receivedUser: {id: me.uid, name: me.name},
-      receivedDate: receivedDate
+      receivedDate: startDate ? startDate : new Date(),
     });
   } else {
     asbestosSamplesRef.doc(sample.uid).update({
@@ -500,6 +498,7 @@ export const receiveSample = (sample, job, samples, sessionID, me) => {
       receivedDate: firebase.firestore.FieldValue.delete(),
     });
   }
+  return true;
 };
 
 export const startAnalysisAll = (samples, job, sessionID, me) => {
@@ -515,15 +514,12 @@ export const startAnalysisAll = (samples, job, sessionID, me) => {
   }
 };
 
-export const startAnalysis = (sample, job, samples, sessionID, me) => {
-  console.log(me);
-  let analysisStart = null;
-  if (!sample.receivedByLab && !sample.analysisStart) receiveSample(sample, job, samples, sessionID, me);
+export const startAnalysis = (sample, job, samples, sessionID, me, startDate) => {
+  if (!sample.receivedByLab && !sample.analysisStart) receiveSample(sample, job, samples, sessionID, me, startDate);
   if (sample.verified) verifySample(sample, job, samples, sessionID, me);
-  if (!sample.analysisStart) analysisStart = new Date();
   let log = {
     type: "Analysis",
-    log: analysisStart
+    log: !sample.analysisStart
       ? `Analysis begun on Sample ${sample.sampleNumber} (${sample.description} ${
           sample.material
         }).`
@@ -541,14 +537,14 @@ export const startAnalysis = (sample, job, samples, sessionID, me) => {
     asbestosSamplesRef.doc(sample.uid).update(
     {
       analysisStart: true,
-      analysisStartedby: {id: me.uid, name: me.name},
-      analysisStartDate: analysisStart
+      analysisStartUser: {id: me.uid, name: me.name},
+      analysisStartDate: startDate ? startDate : new Date(),
     });
   } else {
     asbestosSamplesRef.doc(sample.uid).update(
     {
       analysisStart: false,
-      analysisStartedby: firebase.firestore.FieldValue.delete(),
+      analysisStartUser: firebase.firestore.FieldValue.delete(),
       analysisStartDate: firebase.firestore.FieldValue.delete(),
     });
   }
@@ -578,7 +574,6 @@ export const updateResultMap = (result, map) => {
 }
 
 export const toggleResult = (result, analyst, sample, job, samples, sessionID, me) => {
-  console.log(me);
   if (
     me.auth &&
     (me.auth["Asbestos Bulk Analysis"] ||
@@ -711,13 +706,13 @@ export const removeResult = (sample, sessionID, me) => {
     });
 }
 
-export const verifySample = (sample, job, samples, sessionID, me) => {
+export const verifySample = (sample, job, samples, sessionID, me, startDate) => {
   if (
     (me.auth &&
     (me.auth["Analysis Checker"] ||
       me.auth["Asbestos Admin"]))
   ) {
-    if (!sample.verified || window.confirm("Are you sure you wish to remove the verification of this sample result?")) {
+    if (!sample.verified || window.confirm(`Are you sure you wish to remove the verification for sample ${sample.jobNumber}-${sample.sampleNumber}?`)) {
       // if (me.uid === sample.analysisUser.id && !sample.verified) {
       //   window.alert("Samples must be checked off by a different user.");
       // } else {
@@ -748,7 +743,7 @@ export const verifySample = (sample, job, samples, sessionID, me) => {
           {
             verified: true,
             verifyUser: {id: me.uid, name: me.name},
-            verifyDate: new Date(),
+            verifyDate: startDate ? startDate : new Date(),
             turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
           });
         } else {
@@ -1500,7 +1495,7 @@ export const writeResult = result => {
 
 export const writeShorthandResult = result => {
   let detected = [];
-  if (result === undefined) return "N/A";
+  if (result === undefined) return "NO RESULT";
   Object.keys(result).forEach(type => {
     if (result[type]) detected.push(type);
   });

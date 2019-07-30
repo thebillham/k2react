@@ -15,6 +15,7 @@ import {
   printCoc,
   printLabReport,
   issueLabReport,
+  getStatus,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM, } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
@@ -22,9 +23,7 @@ import {
   ASBESTOS_SAMPLE_DETAILS,
   COC,
   COC_STATS,
-  COC_RECEIVE,
-  COC_START_ANALYSIS,
-  COC_VERIFY,
+  COC_SAMPLE_ACTIONS,
   UPDATE_CERTIFICATE_VERSION,
   COC_LOG
 } from "../../../constants/modal-types";
@@ -141,6 +140,7 @@ class AsbestosBulkCocCard extends React.Component {
       return moment(formatDate).format('D MMMM YYYY');
     });
     console.log(`${job.jobNumber} rendering`);
+    getStatus(samples[job.uid], job);
     return (
       <ExpansionPanel
         className={classes.fullWidth}
@@ -156,7 +156,7 @@ class AsbestosBulkCocCard extends React.Component {
             {job.waAnalysis && <WAIcon color='action' className={classes.marginLeftSmall} />}
             {job.priority === 1 && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
             {job.versionUpToDate && <VerifyIcon color='primary' className={classes.marginLeftSmall} />}
-            {job.stats && <span className={classes.boldSmallText}>{job.stats.status}</span>}
+            {job.stats && <span className={classes.boldSmallText}>{job.status ? job.status : ''}</span>}
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
@@ -186,8 +186,8 @@ class AsbestosBulkCocCard extends React.Component {
                 <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
                   onClick={event => {
                       this.props.showModal({
-                        modalType: COC_RECEIVE,
-                        modalProps: { job: job, }});
+                        modalType: COC_SAMPLE_ACTIONS,
+                        modalProps: { job: job, field: 'receivedByLab', title: `Receive Samples for ${job.jobNumber}`, }});
                   }}>
                   <ReceiveIcon className={classes.iconRegular} />
                 </IconButton>
@@ -196,8 +196,8 @@ class AsbestosBulkCocCard extends React.Component {
                 <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
                   onClick={event => {
                       this.props.showModal({
-                        modalType: COC_START_ANALYSIS,
-                        modalProps: { job: job, }});
+                        modalType: COC_SAMPLE_ACTIONS,
+                        modalProps: { job: job, field: 'analysisStart', title: `Start Analysis on ${job.jobNumber}`, }});
                   }}>
                   <StartAnalysisIcon className={classes.iconRegular} />
                 </IconButton>
@@ -219,8 +219,8 @@ class AsbestosBulkCocCard extends React.Component {
                 <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
                   onClick={event => {
                       this.props.showModal({
-                        modalType: COC_VERIFY,
-                        modalProps: { job: job, }});
+                        modalType: COC_SAMPLE_ACTIONS,
+                        modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber}`, }});
                   }}>
                   <VerifyIcon className={classes.iconRegular} />
                 </IconButton>

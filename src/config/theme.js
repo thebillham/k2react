@@ -36,6 +36,13 @@ export default createMuiTheme({
       meth: '#ff0065',
       bio: '#87cc14',
       asbestos: '#7d6d26',
+    },
+    app: {
+      hover: '#eee',
+      hoverHighlight: '#eec',
+      highlight: '#ffd',
+      shaded: '#aaa',
+      shadedHighlighted: '#004c2f',
     }
   },
   overrides: {

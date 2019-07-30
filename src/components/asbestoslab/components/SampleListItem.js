@@ -11,6 +11,7 @@ import {
   getSampleColors,
   getBasicResult,
   holdSample,
+  writeShorthandResult,
 } from "../../../actions/asbestosLab";
 import { AsbButton } from '../../../widgets/FormWidgets';
 import { showModal } from "../../../actions/modal";
@@ -131,20 +132,6 @@ class SampleListItem extends React.Component {
                   : <span />
                 }
               </Popup>}
-              <Tooltip id="det-tooltip" title={'Sample Details'}>
-                <IconButton
-                  onClick={event => {
-                      this.props.showModal({
-                        modalType: ASBESTOS_NONANALYST_DETAILS,
-                        modalProps: {
-                          doc: sample,
-                          job: job,
-                      }});
-                  }}
-                >
-                  <SampleDetailsIcon className={classes.iconRegular}/>
-                </IconButton>
-              </Tooltip>
               {writeDescription(sample)}
               {sample.onHold && <div className={classes.boldRedWarningText}>ON HOLD</div>}
             </div>
@@ -157,8 +144,10 @@ class SampleListItem extends React.Component {
               <Tooltip title={sample.analysisStart ? 'Analysis begun' : 'Analysis not yet begun'}>
                 <AnalysisIcon className={sample.analysisStart ? classes.iconRegularGreen : classes.iconRegular} />
               </Tooltip>
-              {['ch','am','cr','umf','no','org','smf'].map(res => AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`],res,null))}
-              <Tooltip title={'Weight on Receipt'}><div className={classes.roundButtonShaded}>{sample.weightReceived ? `${sample.weightReceived}g` : 'No Weight'}</div></Tooltip>
+              <div className={getBasicResult(sample) === 'none' ? classes.roundButtonShadedLong : getBasicResult(sample) === 'negative' ? classes.roundButtonShadedLongGreen : classes.roundButtonShadedLongRed}>
+                {writeShorthandResult(sample.result)}
+              </div>
+              <Tooltip title={'Weight on Receipt'}><div className={classes.roundButtonShaded}>{sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}</div></Tooltip>
               <Tooltip title={sample.verified ? 'Result verified' : 'Result not yet verified'}>
                 <CheckCircleOutline className={sample.verified ? classes.iconRegularGreen : classes.iconRegular} />
               </Tooltip>
@@ -218,6 +207,20 @@ class SampleListItem extends React.Component {
                     holdSample(sample, job, this.props.me);
                   }}>
                   <HoldIcon className={sample.onHold ? classes.iconRegularRed : classes.iconRegular} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip id="det-tooltip" title={'Sample Details'}>
+                <IconButton
+                  onClick={event => {
+                      this.props.showModal({
+                        modalType: ASBESTOS_NONANALYST_DETAILS,
+                        modalProps: {
+                          doc: sample,
+                          job: job,
+                      }});
+                  }}
+                >
+                  <SampleDetailsIcon className={classes.iconRegular}/>
                 </IconButton>
               </Tooltip>
               <Tooltip id="sl-tooltip" title={'Sample Log'}>

@@ -25,7 +25,7 @@ import SoilDetailsModal from "./modals/SoilDetailsModal";
 import AsbestosSampleEditModal from "./modals/AsbestosSampleEditModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
 import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
-import AsbestosReceiveSamplesModal from "./modals/AsbestosReceiveSamplesModal";
+import AsbestosSampleActionsModal from "./modals/AsbestosSampleActionsModal";
 import ConfirmResultModal from "./modals/ConfirmResultModal";
 import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
@@ -145,7 +145,7 @@ class AsbestosCocs extends React.Component {
         <SoilDetailsModal />
         <ConfirmResultModal />
         <AsbestosSampleDetailsModal />
-        <AsbestosReceiveSamplesModal />
+        <AsbestosSampleActionsModal />
         <Button
           variant="outlined"
           className={classes.marginBottomSmall}
