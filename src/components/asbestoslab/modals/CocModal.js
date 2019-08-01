@@ -178,7 +178,7 @@ class CocModal extends React.Component {
   }
 
   render() {
-    const { modalProps, doc, wfmJob, classes, me } = this.props;
+    const { modalProps, modalType, doc, wfmJob, classes, me } = this.props;
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
     const sampleEditModal = (
@@ -445,9 +445,9 @@ class CocModal extends React.Component {
     if (doc && doc.samples) sampleNumbers = sampleNumbers.concat(Object.keys(doc.samples).map(key => parseInt(key)));
     let numberOfSamples = Math.max(...sampleNumbers);
 
-    return(
+    return(modalType === COC &&
       <Dialog
-        open={ this.props.modalType === COC }
+        open={ modalType === COC }
         onClose = {() => this.props.hideModal}
         fullScreen = { true }
         maxWidth = "lg"

@@ -98,7 +98,7 @@ class SoilDetailsModal extends React.Component {
     const { sample } = this.state;
     return (
       <div>
-      {modalProps && modalProps.doc && sample &&
+      {modalType === SOIL_DETAILS && modalProps && modalProps.doc && sample &&
       <Dialog
         open={modalType === SOIL_DETAILS}
         onClose={this.props.hideModal}

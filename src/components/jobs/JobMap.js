@@ -136,10 +136,10 @@ class JobMap extends React.Component {
   componentWillUnmount() {
     this.props.saveWFMItems(this.state.leads.filter((lead) => lead.state !== 'Completed'));
     this.props.saveCurrentJobState(this.state.leads);
-    this.props.saveStats({
-      staff: this.state.staffStats,
-      clients: this.state.clientStats
-    });
+    // this.props.saveStats({
+    //   staff: this.state.staffStats,
+    //   clients: this.state.clientStats
+    // });
   }
 
   handleTabChange = (event, value) => {

@@ -38,7 +38,7 @@ const mapDispatchToProps = dispatch => {
 class CocLogModal extends React.Component {
   render() {
     const { classes, modalProps, modalType, logs } = this.props;
-    return (
+    return (modalType === COC_LOG &&
       <Dialog
         open={modalType === COC_LOG}
         onClose={this.props.hideModal}

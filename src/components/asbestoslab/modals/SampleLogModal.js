@@ -41,7 +41,7 @@ class SampleLogModal extends React.Component {
     // console.log('Printing modal props');
     // console.log(JSON.stringify(modalProps));
     // console.log(modalProps.uid.toString());
-    return (
+    return (modalType === SAMPLE_HISTORY &&
       <Dialog
         open={modalType === SAMPLE_HISTORY}
         onClose={this.props.hideModal}

@@ -192,7 +192,7 @@ class ConfirmResultModal extends React.Component {
     const { classes, modalProps, modalType } = this.props;
     // console.log(modalProps);
     // console.log(this.state);
-    return (
+    return (modalType === CONFIRM_RESULT &&
       <Dialog
         open={modalType === CONFIRM_RESULT}
         onClose={this.props.hideModal}

@@ -42,7 +42,7 @@ class VerifyCheckModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType } = this.props;
-    return (
+    return (modalType === VERIFY_ISSUES_ASBESTOS &&
       <Dialog
         open={modalType === VERIFY_ISSUES_ASBESTOS}
         onClose={this.props.hideModal}

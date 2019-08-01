@@ -1259,11 +1259,11 @@ export const saveWFMItems = items => dispatch => {
 export const saveStats = stats => dispatch => {
   var date = moment().format("YYYY-MM-DD");
   // console.log(stats);
-  stateRef
-    .doc("stats")
-    .collection("clientsjobs")
-    .doc(date)
-    .set({ state: stats["clients"] });
+  // stateRef
+  //   .doc("stats")
+  //   .collection("clientsjobs")
+  //   .doc(date)
+  //   .set({ state: stats["clients"] });
   stateRef
     .doc("stats")
     .collection("staffjobs")

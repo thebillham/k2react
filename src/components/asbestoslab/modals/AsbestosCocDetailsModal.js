@@ -95,7 +95,7 @@ class AsbestosCocDetailsModal extends React.Component {
 
     return (
       <div>
-      {job && sample &&
+      {job && sample && modalType === COC_STATS &&
       <Dialog
         open={modalType === COC_STATS}
         onClose={this.props.hideModal}

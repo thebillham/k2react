@@ -19,7 +19,6 @@ import { COC } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import CocModal from "./modals/CocModal";
 import UpdateCertificateVersionModal from "./modals/UpdateCertificateVersionModal";
-import QCAnalysisModal from "./modals/QCAnalysisModal";
 import WAAnalysisModal from "./modals/WAAnalysisModal";
 import SoilDetailsModal from "./modals/SoilDetailsModal";
 import AsbestosSampleEditModal from "./modals/AsbestosSampleEditModal";
@@ -137,7 +136,6 @@ class AsbestosCocs extends React.Component {
         <CocModal />
         <UpdateCertificateVersionModal />
         <SampleLogModal />
-        <QCAnalysisModal />
         <WAAnalysisModal />
         <AsbestosSampleEditModal />
         <DownloadLabCertificateModal />

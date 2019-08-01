@@ -247,7 +247,7 @@ class AsbestosSampleEditModal extends React.Component {
     let colors = getSampleColors(this.state);
     return (
       <div>
-      {sample &&
+      {sample && modalType === ASBESTOS_SAMPLE_DETAILS &&
       <Dialog
         open={modalType === ASBESTOS_SAMPLE_DETAILS}
         onClose={this.props.hideModal}

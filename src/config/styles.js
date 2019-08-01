@@ -798,6 +798,20 @@ const styles = theme => ({
     alignItems: 'center'
   },
 
+  flexRowHoverButton: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    padding: theme.spacing(1),
+    flexDirection: 'row',
+    display: 'flex',
+    borderRadius: 12,
+    alignItems: 'center',
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover,
+        cursor: 'pointer',
+    },
+  },
+
   flexRowHover: {
     flexDirection: 'row',
     display: 'flex',

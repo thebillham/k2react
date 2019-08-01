@@ -9,6 +9,10 @@ import { asbestosSamplesRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardActionArea from "@material-ui/core/CardActionArea";
+import CardContent from "@material-ui/core/CardContent";
+import CardActions from "@material-ui/core/CardActions";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -25,7 +29,7 @@ import StartAnalysisIcon from "@material-ui/icons/Colorize";
 import VerifyIcon from "@material-ui/icons/CheckCircleOutline";
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { addLog } from "../../../actions/local";
-import { writeDescription, receiveSample, startAnalysis, verifySample, writeShorthandResult, getBasicResult, } from "../../../actions/asbestosLab";
+import { writeDescription, receiveSample, receiveSamples, startAnalysis, startAnalyses, verifySample, verifySamples, writeShorthandResult, getBasicResult, } from "../../../actions/asbestosLab";
 import _ from "lodash";
 import moment from 'moment';
 
@@ -47,7 +51,7 @@ const mapDispatchToProps = dispatch => {
 
 class AsbestosSampleActionsModal extends React.Component {
   state = {
-    samples: {}
+    samples: {},
   };
 
   handleEnter = () => {
@@ -66,6 +70,7 @@ class AsbestosSampleActionsModal extends React.Component {
 
     this.setState({
       samples: sampleMap,
+      mode: 'actions',
     });
   };
 
@@ -89,34 +94,45 @@ class AsbestosSampleActionsModal extends React.Component {
   };
 
   handleClickAll = () => {
+    let sampleMap = this.state.samples;
     Object.values(this.state.samples).forEach(sample => {
-      if (!sample[this.props.modalProps.field]) this.handleClick(sample);
+      if (!sample.now) {
+        sampleMap[sample.number] = {
+          ...sampleMap[sample.number],
+          now: true,
+          startDate: new Date(),
+        };
+      }
+    });
+    this.setState({
+      samples: sampleMap,
     });
   }
 
   submit = () => {
     let res = true;
     let close = true;
-    Object.values(this.state.samples).forEach(sample => {
-      if (sample.original !== sample.now) {
-        if (this.props.modalProps.field === 'receivedByLab') res = receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+    let checkMap = {};
+    let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.number], ...sample}));
+    if (this.props.modalProps.field === 'receivedByLab') checkMap = receiveSamples(checks);
+    if (this.props.modalProps.field === 'analysisStart') checkMap = startAnalyses(checks);
+    if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job);
+    if (Object.keys(checkMap).length === 0) {
+      // No problems with any samples, do actions
+      checks.forEach(sample => {
+        if (this.props.modalProps.field === 'receivedByLab') res = receiveSamples(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
         if (this.props.modalProps.field === 'analysisStart') res = startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
         if (this.props.modalProps.field === 'verified') res = verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-        if (!res) {
-          this.setState({
-            samples: {
-              ...this.state.samples,
-              [sample.number]: {
-                ...this.state.samples[sample.number],
-                receivedNow: sample.receivedOriginally,
-                highlighted: true,
-              },
-            },
-          })
-          close = false;
-        }
-      }
-    });
+      });
+    } else {
+      // Review issues with samples
+      close = false;
+      this.setState({
+        mode: 'issues',
+        issues: checkMap,
+      })
+
+    }
     return close;
   }
 
@@ -132,6 +148,7 @@ class AsbestosSampleActionsModal extends React.Component {
       >
         <DialogTitle>{modalProps.title ? modalProps.title : ''}</DialogTitle>
         <DialogContent>
+          {this.state.mode === 'actions' ? <div>
           <Button
             className={classes.buttonIconText}
             onClick={this.handleClickAll}
@@ -141,8 +158,8 @@ class AsbestosSampleActionsModal extends React.Component {
             {modalProps.field === 'verified' && <span><VerifyIcon className={classes.iconRegular} /> Verify All Samples</span>}
 
           </Button>
-          {Object.values(this.state.samples).map(sample => (<div key={sample.number}>
-              <div className={sample.highlighted ? classes.flexRowHoverHighlighted : classes.flexRowHover}>
+          {this.state.samples && Object.values(this.state.samples).map(sample => (<div key={sample.number}>
+              <div className={classes.flexRowHoverButton} onClick={() => this.handleClick(sample)}>
                 <div className={classes.flexRowLeftAlignEllipsis}>
                   <div className={classes.spacerSmall} />
                   <div className={sample.now ? classes.circleShadedHighlighted : classes.circleShaded}>
@@ -160,16 +177,18 @@ class AsbestosSampleActionsModal extends React.Component {
                       <Tooltip title={'Weight on Receipt'}><div className={classes.roundButtonShaded}>{sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}</div></Tooltip>
                     </span>
                   }
-                  <IconButton onClick={() => this.handleClick(sample)}>
-                    {modalProps.field === 'receivedByLab' && <ReceiveIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
-                    {modalProps.field === 'analysisStart' && <StartAnalysisIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
-                    {modalProps.field === 'verified' && <VerifyIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
-                  </IconButton>
+                  {modalProps.field === 'receivedByLab' && <ReceiveIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
+                  {modalProps.field === 'analysisStart' && <StartAnalysisIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
+                  {modalProps.field === 'verified' && <VerifyIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
                 </div>
               </div>
             </div>
             )
-          )}
+          )}</div>
+          : this.state.issues && Object.values(this.state.issues).map(issue => (
+            this.issueCard(issue)
+          ))
+        }
         </DialogContent>
         <DialogActions>
           <Button onClick={() => this.props.hideModal()} color="secondary">
@@ -187,6 +206,25 @@ class AsbestosSampleActionsModal extends React.Component {
         </DialogActions>
       </Dialog> : null
     );
+  }
+
+  issueCard = issue => {
+    return <Card key={issue.sample.number}>
+      <CardActionArea>
+        <CardContent>
+          <div className={this.props.classes.subheading}>{`${issue.sample.jobNumber}-${issue.sample.sampleNumber} ${writeDescription(issue.sample)}`}</div>
+          {issue.description}
+        </CardContent>
+      </CardActionArea>
+      <CardActions>
+        <Button size="small" color="secondary">
+          Share
+        </Button>
+        <Button size="small" color="primary">
+          Dismiss
+        </Button>
+      </CardActions>
+    </Card>;
   }
 }
 

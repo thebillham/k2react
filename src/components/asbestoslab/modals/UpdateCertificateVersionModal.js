@@ -42,7 +42,7 @@ class UpdateCertificateVersionModal extends React.Component {
   render() {
     const { classes, modalProps, modalType } = this.props;
     // console.log(modalProps);
-    return (
+    return (modalType === UPDATE_CERTIFICATE_VERSION &&
       <Dialog
         open={modalType === UPDATE_CERTIFICATE_VERSION}
         onClose={this.props.hideModal}

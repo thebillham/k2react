@@ -42,7 +42,7 @@ class DownloadLabCertificateModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType } = this.props;
-    return (
+    return (modalType === DOWNLOAD_LAB_CERTIFICATE &&
       <Dialog
         open={modalType === DOWNLOAD_LAB_CERTIFICATE}
         onClose={this.props.hideModal}

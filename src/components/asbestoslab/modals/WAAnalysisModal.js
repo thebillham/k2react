@@ -69,7 +69,7 @@ class WAAnalysisModal extends React.Component {
     let sample = this.props.modalProps.doc;
     if (sample.waSoilAnalysis === undefined) sample.waSoilAnalysis = {};
     if (sample.waLayerNum === undefined) sample.waLayerNum = {lt2: waLayerNum, to7: waLayerNum, gt7: waLayerNum} ;
-    if (sample.waAnalysisDone === undefined) sample.waAnalysisDone = false;
+    if (sample.waAnalysisComplete === undefined) sample.waAnalysisComplete = false;
     fractionNames.forEach(fraction => {
       [...Array(waLayerNum).keys()].forEach(num => {
         if (sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] === undefined) {
@@ -92,7 +92,7 @@ class WAAnalysisModal extends React.Component {
     const { sample } = this.state;
     return (
       <div>
-      {sample &&
+      {modalType === WA_ANALYSIS && sample &&
       <Dialog
         open={modalType === WA_ANALYSIS}
         onClose={this.props.hideModal}

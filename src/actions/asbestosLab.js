@@ -501,6 +501,41 @@ export const receiveSample = (sample, job, samples, sessionID, me, startDate) =>
   return true;
 };
 
+export const receiveSamples = (samples) => {
+  let issues = [];
+  // Check for issues
+  samples.forEach(sample => {
+    if (!sample.now) {
+      if (sample.receivedByLab && sample.verified) {
+        issues.push({
+          type: 'reverse',
+          description: `The result has already been verified. Removing from the lab will remove the analysis result and verification.`,
+          sample,
+        });
+      } else if (sample.receivedByLab && sample.result) {
+        issues.push({
+          type: 'reverse',
+          description: `The result has already been logged. Removing from the lab will remove the analysis result.`,
+          sample,
+        });
+      } else if (sample.original === sample.now) {
+        issues.push({
+          type: 'unchecked',
+          description: `Sample has not been checked as received. Double check this is correct and leave a comment on why it has been missed.`,
+          sample,
+        });
+      } else {
+        issues.push({
+          type: 'unchecked',
+          description: `Sample has been unchecked as received. Double check this is correct and leave a comment on why it has been removed.`,
+          sample,
+        });
+      }
+    }
+  });
+  return issues;
+};
+
 export const startAnalysisAll = (samples, job, sessionID, me) => {
   if (samples && Object.values(samples).length > 0) {
     Object.values(samples).forEach(sample => {
@@ -548,6 +583,41 @@ export const startAnalysis = (sample, job, samples, sessionID, me, startDate) =>
       analysisStartDate: firebase.firestore.FieldValue.delete(),
     });
   }
+};
+
+export const startAnalyses = (samples) => {
+  let issues = [];
+  // Check for issues
+  samples.forEach(sample => {
+    if (!sample.now) {
+      if (sample.analysisStart && sample.verified) {
+        issues.push({
+          type: 'confirm',
+          description: `The result has already been verified. Are you sure you want to remove the analysis start date? This will not remove the result or verification.`,
+          sample,
+        });
+      } else if (sample.analysisStart && sample.result) {
+        issues.push({
+          type: 'confirm',
+          description: `The result has already been logged. Are you sure you want to remove the analysis start date? This will not remove the result.`,
+          sample,
+        });
+      } else if (sample.original === sample.now) {
+        issues.push({
+          type: 'check',
+          description: `Analysis has not been checked as started. Double check this is correct and leave a comment on why it has been missed.`,
+          sample,
+        });
+      } else {
+        issues.push({
+          type: 'check',
+          description: `Analysis has been unchecked as started. Double check this is correct and leave a comment on why it has been removed.`,
+          sample,
+        });
+      }
+    }
+  });
+  return issues;
 };
 
 export const updateResultMap = (result, map) => {
@@ -762,6 +832,169 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate) => 
       "You don't have sufficient permissions to verify asbestos results."
     );
   }
+};
+
+export const verifySamples = (samples, job) => {
+  let issues = [];
+  // Check for issues
+  samples.forEach(sample => {
+    if (!sample.now) {
+      if (sample.original === sample.now) {
+        issues.push({
+          type: 'check',
+          description: `Result has not been verified. This sample will not appear on lab reports.`,
+          sample,
+        });
+      } else {
+        issues.push({
+          type: 'check',
+          description: `Result has been unverified. Double check this is correct and leave a comment on why verification has been removed. This sample will not appear on lab reports.`,
+          sample,
+        });
+      }
+    } else {
+      // Check sample if is on hold
+      if (sample.onHold) {
+        issues.push({
+          type: 'check',
+          description: `Sample is on hold. This will not appear on lab reports until it is taken off hold.`,
+          sample,
+        });
+      }
+
+      // Check result has been added
+      if (getBasicResult(sample) === 'none') {
+        issues.push({
+          type: 'noresult',
+          description: `No asbestos result has been recorded. Double check this is correct and select a reason for why this is.`,
+          sample,
+        });
+      }
+
+      // Check layer results
+      if (sample.layers) {
+        let layersResult = {result: collateLayeredResults(sample.layers)};
+        let layersMatch = getConfirmResult(layersResult, sample);
+        if (layersMatch !== 'yes') {
+          if (layersMatch === 'no') {
+            issues.push({
+              type: 'confirm',
+              priority: 'high',
+              description: `Cumulative results for layer detail have opposing results to the sample result. Check with analyst why this is before clicking Proceed.`,
+              sample,
+            });
+          } else if (layersMatch === 'differentAsbestos') {
+            issues.push({
+              type: 'confirm',
+              priority: 'high',
+              description: `Cumulative results for layer detail record different asbestos types to the sample result. Check with analyst why this is before clicking Proceed.`,
+              sample,
+            });
+          } else if (layersMatch === 'differentNonAsbestos') {
+            issues.push({
+              type: 'confirm',
+              priority: 'low',
+              description: `Cumulative results for layer detail record different non-asbestos types to the sample result. Check with analyst why this is before clicking Proceed.`,
+              sample,
+            });
+          }
+        }
+      }
+
+      // Check confirm results
+      if (sample.confirm !== undefined) {
+        let confirmTotal = 0;
+        let confirmYes = 0;
+        let confirmDifferentAsbestos = 0;
+        let confirmDifferentNonAsbestos = 0;
+        let confirmNo = 0;
+        Object.keys(sample.confirm).forEach(key => {
+          confirmTotal++;
+          let confirmMatch = getConfirmResult(sample.confirm[key], sample);
+          if (confirmMatch === 'yes') {
+            confirmYes++;
+          } else if (confirmMatch === 'no') {
+            confirmNo++;
+          } else if (confirmMatch === 'differentAsbestos') {
+            confirmDifferentAsbestos++;
+          } else if (confirmMatch === 'differentNonAsbestos') {
+            confirmDifferentNonAsbestos++;
+          }
+        });
+        if (confirmNo + confirmDifferentAsbestos + confirmDifferentNonAsbestos > 0) {
+          if (confirmNo > 0) {
+            issues.push({
+              type: 'confirm',
+              priority: 'high',
+              description: `${confirmNo} checked ${confirmNo > 1 ? 'analyses have' : 'analysis has an'} opposing ${confirmNo > 1 ? 'results' : 'result'} to the reported result. Check with analyst and analysis ${confirmNo > 1 ? 'checkers' : 'checker'} before clicking Proceed.`,
+              sample,
+            });
+          } else if (confirmDifferentAsbestos > 0)  {
+            issues.push({
+              type: 'confirm',
+              priority: 'high',
+              description: `${confirmDifferentAsbestos} checked ${confirmDifferentAsbestos > 1 ? 'analyses have' : 'analysis has a'} different asbestos result to the reported result. Check with analyst and analysis ${confirmDifferentAsbestos > 1 ? 'checkers' : 'checker'} before clicking Proceed.`,
+              sample,
+            });
+          } else if (confirmDifferentNonAsbestos > 0)  {
+            issues.push({
+              type: 'confirm',
+              priority: 'low',
+              description: `${confirmDifferentNonAsbestos} checked ${confirmDifferentNonAsbestos > 1 ? 'analyses report' : 'analysis reports'} different non-asbestos fibres to the reported result. Check with analyst and analysis ${confirmDifferentNonAsbestos > 1 ? 'checkers' : 'checker'} before clicking Proceed.`,
+              sample,
+            });
+          }
+        }
+      }
+
+      // Check WA Analysis if applicable
+      if (job.waAnalysis) {
+        if (!sample.waAnalysisComplete) {
+          issues.push({
+            type: 'confirm',
+            description: `WA Analysis has not been checked by analyst as complete. This must be done before the sample can be verified. Check with analyst that analysis is complete before clicking Proceed.`,
+            sample,
+          });
+        }
+
+        if (!sample.waSoilAnalysis) {
+          issues.push({
+            type: 'confirm',
+            description: `WA Analysis has not been recorded.`,
+            sample,
+          });
+        } else {
+          let soilResult = {result: collateLayeredResults(sample.waSoilAnalysis)};
+          let soilMatch = getConfirmResult(soilResult, sample);
+          if (soilMatch !== 'yes') {
+            if (soilMatch === 'no') {
+              issues.push({
+                type: 'confirm',
+                priority: 'high',
+                description: `Cumulative results for soil fractions have opposing results to the sample result. Check with analyst why this is before clicking Proceed.`,
+                sample,
+              });
+            } else if (soilMatch === 'differentAsbestos') {
+              issues.push({
+                type: 'confirm',
+                priority: 'high',
+                description: `Cumulative results for soil fractions record different asbestos types to the sample result. Check with analyst why this is before clicking Proceed.`,
+                sample,
+              });
+            } else if (soilMatch === 'differentNonAsbestos') {
+              issues.push({
+                type: 'confirm',
+                priority: 'low',
+                description: `Cumulative results for soil fractions record different non-asbestos types to the sample result. Check with analyst why this is before clicking Proceed.`,
+                sample,
+              });
+            }
+          }
+        }
+      }
+    }
+  });
+  return issues;
 };
 
 

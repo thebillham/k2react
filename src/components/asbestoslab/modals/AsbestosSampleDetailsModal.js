@@ -8,6 +8,7 @@ import "../../../config/tags.css";
 
 import { SampleTextyDisplay, SampleTextyLine, AsbButton, } from '../../../widgets/FormWidgets';
 
+import ImageUploader from 'react-images-upload';
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import Grid from "@material-ui/core/Grid";
@@ -52,6 +53,10 @@ const mapDispatchToProps = dispatch => {
 };
 
 class AsbestosSampleDetailsModal extends React.Component {
+  state = {
+    pictures: [],
+  };
+
   previousSample = () => {
     let takeThisSample = false;
     Object.values(this.props.samples[this.props.modalProps.job.uid]).reverse().forEach(sample => {
@@ -75,6 +80,13 @@ class AsbestosSampleDetailsModal extends React.Component {
       if (sample.uid === this.props.modalProps.doc.uid) takeThisSample = true;
     });
   };
+
+
+  onDrop = (picture) => {
+    this.setState({
+      pictures: this.state.pictures.concat(picture),
+    });
+  }
 
   render() {
     const { classes, modalProps, modalType } = this.props;
@@ -136,7 +148,7 @@ class AsbestosSampleDetailsModal extends React.Component {
 
     return (
       <div>
-      {job && sample &&
+      {job && sample && modalType === ASBESTOS_NONANALYST_DETAILS &&
       <Dialog
         open={modalType === ASBESTOS_NONANALYST_DETAILS}
         onClose={this.props.hideModal}
