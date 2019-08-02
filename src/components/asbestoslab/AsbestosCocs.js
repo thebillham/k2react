@@ -31,13 +31,13 @@ import CocLogModal from "./modals/CocLogModal";
 
 import AsbestosBulkCocCard from "./components/AsbestosBulkCocCard";
 
+import Select from "react-select";
 import Button from "@material-ui/core/Button";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import Select from "@material-ui/core/Select";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import moment from "moment";
@@ -70,7 +70,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosCocs extends React.Component {
+class AsbestosCocs extends React.PureComponent {
   // static whyDidYouRender = true;
   state = {
     analyst: false,
@@ -81,8 +81,8 @@ class AsbestosCocs extends React.Component {
   };
 
   componentWillMount = () => {
-    this.props.fetchCocs();
     if (this.props.clients.length === 0) this.props.fetchWFMClients();
+    this.props.fetchCocs();
     if (this.props.me && this.props.me.auth) {
       if (
         this.props.me.auth["Asbestos Air Analysis"] ||
@@ -92,23 +92,20 @@ class AsbestosCocs extends React.Component {
         this.setState({
           analyst: true
         });
+        if (this.props.analyst !== this.props.me.name) this.props.setAnalyst(this.props.me.name);
       }
     }
   };
 
-  shouldComponentUpdate(nextProps) {
-    if (Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length) {
+  shouldComponentUpdate(nextProps, nextState) {
+    // return true;
+    if (Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length ||
+      this.props.clients.length !== nextProps.clients.length ||
+      this.props.analyst !== nextProps.analyst ||
+      this.state !== nextState) {
       return true;
     } else {
       return false;
-    }
-  }
-
-  searchCocs = (searchTerm) => {
-    if (searchTerm === 'jobNumber') {
-      if (this.state.searchJobNumber !== '') {
-
-      }
     }
   }
 
@@ -132,7 +129,7 @@ class AsbestosCocs extends React.Component {
     console.log('Asbestos Cocs Re-Rendering');
 
     return (
-      <div style={{ marginTop: 80 }}>
+      <div className={classes.marginTopStandard}>
         <CocModal />
         <UpdateCertificateVersionModal />
         <SampleLogModal />
@@ -152,7 +149,8 @@ class AsbestosCocs extends React.Component {
               modalType: COC,
               modalProps: {
                 title: "Add New Chain of Custody",
-                doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, }
+                doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, },
+                isNew: true,
               }
             });
           }}
@@ -187,21 +185,15 @@ class AsbestosCocs extends React.Component {
               <FormControl className={classes.formSelectClient}>
                 <InputLabel shrink>Client</InputLabel>
                 <Select
-                  value={this.state.searchClient}
-                  onChange={e => {
-                    if (e.target.value === "-") this.setState({searchClient: ""}); else this.setState({searchClient: e.target.value});
-                  }}
-                  input={<Input name="searchClient" id="searchClient" />}
-                >
-                  {this.props.clients.map(client => {
-                    return (
-                      <option key={client.wfmID} value={client.name}>
-                        {client.name}
-                      </option>
-                    );
-                  })}
-                </Select>
+                  className={classes.select}
+                  defaultValue={{label: this.state.searchClient, id: this.state.searchClient}}
+                  options={this.props.clients.map(client => ({ value: client.name, label: client.name }))}
+                  onChange={e => this.setState({searchClient: e ? e.value : ""})}
+                  isClearable
+                  isSearchable
+                />
               </FormControl>
+              <div className={classes.spacerSmall} />
               <TextField
                 id="searchStartDate"
                 label="From"
@@ -242,18 +234,11 @@ class AsbestosCocs extends React.Component {
                 <FormControl className={classes.formSelectStaff}>
                   <InputLabel shrink>Analyst</InputLabel>
                   <Select
-                    value={this.props.analyst}
-                    onChange={e => this.props.setAnalyst(e.target.value)}
-                    input={<Input name="analyst" id="analyst" />}
-                  >
-                    {this.props.bulkAnalysts.map(analyst => {
-                      return (
-                        <option key={analyst.uid} value={analyst.name}>
-                          {analyst.name}
-                        </option>
-                      );
-                    })}
-                  </Select>
+                    className={classes.select}
+                    defaultValue={{label: this.props.analyst, id: this.props.analyst }}
+                    options={this.props.bulkAnalysts.map(e => ({ value: e.name, label: e.name }))}
+                    onChange={e => this.props.setAnalyst(e ? e.value : e)}
+                  />
                 </FormControl>
               </div>
             </div>
@@ -308,7 +293,7 @@ class AsbestosCocs extends React.Component {
                   // console.log(cocs[job]);
                   if (cocs[job].reportversion)
                     version = cocs[job].reportversion + 1;
-                  return <AsbestosBulkCocCard key={job} job={cocs[job]} />;
+                  return <AsbestosBulkCocCard key={job} job={job} />;
                 })}
             </div>
           )

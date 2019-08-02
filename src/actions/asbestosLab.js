@@ -280,6 +280,7 @@ export const setSessionID = session => dispatch => {
 //
 
 export const handleCocSubmit = ({ doc, me }) => dispatch => {
+  console.log(doc);
   // console.log(doc.samples);
   let sampleList = [];
   if (doc.samples) {
@@ -327,6 +328,7 @@ export const handleCocSubmit = ({ doc, me }) => dispatch => {
         // console.log("Sample 2");
         // console.log(sample2);
         asbestosSamplesRef.doc(doc.samples[sample].uid).set(sample2);
+        // fetchCocs();
       }
     });
   }
@@ -1446,6 +1448,7 @@ export const deleteCoc = (job, me) => dispatch => {
       .update({ deleted: true, });
 
     dispatch({ type: DELETE_COC, payload: job.uid });
+    // fetchCocs();
   } else return;
 };
 
@@ -1605,7 +1608,23 @@ export const getSampleColors = (sample) => {
     org: getResultColor(res, 'org', 'Benign'),
     smf: getResultColor(res, 'smf', 'Benign'),
   };
-  return withStyles(styles)(returnMap);
+  console.log(returnMap);
+  return returnMap;
+};
+
+export const getConfirmColor = (sample) => {
+  let res = sample.result;
+  let confirm = getAllConfirmResult(sample);
+  let confirmColor = 'Green';
+  if (confirm === 'no') {
+    confirmColor = 'Red';
+  } else if (confirm === 'asbestosTypesWrong') {
+    confirmColor = 'Orange';
+  } else if (confirm === 'none') {
+    confirmColor = '';
+  }
+  console.log(confirmColor);
+  return confirmColor;
 };
 
 export const getAllConfirmResult = sample => {

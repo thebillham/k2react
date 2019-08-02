@@ -95,25 +95,18 @@ function AttrList(props) {
           </IconButton>
           <AttrModal />
         </Grid>
-        <Grid item xs={8} style={{ fontWeight: 100, fontSize: 14 }}>
-          <div
-            style={{
-              marginTop: 16,
-              marginBottom: 8,
-              fontSize: 16,
-              fontWeight: 500
-            }}
-          >
+        <Grid item xs={8}>
+          <div className={classes.subHeading}>
             {qual.name}
           </div>
           {qual.id && attr.id && (
             <div>
-              <span style={{ fontWeight: 450 }}>ID Number:</span> {attr.id}
+              <span className={classes.headingInline}>ID Number:</span> {attr.id}
             </div>
           )}
           {qual.number && attr.number && (
             <div>
-              <span style={{ fontWeight: 450 }}>Licence Number:</span>{" "}
+              <span className={classes.headingInline}>Licence Number:</span>{" "}
               {attr.number}
             </div>
           )}
@@ -132,31 +125,31 @@ function AttrList(props) {
           </div>
           {qual.class && attr.class && (
             <div>
-              <span style={{ fontWeight: 450 }}>Class(es):</span>{" "}
+              <span className={classes.headingInline}>Class(es):</span>{" "}
               {attr.class.join(", ")}
             </div>
           )}
           {qual.unit && attr.unit && (
             <div>
-              <span style={{ fontWeight: 450 }}>Unit Standard(s):</span>{" "}
+              <span className={classes.headingInline}>Unit Standard(s):</span>{" "}
               {attr.unit.join(", ")}
             </div>
           )}
           {qual.course && attr.course && (
             <div>
-              <span style={{ fontWeight: 450 }}>Course(s):</span>{" "}
+              <span className={classes.headingInline}>Course(s):</span>{" "}
               {attr.course.join(", ")}
             </div>
           )}
           {attr.date && (
             <div>
-              <span style={{ fontWeight: 450 }}>Issue Date:</span>{" "}
+              <span className={classes.headingInline}>Issue Date:</span>{" "}
               {moment(attr.date).format('D MMMM YYYY')}{" "}
             </div>
           )}
           {qual.expiry && attr.expiry && (
             <div>
-              <span style={{ fontWeight: 450 }}>Expiry Date:</span>{" "}
+              <span className={classes.headingInline}>Expiry Date:</span>{" "}
               <span style={{ color: expirycolor }}>
                 {moment(attr.expiry).format('D MMMM YYYY')}
               </span>
@@ -164,12 +157,12 @@ function AttrList(props) {
           )}
           {qual.issuer && attr.issuer && (
             <div>
-              <span style={{ fontWeight: 450 }}>Issued By:</span> {attr.issuer}
+              <span className={classes.headingInline}>Issued By:</span> {attr.issuer}
             </div>
           )}
           {qual.notes && attr.notes && (
             <div>
-              <span style={{ fontWeight: 450 }}>Notes:</span> {attr.notes}
+              <span className={classes.headingInline}>Notes:</span> {attr.notes}
             </div>
           )}
         </Grid>

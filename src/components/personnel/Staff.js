@@ -18,7 +18,7 @@ import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
+import Select from "react-select";
 import Input from "@material-ui/core/Input";
 
 import LocationCity from "@material-ui/icons/LocationCity";
@@ -693,21 +693,15 @@ class Staff extends React.Component {
               <FormControl style={{ width: 500, marginBottom: 10 }}>
                 <InputLabel shrink>Document Type</InputLabel>
                 <Select
-                  value={this.props.filter.docview}
-                  onChange={e => this.setDocView(e.target.value)}
-                  input={<Input name="docview" id="docview" />}
-                >
-                  <option value="none" />
-                  {Object.keys(this.props.qualificationtypes).map(doctype => {
-                    return (
-                      <option key={doctype} value={doctype}>
-                        {this.props.qualificationtypes[doctype].name}
-                      </option>
-                    );
-                  })}
-                </Select>
+                  className={classes.select}
+                  defaultValue={{label: this.props.filter.docview, id: this.props.filter.docview }}
+                  options={Object.keys(this.props.qualificationtypes).map(e => ({ value: e, label: this.props.qualificationtypes[e].name }))}
+                  onChange={e => this.setDocView(e ? e.value : e)}
+                  isClearable
+                />
               </FormControl>
               <Button
+                style={{marginTop: 20}}
                 variant="outlined"
                 color="primary"
                 onClick={() => {

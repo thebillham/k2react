@@ -12,6 +12,7 @@ import {
   getBasicResult,
   holdSample,
   writeShorthandResult,
+  getConfirmColor,
 } from "../../../actions/asbestosLab";
 import { AsbButton } from '../../../widgets/FormWidgets';
 import { showModal } from "../../../actions/modal";
@@ -107,7 +108,9 @@ class SampleListItem extends React.Component {
     const { sample, job, samples, staff, anchorEl, classes } = this.props;
     if (sample.cocUid !== job.uid) return null;
     let result = getBasicResult(sample);
-    let colors = getSampleColors(sample, classes);
+    // let colors = getSampleColors(sample, classes);
+    let confirmColor = '';
+    if (sample.confirm) confirmColor = getConfirmColor(sample);
     let editor = this.props.me.auth && this.props.me.auth['Asbestos Bulk Analysis'];
     let noResults = true;
 
@@ -181,7 +184,7 @@ class SampleListItem extends React.Component {
                   </IconButton>
                 </Tooltip>
               }
-              <Tooltip id="cr-tooltip" title={editor ? 'Result Checks' : colors.confirmColor === 'red' ? 'Contradictory result given by other analyst' : colors.confirmColor === 'green' ? 'Result confirmed by another analyst' : 'Slightly different result given by other analyst'}>
+              <Tooltip id="cr-tooltip" title={editor ? 'Result Checks' : confirmColor === 'Red' ? 'Contradictory result given by other analyst' : confirmColor === 'Green' ? 'Result confirmed by another analyst' : 'Slightly different result given by other analyst'}>
                 <IconButton
                   onClick={event => editor ?
                     this.props.showModal({
@@ -196,8 +199,8 @@ class SampleListItem extends React.Component {
                     }) : null
                   }
                 >
-                  {colors.confirmColor === 'red' ? <ThumbsDown className={classes.iconRegularRed} /> :
-                  <ConfirmIcon style={colors.confirmColor} />}
+                  {confirmColor === 'Red' ? <ThumbsDown className={classes.iconRegularRed} /> :
+                  <ConfirmIcon className={classes[`iconRegular${confirmColor}`]} />}
                 </IconButton>
               </Tooltip>
               <Tooltip id="h-tooltip" title={sample.onHold ? 'Take Sample off Hold' : 'Put Sample on Hold'}>

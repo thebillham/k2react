@@ -9,6 +9,7 @@ import { asbestosSamplesRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
+import Select from "react-select";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -18,7 +19,6 @@ import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
 import Input from "@material-ui/core/Input";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
@@ -190,39 +190,39 @@ class ConfirmResultModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType } = this.props;
-    // console.log(modalProps);
-    // console.log(this.state);
-    return (modalType === CONFIRM_RESULT &&
-      <Dialog
-        open={modalType === CONFIRM_RESULT}
-        onClose={this.props.hideModal}
-        onEntered={this.handleEnter}
-      >
-        <DialogTitle>{modalProps.title ? modalProps.title : 'Confirm Result'}</DialogTitle>
-        <DialogContent>
-          {[...Array(this.state.totalNum ? this.state.totalNum : 1).keys()].map(num => {
-            if (this.state[num+1].deleted !== true) return this.confirmRow(num+1);
-          })}
-          <div className={this.props.classes.subHeading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
-            <Button variant='outlined' aria-label='add' onClick={this.addAnalysis}><AddIcon /> Add Analysis</Button>
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => this.props.hideModal()} color="secondary">
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              this.submitConfirmation();
-              this.props.hideModal();
-            }}
-            color="primary"
-          >
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
+    if (modalType === CONFIRM_RESULT) {
+      return (modalType === CONFIRM_RESULT &&
+        <Dialog
+          open={modalType === CONFIRM_RESULT}
+          onClose={this.props.hideModal}
+          onEntered={this.handleEnter}
+        >
+          <DialogTitle>{modalProps.title ? modalProps.title : 'Confirm Result'}</DialogTitle>
+          <DialogContent>
+            {[...Array(this.state.totalNum ? this.state.totalNum : 1).keys()].map(num => {
+              if (this.state[num+1].deleted !== true) return this.confirmRow(num+1);
+            })}
+            <div className={this.props.classes.subHeading} style={{ flexDirection: 'row', display: 'flex', alignItems: 'center'}}>
+              <Button className={classes.buttonIconText} aria-label='add' onClick={this.addAnalysis}><AddIcon /> Add Analysis</Button>
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => this.props.hideModal()} color="secondary">
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                this.submitConfirmation();
+                this.props.hideModal();
+              }}
+              color="primary"
+            >
+              Submit
+            </Button>
+          </DialogActions>
+        </Dialog>
+      );
+    } else return null;
   }
 
   confirmRow = (num) => {
@@ -236,26 +236,16 @@ class ConfirmResultModal extends React.Component {
     }
     return(<div key={num}>
       <div style={{ flexDirection: 'row', display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between'}}>
-        <FormControl style={{ width: 200, marginBottom: 19, }}>
-          <InputLabel shrink>Analyst</InputLabel>
-          <Select
-            value={this.state[num].analyst ? this.state[num].analyst : ''}
-            onChange={e => this.setAnalyst(e.target.value, num)}
-            input={<Input name="analyst" id="analyst" />}
-          >
-            {this.props.bulkAnalysts.filter(analyst => analyst.name !== prevAnalyst).map(analyst => {
-              return (
-                <option key={analyst.uid} value={analyst.name}>
-                  {analyst.name}
-                </option>
-              );
-            })}
-          </Select>
-        </FormControl>
+        <InputLabel shrink>Analyst</InputLabel>
+        <Select className={classes.formInputMedium}
+          defaultValue={this.state[num].analyst ? this.state[num].analyst : ''}
+          options={this.props.bulkAnalysts.filter(analyst => analyst.name !== prevAnalyst).map(analyst => ({ value: analyst.name, label: analyst.name }))}
+          onChange={e => this.setAnalyst(e ? e.value : "", num)}
+        />
         <div>
           <b>Date:</b> {this.state[num].date ? moment(resultDate).format('D MMM YYYY, h:mma') : 'N/A'}
         </div>
-        <Button variant='outlined' aria-label='remove' onClick={() => this.deleteAnalysis(num)}><RemoveIcon /> Remove Analysis</Button>
+        <Button className={classes.buttonIconText} aria-label='remove' onClick={() => this.deleteAnalysis(num)}><RemoveIcon /> Remove</Button>
       </div>
       <div className={classes.flexRow}>
         {['ch','am','cr','umf','no','org','smf'].map(res => {

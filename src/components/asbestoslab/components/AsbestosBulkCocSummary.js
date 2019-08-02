@@ -22,10 +22,10 @@ class AsbestosBulkCocSummary extends React.Component {
   // static whyDidYouRender = true;
 
   shouldComponentUpdate(nextProps) {
-    if (this.props.job !== nextProps.job ||
-      (this.props.samples && this.props.samples[this.props.job.uid] &&
-      Object.keys(this.props.samples[this.props.job.uid]).length < this.props.job.sampleList.length &&
-      Object.keys(nextProps.samples[nextProps.job.uid]).length === nextProps.job.sampleList.length)) {
+    if (this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
+      (this.props.samples && this.props.samples[this.props.job] &&
+      Object.keys(this.props.samples[this.props.job]).length < this.props.cocs[this.props.job].sampleList.length &&
+      Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length)) {
         return true;
     } else {
       // console.log('Blocked re-render of Summary');
@@ -34,7 +34,8 @@ class AsbestosBulkCocSummary extends React.Component {
   }
 
   render() {
-    const { job, samples, classes, analysts, dates } = this.props;
+    const { samples, classes, analysts, dates } = this.props;
+    const job = this.props.cocs[this.props.job];
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
 

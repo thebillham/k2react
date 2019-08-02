@@ -109,6 +109,7 @@ export const setModalError = error => dispatch => {
 };
 
 export const handleModalChange = target => dispatch => {
+  console.log(target);
   if (target.id === 'samples') {
     dispatch({
       type: EDIT_MODAL_DOC_SAMPLES,
@@ -129,6 +130,11 @@ export const handleModalChange = target => dispatch => {
       type: EDIT_MODAL,
       payload: {doc: target.value},
     });
+  } else if (target.id === 'modal') {
+    dispatch({
+      type: EDIT_MODAL,
+      payload: target.value,
+    })
   } else {
     dispatch({
       type: EDIT_MODAL_DOC,

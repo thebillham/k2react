@@ -2,6 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
+import classNames from 'classnames';
 
 import Grid from "@material-ui/core/Grid";
 import ListItem from "@material-ui/core/ListItem";
@@ -14,7 +15,7 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
+import Select from "react-select";
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormHelperText from "@material-ui/core/FormHelperText";
@@ -211,58 +212,27 @@ class UserDetails extends React.Component {
                         <b>Workflow Max ID:</b> {user.wfm_id}
                       </Typography>
                     </ListItem>
+                    <div className={classes.textLabel}>Job Description</div>
                     <ListItem>
-                      <FormControl className={classes.textField}>
-                        <InputLabel>Job Description</InputLabel>
-                        <Select
-                          onChange={e =>
-                            this.onEditUser(
-                              { id: "jobdescription", value: e.target.value },
-                              true
-                            )
-                          }
-                          value={user.jobdescription}
-                          input={
-                            <Input name="jobdescription" id="jobdescription" />
-                          }
-                        >
-                          <option value="" />
-                          {this.props.jobdescriptions.map(jobdescription => {
-                            return (
-                              <option
-                                key={jobdescription}
-                                value={jobdescription}
-                              >
-                                {jobdescription}
-                              </option>
-                            );
-                          })}
-                        </Select>
-                      </FormControl>
+                      <Select
+                        className={classNames(classes.select, classes.textField)}
+                        defaultValue={{label: user.jobdescription, id: user.jobdescription }}
+                        options={this.props.jobdescriptions.map(e => ({ value: e, label: e }))}
+                        onChange={e =>
+                          this.onEditUser({ id: "jobdescription", value: e ? e.value : e }, true )
+                        }
+                      />
                     </ListItem>
+                    <div className={classes.textLabel}>Office</div>
                     <ListItem>
-                      <FormControl className={classes.textField}>
-                        <InputLabel>Office</InputLabel>
-                        <Select
-                          value={user.office}
-                          onChange={e =>
-                            this.onEditUser(
-                              { id: "office", value: e.target.value },
-                              true
-                            )
-                          }
-                          input={<Input name="office" id="office" />}
-                        >
-                          <option value="" />
-                          {this.props.offices.map(office => {
-                            return (
-                              <option key={office} value={office}>
-                                {office}
-                              </option>
-                            );
-                          })}
-                        </Select>
-                      </FormControl>
+                      <Select
+                        className={classNames(classes.select, classes.textField)}
+                        defaultValue={{label: user.office, id: user.office }}
+                        options={this.props.offices.map(e => ({ value: e, label: e }))}
+                        onChange={e =>
+                          this.onEditUser({ id: "office", value: e ? e.value : e }, true )
+                        }
+                      />
                     </ListItem>
                     <ListItem>
                       <TextField
@@ -368,7 +338,7 @@ class UserDetails extends React.Component {
                 <div style={{ position: "relative", width: "60vw" }}>
                   <div>
                     <Button
-                      variant="outlined"
+                      className={classes.IconButton}
                       onClick={() => {
                         if (!this.state.edited) this.setState({ edited: true });
                         this.props.showModal({
@@ -452,26 +422,16 @@ class UserDetails extends React.Component {
                     </ListItem>
                     <ListItem>
                       <FormControl className={classes.textField}>
-                        <InputLabel>Mask Size</InputLabel>
+                        <InputLabel shrink>Mask Size</InputLabel>
                         <Select
-                          value={user.maskfitsize}
+                          className={classes.select}
+                          defaultValue={{label: user.maskfitsize, id: user.maskfitsize }}
+                          options={["S","M","L"].map(e => ({ value: e, label: e }))}
                           onChange={e =>
-                            this.onEditUser(
-                              { id: "maskfitsize", value: e.target.value },
-                              true
-                            )
+                            this.onEditUser({ id: "maskfitsize", value: e ? e.value : e }, true)
                           }
-                          input={<Input name="maskfitsize" id="maskfitsize" />}
-                        >
-                          <option value="" />
-                          {["S", "M", "L"].map(maskfitsize => {
-                            return (
-                              <option key={maskfitsize} value={maskfitsize}>
-                                {maskfitsize}
-                              </option>
-                            );
-                          })}
-                        </Select>
+                          isClearable
+                        />
                       </FormControl>
                     </ListItem>
                     <ListItem>

@@ -208,7 +208,7 @@ const styles = theme => ({
 
   note: {
     marginLeft: theme.spacing(1),
-    fontSize: 14,
+    fontSize: 9,
     color: '#444',
     // marginBottom: theme.spacing(2),
   },
@@ -474,6 +474,13 @@ const styles = theme => ({
   infoLight: {
     fontSize: 11,
     fontWeight: 250,
+  },
+
+  textLabel: {
+    fontSize: 9,
+    marginLeft: theme.spacing(4),
+    marginBottom: 0,
+    fontWeight: 50,
   },
 
   warningTextLight: {
@@ -743,6 +750,10 @@ const styles = theme => ({
     marginRight: theme.spacing(1),
   },
 
+  select: {
+    margin: theme.spacing(2),
+  },
+
   // PADDING/MARGINS
 
   marginLeftSmall: {
@@ -761,6 +772,10 @@ const styles = theme => ({
 
   marginTopSmall: {
     marginTop: theme.spacing(1),
+  },
+
+  marginTopStandard: {
+    marginTop: 80,
   },
 
   marginTopLarge: {

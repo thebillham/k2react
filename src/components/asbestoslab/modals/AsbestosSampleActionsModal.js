@@ -120,7 +120,7 @@ class AsbestosSampleActionsModal extends React.Component {
     if (Object.keys(checkMap).length === 0) {
       // No problems with any samples, do actions
       checks.forEach(sample => {
-        if (this.props.modalProps.field === 'receivedByLab') res = receiveSamples(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+        if (this.props.modalProps.field === 'receivedByLab') res = receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
         if (this.props.modalProps.field === 'analysisStart') res = startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
         if (this.props.modalProps.field === 'verified') res = verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
       });
@@ -210,12 +210,10 @@ class AsbestosSampleActionsModal extends React.Component {
 
   issueCard = issue => {
     return <Card key={issue.sample.number}>
-      <CardActionArea>
-        <CardContent>
-          <div className={this.props.classes.subheading}>{`${issue.sample.jobNumber}-${issue.sample.sampleNumber} ${writeDescription(issue.sample)}`}</div>
-          {issue.description}
-        </CardContent>
-      </CardActionArea>
+      <div>
+        <div className={this.props.classes.subheading}>{`${issue.sample.jobNumber}-${issue.sample.sampleNumber} ${writeDescription(issue.sample)}`}</div>
+        {issue.description}
+      </div>
       <CardActions>
         <Button size="small" color="secondary">
           Share

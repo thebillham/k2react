@@ -70,7 +70,6 @@ export default function modalReducer(state = modalInit, action) {
         modalTypeSecondary: action.modalType
       };
     case EDIT_MODAL_DOC:
-      console.log(action.payload);
       return {
         ...state,
         modalProps: {

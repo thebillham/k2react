@@ -94,19 +94,21 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   componentWillMount = () => {
-    this.props.job.dates = this.props.job.dates
-      ? this.props.job.dates.map(date => {
-          return date instanceof Date ? date : date.toDate();
-        })
-      : [];
-    let uid = `${this.props.job.uid}-${this.props.me.name}-${moment().format('x')}`;
+    // this.props.job.dates = this.props.job.dates
+    //   ? this.props.job.dates.map(date => {
+    //       return date instanceof Date ? date : date.toDate();
+    //     })
+    //   : [];
+    let uid = `${this.props.job}-${this.props.me.name}-${moment().format('x')}`;
     this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };
 
-  shouldComponentUpdate(nextProps) {
-    if (this.props.samples && this.props.samples[this.props.job.uid] &&
+  shouldComponentUpdate(nextProps, nextState) {
+    if ((this.props.samples && this.props.samples[this.props.job.uid] &&
     // Object.keys(this.props.samples[this.props.job.uid]).length === this.props.job.sampleList.length &&
-    Object.keys(nextProps.samples[nextProps.job.uid]).length === nextProps.job.sampleList.length
+    Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length) ||
+    this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
+    this.state !== nextState
    ) {
       return true;
     } else {
@@ -129,18 +131,20 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   render() {
-    const { job, samples, classes } = this.props;
+    const { samples, classes } = this.props;
+    const job = this.props.cocs[this.props.job];
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
     let analysts = getAnalysts(job, samples[job.uid], false);
 
-    let dates = job.dates.map(date => {
+    let dates = job.dates.sort().map(date => {
       let formatDate = date instanceof Date ? date : date.toDate();
       return moment(formatDate).format('D MMMM YYYY');
     });
     console.log(`${job.jobNumber} rendering`);
     getStatus(samples[job.uid], job);
+    console.log(job.status);
     return (
       <ExpansionPanel
         className={classes.fullWidth}
@@ -154,7 +158,7 @@ class AsbestosBulkCocCard extends React.Component {
             <span className={classes.boldSmallText}>{job.jobNumber}</span>
             <span>{job.client} ({job.address})</span>
             {job.waAnalysis && <WAIcon color='action' className={classes.marginLeftSmall} />}
-            {job.priority === 1 && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
+            {(job.priority === 1 || job.clearance) && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
             {job.versionUpToDate && <VerifyIcon color='primary' className={classes.marginLeftSmall} />}
             {job.stats && <span className={classes.boldSmallText}>{job.status ? job.status : ''}</span>}
           </div>
@@ -325,17 +329,15 @@ class AsbestosBulkCocCard extends React.Component {
                 </MenuItem>
               </Menu>
             </div>
+            <AsbestosBulkCocSummary job={job.uid} analysts={analysts} dates={dates} />
             {samples[job.uid] && Object.values(samples[job.uid]).filter(el => el.deleted === false).length > 0 ? (
               <div>
-                <AsbestosBulkCocSummary job={job} analysts={analysts} dates={dates} />
                 {Object.values(samples[job.uid]).filter(el => el.deleted === false)
                   .map(sample => {
                     return (<SampleListItem
                       key={sample.uid}
                       job={job}
                       sample={sample}
-                      sampleAnchorMenu={this.sampleAnchorMenu}
-                      anchorEl={this.state.sampleAnchorEl[sample.sampleNumber]}
                     />);
                   }
                 )}
