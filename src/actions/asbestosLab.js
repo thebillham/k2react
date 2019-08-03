@@ -193,6 +193,7 @@ export const fetchAsbestosAnalysis = update => async dispatch => {
 }
 
 export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
+  console.log('fetching samples');
   asbestosSamplesRef
     .where("jobNumber", "==", jobNumber)
     .where("deleted","==",false)
@@ -202,6 +203,7 @@ export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
         let sample = sampleDoc.data();
         sample.uid = sampleDoc.id;
         samples[sample.sampleNumber] = sample;
+        console.log(sample);
         // console.log('fetch samples method');
         dispatch({
           type: GET_SAMPLES,

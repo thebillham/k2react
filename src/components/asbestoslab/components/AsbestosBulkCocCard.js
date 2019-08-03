@@ -104,9 +104,9 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   shouldComponentUpdate(nextProps, nextState) {
-    if ((this.props.samples && this.props.samples[this.props.job.uid] &&
-    // Object.keys(this.props.samples[this.props.job.uid]).length === this.props.job.sampleList.length &&
-    Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length) ||
+    if ((nextProps.samples && nextProps.samples[nextProps.job] && this.props.samples && this.props.samples[this.props.job] &&
+    (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length ||
+    Object.keys(nextProps.samples[nextProps.job]).length !== Object.keys(this.props.samples[this.props.job]).length)) ||
     this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
     this.state !== nextState
    ) {
@@ -144,12 +144,11 @@ class AsbestosBulkCocCard extends React.Component {
     });
     console.log(`${job.jobNumber} rendering`);
     getStatus(samples[job.uid], job);
-    console.log(job.status);
     return (
       <ExpansionPanel
         className={classes.fullWidth}
         onChange={(event, ex) => {
-          if (!job.samples) this.getSamples(ex, job.uid, job.jobNumber);
+          if (!this.props.samples[this.props.job]) this.getSamples(ex, job.uid, job.jobNumber);
           this.setState({ expanded: ex });
         }}
       >
@@ -332,12 +331,12 @@ class AsbestosBulkCocCard extends React.Component {
             <AsbestosBulkCocSummary job={job.uid} analysts={analysts} dates={dates} />
             {samples[job.uid] && Object.values(samples[job.uid]).filter(el => el.deleted === false).length > 0 ? (
               <div>
-                {Object.values(samples[job.uid]).filter(el => el.deleted === false)
+                {Object.values(samples[job.uid]).filter(el => el.deleted === false && samples[job.uid][el.sampleNumber] !== undefined)
                   .map(sample => {
                     return (<SampleListItem
                       key={sample.uid}
-                      job={job}
-                      sample={sample}
+                      job={job.uid}
+                      sample={sample.sampleNumber}
                     />);
                   }
                 )}
