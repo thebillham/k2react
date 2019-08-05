@@ -88,7 +88,8 @@ class AppSettings extends React.Component {
       "Job Descriptions",
       "Offices",
       "Office Contacts",
-      "Permissions"
+      "Permissions",
+      "Reasons Why No Asbestos Result is Recorded",
     ];
     return (
       <Dialog
@@ -969,6 +970,43 @@ class AppSettings extends React.Component {
                   }}
                 />
               )}
+
+              {setting === "Reasons Why No Asbestos Result is Recorded" && (
+                <TextField
+                  id="noAsbestosResultReasons"
+                  label="Reasons Why No Asbestos Result is Recorded"
+                  multiline
+                  defaultValue={
+                    doc &&
+                    doc.noAsbestosResultReasons &&
+                    doc.noAsbestosResultReasons
+                      .map(obj => {
+                        return `${obj.label}|${obj.value}`;
+                      })
+                      .join("\n")
+                  }
+                  helperText='Put each tag on a new line in the form "reason label|reason value".'
+                  className={classes.dialogField}
+                  onChange={e => {
+                    this.props.handleModalChange({
+                      id: e.target.id,
+                      value: e.target.value
+                        .split("\n")
+                        .filter(Boolean)
+                        // .sort()
+                        .map(option => {
+                          let list = option.split("|");
+                          return {
+                            value: list[1] ? list[1] : list[0],
+                            label: list[0]
+                          };
+                        })
+                    });
+                  }}
+                />
+              )}
+
+
             </FormGroup>
           </form>
         </DialogContent>

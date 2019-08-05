@@ -537,7 +537,25 @@ const constInit = {
     { id: "Legislation", text: "Legislation" },
     { id: "Cheat Sheet", text: "Cheat Sheet" }
   ],
-  tagDelimiters: [KeyCodes.comma, KeyCodes.enter]
+  tagDelimiters: [KeyCodes.comma, KeyCodes.enter],
+  noAsbestosResultReasons: [
+    {
+      value: 'notAnalysed',
+      label: 'Not Analysed',
+    },
+    {
+      value: 'sampleSizeTooSmall',
+      label: 'Sample Size Too Small',
+    },
+    {
+      value: 'sampleNotReceived',
+      label: 'Sample Not Received By Lab',
+    },
+    {
+      value: 'other',
+      label: 'Other',
+    },
+  ],
 };
 
 // Properties related to constants such as word lists

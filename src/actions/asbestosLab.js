@@ -507,33 +507,41 @@ export const receiveSample = (sample, job, samples, sessionID, me, startDate) =>
 
 export const receiveSamples = (samples) => {
   let issues = [];
+  let uid = '';
   // Check for issues
   samples.forEach(sample => {
     if (!sample.now) {
       if (sample.receivedByLab && sample.verified) {
-        issues.push({
+        uid = sample.uid + 'RemoveReceiveResultVerification';
+        issues[uid] = {
           type: 'reverse',
           description: `The result has already been verified. Removing from the lab will remove the analysis result and verification.`,
           sample,
-        });
+          uid,
+        };
       } else if (sample.receivedByLab && sample.result) {
-        issues.push({
+        uid = sample.uid + 'RemoveReceiveResult';
+        issues[uid] = {
           type: 'reverse',
           description: `The result has already been logged. Removing from the lab will remove the analysis result.`,
           sample,
-        });
+          uid,
+        };
       } else if (sample.original === sample.now) {
-        issues.push({
+        uid = sample.uid + 'NotReceived';
+        issues[uid] = {
           type: 'unchecked',
           description: `Sample has not been checked as received. Double check this is correct and leave a comment on why it has been missed.`,
           sample,
-        });
+        };
       } else {
-        issues.push({
+        uid = sample.uid + 'UnReceived';
+        issues[uid] = {
           type: 'unchecked',
           description: `Sample has been unchecked as received. Double check this is correct and leave a comment on why it has been removed.`,
           sample,
-        });
+          uid,
+        };
       }
     }
   });
@@ -592,32 +600,41 @@ export const startAnalysis = (sample, job, samples, sessionID, me, startDate) =>
 export const startAnalyses = (samples) => {
   let issues = [];
   // Check for issues
+  let uid = '';
   samples.forEach(sample => {
     if (!sample.now) {
       if (sample.analysisStart && sample.verified) {
-        issues.push({
+        uid = sample.uid + 'RemovingAnalysis';
+        issues[uid] = {
           type: 'confirm',
           description: `The result has already been verified. Are you sure you want to remove the analysis start date? This will not remove the result or verification.`,
           sample,
-        });
+          uid,
+        };
       } else if (sample.analysisStart && sample.result) {
-        issues.push({
+        uid = sample.uid + 'RemovingAnalysis';
+        issues[uid] = {
           type: 'confirm',
           description: `The result has already been logged. Are you sure you want to remove the analysis start date? This will not remove the result.`,
           sample,
-        });
+          uid,
+        };
       } else if (sample.original === sample.now) {
-        issues.push({
+        uid = sample.uid + 'NoAnalysisStart';
+        issues[uid] = {
           type: 'check',
           description: `Analysis has not been checked as started. Double check this is correct and leave a comment on why it has been missed.`,
           sample,
-        });
+          uid,
+        };
       } else {
-        issues.push({
+        uid = sample.uid + 'AnalysisUnchecked';
+        issues[uid] = {
           type: 'check',
           description: `Analysis has been unchecked as started. Double check this is correct and leave a comment on why it has been removed.`,
           sample,
-        });
+          uid,
+        };
       }
     }
   });
@@ -840,39 +857,49 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate) => 
 
 export const verifySamples = (samples, job) => {
   let issues = [];
+  let uid = '';
   // Check for issues
   samples.forEach(sample => {
+    let uid = '';
     if (!sample.now) {
       if (sample.original === sample.now) {
-        issues.push({
+        uid = sample.uid + 'ResultNotVerified';
+        issues[uid] = {
           type: 'check',
           description: `Result has not been verified. This sample will not appear on lab reports.`,
           sample,
-        });
+          uid,
+        };
       } else {
-        issues.push({
+        uid = sample.uid + 'VerificationRemvoed';
+        issues[uid] = {
           type: 'check',
           description: `Result has been unverified. Double check this is correct and leave a comment on why verification has been removed. This sample will not appear on lab reports.`,
           sample,
-        });
+          uid,
+        };
       }
     } else {
       // Check sample if is on hold
       if (sample.onHold) {
-        issues.push({
+        uid = sample.uid + 'OnHold';
+        issues[uid] = {
           type: 'check',
           description: `Sample is on hold. This will not appear on lab reports until it is taken off hold.`,
           sample,
-        });
+          uid,
+        };
       }
 
       // Check result has been added
       if (getBasicResult(sample) === 'none') {
-        issues.push({
+        uid = sample.uid + 'NoAsbestosResult';
+        issues[uid] = {
           type: 'noresult',
           description: `No asbestos result has been recorded. Double check this is correct and select a reason for why this is.`,
           sample,
-        });
+          uid,
+        };
       }
 
       // Check layer results
@@ -881,26 +908,32 @@ export const verifySamples = (samples, job) => {
         let layersMatch = getConfirmResult(layersResult, sample);
         if (layersMatch !== 'yes') {
           if (layersMatch === 'no') {
-            issues.push({
+            uid = sample.uid + 'LayerResultOpposing';
+            issues[uid] = {
               type: 'confirm',
               priority: 'high',
               description: `Cumulative results for layer detail have opposing results to the sample result. Check with analyst why this is before clicking Proceed.`,
               sample,
-            });
+              uid,
+            };
           } else if (layersMatch === 'differentAsbestos') {
-            issues.push({
+            uid = sample.uid + 'LayerResultDifferentAsbestos';
+            issues[uid] = {
               type: 'confirm',
               priority: 'high',
               description: `Cumulative results for layer detail record different asbestos types to the sample result. Check with analyst why this is before clicking Proceed.`,
               sample,
-            });
+              uid,
+            };
           } else if (layersMatch === 'differentNonAsbestos') {
-            issues.push({
+            uid = sample.uid + 'LayerResultDifferentNonAsbestos';
+            issues[uid] = {
               type: 'confirm',
               priority: 'low',
               description: `Cumulative results for layer detail record different non-asbestos types to the sample result. Check with analyst why this is before clicking Proceed.`,
               sample,
-            });
+              uid,
+            };
           }
         }
       }
@@ -927,26 +960,32 @@ export const verifySamples = (samples, job) => {
         });
         if (confirmNo + confirmDifferentAsbestos + confirmDifferentNonAsbestos > 0) {
           if (confirmNo > 0) {
-            issues.push({
+            uid = sample.uid + 'ConfirmResultOpposing';
+            issues[uid] = {
               type: 'confirm',
               priority: 'high',
               description: `${confirmNo} checked ${confirmNo > 1 ? 'analyses have' : 'analysis has an'} opposing ${confirmNo > 1 ? 'results' : 'result'} to the reported result. Check with analyst and analysis ${confirmNo > 1 ? 'checkers' : 'checker'} before clicking Proceed.`,
               sample,
-            });
+              uid,
+            };
           } else if (confirmDifferentAsbestos > 0)  {
-            issues.push({
+            uid = sample.uid + 'ConfirmResultDifferentAsbestos';
+            issues[uid] = {
               type: 'confirm',
               priority: 'high',
               description: `${confirmDifferentAsbestos} checked ${confirmDifferentAsbestos > 1 ? 'analyses have' : 'analysis has a'} different asbestos result to the reported result. Check with analyst and analysis ${confirmDifferentAsbestos > 1 ? 'checkers' : 'checker'} before clicking Proceed.`,
               sample,
-            });
+              uid,
+            };
           } else if (confirmDifferentNonAsbestos > 0)  {
-            issues.push({
+            uid = sample.uid + 'ConfirmResultDifferentNonAsbestos';
+            issues[uid] = {
               type: 'confirm',
               priority: 'low',
               description: `${confirmDifferentNonAsbestos} checked ${confirmDifferentNonAsbestos > 1 ? 'analyses report' : 'analysis reports'} different non-asbestos fibres to the reported result. Check with analyst and analysis ${confirmDifferentNonAsbestos > 1 ? 'checkers' : 'checker'} before clicking Proceed.`,
               sample,
-            });
+              uid,
+            };
           }
         }
       }
@@ -954,44 +993,54 @@ export const verifySamples = (samples, job) => {
       // Check WA Analysis if applicable
       if (job.waAnalysis) {
         if (!sample.waAnalysisComplete) {
-          issues.push({
+          uid = sample.uid + 'WAAnalysisNotComplete';
+          issues[uid] = {
             type: 'confirm',
             description: `WA Analysis has not been checked by analyst as complete. This must be done before the sample can be verified. Check with analyst that analysis is complete before clicking Proceed.`,
             sample,
-          });
+            uid,
+          };
         }
 
         if (!sample.waSoilAnalysis) {
-          issues.push({
+          uid = sample.uid + 'WAAnalysisNotRecorded';
+          issues[uid] = {
             type: 'confirm',
             description: `WA Analysis has not been recorded.`,
             sample,
-          });
+            uid,
+          };
         } else {
           let soilResult = {result: collateLayeredResults(sample.waSoilAnalysis)};
           let soilMatch = getConfirmResult(soilResult, sample);
           if (soilMatch !== 'yes') {
             if (soilMatch === 'no') {
-              issues.push({
+              uid = sample.uid + 'SoilResultOpposing';
+              issues[uid] = {
                 type: 'confirm',
                 priority: 'high',
                 description: `Cumulative results for soil fractions have opposing results to the sample result. Check with analyst why this is before clicking Proceed.`,
                 sample,
-              });
+                uid
+              };
             } else if (soilMatch === 'differentAsbestos') {
-              issues.push({
+              uid = sample.uid + 'SoilResultDifferentAsbestos';
+              issues[uid] = {
                 type: 'confirm',
                 priority: 'high',
                 description: `Cumulative results for soil fractions record different asbestos types to the sample result. Check with analyst why this is before clicking Proceed.`,
                 sample,
-              });
+                uid,
+              };
             } else if (soilMatch === 'differentNonAsbestos') {
-              issues.push({
+              uid = sample.uid + 'SoilResultDifferentNonAsbestos';
+              issues[uid] = {
                 type: 'confirm',
                 priority: 'low',
                 description: `Cumulative results for soil fractions record different non-asbestos types to the sample result. Check with analyst why this is before clicking Proceed.`,
                 sample,
-              });
+                uid,
+              };
             }
           }
         }
@@ -1503,12 +1552,12 @@ export const sortSamples = samples => {
 
 export const writeDescription = (sample) => {
   var str = '';
-  if (sample.locationgeneric) str = sample.locationgeneric;
-  if (sample.locationdetailed) {
+  if (sample.genericLocation) str = sample.genericLocation;
+  if (sample.specificLocation) {
     if (str === '') {
-      str = sample.locationdetailed;
+      str = sample.specificLocation;
     } else {
-      str = str + ' - ' + sample.locationdetailed;
+      str = str + ' - ' + sample.specificLocation;
     }
   }
   if (str !== '') str = str + ': ';

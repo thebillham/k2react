@@ -2,6 +2,7 @@ import React from "react";
 import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
+import classNames from 'classnames';
 import { connect } from "react-redux";
 import store from "../../../store";
 import { COC_SAMPLE_ACTIONS } from "../../../constants/modal-types";
@@ -9,6 +10,10 @@ import { asbestosSamplesRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Radio from "@material-ui/core/Radio";
+import FormHelperText from "@material-ui/core/FormHelperText";
 import Card from "@material-ui/core/Card";
 import CardActionArea from "@material-ui/core/CardActionArea";
 import CardContent from "@material-ui/core/CardContent";
@@ -40,6 +45,7 @@ const mapStateToProps = state => {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     samples: state.asbestosLab.samples,
+    noAsbestosResultReasons: state.const.noAsbestosResultReasons,
   };
 };
 
@@ -110,30 +116,35 @@ class AsbestosSampleActionsModal extends React.Component {
   }
 
   submit = () => {
-    let res = true;
     let close = true;
-    let checkMap = {};
-    let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.number], ...sample}));
-    if (this.props.modalProps.field === 'receivedByLab') checkMap = receiveSamples(checks);
-    if (this.props.modalProps.field === 'analysisStart') checkMap = startAnalyses(checks);
-    if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job);
-    if (Object.keys(checkMap).length === 0) {
-      // No problems with any samples, do actions
-      checks.forEach(sample => {
-        if (this.props.modalProps.field === 'receivedByLab') res = receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-        if (this.props.modalProps.field === 'analysisStart') res = startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-        if (this.props.modalProps.field === 'verified') res = verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-      });
-    } else {
-      // Review issues with samples
-      close = false;
-      this.setState({
-        mode: 'issues',
-        issues: checkMap,
-      })
+    if (this.state.mode === 'issues') {
 
+    } else {
+      let res = true;
+      let checkMap = {};
+      let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.number], ...sample}));
+      if (this.props.modalProps.field === 'receivedByLab') checkMap = receiveSamples(checks);
+      if (this.props.modalProps.field === 'analysisStart') checkMap = startAnalyses(checks);
+      if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job);
+      if (Object.keys(checkMap).length === 0) {
+        // No problems with any samples, do actions
+        checks.forEach(sample => {
+          console.log(sample.now);
+          if (this.props.modalProps.field === 'receivedByLab' && sample.now && !sample.original) res = receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          if (this.props.modalProps.field === 'analysisStart' && sample.now && !sample.original) res = startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          if (this.props.modalProps.field === 'verified' && sample.now && !sample.original) res = verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+        });
+      } else {
+        // Review issues with samples
+        console.log(checkMap);
+        close = false;
+        this.setState({
+          mode: 'issues',
+          issues: checkMap,
+        })
+      }
+      return close;
     }
-    return close;
   }
 
   render() {
@@ -209,17 +220,69 @@ class AsbestosSampleActionsModal extends React.Component {
   }
 
   issueCard = issue => {
-    return <Card key={issue.sample.number}>
+    console.log(issue.type);
+    return <Card key={issue.uid} className={classNames(this.props.classes.paddingAllMedium, this.props.classes.marginsAllMedium)}>
       <div>
-        <div className={this.props.classes.subheading}>{`${issue.sample.jobNumber}-${issue.sample.sampleNumber} ${writeDescription(issue.sample)}`}</div>
+        <div className={this.props.classes.headingInline}>{`${issue.sample.jobNumber}-${issue.sample.sampleNumber} ${issue.sample.description}`}</div>
         {issue.description}
+        {issue.type === 'noresult' &&
+          <FormControl component="fieldset">
+            <RadioGroup
+              id={'noResultReason'}
+              name={'noResultReason'}
+              value={issue.noResultReason ? issue.noResultReason : 'notAnalysed' }
+              row
+              onChange={e => {
+                this.setState({
+                  samples: {
+                    ...this.state.samples,
+                    [issue.sample.sampleNumber]: {
+                      ...this.state.samples[issue.sample.sampleNumber],
+                      noAsbestosResultReason: e.target.value,
+                    },
+                  },
+                  issues: {
+                    ...this.state.issues,
+                    [issue.uid]: {
+                      ...this.state.issues[issue.uid],
+                      noResultReason: e.target.value,
+                    },
+                  },
+                });
+              }}
+            >
+              {this.props.noAsbestosResultReasons && this.props.noAsbestosResultReasons.map(select => {
+                return (<FormControlLabel value={select.value} control={<Radio />} label={select.label} />);
+              })}
+            </RadioGroup>
+            <FormHelperText style={{ width: 500, }}>Select the reason for reporting no asbestos result.</FormHelperText>
+          </FormControl>
+        }
+        <TextField
+          value={issue.comment ? issue.comment : ''}
+          label={'Comment'}
+          style={{ width: '100%'}}
+          multiline={true}
+          rows={5}
+          onChange={e => {
+            this.setState({
+              issues: {
+                ...this.state.issues,
+                [issue.uid]: {
+                  ...this.state.issues[issue.uid],
+                  comment: e.target.value,
+                },
+              },
+            });
+          }}
+        />
       </div>
       <CardActions>
         <Button size="small" color="secondary">
-          Share
+          Cancel Action on this Sample
         </Button>
         <Button size="small" color="primary">
-          Dismiss
+          Issue Resolved, Proceed with Action
         </Button>
       </CardActions>
     </Card>;

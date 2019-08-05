@@ -756,6 +756,22 @@ const styles = theme => ({
 
   // PADDING/MARGINS
 
+  marginsAllSmall: {
+    margin: theme.spacing(1),
+  },
+
+  paddingAllSmall: {
+    padding: theme.spacing(1),
+  },
+
+  marginsAllMedium: {
+    margin: theme.spacing(2),
+  },
+
+  paddingAllMedium: {
+    padding: theme.spacing(2),
+  },
+
   marginLeftSmall: {
     marginLeft: theme.spacing(1),
   },
