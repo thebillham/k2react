@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import { connect } from "react-redux";
 import store from "../../../store";
 import { COC_SAMPLE_ACTIONS } from "../../../constants/modal-types";
-import { asbestosSamplesRef, } from "../../../config/firebase";
+import { asbestosSamplesRef, cocsRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
@@ -17,6 +17,8 @@ import FormHelperText from "@material-ui/core/FormHelperText";
 import Card from "@material-ui/core/Card";
 import CardActionArea from "@material-ui/core/CardActionArea";
 import CardContent from "@material-ui/core/CardContent";
+import CardHeader from "@material-ui/core/CardHeader";
+import Avatar from "@material-ui/core/Avatar";
 import CardActions from "@material-ui/core/CardActions";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
@@ -31,6 +33,9 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import ReceiveIcon from "@material-ui/icons/Inbox";
 import StartAnalysisIcon from "@material-ui/icons/Colorize";
+import CancelActionIcon from "@material-ui/icons/Block";
+import ProceedActionIcon from "@material-ui/icons/Forward";
+import UnresolvedActionIcon from "@material-ui/icons/Report";
 import VerifyIcon from "@material-ui/icons/CheckCircleOutline";
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { addLog } from "../../../actions/local";
@@ -117,33 +122,77 @@ class AsbestosSampleActionsModal extends React.Component {
 
   submit = () => {
     let close = true;
+    let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.number], ...sample}));
+    let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
+    let issuesIncomplete = false;
+    console.log(checks);
+    console.log(jobIssues);
     if (this.state.mode === 'issues') {
-
+      let sampleGates = {};
+      Object.values(this.state.issues).forEach(issue => {
+        console.log(issue);
+        console.log(issue.action);
+        if (issue.action !== 'proceed' && issue.action !== 'cancel') issuesIncomplete = true;
+        jobIssues[issue.uid] = {
+          action: issue.action,
+          sampleUid: issue.sample.uid,
+          description: issue.description,
+          type: issue.type,
+        };
+        if (issue.action !== 'proceed') {
+          sampleGates[issue.sample.sampleNumber] = true;
+        }
+      });
+      this.setState({
+        issuesIncomplete,
+      });
+      if (!issuesIncomplete) {
+        // All issues are decided, continue with
+        console.log(sampleGates);
+        checks.filter(sample => sample.now && !sample.original && !sampleGates[sample.sampleNumber]).forEach(sample => {
+          if (this.props.modalProps.field === 'receivedByLab') receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          if (this.props.modalProps.field === 'analysisStart') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          if (this.props.modalProps.field === 'verified' && sample.now && !sample.original) {
+            if (sample.noAsbestosResultReason) {
+              verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate, {noAsbestosResultReason: sample.noAsbestosResultReason});
+            } else {
+              verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+            }
+          }
+        });
+        cocsRef.doc(this.props.modalProps.job.uid).update({ issues: jobIssues });
+        this.props.hideModal();
+      }
     } else {
-      let res = true;
       let checkMap = {};
       let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.number], ...sample}));
       if (this.props.modalProps.field === 'receivedByLab') checkMap = receiveSamples(checks);
       if (this.props.modalProps.field === 'analysisStart') checkMap = startAnalyses(checks);
       if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job);
-      if (Object.keys(checkMap).length === 0) {
+      let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : null;
+      Object.values(checkMap).forEach(check => {
+        if (jobIssues[check.uid] && jobIssues[check.uid].action) checkMap[check.uid] = {
+          ...checkMap[check.uid],
+          action: jobIssues[check.uid].action,
+        };
+      });
+      console.log(checkMap);
+      // if (Object.values(checkMap).filter(check => check.action === 'proceed').length === 0) {
+      if (Object.values(checkMap).length === 0) {
         // No problems with any samples, do actions
-        checks.forEach(sample => {
-          console.log(sample.now);
-          if (this.props.modalProps.field === 'receivedByLab' && sample.now && !sample.original) res = receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-          if (this.props.modalProps.field === 'analysisStart' && sample.now && !sample.original) res = startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-          if (this.props.modalProps.field === 'verified' && sample.now && !sample.original) res = verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+        checks.filter(sample => sample.now && !sample.original).forEach(sample => {
+          if (this.props.modalProps.field === 'receivedByLab' && sample.now && !sample.original) receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          if (this.props.modalProps.field === 'analysisStart' && sample.now && !sample.original) startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          if (this.props.modalProps.field === 'verified' && sample.now && !sample.original) verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
         });
+        this.props.hideModal();
       } else {
         // Review issues with samples
-        console.log(checkMap);
-        close = false;
         this.setState({
           mode: 'issues',
           issues: checkMap,
         })
       }
-      return close;
     }
   }
 
@@ -196,9 +245,13 @@ class AsbestosSampleActionsModal extends React.Component {
             </div>
             )
           )}</div>
-          : this.state.issues && Object.values(this.state.issues).map(issue => (
-            this.issueCard(issue)
-          ))
+          : this.state.issues &&
+          <div>
+            {this.state.issuesIncomplete && <div className={classes.boldRedWarningText}>Make A Decision on All Issues Before Continuing</div>}
+            {Object.values(this.state.issues).map(issue => (
+              this.issueCard(issue)
+            ))}
+          </div>
         }
         </DialogContent>
         <DialogActions>
@@ -207,8 +260,7 @@ class AsbestosSampleActionsModal extends React.Component {
           </Button>
           <Button
             onClick={() => {
-              let close = this.submit();
-              if (close) this.props.hideModal();
+              this.submit();
             }}
             color="primary"
           >
@@ -220,12 +272,29 @@ class AsbestosSampleActionsModal extends React.Component {
   }
 
   issueCard = issue => {
-    console.log(issue.type);
+    let yes = `Issue Resolved, Proceed with Action`;
+    if (issue.type === 'check') yes = `OK`;
+    let no = `Cancel Action on this Sample`;
+    if (this.props.modalProps.field === 'receivedByLab') no = `Do not mark this sample as received`;
+    if (this.props.modalProps.field === 'analysisStart') no = `Do not start analysis this sample`;
+    if (this.props.modalProps.field === 'verified') no = `Do not verify this sample`;
+    if (issue.type === 'check') no =`Needs Fixing`;
     return <Card key={issue.uid} className={classNames(this.props.classes.paddingAllMedium, this.props.classes.marginsAllMedium)}>
-      <div>
-        <div className={this.props.classes.headingInline}>{`${issue.sample.jobNumber}-${issue.sample.sampleNumber} ${issue.sample.description}`}</div>
+      <CardHeader
+        avatar={
+          <Avatar className={(issue.action === undefined || issue.action === null) ? this.props.classes.avatarRegularOrange :
+          issue.action === 'proceed' ? this.props.classes.avatarRegularGreen :
+          this.props.classes.avatarRegularRed}>
+            {(issue.action === undefined || issue.action === null) ? <UnresolvedActionIcon /> :
+            issue.action === 'proceed' ? <ProceedActionIcon /> :
+            <CancelActionIcon />}
+          </Avatar>
+        }
+        title={`${issue.sample.jobNumber}-${issue.sample.sampleNumber} ${issue.sample.description}`}
+      />
+      <CardContent>
         {issue.description}
-        {issue.type === 'noresult' &&
+        {issue.type === 'noresult' && (issue.action == undefined || issue.action == null) &&
           <FormControl component="fieldset">
             <RadioGroup
               id={'noResultReason'}
@@ -252,18 +321,23 @@ class AsbestosSampleActionsModal extends React.Component {
               }}
             >
               {this.props.noAsbestosResultReasons && this.props.noAsbestosResultReasons.map(select => {
-                return (<FormControlLabel value={select.value} control={<Radio />} label={select.label} />);
+                return (<FormControlLabel key={select.value} value={select.value} control={<Radio />} label={select.label} />);
               })}
             </RadioGroup>
             <FormHelperText style={{ width: 500, }}>Select the reason for reporting no asbestos result.</FormHelperText>
           </FormControl>
         }
-        <TextField
+        {issue.type === 'noresult' && issue.action !== undefined && issue.action !== null &&
+          <div className={this.props.classes.commentBox}>
+            {issue.noResultReason ? this.props.noAsbestosResultReasons.filter(e => e.value === issue.noResultReason)[0].label : 'Not Analysed'}
+          </div>
+        }
+        {issue.action === undefined || issue.action === null ? <TextField
           value={issue.comment ? issue.comment : ''}
           label={'Comment'}
-          style={{ width: '100%'}}
+          className={this.props.classes.commentBoxNoBorder}
           multiline={true}
-          rows={5}
+          rows={3}
           onChange={e => {
             this.setState({
               issues: {
@@ -275,16 +349,57 @@ class AsbestosSampleActionsModal extends React.Component {
               },
             });
           }}
-        />
-      </div>
-      <CardActions>
-        <Button size="small" color="secondary">
-          Cancel Action on this Sample
-        </Button>
-        <Button size="small" color="primary">
-          Issue Resolved, Proceed with Action
-        </Button>
-      </CardActions>
+        /> :
+        <div>
+          {issue.comment !== undefined && issue.comment !== '' && <div className={this.props.classes.commentBox}>{issue.comment}</div>}
+        </div>
+      }
+      </CardContent>
+      {issue.action === undefined || issue.action === null ?
+        <CardActions>
+          <Button size="small" color="secondary" onClick={() => {
+            this.setState({
+              issues: {
+                ...this.state.issues,
+                [issue.uid]: {
+                  ...this.state.issues[issue.uid],
+                  action: 'cancel',
+                }
+              }
+            });
+          }}>
+            {no}
+          </Button>
+          <Button size="small" color="primary" disabled={issue.action === 'proceed'} onClick={() => {
+            this.setState({
+              issues: {
+                ...this.state.issues,
+                [issue.uid]: {
+                  ...this.state.issues[issue.uid],
+                  action: 'proceed',
+                }
+              }
+            });
+          }}>
+            {yes}
+          </Button>
+        </CardActions> :
+        <CardActions>
+          <Button size="small" color="inherit" onClick={() => {
+            this.setState({
+              issues: {
+                ...this.state.issues,
+                [issue.uid]: {
+                  ...this.state.issues[issue.uid],
+                  action: null,
+                }
+              }
+            });
+          }}>
+            Change Decision
+          </Button>
+        </CardActions>
+      }
     </Card>;
   }
 }

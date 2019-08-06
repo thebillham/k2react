@@ -55,6 +55,7 @@ const mapStateToProps = state => {
     analyst: state.asbestosLab.analyst,
     sessionID: state.asbestosLab.sessionID,
     analysisMode: state.asbestosLab.analysisMode,
+    noAsbestosResultReasons: state.const.noAsbestosResultReasons,
   };
 };
 
@@ -140,6 +141,7 @@ class SampleListItem extends React.Component {
                 </Popup>}
                 {writeDescription(sample)}
                 {sample.onHold && <div className={classes.boldRedWarningText}>ON HOLD</div>}
+                {sample.noAsbestosResultReason && <div className={classes.boldRedWarningText}>{this.props.noAsbestosResultReasons.filter(el => el.value === sample.noAsbestosResultReason)[0].label.toUpperCase()}</div>}
               </div>
             </Grid>
             <Grid item xs={12} xl={9}>

@@ -1,5 +1,6 @@
 import {
   APP_HAS_LOADED,
+  ASBESTOS_SAMPLE_DISPLAY_MODE,
   RESET_DISPLAY,
   TAB_STAFF,
   TAB_MY_DETAILS,
@@ -50,5 +51,11 @@ export const filterMap = filter => dispatch => {
 export const filterMapReset = () => dispatch => {
   dispatch({
     type: FILTER_MAP_RESET,
+  })
+}
+
+export const toggleAsbestosSampleDisplayMode = () => dispatch => {
+  dispatch({
+    type: ASBESTOS_SAMPLE_DISPLAY_MODE,
   })
 }

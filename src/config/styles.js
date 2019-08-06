@@ -169,9 +169,28 @@ const styles = theme => ({
     backgroundColor: '#eee',
     borderStyle: 'solid',
     borderWidth: 1,
-    padding: 12,
+    padding: theme.spacing(1),
     fontSize: 12,
-    margin: 12,
+    margin: theme.spacing(1),
+  },
+
+  commentBox: {
+    borderStyle: 'solid',
+    borderRadius: 5,
+    borderColor: '#ddd',
+    width: '100%',
+    borderWidth: 1,
+    padding: theme.spacing(2),
+    fontSize: 12,
+    margin: theme.spacing(1),
+  },
+
+  commentBoxNoBorder: {
+    width: '100%',
+    borderWidth: 1,
+    padding: theme.spacing(2),
+    fontSize: 12,
+    margin: theme.spacing(1),
   },
 
   roundedBox: {
@@ -342,6 +361,27 @@ const styles = theme => ({
     fontSize: 20,
     margin: 6,
     color: 'orange',
+  },
+
+  avatarRegularGreen: {
+    fontSize: 25,
+    margin: 6,
+    color: 'white',
+    backgroundColor: 'green',
+  },
+
+  avatarRegularOrange: {
+    fontSize: 25,
+    margin: 6,
+    color: 'yellow',
+    backgroundColor: 'black',
+  },
+
+  avatarRegularRed: {
+    fontSize: 25,
+    margin: 6,
+    color: 'white',
+    backgroundColor: 'red',
   },
 
   dashboardIcon: {
@@ -585,11 +625,12 @@ const styles = theme => ({
   },
 
   circleShaded: {
-    width: 40,
+    minWidth: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: theme.palette.app.shaded,
     marginRight: theme.spacing(1),
+    // marginLeft: theme.spacing(1),
     color: "white",
     justifyContent: "center",
     alignItems: "center",
@@ -598,11 +639,12 @@ const styles = theme => ({
   },
 
   circleShadedHighlighted: {
-    width: 40,
+    minWidth: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: theme.palette.app.shadedHighlighted,
     marginRight: theme.spacing(1),
+    // marginLeft: theme.spacing(1),
     color: "#fff",
     justifyContent: "center",
     alignItems: "center",
@@ -692,6 +734,25 @@ const styles = theme => ({
     alignItems: "center",
     display: "flex",
     fontWeight: "bold"
+  },
+
+  roundButtonShadedInput: {
+    width: 120,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: theme.palette.app.shaded,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    padding: theme.spacing(2),
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+  },
+
+  roundButtonShadedInputText: {
+    color: 'white',
+    textAlign: 'right',
   },
 
   popupPhoneNumber: {
@@ -845,6 +906,17 @@ const styles = theme => ({
 
   flexRowHover: {
     flexDirection: 'row',
+    display: 'flex',
+    alignItems: 'center',
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover
+    },
+  },
+
+  flexRowHoverPadded: {
+    flexDirection: 'row',
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
     display: 'flex',
     alignItems: 'center',
     "&:hover": {

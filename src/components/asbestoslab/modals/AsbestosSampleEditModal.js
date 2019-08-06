@@ -3,7 +3,7 @@ import { withStyles, } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import classNames from 'classnames';
-import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS } from "../../../constants/modal-types";
+import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS, } from "../../../constants/modal-types";
 import "../../../config/tags.css";
 
 import { SampleTickyBox, SampleTextyBox, SampleRadioSelector, SampleTickyBoxGroup, AsbButton } from '../../../widgets/FormWidgets';
@@ -17,6 +17,7 @@ import Input from "@material-ui/core/Input";
 import Divider from "@material-ui/core/Divider";
 import Dialog from "@material-ui/core/Dialog";
 import Grid from "@material-ui/core/Grid";
+import InputAdornment from "@material-ui/core/InputAdornment";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -25,6 +26,7 @@ import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { SuggestionField, SuggestionFieldSample, } from '../../../widgets/SuggestionField';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
+import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
 import { addLog, } from "../../../actions/local";
 import {
   handleSampleChange,
@@ -34,6 +36,7 @@ import {
   traceAnalysisRequired,
   toggleResult,
   updateResultMap,
+  writeDescription,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
@@ -60,6 +63,7 @@ const mapStateToProps = state => {
     specificLocationSuggestions: state.const.specificLocationSuggestions,
     descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
+    asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced
   };
 };
 
@@ -68,12 +72,14 @@ const mapDispatchToProps = dispatch => {
     hideModal: () => dispatch(hideModal()),
     handleSampleChange: (number, type, value) => dispatch(handleSampleChange(number, type, value)),
     showModalSecondary: modal => dispatch(showModalSecondary(modal)),
+    toggleAsbestosSampleDisplayMode: () => dispatch(toggleAsbestosSampleDisplayMode()),
   };
 };
 
 class AsbestosSampleEditModal extends React.Component {
   state = {
     sample: {},
+    samples: {},
     displayColorPicker: {},
     modified: false,
     genericLocationSuggestions: [],
@@ -81,10 +87,12 @@ class AsbestosSampleEditModal extends React.Component {
     descriptionSuggestions: [],
     materialSuggestions: [],
     result: {},
+    override: false,
   };
 
   loadProps = () => {
     let sample = this.props.modalProps.doc;
+    let samples = this.props.samples[this.props.modalProps.job.uid];
     if (sample.layers === undefined) sample.layers = {};
     [...Array(layerNum).keys()].forEach(num => {
       if (sample.layers[`layer${num+1}`] === undefined) {
@@ -93,7 +101,7 @@ class AsbestosSampleEditModal extends React.Component {
     });
     this.setState({
       sample,
-      result: sample.result,
+      samples,
     });
   }
 
@@ -117,9 +125,9 @@ class AsbestosSampleEditModal extends React.Component {
     })
   };
 
-  handleResultClick = (res) => {
+  handleResultClickAdvanced = (res) => {
     const { me, analyst, sessionID, } = this.props;
-    const { sample } = this.state;
+    let sample = this.state.samples[this.state.sample.sampleNumber];
     let override = false;
     if (
       me.auth &&
@@ -148,9 +156,66 @@ class AsbestosSampleEditModal extends React.Component {
       let newMap = updateResultMap(res, this.state.result);
 
       this.setState({
-        result: newMap,
+        samples: {
+          ...this.state.samples,
+          [sample.sampleNumber]: {
+            ...this.state.samples[sample.sampleNumber],
+            result: newMap,
+          }
+        },
         modified: true,
         override,
+      })
+
+      // Check for situation where all results are unselected
+
+    } else {
+      window.alert(
+        "You don't have sufficient permissions to set asbestos results."
+      );
+    }
+  };
+
+  handleResultClickBasic = (res, sampleNumber) => {
+    const { me, analyst, sessionID, } = this.props;
+    let sample = this.state.samples[sampleNumber];
+    let override = this.state.override;
+    if (
+      me.auth &&
+      (me.auth["Asbestos Bulk Analysis"] ||
+        me.auth["Asbestos Admin"])
+    ) {
+      // Check analyst has been selected
+      if (analyst === "") {
+        window.alert(
+          "Select analyst from the dropdown at the top of the page."
+        );
+      }
+      // Check if this sample has already been analysed
+      if (sample.sessionID !== sessionID && sample.result && !this.state.override) {
+        if (
+          window.confirm(
+            "This sample has already been analysed. Do you wish to override the result?"
+          )
+        ) {
+          override = true;
+        } else {
+          return;
+        }
+      }
+
+      let newMap = updateResultMap(res, sample.result);
+
+      this.setState({
+        samples: {
+          ...this.state.samples,
+          [sampleNumber]: {
+            ...this.state.samples[sampleNumber],
+            result: newMap,
+          }
+        },
+        override,
+        modified: true,
       })
 
       // Check for situation where all results are unselected
@@ -200,7 +265,6 @@ class AsbestosSampleEditModal extends React.Component {
         this.setState({
           modified: false,
           sample: sample,
-          result: sample.result,
         });
         takeThisSample = false;
       }
@@ -216,7 +280,6 @@ class AsbestosSampleEditModal extends React.Component {
         this.setState({
           modified: false,
           sample: sample,
-          result: sample.result,
         });
         takeThisSample = false;
       }
@@ -241,24 +304,56 @@ class AsbestosSampleEditModal extends React.Component {
     addLog("asbestosLab", log, this.props.me);
   }
 
+  saveMultipleSamples = () => {
+    let result = {};
+    let weightReceived = 0;
+    let originalSamples = this.props.samples[this.props.modalProps.job.uid];
+    Object.values(this.state.samples).forEach(sample => {
+      console.log(sample);
+      console.log(originalSamples[sample.sampleNumber]);
+      if (originalSamples[sample.sampleNumber].result !== sample.result || originalSamples[sample.sampleNumber].weightReceived !== sample.weightReceived) {
+        if (sample.result) result = sample.result;
+        if (sample.weightReceived) weightReceived = sample.weightReceived;
+        asbestosSamplesRef
+          .doc(sample.uid)
+          .update({result, weightReceived});
+
+        let log = {
+          type: "Analysis",
+          log: `Sample ${sample.sampleNumber} (${sample.description} ${
+                sample.material
+              }) results changed.`,
+          sample: sample.uid,
+          chainOfCustody: sample.cocUid,
+        };
+        addLog("asbestosLab", log, this.props.me);
+      }
+    });
+  }
+
   render() {
     const { classes, modalProps, modalType, samples } = this.props;
     if (modalType === ASBESTOS_SAMPLE_DETAILS) {
-      const { sample } = this.state;
-      let colors = getSampleColors(this.state);
+      let sample = this.state.sample;
+      let colors = {};
+      if (this.state.samples && this.state.samples[sample.sampleNumber]) colors = getSampleColors(this.state.samples[sample.sampleNumber]);
       return (
+      <Dialog
+        open={modalType === ASBESTOS_SAMPLE_DETAILS}
+        onClose={this.props.hideModal}
+        maxWidth="lg"
+        fullWidth={true}
+        onEnter={() => this.loadProps()}
+        onExit={() => this.clearProps()}
+      >
+        {this.props.asbestosSampleDisplayAdvanced ?
         <div>
-        {sample && modalType === ASBESTOS_SAMPLE_DETAILS &&
-        <Dialog
-          open={modalType === ASBESTOS_SAMPLE_DETAILS}
-          onClose={this.props.hideModal}
-          maxWidth="lg"
-          fullWidth={true}
-          onEnter={() => this.loadProps()}
-          onExit={() => this.clearProps()}
-        >
           <DialogTitle>{`Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description})`}</DialogTitle>
           <DialogContent>
+            <Button className={classes.buttonIconText} onClick={() => {
+              if (this.state.modified) this.saveSample();
+              this.props.toggleAsbestosSampleDisplayMode();
+            }}>SWITCH TO BASIC VIEW</Button>
             <Grid container alignItems='flex-start' justify='flex-end'>
               <Grid item xs={5}>
                 <div className={classes.subHeading}>Basic Information</div>
@@ -349,7 +444,7 @@ class AsbestosSampleEditModal extends React.Component {
                 <div className={classes.flexRowLeftAlignEllipsis}><div className={classes.subHeading}>Result</div></div>
                 <div className={classes.flexRowRightAlign}>
                   {['ch','am','cr','umf','no','org','smf'].map(res => {
-                    return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res, () => this.handleResultClick(res))
+                    return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res, () => this.handleResultClickAdvanced(res))
                   })}
                 </div>
                 <Divider />
@@ -430,10 +525,80 @@ class AsbestosSampleEditModal extends React.Component {
               Submit
             </Button>
           </DialogActions>
-        </Dialog>}
+        </div> :
+        <div>
+          <DialogTitle>{`Analysis Details for Job ${this.props.modalProps.job.jobNumber}`}</DialogTitle>
+          <DialogContent>
+            <Button className={classes.buttonIconText} onClick={() => {
+              if (this.state.modified) this.saveMultipleSamples();
+              this.props.toggleAsbestosSampleDisplayMode();
+            }}>SWITCH TO ADVANCED VIEW</Button>
+            {Object.values(this.state.samples).map(sample => {
+              return this.getSampleRow(sample);
+            })}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => this.props.hideModal()} color="secondary">
+              Cancel
+            </Button>
+            <Button onClick={() => {
+                if (this.state.modified) this.saveMultipleSamples();
+                this.props.hideModal();
+              }}
+              color="primary"
+            >
+              Submit
+            </Button>
+          </DialogActions>
         </div>
+        }
+        </Dialog>
       );
     } else return null;
+  }
+
+  getSampleRow = (sample) => {
+    const { classes } = this.props;
+    let colors = getSampleColors(sample);
+
+    return(
+      <div key={sample.sampleNumber} className={classes.flexRowHoverPadded}>
+        <div className={classes.flexRowLeftAlignEllipsis}>
+          <div className={classes.circleShaded}>
+            {sample.sampleNumber}
+          </div>
+          {writeDescription(sample)}
+        </div>
+        <div className={classes.flexRowRightAlign}>
+          {['ch','am','cr','umf','no','org','smf'].map(res => {
+            return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res,
+            () => this.handleResultClickBasic(res, sample.sampleNumber))
+          })}
+          <div className={classes.roundButtonShadedInput}>
+            <TextField
+              id={sample.uid}
+              value={sample.weightReceived ? sample.weightReceived : ''}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">g</InputAdornment>,
+                className: classes.roundButtonShadedInputText,
+              }}
+              onChange={e => {
+                this.setState({
+                  modified: true,
+                  samples: {
+                    ...this.state.samples,
+                    [sample.sampleNumber]: {
+                      ...this.state.samples[sample.sampleNumber],
+                      weightReceived: e.target.value,
+                    },
+                  },
+                });
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   getLayerRow = (num) => {
@@ -444,38 +609,42 @@ class AsbestosSampleEditModal extends React.Component {
       if (this.state.sample.layers && this.state.sample.layers[`layer${num}`]) {
         layer = this.state.sample.layers[`layer${num}`];
         colors = getSampleColors(layer);
+      } else {
+        colors = getSampleColors(null);
       }
 
       return(
         <div key={num} className={classes.flexRowHover}>
-          <div className={classes.circleShaded}>
-            {num}
-          </div>
-          {SuggestionField(this, false, 'Description', 'materialSuggestions', layer.description,
-            (value) => {
-              this.setLayerVar('description', num, value);
-              }
-          )}
-
-          <div className={classes.marginRight}>
-            <div className={ classes.colorPickerSwatch } onClick={ () => this.handleColorClick(num) }>
-              <div className={classes.colorPickerColor} style={{ background: `rgba(${ layer.color ? layer.color.r : null }, ${ layer.color ? layer.color.g : null }, ${ layer.color ? layer.color.b : null }, ${ layer.color ? layer.color.a : null })` }} />
+          <div className={classes.flexRowLeftAlignEllipsis}>
+            <div className={classes.circleShaded}>
+              {num}
             </div>
-            { this.state.displayColorPicker[num] ? <div className={ classes.colorPickerPopover }>
-              <div className={ classes.colorPickerCover } onClick={ () => this.handleColorClose(num) }/>
-              <SketchPicker color={ this.state.sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
-            </div> : null }
+            {SuggestionField(this, false, 'Description', 'materialSuggestions', layer.description,
+              (value) => {
+                this.setLayerVar('description', num, value);
+                }
+            )}
 
+            <div className={classes.marginRight}>
+              <div className={ classes.colorPickerSwatch } onClick={ () => this.handleColorClick(num) }>
+                <div className={classes.colorPickerColor} style={{ background: `rgba(${ layer.color ? layer.color.r : null }, ${ layer.color ? layer.color.g : null }, ${ layer.color ? layer.color.b : null }, ${ layer.color ? layer.color.a : null })` }} />
+              </div>
+              { this.state.displayColorPicker[num] ? <div className={ classes.colorPickerPopover }>
+                <div className={ classes.colorPickerCover } onClick={ () => this.handleColorClose(num) }/>
+                <SketchPicker color={ this.state.sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
+              </div> : null }
+
+            </div>
+            <TextField
+              id={`l${num}Concentration`}
+              label="Asbestos %"
+              className={classes.marginRight}
+              value={layer.concentration ? layer.concentration : 0}
+              onChange={e => {
+                this.setLayerVar('concentration',num,e.target.value);
+              }}
+            />
           </div>
-          <TextField
-            id={`l${num}Concentration`}
-            label="Asbestos %"
-            className={classes.marginRight}
-            value={layer.concentration ? layer.concentration : 0}
-            onChange={e => {
-              this.setLayerVar('concentration',num,e.target.value);
-            }}
-          />
           <div className={classes.flexRowRightAlign}>
             {['ch','am','cr','umf','no','org','smf'].map(res => {
               return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res,

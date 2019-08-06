@@ -460,18 +460,6 @@ export const receiveAll = (samples, job, sessionID, me) => {
 };
 
 export const receiveSample = (sample, job, samples, sessionID, me, startDate) => {
-  if (sample.receivedByLab && sample.verified) {
-    if (window.confirm(`The sample result for ${sample.jobNumber}-${sample.sampleNumber} has already been verified. Removing from the lab will remove the analysis result and verification. Continue?`)) {
-      removeResult(sample, sessionID, me);
-      startAnalysis(sample, job, samples, sessionID, me);
-      verifySample(sample, job, samples, sessionID, me);
-    } else return false;
-  } else if (sample.receivedByLab && sample.result) {
-    if (window.confirm(`The sample result for ${sample.jobNumber}-${sample.sampleNumber} has already been logged. Removing from the lab will remove the analysis result. Continue?`)) {
-      removeResult(sample, sessionID, me);
-      startAnalysis(sample, job, samples, sessionID, me);
-    } else return false;
-  }
   let log = {
     type: "Received",
     log: !sample.receivedByLab
@@ -502,7 +490,6 @@ export const receiveSample = (sample, job, samples, sessionID, me, startDate) =>
       receivedDate: firebase.firestore.FieldValue.delete(),
     });
   }
-  return true;
 };
 
 export const receiveSamples = (samples) => {
@@ -514,30 +501,32 @@ export const receiveSamples = (samples) => {
       if (sample.receivedByLab && sample.verified) {
         uid = sample.uid + 'RemoveReceiveResultVerification';
         issues[uid] = {
-          type: 'reverse',
+          type: 'confirm',
           description: `The result has already been verified. Removing from the lab will remove the analysis result and verification.`,
+          yes: 'Confirm Removal from Lab',
           sample,
           uid,
         };
       } else if (sample.receivedByLab && sample.result) {
         uid = sample.uid + 'RemoveReceiveResult';
         issues[uid] = {
-          type: 'reverse',
+          type: 'confirm',
           description: `The result has already been logged. Removing from the lab will remove the analysis result.`,
+          yes: 'Confirm Removal from Lab',
           sample,
           uid,
         };
       } else if (sample.original === sample.now) {
         uid = sample.uid + 'NotReceived';
         issues[uid] = {
-          type: 'unchecked',
+          type: 'check',
           description: `Sample has not been checked as received. Double check this is correct and leave a comment on why it has been missed.`,
           sample,
         };
       } else {
         uid = sample.uid + 'UnReceived';
         issues[uid] = {
-          type: 'unchecked',
+          type: 'check',
           description: `Sample has been unchecked as received. Double check this is correct and leave a comment on why it has been removed.`,
           sample,
           uid,
@@ -608,6 +597,7 @@ export const startAnalyses = (samples) => {
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been verified. Are you sure you want to remove the analysis start date? This will not remove the result or verification.`,
+          yes: 'Confirm Removal of Analysis Start Date',
           sample,
           uid,
         };
@@ -616,6 +606,7 @@ export const startAnalyses = (samples) => {
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been logged. Are you sure you want to remove the analysis start date? This will not remove the result.`,
+          yes: 'Confirm Removal of Analysis Start Date',
           sample,
           uid,
         };
@@ -797,16 +788,13 @@ export const removeResult = (sample, sessionID, me) => {
     });
 }
 
-export const verifySample = (sample, job, samples, sessionID, me, startDate) => {
+export const verifySample = (sample, job, samples, sessionID, me, startDate, properties) => {
   if (
     (me.auth &&
     (me.auth["Analysis Checker"] ||
       me.auth["Asbestos Admin"]))
   ) {
-    if (!sample.verified || window.confirm(`Are you sure you wish to remove the verification for sample ${sample.jobNumber}-${sample.sampleNumber}?`)) {
-      // if (me.uid === sample.analysisUser.id && !sample.verified) {
-      //   window.alert("Samples must be checked off by a different user.");
-      // } else {
+    if (!sample.verified) {
         if (!sample.analysisStart && !sample.verified) startAnalysis(sample, job, samples, sessionID, me);
         let verifyDate = null;
         let log = {
@@ -832,6 +820,7 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate) => 
           logSample(job, sample, cocStats);
           asbestosSamplesRef.doc(sample.uid).update(
           {
+            ...properties,
             verified: true,
             verifyUser: {id: me.uid, name: me.name},
             verifyDate: startDate ? startDate : new Date(),
@@ -840,6 +829,7 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate) => 
         } else {
           asbestosSamplesRef.doc(sample.uid).update(
           {
+            ...properties,
             verified: false,
             verifyUser: firebase.firestore.FieldValue.delete(),
             verifyDate: firebase.firestore.FieldValue.delete(),
@@ -900,6 +890,17 @@ export const verifySamples = (samples, job) => {
           sample,
           uid,
         };
+      }
+
+      // Check received weight is there
+      if (!sample.weightReceived) {
+        uid = sample.uid + 'NoReceivedWeightRecorded';
+        issues[uid] = {
+          type: 'confirm',
+          description: `No received weight has been recorded. Check with the analyst why this has not been done.`,
+          sample,
+          uid,
+        }
       }
 
       // Check layer results
@@ -996,7 +997,7 @@ export const verifySamples = (samples, job) => {
           uid = sample.uid + 'WAAnalysisNotComplete';
           issues[uid] = {
             type: 'confirm',
-            description: `WA Analysis has not been checked by analyst as complete. This must be done before the sample can be verified. Check with analyst that analysis is complete before clicking Proceed.`,
+            description: `WA Analysis has not been checked by analyst as complete. Check with analyst that analysis is complete before clicking Proceed.`,
             sample,
             uid,
           };
@@ -1006,7 +1007,7 @@ export const verifySamples = (samples, job) => {
           uid = sample.uid + 'WAAnalysisNotRecorded';
           issues[uid] = {
             type: 'confirm',
-            description: `WA Analysis has not been recorded.`,
+            description: `WA Analysis has not been recorded. All results will appear blank in Soil Concentrations Report.`,
             sample,
             uid,
           };
@@ -1634,33 +1635,45 @@ export const getResultColor = (state, type, yesColor) => {
 }
 
 export const getSampleColors = (sample) => {
-  let res = sample.result;
-  let confirm = getAllConfirmResult(sample);
-  let confirmColor = 'Green';
-  if (confirm === 'no') {
-    confirmColor = 'Red';
-  } else if (confirm === 'asbestosTypesWrong') {
-    confirmColor = 'Orange';
-  } else if (confirm === 'none') {
-    confirmColor = '';
+  if (!sample || !sample.result) {
+    return {
+      confirm: '',
+      ch: 'Off',
+      am: 'Off',
+      cr: 'Off',
+      umf: 'Off',
+      no: 'Off',
+      org: 'Off',
+      smf: 'Off',
+    };
+  } else {
+    let res = sample.result;
+    let confirm = getAllConfirmResult(sample);
+    let confirmColor = 'Green';
+    if (confirm === 'no') {
+      confirmColor = 'Red';
+    } else if (confirm === 'asbestosTypesWrong') {
+      confirmColor = 'Orange';
+    } else if (confirm === 'none') {
+      confirmColor = '';
+    }
+    let returnMap = {
+      // cameraColor: sample.imagePathRemote ? styles.greenIcon : styles.greyIcon,
+      // receivedColor: sample.receivedByLab ? styles.greenIcon : styles.greyIcon,
+      // analysisColor: sample.analysisStart ? styles.greenIcon : styles.greyIcon,
+      // verifiedColor: sample.verified ? styles.greenIcon : styles.greyIcon,
+      // waColor: sample.waAnalysisComplete ? styles.greenIcon : styles.greyIcon,
+      confirm: confirmColor ? confirmColor : '',
+      ch: getResultColor(res, 'ch', 'Bad'),
+      am: getResultColor(res, 'am', 'Bad'),
+      cr: getResultColor(res, 'cr', 'Bad'),
+      umf: getResultColor(res, 'umf', 'Bad'),
+      no: getResultColor(res, 'no', 'Ok'),
+      org: getResultColor(res, 'org', 'Benign'),
+      smf: getResultColor(res, 'smf', 'Benign'),
+    };
+    return returnMap;
   }
-  let returnMap = {
-    // cameraColor: sample.imagePathRemote ? styles.greenIcon : styles.greyIcon,
-    // receivedColor: sample.receivedByLab ? styles.greenIcon : styles.greyIcon,
-    // analysisColor: sample.analysisStart ? styles.greenIcon : styles.greyIcon,
-    // verifiedColor: sample.verified ? styles.greenIcon : styles.greyIcon,
-    // waColor: sample.waAnalysisComplete ? styles.greenIcon : styles.greyIcon,
-    confirm: confirmColor ? confirmColor : '',
-    ch: getResultColor(res, 'ch', 'Bad'),
-    am: getResultColor(res, 'am', 'Bad'),
-    cr: getResultColor(res, 'cr', 'Bad'),
-    umf: getResultColor(res, 'umf', 'Bad'),
-    no: getResultColor(res, 'no', 'Ok'),
-    org: getResultColor(res, 'org', 'Benign'),
-    smf: getResultColor(res, 'smf', 'Benign'),
-  };
-  console.log(returnMap);
-  return returnMap;
 };
 
 export const getConfirmColor = (sample) => {
@@ -2009,7 +2022,7 @@ export const getStatus = (samples, job) => {
         totalSamples = totalSamples + 1;
         if (sample.receivedByLab) numberReceived = numberReceived + 1;
         if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
-        if (sample.verified && sample.receivedDate && sample.verifyDate && sample.analysisDate) numberVerified = numberVerified + 1;
+        if (sample.verified) numberVerified = numberVerified + 1;
       }
     });
   }
@@ -2023,12 +2036,12 @@ export const getStatus = (samples, job) => {
     status = 'In Transit';
   } else if (numberAnalysisStarted === 0) {
     status = 'Received By Lab';
+  } else if (numberVerified === totalSamples) {
+    status = 'Ready For Issue';
   } else if (numberResult === 0) {
     status = 'Analysis Begun';
   } else if (numberResult === totalSamples && numberVerified === 0) {
     status = 'Analysis Complete';
-  } else if (numberVerified === totalSamples) {
-    status = 'Ready For Issue';
   } else if (numberVerified > 0) {
     status = 'Analysis Partially Verified';
   } else if (numberResult > 0) {
