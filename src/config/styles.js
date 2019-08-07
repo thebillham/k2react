@@ -617,6 +617,31 @@ const styles = theme => ({
     color: theme.palette.indicators.offText,
   },
 
+  colorsStart: {
+    backgroundColor: theme.palette.stages.start,
+    color: theme.palette.stages.startText,
+  },
+
+  colorsReceived: {
+    backgroundColor: theme.palette.stages.received,
+    color: theme.palette.stages.receivedText,
+  },
+
+  colorsWorkInProgress: {
+    backgroundColor: theme.palette.stages.workInProgress,
+    color: theme.palette.stages.workInProgressText,
+  },
+
+  colorsWorkComplete: {
+    backgroundColor: theme.palette.stages.workComplete,
+    color: theme.palette.stages.workCompleteText,
+  },
+
+  colorsReadyForIssue: {
+    backgroundColor: theme.palette.stages.readyForIssue,
+    color: theme.palette.stages.readyForIssueText,
+  },
+
   // TEXT BOXES
 
   highlightBoxBlack: {
@@ -660,6 +685,32 @@ const styles = theme => ({
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
     color: 'white',
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  roundButtonShadedComplete: {
+    width: 80,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: theme.palette.stages.readyForIssue,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    color: theme.palette.stages.readyForIssueText,
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  roundButtonLongBlank: {
+    width: 200,
+    height: 40,
+    borderRadius: 10,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
     justifyContent: "center",
     alignItems: "center",
     display: "flex",

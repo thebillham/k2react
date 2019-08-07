@@ -22,6 +22,7 @@ class AsbestosBulkCocSummary extends React.Component {
   // static whyDidYouRender = true;
 
   shouldComponentUpdate(nextProps) {
+    if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
       (this.props.samples && this.props.samples[this.props.job] &&
       Object.keys(this.props.samples[this.props.job]).length < this.props.cocs[this.props.job].sampleList.length &&
@@ -36,6 +37,7 @@ class AsbestosBulkCocSummary extends React.Component {
   render() {
     const { samples, classes, analysts, dates } = this.props;
     const job = this.props.cocs[this.props.job];
+    if (job === undefined || job.deleted) return null;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
 

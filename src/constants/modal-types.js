@@ -4,6 +4,7 @@ export const ASSET = "ASSET";
 export const ASBESTOS_SAMPLE_DETAILS = "ASBESTOS_SAMPLE_DETAILS";
 export const ASBESTOS_NONANALYST_DETAILS = "ASBESTOS_NONANALYST_DETAILS";
 export const COC = "COC";
+export const COC_ISSUES = "COC_ISSUES";
 export const COC_LOG = "COC_LOG";
 export const COC_STATS = "COC_STATS";
 export const COC_SAMPLE_ACTIONS = "COC_SAMPLE_ACTIONS";

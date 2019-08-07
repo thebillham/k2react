@@ -73,6 +73,7 @@ class AsbestosSampleActionsModal extends React.Component {
         number: sample.sampleNumber,
         description: writeDescription(sample),
         original: sample[this.props.modalProps.field],
+        originalNoAsbestosResultReason: sample.originalNoAsbestosResultReason,
         now: sample[this.props.modalProps.field],
         result: sample.result,
         weightReceived: sample.weightReceived,
@@ -149,10 +150,12 @@ class AsbestosSampleActionsModal extends React.Component {
       if (!issuesIncomplete) {
         // All issues are decided, continue with
         console.log(sampleGates);
-        checks.filter(sample => sample.now && !sample.original && !sampleGates[sample.sampleNumber]).forEach(sample => {
+        console.log(checks);
+        checks.filter(sample => (sample.now !== sample.original || sample.noAsbestosResultReason !== sample.originalNoAsbestosResultReason) && !sampleGates[sample.sampleNumber]).forEach(sample => {
+          console.log(sample);
           if (this.props.modalProps.field === 'receivedByLab') receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
           if (this.props.modalProps.field === 'analysisStart') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-          if (this.props.modalProps.field === 'verified' && sample.now && !sample.original) {
+          if (this.props.modalProps.field === 'verified') {
             if (sample.noAsbestosResultReason) {
               verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate, {noAsbestosResultReason: sample.noAsbestosResultReason});
             } else {
@@ -169,8 +172,9 @@ class AsbestosSampleActionsModal extends React.Component {
       if (this.props.modalProps.field === 'receivedByLab') checkMap = receiveSamples(checks);
       if (this.props.modalProps.field === 'analysisStart') checkMap = startAnalyses(checks);
       if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job);
-      let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : null;
+      let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
       Object.values(checkMap).forEach(check => {
+        console.log(check);
         if (jobIssues[check.uid] && jobIssues[check.uid].action) checkMap[check.uid] = {
           ...checkMap[check.uid],
           action: jobIssues[check.uid].action,
@@ -180,10 +184,10 @@ class AsbestosSampleActionsModal extends React.Component {
       // if (Object.values(checkMap).filter(check => check.action === 'proceed').length === 0) {
       if (Object.values(checkMap).length === 0) {
         // No problems with any samples, do actions
-        checks.filter(sample => sample.now && !sample.original).forEach(sample => {
-          if (this.props.modalProps.field === 'receivedByLab' && sample.now && !sample.original) receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-          if (this.props.modalProps.field === 'analysisStart' && sample.now && !sample.original) startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-          if (this.props.modalProps.field === 'verified' && sample.now && !sample.original) verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+        checks.filter(sample => sample.now !== sample.original).forEach(sample => {
+          if (this.props.modalProps.field === 'receivedByLab') receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          if (this.props.modalProps.field === 'analysisStart') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          if (this.props.modalProps.field === 'verified') verifySample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
         });
         this.props.hideModal();
       } else {
@@ -198,6 +202,7 @@ class AsbestosSampleActionsModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType, } = this.props;
+    console.log(this.state.issues);
     return (
       modalType === COC_SAMPLE_ACTIONS ? <Dialog
         open={modalType === COC_SAMPLE_ACTIONS}
@@ -205,6 +210,8 @@ class AsbestosSampleActionsModal extends React.Component {
         maxWidth={modalProps.field === 'verified' ? "md" : "sm"}
         fullWidth={true}
         onEnter={this.handleEnter}
+        disableBackdropClick={true}
+        scroll="body"
       >
         <DialogTitle>{modalProps.title ? modalProps.title : ''}</DialogTitle>
         <DialogContent>
@@ -255,9 +262,14 @@ class AsbestosSampleActionsModal extends React.Component {
         }
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => this.props.hideModal()} color="secondary">
-            Cancel
-          </Button>
+          {this.state.mode === 'actions' ?
+            <Button onClick={() => this.props.hideModal()} color="secondary">
+              Cancel
+            </Button> :
+            <Button onClick={() => this.setState({ mode: 'actions' })} color="secondary">
+              Back
+            </Button>
+          }
           <Button
             onClick={() => {
               this.submit();
@@ -297,9 +309,9 @@ class AsbestosSampleActionsModal extends React.Component {
         {issue.type === 'noresult' && (issue.action == undefined || issue.action == null) &&
           <FormControl component="fieldset">
             <RadioGroup
-              id={'noResultReason'}
-              name={'noResultReason'}
-              value={issue.noResultReason ? issue.noResultReason : 'notAnalysed' }
+              id={'noAsbestosResultReason'}
+              name={'noAsbestosResultReason'}
+              value={issue.noAsbestosResultReason ? issue.noAsbestosResultReason : 'notAnalysed' }
               row
               onChange={e => {
                 this.setState({
@@ -314,7 +326,7 @@ class AsbestosSampleActionsModal extends React.Component {
                     ...this.state.issues,
                     [issue.uid]: {
                       ...this.state.issues[issue.uid],
-                      noResultReason: e.target.value,
+                      noAsbestosResultReason: e.target.value,
                     },
                   },
                 });
@@ -329,7 +341,7 @@ class AsbestosSampleActionsModal extends React.Component {
         }
         {issue.type === 'noresult' && issue.action !== undefined && issue.action !== null &&
           <div className={this.props.classes.commentBox}>
-            {issue.noResultReason ? this.props.noAsbestosResultReasons.filter(e => e.value === issue.noResultReason)[0].label : 'Not Analysed'}
+            {issue.noAsbestosResultReason ? this.props.noAsbestosResultReasons.filter(e => e.value === issue.noAsbestosResultReason)[0].label : 'Not Analysed'}
           </div>
         }
         {issue.action === undefined || issue.action === null ? <TextField

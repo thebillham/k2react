@@ -6,7 +6,8 @@ import classNames from 'classnames';
 import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS, } from "../../../constants/modal-types";
 import "../../../config/tags.css";
 
-import { SampleTickyBox, SampleTextyBox, SampleRadioSelector, SampleTickyBoxGroup, AsbButton } from '../../../widgets/FormWidgets';
+import { SamplesTickyBox, SamplesTextyBox, SamplesRadioSelector, SamplesTickyBoxGroup, AsbButton, SampleTextyDisplay, } from '../../../widgets/FormWidgets';
+import { AsbestosSampleStatus, } from '../../../widgets/DisplayWidgets';
 import { AsbestosClassification } from '../../../config/strings';
 
 import { SketchPicker } from 'react-color';
@@ -24,7 +25,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
-import { SuggestionField, SuggestionFieldSample, } from '../../../widgets/SuggestionField';
+import { SuggestionField, SuggestionFieldSamples, } from '../../../widgets/SuggestionField';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
 import { addLog, } from "../../../actions/local";
@@ -34,9 +35,11 @@ import {
   getSampleColors,
   analyticalCriteraOK,
   traceAnalysisRequired,
-  toggleResult,
+  recordAnalysis,
   updateResultMap,
   writeDescription,
+  writeSampleDimensions,
+  writeSampleMoisture,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
@@ -56,6 +59,7 @@ const mapStateToProps = state => {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     me: state.local.me,
+    cocs: state.asbestosLab.cocs,
     analyst: state.asbestosLab.analyst,
     samples: state.asbestosLab.samples,
     sessionID: state.asbestosLab.sessionID,
@@ -78,7 +82,7 @@ const mapDispatchToProps = dispatch => {
 
 class AsbestosSampleEditModal extends React.Component {
   state = {
-    sample: {},
+    activeSample: 1,
     samples: {},
     displayColorPicker: {},
     modified: false,
@@ -87,26 +91,30 @@ class AsbestosSampleEditModal extends React.Component {
     descriptionSuggestions: [],
     materialSuggestions: [],
     result: {},
-    override: false,
+    override: null,
   };
 
   loadProps = () => {
-    let sample = this.props.modalProps.doc;
-    let samples = this.props.samples[this.props.modalProps.job.uid];
-    if (sample.layers === undefined) sample.layers = {};
+    let activeSample = this.props.modalProps.activeSample;
+    let samples = this.props.samples[this.props.modalProps.activeCoc];
+    console.log(samples);
+    console.log(this.props.modalProps.activeCoc);
+    console.log(activeSample);
+    if (samples[activeSample].layers === undefined) samples[activeSample].layers = {};
     [...Array(layerNum).keys()].forEach(num => {
-      if (sample.layers[`layer${num+1}`] === undefined) {
-        sample.layers[`layer${num+1}`] = { color: defaultColor, result: {}, };
+      if (samples[activeSample].layers[`layer${num+1}`] === undefined) {
+        samples[activeSample].layers[`layer${num+1}`] = { color: defaultColor, result: {}, };
       }
     });
     this.setState({
-      sample,
+      activeSample,
       samples,
+      override: null,
     });
   }
 
   clearProps = () => {
-    this.setState({ sample: {}, displayColorPicker: {}, modified: false, });
+    this.setState({ sample: {}, displayColorPicker: {}, modified: false, override: null, });
   }
 
   handleColorClick = (num) => {
@@ -125,121 +133,73 @@ class AsbestosSampleEditModal extends React.Component {
     })
   };
 
-  handleResultClickAdvanced = (res) => {
-    const { me, analyst, sessionID, } = this.props;
-    let sample = this.state.samples[this.state.sample.sampleNumber];
-    let override = false;
-    if (
-      me.auth &&
-      (me.auth["Asbestos Bulk Analysis"] ||
-        me.auth["Asbestos Admin"])
-    ) {
-      // Check analyst has been selected
-      if (analyst === "") {
-        window.alert(
-          "Select analyst from the dropdown at the top of the page."
-        );
-      }
-      // Check if this sample has already been analysed
-      if (sample.sessionID !== sessionID && sample.result && !this.state.override) {
-        if (
-          window.confirm(
-            "This sample has already been analysed. Do you wish to override the result?"
-          )
-        ) {
-          override = true;
-        } else {
-          return;
-        }
-      }
-
-      let newMap = updateResultMap(res, this.state.result);
-
-      this.setState({
-        samples: {
-          ...this.state.samples,
-          [sample.sampleNumber]: {
-            ...this.state.samples[sample.sampleNumber],
-            result: newMap,
-          }
-        },
-        modified: true,
-        override,
-      })
-
-      // Check for situation where all results are unselected
-
-    } else {
-      window.alert(
-        "You don't have sufficient permissions to set asbestos results."
-      );
-    }
-  };
-
-  handleResultClickBasic = (res, sampleNumber) => {
+  handleResultClick = (res, sampleNumber) => {
     const { me, analyst, sessionID, } = this.props;
     let sample = this.state.samples[sampleNumber];
     let override = this.state.override;
-    if (
-      me.auth &&
-      (me.auth["Asbestos Bulk Analysis"] ||
-        me.auth["Asbestos Admin"])
-    ) {
+    console.log(override);
       // Check analyst has been selected
-      if (analyst === "") {
-        window.alert(
-          "Select analyst from the dropdown at the top of the page."
-        );
-      }
-      // Check if this sample has already been analysed
-      if (sample.sessionID !== sessionID && sample.result && !this.state.override) {
-        if (
-          window.confirm(
-            "This sample has already been analysed. Do you wish to override the result?"
-          )
-        ) {
-          override = true;
-        } else {
-          return;
-        }
-      }
-
-      let newMap = updateResultMap(res, sample.result);
-
-      this.setState({
-        samples: {
-          ...this.state.samples,
-          [sampleNumber]: {
-            ...this.state.samples[sampleNumber],
-            result: newMap,
-          }
-        },
-        override,
-        modified: true,
-      })
-
-      // Check for situation where all results are unselected
-
-    } else {
+    if (analyst === "") {
       window.alert(
-        "You don't have sufficient permissions to set asbestos results."
+        "Select analyst from the dropdown at the top of the page."
       );
     }
+    // Check if this sample has already been analysed
+    if (sample.sessionID !== sessionID && sample.result && (!this.state.override || !this.state.override[sampleNumber])) {
+      console.log(`${sample.sessionID} !== ${sessionID}: ${sample.sessionID !== sessionID}`);
+      console.log(`Sample Result !== undefined: ${sample.result !== undefined}`);
+      console.log(this.state.override);
+      console.log(`This state override (${!this.state.override})`);
+      if (this.state.override) {
+        console.log(`This state override sample ${!this.state.override[sample.sampleNumber]}`);
+      }
+      if (window.confirm("This sample has already been analysed. Do you wish to override the result?")) {
+        if (!this.state.override) {
+          override = {[sampleNumber]: true};
+        } else {
+          override = {
+            ...this.state.override,
+            [sampleNumber]: true,
+          };
+        }
+      } else {
+        return;
+      }
+    }
+
+    let newMap = updateResultMap(res, sample.result);
+
+    this.setState({
+      samples: {
+        ...this.state.samples,
+        [sampleNumber]: {
+          ...this.state.samples[sampleNumber],
+          result: newMap,
+        }
+      },
+      override,
+      modified: true,
+    });
+    // Check for situation where all results are unselected
   };
 
   addLayer = () => {
-    let num = this.state.sample.layerNum ? this.state.sample.layerNum : layerNum;
+    let sample = this.state.samples[this.state.activeSample];
+    let num = sample.layerNum ? sample.layerNum : layerNum;
     num += 1;
-    let sampleLayers = this.state.sample.layers;
+    let sampleLayers = sample.layers;
     if (sampleLayers[`layer${num}`] === undefined) {
       sampleLayers[`layer${num}`] = { color: defaultColor, result: {}, };
     }
     this.setState({
       modified: true,
-      sample: {
-        ...this.state.sample,
-        layerNum: num,
-        layers: sampleLayers,
+      samples: {
+        ...this.state.samples,
+        [this.state.activeSample]: {
+          ...this.state.samples[this.state.activeSample],
+          layerNum: num,
+          layers: sampleLayers,
+        },
       },
     });
   };
@@ -250,45 +210,51 @@ class AsbestosSampleEditModal extends React.Component {
     if (num < 1) num = 1;
     this.setState({
       modified: true,
-      sample: {
-        ...this.state.sample,
-        layerNum: num,
-      }
+      samples: {
+        ...this.state.samples,
+        [this.state.activeSample]: {
+          ...this.state.samples[this.state.activeSample],
+          layerNum: num,
+        },
+      },
     });
   };
 
   previousSample = () => {
     if (this.state.modified) this.saveSample();
     let takeThisSample = false;
-    Object.values(this.props.samples[this.props.modalProps.job.uid]).reverse().forEach(sample => {
+    Object.values(this.state.samples).reverse().forEach(sample => {
       if (takeThisSample) {
         this.setState({
           modified: false,
-          sample: sample,
+          activeSample: sample.sampleNumber,
+          override: null,
         });
         takeThisSample = false;
       }
-      if (sample.uid === this.state.sample.uid) takeThisSample = true;
+      if (sample.sampleNumber == this.state.activeSample) takeThisSample = true;
     });
   };
 
   nextSample = () => {
     if (this.state.modified) this.saveSample();
     let takeThisSample = false;
-    Object.values(this.props.samples[this.props.modalProps.job.uid]).forEach(sample => {
+    Object.values(this.state.samples).forEach(sample => {
       if (takeThisSample) {
         this.setState({
           modified: false,
-          sample: sample,
+          activeSample: sample.sampleNumber,
+          override: null,
         });
         takeThisSample = false;
       }
-      if (sample.uid === this.state.sample.uid) takeThisSample = true;
+      if (sample.sampleNumber == this.state.activeSample) takeThisSample = true;
     });
   };
 
   saveSample = () => {
-    const { sample, override } = this.state;
+    const { override } = this.state;
+    let sample = this.state.samples[this.state.activeSample];
     asbestosSamplesRef
       .doc(sample.uid)
       .update(sample);
@@ -302,31 +268,28 @@ class AsbestosSampleEditModal extends React.Component {
       chainOfCustody: sample.cocUid,
     };
     addLog("asbestosLab", log, this.props.me);
+    console.log(this.state.samples[sample.sampleNumber].result);
+    console.log(this.props.samples[this.props.modalProps.activeCoc]);
+    console.log(this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample]);
+    console.log(sample);
+    if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] && this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result)
+      recordAnalysis(this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
+        this.props.samples, this.props.sessionID, this.props.me,
+        this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result,
+        this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.weightReceived,
+      );
   }
 
   saveMultipleSamples = () => {
     let result = {};
     let weightReceived = 0;
-    let originalSamples = this.props.samples[this.props.modalProps.job.uid];
+    let originalSamples = this.props.samples[this.props.modalProps.activeCoc];
     Object.values(this.state.samples).forEach(sample => {
-      console.log(sample);
-      console.log(originalSamples[sample.sampleNumber]);
       if (originalSamples[sample.sampleNumber].result !== sample.result || originalSamples[sample.sampleNumber].weightReceived !== sample.weightReceived) {
-        if (sample.result) result = sample.result;
-        if (sample.weightReceived) weightReceived = sample.weightReceived;
-        asbestosSamplesRef
-          .doc(sample.uid)
-          .update({result, weightReceived});
-
-        let log = {
-          type: "Analysis",
-          log: `Sample ${sample.sampleNumber} (${sample.description} ${
-                sample.material
-              }) results changed.`,
-          sample: sample.uid,
-          chainOfCustody: sample.cocUid,
-        };
-        addLog("asbestosLab", log, this.props.me);
+        recordAnalysis(this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc], this.props.samples, this.props.sessionID, this.props.me,
+          sample.result !== originalSamples[sample.sampleNumber].result,
+          sample.weightReceived !== originalSamples[sample.sampleNumber].weightReceived
+        );
       }
     });
   }
@@ -334,9 +297,15 @@ class AsbestosSampleEditModal extends React.Component {
   render() {
     const { classes, modalProps, modalType, samples } = this.props;
     if (modalType === ASBESTOS_SAMPLE_DETAILS) {
-      let sample = this.state.sample;
-      let colors = {};
-      if (this.state.samples && this.state.samples[sample.sampleNumber]) colors = getSampleColors(this.state.samples[sample.sampleNumber]);
+      let sample = this.state.samples[this.state.activeSample];
+      let sampleDimensions = null;
+      let sampleMoisture = null;
+      if (sample) {
+        sampleDimensions = writeSampleDimensions(sample, true);
+        sampleMoisture = writeSampleMoisture(sample, true);
+      }
+
+      let colors = getSampleColors(this.state.samples[this.state.activeSample]);
       return (
       <Dialog
         open={modalType === ASBESTOS_SAMPLE_DETAILS}
@@ -345,6 +314,8 @@ class AsbestosSampleEditModal extends React.Component {
         fullWidth={true}
         onEnter={() => this.loadProps()}
         onExit={() => this.clearProps()}
+        scroll="body"
+        disableBackdropClick={true}
       >
         {this.props.asbestosSampleDisplayAdvanced ?
         <div>
@@ -357,13 +328,13 @@ class AsbestosSampleEditModal extends React.Component {
             <Grid container alignItems='flex-start' justify='flex-end'>
               <Grid item xs={5}>
                 <div className={classes.subHeading}>Basic Information</div>
-                {SuggestionFieldSample(this, false, 'Generic Location', 'genericLocation')}
-                {SuggestionFieldSample(this, false, 'Specific Location', 'specificLocation')}
-                {SuggestionFieldSample(this, false, 'Description', 'description')}
-                {SuggestionFieldSample(this, false, 'Material', 'material')}
+                {SuggestionFieldSamples(this, this.state.activeSample, false, 'Generic Location', 'genericLocation')}
+                {SuggestionFieldSamples(this, this.state.activeSample, false, 'Specific Location', 'specificLocation')}
+                {SuggestionFieldSamples(this, this.state.activeSample, false, 'Description', 'description')}
+                {SuggestionFieldSamples(this, this.state.activeSample, false, 'Material', 'material')}
                 <div className={classes.subHeading}>Lab Description</div>
-                {SampleTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 3, null, null)}
-                {SampleTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 3, null, null)}
+                {SamplesTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 3, null, null)}
+                {SamplesTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 3, null, null)}
 
                 {sample.material === 'soil' && <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
                   <Button
@@ -395,7 +366,7 @@ class AsbestosSampleEditModal extends React.Component {
               <Grid item xs={6}>
                 <div className={classes.subHeading}>Sampling Method</div>
                   <div className={classes.flexRowLeftDown}>
-                  {SampleRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
+                  {SamplesRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
                     [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
                     {(sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab') &&
                     <div>
@@ -419,22 +390,28 @@ class AsbestosSampleEditModal extends React.Component {
                   </div>
                 <div className={classes.subHeading}>Weights</div>
                 <div className={classes.flexRow}>
-                  <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null)}</div>
+                  <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null)}</div>
                   <div className={classes.spacerSmall} />
-                  <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightSubsample', 'Weight of Subsample', 'Record the weight of the subsample if the entire sample is not analysed.', false, 0, 'g', null)}</div>
+                  <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightSubsample', 'Weight of Subsample', 'Record the weight of the subsample if the entire sample is not analysed.', false, 0, 'g', null)}</div>
                   <div className={classes.spacerSmall} />
-                  <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightDry', 'Dry Weight', 'Record the weight after drying (~105°).', false, 0, 'g', null)}</div>
+                  <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightDry', 'Dry Weight', 'Record the weight after drying (~105°).', false, 0, 'g', null)}</div>
                   <div className={classes.spacerSmall} />
-                  <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightAshed', 'Ashed Weight', 'Record the weight after ashing (~400°).', false, 0, 'g', null)}</div>
+                  <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightAshed', 'Ashed Weight', 'Record the weight after ashing (~400°).', false, 0, 'g', null)}</div>
+                  {sampleMoisture && <span className={classes.informationBox}>
+                    {sampleMoisture}%
+                  </span>}
                 </div>
 
                 <div className={classes.subHeading}>Dimensions</div>
-                <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                  <div className={classes.formInputSmall}>{SampleTextyBox(this, sample, 'dimensionsL', 'Length', null, false, 0, 'mm', null)}</div>
+                <div className={classes.flexRow}>
+                  <div className={classes.formInputSmall}>{SamplesTextyBox(this, sample, 'dimensionsL', 'Length', null, false, 0, 'mm', null)}</div>
                   <span className={classes.timesSymbol}>X</span>
-                  <div className={classes.formInputSmall}>{SampleTextyBox(this, sample, 'dimensionsW', 'Width', null, false, 0, 'mm', null)}</div>
+                  <div className={classes.formInputSmall}>{SamplesTextyBox(this, sample, 'dimensionsW', 'Width', null, false, 0, 'mm', null)}</div>
                   <span className={classes.timesSymbol}>X</span>
-                  <div className={classes.formInputSmall}>{SampleTextyBox(this, sample, 'dimensionsD', 'Depth/Thickness', null, false, 0, 'mm', null)}</div>
+                  <div className={classes.formInputSmall}>{SamplesTextyBox(this, sample, 'dimensionsD', 'Depth/Thickness', null, false, 0, 'mm', null)}</div>
+                  {sampleDimensions && <span className={classes.informationBox}>
+                    {sampleDimensions}
+                  </span>}
                 </div>
               </Grid>
             </Grid>
@@ -444,7 +421,7 @@ class AsbestosSampleEditModal extends React.Component {
                 <div className={classes.flexRowLeftAlignEllipsis}><div className={classes.subHeading}>Result</div></div>
                 <div className={classes.flexRowRightAlign}>
                   {['ch','am','cr','umf','no','org','smf'].map(res => {
-                    return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res, () => this.handleResultClickAdvanced(res))
+                    return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res, () => this.handleResultClick(res, sample.sampleNumber))
                   })}
                 </div>
                 <Divider />
@@ -465,7 +442,7 @@ class AsbestosSampleEditModal extends React.Component {
             <Grid container alignItems='flex-start' justify='flex-end'>
               <Grid item xs={5}>
                 <div className={classes.subHeading}>Classification</div>
-                {SampleRadioSelector(this, sample, 'classification', 'homo', 'Classification',
+                {SamplesRadioSelector(this, sample, 'classification', 'homo', 'Classification',
                   [{value: 'homo', label: 'Homogenous', tooltip: 'Uniform distribution of fibres of any type through the entire sample or in each discernibly discrete layer of the sample (sprayed asbestos, mastic, vermiculite)'},
                   {value: 'homolayers', label: 'Homogenous Layers', tooltip: 'Uniform distribution of fibres of any type through each discernibly discrete layer of the sample (asbestos-cement, paper-backed vinyl)'},
                   {value: 'mixedlayers', label: 'Mixed Layers', tooltip: 'Mix of homogenous and non-homogenous layers (asbestos-cement with soil attached)'},
@@ -473,11 +450,11 @@ class AsbestosSampleEditModal extends React.Component {
                   {value: 'soil', label: 'Soil'},{value: 'ore', label: 'Ore'}],
                 )}
 
-                {SampleTickyBox(this, 'Asbestos Evident', sample, 'asbestosEvident',)}
+                {SamplesTickyBox(this, 'Asbestos Evident', sample, 'asbestosEvident',)}
 
                 {traceAnalysisRequired(sample)}
 
-                {SampleTickyBoxGroup(this, sample, 'Sample Conditioning', 'sampleConditioning',
+                {SamplesTickyBoxGroup(this, sample, 'Sample Conditioning', 'sampleConditioning',
                   [{value: 'furnace', label: 'Furnace'},
                   {value: 'flame', label: 'Flame'},
                   {value: 'lowHeat', label: 'Low Heat/Drying'},
@@ -487,7 +464,7 @@ class AsbestosSampleEditModal extends React.Component {
                   ]
                 )}
 
-                {SampleTickyBoxGroup(this, sample, 'Analytical Critera', 'analyticalCriteria',
+                {SamplesTickyBoxGroup(this, sample, 'Analytical Critera', 'analyticalCriteria',
                   [{value: 'dispersion', label: 'Dispersion Staining', tooltip: 'Fibres show positive confirmation of the RIs for both axes for each asbestos type detected.'},
                   {value: 'morphology', label: 'Morphology', tooltip: 'Fibres show appropriate and basic morphological features.'},
                   {value: 'pleochroism', label: 'Pleochroism', tooltip: 'PP: EW-NS blue-grey indicates Crocidolite, other types have no change.'},
@@ -514,8 +491,8 @@ class AsbestosSampleEditModal extends React.Component {
             <Button onClick={() => this.props.hideModal()} color="secondary">
               Cancel
             </Button>
-            <Button onClick={() => this.previousSample()} color="inherit" disabled={modalProps && modalProps.job && modalProps.job.sampleList && modalProps.job.sampleList[0] === sample.uid}>Previous</Button>
-            <Button onClick={() => this.nextSample()} color="secondary" disabled={modalProps && modalProps.job && modalProps.job.sampleList && modalProps.job.sampleList[modalProps.job.sampleList.length - 1] === sample.uid}>Next</Button>
+            <Button onClick={() => this.previousSample()} color="inherit" disabled={modalProps && modalProps.job && modalProps.job.sampleList && modalProps.job.sampleList[0] == sample.uid}>Previous</Button>
+            <Button onClick={() => this.nextSample()} color="secondary" disabled={modalProps && modalProps.job && modalProps.job.sampleList && modalProps.job.sampleList[modalProps.job.sampleList.length - 1] == sample.uid}>Next</Button>
             <Button onClick={() => {
                 if (this.state.modified) this.saveSample();
                 this.props.hideModal();
@@ -527,7 +504,7 @@ class AsbestosSampleEditModal extends React.Component {
           </DialogActions>
         </div> :
         <div>
-          <DialogTitle>{`Analysis Details for Job ${this.props.modalProps.job.jobNumber}`}</DialogTitle>
+          <DialogTitle>{`Analysis Details for Job ${this.props.cocs[this.props.modalProps.activeCoc].jobNumber}`}</DialogTitle>
           <DialogContent>
             <Button className={classes.buttonIconText} onClick={() => {
               if (this.state.modified) this.saveMultipleSamples();
@@ -572,7 +549,7 @@ class AsbestosSampleEditModal extends React.Component {
         <div className={classes.flexRowRightAlign}>
           {['ch','am','cr','umf','no','org','smf'].map(res => {
             return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res,
-            () => this.handleResultClickBasic(res, sample.sampleNumber))
+            () => this.handleResultClick(res, sample.sampleNumber))
           })}
           <div className={classes.roundButtonShadedInput}>
             <TextField
@@ -604,10 +581,11 @@ class AsbestosSampleEditModal extends React.Component {
   getLayerRow = (num) => {
       let layer = {};
       let colors = {};
+      let sample = this.state.samples[this.state.activeSample];
       const { classes } = this.props;
 
-      if (this.state.sample.layers && this.state.sample.layers[`layer${num}`]) {
-        layer = this.state.sample.layers[`layer${num}`];
+      if (sample.layers && sample.layers[`layer${num}`]) {
+        layer = sample.layers[`layer${num}`];
         colors = getSampleColors(layer);
       } else {
         colors = getSampleColors(null);
@@ -631,7 +609,7 @@ class AsbestosSampleEditModal extends React.Component {
               </div>
               { this.state.displayColorPicker[num] ? <div className={ classes.colorPickerPopover }>
                 <div className={ classes.colorPickerCover } onClick={ () => this.handleColorClose(num) }/>
-                <SketchPicker color={ this.state.sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
+                <SketchPicker color={ sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
               </div> : null }
 
             </div>
@@ -658,68 +636,77 @@ class AsbestosSampleEditModal extends React.Component {
   setLayerVar = (variable, num, val) => {
     this.setState({
       modified: true,
-      sample: {
-        ...this.state.sample,
-        layers: {
-          ...this.state.sample.layers,
-          [`layer${num}`]: {
-            ...this.state.sample.layers[`layer${num}`],
-            [variable]: val,
-          }
-        }
+      samples: {
+        ...this.state.samples,
+        [this.state.activeSample]: {
+          ...this.state.samples[this.state.activeSample],
+          layers: {
+            ...this.state.samples[this.state.activeSample].layers,
+            [`layer${num}`]: {
+              ...this.state.samples[this.state.activeSample].layers[`layer${num}`],
+              [variable]: val,
+            },
+          },
+        },
       }
-    })
-    console.log(this.state.sample.layers[`layer${num}`]);
+    });
   }
 
   setLayerResVar = (variable, num, val) => {
     this.setState({
       modified: true,
-      sample: {
-        ...this.state.sample,
-        layers: {
-          ...this.state.sample.layers,
-          [`layer${num}`]: {
-            ...this.state.sample.layers[`layer${num}`],
-            result: {
-              ...this.state.sample.layers[`layer${num}`].result,
-              [variable]: val,
-            }
-          }
-        }
+      samples: {
+        ...this.state.samples,
+        [this.state.activeSample]: {
+          ...this.state.samples[this.state.activeSample],
+          layers: {
+            ...this.state.samples[this.state.activeSample].layers,
+            [`layer${num}`]: {
+              ...this.state.samples[this.state.activeSample].layers[`layer${num}`],
+              result: {
+                ...this.state.samples[this.state.activeSample].layers[`layer${num}`].result,
+                [variable]: val,
+              }
+            },
+          },
+        },
       }
-    })
+    });
   }
 
   toggleLayerRes = (type, num, stateLayer, removeNo) => {
     let update = {};
+    let sample = this.state.samples[this.state.activeSample];
     if (removeNo) update = {no: false};
-    if (this.state.sample.layers[`layer${num}`] && this.state.sample.layers[`layer${num}`].result && this.state.sample.layers[`layer${num}`].result[type] !== undefined) {
-      update[type] = !this.state.sample.layers[`layer${num}`].result[type];
+    if (sample.layers[`layer${num}`] && sample.layers[`layer${num}`].result && sample.layers[`layer${num}`].result[type] !== undefined) {
+      update[type] = !sample.layers[`layer${num}`].result[type];
     } else {
       update[type] = true;
     }
     this.setState({
       modified: true,
-      sample: {
-        ...this.state.sample,
-        layers: {
-          ...this.state.sample.layers,
-          [`layer${num}`]: {
-            ...this.state.sample.layers[`layer${num}`],
-            result: {
-              ...this.state.sample.layers[`layer${num}`].result,
-              ...update,
-            }
-          }
-        }
+      samples: {
+        ...this.state.samples,
+        [this.state.activeSample]: {
+          ...this.state.samples[this.state.activeSample],
+          layers: {
+            ...this.state.samples[this.state.activeSample].layers,
+            [`layer${num}`]: {
+              ...this.state.samples[this.state.activeSample].layers[`layer${num}`],
+              result: {
+                ...this.state.samples[this.state.activeSample].layers[`layer${num}`].result,
+                ...update,
+              }
+            },
+          },
+        },
       }
     });
   }
 
   removeLayerPositives = (num) => {
     let noRes = true;
-    let res = this.state.sample.layers[`layer${num}`].result;
+    let res = this.state.samples[this.state.activeSample].layers[`layer${num}`].result;
     if (res && res.no !== undefined) noRes = !res.no;
 
     if (res)
@@ -730,18 +717,21 @@ class AsbestosSampleEditModal extends React.Component {
       });
       this.setState({
         modified: true,
-        sample: {
-          ...this.state.sample,
-          layers: {
-            ...this.state.sample.layers,
-            [`layer${num}`]: {
-              ...this.state.sample.layers[`layer${num}`],
-              result: {
-                ...this.state.sample.layers[`layer${num}`].result,
-                ...update,
-              }
-            }
-          }
+        samples: {
+          ...this.state.samples,
+          [this.state.activeSample]: {
+            ...this.state.samples[this.state.activeSample],
+            layers: {
+              ...this.state.samples[this.state.activeSample].layers,
+              [`layer${num}`]: {
+                ...this.state.samples[this.state.activeSample].layers[`layer${num}`],
+                result: {
+                  ...this.state.samples[this.state.activeSample].layers[`layer${num}`].result,
+                  ...update,
+                }
+              },
+            },
+          },
         }
       });
     }

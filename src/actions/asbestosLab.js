@@ -203,8 +203,6 @@ export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
         let sample = sampleDoc.data();
         sample.uid = sampleDoc.id;
         samples[sample.sampleNumber] = sample;
-        console.log(sample);
-        // console.log('fetch samples method');
         dispatch({
           type: GET_SAMPLES,
           cocUid: cocUid,
@@ -460,6 +458,18 @@ export const receiveAll = (samples, job, sessionID, me) => {
 };
 
 export const receiveSample = (sample, job, samples, sessionID, me, startDate) => {
+  console.log('Receiving sample');
+  console.log(sample);
+  if (sample.receivedByLab && sample.verified) {
+    removeResult(sample, sessionID, me);
+    startAnalysis(sample, job, samples, sessionID, me);
+    verifySample(sample, job, samples, sessionID, me);
+  } else if (sample.receivedByLab && sample.result) {
+    removeResult(sample, sessionID, me);
+    startAnalysis(sample, job, samples, sessionID, me);
+  } else if (sample.receivedByLab && sample.analysisStart) {
+    startAnalysis(sample, job, samples, sessionID, me);
+  }
   let log = {
     type: "Received",
     log: !sample.receivedByLab
@@ -499,7 +509,7 @@ export const receiveSamples = (samples) => {
   samples.forEach(sample => {
     if (!sample.now) {
       if (sample.receivedByLab && sample.verified) {
-        uid = sample.uid + 'RemoveReceiveResultVerification';
+        uid = sample.uid + 'NotReceived';
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been verified. Removing from the lab will remove the analysis result and verification.`,
@@ -508,7 +518,7 @@ export const receiveSamples = (samples) => {
           uid,
         };
       } else if (sample.receivedByLab && sample.result) {
-        uid = sample.uid + 'RemoveReceiveResult';
+        uid = sample.uid + 'NotReceived';
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been logged. Removing from the lab will remove the analysis result.`,
@@ -524,7 +534,7 @@ export const receiveSamples = (samples) => {
           sample,
         };
       } else {
-        uid = sample.uid + 'UnReceived';
+        uid = sample.uid + 'NotReceived';
         issues[uid] = {
           type: 'check',
           description: `Sample has been unchecked as received. Double check this is correct and leave a comment on why it has been removed.`,
@@ -593,7 +603,7 @@ export const startAnalyses = (samples) => {
   samples.forEach(sample => {
     if (!sample.now) {
       if (sample.analysisStart && sample.verified) {
-        uid = sample.uid + 'RemovingAnalysis';
+        uid = sample.uid + 'NoAnalysisStart';
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been verified. Are you sure you want to remove the analysis start date? This will not remove the result or verification.`,
@@ -602,7 +612,7 @@ export const startAnalyses = (samples) => {
           uid,
         };
       } else if (sample.analysisStart && sample.result) {
-        uid = sample.uid + 'RemovingAnalysis';
+        uid = sample.uid + 'NoAnalysisStart';
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been logged. Are you sure you want to remove the analysis start date? This will not remove the result.`,
@@ -619,7 +629,7 @@ export const startAnalyses = (samples) => {
           uid,
         };
       } else {
-        uid = sample.uid + 'AnalysisUnchecked';
+        uid = sample.uid + 'NoAnalysisStart';
         issues[uid] = {
           type: 'check',
           description: `Analysis has been unchecked as started. Double check this is correct and leave a comment on why it has been removed.`,
@@ -655,109 +665,95 @@ export const updateResultMap = (result, map) => {
   return updatedMap;
 }
 
-export const toggleResult = (result, analyst, sample, job, samples, sessionID, me) => {
-  if (
-    me.auth &&
-    (me.auth["Asbestos Bulk Analysis"] ||
-      me.auth["Asbestos Admin"])
-  ) {
-    // Check analyst has been selected
-    if (analyst === "") {
-      window.alert(
-        "Select analyst from the dropdown at the top of the page."
-      );
-    }
-    // Check if this sample has already been analysed
-    if (sample.sessionID !== sessionID && sample.result) {
-      if (
-        window.confirm(
-          "This sample has already been analysed. Do you wish to override the result?"
-        )
-      ) {
-        let log = {
-          type: "Analysis",
-          log: `Previous analysis of sample ${sample.sampleNumber} (${
-            sample.description
-          } ${sample.material}) overridden.`,
-          sample: sample.uid,
-          chainOfCustody: job.uid,
-        };
-        addLog("asbestosLab", log, me);
-      } else {
-        return;
-      }
-    }
-
-    if (sample.verified) {
-      asbestosSamplesRef
-        .doc(sample.uid)
-        .update({ verified: false, verifyDate: null });
-    }
-
-    let newMap = updateResultMap(result, sample.result);
-
+export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, resultChanged, weightChanged) => {
+  console.log(sample.weightReceived);
+  if (sample.sessionID !== sessionID && sample.result) {
     let log = {
       type: "Analysis",
-      log: `New analysis for sample ${sample.sampleNumber} (${
+      log: `Previous analysis of sample ${sample.sampleNumber} (${
         sample.description
-      } ${sample.material}): ${writeResult(newMap)}`,
+      } ${sample.material}) overridden.`,
       sample: sample.uid,
       chainOfCustody: job.uid,
     };
     addLog("asbestosLab", log, me);
+  }
+  console.log(sample);
+  if (sample.verified) verifySample(sample, job, samples, sessionID, me, null);
 
-    cocsRef
-      .doc(job.uid)
-      .update({ versionUpToDate: false, mostRecentIssueSent: false, });
+  if (resultChanged) {
+    let log = {
+      type: "Analysis",
+      log: `New analysis for sample ${sample.sampleNumber} (${
+        sample.description
+      } ${sample.material}): ${writeResult(sample.result)}`,
+      sample: sample.uid,
+      chainOfCustody: job.uid,
+    };
+    addLog("asbestosLab", log, me);
+  }
 
-    // Check for situation where all results are unselected
-    let notBlankAnalysis = false;
-    Object.values(newMap).forEach(value => {
-      if (value) notBlankAnalysis = true;
+  if (weightChanged) {
+    let log = {
+      type: "Analysis",
+      log: `New received weight for sample ${sample.sampleNumber} (${
+        sample.description
+      } ${sample.material}): ${sample.weightReceived}g`,
+      sample: sample.uid,
+      chainOfCustody: job.uid,
+    };
+    addLog("asbestosLab", log, me);
+  }
+
+  cocsRef
+    .doc(job.uid)
+    .update({ versionUpToDate: false, mostRecentIssueSent: false, });
+
+  // Check for situation where all results are unselected
+  let notBlankAnalysis = false;
+  Object.values(sample.result).forEach(value => {
+    if (value) notBlankAnalysis = true;
+  });
+
+  if (notBlankAnalysis) {
+    if (!sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
+    asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`).set({
+      analyst: analyst,
+      analystUID: me.uid,
+      // mode: this.props.analysisMode,
+      sessionID: sessionID,
+      cocUID: job.uid,
+      sampleUID: sample.uid,
+      result: sample.result,
+      weightReceived: sample.weightReceived ? sample.weightReceived : null,
+      description: sample.description,
+      material: sample.material,
+      samplers: job.personnel,
+      analysisDate: new Date()
     });
-
-    if (notBlankAnalysis) {
-      if (!sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
-      asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`).set({
-        analyst: analyst,
-        analystUID: me.uid,
-        // mode: this.props.analysisMode,
-        sessionID: sessionID,
-        cocUID: job.uid,
-        sampleUID: sample.uid,
-        result: newMap,
-        description: sample.description,
-        material: sample.material,
-        samplers: job.personnel,
-        analysisDate: new Date()
-      });
-      asbestosSamplesRef.doc(sample.uid).update({
-        analysisUser: {id: me.uid, name: me.name},
-        sessionID: sessionID,
-        analyst: analyst,
-        result: newMap,
-        analysisDate: new Date(),
-        analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null,
-      });
-    } else {
-      asbestosAnalysisRef
-        .doc(`${sessionID}-${sample.uid}`)
-        .delete();
-      asbestosSamplesRef
-        .doc(sample.uid)
-        .update({
-          result: firebase.firestore.FieldValue.delete(),
-          analysisDate: firebase.firestore.FieldValue.delete(),
-          analysisUser: firebase.firestore.FieldValue.delete(),
-          sessionID: firebase.firestore.FieldValue.delete(),
-          analysisTime: firebase.firestore.FieldValue.delete(),
-          analyst: firebase.firestore.FieldValue.delete(),
-        });
-    }
+    asbestosSamplesRef.doc(sample.uid).update({
+      analysisUser: {id: me.uid, name: me.name},
+      sessionID: sessionID,
+      analyst: analyst,
+      result: sample.result,
+      weightReceived: sample.weightReceived ? sample.weightReceived : null,
+      analysisDate: new Date(),
+      analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null,
+    });
   } else {
-    window.alert(
-      "You don't have sufficient permissions to set asbestos results."
-    );
+    asbestosAnalysisRef
+      .doc(`${sessionID}-${sample.uid}`)
+      .delete();
+    asbestosSamplesRef
+      .doc(sample.uid)
+      .update({
+        result: firebase.firestore.FieldValue.delete(),
+        analysisDate: firebase.firestore.FieldValue.delete(),
+        analysisUser: firebase.firestore.FieldValue.delete(),
+        sessionID: firebase.firestore.FieldValue.delete(),
+        analysisTime: firebase.firestore.FieldValue.delete(),
+        analyst: firebase.firestore.FieldValue.delete(),
+      });
   }
 };
 
@@ -789,54 +785,52 @@ export const removeResult = (sample, sessionID, me) => {
 }
 
 export const verifySample = (sample, job, samples, sessionID, me, startDate, properties) => {
+  console.log('Verifying');
   if (
     (me.auth &&
     (me.auth["Analysis Checker"] ||
       me.auth["Asbestos Admin"]))
   ) {
-    if (!sample.verified) {
-        if (!sample.analysisStart && !sample.verified) startAnalysis(sample, job, samples, sessionID, me);
-        let verifyDate = null;
-        let log = {
-          type: "Verified",
-          log: !sample.verified
-            ? `Sample ${sample.sampleNumber} (${sample.description} ${
-                sample.material
-              }) result verified.`
-            : `Sample ${sample.sampleNumber} (${sample.description} ${
-                sample.material
-              }) verification removed.`,
-          sample: sample.uid,
-          chainOfCustody: job.uid,
-        };
-        addLog("asbestosLab", log, me);
+    if (!sample.analysisStart && !sample.verified) startAnalysis(sample, job, samples, sessionID, me);
+    let verifyDate = null;
+    let log = {
+      type: "Verified",
+      log: !sample.verified
+        ? `Sample ${sample.sampleNumber} (${sample.description} ${
+            sample.material
+          }) result verified.`
+        : `Sample ${sample.sampleNumber} (${sample.description} ${
+            sample.material
+          }) verification removed.`,
+      sample: sample.uid,
+      chainOfCustody: job.uid,
+    };
+    addLog("asbestosLab", log, me);
 
-        cocsRef
-          .doc(sample.cocUid)
-          .update({ versionUpToDate: false, mostRecentIssueSent: false, });
-        if (!sample.verified) {
-          sample.verifyDate = new Date();
-          let cocStats = getStats(samples, job);
-          logSample(job, sample, cocStats);
-          asbestosSamplesRef.doc(sample.uid).update(
-          {
-            ...properties,
-            verified: true,
-            verifyUser: {id: me.uid, name: me.name},
-            verifyDate: startDate ? startDate : new Date(),
-            turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
-          });
-        } else {
-          asbestosSamplesRef.doc(sample.uid).update(
-          {
-            ...properties,
-            verified: false,
-            verifyUser: firebase.firestore.FieldValue.delete(),
-            verifyDate: firebase.firestore.FieldValue.delete(),
-            turnaroundTime: firebase.firestore.FieldValue.delete(),
-          });
-        }
-      // }
+    cocsRef
+      .doc(sample.cocUid)
+      .update({ versionUpToDate: false, mostRecentIssueSent: false, });
+    if (!sample.verified) {
+      sample.verifyDate = new Date();
+      let cocStats = getStats(samples, job);
+      logSample(job, sample, cocStats);
+      asbestosSamplesRef.doc(sample.uid).update(
+      {
+        ...properties,
+        verified: true,
+        verifyUser: {id: me.uid, name: me.name},
+        verifyDate: startDate ? startDate : new Date(),
+        turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
+      });
+    } else {
+      asbestosSamplesRef.doc(sample.uid).update(
+      {
+        ...properties,
+        verified: false,
+        verifyUser: firebase.firestore.FieldValue.delete(),
+        verifyDate: firebase.firestore.FieldValue.delete(),
+        turnaroundTime: firebase.firestore.FieldValue.delete(),
+      });
     }
   } else {
     window.alert(
@@ -861,7 +855,7 @@ export const verifySamples = (samples, job) => {
           uid,
         };
       } else {
-        uid = sample.uid + 'VerificationRemvoed';
+        uid = sample.uid + 'ResultNotVerified';
         issues[uid] = {
           type: 'check',
           description: `Result has been unverified. Double check this is correct and leave a comment on why verification has been removed. This sample will not appear on lab reports.`,
@@ -1369,6 +1363,7 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
         if (sample.disabled || sample.onHold) return;
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeReportDescription(sample);
+        sampleMap["weightReceived"] = sample.weightReceived ? `${sample.weightReceived}g` : 'N/A';
         sampleMap["result"] = writeResult(sample.result);
         sampleMap["checks"] = writeChecks(sample);
         sampleList.push(sampleMap);
@@ -1379,18 +1374,10 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
     jobNumber: job.jobNumber,
     client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
     address: job.address,
-    date: job.dates
-      .sort((b, a) => {
-        let aDate = a instanceof Date ? a : a.toDate();
-        let bDate = b instanceof Date ? b : b.toDate();
-        return new Date(bDate - aDate);
-      })
-      .map(date => {
-        let formatDate = date instanceof Date ? date : date.toDate();
-        return moment(formatDate).format('D MMMM YYYY');
-      })
-      .join(", "),
+    sampleDate: writeDates(samples, 'sampledDate'),
     // ktp: 'Stuart Keer-Keer',
+    receivedDate: writeDates(samples, 'receivedDate'),
+    analysisDate: writeDates(samples, 'analysisDate'),
     personnel: job.personnel.sort(),
     assessors: job.personnel.sort().map(staff => {
       return aaNumbers[staff];
@@ -1422,6 +1409,7 @@ export const issueLabReport = (job, samples, version, changes, staffList, me) =>
     changes: changes,
     data: json,
   };
+  console.log(versionHistory);
   let update = {
       currentVersion: version,
       versionHistory: versionHistory,
@@ -1621,10 +1609,11 @@ export const writeReportDescription = (sample) => {
     if (sample.dimensionsD) dim.push(sample.dimensionsD);
     if (dim.length > 0) dimensions = dim.join(' x ') + ' mm';
   }
-  if (report['weight'] === true) {
-    if (dimensions.length > 0) dimensions = dimensions + ', ';
-    if (sample.weightAnalysed) dimensions = dimensions + sample.weightAnalysed + "g"
-  }
+  // if (report['weight'] === true) {
+  //   if (dimensions.length > 0) dimensions = dimensions + ', ';
+  //   // if (sample.weightAnalysed) dimensions = dimensions + sample.weightAnalysed + "g"
+  //   if (sample.weightReceived) dimensions = dimensions + sample.weightReceived + "g"
+  // }
   if (dimensions.length > 0) lines.push(dimensions);
   return lines.join('@~');
 }
@@ -1762,6 +1751,15 @@ export const getBasicResult = (sample) => {
   return result;
 }
 
+export const getSampleStatus = (sample) => {
+  let status = "inTransit";
+  if (sample.verified) status = "verified";
+  else if (writeShorthandResult(sample.result) !== 'NO RESULT') status = "analysisRecorded";
+  else if (sample.analysisStart) status = "analysisStarted";
+  else if (sample.receivedByLab) status = "received";
+  return status;
+}
+
 export const traceAnalysisRequired = sample => {
   let text = 'Trace Analysis Required';
   if (sample.classification === 'homo' && sample.asbestosEvident === true) text = 'No Trace Analysis Required';
@@ -1815,8 +1813,9 @@ export const writeShorthandResult = result => {
   Object.keys(result).forEach(type => {
     if (result[type]) detected.push(type);
   });
-  if (detected.length < 1) return "N/A";
+  if (detected.length < 1) return "NO RESULT";
   let str = '';
+  console.log(detected);
   if (detected[0] === "no") str = "NO ";
   else {
     if (result["ch"]) str = "CH ";
@@ -2023,6 +2022,7 @@ export const getStatus = (samples, job) => {
         if (sample.receivedByLab) numberReceived = numberReceived + 1;
         if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
         if (sample.verified) numberVerified = numberVerified + 1;
+        if (getBasicResult(sample) !== 'none') numberResult = numberResult + 1;
       }
     });
   }
@@ -2278,11 +2278,24 @@ export const writeSampleConditioningList = conditioning => {
   else return 'No conditioning';
 }
 
-export const writeSampleDimensions = sample => {
+export const writeSampleMoisture = (sample, total) => {
+  let preWeight = null;
+  let postWeight = null;
+
+  if (sample.weightSubsample) preWeight = sample.weightSubsample;
+  else if (sample.weightReceived) preWeight = sample.weightReceived;
+  if (sample.weightDry) postWeight = sample.weightDry;
+
+  if (!preWeight || !postWeight) return null;
+    else return Math.round(((preWeight - postWeight)/preWeight) * 100);
+};
+
+export const writeSampleDimensions = (sample, total) => {
   let dims = [];
   ['dimensionsL','dimensionsW','dimensionsD'].forEach(dim => {
     if (sample[dim] !== undefined && sample[dim] !== '') dims.push(parseInt(sample[dim]));
   });
+  if (dims.length === 0) return null;
   let app = '';
   if (dims.length === 3) {
     let volMM = dims[0]*dims[1]*dims[2];
@@ -2291,7 +2304,6 @@ export const writeSampleDimensions = sample => {
     if (volM > 0.1) app += volM + 'm³';
     else if (volCM > 0.1) app += volCM + 'cm³';
     else app = volMM += 'mm³';
-    app = ` (${app})`;
   } else if (dims.length === 2) {
     let areaMM = dims[0] + dims[1];
     let areaCM = areaMM / 100;
@@ -2299,9 +2311,16 @@ export const writeSampleDimensions = sample => {
     if (areaM > 1) app += areaM + 'm²';
     else if (areaCM > 1) app += areaCM + 'cm²';
     else app = areaMM += 'mm²';
-    app = ` (${app})`;
+  } else if (dims.length === 1) {
+    let lMM = dims[0];
+    let lCM = lMM / 10;
+    let lM = lMM / 1000;
+    if (lM > 1) app = lM + 'm';
+    else if (lCM > 1) app = lCM + 'cm';
+    else app = lMM + 'mm';
   }
-  return dims.map(dim => `${dim}mm`).join(' x ') + app;
+  if (total) return app;
+    else return dims.map(dim => `${dim}mm`).join(' x ') + `(${app})`;
 }
 
 export const collateLayeredResults = layers => {
@@ -2322,4 +2341,49 @@ export const collateLayeredResults = layers => {
 export const checkVerifyIssues = () => {
   let issues = [];
   return issues;
+};
+
+export const writeDates = (samples, field) => {
+  let dates = [];
+  let dateMap = {};
+  Object.values(samples).forEach(sample => {
+    if (sample[field]) {
+      let date = null;
+      if (sample[field] instanceof Date) {
+        date = sample[field];
+      } else {
+        date = sample[field].toDate();
+      }
+      dates.push(date);
+    }
+  });
+  if (dates.length === 0) return "N/A";
+  dates.forEach(date => {
+    let formatDate = moment(date).format('D MMMM YYYY');
+    dateMap[formatDate] = true;
+  });
+
+  return Object.keys(dateMap).join(', ');
+
+  // TODO: Join Dates in Prettier Way
+
+  // dates.sort((b, a) => {
+  //   return new Date(b - a);
+  // }).forEach(date => {
+  //   let year = moment(date).format('YYYY');
+  //   let month = moment(date).format('MMMM');
+  //   let day = moment(date).format('D');
+  //   dateMap[year] = dateMap[year] ? dateMap[year] : {};
+  //   dateMap[year][month] = dateMap[year][month] ? dateMap[year][month] : {};
+  //   dateMap[year][month][day] = true;
+  // });
+  //
+  // let dateStr = '';
+  // Object.keys(dateMap).forEach(year => {
+  //   Object.keys(year).forEach(month => {
+  //     dateStr = dateStr + Object.keys(month).join(', ') + ' ' + month;
+  //   });
+  // });
+  //
+  // console.log(dateMap);
 };

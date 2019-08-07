@@ -461,7 +461,7 @@ class CocModal extends React.Component {
             {this.state.sampleEditModal && sampleEditModal}
             <Grid container spacing={1}>
               <Grid item xs={12} lg={4}>
-                {modalProps.isNew &&
+                {(modalProps.isNew || modalProps.error) &&
                   <div>
                     <div className={classes.flexRow}>
                       <FormControl style={{ width: '100%', marginRight: 8, }}>
@@ -730,8 +730,8 @@ class CocModal extends React.Component {
               </Grid>
             </Grid>
           </Grid>
-            </Grid>
-          </Grid>
+              </Grid>
+              </Grid>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => {

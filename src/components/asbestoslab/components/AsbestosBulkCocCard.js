@@ -25,7 +25,8 @@ import {
   COC_STATS,
   COC_SAMPLE_ACTIONS,
   UPDATE_CERTIFICATE_VERSION,
-  COC_LOG
+  COC_LOG,
+  COC_ISSUES,
 } from "../../../constants/modal-types";
 
 import SampleListItem from "./SampleListItem";
@@ -104,6 +105,7 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   shouldComponentUpdate(nextProps, nextState) {
+    if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if ((nextProps.samples && nextProps.samples[nextProps.job] && this.props.samples && this.props.samples[this.props.job] &&
     (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length ||
     Object.keys(nextProps.samples[nextProps.job]).length !== Object.keys(this.props.samples[this.props.job]).length)) ||
@@ -133,6 +135,7 @@ class AsbestosBulkCocCard extends React.Component {
   render() {
     const { samples, classes } = this.props;
     const job = this.props.cocs[this.props.job];
+    if (job === undefined || job.deleted) return null;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
@@ -206,13 +209,13 @@ class AsbestosBulkCocCard extends React.Component {
                 </IconButton>
               </Tooltip>
               <Tooltip title={'Record Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
-                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
                   onClick={event => {
                       this.props.showModal({
                         modalType: ASBESTOS_SAMPLE_DETAILS,
                         modalProps: {
-                          doc: Object.values(samples[job.uid])[0],
-                          job: job,
+                          activeSample: Object.keys(samples[job.uid])[0],
+                          activeCoc: job.uid,
                       }});
                   }}>
                   <RecordAnalysisIcon className={classes.iconRegular} />
@@ -296,6 +299,28 @@ class AsbestosBulkCocCard extends React.Component {
                 >
                   View Change Log
                 </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    this.props.showModal({
+                      modalType: COC_ISSUES,
+                      modalProps: {
+                        ...job,
+                      }
+                    });
+                  }}>
+                  View Issues
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    this.props.showModal({
+                      modalType: COC_STATS,
+                      modalProps: {
+                        ...job,
+                      }
+                    });
+                  }}>
+                  View Stats
+                </MenuItem>
                 <Divider />
                 {job.currentVersion &&
                   // job.currentVersion > 1 &&
@@ -312,17 +337,6 @@ class AsbestosBulkCocCard extends React.Component {
                     );
                   })}
                 <Divider />
-                <MenuItem
-                  onClick={() => {
-                    this.props.showModal({
-                      modalType: COC_STATS,
-                      modalProps: {
-                        ...job,
-                      }
-                    });
-                  }}>
-                  View Stats
-                </MenuItem>
                 <MenuItem onClick={() => this.props.deleteCoc(job, this.props.me)}>
                   Delete Chain of Custody
                 </MenuItem>

@@ -339,7 +339,7 @@ class MainScreen extends React.Component {
                 <ListItemIcon>
                   <CocIcon className={classes.colorAccent} />
                 </ListItemIcon>
-                <ListItemText primary="Chains of Custody" />
+                <ListItemText primary="Jobs" />
               </ListItem>
               <ListItem
                 button
@@ -488,7 +488,7 @@ class MainScreen extends React.Component {
               </ListItem>
             </div>
           )}
-          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.1.0</div>
+          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.2.0</div>
         {/*<Divider />
           <ListItem button onClick={this.handleDevClick}>
             <ListItemIcon>
@@ -670,7 +670,7 @@ class MainScreen extends React.Component {
                         />
                         <Route
                           path="/asbestoslab"
-                          render={() => <span><CocIcon /> Asbestos Lab: COCs</span>}
+                          render={() => <span><CocIcon /> Asbestos Lab: Jobs</span>}
                         />
                         <Route
                           path="/asbestossamplelog"

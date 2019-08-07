@@ -95,7 +95,7 @@ class ConfirmResultModal extends React.Component {
     }
   };
 
-  toggleResult = (result, num) => {
+  recordAnalysis = (result, num) => {
     let sample = this.props.modalProps.sample;
     if (this.state[num].sessionID !== undefined && this.state[num].sessionID !== this.props.sessionID) {
       if (window.confirm("This sample has already been analysed. Do you wish to override the result?")) {
@@ -249,7 +249,7 @@ class ConfirmResultModal extends React.Component {
       </div>
       <div className={classes.flexRow}>
         {['ch','am','cr','umf','no','org','smf'].map(res => {
-          return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`],res, () => this.toggleResult(res, num))
+          return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`],res, () => this.recordAnalysis(res, num))
         })}
       </div>
       <TextField

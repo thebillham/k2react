@@ -43,7 +43,31 @@ export default createMuiTheme({
       highlight: '#ffd',
       shaded: '#aaa',
       shadedHighlighted: '#004c2f',
-    }
+    },
+    stages: {
+      start: '#dae9ec',
+      startText: 'black',
+      received: '#b6d3d9',
+      receivedText: 'black',
+      workInProgress: '#92bdc6',
+      workInProgressText: 'black',
+      workComplete: '#6ea7b3',
+      workCompleteText: 'white',
+      readyForIssue: '#388697',
+      readyForIssueText: 'white',
+    },
+    stagesGreen: {
+      start: '#e7f1ee',
+      startText: 'black',
+      received: '#b9d7cc',
+      receivedText: 'black',
+      workInProgress: '#73af99',
+      workInProgressText: 'black',
+      workComplete: '#2e8766',
+      workCompleteText: 'white',
+      readyForIssue: '#006d44',
+      readyForIssueText: 'white',
+    },
   },
   overrides: {
     MuiTooltip: {
