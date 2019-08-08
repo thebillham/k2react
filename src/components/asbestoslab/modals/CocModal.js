@@ -6,6 +6,9 @@ import { connect } from 'react-redux';
 // import store from '../../store';
 import { COC } from '../../../constants/modal-types';
 import '../../../config/tags.css';
+import DatePicker from "react-datepicker";
+import "../../../config/react-datepicker.css";
+import moment from "moment";
 // import { sendSlackMessage } from '../../Slack';
 
 import AsbestosBulkSampleEditListItem from "../components/AsbestosBulkSampleEditListItem";
@@ -30,7 +33,12 @@ import Chip from '@material-ui/core/Chip';
 import Select from 'react-select';
 import { SuggestionField } from '../../../widgets/SuggestionField';
 
-import DayPicker, { DateUtils } from 'react-day-picker';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import MomentLocaleUtils, {
+  formatDate,
+  parseDate,
+} from 'react-day-picker/moment';
+import DateUtils from 'react-day-picker';
 import 'react-day-picker/lib/style.css';
 
 import Add from '@material-ui/icons/Add';
@@ -187,6 +195,8 @@ class CocModal extends React.Component {
       const sampleEditModal = (
         <Dialog
           maxWidth="sm"
+          style={{minHeight: 500}}
+          scroll="body"
           fullWidth={true}
           open={this.state.sampleEditModal !== null}
           onClose={() => this.setState({ sampleEditModal: null })}
@@ -196,60 +206,65 @@ class CocModal extends React.Component {
           </DialogTitle>
           <DialogContent>
           {this.state.sampleEditModal && (
-            <Grid container spacing={1}>
-              <Grid item xs={12}>
-                {SuggestionField(this, false, 'Generic Location', 'genericLocationSuggestions', this.state.sampleEditModal.genericLocation,
-                  (value) => {
-                      this.setState({
-                        sampleEditModal: {
-                          ...this.state.sampleEditModal,
-                          genericLocation: value,
-                        },
-                        sampleEditModified: true,
-                      });
+            <div>
+              {SuggestionField(this, false, 'Generic Location', 'genericLocationSuggestions', this.state.sampleEditModal.genericLocation,
+                (value) => {
+                    this.setState({
+                      sampleEditModal: {
+                        ...this.state.sampleEditModal,
+                        genericLocation: value,
+                      },
+                      sampleEditModified: true,
+                    });
+                  }
+              )}
+              {SuggestionField(this, false, 'Specific Location', 'specificLocationSuggestions', this.state.sampleEditModal.specificLocation,
+                (value) => {
+                    this.setState({
+                      sampleEditModal: {
+                        ...this.state.sampleEditModal,
+                        specificLocation: value,
+                      },
+                      sampleEditModified: true,
+                    });
+                  }
+              )}
+              {SuggestionField(this, false, 'Description/Item', 'descriptionSuggestions', this.state.sampleEditModal.description,
+                (value) => {
+                    this.setState({
+                      sampleEditModal: {
+                        ...this.state.sampleEditModal,
+                        description: value,
+                      },
+                      sampleEditModified: true,
+                    });
+                  }
+              )}
+              {SuggestionField(this, false, 'Material', 'materialSuggestions', this.state.sampleEditModal.material,
+                (value) => {
+                    this.setState({
+                      sampleEditModal: {
+                        ...this.state.sampleEditModal,
+                        material: value,
+                      },
+                      sampleEditModified: true,
+                    });
+                  }
+              )}
+              <div className={this.props.classes.headingInline}>Sample Date</div>
+              <DayPickerInput
+                formatDate={formatDate}
+                parseDate={parseDate}
+                onChange={(date) => {
+                  this.setState({
+                    sampleEditModal: {
+                      ...this.state.sampleEditModal,
+                      sampleDate: date,
                     }
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                {SuggestionField(this, false, 'Specific Location', 'specificLocationSuggestions', this.state.sampleEditModal.specificLocation,
-                  (value) => {
-                      this.setState({
-                        sampleEditModal: {
-                          ...this.state.sampleEditModal,
-                          specificLocation: value,
-                        },
-                        sampleEditModified: true,
-                      });
-                    }
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                {SuggestionField(this, false, 'Description/Item', 'descriptionSuggestions', this.state.sampleEditModal.description,
-                  (value) => {
-                      this.setState({
-                        sampleEditModal: {
-                          ...this.state.sampleEditModal,
-                          description: value,
-                        },
-                        sampleEditModified: true,
-                      });
-                    }
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                {SuggestionField(this, false, 'Material', 'materialSuggestions', this.state.sampleEditModal.material,
-                  (value) => {
-                      this.setState({
-                        sampleEditModal: {
-                          ...this.state.sampleEditModal,
-                          material: value,
-                        },
-                        sampleEditModified: true,
-                      });
-                    }
-                )}
-              </Grid>
-              <Grid item xs={12}>
+                  });
+                }}
+              />
+              <div>
                 <Checkbox
                   checked={this.state.sampleDoSwap}
                   onChange={(event) => { this.setState({
@@ -271,20 +286,21 @@ class CocModal extends React.Component {
                     min: 1,
                   }}
                 />
-                <Grid item xs={12}>
-                  <Checkbox
-                    checked={this.state.sampleDelete}
-                    onChange={(event) => { this.setState({
-                      sampleDelete: event.target.checked,
-                      sampleDoSwap: false,
-                    })}}
-                    value='sampleDelete'
-                    color='secondary'
-                  />
-                  Delete this sample
-                </Grid>
-              </Grid>
-            </Grid>
+              </div>
+              <div>
+                <Checkbox
+                  checked={this.state.sampleDelete}
+                  onChange={(event) => { this.setState({
+                    sampleDelete: event.target.checked,
+                    sampleDoSwap: false,
+                  })}}
+                  value='sampleDelete'
+                  color='secondary'
+                />
+                Delete this sample
+              </div>
+              <div style={{ height: 150}} />
+            </div>
           )}
           </DialogContent>
             <DialogActions>
@@ -460,7 +476,7 @@ class CocModal extends React.Component {
           <DialogContent>
             {this.state.sampleEditModal && sampleEditModal}
             <Grid container spacing={1}>
-              <Grid item xs={12} lg={4}>
+              <Grid item xs={12} lg={3}>
                 {(modalProps.isNew || modalProps.error) &&
                   <div>
                     <div className={classes.flexRow}>
@@ -520,13 +536,13 @@ class CocModal extends React.Component {
                         onChange={e => this.handlePersonnelChange(e, 'personnel')}
                       />
                     </FormControl>
-                    <FormControl>
+                    {/*<FormControl>
                       <InputLabel shrink>Sample Date(s)</InputLabel><br /><br />
                       <DayPicker
                         selectedDays={dates}
                         onDayClick={this.handleDateChange}
                       />
-                    </FormControl>
+                    </FormControl>*/}
 
                     <TextField
                       id="labInstructions"
@@ -623,7 +639,7 @@ class CocModal extends React.Component {
                   </FormGroup>
                 </form>
               </Grid>
-              <Grid item xs={12} md={8}>
+              <Grid item xs={12} lg={9}>
                 <Grid container direction='column'>
                   <Grid item>
                     <Grid container style={{ fontWeight: 450, marginLeft: 12, }}>
@@ -729,9 +745,9 @@ class CocModal extends React.Component {
                 </Grid>
               </Grid>
             </Grid>
-          </Grid>
+                </Grid>
               </Grid>
-              </Grid>
+            </Grid>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => {
