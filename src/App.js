@@ -4,6 +4,7 @@ import K2SignInScreen from "./components/K2SignInScreen";
 import { auth } from "./config/firebase";
 import { withRouter } from "react-router-dom";
 import * as serviceWorker from "./registerServiceWorker";
+
 require("dotenv").config();
 
 class App extends Component {

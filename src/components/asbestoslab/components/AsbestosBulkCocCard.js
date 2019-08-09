@@ -11,10 +11,10 @@ import {
   deleteCoc,
   startAnalysisAll,
   receiveAll,
-  getAnalysts,
   printCoc,
   printLabReport,
   issueLabReport,
+  getPersonnel,
   getStatus,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM, } from "../../../actions/local";
@@ -139,7 +139,7 @@ class AsbestosBulkCocCard extends React.Component {
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
-    let analysts = getAnalysts(job, samples[job.uid], false);
+    let analysts = samples[this.props.job] ? getPersonnel(Object.values(samples[this.props.job]).filter(s => s.cocUid === job.uid), 'analyst', null, false).map(e => e.name) : '';
 
     let dates = job.dates.sort().map(date => {
       let formatDate = date instanceof Date ? date : date.toDate();

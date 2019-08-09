@@ -9,6 +9,8 @@ import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import theme from "./config/theme";
 import store, { history } from "./store/index";
 import whyDidYouRender from "@welldone-software/why-did-you-render";
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
 // import LogRocket from 'logrocket';
 // LogRocket.init('wisi23/k2');
 
@@ -28,7 +30,9 @@ ReactDOM.render(
   <Provider store={store}>
     <MuiThemeProvider theme={theme}>
       <ConnectedRouter history={history}>
-        <App />
+        <MuiPickersUtilsProvider utils={MomentUtils}>
+          <App />
+        </MuiPickersUtilsProvider>
       </ConnectedRouter>
     </MuiThemeProvider>
   </Provider>,

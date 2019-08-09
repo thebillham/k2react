@@ -651,6 +651,7 @@ const styles = theme => ({
 
   circleShaded: {
     minWidth: 40,
+    maxWidth: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: theme.palette.app.shaded,
@@ -665,6 +666,7 @@ const styles = theme => ({
 
   circleShadedHighlighted: {
     minWidth: 40,
+    maxWidth: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: theme.palette.app.shadedHighlighted,
@@ -884,8 +886,17 @@ const styles = theme => ({
     padding: theme.spacing(2),
   },
 
+  paddingSidesSmall: {
+    paddingLeft: theme.spacing(1),
+    paddingRight: theme.spacing(1),
+  },
+
   marginLeftSmall: {
     marginLeft: theme.spacing(1),
+  },
+
+  marginRightSmall: {
+    marginRight: theme.spacing(1),
   },
 
   marginLeftBottomSmall: {
@@ -896,6 +907,11 @@ const styles = theme => ({
   marginTopBottomSmall: {
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
+  },
+
+  marginSidesSmall: {
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
   },
 
   marginTopSmall: {
@@ -929,6 +945,22 @@ const styles = theme => ({
     maxWidth: '1800px',
   },
 
+  columnSmall: {
+    width: 80,
+  },
+
+  columnMedSmall: {
+    width: 180,
+  },
+
+  columnMedLarge: {
+    width: 250,
+  },
+
+  columnLarge: {
+    width: 350,
+  },
+
   // CONTAINERS
   flexRow: {
     display: 'flex',
@@ -956,6 +988,16 @@ const styles = theme => ({
   },
 
   flexRowHover: {
+    flexDirection: 'row',
+    display: 'flex',
+    alignItems: 'center',
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover
+    },
+  },
+
+  flexRowHoverFat: {
+    minHeight: 60,
     flexDirection: 'row',
     display: 'flex',
     alignItems: 'center',

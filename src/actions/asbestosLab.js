@@ -1256,16 +1256,13 @@ export const getSampleDetails = sample => {
 //
 
 export const printCoc = (job, samples, me, staffList) => {
-console.log(job);
+  let staffQualList = getStaffQuals(staffList);
   let log = {
     type: "Document",
     log: `Chain of Custody downloaded.`,
     chainOfCustody: job.uid,
   };
   addLog("asbestosLab", log, me);
-
-  let aaNumbers = getAANumbers(staffList);
-  console.log(aaNumbers);
 
   let sampleList = [];
 
@@ -1304,10 +1301,7 @@ console.log(job);
       })
       .join(", "),
     // ktp: 'Stuart Keer-Keer',
-    personnel: job.personnel.sort(),
-    assessors: job.personnel.sort().map(staff => {
-      return aaNumbers[staff];
-    }),
+    personnel: writePersonnelQualFull(getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', staffQualList, true)),
     samples: sampleList
   };
   console.log(report);
@@ -1317,44 +1311,73 @@ console.log(job);
   window.open(url);
 };
 
-export const getAANumbers = (staffList) => {
+export const getStaffQuals = (staffList) => {
+  let staffQualList = {};
   let aaNumbers = {};
+  let ip402 = {};
+  let tertiary = {};
   Object.values(staffList).forEach(staff => {
-    aaNumbers[staff.name] = staff.aanumber ? staff.aanumber : "-";
+    staffQualList[staff.name] = {
+      aaNumber: staff.aanumber ? staff.aanumber : false,
+      ip402: staff.ip402 ? staff.ip402 : false,
+      tertiary: staff.tertiary ? staff.tertiary : false,
+    };
   });
-  // aaNumbers[me.name] = me.aanumber
-  //   ? me.aanumber
-  //   : "-";
-  aaNumbers["Client"] = "-";
-  return aaNumbers;
+
+  return staffQualList;
 };
 
-export const getAnalysts = (job, samples, report) => {
-  let analysts = {};
+export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
+  let personnel = {};
   samples &&
     Object.values(samples).forEach(sample => {
-      if (sample.cocUid === job.uid) {
-        if (report) {
-          if (sample.analyst && sample.verified) {
-            analysts[sample.analyst] = true;
-          }
-        } else {
-          if (sample.analyst) {
-            analysts[sample.analyst] = true;
+        if (sample[field] && (!onlyShowVerified || (onlyShowVerified && sample.verified))) {
+          let person = sample[field];
+          if (person instanceof Array) {
+            person.forEach(p => {
+              personnel[p] = true;
+            })
+          } else {
+            personnel[person] = true;
           }
         }
-      }
     });
   let list = [];
-  Object.keys(analysts).forEach(analyst => {
-    list.push(analyst);
+  Object.keys(personnel).forEach(p => {
+    let tertiary = null;
+    let aaNumber = null;
+    let ip402 = null;
+    if (qualList && qualList[p]) {
+      if (qualList[p].tertiary) tertiary = qualList[p].tertiary;
+      if (qualList[p].aaNumber) aaNumber = qualList[p].aaNumber;
+      if (qualList[p].ip402) ip402 = qualList[p].ip402;
+    }
+    list.push({
+      name: p,
+      tertiary,
+      aaNumber,
+      ip402,
+    });
   });
-  if (list.length === 0) return false;
+  if (list.length === 0) return [{name: 'Not specified', tertiary: null, aaNumber: null, ip402: null}];
   return list;
 };
 
+export const writePersonnelQualFull = personnel => {
+  console.log(personnel);
+  return personnel.map(p => {
+    if (!p.tertiary && !p.aaNumber && !p.ip402) return p.name;
+    let quals = [];
+    if (p.tertiary) quals.push(p.tertiary);
+    if (p.ip402) quals.push('BOHS IP402');
+    if (p.aaNumber) quals.push(`Asbestos Assessor No. ${p.aaNumber}`);
+    return `${p.name} (${quals.join(', ')})`;
+  });
+};
+
 export const writeVersionJson = (job, samples, version, staffList, me) => {
-  let aaNumbers = getAANumbers(staffList);
+  // let aaNumbers = getAANumbers(staffList);
+  let staffQualList = getStaffQuals(staffList);
   let sampleList = [];
   samples &&
     Object.values(samples).forEach(sample => {
@@ -1369,23 +1392,24 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
         sampleList.push(sampleMap);
       }
     });
-  let analysts = getAnalysts(job, samples, true);
+  let samplesFiltered = Object.values(samples).filter(s => s.cocUid === job.uid && !s.onHold);
   let report = {
     jobNumber: job.jobNumber,
     client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
     address: job.address,
-    sampleDate: writeDates(samples, 'sampledDate'),
+    sampleDate: writeDates(samplesFiltered, 'sampleDate'),
     // ktp: 'Stuart Keer-Keer',
-    receivedDate: writeDates(samples, 'receivedDate'),
-    analysisDate: writeDates(samples, 'analysisDate'),
-    personnel: job.personnel.sort(),
-    assessors: job.personnel.sort().map(staff => {
-      return aaNumbers[staff];
-    }),
-    analysts: analysts ? analysts : ["Not specified"],
+    receivedDate: writeDates(samplesFiltered, 'receivedDate'),
+    analysisDate: writeDates(samplesFiltered, 'analysisDate'),
+    personnel: writePersonnelQualFull(getPersonnel(samplesFiltered, 'sampledBy', staffQualList, true)),
+    // assessors: job.personnel.sort().map(staff => {
+    //   return aaNumbers[staff];
+    // }),
+    analysts: getPersonnel(samplesFiltered, 'analyst', null, true).map(e => e.name),
     version: version ? version : 1,
     samples: sampleList
   };
+  console.log(writePersonnelQualFull(getPersonnel(samplesFiltered, 'sampledBy', staffQualList, true)));
   console.log(report);
   return report;
 };
@@ -1406,7 +1430,7 @@ export const issueLabReport = (job, samples, version, changes, staffList, me) =>
   versionHistory[version] = {
     issueUser: me.uid,
     issueDate: new Date(),
-    changes: changes,
+    changes: changes ? changes : 'Not specified',
     data: json,
   };
   console.log(versionHistory);
