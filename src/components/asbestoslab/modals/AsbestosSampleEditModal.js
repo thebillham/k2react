@@ -6,8 +6,7 @@ import classNames from 'classnames';
 import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS, } from "../../../constants/modal-types";
 import "../../../config/tags.css";
 
-import { SamplesTickyBox, SamplesTextyBox, SamplesRadioSelector, SamplesTickyBoxGroup, AsbButton, SampleTextyDisplay, } from '../../../widgets/FormWidgets';
-import { AsbestosSampleStatus, } from '../../../widgets/DisplayWidgets';
+import { SamplesTickyBox, SamplesTextyBox, SamplesRadioSelector, SamplesTickyBoxGroup, AsbButton, } from '../../../widgets/FormWidgets';
 import { AsbestosClassification } from '../../../config/strings';
 
 import { SketchPicker } from 'react-color';
@@ -45,7 +44,7 @@ import {
   asbestosSamplesRef
 } from "../../../config/firebase";
 
-const layerNum = 5;
+const layerNum = 3;
 
 const defaultColor = {
   r: '150',
@@ -145,7 +144,7 @@ class AsbestosSampleEditModal extends React.Component {
       );
     }
     // Check if this sample has already been analysed
-    if (sample.sessionID !== sessionID && sample.result && (!this.state.override || !this.state.override[sampleNumber])) {
+    if (sample.sessionID && sample.sessionID !== sessionID && sample.result && (!this.state.override || !this.state.override[sampleNumber])) {
       console.log(`${sample.sessionID} !== ${sessionID}: ${sample.sessionID !== sessionID}`);
       console.log(`Sample Result !== undefined: ${sample.result !== undefined}`);
       console.log(this.state.override);
@@ -296,6 +295,7 @@ class AsbestosSampleEditModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType, samples } = this.props;
+
     if (modalType === ASBESTOS_SAMPLE_DETAILS) {
       let sample = this.state.samples[this.state.activeSample];
       let sampleDimensions = null;
@@ -397,10 +397,11 @@ class AsbestosSampleEditModal extends React.Component {
                   <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightDry', 'Dry Weight', 'Record the weight after drying (~105°).', false, 0, 'g', null)}</div>
                   <div className={classes.spacerSmall} />
                   <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightAshed', 'Ashed Weight', 'Record the weight after ashing (~400°).', false, 0, 'g', null)}</div>
-                  {sampleMoisture && <span className={classes.informationBox}>
-                    {sampleMoisture}%
-                  </span>}
                 </div>
+
+                {sampleMoisture && <div className={classes.informationBox}>
+                  Moisture: {sampleMoisture}%
+                </div>}
 
                 <div className={classes.subHeading}>Dimensions</div>
                 <div className={classes.flexRow}>
@@ -440,7 +441,7 @@ class AsbestosSampleEditModal extends React.Component {
             </Grid>
             <Divider />
             <Grid container alignItems='flex-start' justify='flex-end'>
-              <Grid item xs={5}>
+              <Grid item xs={3}>
                 <div className={classes.subHeading}>Classification</div>
                 {SamplesRadioSelector(this, sample, 'classification', 'homo', 'Classification',
                   [{value: 'homo', label: 'Homogenous', tooltip: 'Uniform distribution of fibres of any type through the entire sample or in each discernibly discrete layer of the sample (sprayed asbestos, mastic, vermiculite)'},
@@ -454,6 +455,10 @@ class AsbestosSampleEditModal extends React.Component {
 
                 {traceAnalysisRequired(sample)}
 
+
+              </Grid>
+              <Grid item xs={1} />
+              <Grid item xs={8}>
                 {SamplesTickyBoxGroup(this, sample, 'Sample Conditioning', 'sampleConditioning',
                   [{value: 'furnace', label: 'Furnace'},
                   {value: 'flame', label: 'Flame'},
@@ -476,14 +481,9 @@ class AsbestosSampleEditModal extends React.Component {
                 )}
 
                 {analyticalCriteraOK(sample)}
-
-
-              </Grid>
-              <Grid item xs={1} />
-              <Grid item xs={6}>
-                <div className={classes.informationBox}>
+                {/*<div className={classes.informationBox}>
                   {AsbestosClassification(sample.classification)}
-                </div>
+                </div>*/}
               </Grid>
             </Grid>
           </DialogContent>
@@ -491,8 +491,10 @@ class AsbestosSampleEditModal extends React.Component {
             <Button onClick={() => this.props.hideModal()} color="secondary">
               Cancel
             </Button>
-            <Button onClick={() => this.previousSample()} color="inherit" disabled={modalProps && modalProps.job && modalProps.job.sampleList && modalProps.job.sampleList[0] == sample.uid}>Previous</Button>
-            <Button onClick={() => this.nextSample()} color="secondary" disabled={modalProps && modalProps.job && modalProps.job.sampleList && modalProps.job.sampleList[modalProps.job.sampleList.length - 1] == sample.uid}>Next</Button>
+            <Button onClick={() => this.previousSample()} color="inherit"
+              disabled={modalProps && modalProps.sampleList[0] == sample.uid}>Previous</Button>
+            <Button onClick={() => this.nextSample()} color="secondary"
+              disabled={modalProps && modalProps.sampleList[modalProps.sampleList.length - 1] == sample.uid}>Next</Button>
             <Button onClick={() => {
                 if (this.state.modified) this.saveSample();
                 this.props.hideModal();
@@ -541,6 +543,7 @@ class AsbestosSampleEditModal extends React.Component {
     return(
       <div key={sample.sampleNumber} className={classes.flexRowHoverPadded}>
         <div className={classes.flexRowLeftAlignEllipsis}>
+          <div className={classes.spacerSmall} />
           <div className={classes.circleShaded}>
             {sample.sampleNumber}
           </div>
@@ -592,18 +595,22 @@ class AsbestosSampleEditModal extends React.Component {
       }
 
       return(
-        <div key={num} className={classes.flexRowHover}>
-          <div className={classes.flexRowLeftAlignEllipsis}>
-            <div className={classes.circleShaded}>
-              {num}
+        <div key={num} className={classes.flexRowHoverMed}>
+          <div className={classes.flexRow}>
+            <div className={classes.spacerSmall} />
+            <div className={classes.verticalCenter}>
+              <div className={classes.circleShaded}>
+                {num}
+              </div>
             </div>
-            {SuggestionField(this, false, 'Description', 'materialSuggestions', layer.description,
-              (value) => {
-                this.setLayerVar('description', num, value);
-                }
-            )}
-
-            <div className={classes.marginRight}>
+            <div className={classes.columnMedLarge}>
+              {SuggestionField(this, false, 'Description', 'materialSuggestions', layer.description,
+                (value) => {
+                  this.setLayerVar('description', num, value);
+                  }
+              )}
+            </div>
+            <div className={classes.verticalCenter}>
               <div className={ classes.colorPickerSwatch } onClick={ () => this.handleColorClick(num) }>
                 <div className={classes.colorPickerColor} style={{ background: `rgba(${ layer.color ? layer.color.r : null }, ${ layer.color ? layer.color.g : null }, ${ layer.color ? layer.color.b : null }, ${ layer.color ? layer.color.a : null })` }} />
               </div>
@@ -611,12 +618,11 @@ class AsbestosSampleEditModal extends React.Component {
                 <div className={ classes.colorPickerCover } onClick={ () => this.handleColorClose(num) }/>
                 <SketchPicker color={ sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
               </div> : null }
-
             </div>
             <TextField
               id={`l${num}Concentration`}
               label="Asbestos %"
-              className={classes.marginRight}
+              className={classes.columnSmall}
               value={layer.concentration ? layer.concentration : 0}
               onChange={e => {
                 this.setLayerVar('concentration',num,e.target.value);
@@ -632,6 +638,64 @@ class AsbestosSampleEditModal extends React.Component {
       </div>
       );
     }
+
+  getCheckRow = (num) => {
+        let layer = {};
+        let colors = {};
+        let sample = this.state.samples[this.state.activeSample];
+        const { classes } = this.props;
+
+        if (sample.layers && sample.layers[`layer${num}`]) {
+          layer = sample.layers[`layer${num}`];
+          colors = getSampleColors(layer);
+        } else {
+          colors = getSampleColors(null);
+        }
+
+        return(
+          <div key={num} className={classes.flexRowHoverMed}>
+            <div className={classes.flexRow}>
+              <div className={classes.spacerSmall} />
+              <div className={classes.verticalCenter}>
+                <div className={classes.circleShaded}>
+                  {num}
+                </div>
+              </div>
+              <div className={classes.columnMedLarge}>
+                {SuggestionField(this, false, 'Description', 'materialSuggestions', layer.description,
+                  (value) => {
+                    this.setLayerVar('description', num, value);
+                    }
+                )}
+              </div>
+              <div className={classes.verticalCenter}>
+                <div className={ classes.colorPickerSwatch } onClick={ () => this.handleColorClick(num) }>
+                  <div className={classes.colorPickerColor} style={{ background: `rgba(${ layer.color ? layer.color.r : null }, ${ layer.color ? layer.color.g : null }, ${ layer.color ? layer.color.b : null }, ${ layer.color ? layer.color.a : null })` }} />
+                </div>
+                { this.state.displayColorPicker[num] ? <div className={ classes.colorPickerPopover }>
+                  <div className={ classes.colorPickerCover } onClick={ () => this.handleColorClose(num) }/>
+                  <SketchPicker color={ sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
+                </div> : null }
+              </div>
+              <TextField
+                id={`l${num}Concentration`}
+                label="Asbestos %"
+                className={classes.columnSmall}
+                value={layer.concentration ? layer.concentration : 0}
+                onChange={e => {
+                  this.setLayerVar('concentration',num,e.target.value);
+                }}
+              />
+            </div>
+            <div className={classes.flexRowRightAlign}>
+              {['ch','am','cr','umf','no','org','smf'].map(res => {
+                return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res,
+                e => this.toggleLayerRes(res, num, layer, true))
+              })}
+            </div>
+        </div>
+        );
+      }
 
   setLayerVar = (variable, num, val) => {
     this.setState({

@@ -25,7 +25,7 @@ import TextField from "@material-ui/core/TextField";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, showModalSecondary } from "../../../actions/modal";
-import { handleSampleChange, writeSoilDetails, getWAAnalysisSummary, } from "../../../actions/asbestosLab";
+import { writeSoilDetails, getWAAnalysisSummary, } from "../../../actions/asbestosLab";
 import { addLog, } from '../../../actions/local';
 import {
   asbestosSamplesRef
@@ -54,7 +54,6 @@ const mapDispatchToProps = dispatch => {
   return {
     hideModal: () => dispatch(hideModal()),
     showModalSecondary: modal => dispatch(showModalSecondary(modal)),
-    handleSampleChange: (number, type, value) => dispatch(handleSampleChange(number, type, value)),
   };
 };
 

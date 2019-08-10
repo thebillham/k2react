@@ -18,6 +18,8 @@ const A4Height = 420;
 const A5Cols = 4;
 const A5Height = 300;
 
+// Shortcuts
+
 const constInit = {
   qualificationtypes: {
     AsbestosAssessor: {

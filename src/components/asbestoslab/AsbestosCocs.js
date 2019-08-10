@@ -25,6 +25,7 @@ import AsbestosSampleEditModal from "./modals/AsbestosSampleEditModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
 import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
 import AsbestosSampleActionsModal from "./modals/AsbestosSampleActionsModal";
+import AsbestosSampleCocEditModal from "./modals/AsbestosSampleCocEditModal";
 import ConfirmResultModal from "./modals/ConfirmResultModal";
 import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
@@ -138,6 +139,7 @@ class AsbestosCocs extends React.PureComponent {
         <DownloadLabCertificateModal />
         <CocLogModal />
         <SoilDetailsModal />
+        <AsbestosSampleCocEditModal />
         <ConfirmResultModal />
         <AsbestosSampleDetailsModal />
         <AsbestosSampleActionsModal />

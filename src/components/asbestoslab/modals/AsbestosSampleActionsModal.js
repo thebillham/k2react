@@ -1,12 +1,11 @@
 import React from "react";
-import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import classNames from 'classnames';
 import { connect } from "react-redux";
 import store from "../../../store";
 import { COC_SAMPLE_ACTIONS } from "../../../constants/modal-types";
-import { asbestosSamplesRef, cocsRef, } from "../../../config/firebase";
+import { cocsRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
@@ -15,7 +14,6 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Radio from "@material-ui/core/Radio";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Card from "@material-ui/core/Card";
-import CardActionArea from "@material-ui/core/CardActionArea";
 import CardContent from "@material-ui/core/CardContent";
 import CardHeader from "@material-ui/core/CardHeader";
 import Avatar from "@material-ui/core/Avatar";
@@ -24,24 +22,18 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
-import IconButton from "@material-ui/core/IconButton";
-import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
 import Tooltip from "@material-ui/core/Tooltip";
 import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
 import ReceiveIcon from "@material-ui/icons/Inbox";
 import StartAnalysisIcon from "@material-ui/icons/Colorize";
 import CancelActionIcon from "@material-ui/icons/Block";
 import ProceedActionIcon from "@material-ui/icons/Forward";
 import UnresolvedActionIcon from "@material-ui/icons/Report";
 import VerifyIcon from "@material-ui/icons/CheckCircleOutline";
-import { hideModal, handleModalChange } from "../../../actions/modal";
-import { addLog } from "../../../actions/local";
+import { hideModal, } from "../../../actions/modal";
 import { writeDescription, receiveSample, receiveSamples, startAnalysis, startAnalyses, verifySample, verifySamples, writeShorthandResult, getBasicResult, } from "../../../actions/asbestosLab";
 import _ from "lodash";
-import moment from 'moment';
 
 const mapStateToProps = state => {
   return {
@@ -202,7 +194,6 @@ class AsbestosSampleActionsModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType, } = this.props;
-    console.log(this.state.issues);
     return (
       modalType === COC_SAMPLE_ACTIONS ? <Dialog
         open={modalType === COC_SAMPLE_ACTIONS}

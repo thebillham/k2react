@@ -8,7 +8,6 @@ import {
 } from "../../../config/firebase";
 import {
   writeDescription,
-  getSampleColors,
   getBasicResult,
   holdSample,
   writeShorthandResult,
@@ -32,16 +31,13 @@ import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 
 import EditIcon from "@material-ui/icons/Edit";
-import ReceiveIcon from "@material-ui/icons/Inbox";
 import CameraIcon from "@material-ui/icons/CameraAlt";
-import AnalysisIcon from "@material-ui/icons/Colorize";
 import WAIcon from "@material-ui/icons/GroupWork";
 import SampleLogIcon from "@material-ui/icons/Ballot";
 import SampleDetailsIcon from "@material-ui/icons/Description";
 import HoldIcon from "@material-ui/icons/PauseCircleOutline";
 import ConfirmIcon from "@material-ui/icons/ThumbUp";
 import ThumbsDown from "@material-ui/icons/ThumbDown";
-import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 
 import { addLog, } from '../../../actions/local';
 
@@ -67,7 +63,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class SampleListItem extends React.Component {
+class AsbestosSampleListItem extends React.Component {
   // static whyDidYouRender = true;
 
   shouldComponentUpdate(nextProps) {
@@ -163,6 +159,7 @@ class SampleListItem extends React.Component {
                           modalProps: {
                             activeSample: sample.sampleNumber,
                             activeCoc: job.uid,
+                            sampleList: job.sampleList,
                         }});
                     }}
                   >
@@ -255,5 +252,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(SampleListItem)
+  )(AsbestosSampleListItem)
 );

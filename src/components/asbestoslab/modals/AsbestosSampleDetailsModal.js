@@ -2,6 +2,7 @@ import React from "react";
 import reactCSS from 'reactcss';
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
+import { hotkeys, hotkey_display } from 'react-keyboard-shortcuts';
 import { connect } from "react-redux";
 import { ASBESTOS_NONANALYST_DETAILS, } from "../../../constants/modal-types";
 import "../../../config/tags.css";
@@ -11,6 +12,7 @@ import { SampleTextyDisplay, SampleTextyLine, AsbButton, } from '../../../widget
 import ImageUploader from 'react-images-upload';
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
+import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -42,6 +44,7 @@ const mapStateToProps = state => {
     modalProps: state.modal.modalProps,
     samples: state.asbestosLab.samples,
     me: state.local.me,
+    shortcuts: state.const.keyboardShortcuts,
   };
 };
 
@@ -52,10 +55,27 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+const keyNext = 'alt+i';
+const keyPrev = 'alt+u';
+
+const tooltipNext = hotkey_display(keyNext);
+const tooltipPrev = hotkey_display(keyPrev);
+
 class AsbestosSampleDetailsModal extends React.Component {
   state = {
     pictures: [],
   };
+
+  hot_keys = {
+    [keyNext]: {
+      priority: 1,
+      handler: () => this.nextSample(),
+    },
+    [keyPrev]: {
+      priority: 1,
+      handler: () => this.previousSample(),
+    },
+  }
 
   previousSample = () => {
     let takeThisSample = false;
@@ -269,8 +289,8 @@ class AsbestosSampleDetailsModal extends React.Component {
             </Grid>
           </DialogContent>}
           <DialogActions>
-            <Button onClick={() => this.previousSample()} color="inherit" disabled={job.sampleList[0] === sample.uid}>Previous</Button>
-            <Button onClick={() => this.nextSample()} color="secondary" disabled={job.sampleList[job.sampleList.length - 1] === sample.uid}>Next</Button>
+            <Button onClick={() => this.previousSample()} color="inherit" disabled={job.sampleList[0] == sample.uid}>Previous</Button>
+            <Button onClick={() => this.nextSample()} color="secondary" disabled={job.sampleList[job.sampleList.length - 1] == sample.uid}>Next</Button>
             <Button onClick={this.props.hideModal} color="primary">OK</Button>
           </DialogActions>
         </Dialog>}

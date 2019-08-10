@@ -176,7 +176,7 @@ export default function modalReducer(state = modalInit, action) {
               ...state.modalProps.doc.samples,
               [action.payload.number]: {
                 ...state.modalProps.doc.samples[action.payload.number],
-                [action.payload.type]: action.payload.value
+                ...action.payload.changes,
               }
             }
           }

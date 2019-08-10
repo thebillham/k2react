@@ -4,17 +4,6 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../config/styles";
 import classNames from 'classnames';
 
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import TextField from '@material-ui/core/TextField';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import FormControl from '@material-ui/core/FormControl';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import FormGroup from '@material-ui/core/FormGroup';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import Button from '@material-ui/core/Button';
-import Tooltip from '@material-ui/core/Tooltip';
-
 class AsbestosSampleStatusComponent extends React.Component {
   render() {
     const { classes, status } = this.props;

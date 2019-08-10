@@ -3,8 +3,6 @@ import {
   EDIT_MODAL_SAMPLE,
   DELETE_COC,
   GET_ASBESTOS_ANALYSIS,
-  GET_AIR_ANALYSTS,
-  GET_BULK_ANALYSTS,
   GET_COCS,
   GET_SAMPLES,
   GET_SAMPLE_LOG,
@@ -15,14 +13,12 @@ import {
   SET_ANALYSIS_SESSION_ID,
 } from "../constants/action-types";
 import { DOWNLOAD_LAB_CERTIFICATE } from "../constants/modal-types";
-import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../config/styles";
 import moment from "moment";
 import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 import { addLog } from "./local";
-import { showModal } from "./modal";
 import {
   asbestosSamplesRef,
   asbestosAnalysisRef,
@@ -30,9 +26,7 @@ import {
   cocsRef,
   stateRef,
   firebase,
-  auth,
 } from "../config/firebase";
-import { xmlToJson } from "../config/XmlToJson";
 import React from "react";
 import Button from "@material-ui/core/Button";
 
@@ -305,6 +299,9 @@ export const handleCocSubmit = ({ doc, me }) => dispatch => {
         doc.samples[sample].deleted = false;
         doc.samples[sample].createdDate = new Date();
         doc.samples[sample].createdBy = {id: me.uid, name: me.name};
+        if (!doc.samples[sample].sampleDate && doc.defaultDate !== null) doc.samples[sample].sampleDate = doc.defaultDate;
+        if (!(doc.samples[sample].sampleDate instanceof Date)) doc.samples[sample].sampleDate = doc.samples[sample].sampleDate.toDate();
+        if (!doc.samples[sample].sampledBy && doc.defaultPersonnel.length > 0) doc.samples[sample].sampledBy = doc.defaultPersonnel;
         sampleList.push(uid);
       } else {
         // console.log(`UID for old sample is ${doc.samples[sample].uid}`);
@@ -324,11 +321,9 @@ export const handleCocSubmit = ({ doc, me }) => dispatch => {
         sample2.jobNumber = doc.jobNumber;
         if (sample2.cocUid === undefined) sample2.cocUid = doc.uid;
         sample2.sampleNumber = parseInt(sample, 10);
+        if (sample2.sampleDate && !(sample2.sampleDate instanceof Date)) sample2.sampleDate = sample2.sampleDate.toDate();
         if ("disabled" in sample2) delete sample2.disabled;
-        // console.log("Sample 2");
-        // console.log(sample2);
         asbestosSamplesRef.doc(doc.samples[sample].uid).set(sample2);
-        // fetchCocs();
       }
     });
   }
@@ -366,13 +361,12 @@ export const toggleWAAnalysis = (job, me) => {
 //
 
 
-export const handleSampleChange = (number, type, value) => dispatch => {
+export const handleSampleChange = (number, changes) => dispatch => {
   dispatch({
     type: EDIT_MODAL_SAMPLE,
     payload: {
       number: number + 1,
-      type: type,
-      value: value
+      changes: changes,
     }
   });
 };
@@ -666,7 +660,6 @@ export const updateResultMap = (result, map) => {
 }
 
 export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, resultChanged, weightChanged) => {
-  console.log(sample.weightReceived);
   if (sample.sessionID !== sessionID && sample.result) {
     let log = {
       type: "Analysis",
@@ -1328,11 +1321,13 @@ export const getStaffQuals = (staffList) => {
 };
 
 export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
+  console.log(samples);
   let personnel = {};
   samples &&
     Object.values(samples).forEach(sample => {
         if (sample[field] && (!onlyShowVerified || (onlyShowVerified && sample.verified))) {
           let person = sample[field];
+          console.log(person);
           if (person instanceof Array) {
             person.forEach(p => {
               personnel[p] = true;
@@ -1342,6 +1337,7 @@ export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
           }
         }
     });
+  console.log(personnel);
   let list = [];
   Object.keys(personnel).forEach(p => {
     let tertiary = null;
@@ -1352,14 +1348,17 @@ export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
       if (qualList[p].aaNumber) aaNumber = qualList[p].aaNumber;
       if (qualList[p].ip402) ip402 = qualList[p].ip402;
     }
-    list.push({
+    let staffMap = {
       name: p,
       tertiary,
       aaNumber,
       ip402,
-    });
+    };
+    console.log(staffMap);
+    list.push(staffMap);
   });
   if (list.length === 0) return [{name: 'Not specified', tertiary: null, aaNumber: null, ip402: null}];
+  console.log(list);
   return list;
 };
 
@@ -1409,7 +1408,6 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
     version: version ? version : 1,
     samples: sampleList
   };
-  console.log(writePersonnelQualFull(getPersonnel(samplesFiltered, 'sampledBy', staffQualList, true)));
   console.log(report);
   return report;
 };
@@ -1839,7 +1837,6 @@ export const writeShorthandResult = result => {
   });
   if (detected.length < 1) return "NO RESULT";
   let str = '';
-  console.log(detected);
   if (detected[0] === "no") str = "NO ";
   else {
     if (result["ch"]) str = "CH ";
@@ -2370,6 +2367,7 @@ export const checkVerifyIssues = () => {
 export const writeDates = (samples, field) => {
   let dates = [];
   let dateMap = {};
+  let sortedMap = {};
   Object.values(samples).forEach(sample => {
     if (sample[field]) {
       let date = null;
@@ -2387,27 +2385,53 @@ export const writeDates = (samples, field) => {
     dateMap[formatDate] = true;
   });
 
-  return Object.keys(dateMap).join(', ');
+  // return Object.keys(dateMap).join(', ');
 
   // TODO: Join Dates in Prettier Way
 
-  // dates.sort((b, a) => {
-  //   return new Date(b - a);
-  // }).forEach(date => {
-  //   let year = moment(date).format('YYYY');
-  //   let month = moment(date).format('MMMM');
-  //   let day = moment(date).format('D');
-  //   dateMap[year] = dateMap[year] ? dateMap[year] : {};
-  //   dateMap[year][month] = dateMap[year][month] ? dateMap[year][month] : {};
-  //   dateMap[year][month][day] = true;
-  // });
-  //
-  // let dateStr = '';
-  // Object.keys(dateMap).forEach(year => {
-  //   Object.keys(year).forEach(month => {
-  //     dateStr = dateStr + Object.keys(month).join(', ') + ' ' + month;
-  //   });
-  // });
-  //
+  Object.keys(dateMap).sort((b, a) => {
+    return new Date(b - a);
+  }).forEach(date => {
+    let year = moment(date).format('YYYY');
+    let month = moment(date).format('MMMM');
+    let day = moment(date).format('D');
+    sortedMap[year] = sortedMap[year] ? sortedMap[year] : {};
+    sortedMap[year][month] = sortedMap[year][month] ? sortedMap[year][month] : {};
+    sortedMap[year][month][day] = true;
+  });
+
+  console.log(sortedMap);
+
+  var monthNames = {
+    "January": 1,
+    "February": 2,
+    "March": 3,
+    "April": 4,
+    "May": 5,
+    "June": 6,
+    "July": 7,
+    "August": 8,
+    "September": 9,
+    "October": 10,
+    "November": 11,
+    "December": 12
+  };
+
+  let dateList = [];
+  Object.keys(sortedMap).forEach(year => {
+    Object.keys(sortedMap[year]).sort((a, b) => {
+      return monthNames[a] - monthNames[b];
+    }).forEach(month => {
+      dateList.push(`${Object.keys(sortedMap[year][month]).sort((a, b) => {
+        return parseInt(a) - parseInt(b);
+      }).join(', ')} ${month} ${year}`);
+    });
+  });
+
+  console.log(dateList.join(', '));
+  // 17 August 2017, 6, 10, 12, 21, 31 August and 19 September 2019
+
+  return dateList.join(', ');
+
   // console.log(dateMap);
 };

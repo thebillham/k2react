@@ -891,6 +891,16 @@ const styles = theme => ({
     paddingRight: theme.spacing(1),
   },
 
+  paddingSidesMedium: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+  },
+
+  verticalCenter: {
+    padding: theme.spacing(1),
+    justifyContent: 'center',
+  },
+
   marginLeftSmall: {
     marginLeft: theme.spacing(1),
   },
@@ -1006,6 +1016,17 @@ const styles = theme => ({
     },
   },
 
+  flexRowHoverMed: {
+    minHeight: 50,
+    flexDirection: 'row',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover
+    },
+  },
+
   flexRowHoverPadded: {
     flexDirection: 'row',
     paddingTop: theme.spacing(1),
@@ -1071,6 +1092,8 @@ const styles = theme => ({
     boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
     display: 'inline-block',
     cursor: 'pointer',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   colorPickerPopover: {

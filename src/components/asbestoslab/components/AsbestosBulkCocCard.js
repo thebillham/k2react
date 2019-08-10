@@ -29,7 +29,7 @@ import {
   COC_ISSUES,
 } from "../../../constants/modal-types";
 
-import SampleListItem from "./SampleListItem";
+import AsbestosSampleListItem from "./AsbestosSampleListItem";
 import AsbestosBulkCocSummary from "./AsbestosBulkCocSummary";
 
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
@@ -234,7 +234,7 @@ class AsbestosBulkCocCard extends React.Component {
               <span className={classes.spacerSmall} />
               <Button
                 className={classes.buttonIconText}
-                disabled={job.versionUpToDate}
+                // disabled={job.versionUpToDate}
                 onClick={() => {
                   // Check if any samples have not been checked off and ask the user to verify
                   let allSamplesVerified = true;
@@ -347,7 +347,7 @@ class AsbestosBulkCocCard extends React.Component {
               <div>
                 {Object.values(samples[job.uid]).filter(el => el.deleted === false && samples[job.uid][el.sampleNumber] !== undefined)
                   .map(sample => {
-                    return (<SampleListItem
+                    return (<AsbestosSampleListItem
                       key={sample.uid}
                       job={job.uid}
                       sample={sample.sampleNumber}
