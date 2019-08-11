@@ -145,10 +145,6 @@ class AsbestosSampleEditModal extends React.Component {
     }
     // Check if this sample has already been analysed
     if (sample.sessionID && sample.sessionID !== sessionID && sample.result && (!this.state.override || !this.state.override[sampleNumber])) {
-      console.log(`${sample.sessionID} !== ${sessionID}: ${sample.sessionID !== sessionID}`);
-      console.log(`Sample Result !== undefined: ${sample.result !== undefined}`);
-      console.log(this.state.override);
-      console.log(`This state override (${!this.state.override})`);
       if (this.state.override) {
         console.log(`This state override sample ${!this.state.override[sample.sampleNumber]}`);
       }
@@ -492,9 +488,9 @@ class AsbestosSampleEditModal extends React.Component {
               Cancel
             </Button>
             <Button onClick={() => this.previousSample()} color="inherit"
-              disabled={modalProps && modalProps.sampleList[0] == sample.uid}>Previous</Button>
+              disabled={modalProps.sampleList && modalProps.sampleList[0] == sample.uid}>Previous</Button>
             <Button onClick={() => this.nextSample()} color="secondary"
-              disabled={modalProps && modalProps.sampleList[modalProps.sampleList.length - 1] == sample.uid}>Next</Button>
+              disabled={modalProps.sampleList && modalProps.sampleList[modalProps.sampleList.length - 1] == sample.uid}>Next</Button>
             <Button onClick={() => {
                 if (this.state.modified) this.saveSample();
                 this.props.hideModal();
@@ -632,7 +628,7 @@ class AsbestosSampleEditModal extends React.Component {
           <div className={classes.flexRowRightAlign}>
             {['ch','am','cr','umf','no','org','smf'].map(res => {
               return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res,
-              e => this.toggleLayerRes(res, num, layer, true))
+              e => this.toggleLayerRes(res, num))
             })}
           </div>
       </div>
@@ -738,15 +734,9 @@ class AsbestosSampleEditModal extends React.Component {
     });
   }
 
-  toggleLayerRes = (type, num, stateLayer, removeNo) => {
-    let update = {};
+  toggleLayerRes = (res, num) => {
     let sample = this.state.samples[this.state.activeSample];
-    if (removeNo) update = {no: false};
-    if (sample.layers[`layer${num}`] && sample.layers[`layer${num}`].result && sample.layers[`layer${num}`].result[type] !== undefined) {
-      update[type] = !sample.layers[`layer${num}`].result[type];
-    } else {
-      update[type] = true;
-    }
+    let newMap = updateResultMap(res, sample.layers[`layer${num}`].result);
     this.setState({
       modified: true,
       samples: {
@@ -757,10 +747,7 @@ class AsbestosSampleEditModal extends React.Component {
             ...this.state.samples[this.state.activeSample].layers,
             [`layer${num}`]: {
               ...this.state.samples[this.state.activeSample].layers[`layer${num}`],
-              result: {
-                ...this.state.samples[this.state.activeSample].layers[`layer${num}`].result,
-                ...update,
-              }
+              result: newMap
             },
           },
         },

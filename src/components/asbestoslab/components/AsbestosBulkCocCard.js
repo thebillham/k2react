@@ -216,6 +216,7 @@ class AsbestosBulkCocCard extends React.Component {
                         modalProps: {
                           activeSample: Object.keys(samples[job.uid])[0],
                           activeCoc: job.uid,
+                          sampleList: job.sampleList,
                       }});
                   }}>
                   <RecordAnalysisIcon className={classes.iconRegular} />
