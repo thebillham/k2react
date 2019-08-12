@@ -31,7 +31,7 @@ import {
   writeSampleConditioningList,
   writeSampleDimensions,
   collateLayeredResults,
-  getConfirmResult,
+  compareAsbestosResult,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
@@ -160,8 +160,8 @@ class AsbestosSampleDetailsModal extends React.Component {
       let colors = getSampleColors(sample, classes);
       let layersResult = null;
       let soilResult = null;
-      if (sample.layers) layersResult = getConfirmResult({result: collateLayeredResults(sample.layers)}, sample);
-      if (sample.waSoilAnalysis) soilResult = getConfirmResult({result: collateLayeredResults(sample.waSoilAnalysis)}, sample);
+      if (sample.layers) layersResult = compareAsbestosResult({result: collateLayeredResults(sample.layers)}, sample);
+      if (sample.waSoilAnalysis) soilResult = compareAsbestosResult({result: collateLayeredResults(sample.waSoilAnalysis)}, sample);
 
       const good = (<Good style={{ color: 'green', fontSize: 14, }}/>);
       const half = (<Bad style={{ color: 'orange', fontSize: 14, }}/>);
@@ -211,7 +211,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   {sample.confirm && Object.keys(sample.confirm).map(key => {
                     if (sample.confirm[key] !== undefined && sample.confirm[key] !== undefined &&
                       sample.confirm[key].deleted !== true && sample.confirm[key].analyst !== undefined) {
-                      let check = getConfirmResult(sample.confirm[key], sample);
+                      let check = compareAsbestosResult(sample.confirm[key], sample);
                       return <div key={key} style={{ display: 'flex', flexDirection: 'row', }}>
                         <div style={{ width: '60%'}}>{SampleTextyLine(`Sample Check ${key}`, `${writeShorthandResult(sample.confirm[key].result)} (${sample.confirm[key].analyst})`)}</div>
                         <div style={{ width: '40%'}}>{(check === 'yes' || check === 'differentNonAsbestos') ? good : check === 'no' ? bad : check === 'none' ? '' : half}</div>
@@ -281,10 +281,10 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }
                   {SampleTextyDisplay('Analytical Criteria OK?', analyticalCriteraOK(sample))}
                 </div>
-                <div className={classes.informationBox}>
+                {job.waAnalysis && <div className={classes.informationBox}>
                   <div className={classes.heading}>Western Australian Standard</div>
                   {getWAAnalysisSummary(sample)}
-                </div>
+                </div>}
               </Grid>
             </Grid>
           </DialogContent>}

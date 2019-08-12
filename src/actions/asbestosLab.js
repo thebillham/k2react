@@ -508,6 +508,7 @@ export const receiveSamples = (samples) => {
           type: 'confirm',
           description: `The result has already been verified. Removing from the lab will remove the analysis result and verification.`,
           yes: 'Confirm Removal from Lab',
+          no: 'Do Not Remove',
           sample,
           uid,
         };
@@ -517,6 +518,7 @@ export const receiveSamples = (samples) => {
           type: 'confirm',
           description: `The result has already been logged. Removing from the lab will remove the analysis result.`,
           yes: 'Confirm Removal from Lab',
+          no: 'Do Not Remove',
           sample,
           uid,
         };
@@ -525,6 +527,8 @@ export const receiveSamples = (samples) => {
         issues[uid] = {
           type: 'check',
           description: `Sample has not been checked as received. Double check this is correct and leave a comment on why it has been missed.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
           sample,
         };
       } else {
@@ -532,6 +536,8 @@ export const receiveSamples = (samples) => {
         issues[uid] = {
           type: 'check',
           description: `Sample has been unchecked as received. Double check this is correct and leave a comment on why it has been removed.`,
+          yes: 'Confirm Removal from Lab',
+          no: 'Do Not Remove',
           sample,
           uid,
         };
@@ -602,6 +608,7 @@ export const startAnalyses = (samples) => {
           type: 'confirm',
           description: `The result has already been verified. Are you sure you want to remove the analysis start date? This will not remove the result or verification.`,
           yes: 'Confirm Removal of Analysis Start Date',
+          no: 'Do not remove',
           sample,
           uid,
         };
@@ -611,6 +618,7 @@ export const startAnalyses = (samples) => {
           type: 'confirm',
           description: `The result has already been logged. Are you sure you want to remove the analysis start date? This will not remove the result.`,
           yes: 'Confirm Removal of Analysis Start Date',
+          no: 'Do not remove',
           sample,
           uid,
         };
@@ -619,6 +627,8 @@ export const startAnalyses = (samples) => {
         issues[uid] = {
           type: 'check',
           description: `Analysis has not been checked as started. Double check this is correct and leave a comment on why it has been missed.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
           sample,
           uid,
         };
@@ -627,6 +637,8 @@ export const startAnalyses = (samples) => {
         issues[uid] = {
           type: 'check',
           description: `Analysis has been unchecked as started. Double check this is correct and leave a comment on why it has been removed.`,
+          yes: 'Confirm Removal of Analysis Start Date',
+          no: 'Do not remove',
           sample,
           uid,
         };
@@ -679,7 +691,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
       type: "Analysis",
       log: `New analysis for sample ${sample.sampleNumber} (${
         sample.description
-      } ${sample.material}): ${writeResult(sample.result)}`,
+      } ${sample.material}): ${writeResult(sample.result, sample.noAsbestosResultReason).replace('@~',' ')}`,
       sample: sample.uid,
       chainOfCustody: job.uid,
     };
@@ -844,6 +856,8 @@ export const verifySamples = (samples, job) => {
         issues[uid] = {
           type: 'check',
           description: `Result has not been verified. This sample will not appear on lab reports.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
           sample,
           uid,
         };
@@ -852,6 +866,8 @@ export const verifySamples = (samples, job) => {
         issues[uid] = {
           type: 'check',
           description: `Result has been unverified. Double check this is correct and leave a comment on why verification has been removed. This sample will not appear on lab reports.`,
+          yes: 'Remove Verification',
+          no: 'Do not remove',
           sample,
           uid,
         };
@@ -863,6 +879,8 @@ export const verifySamples = (samples, job) => {
         issues[uid] = {
           type: 'check',
           description: `Sample is on hold. This will not appear on lab reports until it is taken off hold.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
           sample,
           uid,
         };
@@ -885,6 +903,8 @@ export const verifySamples = (samples, job) => {
         issues[uid] = {
           type: 'confirm',
           description: `No received weight has been recorded. Check with the analyst why this has not been done.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
           sample,
           uid,
         }
@@ -893,7 +913,7 @@ export const verifySamples = (samples, job) => {
       // Check layer results
       if (sample.layers) {
         let layersResult = {result: collateLayeredResults(sample.layers)};
-        let layersMatch = getConfirmResult(layersResult, sample);
+        let layersMatch = compareAsbestosResult(layersResult, sample);
         if (layersMatch !== 'yes') {
           if (layersMatch === 'no') {
             uid = sample.uid + 'LayerResultOpposing';
@@ -935,7 +955,7 @@ export const verifySamples = (samples, job) => {
         let confirmNo = 0;
         Object.keys(sample.confirm).forEach(key => {
           confirmTotal++;
-          let confirmMatch = getConfirmResult(sample.confirm[key], sample);
+          let confirmMatch = compareAsbestosResult(sample.confirm[key], sample);
           if (confirmMatch === 'yes') {
             confirmYes++;
           } else if (confirmMatch === 'no') {
@@ -1000,7 +1020,7 @@ export const verifySamples = (samples, job) => {
           };
         } else {
           let soilResult = {result: collateLayeredResults(sample.waSoilAnalysis)};
-          let soilMatch = getConfirmResult(soilResult, sample);
+          let soilMatch = compareAsbestosResult(soilResult, sample);
           if (soilMatch !== 'yes') {
             if (soilMatch === 'no') {
               uid = sample.uid + 'SoilResultOpposing';
@@ -1044,7 +1064,7 @@ export const verifySamples = (samples, job) => {
 //
 
 const fractionNames = ['gt7','to7','lt2'];
-const layerNum = 5;
+const layerNum = 3;
 
 const waStyle = { display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, };
 const totalStyle = { fontWeight: 500, fontSize: 16, textAlign: 'center', };
@@ -1256,8 +1276,16 @@ export const printCoc = (job, samples, me, staffList) => {
     chainOfCustody: job.uid,
   };
   addLog("asbestosLab", log, me);
-
+  let labToContactClient = 'No';
+  if (job.labToContactClient) {
+    labToContactClient = `Yes, ${job.labContactName ? job.labContactName : ''} ${job.labContactNumber ? job.labContactNumber : ''}`;
+  }
+  let labInstructions = job.labInstructions ? job.labInstructions : false;
   let sampleList = [];
+  let analysisRequired = job.waAnalysis ? 'Western Australian Standard' : 'Bulk Analysis ID';
+  let warning = '';
+  if (job.priority === 1) warning = 'URGENT';
+  if (job.clearance) warning = warning + ' CLEARANCE';
 
   samples &&
     Object.values(samples).forEach(sample => {
@@ -1265,9 +1293,7 @@ export const printCoc = (job, samples, me, staffList) => {
         let sampleMap = {};
         if (sample.disabled) return;
         sampleMap["no"] = sample.sampleNumber;
-        sampleMap["description"] =
-          sample.description.charAt(0).toUpperCase() +
-          sample.description.slice(1);
+        sampleMap["description"] = writeCocDescription(sample);
         sampleMap["material"] =
           sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
         sampleList.push(sampleMap);
@@ -1281,19 +1307,12 @@ export const printCoc = (job, samples, me, staffList) => {
     orderNumber: job.clientOrderNumber ? job.clientOrderNumber : '',
     address: job.address,
     type: job.type,
+    analysisRequired,
+    labToContactClient,
+    labInstructions,
+    warning: warning === '' ? false : warning,
     jobManager: job.manager,
-    date: job.dates
-      .sort((b, a) => {
-        let aDate = a instanceof Date ? a : a.toDate();
-        let bDate = b instanceof Date ? b : b.toDate();
-        return new Date(bDate - aDate);
-      })
-      .map(date => {
-        let formatDate = date instanceof Date ? date : date.toDate();
-        return moment(formatDate).format('D MMMM YYYY');
-      })
-      .join(", "),
-    // ktp: 'Stuart Keer-Keer',
+    date: writeDates(Object.values(samples).filter(e => e.cocUid === job.uid), 'sampleDate'),
     personnel: writePersonnelQualFull(getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', staffQualList, true)),
     samples: sampleList
   };
@@ -1386,7 +1405,7 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeReportDescription(sample);
         sampleMap["weightReceived"] = sample.weightReceived ? `${sample.weightReceived}g` : 'N/A';
-        sampleMap["result"] = writeResult(sample.result);
+        sampleMap["result"] = writeResult(sample.result, sample.noAsbestosResultReason);
         sampleMap["checks"] = writeChecks(sample);
         sampleList.push(sampleMap);
       }
@@ -1640,6 +1659,19 @@ export const writeReportDescription = (sample) => {
   return lines.join('@~');
 }
 
+export const writeCocDescription = (sample) => {
+  let returnStr = '';
+  let genericLocation = sample.genericLocation && sample.genericLocation.length > 0 ? sample.genericLocation.charAt(0).toUpperCase() + sample.genericLocation.slice(1) : '';
+  let specificLocation = sample.specificLocation && sample.specificLocation.length > 0 ? sample.specificLocation.charAt(0).toUpperCase() + sample.specificLocation.slice(1) : '';
+  let location = genericLocation.length > 0 && specificLocation.length > 0 ? genericLocation + ", " + specificLocation : genericLocation + specificLocation;
+
+  let description = sample.description && sample.description.length > 0 ? sample.description.charAt(0).toUpperCase() + sample.description.slice(1) : '';
+
+  if ((location + description).length > 0) returnStr = (location.length > 0 && description.length > 0) ? location + ': ' + description : location + description;
+  if (sample.onHold) return returnStr + '@~*ON HOLD';
+  else return returnStr;
+}
+
 export const getResultColor = (state, type, yesColor) => {
   if(state && state[type] === true) return yesColor;
   return 'Off';
@@ -1703,14 +1735,14 @@ export const getConfirmColor = (sample) => {
 };
 
 export const getAllConfirmResult = sample => {
-  if (sample.confirm === undefined) return 'none';
-  if (sample.result === undefined) return 'none';
+  if (!sample.confirm) return 'none';
+  if (!sample.result) return 'none';
 
   let results = [];
 
   {[...Array(sample.confirm.totalNum ? sample.confirm.totalNum : 1).keys()].map(num => {
     if (sample.confirm[num+1] && sample.confirm[num+1].deleted !== true) {
-      results.push(getConfirmResult(sample.confirm[num+1], sample));
+      results.push(compareAsbestosResult(sample.confirm[num+1], sample));
     }
   })}
 
@@ -1731,7 +1763,7 @@ export const getAllConfirmResult = sample => {
   return 'none';
 };
 
-export const getConfirmResult = (confirm, result) => {
+export const compareAsbestosResult = (confirm, result) => {
   let basicConfirm = getBasicResult(confirm);
   let basicResult = getBasicResult(result);
   if (basicConfirm === 'none' || basicResult === 'none') return 'none';
@@ -1755,6 +1787,14 @@ export const getConfirmResult = (confirm, result) => {
 
 export const writeChecks = (sample) => {
   let checks = [];
+  if (sample.confirm) {
+    Object.values(sample.confirm).forEach(confirm => {
+      let match = compareAsbestosResult(confirm, sample);
+      if (match === 'yes' || match === 'differentNonAsbestos') {
+        checks.push(confirm.analyst);
+      }
+    });
+  }
   return checks;
 }
 
@@ -1788,9 +1828,20 @@ export const traceAnalysisRequired = sample => {
   return (<div className={styles.highlightBoxBlack}>{text}</div>);
 }
 
-export const writeResult = result => {
+export const writeResult = (result, noAsbestosResultReason) => {
   let detected = [];
-  if (result === undefined) return "Not Analysed";
+  if (result === undefined) {
+    if (noAsbestosResultReason) {
+      let reasonMap = {
+        notAnalysed: 'Not Analysed',
+        sampleSizeTooSmall: 'Sample Size Too Small',
+        sampleNotReceived: 'Sample Not Received By Lab',
+        other: 'Not Analysed'
+      };
+      return reasonMap[noAsbestosResultReason];
+    }
+    return "Not Analysed";
+  }
   Object.keys(result).forEach(type => {
     if (result[type]) detected.push(type);
   });
@@ -1799,7 +1850,7 @@ export const writeResult = result => {
   let otherArray = [];
   if (result["org"]) otherArray.push("Organic Fibres");
   if (result["smf"]) otherArray.push("Synthetic Mineral Fibres");
-  if (otherArray.length > 0) others = `~@(${otherArray.join(', ')})`
+  if (otherArray.length > 0) others = `@~(${otherArray.join(', ')})`
   if (result["no"]) return "No Asbestos Detected" + others;
   let asbestos = [];
   if (result["ch"]) asbestos.push("Chrysotile");
@@ -1826,7 +1877,7 @@ export const writeResult = result => {
     }
   });
   // Don't show other fibres with positives to avoid confusion
-  return str.charAt(0).toUpperCase() + str.slice(1) + " Detected";
+  return str.charAt(0).toUpperCase() + str.slice(1) + " Detected" + others;
 };
 
 export const writeShorthandResult = result => {
@@ -2303,11 +2354,23 @@ export const writeSampleMoisture = (sample, total) => {
   let preWeight = null;
   let postWeight = null;
 
-  if (sample.weightSubsample) preWeight = sample.weightSubsample;
-  else if (sample.weightReceived) preWeight = sample.weightReceived;
-  if (sample.weightDry) postWeight = sample.weightDry;
+  if (sample.weightSubsample) {
+    if (sample.weightSubsample.includes('<')) preWeight = '0';
+    else preWeight = sample.weightSubsample;
+  } else if (sample.weightReceived) {
+    if (sample.weightReceived.includes('<')) preWeight = '0';
+    else preWeight = sample.weightReceived;
+  }
+  if (sample.weightDry) {
+    console.log(sample.weightDry.includes('<'));
+    if (sample.weightDry.includes('<')) postWeight = '0';
+    else postWeight = sample.weightDry;
+  }
 
-  if (!preWeight || !postWeight) return null;
+  console.log(preWeight);
+  console.log(postWeight);
+
+  if (!preWeight || !postWeight || preWeight == 0 || preWeight < postWeight) return null;
     else return Math.round(((preWeight - postWeight)/preWeight) * 100);
 };
 

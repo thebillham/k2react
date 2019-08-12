@@ -300,7 +300,7 @@ class AsbestosBulkCocCard extends React.Component {
                 >
                   View Change Log
                 </MenuItem>
-                <MenuItem
+                {/*<MenuItem
                   onClick={() => {
                     this.props.showModal({
                       modalType: COC_ISSUES,
@@ -321,7 +321,7 @@ class AsbestosBulkCocCard extends React.Component {
                     });
                   }}>
                   View Stats
-                </MenuItem>
+                </MenuItem>*/}
                 <Divider />
                 {job.currentVersion &&
                   // job.currentVersion > 1 &&

@@ -95,6 +95,14 @@ class ConfirmResultModal extends React.Component {
     }
   };
 
+  resetModal = () => {
+    this.setState({
+      totalNum: 1,
+      1: initConfirm,
+    })
+    this.props.hideModal();
+  }
+
   recordAnalysis = (result, num) => {
     let sample = this.props.modalProps.sample;
     if (this.state[num].sessionID !== undefined && this.state[num].sessionID !== this.props.sessionID) {
@@ -131,11 +139,11 @@ class ConfirmResultModal extends React.Component {
     });
   }
 
-  setComment = (comment, num) => {
+  setComment = (comments, num) => {
     this.setState({
       [num]: {
         ...this.state[num],
-        comment,
+        comments,
         modified: true,
       }
     });
@@ -207,13 +215,13 @@ class ConfirmResultModal extends React.Component {
             </div>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => this.props.hideModal()} color="secondary">
+            <Button onClick={() => this.resetModal()} color="secondary">
               Cancel
             </Button>
             <Button
               onClick={() => {
                 this.submitConfirmation();
-                this.props.hideModal();
+                this.resetModal();
               }}
               color="primary"
             >
@@ -228,6 +236,7 @@ class ConfirmResultModal extends React.Component {
   confirmRow = (num) => {
     const { classes } = this.props;
     let colors = getSampleColors(this.state[num]);
+    console.log(this.state[num].analyst);
     let resultDate = 'N/A';
     let prevAnalyst = this.props.modalProps.sample && this.props.modalProps.sample.analyst ? this.props.modalProps.sample.analyst : null;
     if (this.state[num].date !== undefined) {
@@ -238,7 +247,7 @@ class ConfirmResultModal extends React.Component {
       <div style={{ flexDirection: 'row', display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between'}}>
         <InputLabel shrink>Analyst</InputLabel>
         <Select className={classes.formInputMedium}
-          defaultValue={this.state[num].analyst ? this.state[num].analyst : ''}
+          value={this.state[num].analyst ? {value: this.state[num].analyst, label: this.state[num].analyst} : ''}
           options={this.props.bulkAnalysts.filter(analyst => analyst.name !== prevAnalyst).map(analyst => ({ value: analyst.name, label: analyst.name }))}
           onChange={e => this.setAnalyst(e ? e.value : "", num)}
         />
@@ -255,7 +264,7 @@ class ConfirmResultModal extends React.Component {
       <TextField
         id="comments"
         label="Comments"
-        value={this.state[num].comment ? this.state[num].comment : ''}
+        value={this.state[num].comments ? this.state[num].comments : ''}
         multiline
         rows={5}
         className={classes.dialogField}

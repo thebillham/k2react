@@ -53,7 +53,7 @@ import {
   writeSampleConditioningList,
   writeSampleDimensions,
   collateLayeredResults,
-  getConfirmResult,
+  compareAsbestosResult,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef

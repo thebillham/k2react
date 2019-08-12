@@ -24,6 +24,13 @@ import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
+import ConfirmIcon from "@material-ui/icons/ThumbUp";
+import ThumbsDown from "@material-ui/icons/ThumbDown";
+import Select from 'react-select';
+import {
+  DatePicker,
+  DateTimePicker,
+} from "@material-ui/pickers";
 import { SuggestionField, SuggestionFieldSamples, } from '../../../widgets/SuggestionField';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
@@ -39,7 +46,10 @@ import {
   writeDescription,
   writeSampleDimensions,
   writeSampleMoisture,
+  getConfirmColor,
+  compareAsbestosResult,
 } from "../../../actions/asbestosLab";
+import moment from "moment";
 import {
   asbestosSamplesRef
 } from "../../../config/firebase";
@@ -61,6 +71,7 @@ const mapStateToProps = state => {
     cocs: state.asbestosLab.cocs,
     analyst: state.asbestosLab.analyst,
     samples: state.asbestosLab.samples,
+    staff: state.local.staff,
     sessionID: state.asbestosLab.sessionID,
     genericLocationSuggestions: state.const.genericLocationSuggestions,
     specificLocationSuggestions: state.const.specificLocationSuggestions,
@@ -96,9 +107,6 @@ class AsbestosSampleEditModal extends React.Component {
   loadProps = () => {
     let activeSample = this.props.modalProps.activeSample;
     let samples = this.props.samples[this.props.modalProps.activeCoc];
-    console.log(samples);
-    console.log(this.props.modalProps.activeCoc);
-    console.log(activeSample);
     if (samples[activeSample].layers === undefined) samples[activeSample].layers = {};
     [...Array(layerNum).keys()].forEach(num => {
       if (samples[activeSample].layers[`layer${num+1}`] === undefined) {
@@ -136,7 +144,6 @@ class AsbestosSampleEditModal extends React.Component {
     const { me, analyst, sessionID, } = this.props;
     let sample = this.state.samples[sampleNumber];
     let override = this.state.override;
-    console.log(override);
       // Check analyst has been selected
     if (analyst === "") {
       window.alert(
@@ -263,15 +270,11 @@ class AsbestosSampleEditModal extends React.Component {
       chainOfCustody: sample.cocUid,
     };
     addLog("asbestosLab", log, this.props.me);
-    console.log(this.state.samples[sample.sampleNumber].result);
-    console.log(this.props.samples[this.props.modalProps.activeCoc]);
-    console.log(this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample]);
-    console.log(sample);
     if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] && this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result)
       recordAnalysis(this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
         this.props.samples, this.props.sessionID, this.props.me,
         this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result,
-        this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.weightReceived,
+        this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result != sample.weightReceived,
       );
   }
 
@@ -291,6 +294,7 @@ class AsbestosSampleEditModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType, samples } = this.props;
+    const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
     if (modalType === ASBESTOS_SAMPLE_DETAILS) {
       let sample = this.state.samples[this.state.activeSample];
@@ -328,9 +332,120 @@ class AsbestosSampleEditModal extends React.Component {
                 {SuggestionFieldSamples(this, this.state.activeSample, false, 'Specific Location', 'specificLocation')}
                 {SuggestionFieldSamples(this, this.state.activeSample, false, 'Description', 'description')}
                 {SuggestionFieldSamples(this, this.state.activeSample, false, 'Material', 'material')}
-                <div className={classes.subHeading}>Lab Description</div>
-                {SamplesTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 3, null, null)}
-                {SamplesTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 3, null, null)}
+                <InputLabel className={classes.marginTopSmall}>Sampled By</InputLabel>
+                <Select
+                  isMulti
+                  className={classes.selectTight}
+                  value={sample.sampledBy ? sample.sampledBy.map(e => ({value: e, label: e})) : null}
+                  options={names.map(e => ({ value: e.name, label: e.name }))}
+                  onChange={e => this.setState({
+                    modified: true,
+                    samples: {
+                      ...this.state.samples,
+                      [this.state.activeSample]: {
+                        ...this.state.samples[this.state.activeSample],
+                        sampledBy: e.map(staff => staff.value),
+                      }
+                    }
+                  })}
+                />
+                <div>
+                  <DatePicker
+                    value={sample.sampleDate ? sample.sampleDate instanceof Date ? sample.sampleDate : sample.sampleDate.toDate() : null}
+                    autoOk
+                    format="D MMMM YYYY"
+                    clearable
+                    label="Sample Date"
+                    onChange={date => this.setState({
+                      modified: true,
+                      samples: {
+                        ...this.state.samples,
+                        [this.state.activeSample]: {
+                          ...this.state.samples[this.state.activeSample],
+                          sampleDate: date.toDate(),
+                        }
+                      }
+                    })}
+                  />
+                </div>
+                <div className={classes.flexRow}>
+                  <DateTimePicker
+                    value={sample.receivedDate ? sample.receivedDate instanceof Date ? sample.receivedDate : sample.receivedDate.toDate() : null}
+                    autoOk
+                    format="D MMMM YYYY, h:mma"
+                    clearable
+                    label="Date Received"
+                    onChange={date => this.setState({
+                      modified: true,
+                      samples: {
+                        ...this.state.samples,
+                        [this.state.activeSample]: {
+                          ...this.state.samples[this.state.activeSample],
+                          receivedDate: date.toDate(),
+                        }
+                      }
+                    })}
+                  />
+                  <div className={classes.spacerSmall} />
+                  <DateTimePicker
+                    value={sample.analysisStartDate ? sample.analysisStartDate instanceof Date ? sample.analysisStartDate : sample.analysisStartDate.toDate() : null}
+                    autoOk
+                    format="D MMMM YYYY, h:mma"
+                    clearable
+                    label="Analysis Start Date"
+                    onChange={date => this.setState({
+                      modified: true,
+                      samples: {
+                        ...this.state.samples,
+                        [this.state.activeSample]: {
+                          ...this.state.samples[this.state.activeSample],
+                          analysisStartDate: date.toDate(),
+                        }
+                      }
+                    })}
+                  />
+                </div>
+                <div className={classes.flexRow}>
+                  <DateTimePicker
+                    value={sample.analysisDate ? sample.analysisDate instanceof Date ? sample.analysisDate : sample.analysisDate.toDate() : null}
+                    autoOk
+                    format="D MMMM YYYY, h:mma"
+                    clearable
+                    label="Analysis Date"
+                    onChange={date => this.setState({
+                      modified: true,
+                      samples: {
+                        ...this.state.samples,
+                        [this.state.activeSample]: {
+                          ...this.state.samples[this.state.activeSample],
+                          analysisDate: date.toDate(),
+                        }
+                      }
+                    })}
+                  />
+                  <div className={classes.spacerSmall} />
+                  <DateTimePicker
+                    value={sample.verifyDate ? sample.verifyDate instanceof Date ? sample.verifyDate : sample.verifyDate.toDate() : null}
+                    autoOk
+                    format="D MMMM YYYY, h:mma"
+                    clearable
+                    label="Verify Date"
+                    onChange={date => this.setState({
+                      modified: true,
+                      samples: {
+                        ...this.state.samples,
+                        [this.state.activeSample]: {
+                          ...this.state.samples[this.state.activeSample],
+                          verifyDate: date.toDate(),
+                        }
+                      }
+                    })}
+                  />
+                </div>
+                <div className={classes.subHeading}>Lab Notes</div>
+                {SamplesTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 1, null, null)}
+                {SamplesTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 1, null, null)}
+                {SamplesTextyBox(this, sample, 'labReportComments', null, 'Add a note to be included in the issued report.', true, 1, null, null)}
 
                 {sample.material === 'soil' && <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
                   <Button
@@ -344,9 +459,12 @@ class AsbestosSampleEditModal extends React.Component {
                           doc: sample,
                           onExit: details => this.setState({
                             modified: true,
-                            sample: {
-                              ...this.state.sample,
-                              soilDetails: details,
+                            samples: {
+                              ...this.state.samples,
+                              [this.state.activeSample]: {
+                                ...this.state.samples[this.state.activeSample],
+                                soilDetails: details,
+                              }
                             }
                           })
                         }
@@ -373,9 +491,12 @@ class AsbestosSampleEditModal extends React.Component {
                         value={sample.sampleQuantity}
                         onChange={(event) => this.setState({
                           modified: true,
-                          sample: {
-                            ...this.state.sample,
-                            sampleQuantity: event.target.value,
+                          samples: {
+                            ...this.state.samples,
+                            [this.state.activeSample]: {
+                              ...this.state.samples[this.state.activeSample],
+                              sampleQuantity: event.target.value,
+                            }
                           }
                         })}
                         inputProps={{
@@ -430,9 +551,12 @@ class AsbestosSampleEditModal extends React.Component {
                 {[...Array(sample && sample.layerNum ? sample.layerNum : layerNum).keys()].map(num => {
                   return this.getLayerRow(num+1);
                 })}
-                <Divider />
-                <div className={classNames(classes.subHeading, classes.flexRowCenter)}>Result Checks</div>
-
+                {sample.confirm && <div><Divider />
+                  <div className={classNames(classes.subHeading, classes.flexRowCenter)}>Result Checks</div>
+                  {Object.keys(sample.confirm).map(key => {
+                    if (key !== 'totalNum') return this.getConfirmRow(sample.confirm[key]);
+                  })}
+                </div>}
               </Grid>
             </Grid>
             <Divider />
@@ -635,63 +759,42 @@ class AsbestosSampleEditModal extends React.Component {
       );
     }
 
-  getCheckRow = (num) => {
-        let layer = {};
-        let colors = {};
-        let sample = this.state.samples[this.state.activeSample];
-        const { classes } = this.props;
+  getConfirmRow = (confirm) => {
+    const { classes } = this.props;
+    let colors = getSampleColors(confirm);
+    let match = compareAsbestosResult(confirm, this.state.samples[this.state.activeSample]);
 
-        if (sample.layers && sample.layers[`layer${num}`]) {
-          layer = sample.layers[`layer${num}`];
-          colors = getSampleColors(layer);
-        } else {
-          colors = getSampleColors(null);
-        }
+    console.log(colors);
 
-        return(
-          <div key={num} className={classes.flexRowHoverMed}>
-            <div className={classes.flexRow}>
-              <div className={classes.spacerSmall} />
-              <div className={classes.verticalCenter}>
-                <div className={classes.circleShaded}>
-                  {num}
-                </div>
-              </div>
-              <div className={classes.columnMedLarge}>
-                {SuggestionField(this, false, 'Description', 'materialSuggestions', layer.description,
-                  (value) => {
-                    this.setLayerVar('description', num, value);
-                    }
-                )}
-              </div>
-              <div className={classes.verticalCenter}>
-                <div className={ classes.colorPickerSwatch } onClick={ () => this.handleColorClick(num) }>
-                  <div className={classes.colorPickerColor} style={{ background: `rgba(${ layer.color ? layer.color.r : null }, ${ layer.color ? layer.color.g : null }, ${ layer.color ? layer.color.b : null }, ${ layer.color ? layer.color.a : null })` }} />
-                </div>
-                { this.state.displayColorPicker[num] ? <div className={ classes.colorPickerPopover }>
-                  <div className={ classes.colorPickerCover } onClick={ () => this.handleColorClose(num) }/>
-                  <SketchPicker color={ sample.layers[`layer${num}`].color } onChangeComplete={ color => this.setLayerVar('color', num, color.rgb) } />
-                </div> : null }
-              </div>
-              <TextField
-                id={`l${num}Concentration`}
-                label="Asbestos %"
-                className={classes.columnSmall}
-                value={layer.concentration ? layer.concentration : 0}
-                onChange={e => {
-                  this.setLayerVar('concentration',num,e.target.value);
-                }}
-              />
+    return(
+      <div key={confirm.date} className={classes.flexRowHoverMed}>
+        <div className={classes.flexRow}>
+          <div className={classes.spacerSmall} />
+          <div className={classes.verticalCenter}>
+            <div className={classes.circle}>
+              {match === 'no' ? <ThumbsDown className={classes.iconRegularRed} /> :
+              <ConfirmIcon className={classes[`iconRegular${match === 'differentAsbestos' ? 'Orange' : 'Green'}`]} />}
             </div>
-            <div className={classes.flexRowRightAlign}>
-              {['ch','am','cr','umf','no','org','smf'].map(res => {
-                return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res,
-                e => this.toggleLayerRes(res, num, layer, true))
-              })}
-            </div>
+          </div>
+          <div className={classes.verticalCenter}>
+            {confirm.analyst}
+          </div>
+          <div className={classes.verticalCenter}>
+            {moment(confirm.date.toDate()).format('D MMMM YYYY')}
+          </div>
+          <div className={classes.verticalCenter}>
+            {confirm.comments}
+          </div>
         </div>
-        );
-      }
+        <div className={classes.flexRowRightAlign}>
+          {['ch','am','cr','umf','no','org','smf'].map(res => {
+            return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res,
+            null)
+          })}
+        </div>
+    </div>
+    );
+  }
 
   setLayerVar = (variable, num, val) => {
     this.setState({

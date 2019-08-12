@@ -79,7 +79,7 @@ class SampleLogModal extends React.Component {
                     style={{ marginTop: 12 }}
                   >
                     <Grid item xs={2}>
-                      {moment(date).format('D MMM YYYY, h:ma')}
+                      {moment(date).format('D MMM YYYY, h:mma')}
                     </Grid>
                     <Grid item xs={1}>
                       {log.type}

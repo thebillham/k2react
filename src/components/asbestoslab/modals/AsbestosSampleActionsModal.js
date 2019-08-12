@@ -118,13 +118,9 @@ class AsbestosSampleActionsModal extends React.Component {
     let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.number], ...sample}));
     let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
     let issuesIncomplete = false;
-    console.log(checks);
-    console.log(jobIssues);
     if (this.state.mode === 'issues') {
       let sampleGates = {};
       Object.values(this.state.issues).forEach(issue => {
-        console.log(issue);
-        console.log(issue.action);
         if (issue.action !== 'proceed' && issue.action !== 'cancel') issuesIncomplete = true;
         jobIssues[issue.uid] = {
           action: issue.action,
@@ -141,10 +137,7 @@ class AsbestosSampleActionsModal extends React.Component {
       });
       if (!issuesIncomplete) {
         // All issues are decided, continue with
-        console.log(sampleGates);
-        console.log(checks);
         checks.filter(sample => (sample.now !== sample.original || sample.noAsbestosResultReason !== sample.originalNoAsbestosResultReason) && !sampleGates[sample.sampleNumber]).forEach(sample => {
-          console.log(sample);
           if (this.props.modalProps.field === 'receivedByLab') receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
           if (this.props.modalProps.field === 'analysisStart') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.number], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
           if (this.props.modalProps.field === 'verified') {
@@ -278,10 +271,10 @@ class AsbestosSampleActionsModal extends React.Component {
     let yes = `Issue Resolved, Proceed with Action`;
     if (issue.type === 'check') yes = `OK`;
     let no = `Cancel Action on this Sample`;
-    if (this.props.modalProps.field === 'receivedByLab') no = `Do not mark this sample as received`;
-    if (this.props.modalProps.field === 'analysisStart') no = `Do not start analysis this sample`;
     if (this.props.modalProps.field === 'verified') no = `Do not verify this sample`;
     if (issue.type === 'check') no =`Needs Fixing`;
+    if (issue.yes) yes = issue.yes;
+    if (issue.no) no = issue.no;
     return <Card key={issue.uid} className={classNames(this.props.classes.paddingAllMedium, this.props.classes.marginsAllMedium)}>
       <CardHeader
         avatar={

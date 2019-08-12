@@ -45,6 +45,10 @@ import moment from "moment";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 
+import {
+  DatePicker,
+} from "@material-ui/pickers";
+
 const mapStateToProps = state => {
   return {
     cocs: state.asbestosLab.cocs,
@@ -196,27 +200,26 @@ class AsbestosCocs extends React.PureComponent {
                 />
               </FormControl>
               <div className={classes.spacerSmall} />
-              <TextField
-                id="searchStartDate"
-                label="From"
-                type="date"
+              <DatePicker
                 value={this.state.searchStartDate}
-                className={classes.formSelectDate}
-                onChange={e => this.setState({ searchStartDate: e.target.value})}
-                InputLabelProps={{
-                  shrink: true,
-                }}
+                autoOk
+                label="From"
+                openTo="year"
+                format="D MMMM YYYY"
+                views={['year', 'month', 'date']}
+                clearable
+                onChange={date => this.setState({ searchStartDate: date})}
               />
-              <TextField
-                id="searchEndDate"
-                label="To"
-                type="date"
-                className={classes.formSelectDate}
+              <DatePicker
                 value={this.state.searchEndDate}
-                onChange={e => this.setState({ searchEndDate: e.target.value})}
-                InputLabelProps={{
-                  shrink: true,
-                }}
+                autoOk
+                label="To"
+                openTo="year"
+                disableFuture
+                format="D MMMM YYYY"
+                clearable
+                views={['year', 'month', 'date']}
+                onChange={date => this.setState({ searchEndDate: date})}
               />
               <Button
                 className={classes.buttonGo}

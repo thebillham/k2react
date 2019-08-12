@@ -10,6 +10,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
 import Checkbox from "@material-ui/core/Checkbox";
 
 import Select from 'react-select';
@@ -18,6 +19,7 @@ import { SuggestionField } from '../../../widgets/SuggestionField';
 import { hideModalSecondary, handleModalChange, } from "../../../actions/modal";
 import { handleSampleChange } from '../../../actions/asbestosLab';
 import { addLog, } from '../../../actions/local';
+import { SampleRadioSelector } from '../../../widgets/FormWidgets';
 
 import {
   DatePicker,
@@ -341,6 +343,31 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                   });
               }}
             />
+
+            <div className={classes.marginTopSmall}>
+              <InputLabel>Sampling Method</InputLabel>
+              {SampleRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
+                [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
+            </div>
+            {(sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab') &&
+            <div>
+              <InputLabel>{`Number of ${sample.samplingMethod}s`}</InputLabel>
+              <Input
+                className={classes.formInputNumber}
+                type='number'
+                value={sample.sampleQuantity ? sample.sampleQuantity : 1}
+                onChange={(event) => this.setState({
+                  sample: {
+                    ...this.state.sample,
+                    sampleQuantity: event.target.value,
+                  },
+                  modified: true,
+                })}
+                inputProps={{
+                  min: 1,
+                }}
+              />
+            </div>}
             {false && sample.uid && <div>
               <div>
                 <Checkbox

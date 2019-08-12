@@ -649,6 +649,18 @@ const styles = theme => ({
     backgroundColor: '#eee',
   },
 
+  circle: {
+    minWidth: 40,
+    maxWidth: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: theme.spacing(1),
+    // marginLeft: theme.spacing(1),
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+  },
+
   circleShaded: {
     minWidth: 40,
     maxWidth: 40,
@@ -862,6 +874,11 @@ const styles = theme => ({
     width: 175,
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
+  },
+
+  selectTight: {
+    margin: theme.spacing(1),
+    // height: 20,
   },
 
   select: {

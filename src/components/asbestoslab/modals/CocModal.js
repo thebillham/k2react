@@ -373,7 +373,7 @@ class CocModal extends React.Component {
                 {Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                   let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
                   return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && !disabled && doc.samples[i+1].deleted === false ?
-                    <div className={classes.flexRowHoverFat} key={i}>
+                    <div className={classes.flexRowHover} key={i}>
                       <div className={classes.spacerSmall} />
                       <div className={classes.columnSmall}>
                         <div className={classes.circleShaded}>
@@ -396,7 +396,8 @@ class CocModal extends React.Component {
                         {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.join(', ') : ''}
                       </div>
                       <div className={classes.columnMedSmall}>
-                        {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampleDate ? moment(doc.samples[i+1].sampleDate.toDate()).format('ddd, D MMMM YYYY') : ''}
+                        {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampleDate ?
+                          moment(doc.samples[i+1].sampleDate instanceof Date ? doc.samples[i+1].sampleDate : doc.samples[i+1].sampleDate.toDate()).format('ddd, D MMMM YYYY') : ''}
                       </div>
                       <div className={classes.columnSmall}>
                         <IconButton onClick={() =>
@@ -416,7 +417,7 @@ class CocModal extends React.Component {
                       </div>
                     </div>
                     :
-                    <div className={classes.flexRowHoverFat} key={i}>
+                    <div className={classes.flexRowHover} key={i}>
                       <div className={classes.spacerSmall} />
                       <div className={classes.columnSmall}>
                         <div className={classes.circleShaded}>
@@ -462,7 +463,7 @@ class CocModal extends React.Component {
                       <div className={classes.columnMedLarge}>
                         <Select
                           isMulti
-                          className={classes.select}
+                          className={classes.selectTight}
                           value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => ({value: e, label: e})) : this.state.defaultPersonnel}
                           options={names.map(e => ({ value: e.name, label: e.name }))}
                           onChange={e => {
