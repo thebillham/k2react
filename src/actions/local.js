@@ -80,7 +80,7 @@ export const resetLocal = () => dispatch => {
 export const fetchMe = () => async dispatch => {
   auth.currentUser &&
     usersRef.doc(auth.currentUser.uid).onSnapshot(doc => {
-      // console.log("Read a doc (fetchMe)!");
+      // //console.log("Read a doc (fetchMe)!");
       if (doc.exists) {
         let user = doc.data();
         user.uid = doc.id;
@@ -99,7 +99,7 @@ export const fetchMe = () => async dispatch => {
         //     user.jobs = {};
         //     if (querySnapshot.size > 0) {
         //       querySnapshot.forEach((doc) => {
-        //         console.log("Read a doc (my job)!");
+        //         //console.log("Read a doc (my job)!");
         //         let job = doc.data();
         //         job.uid = doc.id;
         //         user.jobs[doc.id] = job;
@@ -114,16 +114,16 @@ export const fetchMe = () => async dispatch => {
 
 export const fetchStaff = update => async dispatch => {
   if (update) {
-    // console.log("Running fetch staff to update");
+    // //console.log("Running fetch staff to update");
     var users = {};
     usersRef.get().then(querySnapshot => {
-      // console.log(querySnapshot);
+      // //console.log(querySnapshot);
       let airAnalysts = [];
       let bulkAnalysts = [];
       querySnapshot.forEach(doc => {
-        // console.log(doc.data());
+        // //console.log(doc.data());
         if (doc.data().key !== undefined) {
-          // console.log("Read a doc! " + doc.data().name);
+          // //console.log("Read a doc! " + doc.data().name);
 
           let user = doc.data();
           user.uid = doc.id;
@@ -134,20 +134,20 @@ export const fetchStaff = update => async dispatch => {
             bulkAnalysts.push({ uid: user.uid, name: user.name });
         }
       });
-      // console.log(users);
+      // //console.log(users);
       dispatch({ type: GET_STAFF, payload: users, update: true });
       dispatch({ type: GET_AIR_ANALYSTS, payload: airAnalysts, update: true });
       dispatch({ type: GET_BULK_ANALYSTS, payload: bulkAnalysts, update: true });
     });
   } else {
-    // console.log("Fetching staff from cache");
+    // //console.log("Fetching staff from cache");
     stateRef.doc("staff").onSnapshot(doc => {
       if (doc.exists) {
-        // console.log(doc.data());
+        // //console.log(doc.data());
         // .filter((m) => m.uid !== auth.currentUser.uid)
         dispatch({ type: GET_STAFF, payload: doc.data() });
       } else {
-        // console.log("Doc doesn't exist");
+        // //console.log("Doc doesn't exist");
       }
     });
     stateRef
@@ -170,7 +170,7 @@ export const fetchStaff = update => async dispatch => {
 };
 
 export const getUserAttrs = (userPath, editStaff) => async dispatch => {
-  // console.log("Calling update staff for " + userPath);
+  // //console.log("Calling update staff for " + userPath);
   let user = {};
   auth.currentUser &&
     usersRef
@@ -189,7 +189,7 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
         user.docimages = [];
         if (querySnapshot.size > 0) {
           querySnapshot.forEach(doc => {
-            // console.log("Read a doc (Attr)!");
+            // //console.log("Read a doc (Attr)!");
             let attr = doc.data();
             attr.uid = doc.id;
             user.attrs[doc.id] = attr;
@@ -273,15 +273,15 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
             docimages: user.docimages
           });
           if (userPath === auth.currentUser.uid) {
-            // console.log("Updating user");
-            // console.log(user);
+            // //console.log("Updating user");
+            // //console.log(user);
             dispatch({
               type: GET_ME,
               payload: user
             });
           }
-          // console.log("Updating other staff");
-          // console.log(user);
+          // //console.log("Updating other staff");
+          // //console.log(user);
           dispatch({
             type: UPDATE_STAFF,
             userPath: userPath,
@@ -329,7 +329,7 @@ export const fetchDocuments = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_DOCUMENTS, payload: doc.data().payload });
       } else {
-        console.log("Documents doesn't exist");
+        //console.log("Documents doesn't exist");
       }
     });
   }
@@ -355,7 +355,7 @@ export const fetchMethods = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_METHODS, payload: doc.data().payload });
       } else {
-        console.log("Methods doesn't exist");
+        //console.log("Methods doesn't exist");
       }
     });
   }
@@ -384,7 +384,7 @@ export const fetchNotices = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_NOTICES, payload: doc.data().payload });
       } else {
-        console.log("Notices doesn't exist");
+        //console.log("Notices doesn't exist");
       }
     });
   }
@@ -413,7 +413,7 @@ export const fetchIncidents = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_INCIDENTS, payload: doc.data().payload });
       } else {
-        console.log("Incidents doesn't exist");
+        //console.log("Incidents doesn't exist");
       }
     });
   }
@@ -439,7 +439,7 @@ export const fetchQuestions = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_QUESTIONS, payload: doc.data().payload });
       } else {
-        console.log("Questions doesn't exist");
+        //console.log("Questions doesn't exist");
       }
     });
   }
@@ -465,7 +465,7 @@ export const fetchQuizzes = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_QUIZZES, payload: doc.data().payload });
       } else {
-        console.log("Quizzes doesn't exist");
+        //console.log("Quizzes doesn't exist");
       }
     });
   }
@@ -491,7 +491,7 @@ export const fetchTools = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_TOOLS, payload: doc.data().payload });
       } else {
-        console.log("Tools doesn't exist");
+        //console.log("Tools doesn't exist");
       }
     });
   }
@@ -517,7 +517,7 @@ export const fetchTrainingPaths = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_TRAININGS, payload: doc.data().payload });
       } else {
-        console.log("Trainings doesn't exist");
+        //console.log("Trainings doesn't exist");
       }
     });
   }
@@ -543,7 +543,7 @@ export const fetchVehicles = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_VEHICLES, payload: doc.data().payload });
       } else {
-        console.log("Vehicles doesn't exist");
+        //console.log("Vehicles doesn't exist");
       }
     });
   }
@@ -572,16 +572,16 @@ export const fetchVehicles = update => async dispatch => {
 //     if (asset.lastServiceDone !== undefined && asset.lastServiceDone !== null) asset.lastServiceDone = new Date(asset.lastServiceDone);
 //     if (asset.regExpiry !== undefined && asset.regExpiry !== null) asset.regExpiry = new Date(asset.regExpiry);
 //     if (asset.wofExpiry !== undefined && asset.wofExpiry !== null) asset.wofExpiry = new Date(asset.wofExpiry);
-//     // console.log(asset);
+//     // //console.log(asset);
 //     if (asset.docID !== undefined && asset.docID !== null) {
 //       // assetsRef.doc(asset.docID).set(asset);
 //       assetList[asset.id.charAt(0)].push(asset);
 //     }
 //   });
-//   console.log(assetList);
+//   //console.log(assetList);
 //   stateRef.doc('assets').set(assetList);
 //   // var assetObj = JSON.parse(asset[0]);
-//   // console.log(assetObj);
+//   // //console.log(assetObj);
 // };
 
 export const fetchSites = update => async dispatch => {
@@ -602,7 +602,7 @@ export const fetchSites = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_SITES, payload: doc.data().payload });
       } else {
-        console.log("Sites don't exist");
+        //console.log("Sites don't exist");
       }
     });
   }
@@ -630,7 +630,7 @@ export const fetchAssets = update => async dispatch => {
         });
         dispatch({ type: GET_ASSETS, payload: assets });
       } else {
-        console.log("Assets doesn't exist");
+        //console.log("Assets doesn't exist");
       }
     });
   }
@@ -645,7 +645,7 @@ export const fetchReadingLog = () => async dispatch => {
       var logs = [];
       querySnapshot.forEach(doc => {
         let log = doc.data();
-        console.log(log);
+        //console.log(log);
         log.uid = doc.id;
         docsRef
           .doc(doc.id)
@@ -656,7 +656,7 @@ export const fetchReadingLog = () => async dispatch => {
               ? doc2.data().updatedate
               : doc2.data().date;
             logs.push(log);
-            console.log(log);
+            //console.log(log);
             dispatch({
               type: GET_READINGLOG,
               payload: logs
@@ -793,7 +793,7 @@ export const fetchWFMJobs = () => async dispatch => {
         if (i < len) {
           len = i;
           str = job.address;
-          console.log(`${str} (${len})`);
+          //console.log(`${str} (${len})`);
         }
 
         job.description = wfmJob.Description
@@ -839,7 +839,6 @@ export const fetchWFMJobs = () => async dispatch => {
         job.type = wfmJob.Type ? wfmJob.Type : "Other";
         jobs.push(job);
       });
-      console.log(`${str} (${len})`);
       dispatch({
         type: GET_WFM_JOBS,
         payload: jobs
@@ -857,7 +856,7 @@ export const fetchWFMLeads = () => async dispatch => {
   fetch(path)
     .then(results => results.text())
     .then(data => {
-      // console.log(data);
+      // //console.log(data);
       var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
       var json = xmlToJson(xmlDOM);
       let leads = [];
@@ -909,7 +908,7 @@ export const fetchWFMLeads = () => async dispatch => {
           lead.category = "Other";
         }
         if (wfmLead.Activities.Activity) {
-          // console.log(wfmLead.Activities);
+          // //console.log(wfmLead.Activities);
           lead.activities = [];
           if (Array.isArray(wfmLead.Activities.Activity)) {
             wfmLead.Activities.Activity.forEach(wfmActivity => {
@@ -944,7 +943,7 @@ export const fetchWFMLeads = () => async dispatch => {
           lead.activities = ["NO PLAN!"];
         }
         if (wfmLead.History.Item) {
-          // console.log(wfmLead.History);
+          // //console.log(wfmLead.History);
           lead.history = [];
           if (Array.isArray(wfmLead.History.Item)) {
             wfmLead.History.Item.forEach(wfmHistory => {
@@ -970,7 +969,7 @@ export const fetchWFMLeads = () => async dispatch => {
         }
         leads.push(lead);
       });
-      // console.log(leads);
+      // //console.log(leads);
       dispatch({
         type: GET_WFM_LEADS,
         payload: leads
@@ -993,7 +992,7 @@ export const fetchWFMClients = () => async dispatch => {
       let clients = [];
       // Map WFM jobs to a single level job object we can use
       json.Response.Clients.Client.forEach(wfmClient => {
-        // console.log(wfmClient);
+        // //console.log(wfmClient);
         let i = wfmClient.Name.length;
         if (i < len) {
           len = i;
@@ -1009,8 +1008,8 @@ export const fetchWFMClients = () => async dispatch => {
         // client.postalAddress = wfmClient.postalAddress;
         clients.push(client);
       });
-      console.log(`${str} (${len})`);
-      // console.log(clients);
+      //console.log(`${str} (${len})`);
+      // //console.log(clients);
       dispatch({
         type: GET_WFM_CLIENTS,
         payload: clients
@@ -1024,7 +1023,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
   }job.api/get/${jobNumber}?apiKey=${
     process.env.REACT_APP_WFM_API
   }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
-  // console.log(path);
+  // //console.log(path);
   fetch(path)
     .then(results => results.text())
     .then(data => {
@@ -1038,7 +1037,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
       } else {
         let wfmJob = json.Response.Job;
         let job = {};
-        console.log(wfmJob);
+        //console.log(wfmJob);
         job.jobNumber = wfmJob.ID ? wfmJob.ID : "No job number";
         job.address = wfmJob.Name ? wfmJob.Name : "No address";
         job.description = wfmJob.Description
@@ -1062,7 +1061,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
             let path = `${process.env.REACT_APP_WFM_ROOT}client.api/contact/${contactID}?apiKey=${
               process.env.REACT_APP_WFM_API
             }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
-            console.log(path);
+            //console.log(path);
             fetch(path)
               .then(results => results.text())
               .then(data => {
@@ -1076,7 +1075,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
                 } else {
                   let contact = json.Response.Contact;
                   let wfmContact = {};
-                  console.log(contact);
+                  //console.log(contact);
                   wfmContact.contactID = contactID;
                   wfmContact.contactName = contact.Name;
                   wfmContact.contactEmail = contact.Email instanceof String ? contact.Email.toLowerCase() : '';
@@ -1111,9 +1110,10 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
         job.startDate = wfmJob.StartDate ? wfmJob.StartDate : "";
         job.state = wfmJob.State ? wfmJob.State : "Unknown state";
         job.type = wfmJob.Type ? wfmJob.Type : "Other";
+        job.wfmID = wfmJob.InternalID;
         if (createUid) {
           let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${moment().format('x')}`;
-          // console.log('New uid' + uid);
+          // //console.log('New uid' + uid);
           dispatch({
             type: EDIT_MODAL_DOC,
             payload: { 'uid': uid }
@@ -1244,7 +1244,7 @@ export const updateGeocodes = geocodes => dispatch => {
 
 export const saveWFMItems = items => dispatch => {
   var date = moment().format("YYYY-MM-DD");
-  // console.log(items);
+  // //console.log(items);
   stateRef
     .doc("wfmstate")
     .collection("states")
@@ -1258,7 +1258,7 @@ export const saveWFMItems = items => dispatch => {
 
 export const saveStats = stats => dispatch => {
   var date = moment().format("YYYY-MM-DD");
-  // console.log(stats);
+  // //console.log(stats);
   // stateRef
   //   .doc("stats")
   //   .collection("clientsjobs")
@@ -1443,8 +1443,8 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
         }
       }
     });
-    // console.log(currentJobState);
-    // console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
+    // //console.log(currentJobState);
+    // //console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
     dispatch({
       type: GET_CURRENT_JOB_STATE,
       payload: currentJobState,
@@ -1475,7 +1475,7 @@ export const saveCurrentJobState = state => dispatch => {
     }
   });
 
-  // console.log(sortedState);
+  // //console.log(sortedState);
 
   buckets.forEach((bucket) => {
     stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket], { merge: true });
@@ -1492,8 +1492,8 @@ export const addLog = (collection, log, user) => {
     userName: user.name,
   };
 
-  // console.log('Adding Log');
-  // console.log(log);
+  // //console.log('Adding Log');
+  // //console.log(log);
 
   logsRef.collection(collection).doc(uid).set(log);
 };
@@ -1522,6 +1522,13 @@ export const clearLog = () => dispatch => {
     type: CLEAR_LOG,
   });
 };
+
+export const personnelConvert = e => {
+  if (e.filter(staff => staff.value === 'Client').length > 0) {
+    if (e[e.length - 1].value === 'Client') return ['Client'];
+      else return e.filter(staff => staff.value !== 'Client').map(staff => staff.value);
+  } else return e.map(staff => staff.value);
+}
 
 //
 // function getDaysSinceDate(date) {

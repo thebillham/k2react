@@ -1032,7 +1032,7 @@ class SoilDetailsModal extends React.Component {
           </Button>
           <Button disabled={!this.state.modified}
             onClick={() => {
-              console.log(this.props.modalPropsMain);
+              //console.log(this.props.modalPropsMain);
               let log = {
                 type: "Analysis",
                 log: `Sample ${this.props.modalProps.doc.sampleNumber} (${this.props.modalProps.doc.description} ${

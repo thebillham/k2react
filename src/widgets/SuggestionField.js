@@ -1,4 +1,5 @@
 import React from 'react';
+import { connect } from "react-redux";
 
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
@@ -10,9 +11,19 @@ import parse from 'autosuggest-highlight/parse';
 
 import deburr from 'lodash/deburr';
 
+const mapStateToProps = state => {
+  return {
+    genericLocationSuggestions: state.const.genericLocationSuggestions,
+    specificLocationSuggestions: state.const.specificLocationSuggestions,
+    descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
+    materialSuggestions: state.const.asbestosMaterialSuggestions,
+   };
+};
+
 const handleSuggestionFetchRequested = (that, suggestions, value) => {
+  console.log(value);
   that.setState({
-    [suggestions]: getSuggestions(value, suggestions, that),
+    suggestions: getSuggestions(value, suggestions, that),
   });
 };
 
@@ -20,7 +31,7 @@ const getSuggestionValue = suggestion => suggestion.label;
 
 const handleSuggestionsClearRequested = (that, suggestions) => {
   that.setState({
-    [suggestions]: [],
+    suggestions: [],
   });
 };
 
@@ -85,47 +96,73 @@ const getSuggestions = (value, suggestions, that) => {
       });
 }
 
-export const SuggestionField = (that, disabled, label, suggestions, value, onModify) => {
-  const autosuggestProps = {
-    renderInputComponent,
-    getSuggestionValue,
-    renderSuggestion,
-    theme: {
-      container: { position: 'relative',},
-      suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
-      suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
-      suggestion: {display: 'block', },
-    },
+// export const SuggestionField = (that, disabled, label, suggestions, value, onModify) => {
+class SuggestionField extends React.PureComponent {
+  state = {
+    suggestions: [],
+    value: '',
   };
-  return (<Autosuggest
-    {...autosuggestProps}
-    suggestions = {that.state[suggestions]}
-    onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
-      onModify(suggestionValue);
-    }}
-    inputProps={{
-      disabled: disabled,
-      value: value ? value : '',
-      onChange: e => {onModify(e.target.value)},
-      label: label,
-    }}
-    theme={{
-      container: { position: 'relative',},
-      suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
-      suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
-      suggestion: {display: 'block', },
-    }}
-    onSuggestionsFetchRequested={({value, reason}) => {
-      handleSuggestionFetchRequested(that, suggestions, value)
-    }}
-    onSuggestionsClearRequested={() => handleSuggestionsClearRequested(that, suggestions)}
-    renderSuggestionsContainer={options => (
-      <Paper {...options.containerProps} square>
-        {options.children}
-      </Paper>
-    )}
-  />);
+
+  componentWillMount = () => {
+    this.setState({
+      suggestions: [],
+      value: this.props.defaultValue,
+    })
+  };
+
+  render() {
+    const autosuggestProps = {
+      renderInputComponent,
+      getSuggestionValue,
+      renderSuggestion,
+      theme: {
+        container: { position: 'relative',},
+        suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
+        suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
+        suggestion: {display: 'block', },
+      },
+    };
+
+    return (<Autosuggest
+      {...autosuggestProps}
+      suggestions = {this.state.suggestions}
+      onSuggestionSelected = {(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) => {
+        this.setState({
+          value: suggestionValue,
+          suggestions: [],
+        });
+        this.props.onModify(suggestionValue);
+      }}
+      inputProps={{
+        disabled: this.props.disabled,
+        value: this.state.value ? this.state.value : '',
+        onChange: e => this.setState({ value: e.target.value }),
+        onBlur: e => {this.props.onModify(e.target.value)},
+        label: this.props.label,
+      }}
+      theme={{
+        container: { position: 'relative',},
+        suggestionsContainerOpen: {position: 'absolute', zIndex: 2, marginTop: 8, left: 0, right: 0, },
+        suggestionsList: {margin: 0, padding: 0, listStyleType: 'none', },
+        suggestion: {display: 'block', },
+      }}
+      onSuggestionsFetchRequested={({value, reason}) => {
+        handleSuggestionFetchRequested(this, this.props.suggestions, value)
+      }}
+      onSuggestionsClearRequested={() => handleSuggestionsClearRequested(this, this.props.suggestions)}
+      renderSuggestionsContainer={options => (
+        <Paper {...options.containerProps} square>
+          {options.children}
+        </Paper>
+      )}
+    />);
+  }
 }
+
+export default connect(
+    mapStateToProps,
+    null
+  )(SuggestionField);
 
 export const SuggestionFieldSample = (that, disabled, label, field) => {
   const value = that.state.sample[field];

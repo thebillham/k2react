@@ -15,7 +15,20 @@ import {
 } from "../../actions/local";
 
 //Modals
-import { COC } from "../../constants/modal-types";
+import {
+  COC,
+  UPDATE_CERTIFICATE_VERSION,
+  SAMPLE_HISTORY,
+  WA_ANALYSIS,
+  ASBESTOS_SAMPLE_DETAILS,
+  DOWNLOAD_LAB_CERTIFICATE,
+  COC_LOG,
+  SOIL_DETAILS,
+  ASBESTOS_SAMPLE_EDIT_COC,
+  CONFIRM_RESULT,
+  ASBESTOS_NONANALYST_DETAILS,
+  COC_SAMPLE_ACTIONS,
+} from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import CocModal from "./modals/CocModal";
 import UpdateCertificateVersionModal from "./modals/UpdateCertificateVersionModal";
@@ -59,7 +72,9 @@ const mapStateToProps = state => {
     bulkAnalysts: state.asbestosLab.bulkAnalysts,
     airAnalysts: state.asbestosLab.airAnalysts,
     analyst: state.asbestosLab.analyst,
-    analysisMode: state.asbestosLab.analysisMode
+    analysisMode: state.asbestosLab.analysisMode,
+    modalType: state.modal.modalType,
+    modalTypeSecondary: state.modal.modalTypeSecondary,
   };
 };
 
@@ -102,20 +117,20 @@ class AsbestosCocs extends React.PureComponent {
     }
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
-    // return true;
-    if (Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length ||
-      this.props.clients.length !== nextProps.clients.length ||
-      this.props.analyst !== nextProps.analyst ||
-      this.state !== nextState) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   // return true;
+  //   if (Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length ||
+  //     this.props.clients.length !== nextProps.clients.length ||
+  //     this.props.analyst !== nextProps.analyst ||
+  //     this.state !== nextState) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // }
 
   render() {
-    const { cocs, classes } = this.props;
+    const { cocs, classes, modalType, modalTypeSecondary } = this.props;
     moment.tz.setDefault("Pacific/Auckland");
     moment.updateLocale('en', {
       // workingWeekdays: [1,2,3,4,5],
@@ -131,22 +146,22 @@ class AsbestosCocs extends React.PureComponent {
       holidays: [],
     });
 
-    console.log('Asbestos Cocs Re-Rendering');
+    //console.log('Asbestos Cocs Re-Rendering');
 
     return (
       <div className={classes.marginTopStandard}>
-        <CocModal />
-        <UpdateCertificateVersionModal />
-        <SampleLogModal />
-        <WAAnalysisModal />
-        <AsbestosSampleEditModal />
-        <DownloadLabCertificateModal />
-        <CocLogModal />
-        <SoilDetailsModal />
-        <AsbestosSampleCocEditModal />
-        <ConfirmResultModal />
-        <AsbestosSampleDetailsModal />
-        <AsbestosSampleActionsModal />
+        { modalType === COC && <CocModal /> }
+        { modalType === UPDATE_CERTIFICATE_VERSION && <UpdateCertificateVersionModal /> }
+        { modalType === SAMPLE_HISTORY && <SampleLogModal /> }
+        { modalType === WA_ANALYSIS && <WAAnalysisModal /> }
+        { modalType === ASBESTOS_SAMPLE_DETAILS && <AsbestosSampleEditModal /> }
+        { modalType === DOWNLOAD_LAB_CERTIFICATE && <DownloadLabCertificateModal /> }
+        { modalType === COC_LOG && <CocLogModal /> }
+        { modalType === CONFIRM_RESULT && <ConfirmResultModal /> }
+        { modalType === ASBESTOS_NONANALYST_DETAILS && <AsbestosSampleDetailsModal /> }
+        { modalType === COC_SAMPLE_ACTIONS && <AsbestosSampleActionsModal /> }
+        { modalTypeSecondary === SOIL_DETAILS && <SoilDetailsModal /> }
+        { modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && <AsbestosSampleCocEditModal /> }
         <Button
           variant="outlined"
           className={classes.marginBottomSmall}
@@ -295,7 +310,7 @@ class AsbestosCocs extends React.PureComponent {
                 .map(job => {
                   // what is the version thing doing
                   let version = 1;
-                  // console.log(cocs[job]);
+                  // //console.log(cocs[job]);
                   if (cocs[job].reportversion)
                     version = cocs[job].reportversion + 1;
                   return <AsbestosBulkCocCard key={job} job={job} />;

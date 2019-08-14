@@ -29,7 +29,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Chip from '@material-ui/core/Chip';
 import EditIcon from '@material-ui/icons/Edit';
 import Select from 'react-select';
-import { SuggestionField } from '../../../widgets/SuggestionField';
+import SuggestionField from '../../../widgets/SuggestionField';
 
 import {
   DatePicker,
@@ -37,17 +37,20 @@ import {
 
 import Add from '@material-ui/icons/Add';
 import Sync from '@material-ui/icons/Sync';
+import Link from '@material-ui/icons/Link';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, resetModal, showModalSecondary, } from '../../../actions/modal';
-import { fetchStaff, syncJobWithWFM, resetWfmJob, addLog, } from '../../../actions/local';
+import { fetchStaff, syncJobWithWFM, resetWfmJob, addLog, personnelConvert } from '../../../actions/local';
 import { fetchSamples, handleCocSubmit, handleSampleChange } from '../../../actions/asbestosLab';
 import _ from 'lodash';
 
+
+const {whyDidYouUpdate} = require('why-did-you-update');
 const mapStateToProps = state => {
   return {
-    genericLocationSuggestions: state.const.genericLocationSuggestions,
-    specificLocationSuggestions: state.const.specificLocationSuggestions,
-    descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
-    materialSuggestions: state.const.asbestosMaterialSuggestions,
+    // genericLocationSuggestions: state.const.genericLocationSuggestions,
+    // specificLocationSuggestions: state.const.specificLocationSuggestions,
+    // descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
+    // materialSuggestions: state.const.asbestosMaterialSuggestions,
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
@@ -65,6 +68,7 @@ const mapDispatchToProps = dispatch => {
     fetchStaff: () => dispatch(fetchStaff()),
     onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
     handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 50),
+    // handleModalChange: target => dispatch(handleModalChange(target)),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
     handleCocSubmit: (doc, docid, userName, userUid) => dispatch(handleCocSubmit(doc, docid, userName, userUid)),
@@ -91,10 +95,10 @@ const initState = {
   personnel: [],
   personnelSetup: [],
   personnelPickup: [],
-  genericLocationSuggestions: [],
-  specificLocationSuggestions: [],
-  descriptionSuggestions: [],
-  materialSuggestions: [],
+  // genericLocationSuggestions: [],
+  // specificLocationSuggestions: [],
+  // descriptionSuggestions: [],
+  // materialSuggestions: [],
   syncError: null,
   modified: false,
 
@@ -104,11 +108,11 @@ const initState = {
   sampleDoSwap: false,
   sampleSwap: '',
 
-  airFilterModal: null,
-  airFilterModified: false,
-  airFilterDelete: false,
-  airFilterDoSwap: false,
-  airFilterSwap: '',
+  // airFilterModal: null,
+  // airFilterModified: false,
+  // airFilterDelete: false,
+  // airFilterDoSwap: false,
+  // airFilterSwap: '',
   numberOfSamples: 10,
 
   defaultDate: null,
@@ -117,7 +121,8 @@ const initState = {
   personnelSelected: false,
 };
 
-class CocModal extends React.Component {
+class CocModal extends React.PureComponent {
+  static whyDidYouRender = true;
   state = initState;
 
   componentWillMount() {
@@ -125,21 +130,35 @@ class CocModal extends React.Component {
       this.props.fetchStaff();
   }
 
-  handlePersonnelChange = (e, type) => {
-    this.setState({
-      [type]: e.map(e => e.value),
-      modified: true,
-    });
-    if (this.props.doc.uid !== undefined) {
-      let log = {
-        type: 'Edit',
-        log: `Sampling personnel details changed.`,
-        chainOfCustody: this.props.doc.uid,
-      };
-      addLog("asbestosLab", log, this.props.me);
-    }
-    this.props.handleSelectChange({ id: type, value: e.map(e => e.value), })
-  }
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
+  //   if ((nextProps.samples && nextProps.samples[nextProps.job] && this.props.samples && this.props.samples[this.props.job] &&
+  //   (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length ||
+  //   Object.keys(nextProps.samples[nextProps.job]).length !== Object.keys(this.props.samples[this.props.job]).length)) ||
+  //   this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
+  //   this.state !== nextState
+  //  ) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // }
+
+  // handlePersonnelChange = (e, type) => {
+  //   this.setState({
+  //     [type]: e.map(e => e.value),
+  //     modified: true,
+  //   });
+  //   if (this.props.doc.uid !== undefined) {
+  //     let log = {
+  //       type: 'Edit',
+  //       log: `Sampling personnel details changed.`,
+  //       chainOfCustody: this.props.doc.uid,
+  //     };
+  //     addLog("asbestosLab", log, this.props.me);
+  //   }
+  //   this.props.handleSelectChange({ id: type, value: e.map(e => e.value), })
+  // }
 
   wfmSync = () => {
     let jobNumber = this.props.doc.jobNumber;
@@ -153,8 +172,9 @@ class CocModal extends React.Component {
       let isNewCoc = this.props.doc.uid === undefined;
       this.props.syncJobWithWFM(jobNumber, isNewCoc);
       let uid = this.props.doc.uid;
-      // console.log('wfmsync fetch samples');
+      // //console.log('wfmsync fetch samples');
       this.props.fetchSamples(uid, jobNumber, true);
+      this.setState({ modified: true });
     }
   }
 
@@ -179,6 +199,10 @@ class CocModal extends React.Component {
       if (doc && doc.samples) sampleNumbers = sampleNumbers.concat(Object.keys(doc.samples).map(key => parseInt(key)));
       let numberOfSamples = Math.max(...sampleNumbers);
 
+      //console.log(`https://my.workflowmax.com/job/jobview.aspx?id=${doc ? doc.wfmID : wfmJob.wfmID}`);
+      //console.log(wfmJob);
+      //console.log(doc);
+
       return(
         <Dialog
           open={ modalType === COC }
@@ -191,7 +215,6 @@ class CocModal extends React.Component {
           <DialogContent>
             <Grid container spacing={1}>
               <Grid item xs={12} lg={2}>
-                {(modalProps.isNew || modalProps.error) &&
                   <div>
                     <div className={classes.flexRow}>
                       <FormControl style={{ width: '100%', marginRight: 8, }}>
@@ -199,19 +222,26 @@ class CocModal extends React.Component {
                         <Input
                           id="jobNumber"
                           defaultValue={doc && doc.jobNumber}
+                          disabled={!(modalProps.isNew || modalProps.error)}
                           onChange={e => {
-                            this.setState({ modified: true, });
+                            // this.setState({ modified: true, });
                             this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'').toUpperCase()})}
                           }
                           // startAdornment={<InputAdornment position="start">AS</InputAdornment>}
                         />
                       </FormControl>
-                      <IconButton onClick={ this.wfmSync }>
-                        <Sync className={classes.iconRegular}/>
-                      </IconButton>
+                      {((doc && doc.wfmID) || (wfmJob && wfmJob.wfmID)) && <Tooltip title="View Job on WorkflowMax">
+                        <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${wfmJob ? wfmJob.wfmID : doc.wfmID}`) }>
+                          <Link className={classes.iconRegular}/>
+                        </IconButton>
+                      </Tooltip>}
+                      <Tooltip title="Sync Job with WorkflowMax">
+                        <IconButton onClick={ this.wfmSync }>
+                          <Sync className={classes.iconRegular}/>
+                        </IconButton>
+                      </Tooltip>
                     </div>
                   </div>
-                }
                 {modalProps.error &&
                   <div className={classes.informationBox}>
                     { modalProps.error }
@@ -247,7 +277,7 @@ class CocModal extends React.Component {
                   helperText="Include any information that may be useful for the lab. E.g. for a soil sample you might include information on what contamination you are expecting."
                   multiline
                   onChange={e => {
-                    this.setState({ modified: true, });
+                    // this.setState({ modified: true, });
                     this.props.handleModalChange({id: 'labInstructions', value: e.target.value});
                   }}
                 />
@@ -256,7 +286,7 @@ class CocModal extends React.Component {
                     <Switch
                       checked={doc.priority === 1 ? true : false}
                       onClick={e => {
-                        this.setState({ modified: true, });
+                        // this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'priority', value: doc.priority === 1 ? 0 : 1});
                       }}
                       value="priority"
@@ -270,7 +300,7 @@ class CocModal extends React.Component {
                     <Switch
                       checked={doc.clearance === true ? true : false}
                       onClick={e => {
-                        this.setState({ modified: true, });
+                        // this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'clearance', value: e.target.checked});
                       }}
                       value="clearance"
@@ -284,7 +314,7 @@ class CocModal extends React.Component {
                     <Switch
                       checked={doc.waAnalysis === true ? true : false}
                       onClick={e => {
-                        this.setState({ modified: true, });
+                        // this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'waAnalysis', value: e.target.checked});
                       }}
                       value="priority"
@@ -298,7 +328,7 @@ class CocModal extends React.Component {
                     <Switch
                       checked={doc.labToContactClient === true ? true : false}
                       onClick={e => {
-                        this.setState({ modified: true, });
+                        // this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'labToContactClient', value: e.target.checked});
                       }}
                       value="labToContactClient"
@@ -312,7 +342,7 @@ class CocModal extends React.Component {
                   label="Contact Name"
                   defaultValue={doc && doc.labContactName ? doc.labContactName : doc.contactName}
                   onChange={e => {
-                    this.setState({ modified: true, });
+                    // this.setState({ modified: true, });
                     this.props.handleModalChange({id: 'labContactName', value: e.target.value});
                   }}
                 />
@@ -321,7 +351,7 @@ class CocModal extends React.Component {
                   label="Contact Number/Email"
                   defaultValue={doc && doc.labContactNumber ? doc.labContactNumber : doc.contactEmail}
                   onChange={e => {
-                    this.setState({ modified: true, });
+                    // this.setState({ modified: true, });
                     this.props.handleModalChange({id: 'labContactNumber', value: e.target.value});
                   }}
                 />
@@ -349,6 +379,7 @@ class CocModal extends React.Component {
                     <div className={classes.columnMedSmall}>
                       Sample Date
                     </div>
+                    <div className={classes.columnSmall} />
                   </div>
                   <div className={classNames(classes.flexRow, classes.infoLight)}>
                     <div className={classes.spacerSmall} />
@@ -367,12 +398,12 @@ class CocModal extends React.Component {
                     </div>
                     <div className={classes.columnMedLarge} />
                     <div className={classes.columnMedSmall} />
+                    <div className={classes.columnSmall} />
                   </div>
                 </div>
 
                 {Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
-                  let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
-                  return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && !disabled && doc.samples[i+1].deleted === false ?
+                  return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
                     <div className={classes.flexRowHover} key={i}>
                       <div className={classes.spacerSmall} />
                       <div className={classes.columnSmall}>
@@ -400,7 +431,7 @@ class CocModal extends React.Component {
                           moment(doc.samples[i+1].sampleDate instanceof Date ? doc.samples[i+1].sampleDate : doc.samples[i+1].sampleDate.toDate()).format('ddd, D MMMM YYYY') : ''}
                       </div>
                       <div className={classes.columnSmall}>
-                        <IconButton onClick={() =>
+                        {!(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid) && <IconButton onClick={() =>
                           this.props.showModalSecondary({
                             modalType: ASBESTOS_SAMPLE_EDIT_COC,
                             modalProps: {
@@ -413,7 +444,7 @@ class CocModal extends React.Component {
                             }
                           })}>
                           <EditIcon className={classes.iconRegular}  />
-                        </IconButton>
+                        </IconButton>}
                       </div>
                     </div>
                     :
@@ -425,40 +456,64 @@ class CocModal extends React.Component {
                         </div>
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-                        {SuggestionField(this, disabled, null, 'genericLocationSuggestions',
-                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : '',
-                          (value) => {
+                        <SuggestionField that={this} suggestions='genericLocationSuggestions'
+                          defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
+                          onModify={(value) => {
                             this.setState({ modified: true, });
                             this.props.handleSampleChange(i, {reported: false, genericLocation: value});
+                          }} />
+                        {/*{SuggestionField(this, disabled, null, 'genericLocationSuggestions',
+                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : '',
+                          (value) => {
+                            // this.setState({ modified: true, });
+                            this.props.handleSampleChange(i, {reported: false, genericLocation: value});
                           }
-                        )}
+                        )}*/}
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-                        {SuggestionField(this, disabled, null, 'specificLocationSuggestions',
-                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : '',
-                          (value) => {
+                        <SuggestionField that={this} suggestions='specificLocationSuggestions'
+                          defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : ''}
+                          onModify={(value) => {
                             this.setState({ modified: true, });
                             this.props.handleSampleChange(i, {reported: false, specificLocation: value});
+                          }} />
+                        {/*{SuggestionField(this, disabled, null, 'specificLocationSuggestions',
+                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : '',
+                          (value) => {
+                            // this.setState({ modified: true, });
+                            this.props.handleSampleChange(i, {reported: false, specificLocation: value});
                           }
-                        )}
+                        )}*/}
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-                        {SuggestionField(this, disabled, null, 'descriptionSuggestions',
-                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : '',
-                          (value) => {
+                        <SuggestionField that={this} suggestions='descriptionSuggestions'
+                          defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
+                          onModify={(value) => {
                             this.setState({ modified: true, });
                             this.props.handleSampleChange(i, {reported: false, description: value});
+                          }} />
+                        {/*{SuggestionField(this, disabled, null, 'descriptionSuggestions',
+                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : '',
+                          (value) => {
+                            // this.setState({ modified: true, });
+                            this.props.handleSampleChange(i, {reported: false, description: value});
                           }
-                        )}
+                        )}*/}
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-                        {SuggestionField(this, disabled, null, 'materialSuggestions',
-                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
-                          (value) => {
+                        <SuggestionField that={this} suggestions='materialSuggestions'
+                          defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : ''}
+                          onModify={(value) => {
                             this.setState({ modified: true, });
                             this.props.handleSampleChange(i, {reported: false, material: value});
+                          }} />
+                        {/*{SuggestionField(this, disabled, null, 'materialSuggestions',
+                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
+                          (value) => {
+                            // this.setState({ modified: true, });
+                            this.props.handleSampleChange(i, {reported: false, material: value});
                           }
-                        )}
+                        )}*/}
                       </div>
                       <div className={classes.columnMedLarge}>
                         <Select
@@ -468,9 +523,23 @@ class CocModal extends React.Component {
                           options={names.map(e => ({ value: e.name, label: e.name }))}
                           onChange={e => {
                             let defaultPersonnel = this.state.defaultPersonnel;
-                            if (!this.state.personnelSelected) defaultPersonnel = e;
-                            this.setState({ modified: true, personnelSelected: true, defaultPersonnel});
-                            this.props.handleSampleChange(i, {reported: false, sampledBy: e.map(staff => staff.value)});
+                            let personnelSelected = this.state.personnelSelected;
+                            let sampledBy = [];
+
+                            if (personnelSelected === false) {
+                              personnelSelected = i;
+                              defaultPersonnel = sampledBy.map(e => ({value: e, label: e}));
+                            } else if (personnelSelected === i) {
+                              defaultPersonnel = sampledBy.map(e => ({value: e, label: e}));
+                            }
+
+                            if (e.length === 0) {
+                              personnelSelected = false;
+                              defaultPersonnel = e;
+                            }
+
+                            this.setState({ modified: true, personnelSelected, defaultPersonnel});
+                            this.props.handleSampleChange(i, {reported: false, sampledBy: personnelConvert(e)});
                           }}
                         />
                       </div>
@@ -501,7 +570,7 @@ class CocModal extends React.Component {
                                   this.setState({
                                     modified: modified,
                                   });
-                                  console.log('On Exit: ' + modified);
+                                  //console.log('On Exit: ' + modified);
                               }}
                             })}>
                             <EditIcon className={classes.iconRegular}  />
@@ -540,18 +609,19 @@ class CocModal extends React.Component {
                   doc.dueDate = wfmJob.dueDate ? wfmJob.dueDate : null;
                   doc.manager = wfmJob.manager ? wfmJob.manager.trim() : null;
                   doc.type = wfmJob.type ? wfmJob.type : null;
-                 }
+                  doc.wfmID = wfmJob.wfmID ? wfmJob.wfmID : null;
+                }
                 let now = new Date();
                 if (!doc.dateSubmit) doc.dateSubmit = now;
                 doc.lastModified = now;
                 doc.versionUpToDate = false;
                 doc.mostRecentIssueSent = false;
-                doc.stats = { status: 'In Transit'};
                 doc.defaultDate = this.state.defaultDate;
                 doc.defaultPersonnel = this.state.defaultPersonnel;
                 if (Object.keys(doc.samples).length === 0) doc.status = 'No Samples';
+                  else doc.status = 'In Transit';
                 this.props.resetWfmJob();
-                console.log(`Doc UID exists it is ${doc.uid}`);
+                //console.log(`Doc UID exists it is ${doc.uid}`);
                 let log = {
                     type: 'Create',
                     log: `Chain of Custody created.`,

@@ -176,7 +176,7 @@ class Noticeboard extends React.Component {
   }
 
   onCheckRead = (notice) => {
-    console.log(notice);
+    //console.log(notice);
     this.props.showModal({
       modalType: WHOS_READ,
       modalProps: {

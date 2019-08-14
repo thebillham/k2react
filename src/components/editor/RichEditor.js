@@ -11,7 +11,7 @@ function uploadImageCallBack(file) {
     reader.onload = e => {
       let stream = e.target.result.replace(/^data:image\/\w+;base64,/, "");
       Jimp.read(Buffer.from(stream, "base64")).then(image => {
-        console.log("Width is " + image.bitmap.width);
+        //console.log("Width is " + image.bitmap.width);
         let width = image.bitmap.width < 500 ? image.bitmap.width : 500;
         image.resize(width, Jimp.AUTO, (err, image) => {
           // .greyscale((err, image) => {

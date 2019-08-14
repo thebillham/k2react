@@ -452,7 +452,7 @@ class TrainingModuleModal extends React.Component {
               }}
               input={<Input id="requiredreadings" />}
               renderValue={selected => {
-                console.log(selected);
+                //console.log(selected);
                 return (
                   <div style={{ display: "flex", flexWrap: "wrap" }}>
                     {selected && selected.map(value => (
@@ -677,7 +677,7 @@ class TrainingModuleModal extends React.Component {
                 []
               }
               onChange={e => {
-                console.log(e);
+                //console.log(e);
                 this.props.handleModalChangeStep({
                   step: "practical",
                   id: "requiredmethods",

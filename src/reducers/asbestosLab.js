@@ -61,7 +61,7 @@ export default function asbestosLabReducer(state = asbestosLabInit, action) {
     case DELETE_COC:
       let newCocs = state.cocs;
       delete newCocs[action.payload];
-      console.log(newCocs);
+      //console.log(newCocs);
       return { ...state,
         cocs: { ...state.cocs }
       };

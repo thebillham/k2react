@@ -315,9 +315,9 @@ class JobMap extends React.Component {
           }
         });
     });
-    // console.log("Computed stats");
-    // console.log(client);
-    // console.log(staff);
+    // //console.log("Computed stats");
+    // //console.log(client);
+    // //console.log(staff);
 
     this.setState({
       clientStats: client,
@@ -405,7 +405,7 @@ class JobMap extends React.Component {
     }
     //
     // if (this.props.geocodes[add] != undefined) {
-    //   console.log("Already there");
+    //   //console.log("Already there");
     //   lead.geocode = this.props.geocodes[add];
     //   this.state.leads = [...this.state.leads, lead];
     // } else
@@ -418,7 +418,7 @@ class JobMap extends React.Component {
       let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${
         process.env.REACT_APP_GOOGLE_MAPS_KEY
       }`;
-      // console.log("Getting GEOCODE for " + add);
+      // //console.log("Getting GEOCODE for " + add);
       fetch(path)
         .then(response => response.json())
         .then(response => {
@@ -427,8 +427,8 @@ class JobMap extends React.Component {
           //   lead.geocode = { address: "New Zealand" };
           // } else {
           if (response.results[0] === undefined) {
-            console.log('undefined response');
-            console.log(response);
+            //console.log('undefined response');
+            //console.log(response);
             lead.geocode = { address: "New Zealand" };
           } else {
             gc[add] = this.simplifiedGeocode(response.results[0]);
@@ -442,8 +442,8 @@ class JobMap extends React.Component {
   };
 
   addLeadToState = lead => {
-    // console.log('Add lead');
-    // console.log(lead);
+    // //console.log('Add lead');
+    // //console.log(lead);
     this.setState({
       leads: [...this.state.leads, lead]
     });
@@ -617,15 +617,15 @@ class JobMap extends React.Component {
 
   // Collate Jobs (need booking) and Leads into a set of data that can be displayed nicely
   collateLeadsData = () => {
-    // console.log(this.props.currentJobState);
-    // console.log('Jobs length');
-    // console.log('Jobs: ' + this.props.wfmJobs.length);
-    // console.log('Leads: ' + this.props.wfmLeads.length)
-    // console.log(this.props.wfmJobs.length + this.props.wfmLeads.length);
+    // //console.log(this.props.currentJobState);
+    // //console.log('Jobs length');
+    // //console.log('Jobs: ' + this.props.wfmJobs.length);
+    // //console.log('Leads: ' + this.props.wfmLeads.length)
+    // //console.log(this.props.wfmJobs.length + this.props.wfmLeads.length);
     // var staffStats = { K2: this.state.statSheet };
     // var clientStats = {};
 
-    // console.log("COLLATING LEADS AND JOBS");
+    // //console.log("COLLATING LEADS AND JOBS");
     var mappedJobs = [];
 
     var completedJobs = Object.values(this.props.currentJobState).filter((job) => job.state === 'Completed');
@@ -652,7 +652,7 @@ class JobMap extends React.Component {
 
         // Check state has changed
         if (job.state !== mappedJob.state) {
-          // console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
+          // //console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
           mappedJob.lastActionDate = today;
           mappedJob.state = job.state;
           mappedJob.stateHistory[today] = job.state;
@@ -660,7 +660,7 @@ class JobMap extends React.Component {
 
         // Check if address has changed
         if (mappedJob.name !== job.address) {
-          // console.log(mappedJob.name + '->' + job.address + ' is new, get new geocode');
+          // //console.log(mappedJob.name + '->' + job.address + ' is new, get new geocode');
           mappedJob.name = job.address;
           this.handleGeocode(
             job.address,
@@ -671,7 +671,7 @@ class JobMap extends React.Component {
           mappedJobs = [...mappedJobs, mappedJob];
         }
       } else {
-        // console.log('Making new job: ' + job['wfmID']);
+        // //console.log('Making new job: ' + job['wfmID']);
         var newJob = {};
         newJob.wfmID = job.wfmID;
         newJob.client = job.client;
@@ -734,7 +734,7 @@ class JobMap extends React.Component {
 
         // Check if address has changed
         if (lead.name !== wfmLead.name) {
-          // console.log(wfmLead.name + ' is new, get new geocode');
+          // //console.log(wfmLead.name + ' is new, get new geocode');
           lead.name = wfmLead.name;
           this.handleGeocode(
             wfmLead.name,
@@ -745,7 +745,7 @@ class JobMap extends React.Component {
           mappedJobs = [...mappedJobs, lead];
         }
       } else {
-        // console.log('Making new job: ' + wfmLead['wfmID']);
+        // //console.log('Making new job: ' + wfmLead['wfmID']);
         lead = {};
         lead.wfmID = wfmLead.wfmID;
         lead.client = wfmLead.client;
@@ -802,8 +802,8 @@ class JobMap extends React.Component {
     var recentlyCompleted = Object.values(currentState).filter((job) => job.state !== 'Completed');
     var today = moment().format('YYYY-MM-DD');
     recentlyCompleted.forEach((job) => {
-      // console.log('Recently completed');
-      // console.log(job);
+      // //console.log('Recently completed');
+      // //console.log(job);
       job.lastActionDate = today;
       job.state = 'Completed';
       if (job.stateHistory !== undefined) {
@@ -951,7 +951,7 @@ class JobMap extends React.Component {
   };
 
   gotoWFM = m => {
-    // console.log("GoTO");
+    // //console.log("GoTO");
     var path;
     if (m.isJob) {
       path = `https://my.workflowmax.com/job/jobview.aspx?id=${m.wfmID}`;
@@ -1024,7 +1024,7 @@ class JobMap extends React.Component {
     var s = Math.floor((n - 1) / 8) + 1;
     var mod = (n % 9) + (s - 1);
     if (n === 0) mod = 0;
-    // if (n>0) console.log('n: ' + n + ', s: ' + s + ', mod: ' + mod);
+    // if (n>0) //console.log('n: ' + n + ', s: ' + s + ', mod: ' + mod);
     switch (mod) {
       case 0:
         return [0, 0];
@@ -1063,7 +1063,7 @@ class JobMap extends React.Component {
       this.collateLeadsData();
     // if (Object.keys(this.state.staffStats).length > 1) {
     //   var daysMap = {};
-    //   console.log(this.state.staffStats["K2"]["completedActionOverdueDays"]);
+    //   //console.log(this.state.staffStats["K2"]["completedActionOverdueDays"]);
     //   this.state.staffStats["K2"]["completedActionOverdueDays"].forEach(i => {
     //     if (daysMap[i] === undefined) daysMap[i] = { days: i, K2: 1, Shona: 0 };
     //     else daysMap[i]["K2"] = daysMap[i]["K2"] + 1;
@@ -1076,7 +1076,7 @@ class JobMap extends React.Component {
     //   });
     //   var daysData = Object.values(daysMap);
     //   var sortedDays = [].concat(daysData).sort((a, b) => a.days > b.days);
-    //   console.log(daysData);
+    //   //console.log(daysData);
     // }
 
     const jobModal = (
@@ -1624,7 +1624,7 @@ class JobMap extends React.Component {
                   if (addresses[m.geocode.address] >= 0) {
                     addresses[m.geocode.address] =
                       addresses[m.geocode.address] + 1;
-                    // console.log(m.jobNumber + ': ' + m.geocode.address + ' (' + addresses[m.geocode.address] + ')');
+                    // //console.log(m.jobNumber + ': ' + m.geocode.address + ' (' + addresses[m.geocode.address] + ')');
                   } else {
                     addresses[m.geocode.address] = 0;
                   }

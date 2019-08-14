@@ -37,6 +37,7 @@ const mapDispatchToProps = dispatch => {
 class DownloadLabCertificateModal extends React.Component {
   state = {
     fileType: "doc",
+    certificateType: "bulk",
     template: "single",
   };
 
@@ -50,12 +51,27 @@ class DownloadLabCertificateModal extends React.Component {
         <DialogTitle>Download Lab Certificate</DialogTitle>
         <DialogContent>
           <FormControl component="fieldset" className={classes.formControl}>
+            <FormLabel component="legend">Certificate</FormLabel>
+            <RadioGroup
+              aria-label="Certificate"
+              name="certificate"
+              className={classes.group}
+              value={this.state.certificateType}
+              onChange={event => this.setState({
+                certificateType: event.target.value,
+              })}
+            >
+              <FormControlLabel value="bulk" control={<Radio />} label="Bulk ID" />
+              <FormControlLabel value="wa" control={<Radio disabled={modalProps.report.waAnalysis} />} label="WA Analysis" />
+            </RadioGroup>
+          </FormControl>
+          <FormControl component="fieldset" className={classes.formControl}>
             <FormLabel component="legend">Template</FormLabel>
             <RadioGroup
               aria-label="Template"
               name="template"
               className={classes.group}
-              value={this.state.value}
+              value={this.state.template}
               onChange={event => this.setState({
                 template: event.target.value,
               })}
@@ -87,14 +103,14 @@ class DownloadLabCertificateModal extends React.Component {
           </Button>
           <Button
             onClick={() => {
-              // console.log(modalProps.report);
+              // //console.log(modalProps.report);
               let url =
-                "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.fileType + ".php?template=" + this.state.template +
+                "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.certificateType + "/" + this.state.fileType + ".php?template=" + this.state.template +
                 "&report=" + encodeURIComponent(JSON.stringify(modalProps.report));
               // url =
               //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
-              // console.log(encodeURIComponent(JSON.stringify(modalProps.report)));
-              console.log(url);
+              // //console.log(encodeURIComponent(JSON.stringify(modalProps.report)));
+              //console.log(url);
               window.open(url);
               this.props.hideModal();
             }}

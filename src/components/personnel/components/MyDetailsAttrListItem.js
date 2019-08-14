@@ -33,9 +33,9 @@ const mapStateToProps = state => {
 };
 
 function deleteAttr(uid, user, file) {
-  console.log("UID: " + uid);
-  console.log("User: " + user);
-  console.log("File: " + file);
+  //console.log("UID: " + uid);
+  //console.log("User: " + user);
+  //console.log("File: " + file);
   if (file) storage.ref(file).delete();
   usersRef
     .doc(user)

@@ -15,10 +15,10 @@ import Checkbox from "@material-ui/core/Checkbox";
 
 import Select from 'react-select';
 
-import { SuggestionField } from '../../../widgets/SuggestionField';
+import SuggestionField from '../../../widgets/SuggestionField';
 import { hideModalSecondary, handleModalChange, } from "../../../actions/modal";
 import { handleSampleChange } from '../../../actions/asbestosLab';
-import { addLog, } from '../../../actions/local';
+import { addLog, personnelConvert } from '../../../actions/local';
 import { SampleRadioSelector } from '../../../widgets/FormWidgets';
 
 import {
@@ -75,7 +75,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
   }
 
   saveAndHide = () => {
-    console.log('Hiding');
+    //console.log('Hiding');
     this.setState(stateInit);
     this.props.modalProps.onExit(this.state.modified);
     this.props.hideModal();
@@ -173,7 +173,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     if (this.state.sampleDelete && window.confirm("Are you sure you wish to delete this sample?")) {
       // Delete sample
       this.deleteSample(onComplete);
-      // console.log(doc.samples);
+      // //console.log(doc.samples);
     } else if (this.state.sampleDoSwap) {
       if (this.state.sampleSwap === '') {
         window.alert('You have not selected a sample number to move to.');
@@ -185,7 +185,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
       } else if (doc.samples[this.state.sampleSwap] !== undefined && window.confirm(`There is already a sample using that sample number. Do you wish to swap sample ${this.state.sample.sampleNumber} with sample ${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap]['description']} ${doc.samples[this.state.sampleSwap]['material']})?`)) {
         // Swap sample number
         this.swapSample(onComplete);
-        // console.log(doc.samples);
+        // //console.log(doc.samples);
     } else if (doc.samples[this.state.sampleSwap] !== undefined && doc.samples[this.state.sampleSwap]['cocUid'] !== doc.uid) {
       window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
     }
@@ -268,8 +268,9 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
         <DialogContent>
         {this.state.sample && (
           <div>
-            {SuggestionField(this, false, 'Generic Location', 'genericLocationSuggestions', this.state.sample.genericLocation,
-              (value) => {
+            <SuggestionField that={this} label='Generic Location' suggestions='genericLocationSuggestions'
+              defaultValue={this.state.sample.genericLocation}
+              onModify={(value) => {
                   this.setState({
                     sample: {
                       ...this.state.sample,
@@ -277,10 +278,12 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                     },
                     modified: true,
                   });
-                }
-            )}
-            {SuggestionField(this, false, 'Specific Location', 'specificLocationSuggestions', this.state.sample.specificLocation,
-              (value) => {
+                }}
+            />
+
+            <SuggestionField that={this} label='Specific Location' suggestions='specificLocationSuggestions'
+              defaultValue={this.state.sample.specificLocation}
+              onModify={(value) => {
                   this.setState({
                     sample: {
                       ...this.state.sample,
@@ -288,10 +291,12 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                     },
                     modified: true,
                   });
-                }
-            )}
-            {SuggestionField(this, false, 'Description/Item', 'descriptionSuggestions', this.state.sample.description,
-              (value) => {
+                }}
+            />
+
+            <SuggestionField that={this} label='Description/Item' suggestions='descriptionSuggestions'
+              defaultValue={this.state.sample.description}
+              onModify={(value) => {
                   this.setState({
                     sample: {
                       ...this.state.sample,
@@ -299,10 +304,12 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                     },
                     modified: true,
                   });
-                }
-            )}
-            {SuggestionField(this, false, 'Material', 'materialSuggestions', this.state.sample.material,
-              (value) => {
+                }}
+            />
+
+            <SuggestionField that={this} label='Material' suggestions='materialSuggestions'
+              defaultValue={this.state.sample.material}
+              onModify={(value) => {
                   this.setState({
                     sample: {
                       ...this.state.sample,
@@ -310,8 +317,9 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                     },
                     modified: true,
                   });
-                }
-            )}
+                }}
+            />
+
             <Select
               isMulti
               className={classes.select}
@@ -321,7 +329,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                 this.setState({
                   sample: {
                     ...this.state.sample,
-                    sampledBy: e.map(staff => staff.value),
+                    sampledBy: personnelConvert(e),
                   },
                   modified: true,
                 });

@@ -127,7 +127,7 @@ class NoticeModal extends React.Component {
                 let newDoc = {};
                 let comments = doc.notice.comments;
                 if ((!comment.text || comment.text === '') && comment.uid) {
-                  console.log(comments);
+                  //console.log(comments);
                   delete comments[comment.uid];
                   newDoc = {
                     ...doc.notice,
@@ -150,7 +150,7 @@ class NoticeModal extends React.Component {
                   }
                 }
 
-                console.log(newDoc);
+                //console.log(newDoc);
                 this.props.handleModalSubmit({
                   doc: newDoc,
                   pathRef: noticesRef,

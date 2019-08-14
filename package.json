@@ -2,7 +2,7 @@
   "name": "k2r",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://my.k2.co.nz/",
+  "homepage": "https://my.k2.co.nz/",
   "dependencies": {
     "@date-io/moment": "^1.3.9",
     "@emotion/core": "^10.0.14",

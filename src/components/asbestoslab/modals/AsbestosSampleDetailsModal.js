@@ -32,6 +32,8 @@ import {
   writeSampleDimensions,
   collateLayeredResults,
   compareAsbestosResult,
+  writeSampleMoisture,
+  writePersonnelQualFull,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
@@ -44,6 +46,7 @@ const mapStateToProps = state => {
     modalProps: state.modal.modalProps,
     samples: state.asbestosLab.samples,
     me: state.local.me,
+    staff: state.local.staff,
     shortcuts: state.const.keyboardShortcuts,
   };
 };
@@ -81,7 +84,7 @@ class AsbestosSampleDetailsModal extends React.Component {
     let takeThisSample = false;
     Object.values(this.props.samples[this.props.modalProps.job.uid]).reverse().forEach(sample => {
       if (takeThisSample) {
-        console.log(sample);
+        //console.log(sample);
         this.props.handleModalChange({id: 'doc', value: {...sample}});
         takeThisSample = false;
       }
@@ -93,7 +96,7 @@ class AsbestosSampleDetailsModal extends React.Component {
     let takeThisSample = false;
     Object.values(this.props.samples[this.props.modalProps.job.uid]).forEach(sample => {
       if (takeThisSample) {
-        console.log(sample);
+        //console.log(sample);
         this.props.handleModalChange({id: 'doc', value: {...sample}});
         takeThisSample = false;
       }
@@ -146,8 +149,8 @@ class AsbestosSampleDetailsModal extends React.Component {
       let timeInLab = sample && sample.receivedDate ? moment(endTime).diff(sample.receivedDate.toDate()) : null;
 
       let timeInLabBusiness = sample && sample.receivedDate ? moment(endTime).workingDiff(sample.receivedDate.toDate()) : null;
-      // console.log(timeInLab);
-      // console.log(timeInLabBusiness);
+      // //console.log(timeInLab);
+      // //console.log(timeInLabBusiness);
 
       let status = 'In Transit';
       if (sample) {
@@ -166,6 +169,9 @@ class AsbestosSampleDetailsModal extends React.Component {
       const good = (<Good style={{ color: 'green', fontSize: 14, }}/>);
       const half = (<Bad style={{ color: 'orange', fontSize: 14, }}/>);
       const bad = (<Bad style={{ color: 'red', fontSize: 14, }}/>);
+
+      let sampleMoisture = null;
+      if (sample) sampleMoisture = writeSampleMoisture(sample, true);
 
       return (
         <div>
@@ -221,9 +227,12 @@ class AsbestosSampleDetailsModal extends React.Component {
                 </div>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Turnaround Times</div>
-                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time', `${moment.utc(timeInLab).format('H:mm')}/${moment.utc(timeInLabBusiness).format('H:mm')}`)
-                    : SampleTextyLine('Time In Lab', `${moment.utc(timeInLab).format('H:mm')}/${moment.utc(timeInLabBusiness).format('H:mm')}`)
-                  : SampleTextyLine('Turnaround Time', 'Not yet received by lab')}
+                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Total)', `${moment.utc(timeInLab).format('H:mm')}`)
+                    : SampleTextyLine('Time In Lab (Total)', `${moment.utc(timeInLab).format('H:mm')}`)
+                  : SampleTextyLine('Turnaround Time (Total)', 'Not yet received by lab')}
+                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Business Hours Only)', `${moment.utc(timeInLabBusiness).format('H:mm')}`)
+                    : SampleTextyLine('Time In Lab (Business Hours Only)', `${moment.utc(timeInLabBusiness).format('H:mm')}`)
+                  : SampleTextyLine('Turnaround Time (Business Hours Only)', 'Not yet received by lab')}
                 </div>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Sample History</div>
@@ -231,7 +240,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                       `${moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.receivedUser ? sample.receivedUser.name : 'an unknown person'}`
                       : 'Not yet received by lab')}
                   {SampleTextyLine('Analysis Started', sample.analysisStartDate ?
-                      `${moment(sample.analysisStartDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisStartedby ? sample.analysisStartedby.name : 'an unknown person'}`
+                      `${moment(sample.analysisStartDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisStartUser ? sample.analysisStartUser.name : 'an unknown person'}`
                       : 'Analysis not yet started')}
                   {SampleTextyLine('Result Logged', sample.analysisDate ?
                       `${moment(sample.analysisDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisUser ? sample.analysisUser.name : 'an unknown person'}`
@@ -247,22 +256,23 @@ class AsbestosSampleDetailsModal extends React.Component {
               <Grid item xs={6}>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Sample Details</div>
-                  {SampleTextyLine('Sampling Personnel',
-                    job.personnel && job.personnel.length > 0
-                      ? job.personnel.join(", ")
-                      : "Not specified")}
-                  {SampleTextyLine('Sampling Date(s)',
-                    dates && dates.length > 0
-                      ? dates.join(", ")
-                      : "Not specified")}
+                  {SampleTextyLine('Sampling Personnel', sample.sampledBy ? sample.sampledBy.join(", ") : 'Not specified')}
+                  {SampleTextyLine('Sampling Date(s)', sample.sampleDate ? sample.sampleDate instanceof Date ? moment(sample.sampleDate).format("dddd, D MMMM YYYY") : moment(sample.sampleDate.toDate()).format("dddd, D MMMM YYYY")  : 'Not specified')}
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                     {SampleTextyDisplay('Weight Received',sample.weightReceived ? sample.weightReceived + 'g' : 'N/A')}
-                    {SampleTextyDisplay('Weight Analysed',sample.weightAnalysed ? sample.weightAnalysed + 'g' : 'N/A')}
-                    {SampleTextyDisplay('Weight Conditioned',sample.weightConditioned ? sample.weightConditioned + 'g' : 'N/A')}
+                      {SampleTextyDisplay('Subsample Weight',sample.weightSubsample ? sample.weightSubsample + 'g' : 'N/A')}
+                    {SampleTextyDisplay('Dry Weight (~105°C)',sample.weightDry ? sample.weightDry + 'g' : 'N/A')}
+                    {SampleTextyDisplay('Ashed Weight (~400°C)',sample.weightAshed ? sample.weightAshed + 'g' : 'N/A')}
                   </div>
-                  {SampleTextyDisplay('Dimensions', writeSampleDimensions(sample))}
-                  {SampleTextyDisplay('Lab Sample Description',sample.labDescription ? sample.labDescription : 'N/A')}
-                  {SampleTextyDisplay('Lab Observations/Comments', sample.labComments ? sample.labComments : 'N/A')}
+
+                  {sampleMoisture && <div>
+                    {SampleTextyDisplay('Moisture Content',`${sampleMoisture}%`)}
+                  </div>}
+
+                  {(sample.dimensionsD || sample.dimensionsL || sample.dimensionsW) && SampleTextyDisplay('Dimensions', writeSampleDimensions(sample))}
+                  {sample.labDescription && SampleTextyDisplay('Lab Sample Description',sample.labDescription)}
+                  {sample.labComments && SampleTextyDisplay('Lab Observations/Comments', sample.labComments)}
+                  {sample.footnote && SampleTextyDisplay('Lab Footnote for Report', sample.footnote)}
                   {sample.soilDetails && SampleTextyDisplay('Geotechnical Soil Details', writeSoilDetails(sample.soilDetails))}
                   {sample.layers &&
                     ((sample.layers[`layer1`] !== undefined && Object.keys(sample.layers[`layer1`].result).length > 0) ||

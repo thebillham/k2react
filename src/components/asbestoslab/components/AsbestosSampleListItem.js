@@ -71,7 +71,7 @@ class AsbestosSampleListItem extends React.Component {
     if (this.props.samples[this.props.job][this.props.sample] !== nextProps.samples[nextProps.job][nextProps.sample]) {
       return true;
     } else {
-      // console.log('Blocked re-render of SampleList');
+      // //console.log('Blocked re-render of SampleList');
       return false;
     }
   }
@@ -121,7 +121,7 @@ class AsbestosSampleListItem extends React.Component {
     return (
         <ListItem key={sample.uid} className={classes.hoverItem}>
           <Grid container className={classes.fullWidth}>
-            <Grid item xs={12} xl={3}>
+            <Grid item xs={12} xl={6}>
               <div className={classes.flexRowLeftAlignEllipsis}>
                 <div className={classes.circleShaded}>
                   {sample.sampleNumber}
@@ -144,7 +144,7 @@ class AsbestosSampleListItem extends React.Component {
                 {basicResult === 'none' && sample.noAsbestosResultReason && <div className={classes.boldRedWarningText}>{this.props.noAsbestosResultReasons.filter(el => el.value === sample.noAsbestosResultReason)[0].label.toUpperCase()}</div>}
               </div>
             </Grid>
-            <Grid item xs={12} xl={9}>
+            <Grid item xs={12} xl={6}>
               <div className={classes.flexRowRightAlign}>
                 <AsbestosSampleStatus status={sampleStatus} />
                 <div className={basicResult === 'none' ? classes.roundButtonShadedLong : basicResult === 'negative' ? classes.roundButtonShadedLongGreen : classes.roundButtonShadedLongRed}>
@@ -218,7 +218,7 @@ class AsbestosSampleListItem extends React.Component {
                 <Tooltip id="h-tooltip" title={sample.onHold ? 'Take Sample off Hold' : 'Put Sample on Hold'}>
                   <IconButton
                     onClick={event => {
-                      console.log('Clicked');
+                      //console.log('Clicked');
                       holdSample(sample, job, this.props.me);
                     }}>
                     <HoldIcon className={sample.onHold ? classes.iconRegularRed : classes.iconRegular} />

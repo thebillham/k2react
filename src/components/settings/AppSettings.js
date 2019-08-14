@@ -34,7 +34,7 @@ import _ from "lodash";
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
-    doc: state.modal.modalProps.doc
+    doc: state.const
   };
 };
 

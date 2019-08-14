@@ -81,7 +81,7 @@ class ConfirmResultModal extends React.Component {
           confirm[num+1] = initConfirm;
         }
       });
-      console.log(confirm);
+      //console.log(confirm);
       this.setState({
         ...confirm
       });
@@ -236,7 +236,7 @@ class ConfirmResultModal extends React.Component {
   confirmRow = (num) => {
     const { classes } = this.props;
     let colors = getSampleColors(this.state[num]);
-    console.log(this.state[num].analyst);
+    //console.log(this.state[num].analyst);
     let resultDate = 'N/A';
     let prevAnalyst = this.props.modalProps.sample && this.props.modalProps.sample.analyst ? this.props.modalProps.sample.analyst : null;
     if (this.state[num].date !== undefined) {

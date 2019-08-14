@@ -83,7 +83,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosBulkCocCard extends React.Component {
+class AsbestosBulkCocCard extends React.PureComponent {
   // static whyDidYouRender = true;
   state = {
     samples: {},
@@ -104,19 +104,19 @@ class AsbestosBulkCocCard extends React.Component {
     this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
-    if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
-    if ((nextProps.samples && nextProps.samples[nextProps.job] && this.props.samples && this.props.samples[this.props.job] &&
-    (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length ||
-    Object.keys(nextProps.samples[nextProps.job]).length !== Object.keys(this.props.samples[this.props.job]).length)) ||
-    this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
-    this.state !== nextState
-   ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
+  //   if ((nextProps.samples && nextProps.samples[nextProps.job] && this.props.samples && this.props.samples[this.props.job] &&
+  //   (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length ||
+  //   Object.keys(nextProps.samples[nextProps.job]).length !== Object.keys(this.props.samples[this.props.job]).length)) ||
+  //   this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
+  //   this.state !== nextState
+  //  ) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // }
 
   sampleAnchorMenu = (number, target) => {
     this.setState({
@@ -135,6 +135,7 @@ class AsbestosBulkCocCard extends React.Component {
   render() {
     const { samples, classes } = this.props;
     const job = this.props.cocs[this.props.job];
+    // console.log(job);
     if (job === undefined || job.deleted) return null;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
@@ -145,7 +146,7 @@ class AsbestosBulkCocCard extends React.Component {
       let formatDate = date instanceof Date ? date : date.toDate();
       return moment(formatDate).format('D MMMM YYYY');
     });
-    console.log(`${job.jobNumber} rendering`);
+    //console.log(`${job.jobNumber} rendering`);
     getStatus(samples[job.uid], job);
     return (
       <ExpansionPanel
@@ -162,7 +163,7 @@ class AsbestosBulkCocCard extends React.Component {
             {job.waAnalysis && <WAIcon color='action' className={classes.marginLeftSmall} />}
             {(job.priority === 1 || job.clearance) && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
             {job.versionUpToDate && <VerifyIcon color='primary' className={classes.marginLeftSmall} />}
-            {job.stats && <span className={classes.boldSmallText}>{job.status ? job.status : ''}</span>}
+            {job.status && <span className={classes.boldSmallText}>{job.status ? job.status : ''}</span>}
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
@@ -189,48 +190,56 @@ class AsbestosBulkCocCard extends React.Component {
                 </IconButton>
               </Tooltip>
               <Tooltip id="reca-tooltip" title={'Receive Samples'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
-                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
-                  onClick={event => {
-                      this.props.showModal({
-                        modalType: COC_SAMPLE_ACTIONS,
-                        modalProps: { job: job, field: 'receivedByLab', title: `Receive Samples for ${job.jobNumber}`, }});
-                  }}>
-                  <ReceiveIcon className={classes.iconRegular} />
-                </IconButton>
+                <span>
+                  <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                    onClick={event => {
+                        this.props.showModal({
+                          modalType: COC_SAMPLE_ACTIONS,
+                          modalProps: { job: job, field: 'receivedByLab', title: `Receive Samples for ${job.jobNumber}`, }});
+                    }}>
+                    <ReceiveIcon className={classes.iconRegular} />
+                  </IconButton>
+                </span>
               </Tooltip>
               <Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
-                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
-                  onClick={event => {
-                      this.props.showModal({
-                        modalType: COC_SAMPLE_ACTIONS,
-                        modalProps: { job: job, field: 'analysisStart', title: `Start Analysis on ${job.jobNumber}`, }});
-                  }}>
-                  <StartAnalysisIcon className={classes.iconRegular} />
-                </IconButton>
+                <span>
+                  <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                    onClick={event => {
+                        this.props.showModal({
+                          modalType: COC_SAMPLE_ACTIONS,
+                          modalProps: { job: job, field: 'analysisStart', title: `Start Analysis on ${job.jobNumber}`, }});
+                    }}>
+                    <StartAnalysisIcon className={classes.iconRegular} />
+                  </IconButton>
+                </span>
               </Tooltip>
               <Tooltip title={'Record Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
-                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
-                  onClick={event => {
-                      this.props.showModal({
-                        modalType: ASBESTOS_SAMPLE_DETAILS,
-                        modalProps: {
-                          activeSample: Object.keys(samples[job.uid])[0],
-                          activeCoc: job.uid,
-                          sampleList: job.sampleList,
-                      }});
-                  }}>
-                  <RecordAnalysisIcon className={classes.iconRegular} />
-                </IconButton>
+                <span>
+                  <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
+                    onClick={event => {
+                        this.props.showModal({
+                          modalType: ASBESTOS_SAMPLE_DETAILS,
+                          modalProps: {
+                            activeSample: Object.keys(samples[job.uid])[0],
+                            activeCoc: job.uid,
+                            sampleList: job.sampleList,
+                        }});
+                    }}>
+                    <RecordAnalysisIcon className={classes.iconRegular} />
+                  </IconButton>
+                </span>
               </Tooltip>
               <Tooltip title={'Verify Results'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
-                <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
-                  onClick={event => {
-                      this.props.showModal({
-                        modalType: COC_SAMPLE_ACTIONS,
-                        modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber}`, }});
-                  }}>
-                  <VerifyIcon className={classes.iconRegular} />
-                </IconButton>
+                <span>
+                  <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                    onClick={event => {
+                        this.props.showModal({
+                          modalType: COC_SAMPLE_ACTIONS,
+                          modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber}`, }});
+                    }}>
+                    <VerifyIcon className={classes.iconRegular} />
+                  </IconButton>
+                </span>
               </Tooltip>
               <span className={classes.spacerSmall} />
               <Button

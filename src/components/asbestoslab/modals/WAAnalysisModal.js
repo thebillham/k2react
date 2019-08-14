@@ -76,7 +76,7 @@ class WAAnalysisModal extends React.Component {
         }
       });
     });
-    console.log(sample);
+    //console.log(sample);
     this.setState({
       sample
     });

@@ -78,7 +78,7 @@ export const onUploadFile = ({ file, storagePath }) => async dispatch => {
       });
     },
     error => {
-      console.log(error.code);
+      //console.log(error.code);
     },
     snapshot => {
       uploadTask.snapshot.ref.getDownloadURL().then(url => {
@@ -109,7 +109,7 @@ export const setModalError = error => dispatch => {
 };
 
 export const handleModalChange = target => dispatch => {
-  console.log(target);
+  //console.log(target);
   if (target.id === 'samples') {
     dispatch({
       type: EDIT_MODAL_DOC_SAMPLES,
@@ -169,9 +169,9 @@ export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
     uid = doc.uid;
     pathRef.doc(doc.uid).set(doc);
   } else {
-    // console.log(doc.type);
+    // //console.log(doc.type);
     uid = doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)));
-    // console.log(uid);
+    // //console.log(uid);
     pathRef.doc(uid).set({ ...doc, uid: uid });
   }
   dispatch({ type: RESET_MODAL });

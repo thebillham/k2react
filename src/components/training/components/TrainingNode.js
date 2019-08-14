@@ -7,7 +7,7 @@ import QuizListItem from "./QuizListItem";
 
 function TrainingNode(props) {
   const { node } = props;
-  console.log(node);
+  //console.log(node);
   return (
     <Paper
       style={{

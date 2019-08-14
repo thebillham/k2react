@@ -98,7 +98,7 @@ class MethodModal extends React.Component {
       const contentState = ContentState.createFromBlockArray(
         contentBlock.contentBlocks
       );
-      console.log(EditorState.createWithContent(contentState));
+      //console.log(EditorState.createWithContent(contentState));
       return EditorState.createWithContent(contentState);
     } else {
       return EditorState.createEmpty();

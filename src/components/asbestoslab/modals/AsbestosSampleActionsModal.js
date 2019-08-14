@@ -156,16 +156,16 @@ class AsbestosSampleActionsModal extends React.Component {
       let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.number], ...sample}));
       if (this.props.modalProps.field === 'receivedByLab') checkMap = receiveSamples(checks);
       if (this.props.modalProps.field === 'analysisStart') checkMap = startAnalyses(checks);
-      if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job);
+      if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job, this.props.me.uid);
       let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
       Object.values(checkMap).forEach(check => {
-        console.log(check);
+        //console.log(check);
         if (jobIssues[check.uid] && jobIssues[check.uid].action) checkMap[check.uid] = {
           ...checkMap[check.uid],
           action: jobIssues[check.uid].action,
         };
       });
-      console.log(checkMap);
+      //console.log(checkMap);
       // if (Object.values(checkMap).filter(check => check.action === 'proceed').length === 0) {
       if (Object.values(checkMap).length === 0) {
         // No problems with any samples, do actions
@@ -366,7 +366,7 @@ class AsbestosSampleActionsModal extends React.Component {
           }}>
             {no}
           </Button>
-          <Button size="small" color="primary" disabled={issue.action === 'proceed'} onClick={() => {
+          {issue.type !== 'block' && <Button size="small" color="primary" disabled={issue.action === 'proceed'} onClick={() => {
             this.setState({
               issues: {
                 ...this.state.issues,
@@ -378,7 +378,7 @@ class AsbestosSampleActionsModal extends React.Component {
             });
           }}>
             {yes}
-          </Button>
+          </Button>}
         </CardActions> :
         <CardActions>
           <Button size="small" color="inherit" onClick={() => {

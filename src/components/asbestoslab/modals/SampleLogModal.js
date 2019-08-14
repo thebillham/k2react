@@ -38,9 +38,9 @@ const mapDispatchToProps = dispatch => {
 class SampleLogModal extends React.Component {
   render() {
     const { classes, modalProps, modalType, logs } = this.props;
-    // console.log('Printing modal props');
-    // console.log(JSON.stringify(modalProps));
-    // console.log(modalProps.uid.toString());
+    // //console.log('Printing modal props');
+    // //console.log(JSON.stringify(modalProps));
+    // //console.log(modalProps.uid.toString());
     return (modalType === SAMPLE_HISTORY &&
       <Dialog
         open={modalType === SAMPLE_HISTORY}

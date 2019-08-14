@@ -667,6 +667,7 @@ const styles = theme => ({
     height: 40,
     borderRadius: 20,
     backgroundColor: theme.palette.app.shaded,
+    padding: theme.spacing(1),
     marginRight: theme.spacing(1),
     // marginLeft: theme.spacing(1),
     color: "white",
@@ -849,6 +850,11 @@ const styles = theme => ({
   formSelectDate: {
     width: '140px',
   },
+
+  formSelectDateTime: {
+    width: '200px',
+  },
+
 
   formSelectClient: {
     width: '300px',
@@ -1067,7 +1073,7 @@ const styles = theme => ({
 
   flexRowLeftAlignEllipsis: {
     textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
+    // whiteSpace: "nowrap",
     width: '100%',
     display: 'flex',
     flexDirection: 'row',
@@ -1098,6 +1104,12 @@ const styles = theme => ({
     alignItems: "center",
     justifyContent: "center",
     height: 80.0,
+  },
+
+  flexCenter: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // COLOUR PICKER

@@ -157,17 +157,17 @@ class Staff extends React.Component {
   getEvents = (expanded, calendarid) => {
     if (expanded && calendarid) {
       if (ApiCalendar.sign && !this.state.events[calendarid]) {
-        console.log("Api calendar is signed");
+        //console.log("Api calendar is signed");
         ApiCalendar.listUpcomingEvents(7, calendarid).then(
           ({ result }: any) => {
-            console.log("Results in");
+            //console.log("Results in");
             this.setState({
               events: {
                 ...this.state.events,
                 [calendarid]: result.items
               }
             });
-            console.log(result.items);
+            //console.log(result.items);
           }
         );
       }
@@ -175,9 +175,9 @@ class Staff extends React.Component {
   };
 
   updateAllStaff = () => {
-    console.log("Updating all staff");
+    //console.log("Updating all staff");
     Object.keys(this.props.staff).forEach(userPath => {
-      console.log("Updating " + userPath);
+      //console.log("Updating " + userPath);
       this.props.getUserAttrs(userPath);
     });
   };
@@ -386,7 +386,7 @@ class Staff extends React.Component {
             <div style={{ position: "relative", width: "80vw" }}>
               {filter}
               {staff.length > 0 ? (
-                <div style={{ marginTop: 5 }}>
+                <div className={classes.marginTopSmall}>
                   {staff
                     .filter(user => {
                       return this.filterUser(user);
@@ -432,7 +432,7 @@ class Staff extends React.Component {
                 onClick={() => this.email("Christchurch")}
                 color="primary"
                 variant="outlined"
-                style={{ margin: 12, }}
+                className={classes.marginLeftSmall}
               >
                 Email Christchurch Staff
               </Button>
@@ -563,46 +563,22 @@ class Staff extends React.Component {
                     Tertiary
                   </Grid>
                   <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
+                    <div className={classes.flexRowCenter}>
                       IP402
                     </div>
                   </Grid>
                   <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
+                    <div className={classes.flexRowCenter}>
                       Asbestos Assessor
                     </div>
                   </Grid>
                   <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
+                    <div className={classes.flexRowCenter}>
                       Mask Fit
                     </div>
                   </Grid>
                   <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
+                    <div className={classes.flexRowCenter}>
                       First Aid
                     </div>
                   </Grid>
@@ -626,56 +602,32 @@ class Staff extends React.Component {
                           {user.tertiary}
                         </Grid>
                         <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
+                          <div className={classes.flexRowCenter}>
                             {user.ip402 && <CheckCircleOutline />}
                           </div>
                         </Grid>
                         <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
+                          <div className={classes.flexRowCenter}>
                             {user.aanumber}
                           </div>
                         </Grid>
                         <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
+                          <div className={classes.flexRowCenter}>
                             {user.maskfit &&
                               (user.maskfit === "OK" ? (
                                 <Face />
                               ) : (
-                                <Face style={{ color: "red" }} />
+                                <Face className={classes.iconRegularRed} />
                               ))}
                           </div>
                         </Grid>
                         <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
+                          <div className={classes.flexRowCenter}>
                             {user.firstaid &&
                               (user.firstaid === "OK" ? (
                                 <LocalHospital />
                               ) : (
-                                <LocalHospital style={{ color: "red" }} />
+                                <LocalHospital className={classes.iconRegularRed} />
                               ))}
                           </div>
                         </Grid>

@@ -26,19 +26,19 @@ class TrainingReadingLog extends React.Component {
   }
 
   componentWillMount() {
-    console.log(this.props.logs);
+    //console.log(this.props.logs);
     if (this.props.logs === undefined || this.props.logs.length < 1)
       this.props.fetchReadingLog();
   }
 
   render() {
     const { logs } = this.props;
-    console.log(logs);
+    //console.log(logs);
     return (
       <div style={{ marginTop: 80 }}>
         {logs &&
           logs.map(log => {
-            console.log("Read log: " + log.title);
+            //console.log("Read log: " + log.title);
             return <ReadingLogListItem log={log} key={log.uid} />;
           })}
       </div>

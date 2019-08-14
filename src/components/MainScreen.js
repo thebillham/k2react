@@ -116,8 +116,13 @@ const Library = lazy(() => import("./library/Library"));
 const DocumentViewer = lazy(() => import("./library/DocumentViewer"));
 const K2SignInScreen = lazy(() => import("./K2SignInScreen"));
 
+const {whyDidYouUpdate} = require('why-did-you-update');
 const mapStateToProps = state => {
-  return { state };
+  return {
+    staff: state.local.staff,
+    me: state.local.me,
+    initialLoading: state.display.initialLoading,
+  };
 };
 
 const mapDispatchToProps = dispatch => {
@@ -136,7 +141,8 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class MainScreen extends React.Component {
+class MainScreen extends React.PureComponent {
+  static whyDidYouRender = true;
   constructor(props) {
     super(props);
     this.state = {
@@ -158,7 +164,7 @@ class MainScreen extends React.Component {
     this.props.initConstants();
     this.props.fetchGeocodes();
     // this.props.fetchAssets();
-    if (!this.state.staff) this.props.fetchStaff();
+    if (!this.props.staff) this.props.fetchStaff();
     // this.props.fixIds();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
@@ -457,8 +463,8 @@ class MainScreen extends React.Component {
           <ListItemText primary="Library" />
         </ListItem>
         <Divider />
-        {this.props.state.local.me.auth &&
-          this.props.state.local.me.auth["Admin"] && (
+        {this.props.me.auth &&
+          this.props.me.auth["Admin"] && (
             <div>
               <Divider />
               <ListItem
@@ -466,7 +472,6 @@ class MainScreen extends React.Component {
                 onClick={() => {
                   this.props.showModal({
                     modalType: APP_SETTINGS,
-                    modalProps: { doc: this.props.state.const }
                   });
                 }}
               >
@@ -488,7 +493,7 @@ class MainScreen extends React.Component {
               </ListItem>
             </div>
           )}
-          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.2.0</div>
+          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.2.2</div>
         {/*<Divider />
           <ListItem button onClick={this.handleDevClick}>
             <ListItemIcon>
@@ -590,15 +595,15 @@ class MainScreen extends React.Component {
 
     return (
       <React.Fragment>
-        {this.props.state.display.initialLoading ? (
+        {this.props.initialLoading ? (
           <Suspense fallback={<CircularProgress className={classes.signInCircle} />}>
             <K2SignInScreen mode='loading' />
           </Suspense>
         ) : (
           <div>
             <CssBaseline />
-            {this.props.state.local.me &&
-            this.props.state.local.me.key == process.env.REACT_APP_K2_STAFF_KEY ? (
+            {this.props.me &&
+            this.props.me.key == process.env.REACT_APP_K2_STAFF_KEY ? (
               // && this.props.state.local.staff[auth.currentUser.uid].gmail == auth.currentUser.email)
               <div className={classes.root}>
                 <AppBar

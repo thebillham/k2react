@@ -31,10 +31,10 @@ import {
   DatePicker,
   DateTimePicker,
 } from "@material-ui/pickers";
-import { SuggestionField, SuggestionFieldSamples, } from '../../../widgets/SuggestionField';
+import SuggestionField, { SuggestionFieldSamples, } from '../../../widgets/SuggestionField';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
-import { addLog, } from "../../../actions/local";
+import { addLog, personnelConvert, } from "../../../actions/local";
 import {
   handleSampleChange,
   writeSoilDetails,
@@ -153,7 +153,7 @@ class AsbestosSampleEditModal extends React.Component {
     // Check if this sample has already been analysed
     if (sample.sessionID && sample.sessionID !== sessionID && sample.result && (!this.state.override || !this.state.override[sampleNumber])) {
       if (this.state.override) {
-        console.log(`This state override sample ${!this.state.override[sample.sampleNumber]}`);
+        //console.log(`This state override sample ${!this.state.override[sample.sampleNumber]}`);
       }
       if (window.confirm("This sample has already been analysed. Do you wish to override the result?")) {
         if (!this.state.override) {
@@ -314,12 +314,14 @@ class AsbestosSampleEditModal extends React.Component {
         fullWidth={true}
         onEnter={() => this.loadProps()}
         onExit={() => this.clearProps()}
-        scroll="body"
         disableBackdropClick={true}
       >
         {this.props.asbestosSampleDisplayAdvanced ?
-        <div>
           <DialogTitle>{`Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description})`}</DialogTitle>
+          :
+          <DialogTitle>{`Analysis Details for Job ${this.props.cocs[this.props.modalProps.activeCoc].jobNumber}`}</DialogTitle>
+        }
+        {this.props.asbestosSampleDisplayAdvanced ?
           <DialogContent>
             <Button className={classes.buttonIconText} onClick={() => {
               if (this.state.modified) this.saveSample();
@@ -344,7 +346,7 @@ class AsbestosSampleEditModal extends React.Component {
                       ...this.state.samples,
                       [this.state.activeSample]: {
                         ...this.state.samples[this.state.activeSample],
-                        sampledBy: e.map(staff => staff.value),
+                        sampledBy: personnelConvert(e),
                       }
                     }
                   })}
@@ -353,6 +355,7 @@ class AsbestosSampleEditModal extends React.Component {
                   <DatePicker
                     value={sample.sampleDate ? sample.sampleDate instanceof Date ? sample.sampleDate : sample.sampleDate.toDate() : null}
                     autoOk
+                    className={classes.formSelectDateTime}
                     format="D MMMM YYYY"
                     clearable
                     label="Sample Date"
@@ -372,6 +375,7 @@ class AsbestosSampleEditModal extends React.Component {
                   <DateTimePicker
                     value={sample.receivedDate ? sample.receivedDate instanceof Date ? sample.receivedDate : sample.receivedDate.toDate() : null}
                     autoOk
+                    className={classes.formSelectDateTime}
                     format="D MMMM YYYY, h:mma"
                     clearable
                     label="Date Received"
@@ -386,10 +390,11 @@ class AsbestosSampleEditModal extends React.Component {
                       }
                     })}
                   />
-                  <div className={classes.spacerSmall} />
+                  <div className={classes.spacerMedium} />
                   <DateTimePicker
                     value={sample.analysisStartDate ? sample.analysisStartDate instanceof Date ? sample.analysisStartDate : sample.analysisStartDate.toDate() : null}
                     autoOk
+                    className={classes.formSelectDateTime}
                     format="D MMMM YYYY, h:mma"
                     clearable
                     label="Analysis Start Date"
@@ -409,6 +414,7 @@ class AsbestosSampleEditModal extends React.Component {
                   <DateTimePicker
                     value={sample.analysisDate ? sample.analysisDate instanceof Date ? sample.analysisDate : sample.analysisDate.toDate() : null}
                     autoOk
+                    className={classes.formSelectDateTime}
                     format="D MMMM YYYY, h:mma"
                     clearable
                     label="Analysis Date"
@@ -423,10 +429,11 @@ class AsbestosSampleEditModal extends React.Component {
                       }
                     })}
                   />
-                  <div className={classes.spacerSmall} />
+                  <div className={classes.spacerMedium} />
                   <DateTimePicker
                     value={sample.verifyDate ? sample.verifyDate instanceof Date ? sample.verifyDate : sample.verifyDate.toDate() : null}
                     autoOk
+                    className={classes.formSelectDateTime}
                     format="D MMMM YYYY, h:mma"
                     clearable
                     label="Verify Date"
@@ -442,39 +449,6 @@ class AsbestosSampleEditModal extends React.Component {
                     })}
                   />
                 </div>
-                <div className={classes.subHeading}>Lab Notes</div>
-                {SamplesTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 1, null, null)}
-                {SamplesTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 1, null, null)}
-                {SamplesTextyBox(this, sample, 'labReportComments', null, 'Add a note to be included in the issued report.', true, 1, null, null)}
-
-                {sample.material === 'soil' && <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
-                  <Button
-                    variant="outlined"
-                    style={{ marginBottom: 16, marginTop: 16, textAlign: 'center' }}
-                    onClick={() => {
-                      this.props.showModalSecondary({
-                        modalType: SOIL_DETAILS,
-                        modalProps: {
-                          title: "Edit Soil Details",
-                          doc: sample,
-                          onExit: details => this.setState({
-                            modified: true,
-                            samples: {
-                              ...this.state.samples,
-                              [this.state.activeSample]: {
-                                ...this.state.samples[this.state.activeSample],
-                                soilDetails: details,
-                              }
-                            }
-                          })
-                        }
-                      });
-                    }}
-                  >
-                    Edit Geotechnical Soil Description
-                  </Button>
-                  <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
-                </div>}
               </Grid>
               <Grid item xs={1} />
               <Grid item xs={6}>
@@ -531,6 +505,40 @@ class AsbestosSampleEditModal extends React.Component {
                     {sampleDimensions}
                   </span>}
                 </div>
+
+                <div className={classes.subHeading}>Lab Notes</div>
+                {SamplesTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 1, null, null)}
+                {SamplesTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 1, null, null)}
+                {SamplesTextyBox(this, sample, 'footnote', null, 'Add a footnote to be included in the issued report. This will be displayed as a footnote below the reuslts table.', true, 1, null, null)}
+
+                {sample.material === 'soil' && <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
+                  <Button
+                    variant="outlined"
+                    style={{ marginBottom: 16, marginTop: 16, textAlign: 'center' }}
+                    onClick={() => {
+                      this.props.showModalSecondary({
+                        modalType: SOIL_DETAILS,
+                        modalProps: {
+                          title: "Edit Soil Details",
+                          doc: sample,
+                          onExit: details => this.setState({
+                            modified: true,
+                            samples: {
+                              ...this.state.samples,
+                              [this.state.activeSample]: {
+                                ...this.state.samples[this.state.activeSample],
+                                soilDetails: details,
+                              }
+                            }
+                          })
+                        }
+                      });
+                    }}
+                  >
+                    Edit Geotechnical Soil Description
+                  </Button>
+                  <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
+                </div>}
               </Grid>
             </Grid>
             <Divider />
@@ -607,6 +615,18 @@ class AsbestosSampleEditModal extends React.Component {
               </Grid>
             </Grid>
           </DialogContent>
+          :
+          <DialogContent>
+            <Button className={classes.buttonIconText} onClick={() => {
+              if (this.state.modified) this.saveMultipleSamples();
+              this.props.toggleAsbestosSampleDisplayMode();
+            }}>SWITCH TO ADVANCED VIEW</Button>
+            {Object.values(this.state.samples).map(sample => {
+              return this.getSampleRow(sample);
+            })}
+          </DialogContent>
+        }
+        {this.props.asbestosSampleDisplayAdvanced ?
           <DialogActions>
             <Button onClick={() => this.props.hideModal()} color="secondary">
               Cancel
@@ -624,18 +644,7 @@ class AsbestosSampleEditModal extends React.Component {
               Submit
             </Button>
           </DialogActions>
-        </div> :
-        <div>
-          <DialogTitle>{`Analysis Details for Job ${this.props.cocs[this.props.modalProps.activeCoc].jobNumber}`}</DialogTitle>
-          <DialogContent>
-            <Button className={classes.buttonIconText} onClick={() => {
-              if (this.state.modified) this.saveMultipleSamples();
-              this.props.toggleAsbestosSampleDisplayMode();
-            }}>SWITCH TO ADVANCED VIEW</Button>
-            {Object.values(this.state.samples).map(sample => {
-              return this.getSampleRow(sample);
-            })}
-          </DialogContent>
+          :
           <DialogActions>
             <Button onClick={() => this.props.hideModal()} color="secondary">
               Cancel
@@ -649,7 +658,6 @@ class AsbestosSampleEditModal extends React.Component {
               Submit
             </Button>
           </DialogActions>
-        </div>
         }
         </Dialog>
       );
@@ -724,11 +732,12 @@ class AsbestosSampleEditModal extends React.Component {
               </div>
             </div>
             <div className={classes.columnMedLarge}>
-              {SuggestionField(this, false, 'Description', 'materialSuggestions', layer.description,
-                (value) => {
-                  this.setLayerVar('description', num, value);
-                  }
-              )}
+              <SuggestionField that={this} suggestions='materialSuggestions'
+                defaultValue={layer.description}
+                onModify={(value) => {
+                    this.setLayerVar('description', num, value);
+                  }}
+              />
             </div>
             <div className={classes.verticalCenter}>
               <div className={ classes.colorPickerSwatch } onClick={ () => this.handleColorClick(num) }>
@@ -764,7 +773,7 @@ class AsbestosSampleEditModal extends React.Component {
     let colors = getSampleColors(confirm);
     let match = compareAsbestosResult(confirm, this.state.samples[this.state.activeSample]);
 
-    console.log(colors);
+    //console.log(colors);
 
     return(
       <div key={confirm.date} className={classes.flexRowHoverMed}>

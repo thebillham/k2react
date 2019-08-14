@@ -10,6 +10,7 @@ import { addLog, } from "../../../actions/local";
 
 import { TickyBox, } from '../../../widgets/FormWidgets';
 import Grid from "@material-ui/core/Grid";
+import { getPersonnel, writeDates } from '../../../actions/asbestosLab';
 
 const mapStateToProps = state => {
   return {
@@ -18,21 +19,22 @@ const mapStateToProps = state => {
   };
 };
 
-class AsbestosBulkCocSummary extends React.Component {
+class AsbestosBulkCocSummary extends React.PureComponent {
   // static whyDidYouRender = true;
 
-  shouldComponentUpdate(nextProps) {
-    if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
-    if (this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
-      (this.props.samples && this.props.samples[this.props.job] &&
-      Object.keys(this.props.samples[this.props.job]).length < this.props.cocs[this.props.job].sampleList.length &&
-      Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length)) {
-        return true;
-    } else {
-      // console.log('Blocked re-render of Summary');
-      return false;
-    }
-  }
+  // shouldComponentUpdate(nextProps) {
+  //   // return true;
+  //   if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
+  //   if (this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
+  //     (this.props.samples && this.props.samples[this.props.job] &&
+  //     Object.keys(this.props.samples[this.props.job]).length < this.props.cocs[this.props.job].sampleList.length &&
+  //     Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length)) {
+  //       return true;
+  //   } else {
+  //     // //console.log('Blocked re-render of Summary');
+  //     return false;
+  //   }
+  // }
 
   render() {
     const { samples, classes, analysts, dates } = this.props;
@@ -41,23 +43,17 @@ class AsbestosBulkCocSummary extends React.Component {
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
 
-    // let stats = getStats(samples[job.uid], job);
-    console.log(`${job.jobNumber} summary rendering`);
     return (
       <Grid container direction="row" className={classes.marginTopBottomSmall} alignItems="flex-start" justify="center">
         <Grid item lg={3} xs={6}>
           <span className={classes.headingInline}>Sampled by:</span>{" "}
           <span className={ classes.infoLight }>
-            {job.personnel && job.personnel.length > 0
-              ? job.personnel.join(", ")
-              : "Not specified"}
+            {samples && samples[job.uid] && getPersonnel(Object.values(samples[job.uid]).filter(e => e.cocUid === job.uid), 'sampledBy', null, true).map(e => e.name).join(', ')}
           </span>
           <br />
           <span className={classes.headingInline}>Date(s) Sampled:</span>{" "}
           <span className={ classes.infoLight }>
-            {dates && dates.length > 0
-              ? dates.join(", ")
-              : "Not specified"}
+            {samples && samples[job.uid] && writeDates(Object.values(samples[job.uid]).filter(e => e.cocUid === job.uid), 'sampleDate')}
           </span>
           <br />
           <span className={classes.headingInline}>Analysis by:</span>{" "}

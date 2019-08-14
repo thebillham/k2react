@@ -39,7 +39,7 @@ export const resetAsbestosLab = () => dispatch => {
 //
 
 export const fetchCocs = update => async dispatch => {
-  console.log('Fetching COCs');
+  //console.log('Fetching COCs');
   // Make all calls update for now
   update = true;
   if (update) {
@@ -80,7 +80,7 @@ export const fetchCocs = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_COCS, payload: doc.data() });
       } else {
-        console.log("Coc doesn't exist");
+        //console.log("Coc doesn't exist");
       }
     });
   }
@@ -105,13 +105,13 @@ export const fetchCocsByJobNumber = (jobNumber) => async dispatch => {
 };
 
 export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch => {
-  console.log(client);
-  console.log(startDate);
-  console.log(endDate);
+  //console.log(client);
+  //console.log(startDate);
+  //console.log(endDate);
   if (startDate === "") startDate = moment().subtract(6, 'months').toDate(); else startDate = new Date(startDate);
   if (endDate === "") endDate = new Date(); else endDate = new Date(endDate);
-  console.log(startDate);
-  console.log(endDate);
+  //console.log(startDate);
+  //console.log(endDate);
   if (client !== "") {
     cocsRef
       .where("deleted", "==", false)
@@ -131,7 +131,7 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
         });
       });
   } else {
-    console.log('blank client');
+    //console.log('blank client');
     cocsRef
       .where("deleted", "==", false)
       .where("lastModified", ">=", startDate)
@@ -180,14 +180,14 @@ export const fetchAsbestosAnalysis = update => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_ASBESTOS_ANALYSIS, payload: doc.data() });
       } else {
-        console.log("Asbestos Analysis doesn't exist");
+        //console.log("Asbestos Analysis doesn't exist");
       }
     });
   }
 }
 
 export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
-  console.log('fetching samples');
+  //console.log('fetching samples');
   asbestosSamplesRef
     .where("jobNumber", "==", jobNumber)
     .where("deleted","==",false)
@@ -236,7 +236,7 @@ export const fetchSampleLog = (update) => async dispatch => {
       if (doc.exists) {
         dispatch({ type: GET_SAMPLE_LOG, payload: doc.data() });
       } else {
-        console.log("Sample log doesn't exist");
+        //console.log("Sample log doesn't exist");
       }
     });
 
@@ -274,20 +274,20 @@ export const setSessionID = session => dispatch => {
 //
 
 export const handleCocSubmit = ({ doc, me }) => dispatch => {
-  console.log(doc);
-  // console.log(doc.samples);
+  //console.log(doc);
+  // //console.log(doc.samples);
   let sampleList = [];
   if (doc.samples) {
-    // console.log(doc.samples);
+    // //console.log(doc.samples);
     Object.keys(doc.samples).forEach(sample => {
-      // console.log(sample);
+      // //console.log(sample);
       if (!doc.samples[sample].uid) {
         let uid = `${
           doc.jobNumber
         }-SAMPLE-${sample}-CREATED-${moment().format('x')}-${Math.round(
           Math.random() * 1000
         )}`;
-        // console.log(`UID for new sample is ${uid}`);
+        // //console.log(`UID for new sample is ${uid}`);
         let log = {
           type: 'Create',
           log: `Sample ${sample} (${doc.samples[sample].description} ${doc.samples[sample].material}) created.`,
@@ -300,15 +300,15 @@ export const handleCocSubmit = ({ doc, me }) => dispatch => {
         doc.samples[sample].createdDate = new Date();
         doc.samples[sample].createdBy = {id: me.uid, name: me.name};
         if (!doc.samples[sample].sampleDate && doc.defaultDate !== null) doc.samples[sample].sampleDate = doc.defaultDate;
-        if (!(doc.samples[sample].sampleDate instanceof Date)) doc.samples[sample].sampleDate = doc.samples[sample].sampleDate.toDate();
-        if (!doc.samples[sample].sampledBy && doc.defaultPersonnel.length > 0) doc.samples[sample].sampledBy = doc.defaultPersonnel;
+        if (doc.samples[sample.sampleDate] && !(doc.samples[sample].sampleDate instanceof Date)) doc.samples[sample].sampleDate = doc.samples[sample].sampleDate.toDate();
+        if (!doc.samples[sample].sampledBy && doc.defaultPersonnel.length > 0) doc.samples[sample].sampledBy = doc.defaultPersonnel.value;
         sampleList.push(uid);
       } else {
-        // console.log(`UID for old sample is ${doc.samples[sample].uid}`);
+        // //console.log(`UID for old sample is ${doc.samples[sample].uid}`);
         sampleList.push(doc.samples[sample].uid);
       }
       if (doc.samples[sample].description || doc.samples[sample].material) {
-        // console.log(`Submitting sample ${sample} to ${docid}`);
+        // //console.log(`Submitting sample ${sample} to ${docid}`);
         let sample2 = doc.samples[sample];
         if (sample2.description)
           sample2.description =
@@ -420,7 +420,7 @@ export const logSample = (coc, sample, cocStats) => dispatch => {
 //
 
 export const holdSample = (sample, job, me) => {
-  console.log('Sample on hold');
+  //console.log('Sample on hold');
   let log = {
     type: "Analysis",
     log: sample.onHold
@@ -441,7 +441,7 @@ export const holdSample = (sample, job, me) => {
 }
 
 export const receiveAll = (samples, job, sessionID, me) => {
-  console.log(samples);
+  //console.log(samples);
   if (samples && Object.values(samples).length > 0) {
     Object.values(samples).forEach(sample => {
       if (sample.cocUid === job.uid) {
@@ -452,15 +452,15 @@ export const receiveAll = (samples, job, sessionID, me) => {
 };
 
 export const receiveSample = (sample, job, samples, sessionID, me, startDate) => {
-  console.log('Receiving sample');
-  console.log(sample);
+  //console.log('Receiving sample');
+  //console.log(sample);
   if (sample.receivedByLab && sample.verified) {
     removeResult(sample, sessionID, me);
-    startAnalysis(sample, job, samples, sessionID, me);
+    if (sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
     verifySample(sample, job, samples, sessionID, me);
   } else if (sample.receivedByLab && sample.result) {
     removeResult(sample, sessionID, me);
-    startAnalysis(sample, job, samples, sessionID, me);
+    if (sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
   } else if (sample.receivedByLab && sample.analysisStart) {
     startAnalysis(sample, job, samples, sessionID, me);
   }
@@ -601,6 +601,8 @@ export const startAnalyses = (samples) => {
   // Check for issues
   let uid = '';
   samples.forEach(sample => {
+    //console.log(sample.now);
+    //console.log(sample.original);
     if (!sample.now) {
       if (sample.analysisStart && sample.verified) {
         uid = sample.uid + 'NoAnalysisStart';
@@ -683,7 +685,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
     };
     addLog("asbestosLab", log, me);
   }
-  console.log(sample);
+  //console.log(sample);
   if (sample.verified) verifySample(sample, job, samples, sessionID, me, null);
 
   if (resultChanged) {
@@ -731,8 +733,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
       sampleUID: sample.uid,
       result: sample.result,
       weightReceived: sample.weightReceived ? sample.weightReceived : null,
-      description: sample.description,
-      material: sample.material,
+      description: writeDescription(sample),
       samplers: job.personnel,
       analysisDate: new Date()
     });
@@ -790,7 +791,7 @@ export const removeResult = (sample, sessionID, me) => {
 }
 
 export const verifySample = (sample, job, samples, sessionID, me, startDate, properties) => {
-  console.log('Verifying');
+  //console.log('Verifying');
   if (
     (me.auth &&
     (me.auth["Analysis Checker"] ||
@@ -844,7 +845,7 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate, pro
   }
 };
 
-export const verifySamples = (samples, job) => {
+export const verifySamples = (samples, job, meUid) => {
   let issues = [];
   let uid = '';
   // Check for issues
@@ -873,6 +874,16 @@ export const verifySamples = (samples, job) => {
         };
       }
     } else {
+      if (sample.analysisUser && sample.analysisUser.id === meUid) {
+        uid = sample.uid + 'SameUser';
+        issues[uid] = {
+          type: 'block',
+          description: `You cannot verify this sample as you recorded the result. You will need to get someone else to verify it.`,
+          no: 'OK',
+          sample,
+          uid,
+        };
+      }
       // Check sample if is on hold
       if (sample.onHold) {
         uid = sample.uid + 'OnHold';
@@ -903,6 +914,34 @@ export const verifySamples = (samples, job) => {
         issues[uid] = {
           type: 'confirm',
           description: `No received weight has been recorded. Check with the analyst why this has not been done.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
+          sample,
+          uid,
+        }
+      }
+
+      // Check sampling personnel
+      if (!sample.sampledBy) {
+        uid = sample.uid + 'NoSampledBy';
+        issues[uid] = {
+          type: 'confirm',
+          description: `No sampling personnel recorded for this sample. Check if this is correct.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
+          sample,
+          uid,
+        }
+      }
+
+
+      // Check sampling date
+
+      if (!sample.sampleDate && !(sample.sampledBy && sample.sampledBy[0] && sample.sampledBy[0].value !== 'Client')) {
+        uid = sample.uid + 'NoSampleDate';
+        issues[uid] = {
+          type: 'confirm',
+          description: `No sampling date has been recorded. Check if this is correct.`,
           yes: 'This is correct',
           no: 'This needs fixing',
           sample,
@@ -1316,9 +1355,9 @@ export const printCoc = (job, samples, me, staffList) => {
     personnel: writePersonnelQualFull(getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', staffQualList, true)),
     samples: sampleList
   };
-  console.log(report);
+  //console.log(report);
   let url =
-    "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc.php?report=" +
+    "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php?report=" +
     encodeURIComponent(JSON.stringify(report));
   window.open(url);
 };
@@ -1340,13 +1379,13 @@ export const getStaffQuals = (staffList) => {
 };
 
 export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
-  console.log(samples);
+  //console.log(samples);
   let personnel = {};
   samples &&
     Object.values(samples).forEach(sample => {
         if (sample[field] && (!onlyShowVerified || (onlyShowVerified && sample.verified))) {
           let person = sample[field];
-          console.log(person);
+          //console.log(person);
           if (person instanceof Array) {
             person.forEach(p => {
               personnel[p] = true;
@@ -1356,7 +1395,7 @@ export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
           }
         }
     });
-  console.log(personnel);
+  //console.log(personnel);
   let list = [];
   Object.keys(personnel).forEach(p => {
     let tertiary = null;
@@ -1373,16 +1412,16 @@ export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
       aaNumber,
       ip402,
     };
-    console.log(staffMap);
+    //console.log(staffMap);
     list.push(staffMap);
   });
   if (list.length === 0) return [{name: 'Not specified', tertiary: null, aaNumber: null, ip402: null}];
-  console.log(list);
+  //console.log(list);
   return list;
 };
 
 export const writePersonnelQualFull = personnel => {
-  console.log(personnel);
+  //console.log(personnel);
   return personnel.map(p => {
     if (!p.tertiary && !p.aaNumber && !p.ip402) return p.name;
     let quals = [];
@@ -1407,6 +1446,8 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
         sampleMap["weightReceived"] = sample.weightReceived ? `${sample.weightReceived}g` : 'N/A';
         sampleMap["result"] = writeResult(sample.result, sample.noAsbestosResultReason);
         sampleMap["checks"] = writeChecks(sample);
+        sampleMap["footnote"] = sample.footnote ? sample.footnote : false;
+        sampleMap["conditionings"] = writeConditionings(sample);
         sampleList.push(sampleMap);
       }
     });
@@ -1420,6 +1461,7 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
     receivedDate: writeDates(samplesFiltered, 'receivedDate'),
     analysisDate: writeDates(samplesFiltered, 'analysisDate'),
     personnel: writePersonnelQualFull(getPersonnel(samplesFiltered, 'sampledBy', staffQualList, true)),
+    waAnalysis: job.waAnalysis ? job.waAnalysis : false,
     // assessors: job.personnel.sort().map(staff => {
     //   return aaNumbers[staff];
     // }),
@@ -1427,7 +1469,7 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
     version: version ? version : 1,
     samples: sampleList
   };
-  console.log(report);
+  //console.log(report);
   return report;
 };
 
@@ -1450,15 +1492,15 @@ export const issueLabReport = (job, samples, version, changes, staffList, me) =>
     changes: changes ? changes : 'Not specified',
     data: json,
   };
-  console.log(versionHistory);
+  //console.log(versionHistory);
   let update = {
       currentVersion: version,
       versionHistory: versionHistory,
       versionUpToDate: true,
       lastModified: new Date(),
     };
-  // console.log(update)
-  // console.log(job);
+  // //console.log(update)
+  // //console.log(job);
   cocsRef.doc(job.uid).update(update);
 };
 
@@ -1486,7 +1528,7 @@ export const printLabReport = (job, version, me, showModal) => {
     });
     report = { ...report, versionHistory: versionHistory };
   }
-  console.log(report);
+  //console.log(report);
   showModal({
     modalType: DOWNLOAD_LAB_CERTIFICATE,
     modalProps: {
@@ -1496,7 +1538,7 @@ export const printLabReport = (job, version, me, showModal) => {
   // let url =
   //   "http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
   //   JSON.stringify(report);
-  // console.log(url);
+  // //console.log(url);
   // // this.setState({ url: url });
   // window.open(url);
   // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
@@ -1640,7 +1682,7 @@ export const writeReportDescription = (sample) => {
       }
     });
     if (layArray.length > 0) lines.push(layArray.join(' / '));
-    console.log(layArray);
+    //console.log(layArray);
   }
   let dimensions = '';
   if (report['dimensions'] === true) {
@@ -1730,7 +1772,7 @@ export const getConfirmColor = (sample) => {
   } else if (confirm === 'none') {
     confirmColor = '';
   }
-  console.log(confirmColor);
+  //console.log(confirmColor);
   return confirmColor;
 };
 
@@ -1796,6 +1838,26 @@ export const writeChecks = (sample) => {
     });
   }
   return checks;
+}
+
+export const writeConditionings = (sample) => {
+  let conditioningMap = {
+    dcm: 'Sample prepared in acid solution',
+    flame: 'Sample conditioned with flame',
+    furnace: 'Sample conditioned at ~400­°C',
+    lowHeat: 'Sample conditioned at ~105°C',
+    mortarAndPestle: 'Sample prepared using mortar and pestle',
+    sieved: 'Sample prepared using sieving',
+  };
+  let conditionings = [];
+  if (sample.sampleConditioning) {
+    Object.keys(sample.sampleConditioning).forEach(prep => {
+      if (sample.sampleConditioning[prep]) {
+        conditionings.push(conditioningMap[prep]);
+      }
+    });
+  }
+  return conditionings;
 }
 
 export const getBasicResult = (sample) => {
@@ -2131,8 +2193,8 @@ export const getStatus = (samples, job) => {
 export const getStats = (samples, job) => {
   let jobID = job.uid;
   let versionUpToDate = job.versionUpToDate;
-  // console.log('Getting stats');
-  // console.log(job);
+  // //console.log('Getting stats');
+  // //console.log(job);
   let nz = moment.tz.setDefault("Pacific/Auckland");
   moment.tz.setDefault("Pacific/Auckland");
   moment.updateLocale('en', {
@@ -2362,13 +2424,13 @@ export const writeSampleMoisture = (sample, total) => {
     else preWeight = sample.weightReceived;
   }
   if (sample.weightDry) {
-    console.log(sample.weightDry.includes('<'));
+    //console.log(sample.weightDry.includes('<'));
     if (sample.weightDry.includes('<')) postWeight = '0';
     else postWeight = sample.weightDry;
   }
 
-  console.log(preWeight);
-  console.log(postWeight);
+  //console.log(preWeight);
+  //console.log(postWeight);
 
   if (!preWeight || !postWeight || preWeight == 0 || preWeight < postWeight) return null;
     else return Math.round(((preWeight - postWeight)/preWeight) * 100);
@@ -2389,7 +2451,7 @@ export const writeSampleDimensions = (sample, total) => {
     else if (volCM > 0.1) app += volCM + 'cm³';
     else app = volMM += 'mm³';
   } else if (dims.length === 2) {
-    let areaMM = dims[0] + dims[1];
+    let areaMM = dims[0] * dims[1];
     let areaCM = areaMM / 100;
     let areaM = areaMM / 1000000;
     if (areaM > 1) app += areaM + 'm²';
@@ -2404,7 +2466,7 @@ export const writeSampleDimensions = (sample, total) => {
     else app = lMM + 'mm';
   }
   if (total) return app;
-    else return dims.map(dim => `${dim}mm`).join(' x ') + `(${app})`;
+    else return dims.map(dim => `${dim}mm`).join(' x ') + ` (${app})`;
 }
 
 export const collateLayeredResults = layers => {
@@ -2463,7 +2525,7 @@ export const writeDates = (samples, field) => {
     sortedMap[year][month][day] = true;
   });
 
-  console.log(sortedMap);
+  //console.log(sortedMap);
 
   var monthNames = {
     "January": 1,
@@ -2491,10 +2553,10 @@ export const writeDates = (samples, field) => {
     });
   });
 
-  console.log(dateList.join(', '));
+  //console.log(dateList.join(', '));
   // 17 August 2017, 6, 10, 12, 21, 31 August and 19 September 2019
 
   return dateList.join(', ');
 
-  // console.log(dateMap);
+  // //console.log(dateMap);
 };

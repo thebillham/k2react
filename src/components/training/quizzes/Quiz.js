@@ -64,7 +64,7 @@ class Quiz extends React.Component {
           .doc(quiz.id)
           .get()
           .then(log => {
-            console.log(`Log part done`);
+            //console.log(`Log part done`);
             // get required questions first
             let questions = [];
             const shuffled = quiz

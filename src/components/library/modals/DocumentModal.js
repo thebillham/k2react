@@ -110,7 +110,7 @@ class DocumentModal extends React.Component {
       const contentState = ContentState.createFromBlockArray(
         contentBlock.contentBlocks
       );
-      console.log(EditorState.createWithContent(contentState));
+      //console.log(EditorState.createWithContent(contentState));
       return EditorState.createWithContent(contentState);
     } else {
       return EditorState.createEmpty();
@@ -430,7 +430,7 @@ class DocumentModal extends React.Component {
             let html = draftToHtml(
               convertToRaw(changedState.getCurrentContent())
             );
-            console.log(html);
+            //console.log(html);
             this.props.handleModalChangeStep({
               step: page - 2,
               id: "content",
