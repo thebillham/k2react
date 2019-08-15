@@ -5,7 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import store from "../../../store";
-import { ASBESTOS_NONANALYST_DETAILS, } from "../../../constants/modal-types";
+import { ASBESTOS_SAMPLE_DETAILS, } from "../../../constants/modal-types";
 import { cocsRef, auth } from "../../../config/firebase";
 import "../../../config/tags.css";
 

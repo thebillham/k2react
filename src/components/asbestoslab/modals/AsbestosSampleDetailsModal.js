@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { hotkeys, hotkey_display } from 'react-keyboard-shortcuts';
 import { connect } from "react-redux";
-import { ASBESTOS_NONANALYST_DETAILS, } from "../../../constants/modal-types";
+import { ASBESTOS_SAMPLE_DETAILS, } from "../../../constants/modal-types";
 import "../../../config/tags.css";
 
 import { SampleTextyDisplay, SampleTextyLine, AsbButton, } from '../../../widgets/FormWidgets';
@@ -80,9 +80,9 @@ class AsbestosSampleDetailsModal extends React.Component {
     },
   }
 
-  previousSample = () => {
+  previousSample = samples => {
     let takeThisSample = false;
-    Object.values(this.props.samples[this.props.modalProps.job.uid]).reverse().forEach(sample => {
+    samples.reverse().forEach(sample => {
       if (takeThisSample) {
         //console.log(sample);
         this.props.handleModalChange({id: 'doc', value: {...sample}});
@@ -92,9 +92,9 @@ class AsbestosSampleDetailsModal extends React.Component {
     });
   };
 
-  nextSample = () => {
+  nextSample = samples => {
     let takeThisSample = false;
-    Object.values(this.props.samples[this.props.modalProps.job.uid]).forEach(sample => {
+    samples.forEach(sample => {
       if (takeThisSample) {
         //console.log(sample);
         this.props.handleModalChange({id: 'doc', value: {...sample}});
@@ -113,7 +113,7 @@ class AsbestosSampleDetailsModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType } = this.props;
-    if (modalType === ASBESTOS_NONANALYST_DETAILS) {
+    if (modalType === ASBESTOS_SAMPLE_DETAILS) {
       let sample = modalProps.doc;
       let job = modalProps.job;
 
@@ -172,18 +172,19 @@ class AsbestosSampleDetailsModal extends React.Component {
 
       let sampleMoisture = null;
       if (sample) sampleMoisture = writeSampleMoisture(sample, true);
+      let samples = Object.values(this.props.samples[job.uid]).filter(s => s.cocUid === job.uid);
 
       return (
         <div>
-        {job && sample && modalType === ASBESTOS_NONANALYST_DETAILS &&
+        {job && sample && modalType === ASBESTOS_SAMPLE_DETAILS &&
         <Dialog
-          open={modalType === ASBESTOS_NONANALYST_DETAILS}
+          open={modalType === ASBESTOS_SAMPLE_DETAILS}
           onClose={this.props.hideModal}
           maxWidth="lg"
           fullWidth={true}
         >
           <DialogTitle>{`Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber}`}</DialogTitle>
-          {modalType === ASBESTOS_NONANALYST_DETAILS && <DialogContent>
+          {modalType === ASBESTOS_SAMPLE_DETAILS && <DialogContent>
             <Grid container alignItems='flex-start' justify='flex-end'>
               <Grid item xs={6}>
                 <div className={classes.informationBox}>
@@ -280,7 +281,10 @@ class AsbestosSampleDetailsModal extends React.Component {
                     (sample.layers[`layer3`] !== undefined && Object.keys(sample.layers[`layer3`].result).length > 0) ||
                     (sample.layers[`layer4`] !== undefined && Object.keys(sample.layers[`layer4`].result).length > 0) ||
                     (sample.layers[`layer5`] !== undefined && Object.keys(sample.layers[`layer5`].result).length > 0)) &&
-                    SampleTextyDisplay('Layers', [...Array(sample.layerNum ? sample.layerNum : 5).keys()].filter(num => sample.layers[`layer${num+1}`] && sample.layers[`layer${num+1}`].description !== '' && sample.layers[`layer${num+1}`].description !== undefined).map(num => this.getLayerRow(num+1)))}
+                    SampleTextyDisplay('Layers', [...Array(sample.layerNum ? sample.layerNum : 5).keys()].filter(num => sample.layers[`layer${num+1}`] &&
+                      (sample.layers[`layer${num+1}`].description !== '' && sample.layers[`layer${num+1}`].description !== undefined) ||
+                      (sample.layers[`layer${num+1}`].result && Object.keys(sample.layers[`layer${num+1}`].result).length > 0))
+                      .map(num => this.getLayerRow(num+1)))}
                 </div>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Analysis Details</div>
@@ -299,8 +303,8 @@ class AsbestosSampleDetailsModal extends React.Component {
             </Grid>
           </DialogContent>}
           <DialogActions>
-            <Button onClick={() => this.previousSample()} color="inherit" disabled={job.sampleList[0] == sample.uid}>Previous</Button>
-            <Button onClick={() => this.nextSample()} color="secondary" disabled={job.sampleList[job.sampleList.length - 1] == sample.uid}>Next</Button>
+            <Button onClick={() => this.previousSample(samples)} color="inherit" disabled={samples[0].uid == sample.uid}>Previous</Button>
+            <Button onClick={() => this.nextSample(samples)} color="secondary" disabled={samples[samples.length - 1].uid == sample.uid}>Next</Button>
             <Button onClick={this.props.hideModal} color="primary">OK</Button>
           </DialogActions>
         </Dialog>}

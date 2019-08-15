@@ -72,7 +72,6 @@ class UpdateCertificateVersionModal extends React.Component {
           </Button>
           <Button
             onClick={() => {
-              issueLabReport(modalProps.job, modalProps.samples, modalProps.version, modalProps.doc.changes, this.props.staff, this.props.me);
               this.props.hideModal();
             }}
             color="primary"

@@ -18,11 +18,11 @@ import { AsbestosSampleStatus } from '../../../widgets/DisplayWidgets';
 import { AsbButton } from '../../../widgets/FormWidgets';
 import { showModal } from "../../../actions/modal";
 import {
-  ASBESTOS_SAMPLE_DETAILS,
+  ASBESTOS_SAMPLE_EDIT,
   WA_ANALYSIS,
-  SAMPLE_HISTORY,
+  ASBESTOS_SAMPLE_LOG,
   CONFIRM_RESULT,
-  ASBESTOS_NONANALYST_DETAILS,
+  ASBESTOS_SAMPLE_DETAILS,
 } from "../../../constants/modal-types";
 
 import Grid from "@material-ui/core/Grid";
@@ -155,7 +155,7 @@ class AsbestosSampleListItem extends React.Component {
                   <IconButton
                     onClick={event => {
                         this.props.showModal({
-                          modalType: ASBESTOS_SAMPLE_DETAILS,
+                          modalType: ASBESTOS_SAMPLE_EDIT,
                           modalProps: {
                             activeSample: sample.sampleNumber,
                             activeCoc: job.uid,
@@ -170,7 +170,7 @@ class AsbestosSampleListItem extends React.Component {
                   <IconButton
                     onClick={event => {
                         this.props.showModal({
-                          modalType: ASBESTOS_NONANALYST_DETAILS,
+                          modalType: ASBESTOS_SAMPLE_DETAILS,
                           modalProps: {
                             doc: sample,
                             job: job,
@@ -228,7 +228,7 @@ class AsbestosSampleListItem extends React.Component {
                   <IconButton
                     onClick={event => {
                       this.props.showModal({
-                        modalType: SAMPLE_HISTORY,
+                        modalType: ASBESTOS_SAMPLE_LOG,
                         modalProps: {
                           title: `Sample History for ${
                             job.jobNumber

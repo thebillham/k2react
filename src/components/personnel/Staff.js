@@ -432,7 +432,7 @@ class Staff extends React.Component {
                 onClick={() => this.email("Christchurch")}
                 color="primary"
                 variant="outlined"
-                className={classes.marginLeftSmall}
+                className={classes.marginSidesSmall}
               >
                 Email Christchurch Staff
               </Button>

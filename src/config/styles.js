@@ -677,6 +677,22 @@ const styles = theme => ({
     fontWeight: "bold"
   },
 
+  circleShadedDisabled: {
+    minWidth: 40,
+    maxWidth: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.palette.app.disabled,
+    padding: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    // marginLeft: theme.spacing(1),
+    color: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
   circleShadedHighlighted: {
     minWidth: 40,
     maxWidth: 40,

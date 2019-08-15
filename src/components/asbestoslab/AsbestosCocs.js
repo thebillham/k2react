@@ -12,22 +12,23 @@ import {
 } from "../../actions/asbestosLab";
 import {
   fetchWFMClients,
+  fetchStaff,
 } from "../../actions/local";
 
 //Modals
 import {
-  COC,
+  ASBESTOS_COC_EDIT,
   UPDATE_CERTIFICATE_VERSION,
-  SAMPLE_HISTORY,
+  ASBESTOS_SAMPLE_LOG,
   WA_ANALYSIS,
-  ASBESTOS_SAMPLE_DETAILS,
+  ASBESTOS_SAMPLE_EDIT,
   DOWNLOAD_LAB_CERTIFICATE,
   COC_LOG,
   SOIL_DETAILS,
   ASBESTOS_SAMPLE_EDIT_COC,
   CONFIRM_RESULT,
-  ASBESTOS_NONANALYST_DETAILS,
-  COC_SAMPLE_ACTIONS,
+  ASBESTOS_SAMPLE_DETAILS,
+  ASBESTOS_ACTIONS,
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import CocModal from "./modals/CocModal";
@@ -37,7 +38,7 @@ import SoilDetailsModal from "./modals/SoilDetailsModal";
 import AsbestosSampleEditModal from "./modals/AsbestosSampleEditModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
 import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
-import AsbestosSampleActionsModal from "./modals/AsbestosSampleActionsModal";
+import AsbestosActionsModal from "./modals/AsbestosActionsModal";
 import AsbestosSampleCocEditModal from "./modals/AsbestosSampleCocEditModal";
 import ConfirmResultModal from "./modals/ConfirmResultModal";
 import SampleLogModal from "./modals/SampleLogModal";
@@ -84,6 +85,7 @@ const mapDispatchToProps = dispatch => {
     fetchCocsByJobNumber: jobNumber => dispatch(fetchCocsByJobNumber(jobNumber)),
     fetchCocsBySearch: (client, startDate, endDate) => dispatch(fetchCocsBySearch(client, startDate, endDate)),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
+    fetchStaff: () => dispatch(fetchStaff()),
     showModal: modal => dispatch(showModal(modal)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
     setAnalysisMode: analysisMode => dispatch(setAnalysisMode(analysisMode)),
@@ -115,6 +117,7 @@ class AsbestosCocs extends React.PureComponent {
         if (this.props.analyst !== this.props.me.name) this.props.setAnalyst(this.props.me.name);
       }
     }
+    if (!this.props.staff || Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
   };
 
   // shouldComponentUpdate(nextProps, nextState) {
@@ -150,16 +153,16 @@ class AsbestosCocs extends React.PureComponent {
 
     return (
       <div className={classes.marginTopStandard}>
-        { modalType === COC && <CocModal /> }
+        { modalType === ASBESTOS_COC_EDIT && <CocModal /> }
         { modalType === UPDATE_CERTIFICATE_VERSION && <UpdateCertificateVersionModal /> }
-        { modalType === SAMPLE_HISTORY && <SampleLogModal /> }
+        { modalType === ASBESTOS_SAMPLE_LOG && <SampleLogModal /> }
         { modalType === WA_ANALYSIS && <WAAnalysisModal /> }
-        { modalType === ASBESTOS_SAMPLE_DETAILS && <AsbestosSampleEditModal /> }
+        <AsbestosSampleEditModal />
         { modalType === DOWNLOAD_LAB_CERTIFICATE && <DownloadLabCertificateModal /> }
         { modalType === COC_LOG && <CocLogModal /> }
         { modalType === CONFIRM_RESULT && <ConfirmResultModal /> }
-        { modalType === ASBESTOS_NONANALYST_DETAILS && <AsbestosSampleDetailsModal /> }
-        { modalType === COC_SAMPLE_ACTIONS && <AsbestosSampleActionsModal /> }
+        { modalType === ASBESTOS_SAMPLE_DETAILS && <AsbestosSampleDetailsModal /> }
+        { modalType === ASBESTOS_ACTIONS && <AsbestosActionsModal /> }
         { modalTypeSecondary === SOIL_DETAILS && <SoilDetailsModal /> }
         { modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && <AsbestosSampleCocEditModal /> }
         <Button
@@ -167,7 +170,7 @@ class AsbestosCocs extends React.PureComponent {
           className={classes.marginBottomSmall}
           onClick={() => {
             this.props.showModal({
-              modalType: COC,
+              modalType: ASBESTOS_COC_EDIT,
               modalProps: {
                 title: "Add New Chain of Custody",
                 doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, },

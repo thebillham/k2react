@@ -846,7 +846,7 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate, pro
 };
 
 export const verifySamples = (samples, job, meUid) => {
-  let issues = [];
+  let issues = {};
   let uid = '';
   // Check for issues
   samples.forEach(sample => {
@@ -874,16 +874,16 @@ export const verifySamples = (samples, job, meUid) => {
         };
       }
     } else {
-      if (sample.analysisUser && sample.analysisUser.id === meUid) {
-        uid = sample.uid + 'SameUser';
-        issues[uid] = {
-          type: 'block',
-          description: `You cannot verify this sample as you recorded the result. You will need to get someone else to verify it.`,
-          no: 'OK',
-          sample,
-          uid,
-        };
-      }
+      // if (sample.analysisUser && sample.analysisUser.id === meUid) {
+      //   uid = sample.uid + 'SameUser';
+      //   issues[uid] = {
+      //     type: 'block',
+      //     description: `You cannot verify this sample as you recorded the result. You will need to get someone else to verify it.`,
+      //     no: 'OK',
+      //     sample,
+      //     uid,
+      //   };
+      // }
       // Check sample if is on hold
       if (sample.onHold) {
         uid = sample.uid + 'OnHold';
@@ -1307,7 +1307,7 @@ export const getSampleDetails = sample => {
 // ADMIN/ISSUE
 //
 
-export const printCoc = (job, samples, me, staffList) => {
+export const printCocBulk = (job, samples, me, staffList) => {
   let staffQualList = getStaffQuals(staffList);
   let log = {
     type: "Document",
@@ -1333,8 +1333,8 @@ export const printCoc = (job, samples, me, staffList) => {
         if (sample.disabled) return;
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeCocDescription(sample);
-        sampleMap["material"] =
-          sample.material.charAt(0).toUpperCase() + sample.material.slice(1);
+        sampleMap["material"] = sample.material ?
+          sample.material.charAt(0).toUpperCase() + sample.material.slice(1) : '';
         sampleList.push(sampleMap);
       }
     });
@@ -1352,15 +1352,38 @@ export const printCoc = (job, samples, me, staffList) => {
     warning: warning === '' ? false : warning,
     jobManager: job.manager,
     date: writeDates(Object.values(samples).filter(e => e.cocUid === job.uid), 'sampleDate'),
-    personnel: writePersonnelQualFull(getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', staffQualList, true)),
+    personnel: getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', null, false),
     samples: sampleList
   };
   //console.log(report);
-  let url =
+  let url = job.waAnalysis ?
+    "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php?report=" +
+    encodeURIComponent(JSON.stringify(report))
+    :
     "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php?report=" +
     encodeURIComponent(JSON.stringify(report));
   window.open(url);
 };
+
+export const issueCoc = (samples, job, me) => {
+  let issues = job.issues ? job.issues : {};
+  // Check if any samples have not been checked off and ask the user to verify
+  let allSamplesVerified = true;
+  Object.values(samples[job.uid]).forEach(sample => {
+    if (!sample.verified && sample.cocUid === job.uid) allSamplesVerified = false;
+  });
+  if (!allSamplesVerified) {
+    let uid = job.uid + 'NotAllSamplesVerified';
+    issues[uid] = {
+      type: 'confirm',
+      priority: 'low',
+      description: `Not all samples have been verified. These will not appear in the test certificate.`,
+      sample: null,
+      uid,
+    };
+  }
+  return issues;
+}
 
 export const getStaffQuals = (staffList) => {
   let staffQualList = {};
@@ -1385,7 +1408,7 @@ export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
     Object.values(samples).forEach(sample => {
         if (sample[field] && (!onlyShowVerified || (onlyShowVerified && sample.verified))) {
           let person = sample[field];
-          //console.log(person);
+          // console.log(person);
           if (person instanceof Array) {
             person.forEach(p => {
               personnel[p] = true;
@@ -1629,7 +1652,7 @@ export const writeDescription = (sample) => {
     if (str === '') {
       str = sample.specificLocation;
     } else {
-      str = str + ' - ' + sample.specificLocation;
+      str = str + ', ' + sample.specificLocation;
     }
   }
   if (str !== '') str = str + ': ';

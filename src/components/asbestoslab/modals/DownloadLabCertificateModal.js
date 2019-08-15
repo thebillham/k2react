@@ -62,7 +62,7 @@ class DownloadLabCertificateModal extends React.Component {
               })}
             >
               <FormControlLabel value="bulk" control={<Radio />} label="Bulk ID" />
-              <FormControlLabel value="wa" control={<Radio disabled={modalProps.report.waAnalysis} />} label="WA Analysis" />
+              <FormControlLabel value="wa" control={<Radio disabled={!modalProps.report.waAnalysis} />} label="WA Analysis" />
             </RadioGroup>
           </FormControl>
           <FormControl component="fieldset" className={classes.formControl}>

@@ -202,7 +202,7 @@ function StaffCard(props) {
                               (all day)
                             </span>
                           ) : (
-                            <span>{moment(Date.parse(event.start.dateTime)).format('D MMMM, h:ma')}{" "}</span>
+                            <span>{moment(Date.parse(event.start.dateTime)).format('D MMMM, h:mma')}{" "}</span>
                           )
                         }
                       />

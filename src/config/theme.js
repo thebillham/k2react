@@ -41,6 +41,7 @@ export default createMuiTheme({
       hover: '#eee',
       hoverHighlight: '#eec',
       highlight: '#ffd',
+      disabled: '#ddd',
       shaded: '#aaa',
       shadedHighlighted: '#004c2f',
     },

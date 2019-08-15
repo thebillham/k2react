@@ -3,7 +3,7 @@ import { withStyles, } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import classNames from 'classnames';
-import { ASBESTOS_SAMPLE_DETAILS, SOIL_DETAILS, } from "../../../constants/modal-types";
+import { ASBESTOS_SAMPLE_EDIT, SOIL_DETAILS, } from "../../../constants/modal-types";
 import "../../../config/tags.css";
 
 import { SamplesTickyBox, SamplesTextyBox, SamplesRadioSelector, SamplesTickyBoxGroup, AsbButton, } from '../../../widgets/FormWidgets';
@@ -31,7 +31,7 @@ import {
   DatePicker,
   DateTimePicker,
 } from "@material-ui/pickers";
-import SuggestionField, { SuggestionFieldSamples, } from '../../../widgets/SuggestionField';
+import SuggestionField from '../../../widgets/SuggestionField';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
 import { addLog, personnelConvert, } from "../../../actions/local";
@@ -90,29 +90,41 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+const initState = {
+  activeSample: 1,
+  samples: {},
+  displayColorPicker: {},
+  modified: false,
+  genericLocationSuggestions: [],
+  specificLocationSuggestions: [],
+  descriptionSuggestions: [],
+  materialSuggestions: [],
+  result: {},
+  override: null,
+};
+
 class AsbestosSampleEditModal extends React.Component {
-  state = {
-    activeSample: 1,
-    samples: {},
-    displayColorPicker: {},
-    modified: false,
-    genericLocationSuggestions: [],
-    specificLocationSuggestions: [],
-    descriptionSuggestions: [],
-    materialSuggestions: [],
-    result: {},
-    override: null,
-  };
+  state = initState;
 
   loadProps = () => {
+    console.log('loading props');
     let activeSample = this.props.modalProps.activeSample;
-    let samples = this.props.samples[this.props.modalProps.activeCoc];
+    let samples = {};
+    console.log(this.props.samples[this.props.modalProps.activeCoc]);
+    console.log(this.props.modalProps.activeCoc);
+    Object.values(this.props.samples[this.props.modalProps.activeCoc]).filter(s => s.cocUid === this.props.modalProps.activeCoc)
+      .forEach(s => {
+        console.log(s);
+        samples[s.sampleNumber] = s;
+      });
+    console.log(samples);
     if (samples[activeSample].layers === undefined) samples[activeSample].layers = {};
     [...Array(layerNum).keys()].forEach(num => {
       if (samples[activeSample].layers[`layer${num+1}`] === undefined) {
         samples[activeSample].layers[`layer${num+1}`] = { color: defaultColor, result: {}, };
       }
     });
+    console.log(samples);
     this.setState({
       activeSample,
       samples,
@@ -121,7 +133,8 @@ class AsbestosSampleEditModal extends React.Component {
   }
 
   clearProps = () => {
-    this.setState({ sample: {}, displayColorPicker: {}, modified: false, override: null, });
+    console.log('clearing props');
+    this.setState(initState);
   }
 
   handleColorClick = (num) => {
@@ -296,7 +309,9 @@ class AsbestosSampleEditModal extends React.Component {
     const { classes, modalProps, modalType, samples } = this.props;
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
-    if (modalType === ASBESTOS_SAMPLE_DETAILS) {
+    // if (modalType === ASBESTOS_SAMPLE_EDIT) {
+      console.log(this.state.samples);
+      console.log(this.state.activeSample);
       let sample = this.state.samples[this.state.activeSample];
       let sampleDimensions = null;
       let sampleMoisture = null;
@@ -308,7 +323,7 @@ class AsbestosSampleEditModal extends React.Component {
       let colors = getSampleColors(this.state.samples[this.state.activeSample]);
       return (
       <Dialog
-        open={modalType === ASBESTOS_SAMPLE_DETAILS}
+        open={modalType === ASBESTOS_SAMPLE_EDIT}
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
@@ -317,11 +332,11 @@ class AsbestosSampleEditModal extends React.Component {
         disableBackdropClick={true}
       >
         {this.props.asbestosSampleDisplayAdvanced ?
-          <DialogTitle>{`Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description})`}</DialogTitle>
+          <DialogTitle>{sample ? `Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber} ${writeDescription(sample)}` : 'Analysis Details'}</DialogTitle>
           :
-          <DialogTitle>{`Analysis Details for Job ${this.props.cocs[this.props.modalProps.activeCoc].jobNumber}`}</DialogTitle>
+          <DialogTitle>{this.props.cocs[this.props.modalProps.activeCoc] ? `Analysis Details for Job ${this.props.cocs[this.props.modalProps.activeCoc].jobNumber}` : 'Analysis Details'}</DialogTitle>
         }
-        {this.props.asbestosSampleDisplayAdvanced ?
+        {this.props.asbestosSampleDisplayAdvanced ? sample &&
           <DialogContent>
             <Button className={classes.buttonIconText} onClick={() => {
               if (this.state.modified) this.saveSample();
@@ -330,10 +345,74 @@ class AsbestosSampleEditModal extends React.Component {
             <Grid container alignItems='flex-start' justify='flex-end'>
               <Grid item xs={5}>
                 <div className={classes.subHeading}>Basic Information</div>
-                {SuggestionFieldSamples(this, this.state.activeSample, false, 'Generic Location', 'genericLocation')}
-                {SuggestionFieldSamples(this, this.state.activeSample, false, 'Specific Location', 'specificLocation')}
-                {SuggestionFieldSamples(this, this.state.activeSample, false, 'Description', 'description')}
-                {SuggestionFieldSamples(this, this.state.activeSample, false, 'Material', 'material')}
+                  <SuggestionField that={this} label='Generic Location' suggestions='genericLocationSuggestions'
+                    value={sample.genericLocation ? sample.genericLocation : ''}
+                    defaultValue=''
+                    controlled={true}
+                    onModify={(value) => {
+                      this.setState({
+                        modified: true,
+                        samples: {
+                          ...this.state.samples,
+                          [this.state.activeSample]: {
+                            ...this.state.samples[this.state.activeSample],
+                            genericLocation: value,
+                          },
+                        },
+                      })
+                    }}
+                  />
+                  <SuggestionField that={this} label='Specific Location' suggestions='specificLocationSuggestions'
+                    value={sample.specificLocation ? sample.specificLocation : ''}
+                    defaultValue=''
+                    controlled={true}
+                    onModify={(value) => {
+                      this.setState({
+                        modified: true,
+                        samples: {
+                          ...this.state.samples,
+                          [this.state.activeSample]: {
+                            ...this.state.samples[this.state.activeSample],
+                            specificLocation: value,
+                          },
+                        },
+                      })
+                    }}
+                  />
+                  <SuggestionField that={this} label='Generic Location' suggestions='descriptionSuggestions'
+                    value={sample.description ? sample.description : ''}
+                    defaultValue=''
+                    controlled={true}
+                    onModify={(value) => {
+                      this.setState({
+                        modified: true,
+                        samples: {
+                          ...this.state.samples,
+                          [this.state.activeSample]: {
+                            ...this.state.samples[this.state.activeSample],
+                            description: value,
+                          },
+                        },
+                      })
+                    }}
+                  />
+                  <SuggestionField that={this} label='Specific Location' suggestions='materialSuggestions'
+                    value={sample.material ? sample.material : ''}
+                    defaultValue=''
+                    controlled={true}
+                    onModify={(value) => {
+                      this.setState({
+                        modified: true,
+                        samples: {
+                          ...this.state.samples,
+                          [this.state.activeSample]: {
+                            ...this.state.samples[this.state.activeSample],
+                            material: value,
+                          },
+                        },
+                      })
+                    }}
+                  />
                 <InputLabel className={classes.marginTopSmall}>Sampled By</InputLabel>
                 <Select
                   isMulti
@@ -626,15 +705,15 @@ class AsbestosSampleEditModal extends React.Component {
             })}
           </DialogContent>
         }
-        {this.props.asbestosSampleDisplayAdvanced ?
+        {this.props.asbestosSampleDisplayAdvanced && sample ?
           <DialogActions>
             <Button onClick={() => this.props.hideModal()} color="secondary">
               Cancel
             </Button>
             <Button onClick={() => this.previousSample()} color="inherit"
-              disabled={modalProps.sampleList && modalProps.sampleList[0] == sample.uid}>Previous</Button>
+              disabled={this.state.samples && Object.values(this.state.samples)[0].uid == sample.uid}>Previous</Button>
             <Button onClick={() => this.nextSample()} color="secondary"
-              disabled={modalProps.sampleList && modalProps.sampleList[modalProps.sampleList.length - 1] == sample.uid}>Next</Button>
+              disabled={this.state.samples && Object.values(this.state.samples)[Object.keys(this.state.samples).length - 1].uid == sample.uid}>Next</Button>
             <Button onClick={() => {
                 if (this.state.modified) this.saveSample();
                 this.props.hideModal();
@@ -661,7 +740,7 @@ class AsbestosSampleEditModal extends React.Component {
         }
         </Dialog>
       );
-    } else return null;
+    // } else return null;
   }
 
   getSampleRow = (sample) => {

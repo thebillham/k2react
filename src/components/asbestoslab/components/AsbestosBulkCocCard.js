@@ -11,7 +11,7 @@ import {
   deleteCoc,
   startAnalysisAll,
   receiveAll,
-  printCoc,
+  printCocBulk,
   printLabReport,
   issueLabReport,
   getPersonnel,
@@ -20,10 +20,10 @@ import {
 import { syncJobWithWFM, } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
 import {
-  ASBESTOS_SAMPLE_DETAILS,
-  COC,
+  ASBESTOS_SAMPLE_EDIT,
+  ASBESTOS_COC_EDIT,
   COC_STATS,
-  COC_SAMPLE_ACTIONS,
+  ASBESTOS_ACTIONS,
   UPDATE_CERTIFICATE_VERSION,
   COC_LOG,
   COC_ISSUES,
@@ -83,7 +83,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosBulkCocCard extends React.PureComponent {
+class AsbestosBulkCocCard extends React.Component {
   // static whyDidYouRender = true;
   state = {
     samples: {},
@@ -104,19 +104,27 @@ class AsbestosBulkCocCard extends React.PureComponent {
     this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };
 
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
-  //   if ((nextProps.samples && nextProps.samples[nextProps.job] && this.props.samples && this.props.samples[this.props.job] &&
-  //   (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length ||
-  //   Object.keys(nextProps.samples[nextProps.job]).length !== Object.keys(this.props.samples[this.props.job]).length)) ||
-  //   this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
-  //   this.state !== nextState
-  //  ) {
-  //     return true;
-  //   } else {
-  //     return false;
-  //   }
-  // }
+  shouldComponentUpdate(nextProps, nextState) {
+    if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
+    if (nextState.expanded === false) return false;
+    return true;
+
+    // if (nextProps.samples && nextProps.samples[nextProps.job] && this.props.samples && this.props.samples[this.props.job]) {
+    //   if (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length ||
+    //   this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
+    //   // this.props.samples[this.props.job] !== nextProps.samples[nextProps.job] ||
+    //   this.state !== nextState)
+    //   {
+    //     return true;
+    //   } else {
+    //     console.log('first not');
+    //     return true;
+    //   }
+    // } else {
+    //   console.log('second not');
+    //   return false;
+    // }
+  }
 
   sampleAnchorMenu = (number, target) => {
     this.setState({
@@ -146,13 +154,19 @@ class AsbestosBulkCocCard extends React.PureComponent {
       let formatDate = date instanceof Date ? date : date.toDate();
       return moment(formatDate).format('D MMMM YYYY');
     });
-    //console.log(`${job.jobNumber} rendering`);
+    console.log(`${job.jobNumber} rendering`);
+    let filteredSamples = {};
+    if (samples && samples[job.uid]) {
+      Object.values(samples[job.uid]).filter(s => !s.deleted && s.cocUid === job.uid).forEach(s => {
+        filteredSamples[s.sampleNumber] = s;
+      });
+    }
     getStatus(samples[job.uid], job);
     return (
       <ExpansionPanel
         className={classes.fullWidth}
         onChange={(event, ex) => {
-          if (!this.props.samples[this.props.job]) this.getSamples(ex, job.uid, job.jobNumber);
+          if (!samples[this.props.job]) this.getSamples(ex, job.uid, job.jobNumber);
           this.setState({ expanded: ex });
         }}
       >
@@ -174,10 +188,10 @@ class AsbestosBulkCocCard extends React.PureComponent {
                   onClick={() => {
                     this.props.syncJobWithWFM(job.jobNumber);
                     this.props.showModal({
-                      modalType: COC,
+                      modalType: ASBESTOS_COC_EDIT,
                       modalProps: {
                         title: "Edit Chain of Custody",
-                        doc: { ...job, samples: samples[job.uid] === undefined ? {} : {...samples[job.uid]} }
+                        doc: { ...job, samples: {...filteredSamples} }
                       }
                     });
                   }}>
@@ -185,42 +199,42 @@ class AsbestosBulkCocCard extends React.PureComponent {
                 </IconButton>
               </Tooltip>
               <Tooltip title={'Print Chain of Custody'}>
-                <IconButton onClick={() => {printCoc(job, samples[job.uid], this.props.me, this.props.staff)}}>
+                <IconButton onClick={() => {printCocBulk(job, filteredSamples, this.props.me, this.props.staff)}}>
                   <PrintCocIcon className={classes.iconRegular} />
                 </IconButton>
               </Tooltip>
-              <Tooltip id="reca-tooltip" title={'Receive Samples'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+              <Tooltip id="reca-tooltip" title={'Receive Samples'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
                 <span>
-                  <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
                     onClick={event => {
                         this.props.showModal({
-                          modalType: COC_SAMPLE_ACTIONS,
+                          modalType: ASBESTOS_ACTIONS,
                           modalProps: { job: job, field: 'receivedByLab', title: `Receive Samples for ${job.jobNumber}`, }});
                     }}>
                     <ReceiveIcon className={classes.iconRegular} />
                   </IconButton>
                 </span>
               </Tooltip>
-              <Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+              <Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
                 <span>
-                  <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
                     onClick={event => {
                         this.props.showModal({
-                          modalType: COC_SAMPLE_ACTIONS,
+                          modalType: ASBESTOS_ACTIONS,
                           modalProps: { job: job, field: 'analysisStart', title: `Start Analysis on ${job.jobNumber}`, }});
                     }}>
                     <StartAnalysisIcon className={classes.iconRegular} />
                   </IconButton>
                 </span>
               </Tooltip>
-              <Tooltip title={'Record Analysis'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+              <Tooltip title={'Record Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
                 <span>
-                  <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
+                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
                     onClick={event => {
                         this.props.showModal({
-                          modalType: ASBESTOS_SAMPLE_DETAILS,
+                          modalType: ASBESTOS_SAMPLE_EDIT,
                           modalProps: {
-                            activeSample: Object.keys(samples[job.uid])[0],
+                            activeSample: Object.keys(filteredSamples)[0],
                             activeCoc: job.uid,
                             sampleList: job.sampleList,
                         }});
@@ -229,12 +243,12 @@ class AsbestosBulkCocCard extends React.PureComponent {
                   </IconButton>
                 </span>
               </Tooltip>
-              <Tooltip title={'Verify Results'} disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}>
+              <Tooltip title={'Verify Results'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
                 <span>
-                  <IconButton disabled={!samples[job.uid] || Object.values(samples[job.uid]).length === 0}
+                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
                     onClick={event => {
                         this.props.showModal({
-                          modalType: COC_SAMPLE_ACTIONS,
+                          modalType: ASBESTOS_ACTIONS,
                           modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber}`, }});
                     }}>
                     <VerifyIcon className={classes.iconRegular} />
@@ -246,28 +260,11 @@ class AsbestosBulkCocCard extends React.PureComponent {
                 className={classes.buttonIconText}
                 // disabled={job.versionUpToDate}
                 onClick={() => {
-                  // Check if any samples have not been checked off and ask the user to verify
-                  let allSamplesVerified = true;
-                  Object.values(samples[job.uid]).forEach(sample => {
-                    if (!sample.verified && sample.cocUid === job.uid) allSamplesVerified = false;
+                  this.props.showModal({
+                    modalType: ASBESTOS_ACTIONS,
+                    modalProps: { job: job, field: 'issue', title: `Issue ${job.jobNumber}`, }
                   });
-                  if (
-                    !allSamplesVerified &&
-                    !window.confirm(
-                      "Not all sample results in the chain of custody have been verified. These will not be included in this issue. Proceed with issuing?"
-                    )
-                  )
-                    return;
-                  if (job.currentVersion) {
-                    this.props.showModal({
-                      modalType: UPDATE_CERTIFICATE_VERSION,
-                      modalProps: {job: job, samples: samples[job.uid], version: version, doc: { changes: ""}}
-                    });
-                  } else {
-                    issueLabReport(job, samples[job.uid], 1, "First issue.", this.props.staff, this.props.me);
-                  }
-                }}
-              >
+                }} >
                 <IssueVersionIcon className={classes.iconRegular} />
                 Issue Version {version}
               </Button>
@@ -352,18 +349,17 @@ class AsbestosBulkCocCard extends React.PureComponent {
                 </MenuItem>
               </Menu>
             </div>
-            <AsbestosBulkCocSummary job={job.uid} analysts={analysts} dates={dates} />
-            {samples[job.uid] && Object.values(samples[job.uid]).filter(el => el.deleted === false).length > 0 ? (
+            <AsbestosBulkCocSummary job={job.uid} analysts={analysts} dates={dates} expanded={this.state.expanded} />
+            {filteredSamples && Object.values(filteredSamples).length > 0 ? (
               <div>
-                {Object.values(samples[job.uid]).filter(el => el.deleted === false && samples[job.uid][el.sampleNumber] !== undefined)
+                {Object.values(filteredSamples)
                   .map(sample => {
                     return (<AsbestosSampleListItem
                       key={sample.uid}
                       job={job.uid}
                       sample={sample.sampleNumber}
                     />);
-                  }
-                )}
+                })}
               </div>
             ) : (
               <div className={classes.marginTopSmall}>

@@ -5,7 +5,7 @@ import { styles } from '../../../config/styles';
 import { connect } from 'react-redux';
 import classNames from 'classnames';
 // import store from '../../store';
-import { COC, ASBESTOS_SAMPLE_EDIT_COC, } from '../../../constants/modal-types';
+import { ASBESTOS_COC_EDIT, ASBESTOS_SAMPLE_EDIT_COC, } from '../../../constants/modal-types';
 import moment from "moment";
 // import { sendSlackMessage } from '../../Slack';
 
@@ -187,7 +187,7 @@ class CocModal extends React.PureComponent {
 
   render() {
     const { modalProps, modalType, doc, wfmJob, classes, me } = this.props;
-    if (modalType === COC) {
+    if (modalType === ASBESTOS_COC_EDIT) {
       const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
       if (!doc.dates) doc.dates = [];
@@ -199,13 +199,9 @@ class CocModal extends React.PureComponent {
       if (doc && doc.samples) sampleNumbers = sampleNumbers.concat(Object.keys(doc.samples).map(key => parseInt(key)));
       let numberOfSamples = Math.max(...sampleNumbers);
 
-      //console.log(`https://my.workflowmax.com/job/jobview.aspx?id=${doc ? doc.wfmID : wfmJob.wfmID}`);
-      //console.log(wfmJob);
-      //console.log(doc);
-
       return(
         <Dialog
-          open={ modalType === COC }
+          open={ modalType === ASBESTOS_COC_EDIT }
           onClose = {() => this.props.hideModal()}
           fullScreen = { true }
           maxWidth = "lg"
@@ -403,11 +399,12 @@ class CocModal extends React.PureComponent {
                 </div>
 
                 {Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
+                  let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
                   return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
-                    <div className={classes.flexRowHover} key={i}>
+                    <div className={disabled ? classes.flexRowHoverFat : classes.flexRowHover} key={i}>
                       <div className={classes.spacerSmall} />
                       <div className={classes.columnSmall}>
-                        <div className={classes.circleShaded}>
+                        <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
                           {i+1}
                         </div>
                       </div>
@@ -431,7 +428,7 @@ class CocModal extends React.PureComponent {
                           moment(doc.samples[i+1].sampleDate instanceof Date ? doc.samples[i+1].sampleDate : doc.samples[i+1].sampleDate.toDate()).format('ddd, D MMMM YYYY') : ''}
                       </div>
                       <div className={classes.columnSmall}>
-                        {!(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid) && <IconButton onClick={() =>
+                        {!disabled && <IconButton onClick={() =>
                           this.props.showModalSecondary({
                             modalType: ASBESTOS_SAMPLE_EDIT_COC,
                             modalProps: {
@@ -524,7 +521,7 @@ class CocModal extends React.PureComponent {
                           onChange={e => {
                             let defaultPersonnel = this.state.defaultPersonnel;
                             let personnelSelected = this.state.personnelSelected;
-                            let sampledBy = [];
+                            let sampledBy = personnelConvert(e);
 
                             if (personnelSelected === false) {
                               personnelSelected = i;
@@ -539,7 +536,7 @@ class CocModal extends React.PureComponent {
                             }
 
                             this.setState({ modified: true, personnelSelected, defaultPersonnel});
-                            this.props.handleSampleChange(i, {reported: false, sampledBy: personnelConvert(e)});
+                            this.props.handleSampleChange(i, {reported: false, sampledBy});
                           }}
                         />
                       </div>
