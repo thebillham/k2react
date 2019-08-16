@@ -41,7 +41,7 @@ const mapStateToProps = state => {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
-    categories: state.const.noticecategories,
+    categories: state.const.noticeCategories,
     questions: state.local.questions
   };
 };

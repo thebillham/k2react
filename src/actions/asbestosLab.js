@@ -1097,6 +1097,48 @@ export const verifySamples = (samples, job, meUid) => {
   return issues;
 };
 
+export const checkTestCertificateIssue = (samples, job, meUid) => {
+  let filteredSamples = [];
+  if (samples) {
+    filteredSamples = Object.values(samples).filter(sample => sample.cocUid === job.uid && !sample.deleted).map(sample => ({...sample, now: sample.verified, original: sample.verified }));
+  }
+
+  let issues = verifySamples(filteredSamples, job, meUid);
+  // Check if any samples have not been checked off and ask the user to verify
+  let allSamplesVerified = true;
+
+  filteredSamples.forEach(sample => {
+    if (!sample.verified && sample.cocUid === job.uid) allSamplesVerified = false;
+  });
+
+  if (!allSamplesVerified) {
+    let uid = job.uid + 'NotAllSamplesVerified';
+    issues[uid] = {
+      type: 'confirm',
+      priority: 'low',
+      description: `Not all samples have been verified. These will not appear in the test certificate.`,
+      sample: null,
+      uid,
+      yes: 'This is correct',
+      no: 'This needs fixing',
+    };
+  }
+
+  // If new version, prompt for version change
+  if (job.currentVersion) {
+    let uid = 'versionChanges';
+    issues[uid] = {
+      type: 'confirm',
+      description: 'Please provide a description of the changes made since the last version issued. This will appear on the test certifcate.',
+      sample: null,
+      uid,
+      yes: 'OK',
+      no: 'Cancel',
+    }
+  }
+  return issues;
+}
+
 
 //
 // WA ANALYSIS/SAMPLE DETAILS
@@ -1365,26 +1407,6 @@ export const printCocBulk = (job, samples, me, staffList) => {
   window.open(url);
 };
 
-export const issueCoc = (samples, job, me) => {
-  let issues = job.issues ? job.issues : {};
-  // Check if any samples have not been checked off and ask the user to verify
-  let allSamplesVerified = true;
-  Object.values(samples[job.uid]).forEach(sample => {
-    if (!sample.verified && sample.cocUid === job.uid) allSamplesVerified = false;
-  });
-  if (!allSamplesVerified) {
-    let uid = job.uid + 'NotAllSamplesVerified';
-    issues[uid] = {
-      type: 'confirm',
-      priority: 'low',
-      description: `Not all samples have been verified. These will not appear in the test certificate.`,
-      sample: null,
-      uid,
-    };
-  }
-  return issues;
-}
-
 export const getStaffQuals = (staffList) => {
   let staffQualList = {};
   let aaNumbers = {};
@@ -1466,6 +1488,7 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
         if (sample.disabled || sample.onHold) return;
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeReportDescription(sample);
+        sampleMap["category"] = getSampleCategory(sample);
         sampleMap["weightReceived"] = sample.weightReceived ? `${sample.weightReceived}g` : 'N/A';
         sampleMap["result"] = writeResult(sample.result, sample.noAsbestosResultReason);
         sampleMap["checks"] = writeChecks(sample);
@@ -1496,7 +1519,10 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
   return report;
 };
 
-export const issueLabReport = (job, samples, version, changes, staffList, me) => {
+export const issueTestCertificate = (job, samples, version, changes, staffList, me) => {
+  console.log(staffList);
+  console.log(me);
+  console.log(changes);
   // first check all samples have been checked
   // if not version 1, prompt for reason for new version
   let json = writeVersionJson(job, samples, version, staffList, me);
@@ -1722,6 +1748,12 @@ export const writeReportDescription = (sample) => {
   // }
   if (dimensions.length > 0) lines.push(dimensions);
   return lines.join('@~');
+}
+
+export const getSampleCategory = sample => {
+  if (sample.category) return sample.category;
+  // Could add in some logic here to try find the category against a dictionary of material -> category
+  return 'Other';
 }
 
 export const writeCocDescription = (sample) => {
@@ -2172,8 +2204,8 @@ export const getStatus = (samples, job) => {
   let numberResult = 0;
   let numberVerified = 0;
 
-  if (samples && Object.values(samples).length > 0) {
-    Object.values(samples).forEach(sample => {
+  if (samples && samples.length > 0) {
+    samples.forEach(sample => {
       if (sample.cocUid === jobID) {
         totalSamples = totalSamples + 1;
         if (sample.receivedByLab) numberReceived = numberReceived + 1;

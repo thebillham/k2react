@@ -135,7 +135,7 @@ class SuggestionField extends React.PureComponent {
       }}
       inputProps={{
         disabled: this.props.disabled,
-        value: this.props.controlled ? this.props.value : this.state.value ? this.state.value : '',
+        value: this.props.controlled ? this.props.value ? this.props.value : '' : this.state.value ? this.state.value : '',
         onChange: e => {this.props.controlled ? this.props.onModify(e.target.value): this.setState({ value: e.target.value })},
         onBlur: e => {this.props.onModify(e.target.value)},
         label: this.props.label,

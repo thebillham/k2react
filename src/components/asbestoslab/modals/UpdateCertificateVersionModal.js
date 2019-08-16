@@ -6,7 +6,7 @@ import { connect } from "react-redux";
 import store from "../../../store";
 import { UPDATE_CERTIFICATE_VERSION } from "../../../constants/modal-types";
 import { docsRef } from "../../../config/firebase";
-import { issueLabReport } from "../../../actions/asbestosLab";
+import { issueTestCertificate } from "../../../actions/asbestosLab";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";

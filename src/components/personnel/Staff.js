@@ -45,7 +45,7 @@ const mapStateToProps = state => {
     me: state.local.me,
     search: state.local.search,
     offices: state.const.offices,
-    contacts: state.const.officecontacts,
+    contacts: state.const.officeContacts,
     permissions: state.const.permissions,
     qualificationtypes: state.const.qualificationtypes,
     tab: state.display.tabStaff,

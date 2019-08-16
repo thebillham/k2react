@@ -13,7 +13,7 @@ import {
   receiveAll,
   printCocBulk,
   printLabReport,
-  issueLabReport,
+  issueTestCertificate,
   getPersonnel,
   getStatus,
 } from "../../../actions/asbestosLab";
@@ -161,7 +161,7 @@ class AsbestosBulkCocCard extends React.Component {
         filteredSamples[s.sampleNumber] = s;
       });
     }
-    getStatus(samples[job.uid], job);
+    getStatus(filteredSamples, job);
     return (
       <ExpansionPanel
         className={classes.fullWidth}
@@ -191,7 +191,7 @@ class AsbestosBulkCocCard extends React.Component {
                       modalType: ASBESTOS_COC_EDIT,
                       modalProps: {
                         title: "Edit Chain of Custody",
-                        doc: { ...job, samples: {...filteredSamples} }
+                        doc: { ...job, samples: samples[job.uid] }
                       }
                     });
                   }}>

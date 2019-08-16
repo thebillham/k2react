@@ -49,7 +49,7 @@ class QCAnalysisModal extends React.Component {
           </Button>
           <Button
             onClick={() => {
-              modalProps.issueLabReport(
+              modalProps.issueTestCertificate(
                 modalProps.doc.version,
                 modalProps.doc.changes
               );

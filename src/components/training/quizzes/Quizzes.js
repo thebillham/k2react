@@ -29,7 +29,7 @@ const mapStateToProps = state => {
   return {
     quizzes: state.local.quizzes,
     questions: state.local.questions,
-    categories: state.const.trainingcategories,
+    categories: state.const.trainingCategories,
     category: state.local.category,
     search: state.local.search,
     me: state.local.me

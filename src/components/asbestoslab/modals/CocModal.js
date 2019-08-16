@@ -50,7 +50,8 @@ const mapStateToProps = state => {
     // genericLocationSuggestions: state.const.genericLocationSuggestions,
     // specificLocationSuggestions: state.const.specificLocationSuggestions,
     // descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
-    // materialSuggestions: state.const.asbestosMaterialSuggestions,
+    materialSuggestions: state.const.asbestosMaterialSuggestions,
+    asbestosMaterialCategories: state.const.asbestosMaterialCategories,
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
@@ -369,6 +370,9 @@ class CocModal extends React.PureComponent {
                     <div className={classes.columnMedLarge}>
                       Material
                     </div>
+                    <div className={classes.columnMedSmall}>
+                      Sample Category
+                    </div>
                     <div className={classes.columnMedLarge}>
                       Sampled By
                     </div>
@@ -392,6 +396,7 @@ class CocModal extends React.PureComponent {
                     <div className={classes.columnMedLarge}>
                       e.g. fibre cement or vinyl with paper backing
                     </div>
+                    <div className={classes.columnMedSmall} />
                     <div className={classes.columnMedLarge} />
                     <div className={classes.columnMedSmall} />
                     <div className={classes.columnSmall} />
@@ -419,6 +424,9 @@ class CocModal extends React.PureComponent {
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                         {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : ''}
+                      </div>
+                      <div className={classes.columnMedSmall}>
+                        {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category ? doc.samples[i+1].category : ''}
                       </div>
                       <div className={classes.columnMedLarge}>
                         {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.join(', ') : ''}
@@ -501,8 +509,16 @@ class CocModal extends React.PureComponent {
                         <SuggestionField that={this} suggestions='materialSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : ''}
                           onModify={(value) => {
+                            let category = '';
+                            if (doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category) category = doc.samples[i+1].category;
+                            else {
+                              let materialObj = Object.values(this.props.materialSuggestions).filter(e => e.label === value);
+                              if (materialObj.length > 0) {
+                                category = materialObj[0].category;
+                              }
+                            }
                             this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, material: value});
+                            this.props.handleSampleChange(i, {reported: false, material: value, category});
                           }} />
                         {/*{SuggestionField(this, disabled, null, 'materialSuggestions',
                           doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
@@ -511,6 +527,17 @@ class CocModal extends React.PureComponent {
                             this.props.handleSampleChange(i, {reported: false, material: value});
                           }
                         )}*/}
+                      </div>
+                      <div className={classes.columnMedSmall}>
+                        <Select
+                          className={classes.selectTight}
+                          value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category ? {value: doc.samples[i+1].category, label: doc.samples[i+1].category} : {value: '', label: ''}}
+                          options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
+                          onChange={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleSampleChange(i, {reported: false, category: e.value});
+                          }}
+                        />
                       </div>
                       <div className={classes.columnMedLarge}>
                         <Select

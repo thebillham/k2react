@@ -40,7 +40,7 @@ const mapStateToProps = state => {
     editstaff: state.local.editstaff,
     me: state.local.me,
     offices: state.const.offices,
-    jobdescriptions: state.const.jobdescriptions,
+    jobDescriptions: state.const.jobDescriptions,
     permissions: state.const.permissions,
     tab: state.display.tabMyDetails,
   };
@@ -217,7 +217,7 @@ class UserDetails extends React.Component {
                       <Select
                         className={classNames(classes.select, classes.textField)}
                         defaultValue={{label: user.jobdescription, id: user.jobdescription }}
-                        options={this.props.jobdescriptions.map(e => ({ value: e, label: e }))}
+                        options={this.props.jobDescriptions.map(e => ({ value: e, label: e }))}
                         onChange={e =>
                           this.onEditUser({ id: "jobdescription", value: e ? e.value : e }, true )
                         }

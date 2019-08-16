@@ -32,7 +32,7 @@ import moment from "moment";
 
 const mapStateToProps = state => {
   return {
-    categories: state.const.trainingcategories,
+    categories: state.const.trainingCategories,
     category: state.local.category,
     search: state.local.search
   };

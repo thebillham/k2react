@@ -261,7 +261,7 @@ const constInit = {
         "Gives the user the ability to edit and add new questions and quizzes."
     }
   ],
-  jobdescriptions: [
+  jobDescriptions: [
     "Administration Manager",
     "Asbestos Administrator",
     "Environmental Scientist",
@@ -289,7 +289,7 @@ const constInit = {
     { id: "meth-legislation", text: "Meth Legislation" },
     { id: "meth-testing", text: "Meth Testing" }
   ],
-  trainingcategories: [
+  trainingCategories: [
     {
       key: "gen",
       desc: "General"
@@ -389,7 +389,7 @@ const constInit = {
       desc: "Near Miss",
     },
   ],
-  documentcategories: [
+  documentCategories: [
     {
       key: "gen",
       desc: "General"
@@ -423,7 +423,7 @@ const constInit = {
       desc: "Other"
     }
   ],
-  noticecategories: [
+  noticeCategories: [
     {
       key: "fav",
       desc: "Favourites"

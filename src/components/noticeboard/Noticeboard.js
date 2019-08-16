@@ -31,7 +31,7 @@ const mapStateToProps = state => {
     staff: state.local.staff,
     me: state.local.me,
     notices: state.local.notices,
-    categories: state.const.noticecategories,
+    categories: state.const.noticeCategories,
     search: state.local.search,
     category: state.local.category
   };

@@ -40,7 +40,7 @@ const mapStateToProps = state => {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
-    categories: state.const.trainingcategories,
+    categories: state.const.trainingCategories,
     questions: state.local.questions
   };
 };

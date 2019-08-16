@@ -19,7 +19,7 @@ import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
+import Select from "react-select";
 
 import {
   hideModal,
@@ -54,43 +54,284 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+const settings = {
+  // APP CATEGORIES
+  assetCategories: {
+    label: 'Asset Categories',
+    value: 'assetCategories',
+    group: 'appCategories',
+    fields: ['desc','key'],
+    hint: 'Put each category on a new line in the form "category description|category key".',
+  },
+  documentCategories: {
+    label: 'Document Categories',
+    value: 'documentCategories',
+    group: 'appCategories',
+    fields: ['desc','key'],
+    hint: 'Put each category on a new line in the form "category description|category key".',
+  },
+  incidentCategories: {
+    label: 'Incident Categories',
+    value: 'incidentCategories',
+    group: 'appCategories',
+    fields: ['desc','key'],
+    hint: 'Put each category on a new line in the form "category description|category key".',
+  },
+  noticeCategories: {
+    label: 'Notice Categories',
+    value: 'noticeCategories',
+    group: 'appCategories',
+    fields: ['desc','key'],
+    hint: 'Put each category on a new line in the form "category description|category key".',
+  },
+  toolCategories: {
+    label: 'Tool Categories',
+    value: 'toolCategories',
+    group: 'appCategories',
+    fields: ['desc','key'],
+    hint: 'Put each category on a new line in the form "category description|category key".',
+  },
+  trainingCategories: {
+    label: 'Training Categories',
+    value: 'trainingCategories',
+    group: 'appCategories',
+    fields: ['desc','key'],
+    hint: 'Put each category on a new line in the form "category description|category key".',
+  },
+
+  // TAG SUGGESTIONS
+  docTagSuggestions: {
+    label: 'Document Tag Suggestions',
+    value: 'docTagSuggestions',
+    group: 'tagSuggestions',
+    fields: ['text','id'],
+    hint: 'Put each tag on a new line in the form "tag name|tag id".',
+  },
+  quizTagSuggestions: {
+    label: 'Quiz Tag Suggestions',
+    value: 'quizTagSuggestions',
+    group: 'tagSuggestions',
+    fields: ['text','id'],
+    hint: 'Put each tag on a new line in the form "tag name|tag id".',
+  },
+
+  // SURVEY GENERIC
+  genericLocationSuggestions: {
+    label: 'Generic Location Suggestions',
+    value: 'genericLocationSuggestions',
+    group: 'surveyGeneric',
+    fields: ['label','code'],
+    hint: 'Put each tag on a new line in the form "room group name|room group code".',
+  },
+  specificLocationSuggestions: {
+    label: 'Specific Location Suggestions',
+    value: 'specificLocationSuggestions',
+    group: 'surveyGeneric',
+    fields: ['label','code'],
+    hint: 'Put each tag on a new line in the form "room name|room code".',
+  },
+  buildingItems: {
+    label: 'Building Items',
+    value: 'buildingItems',
+    group: 'surveyGeneric',
+    fields: ['label','hint'],
+    hint: 'Put each item on a new line in the form "item name|hint text"',
+  },
+  buildingMaterials: {
+    label: 'Building Materials',
+    value: 'buildingMaterials',
+    group: 'surveyGeneric',
+    fields: ['label'],
+    hint: 'Put each material on a new line.',
+  },
+  extentSuggestions: {
+    label: 'Extent Suggestions',
+    value: 'extentSuggestions',
+    group: 'surveyGeneric',
+    fields: ['label'],
+    hint: 'Put each suggestion on a new line',
+  },
+  damageSuggestions: {
+    label: 'Damage Suggestions',
+    value: 'damageSuggestions',
+    group: 'surveyGeneric',
+    fields: ['label'],
+    hint: 'Put each suggestion on a new line',
+  },
+
+  // ACM ASSESSMENT
+  asbestosDescriptionSuggestions: {
+    label: 'Asbestos Description Suggestions',
+    value: 'asbestosDescriptionSuggestions',
+    group: 'acmAssessment',
+    fields: ['label'],
+    hint: 'Put each description on a new line.',
+  },
+  asbestosMaterialSuggestions: {
+    label: 'Asbestos Material Suggestions',
+    value: 'asbestosMaterialSuggestions',
+    group: 'acmAssessment',
+    fields: ['label','category'],
+    fallBack: 'Other',
+    hint: 'Put each material on a new line in the form "description|material category".',
+  },
+  asbestosMaterialCategories: {
+    label: 'Asbestos Material Categories',
+    value: 'asbestosMaterialCategories',
+    group: 'acmAssessment',
+    fields: ['label'],
+    hint: 'Put each material category on a new line',
+  },
+  asbestosSurfaceSuggestions: {
+    label: 'Surface Treatment Suggestions',
+    value: 'asbestosSurfaceSuggestions',
+    group: 'acmAssessment',
+    fields: ['label'],
+    hint: 'Put each suggestion on a new line',
+  },
+  asbestosAccessibilitySuggestions: {
+    label: 'Accessibility Suggestions',
+    value: 'asbestosAccessibilitySuggestions',
+    group: 'acmAssessment',
+    fields: ['label'],
+    hint: 'Put each category on a new line.',
+  },
+  asbestosWhyNotSampledSuggestions: {
+    label: 'Why Not Sampled Suggestions',
+    value: 'asbestosWhyNotSampledSuggestions',
+    group: 'acmAssessment',
+    fields: ['label'],
+    hint: 'Put each suggestion on a new line.',
+  },
+  noAsbestosResultReasons: {
+    label: 'Reasons Why No Asbestos Result is Recorded',
+    value: 'noAsbestosResultReasons',
+    group: 'acmAssessment',
+    fields: ['label'],
+    hint: 'Put each suggestion on a new line.',
+  },
+
+  // OTHER
+  permissions:  {
+    label: 'App Permissions',
+    value: 'permissions',
+    group: 'other',
+    fields: ['name','desc'],
+    hint: 'Put each permission on a new line in the form "permission name|permission description".',
+  },
+
+  jobDescriptions:  {
+    label: 'Job Descriptions',
+    value: 'jobDescriptions',
+    group: 'other',
+    fields: [],
+    hint: 'Put each job description on a new line.',
+  },
+  offices:  {
+    label: 'Offices',
+    value: 'offices',
+    group: 'other',
+    fields: [],
+    hint: 'Put each office on a new line.',
+  },
+  officeContacts:  {
+    label: 'Office Contacts',
+    value: 'officeContacts',
+    group: 'other',
+    fields: ['name','workphone'],
+    hint: 'Put each contact on a new line in the form "contact name|contact phone".',
+  },
+};
+
+const settingTypes = [
+  {
+    label: 'App Categories',
+    options: Object.values(settings).filter(e => e.group === 'appCategories').map(e => ({label: e.label, value: e.value})),
+  },
+  {
+    label: 'Tag Suggestions',
+    options: Object.values(settings).filter(e => e.group === 'tagSuggestions').map(e => ({label: e.label, value: e.value})),
+  },
+  {
+    label: 'Survey Generic',
+    options: Object.values(settings).filter(e => e.group === 'surveyGeneric').map(e => ({label: e.label, value: e.value})),
+  },
+  {
+    label: 'ACM Assessment',
+    options: Object.values(settings).filter(e => e.group === 'acmAssessment').map(e => ({label: e.label, value: e.value})),
+  },
+  {
+    label: 'Other Settings',
+    options: Object.values(settings).filter(e => e.group === 'other').map(e => ({label: e.label, value: e.value})),
+  }
+];
+
 class AppSettings extends React.Component {
   state = {
-    setting: "asbestosmaterials"
+    setting: null,
+    text: '',
   };
+
+  reset = () => {
+    this.setState({
+      setting: null,
+      text: '',
+    });
+    this.props.hideModal();
+  }
+
+  saveText = setting => {
+    if (setting) {
+      console.log(setting);
+      let newMap = this.state.text
+        .split("\n")
+        .filter(Boolean)
+        .sort()
+        .map(option => {
+          if (settings[setting].fields.length === 0) return option;
+          else {
+            let fields = settings[setting].fields;
+            let valueList = option.split("|");
+            let fieldMap = {};
+
+            for (var i = 0; i < fields.length; i++) {
+              fieldMap[fields[i]] = valueList[i] ? valueList[i] : settings[setting].fallBack ? settings[setting].fallBack : valueList[0];
+            }
+            console.log(fieldMap);
+
+            return fieldMap;
+          }
+        });
+      console.log(newMap);
+
+      appSettingsRef.doc('constants').set({ ...this.props.doc, [setting]: newMap });
+    }
+  }
+
+  handleSelect = (setting, prevSetting) => {
+    this.saveText(prevSetting);
+
+    this.setState({
+      setting: setting,
+      text: this.props.doc[setting] ? this.props.doc[setting]
+        .map(obj => {
+          if (settings[setting].fields.length === 0) return obj;
+          else {
+            let fieldList = [];
+            settings[setting].fields.forEach(field => {
+              fieldList.push(obj[field]);
+            });
+            return fieldList.join('|');
+          }
+        })
+        .join("\n") : ''
+    });
+  }
 
   render() {
     const { doc, classes } = this.props;
-    const { setting } = this.state;
-    const settingTypes = [
-      "Asbestos Materials",
-      "Building Items",
-      "Building Materials",
-      "Room Suggestions",
-      "Extent Suggestions",
-      "Damage Suggestions",
-      "Incident Categories",
-      "Surface Suggestions",
-      "Why Not Sampled Suggestions",
-      "Asbestos Types",
-      "Skills List",
-      "Generic Location Suggestions",
-      "Specific Location Suggestions",
-      "Asbestos Description Suggestions",
-      "Asbestos Material Suggestions",
-      "Document Tag Suggestions",
-      "Quiz Tag Suggestions",
-      "Asset Categories",
-      "Document Categories",
-      "Notice Categories",
-      "Tool Categories",
-      "Training Categories",
-      "Job Descriptions",
-      "Offices",
-      "Office Contacts",
-      "Permissions",
-      "Reasons Why No Asbestos Result is Recorded",
-    ];
+    const { setting, text } = this.state;
+
     return (
       <Dialog
         open={this.props.modalType === APP_SETTINGS}
@@ -98,922 +339,30 @@ class AppSettings extends React.Component {
       >
         <DialogTitle>App Settings</DialogTitle>
         <DialogContent>
-          <form>
-            <FormGroup>
-              <FormControl className={classes.dialogField}>
-                <InputLabel shrink>App Setting</InputLabel>
-                <Select
-                  onChange={e => {
-                    this.setState({ setting: e.target.value });
-                  }}
-                  value={setting}
-                  input={<Input name="setting" id="setting" />}
-                >
-                  {settingTypes.sort().map(setting => {
-                    return (
-                      <option key={setting} value={setting}>
-                        {setting}
-                      </option>
-                    );
-                  })}
-                </Select>
-              </FormControl>
-              {setting === "Asbestos Materials" && (
-                <TextField
-                  id="asbestosmaterials"
-                  label="Asbestos Materials"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.asbestosmaterials &&
-                    doc.asbestosmaterials
-                      .map(obj => {
-                        return obj.label;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each material on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Building Materials" && (
-                <TextField
-                  id="buildingmaterials"
-                  label="Building Materials"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.buildingmaterials &&
-                    doc.buildingmaterials
-                      .map(obj => {
-                        return obj.label;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each material on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Building Items" && (
-                <TextField
-                  id="buildingitems"
-                  label="Building Items"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.buildingitems &&
-                    doc.buildingitems
-                      .map(obj => {
-                        return obj.hint == undefined ? `${obj.label}` : `${obj.label}|${obj.hint}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each item on a new line in the form "item name|hint text".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            hint: list[1] ? list[1] : list[0],
-                            label: list[0]
-                          };
-                        })
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Skills List" && (
-                <TextField
-                  id="skillslist"
-                  label="Skills List"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.buildingitems &&
-                    doc.buildingitems
-                      .map(obj => {
-                        return obj.hint == undefined ? `${obj.label}` : `${obj.label}|${obj.hint}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each item on a new line in the form "item name|hint text".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            hint: list[1] ? list[1] : list[0],
-                            label: list[0]
-                          };
-                        })
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Generic Location Suggestions" && (
-                <TextField
-                  id="genericLocationSuggestions"
-                  label="Specific Location Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.genericLocationSuggestions &&
-                    doc.genericLocationSuggestions
-                      .map(obj => {
-                        return `${obj.label}|${obj.code}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each tag on a new line in the form "room group name|room group code".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            code: list[1] ? list[1] : list[0],
-                            label: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Specific Location Suggestions" && (
-                <TextField
-                  id="specificLocationSuggestions"
-                  label="Specific Location Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.specificLocationSuggestions &&
-                    doc.specificLocationSuggestions
-                      .map(obj => {
-                        return `${obj.label}|${obj.code}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each tag on a new line in the form "room name|room code".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            code: list[1] ? list[1] : list[0],
-                            label: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Asbestos Description Suggestions" && (
-                <TextField
-                  id="asbestosDescriptionSuggestions"
-                  label="Asbestos Description Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.asbestosDescriptionSuggestions &&
-                    doc.asbestosDescriptionSuggestions
-                      .map(obj => {
-                        return obj.label;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each description on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Asbestos Material Suggestions" && (
-                <TextField
-                  id="asbestosMaterialSuggestions"
-                  label="Asbestos Material Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.asbestosMaterialSuggestions &&
-                    doc.asbestosMaterialSuggestions
-                      .map(obj => {
-                        return obj.label;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each material on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Room Suggestions" && (
-                <TextField
-                  id="roomsuggestions"
-                  label="Room Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.roomsuggestions &&
-                    doc.roomsuggestions
-                      .map(obj => {
-                        return `${obj.label}|${obj.code}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each tag on a new line in the form "room name|room code".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            code: list[1] ? list[1] : list[0],
-                            label: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Extent Suggestions" && (
-                <TextField
-                  id="extentsuggestions"
-                  label="Extent Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.extentsuggestions &&
-                    doc.extentsuggestions
-                      .map(obj => {
-                        return obj.label;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each suggestion on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Damage Suggestions" && (
-                <TextField
-                  id="damagesuggestions"
-                  label="Damage Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.damagesuggestions &&
-                    doc.damagesuggestions
-                      .map(obj => {
-                        return obj.label;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each suggestion on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Surface Suggestions" && (
-                <TextField
-                  id="surfacesuggestions"
-                  label="Surface Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.surfacesuggestions &&
-                    doc.surfacesuggestions
-                      .map(obj => {
-                        return obj.label;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each suggestion on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Why Not Sampled Suggestions" && (
-                <TextField
-                  id="whynotsampledsuggestions"
-                  label="Why Not Sampled Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.whynotsampledsuggestions &&
-                    doc.whynotsampledsuggestions
-                      .map(obj => {
-                        return obj.label;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each suggestion on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          return { label: option };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Asbestos Types" && (
-                <TextField
-                  disabled
-                  id="asbestostypes"
-                  label="Asbestos Types"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.asbestostypes &&
-                    doc.asbestostypes
-                      .map(obj => {
-                        return obj;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each type on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value.split("\n").filter(Boolean)
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Document Tag Suggestions" && (
-                <TextField
-                  id="docTagSuggestions"
-                  label="Document Tag Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.docTagSuggestions &&
-                    doc.docTagSuggestions
-                      .map(obj => {
-                        return `${obj.text}|${obj.id}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each tag on a new line in the form "tag name|tag id".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            id: list[1] ? list[1] : list[0],
-                            text: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Asset Categories" && (
-                <TextField
-                  id="assetcategories"
-                  label="Asset Categories"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.assetcategories &&
-                    doc.assetcategories
-                      .map(obj => {
-                        return `${obj.desc}|${obj.key}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each category on a new line in the form "category description|category id".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            key: list[1] ? list[1] : list[0],
-                            desc: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Document Categories" && (
-                <TextField
-                  id="documentcategories"
-                  label="Document Categories"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.documentcategories &&
-                    doc.documentcategories
-                      .map(obj => {
-                        return `${obj.desc}|${obj.key}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each category on a new line in the form "category description|category id".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            key: list[1] ? list[1] : list[0],
-                            desc: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Notice Categories" && (
-                <TextField
-                  id="noticecategories"
-                  label="Notice Categories"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.noticecategories &&
-                    doc.noticecategories
-                      .map(obj => {
-                        return `${obj.desc}|${obj.key}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each category on a new line in the form "category description|category id".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            key: list[1] ? list[1] : list[0],
-                            desc: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Incident Categories" && (
-                <TextField
-                  id="incidentcategories"
-                  label="Incident Categories"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.incidentcategories &&
-                    doc.incidentcategories
-                      .map(obj => {
-                        return `${obj.desc}|${obj.key}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each category on a new line in the form "category description|category id".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            key: list[1] ? list[1] : list[0],
-                            desc: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Tool Categories" && (
-                <TextField
-                  id="toolcategories"
-                  label="Tool Categories"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.toolcategories &&
-                    doc.toolcategories
-                      .map(obj => {
-                        return `${obj.desc}|${obj.key}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each category on a new line in the form "category description|category id".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            key: list[1] ? list[1] : list[0],
-                            desc: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Training Categories" && (
-                <TextField
-                  id="trainingcategories"
-                  label="Training Categories"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.trainingcategories &&
-                    doc.trainingcategories
-                      .map(obj => {
-                        return `${obj.desc}|${obj.key}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each category on a new line in the form "category description|category id".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            key: list[1] ? list[1] : list[0],
-                            desc: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Job Descriptions" && (
-                <TextField
-                  id="jobdescriptions"
-                  label="Job Descriptions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.jobdescriptions &&
-                    doc.jobdescriptions
-                      .map(obj => {
-                        return obj;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each job description on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Office Contacts" && (
-                <TextField
-                  id="officecontacts"
-                  label="Office Contacts"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.officecontacts &&
-                    doc.officecontacts
-                      .map(obj => {
-                        return `${obj.name}|${obj.workphone}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each contact on a new line in the form "contact name|contact phone".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            workphone: list[1] ? list[1] : list[0],
-                            name: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Offices" && (
-                <TextField
-                  id="offices"
-                  label="Offices"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.offices &&
-                    doc.offices
-                      .map(obj => {
-                        return obj;
-                      })
-                      .join("\n")
-                  }
-                  helperText="Put each office on a new line."
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Permissions" && (
-                <TextField
-                  id="permissions"
-                  label="Permissions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.permissions &&
-                    doc.permissions
-                      .map(obj => {
-                        return `${obj.name}|${obj.desc}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each permission on a new line in the form "permission name|permission description".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            desc: list[1] ? list[1] : list[0],
-                            name: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Quiz Tag Suggestions" && (
-                <TextField
-                  id="quiztags"
-                  label="Quiz Tag Suggestions"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.quiztags &&
-                    doc.quiztags
-                      .map(obj => {
-                        return `${obj.text}|${obj.id}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each tag on a new line in the form "tag name|tag id".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        .sort()
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            id: list[1] ? list[1] : list[0],
-                            text: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-              {setting === "Reasons Why No Asbestos Result is Recorded" && (
-                <TextField
-                  id="noAsbestosResultReasons"
-                  label="Reasons Why No Asbestos Result is Recorded"
-                  multiline
-                  defaultValue={
-                    doc &&
-                    doc.noAsbestosResultReasons &&
-                    doc.noAsbestosResultReasons
-                      .map(obj => {
-                        return `${obj.label}|${obj.value}`;
-                      })
-                      .join("\n")
-                  }
-                  helperText='Put each tag on a new line in the form "reason label|reason value".'
-                  className={classes.dialogField}
-                  onChange={e => {
-                    this.props.handleModalChange({
-                      id: e.target.id,
-                      value: e.target.value
-                        .split("\n")
-                        .filter(Boolean)
-                        // .sort()
-                        .map(option => {
-                          let list = option.split("|");
-                          return {
-                            value: list[1] ? list[1] : list[0],
-                            label: list[0]
-                          };
-                        })
-                    });
-                  }}
-                />
-              )}
-
-
-            </FormGroup>
-          </form>
+          <FormGroup className={classes.dialogField}>
+            <InputLabel shrink>App Setting</InputLabel>
+            <Select
+              options={settingTypes}
+              onChange={e => this.handleSelect(e.value, setting)}
+            />
+            <TextField
+              multiline
+              InputProps={{
+                classes: {
+                  input: classes.textSpaced,
+                },
+              }}
+              value={text}
+              helperText={setting ? settings[setting].hint : ''}
+              className={classes.dialogFieldTall}
+              onChange={e => this.setState({ text: e.target.value })}
+            />
+          </FormGroup>
         </DialogContent>
         <DialogActions>
           <Button
             onClick={() => {
-              this.props.hideModal();
+              this.reset();
             }}
             color="secondary"
           >
@@ -1021,11 +370,8 @@ class AppSettings extends React.Component {
           </Button>
           <Button
             onClick={() => {
-              doc.uid = "constants";
-              this.props.handleModalSubmit({
-                doc: doc,
-                pathRef: appSettingsRef
-              });
+              this.saveText(this.state.setting);
+              this.reset();
             }}
             color="primary"
           >

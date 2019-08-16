@@ -34,6 +34,7 @@ const mapStateToProps = state => {
     specificLocationSuggestions: state.const.specificLocationSuggestions,
     descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
+    asbestosMaterialCategories: state.const.asbestosMaterialCategories,
     me: state.local.me,
   };
 };
@@ -190,7 +191,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
       window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
     }
   } else {
-      if (sample.uid) {
+      if (sample.uid && this.state.modified) {
         log = {
           type: 'Edit',
           log: `Details of sample ${this.state.sample.jobNumber}-${this.state.sample.sampleNumber} (${this.state.sample.description} ${this.state.sample.material}) modified.`,
@@ -207,6 +208,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
             reported: false,
             genericLocation: sample.genericLocation ? sample.genericLocation : null,
             specificLocation: sample.specificLocation ? sample.specificLocation : null,
+            category: sample.category ? sample.category : 'Other',
             description: sample.description ? sample.description : null,
             material: sample.material ? sample.material : null,
             sampleDate: sample.sampleDate ? sample.sampleDate : null,
@@ -252,6 +254,8 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     const { classes, modalProps, modalType, me } = this.props;
     const { sample, doc } = this.state;
     const i = sample ? sample.sampleNumber - 1 : 0;
+    const disabled = sample.cocUid != modalProps.doc.uid;
+    console.log(sample);
     if (modalType === ASBESTOS_SAMPLE_EDIT_COC) {
       return (
       <Dialog
@@ -266,14 +270,16 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
           {sample && sample.jobNumber ? `Edit Sample ${sample.jobNumber}-${sample.sampleNumber}` : `Edit Sample`}
         </DialogTitle>
         <DialogContent>
-        {this.state.sample && (
+        {sample && (
           <div>
             <SuggestionField that={this} label='Generic Location' suggestions='genericLocationSuggestions'
-              defaultValue={this.state.sample.genericLocation}
+              value={sample.genericLocation}
+              controlled
+              disabled={disabled}
               onModify={(value) => {
                   this.setState({
                     sample: {
-                      ...this.state.sample,
+                      ...sample,
                       genericLocation: value,
                     },
                     modified: true,
@@ -282,11 +288,13 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
             />
 
             <SuggestionField that={this} label='Specific Location' suggestions='specificLocationSuggestions'
-              defaultValue={this.state.sample.specificLocation}
+              value={sample.specificLocation}
+              controlled
+              disabled={disabled}
               onModify={(value) => {
                   this.setState({
                     sample: {
-                      ...this.state.sample,
+                      ...sample,
                       specificLocation: value,
                     },
                     modified: true,
@@ -295,7 +303,9 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
             />
 
             <SuggestionField that={this} label='Description/Item' suggestions='descriptionSuggestions'
-              defaultValue={this.state.sample.description}
+              value={sample.description}
+              controlled
+              disabled={disabled}
               onModify={(value) => {
                   this.setState({
                     sample: {
@@ -308,12 +318,23 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
             />
 
             <SuggestionField that={this} label='Material' suggestions='materialSuggestions'
-              defaultValue={this.state.sample.material}
+              value={sample.material}
+              controlled
+              disabled={disabled}
               onModify={(value) => {
+                  let category = '';
+                  if (sample.category) category = sample.category;
+                  else {
+                    let materialObj = Object.values(this.props.materialSuggestions).filter(e => e.label === value);
+                    if (materialObj.length > 0) {
+                      category = materialObj[0].category;
+                    }
+                  }
                   this.setState({
                     sample: {
-                      ...this.state.sample,
+                      ...sample,
                       material: value,
+                      category,
                     },
                     modified: true,
                   });
@@ -321,14 +342,31 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
             />
 
             <Select
+              className={classes.select}
+              value={sample.category ? {value: sample.category, label: sample.category} : {value: '', label: ''}}
+              options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
+              disabled={disabled}
+              onChange={e => {
+                this.setState({
+                  sample: {
+                    ...sample,
+                    category: e.value,
+                  },
+                  modified: true,
+                })
+              }}
+            />
+
+            <Select
               isMulti
               className={classes.select}
               value={sample.sampledBy ? sample.sampledBy.map(e => ({value: e, label: e})) : []}
               options={modalProps.names.map(e => ({ value: e.name, label: e.name }))}
+              disabled={disabled}
               onChange={e => {
                 this.setState({
                   sample: {
-                    ...this.state.sample,
+                    ...sample,
                     sampledBy: personnelConvert(e),
                   },
                   modified: true,
@@ -340,6 +378,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
               autoOk
               format="ddd, D MMMM YYYY"
               clearable
+              disabled={disabled}
               label="Sample Date"
               onChange={date => {
                   this.setState({

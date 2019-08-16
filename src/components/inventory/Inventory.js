@@ -26,7 +26,7 @@ const mapStateToProps = state => {
     modal: state.modal.modalType,
     search: state.local.search,
     staff: state.local.staff,
-    categories: state.const.assetcategories,
+    categories: state.const.assetCategories,
     category: state.local.category,
   };
 };

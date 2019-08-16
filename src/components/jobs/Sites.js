@@ -24,7 +24,7 @@ const mapStateToProps = state => {
     me: state.local.me,
     methods: state.local.methods,
     modal: state.modal.modalType,
-    categories: state.const.documentcategories,
+    categories: state.const.documentCategories,
     category: state.local.category,
     search: state.local.search,
     staff: state.local.staff

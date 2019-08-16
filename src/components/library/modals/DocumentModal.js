@@ -58,7 +58,7 @@ const mapStateToProps = state => {
     tags: state.modal.modalProps.tags,
     tagSuggestions: state.const.docTagSuggestions,
     userRefName: state.local.userRefName,
-    categories: state.const.documentcategories
+    categories: state.const.documentCategories
   };
 };
 

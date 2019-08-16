@@ -217,6 +217,18 @@ const styles = theme => ({
     width: 500,
   },
 
+  dialogFieldTall: {
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    marginBottom: theme.spacing(2),
+    width: 500,
+    minHeight: '50vh',
+  },
+
+  textSpaced: {
+    lineHeight: 1.5,
+  },
+
   textField: {
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
@@ -722,6 +734,20 @@ const styles = theme => ({
     fontWeight: "bold"
   },
 
+  roundButtonShadedDisabled: {
+    width: 80,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: theme.palette.app.disabled,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    color: 'white',
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
   roundButtonShadedComplete: {
     width: 80,
     height: 40,
@@ -781,6 +807,20 @@ const styles = theme => ({
     height: 40,
     borderRadius: 10,
     backgroundColor: theme.palette.app.shaded,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    color: 'white',
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  roundButtonShadedLongDisabled: {
+    width: 200,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: theme.palette.app.disabled,
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
     color: 'white',
@@ -1043,6 +1083,30 @@ const styles = theme => ({
     "&:hover": {
         backgroundColor: theme.palette.app.hover
     },
+  },
+
+  flexRowHoverPretty: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    padding: theme.spacing(1),
+    flexDirection: 'row',
+    display: 'flex',
+    borderRadius: 12,
+    alignItems: 'center',
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover,
+    },
+  },
+
+  flexRowHoverDisabled: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    padding: theme.spacing(1),
+    flexDirection: 'row',
+    display: 'flex',
+    borderRadius: 12,
+    alignItems: 'center',
+    color: theme.palette.app.disabled,
   },
 
   flexRowHoverFat: {
