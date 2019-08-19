@@ -274,7 +274,7 @@ class CocModal extends React.PureComponent {
                   helperText="Include any information that may be useful for the lab. E.g. for a soil sample you might include information on what contamination you are expecting."
                   multiline
                   onChange={e => {
-                    // this.setState({ modified: true, });
+                    this.setState({ modified: true, });
                     this.props.handleModalChange({id: 'labInstructions', value: e.target.value});
                   }}
                 />
@@ -283,7 +283,7 @@ class CocModal extends React.PureComponent {
                     <Switch
                       checked={doc.priority === 1 ? true : false}
                       onClick={e => {
-                        // this.setState({ modified: true, });
+                        this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'priority', value: doc.priority === 1 ? 0 : 1});
                       }}
                       value="priority"
@@ -297,7 +297,7 @@ class CocModal extends React.PureComponent {
                     <Switch
                       checked={doc.clearance === true ? true : false}
                       onClick={e => {
-                        // this.setState({ modified: true, });
+                        this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'clearance', value: e.target.checked});
                       }}
                       value="clearance"
@@ -311,7 +311,7 @@ class CocModal extends React.PureComponent {
                     <Switch
                       checked={doc.waAnalysis === true ? true : false}
                       onClick={e => {
-                        // this.setState({ modified: true, });
+                        this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'waAnalysis', value: e.target.checked});
                       }}
                       value="priority"
@@ -325,7 +325,7 @@ class CocModal extends React.PureComponent {
                     <Switch
                       checked={doc.labToContactClient === true ? true : false}
                       onClick={e => {
-                        // this.setState({ modified: true, });
+                        this.setState({ modified: true, });
                         this.props.handleModalChange({id: 'labToContactClient', value: e.target.checked});
                       }}
                       value="labToContactClient"
@@ -339,7 +339,7 @@ class CocModal extends React.PureComponent {
                   label="Contact Name"
                   defaultValue={doc && doc.labContactName ? doc.labContactName : doc.contactName}
                   onChange={e => {
-                    // this.setState({ modified: true, });
+                    this.setState({ modified: true, });
                     this.props.handleModalChange({id: 'labContactName', value: e.target.value});
                   }}
                 />
@@ -348,7 +348,7 @@ class CocModal extends React.PureComponent {
                   label="Contact Number/Email"
                   defaultValue={doc && doc.labContactNumber ? doc.labContactNumber : doc.contactEmail}
                   onChange={e => {
-                    // this.setState({ modified: true, });
+                    this.setState({ modified: true, });
                     this.props.handleModalChange({id: 'labContactNumber', value: e.target.value});
                   }}
                 />

@@ -493,7 +493,7 @@ class MainScreen extends React.PureComponent {
               </ListItem>
             </div>
           )}
-          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.2.2</div>
+          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.2.3</div>
         {/*<Divider />
           <ListItem button onClick={this.handleDevClick}>
             <ListItemIcon>

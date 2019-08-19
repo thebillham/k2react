@@ -25,7 +25,7 @@ import TextField from "@material-ui/core/TextField";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, showModalSecondary } from "../../../actions/modal";
-import { writeSoilDetails, getWAAnalysisSummary, } from "../../../actions/asbestosLab";
+import { writeSoilDetails, getWAAnalysisSummary, writeSampleMoisture } from "../../../actions/asbestosLab";
 import { addLog, } from '../../../actions/local';
 import {
   asbestosSamplesRef
@@ -89,6 +89,9 @@ class WAAnalysisModal extends React.Component {
   render() {
     const { classes, modalProps, modalType, me } = this.props;
     const { sample } = this.state;
+
+    let sampleMoisture = null;
+    if (sample) sampleMoisture = writeSampleMoisture(sample, true);
     return (
       <div>
       {modalType === WA_ANALYSIS && sample &&
@@ -103,8 +106,8 @@ class WAAnalysisModal extends React.Component {
       >
         <DialogTitle>{`WA Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description})`}</DialogTitle>
         <DialogContent>
-          <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', }}>
-            <div style={{ width: 502, padding: 48, margin: 12, }}>
+          <div className={classes.flexRow}>
+            <div className={classes.columnExtraExtraLarge}>
               <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Analysis Details</div>
               <FormControlLabel
                 control={
@@ -138,43 +141,8 @@ class WAAnalysisModal extends React.Component {
                 }
                 label="WA Analysis Complete"
               />
-              <div className={this.props.classes.subHeading}>Description</div>
-              <TextField
-                id="labDescription"
-                style={{ width: '100%' }}
-                value={sample.labDescription}
-                helperText="Provide a short description of the soil."
-                multiline
-                rows={3}
-                onChange={e => {
-                  this.setState({
-                    modified: true,
-                    sample: {
-                      ...sample,
-                      labDescription: e.target.value,
-                    }
-                  });
-                }}
-              />
-              <TextField
-                id="labComments"
-                style={{ width: '100%' }}
-                value={sample.labComments}
-                helperText="Note any additional observations or comments."
-                multiline
-                rows={3}
-                onChange={e => {
-                  this.setState({
-                    modified: true,
-                    sample: {
-                      ...sample,
-                      labComments: e.target.value,
-                    }
-                  });
-                }}
-              />
 
-              {SampleTickyBoxGroup(this, sample, 'Sample Conditioning', 'sampleConditioning',
+              {/*{SampleTickyBoxGroup(this, sample, 'Sample Conditioning', 'sampleConditioning',
                 [{value: 'furnace', label: 'Furnace'},
                 {value: 'flame', label: 'Flame'},
                 {value: 'lowHeat', label: 'Low Heat/Drying'},
@@ -182,14 +150,28 @@ class WAAnalysisModal extends React.Component {
                 {value: 'mortarAndPestle', label: 'Mortar and Pestle'},
                 {value: 'sieved', label: 'Sieved', },
                 ]
-              )}
+              )}*/}
 
-              <div className={this.props.classes.subHeading}>Weight</div>
-              <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 14, }}>
-                {SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. entire sample received by client).', false, 0, 'g', null)}
-                {SampleTextyBox(this, sample, 'weightAnalysed', 'Weight Analysed', 'Record the weight analysed (i.e. portion selected for analysis).', false, 0, 'g', null)}
-                {SampleTextyBox(this, sample, 'weightConditioned', 'Weight Conditioned', 'Record the conditioned weight (e.g. after conditioning such as furnacing).', false, 0, 'g', null)}
+              <div className={classes.subHeading}>Lab Notes</div>
+              {SampleTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 1, null, null)}
+              {SampleTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 1, null, null)}
+              {SampleTextyBox(this, sample, 'footnote', null, 'Add a footnote to be included in the issued report. This will be displayed as a footnote below the results table.', true, 1, null, null)}
+              {SampleTextyBox(this, sample, 'asbestosFormDescription', null, 'Give a short description of the asbestos form. This will appear in the report (e.g. Asbestos cement, loose fibres).', false, 1, null, null)}
+
+              <div className={classes.subHeading}>Weights</div>
+              <div className={classes.flexRow}>
+                <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null)}</div>
+                <div className={classes.spacerSmall} />
+                <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightSubsample', 'Weight of Subsample', 'Record the weight of the subsample if the entire sample is not analysed.', false, 0, 'g', null)}</div>
+                <div className={classes.spacerSmall} />
+                <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightDry', 'Dry Weight', 'Record the weight after drying (~105°).', false, 0, 'g', null)}</div>
+                <div className={classes.spacerSmall} />
+                <div className={classes.formInputMedium}>{SampleTextyBox(this, sample, 'weightAshed', 'Ashed Weight', 'Record the weight after ashing (~400°).', false, 0, 'g', null)}</div>
               </div>
+
+              {sampleMoisture && <div className={classes.informationBox}>
+                Moisture: {sampleMoisture}%
+              </div>}
             </div>
             <div>
               {getWAAnalysisSummary(sample)}
@@ -264,7 +246,7 @@ class WAAnalysisModal extends React.Component {
     let weightFA = 0.0;
     let weightAF = 0.0;
     let weightACM = 0.0;
-    let weightConditioned = this.state.sample.weightConditioned;
+    let weightDry = this.state.sample.weightDry;
 
     [...Array(this.state.sample && this.state.sample.waLayerNum && this.state.sample.waLayerNum[fraction] ? this.state.sample.waLayerNum[fraction] : waLayerNum).keys()].forEach(num => {
       if (this.state.sample && this.state.sample.waSoilAnalysis && this.state.sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] !== undefined) {
@@ -283,11 +265,11 @@ class WAAnalysisModal extends React.Component {
     let concentrationAF = 0.0;
     let concentrationACM = 0.0;
     let concentrationFAAF = 0.0;
-    if (weightConditioned) {
-      concentrationFA = weightFA/weightConditioned*100;
-      concentrationAF = weightAF/weightConditioned*100;
-      concentrationACM = weightACM/weightConditioned*100;
-      concentrationFAAF = (weightFA+weightAF)/weightConditioned*100;
+    if (weightDry) {
+      concentrationFA = weightFA/weightDry*100;
+      concentrationAF = weightAF/weightDry*100;
+      concentrationACM = weightACM/weightDry*100;
+      concentrationFAAF = (weightFA+weightAF)/weightDry*100;
     }
 
     return(
@@ -302,11 +284,11 @@ class WAAnalysisModal extends React.Component {
           }}>
           <div style={{ fontWeight: 500, fontSize: 16, }}>{title}</div>
           <TextField
-            id="weightConditioned"
-            label="Weight Conditioned"
+            id="weightAshed"
+            label="Ashed Weight"
             style={{ width: 180, marginTop: 12, }}
-            value={this.state.sample && this.state.sample.waAnalysis && this.state.sample.waAnalysis['fraction' + fraction + 'WeightConditioned'] ? this.state.sample.waAnalysis['fraction' + fraction + 'WeightConditioned'] : ''}
-            helperText="Record the conditioned weight of this fraction (e.g. after conditioning such as furnacing)."
+            value={this.state.sample && this.state.sample.waAnalysis && this.state.sample.waAnalysis['fraction' + fraction + 'WeightAshed'] ? this.state.sample.waAnalysis['fraction' + fraction + 'WeightAshed'] : ''}
+            helperText="Record the weight of this fraction after ashing at ~400°C"
             InputProps={{
               endAdornment: <InputAdornment position="end">g</InputAdornment>,
             }}
@@ -317,7 +299,7 @@ class WAAnalysisModal extends React.Component {
                   ...this.state.sample,
                   waAnalysis: {
                     ...this.state.sample.waAnalysis,
-                    ['fraction' + fraction + 'WeightConditioned']: e.target.value,
+                    ['fraction' + fraction + 'WeightAshed']: e.target.value,
                   }
                 }
               });
@@ -348,10 +330,10 @@ class WAAnalysisModal extends React.Component {
             </div>
             <div style={{ width: 200, marginRight: 14, }}>
               <div style={{ fontWeight: 500 }}>Asbestos Concentration</div>
-              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationACM > 0.01 ? 'red' : 'black' }}>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFA > 0.01 ? 'red' : 'black' }}>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationAF > 0.001 ? 'red' : 'black' }}>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightConditioned ? <span style={{ color: concentrationFAAF > 0.001 ? 'red' : 'black' }}>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightDry ? <span style={{ color: concentrationACM > 0.01 ? 'red' : 'black' }}>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightDry ? <span style={{ color: concentrationFA > 0.01 ? 'red' : 'black' }}>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightDry ? <span style={{ color: concentrationAF > 0.001 ? 'red' : 'black' }}>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+              <div style={{ borderBottomStyle: 'dotted', borderBottomWidth: 1}}>{weightDry ? <span style={{ color: concentrationFAAF > 0.001 ? 'red' : 'black' }}>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
             </div>
           </div>
         </div>

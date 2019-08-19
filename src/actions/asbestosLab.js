@@ -1168,7 +1168,8 @@ export const getWAAnalysisSummary = sample => {
     let weightACM = 0;
     let weightFA = 0;
     let weightAF = 0;
-    let weightConditioned = sample.weightConditioned;
+    let weightDry = sample.weightDry;
+    let weightAshed = sample.weightAshed;
     let ch = false;
     let am = false;
     let cr = false;
@@ -1181,9 +1182,9 @@ export const getWAAnalysisSummary = sample => {
     let allHaveForms = true;
 
     fractionNames.forEach(fraction => {
-      if (sample && sample.waAnalysis && sample.waAnalysis['fraction' + fraction + 'WeightConditioned'] > 0) {
+      if (sample && sample.waAnalysis && sample.waAnalysis['fraction' + fraction + 'WeightAshed'] > 0) {
         fractionWeightNum++;
-        fractionTotalWeight += parseFloat(sample.waAnalysis['fraction' + fraction + 'WeightConditioned']);
+        fractionTotalWeight += parseFloat(sample.waAnalysis['fraction' + fraction + 'WeightAshed']);
       }
 
       [...Array(sample && sample.layerNum && sample.layerNum[fraction] ? sample.layerNum[fraction] : layerNum).keys()].forEach(num => {
@@ -1237,13 +1238,15 @@ export const getWAAnalysisSummary = sample => {
         <div style={waBoxStyle}>
           <div style={bufferStyle} />
           <div style={waSubheadingBoxStyle}>
-            <div>Conditioned Weight: </div>
-            <div>Fraction Total: </div>
-            <div>Subfraction Total: </div>
+            <div>Dry Weight: </div>
+            <div>Ashed Weight: </div>
+            <div>Ashed Fraction Total: </div>
+            <div>Ashed Subfraction Total: </div>
             <div>Asbestos Total: </div>
           </div>
           <div style={waWeightStyle}>
-            <div>{weightConditioned ? <span>{parseFloat(weightConditioned).toFixed(2)}g</span> : <span>N/A</span>}</div>
+            <div>{weightDry ? <span>{parseFloat(weightDry).toFixed(2)}g</span> : <span>N/A</span>}</div>
+            <div>{weightAshed ? <span>{parseFloat(weightAshed).toFixed(2)}g</span> : <span>N/A</span>}</div>
             <div>{fractionWeightNum === 3 ? <span>{parseFloat(fractionTotalWeight).toFixed(2)}g</span> : <span>N/A</span>}</div>
             <div>{subFractionTotalWeight ? <span>{parseFloat(subFractionTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
             <div>{asbestosTotalWeight > 0 ? <span>{parseFloat(asbestosTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
@@ -1375,8 +1378,9 @@ export const printCocBulk = (job, samples, me, staffList) => {
         if (sample.disabled) return;
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeCocDescription(sample);
-        sampleMap["material"] = sample.material ?
-          sample.material.charAt(0).toUpperCase() + sample.material.slice(1) : '';
+        sampleMap["category"] = sample.category ? sample.category : 'Other';
+        // sampleMap["material"] = sample.material ?
+        //   sample.material.charAt(0).toUpperCase() + sample.material.slice(1) : '';
         sampleList.push(sampleMap);
       }
     });
@@ -1394,7 +1398,7 @@ export const printCocBulk = (job, samples, me, staffList) => {
     warning: warning === '' ? false : warning,
     jobManager: job.manager,
     date: writeDates(Object.values(samples).filter(e => e.cocUid === job.uid), 'sampleDate'),
-    personnel: getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', null, false),
+    personnel: getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', null, false).map(p => p.name),
     samples: sampleList
   };
   //console.log(report);
@@ -1757,16 +1761,37 @@ export const getSampleCategory = sample => {
 }
 
 export const writeCocDescription = (sample) => {
-  let returnStr = '';
-  let genericLocation = sample.genericLocation && sample.genericLocation.length > 0 ? sample.genericLocation.charAt(0).toUpperCase() + sample.genericLocation.slice(1) : '';
-  let specificLocation = sample.specificLocation && sample.specificLocation.length > 0 ? sample.specificLocation.charAt(0).toUpperCase() + sample.specificLocation.slice(1) : '';
-  let location = genericLocation.length > 0 && specificLocation.length > 0 ? genericLocation + ", " + specificLocation : genericLocation + specificLocation;
+  // let returnStr = '';
+  // let genericLocation = sample.genericLocation && sample.genericLocation.length > 0 ? sample.genericLocation.charAt(0).toUpperCase() + sample.genericLocation.slice(1) : '';
+  // let specificLocation = sample.specificLocation && sample.specificLocation.length > 0 ? sample.specificLocation.charAt(0).toUpperCase() + sample.specificLocation.slice(1) : '';
+  // let location = genericLocation.length > 0 && specificLocation.length > 0 ? genericLocation + ", " + specificLocation : genericLocation + specificLocation;
+  //
+  // let description = sample.description && sample.description.length > 0 ? sample.description.charAt(0).toUpperCase() + sample.description.slice(1) : '';
+  //
+  // if ((location + description).length > 0) returnStr = (location.length > 0 && description.length > 0) ? location + ': ' + description : location + description;
 
-  let description = sample.description && sample.description.length > 0 ? sample.description.charAt(0).toUpperCase() + sample.description.slice(1) : '';
+  var str = '';
+  if (sample.genericLocation) str = sample.genericLocation;
+  if (sample.specificLocation) {
+    if (str === '') {
+      str = sample.specificLocation;
+    } else {
+      str = str + ', ' + sample.specificLocation;
+    }
+  }
+  if (str !== '') str = str + ': ';
+  if (sample.description && sample.material) {
+    str = str + sample.description + ", " + sample.material;
+  } else if (sample.description) {
+    str = str + sample.description;
+  } else if (sample.material) {
+    str = str + sample.material;
+  } else {
+    str = str + "No description";
+  }
 
-  if ((location + description).length > 0) returnStr = (location.length > 0 && description.length > 0) ? location + ': ' + description : location + description;
-  if (sample.onHold) return returnStr + '@~*ON HOLD';
-  else return returnStr;
+  if (sample.onHold) return str + '@~*ON HOLD';
+  else return str;
 }
 
 export const getResultColor = (state, type, yesColor) => {

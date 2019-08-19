@@ -1050,6 +1050,14 @@ const styles = theme => ({
     width: 350,
   },
 
+  columnExtraLarge: {
+    width: 500,
+  },
+
+  columnExtraExtraLarge: {
+    width: 600,
+  },
+
   // CONTAINERS
   flexRow: {
     display: 'flex',

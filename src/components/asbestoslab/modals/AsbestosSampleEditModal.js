@@ -588,7 +588,7 @@ class AsbestosSampleEditModal extends React.Component {
                 <div className={classes.subHeading}>Lab Notes</div>
                 {SamplesTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 1, null, null)}
                 {SamplesTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 1, null, null)}
-                {SamplesTextyBox(this, sample, 'footnote', null, 'Add a footnote to be included in the issued report. This will be displayed as a footnote below the reuslts table.', true, 1, null, null)}
+                {SamplesTextyBox(this, sample, 'footnote', null, 'Add a footnote to be included in the issued report. This will be displayed as a footnote below the results table.', true, 1, null, null)}
 
                 {sample.material === 'soil' && <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
                   <Button
