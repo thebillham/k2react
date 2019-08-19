@@ -1153,7 +1153,7 @@ const waBoxStyle = { flexDirection: 'row', display: 'flex', justifyContent: 'fle
 const bufferStyle = { width: '40%'};
 const waSubheading = { fontWeight: 500 };
 const waSubheadingBoxStyle = { width: '35%', marginRight: 12, marginTop: 14, fontWeight: 500, };
-const waWeightStyle = { width: '25%', marginRight: 12, marginTop: 14, };
+const waWeightStyle = { width: '25%', marginRight: 12, };
 const waWeightStyle2 = { width: '25%', };
 const bottomDottedStyle = { borderBottomStyle: 'dotted', borderBottomWidth: 1};
 const waConcStyle = { width: '35%', marginRight: 14, };
@@ -1226,12 +1226,13 @@ export const getWAAnalysisSummary = sample => {
     let concentrationAF = 0.0;
     let concentrationACM = 0.0;
     let concentrationFAAF = 0.0;
-    if (weightConditioned) {
-      concentrationFA = weightFA/weightConditioned*100;
-      concentrationAF = weightAF/weightConditioned*100;
-      concentrationACM = weightACM/weightConditioned*100;
-      concentrationFAAF = (weightFA+weightAF)/weightConditioned*100;
+    if (weightDry) {
+      concentrationFA = weightFA/weightDry*100;
+      concentrationAF = weightAF/weightDry*100;
+      concentrationACM = weightACM/weightDry*100;
+      concentrationFAAF = (weightFA+weightAF)/weightDry*100;
     }
+    console.log(concentrationFA);
     return(
       <div style={waStyle}>
         <div style={totalStyle}>Totals</div>
@@ -1269,10 +1270,10 @@ export const getWAAnalysisSummary = sample => {
           </div>
           <div style={waConcStyle}>
             <div style={waSubheading}>Asbestos Concentration</div>
-            <div style={bottomDottedStyle}>{weightConditioned ? <span style={concentrationACM > 0.01 ? {redTextStyle} : {blackTextStyle} }>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={bottomDottedStyle}>{weightConditioned ? <span style={concentrationFA > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={bottomDottedStyle}>{weightConditioned ? <span style={concentrationAF > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={bottomDottedStyle}>{weightConditioned ? <span style={concentrationFAAF > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={bottomDottedStyle}>{weightDry ? <span style={concentrationACM > 0.01 ? {redTextStyle} : {blackTextStyle} }>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={bottomDottedStyle}>{weightDry ? <span style={concentrationFA > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={bottomDottedStyle}>{weightDry ? <span style={concentrationAF > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div style={bottomDottedStyle}>{weightDry ? <span style={concentrationFAAF > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
           </div>
         </div>
         <div style={waBoxStyle}>
@@ -1313,10 +1314,10 @@ export const getWAAnalysisSummary = sample => {
             </Button>
           </div>
         </div>
-        { fractionWeightNum === 3 && parseFloat(fractionTotalWeight) !== parseFloat(weightConditioned) && <div className={styles.warningTextLight}>
+        { weightAshed && fractionWeightNum === 3 && parseFloat(fractionTotalWeight) !== parseFloat(weightAshed) && <div className={styles.warningTextLight}>
           The weight of all fractions does not match the total conditioned weight.
         </div>}
-        { parseFloat(subFractionTotalWeight) > parseFloat(weightConditioned) && <div className={styles.warningTextLight}>
+        { weightAshed && parseFloat(subFractionTotalWeight) > parseFloat(weightAshed) && <div className={styles.warningTextLight}>
           The weight of all analysed subfractions exceeds the total conditioned weight of the entire sample!
         </div>}
         { allHaveTypes === false && <div className={styles.warningTextLight}>

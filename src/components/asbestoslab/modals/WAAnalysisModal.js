@@ -172,35 +172,37 @@ class WAAnalysisModal extends React.Component {
               {sampleMoisture && <div className={classes.informationBox}>
                 Moisture: {sampleMoisture}%
               </div>}
+              <div style={{ padding: 48, margin: 12, justifyContent: 'center', width: 600 }}>
+                <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Geotechnical Soil Description</div>
+                <div style={{ textAlign: 'center'}}>
+                  <Button
+                    variant="outlined"
+                    style={{ marginBottom: 16, marginTop: 16, }}
+                    onClick={() => {
+                      this.props.showModalSecondary({
+                        modalType: SOIL_DETAILS,
+                        modalProps: {
+                          title: "Edit Soil Details",
+                          doc: sample,
+                          onExit: details => this.setState({
+                            modified: true,
+                            sample: {
+                              ...this.state.sample,
+                              soilDetails: details,
+                            }
+                          })
+                        }
+                      });
+                    }}
+                  >
+                    Edit Soil Details
+                  </Button>
+                </div>
+                <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
+              </div>
             </div>
             <div>
               {getWAAnalysisSummary(sample)}
-              <div style={{ padding: 48, margin: 12, justifyContent: 'center', width: 600 }}>
-                <div style={{ fontWeight: 500, fontSize: 16, textAlign: 'center', }}>Geotechnical Soil Description</div>
-                <Button
-                  variant="outlined"
-                  style={{ marginBottom: 16, marginTop: 16, }}
-                  onClick={() => {
-                    this.props.showModalSecondary({
-                      modalType: SOIL_DETAILS,
-                      modalProps: {
-                        title: "Edit Soil Details",
-                        doc: sample,
-                        onExit: details => this.setState({
-                          modified: true,
-                          sample: {
-                            ...this.state.sample,
-                            soilDetails: details,
-                          }
-                        })
-                      }
-                    });
-                  }}
-                >
-                  Edit Soil Details
-                </Button>
-                <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
-              </div>
             </div>
           </div>
           {fractionNames.map(fraction => {
