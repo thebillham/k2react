@@ -1,6 +1,7 @@
 import {
   APP_HAS_LOADED,
   ASBESTOS_SAMPLE_DISPLAY_MODE,
+  ASBESTOS_LAB_EXPANDED,
   RESET_DISPLAY,
   TAB_STAFF,
   TAB_MY_DETAILS,
@@ -49,6 +50,7 @@ const displayInit = {
   tabMyDetails: 0,
   filterStaff: filterStaff,
   filterMap: filterMap,
+  asbestosLabExpanded: null,
 };
 
 // Properties related to all other displays
@@ -65,6 +67,11 @@ export default function displayReducer(state = displayInit, action) {
       return {
         ...state,
         asbestosSampleDisplayAdvanced: !state.asbestosSampleDisplayAdvanced
+      }
+    case ASBESTOS_LAB_EXPANDED:
+      return {
+        ...state,
+        asbestosLabExpanded: action.payload,
       }
     case TAB_STAFF:
       return {

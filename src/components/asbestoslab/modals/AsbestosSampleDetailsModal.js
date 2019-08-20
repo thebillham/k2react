@@ -278,13 +278,12 @@ class AsbestosSampleDetailsModal extends React.Component {
                   {sample.layers &&
                     ((sample.layers[`layer1`] !== undefined && Object.keys(sample.layers[`layer1`].result).length > 0) ||
                     (sample.layers[`layer2`] !== undefined && Object.keys(sample.layers[`layer2`].result).length > 0) ||
-                    (sample.layers[`layer3`] !== undefined && Object.keys(sample.layers[`layer3`].result).length > 0) ||
-                    (sample.layers[`layer4`] !== undefined && Object.keys(sample.layers[`layer4`].result).length > 0) ||
-                    (sample.layers[`layer5`] !== undefined && Object.keys(sample.layers[`layer5`].result).length > 0)) &&
+                    (sample.layers[`layer3`] !== undefined && Object.keys(sample.layers[`layer3`].result).length > 0)) &&
                     SampleTextyDisplay('Layers', [...Array(sample.layerNum ? sample.layerNum : 5).keys()].filter(num => sample.layers[`layer${num+1}`] &&
-                      (sample.layers[`layer${num+1}`].description !== '' && sample.layers[`layer${num+1}`].description !== undefined) ||
-                      (sample.layers[`layer${num+1}`].result && Object.keys(sample.layers[`layer${num+1}`].result).length > 0))
-                      .map(num => this.getLayerRow(num+1)))}
+                      ((sample.layers[`layer${num+1}`].description !== '' && sample.layers[`layer${num+1}`].description !== undefined) ||
+                      (sample.layers[`layer${num+1}`].result && Object.keys(sample.layers[`layer${num+1}`].result).length > 0)))
+                      .map(num => this.getLayerRow(num+1)))
+                  }
                 </div>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Analysis Details</div>

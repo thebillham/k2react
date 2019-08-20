@@ -37,7 +37,7 @@ const handleSuggestionsClearRequested = (that, suggestions) => {
 
 
 const renderInputComponent = (inputProps) => {
-  const { classes, inputRef = () => {}, ref, ...other } = inputProps;
+  const { classes, required, inputRef = () => {}, ref, ...other } = inputProps;
 
   return (
     <TextField
@@ -134,11 +134,11 @@ class SuggestionField extends React.PureComponent {
         this.props.onModify(suggestionValue);
       }}
       inputProps={{
-        disabled: this.props.disabled,
         value: this.props.controlled ? this.props.value ? this.props.value : '' : this.state.value ? this.state.value : '',
         onChange: e => {this.props.controlled ? this.props.onModify(e.target.value): this.setState({ value: e.target.value })},
         onBlur: e => {this.props.onModify(e.target.value)},
         label: this.props.label,
+        required: this.props.required,
       }}
       theme={{
         container: { position: 'relative',},

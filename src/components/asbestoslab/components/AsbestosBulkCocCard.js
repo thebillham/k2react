@@ -18,6 +18,7 @@ import {
   getStatus,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM, } from "../../../actions/local";
+import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
 import { showModal } from "../../../actions/modal";
 import {
   ASBESTOS_SAMPLE_EDIT,
@@ -67,6 +68,8 @@ const mapStateToProps = state => {
     bulkAnalysts: state.asbestosLab.bulkAnalysts,
     airAnalysts: state.asbestosLab.airAnalysts,
     cocs: state.asbestosLab.cocs,
+    expanded: state.display.asbestosLabExpanded,
+    asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced
   };
 };
 
@@ -80,6 +83,8 @@ const mapDispatchToProps = dispatch => {
     logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
     setSessionID: session => dispatch(setSessionID(session)),
     deleteCoc: (coc, me) => dispatch(deleteCoc(coc, me)),
+    setAsbestosLabExpanded: ex => dispatch(setAsbestosLabExpanded(ex)),
+    toggleAsbestosSampleDisplayMode: () => dispatch(toggleAsbestosSampleDisplayMode()),
   };
 };
 
@@ -105,6 +110,8 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   shouldComponentUpdate(nextProps, nextState) {
+    if (nextProps.job === nextProps.expanded) return true;
+    if (this.props.expanded === this.props.job && this.props.expanded !== nextProps.expanded) return true;
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (nextState.expanded === false) return false;
     return true;
@@ -164,10 +171,11 @@ class AsbestosBulkCocCard extends React.Component {
     getStatus(filteredSamples, job);
     return (
       <ExpansionPanel
+        expanded={this.props.expanded === job.uid}
         className={classes.fullWidth}
         onChange={(event, ex) => {
           if (!samples[this.props.job]) this.getSamples(ex, job.uid, job.jobNumber);
-          this.setState({ expanded: ex });
+          this.props.setAsbestosLabExpanded(ex ? job.uid : null);
         }}
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
@@ -207,9 +215,9 @@ class AsbestosBulkCocCard extends React.Component {
                 <span>
                   <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
                     onClick={event => {
-                        this.props.showModal({
-                          modalType: ASBESTOS_ACTIONS,
-                          modalProps: { job: job, field: 'receivedByLab', title: `Receive Samples for ${job.jobNumber}`, }});
+                      this.props.showModal({
+                        modalType: ASBESTOS_ACTIONS,
+                        modalProps: { job: job, field: 'receivedByLab', title: `Receive Samples for ${job.jobNumber}`, }});
                     }}>
                     <ReceiveIcon className={classes.iconRegular} />
                   </IconButton>
@@ -219,9 +227,10 @@ class AsbestosBulkCocCard extends React.Component {
                 <span>
                   <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
                     onClick={event => {
-                        this.props.showModal({
-                          modalType: ASBESTOS_ACTIONS,
-                          modalProps: { job: job, field: 'analysisStart', title: `Start Analysis on ${job.jobNumber}`, }});
+                      this.props.showModal({
+                        modalType: ASBESTOS_ACTIONS,
+                        modalProps: { job: job, field: 'analysisStart', title: `Start Analysis on ${job.jobNumber}`,
+                      }});
                     }}>
                     <StartAnalysisIcon className={classes.iconRegular} />
                   </IconButton>
@@ -231,13 +240,14 @@ class AsbestosBulkCocCard extends React.Component {
                 <span>
                   <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
                     onClick={event => {
-                        this.props.showModal({
-                          modalType: ASBESTOS_SAMPLE_EDIT,
-                          modalProps: {
-                            activeSample: Object.keys(filteredSamples)[0],
-                            activeCoc: job.uid,
-                            sampleList: job.sampleList,
-                        }});
+                      if (this.props.asbestosSampleDisplayAdvanced) this.props.toggleAsbestosSampleDisplayMode();
+                      this.props.showModal({
+                        modalType: ASBESTOS_SAMPLE_EDIT,
+                        modalProps: {
+                          activeSample: Object.keys(filteredSamples)[0],
+                          activeCoc: job.uid,
+                          sampleList: job.sampleList,
+                      }});
                     }}>
                     <RecordAnalysisIcon className={classes.iconRegular} />
                   </IconButton>

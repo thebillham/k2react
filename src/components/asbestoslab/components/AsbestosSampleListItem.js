@@ -17,6 +17,7 @@ import {
 import { AsbestosSampleStatus } from '../../../widgets/DisplayWidgets';
 import { AsbButton } from '../../../widgets/FormWidgets';
 import { showModal } from "../../../actions/modal";
+import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
 import {
   ASBESTOS_SAMPLE_EDIT,
   WA_ANALYSIS,
@@ -54,12 +55,14 @@ const mapStateToProps = state => {
     sessionID: state.asbestosLab.sessionID,
     analysisMode: state.asbestosLab.analysisMode,
     noAsbestosResultReasons: state.const.noAsbestosResultReasons,
+    asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     showModal: modal => dispatch(showModal(modal)),
+    toggleAsbestosSampleDisplayMode: () => dispatch(toggleAsbestosSampleDisplayMode()),
   };
 };
 
@@ -74,34 +77,6 @@ class AsbestosSampleListItem extends React.Component {
       // //console.log('Blocked re-render of SampleList');
       return false;
     }
-  }
-
-  toggleWAAnalysis = () => {
-    let sample = this.props.samples[this.props.job][this.props.sample];
-    let log = {
-      type: "Admin",
-      log: sample.waAnalysis ? `Western Australia guidelines removed from Sample ${sample.sampleNumber}` : `Western Australia guidelines added to Sample ${sample.sampleNumber}`,
-      sample: sample.uid,
-      chainOfCustody: sample.cocUid,
-    };
-    addLog("asbestosLab", log, this.props.me);
-
-    let waAnalysis = false;
-    if (!sample.waAnalysis) {
-      waAnalysis = true;
-    } else if (this.props.samples[this.props.job]) {
-      Object.values(this.props.samples[this.props.job]).filter(el => el.deleted === false && el.uid !== sample.uid)
-      .forEach(el => {
-        if (el.waAnalysis) waAnalysis = true;
-      });
-    }
-
-    cocsRef
-      .doc(this.props.job.uid)
-      .update({ versionUpToDate: false, mostRecentIssueSent: false, waAnalysis: waAnalysis, });
-    asbestosSamplesRef
-      .doc(sample.uid)
-      .update({ waAnalysis: !sample.waAnalysis});
   }
 
   render() {
@@ -154,13 +129,14 @@ class AsbestosSampleListItem extends React.Component {
                 {editor && <Tooltip id="det-tooltip" title={'Edit Sample Details'}>
                   <IconButton
                     onClick={event => {
-                        this.props.showModal({
-                          modalType: ASBESTOS_SAMPLE_EDIT,
-                          modalProps: {
-                            activeSample: sample.sampleNumber,
-                            activeCoc: job.uid,
-                            sampleList: job.sampleList,
-                        }});
+                      if (!this.props.asbestosSampleDisplayAdvanced) this.props.toggleAsbestosSampleDisplayMode();
+                      this.props.showModal({
+                        modalType: ASBESTOS_SAMPLE_EDIT,
+                        modalProps: {
+                          activeSample: sample.sampleNumber,
+                          activeCoc: job.uid,
+                          sampleList: job.sampleList,
+                      }});
                     }}
                   >
                     <EditIcon className={classes.iconRegular}/>
@@ -169,18 +145,18 @@ class AsbestosSampleListItem extends React.Component {
                 <Tooltip id="det-tooltip" title={'Sample Details'}>
                   <IconButton
                     onClick={event => {
-                        this.props.showModal({
-                          modalType: ASBESTOS_SAMPLE_DETAILS,
-                          modalProps: {
-                            doc: sample,
-                            job: job,
-                        }});
+                      this.props.showModal({
+                        modalType: ASBESTOS_SAMPLE_DETAILS,
+                        modalProps: {
+                          doc: sample,
+                          job: job,
+                      }});
                     }}
                   >
                     <SampleDetailsIcon className={classes.iconRegular}/>
                   </IconButton>
                 </Tooltip>
-                {job.waAnalysis &&
+                {/*{job.waAnalysis &&
                   <Tooltip id="wa-tooltip" title={editor ? 'WA Analysis' : sample.waAnalysisComplete ? 'WA Analysis Complete' : 'WA Analysis Incomplete'}>
                     <IconButton
                       onClick={event => editor ?
@@ -195,7 +171,7 @@ class AsbestosSampleListItem extends React.Component {
                       <WAIcon className={sample.waAnalysisComplete ? classes.iconRegularGreen : classes.iconRegular} />
                     </IconButton>
                   </Tooltip>
-                }
+                }*/}
                 <Tooltip id="cr-tooltip" title={editor ? 'Result Checks' : confirmColor === 'Red' ? 'Contradictory result given by other analyst' : confirmColor === 'Green' ? 'Result confirmed by another analyst' : 'Slightly different result given by other analyst'}>
                   <IconButton
                     onClick={event => editor ?

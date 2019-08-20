@@ -16,6 +16,7 @@ import Grid from '@material-ui/core/Grid';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -265,13 +266,14 @@ class CocModal extends React.PureComponent {
                     </div>
                   )
                 }
+                {/*<FormHelperText>Include any information that may be useful for the lab. E.g. for a soil sample you might include information on what contamination you are expecting.</FormHelperText>*/}
                 <TextField
                   id="labInstructions"
                   label="Lab Instructions"
                   style={{ width: '100%' }}
                   defaultValue={doc && doc.labInstructions}
                   rows={5}
-                  helperText="Include any information that may be useful for the lab. E.g. for a soil sample you might include information on what contamination you are expecting."
+                  helperText='Include any information that may be useful for the lab. E.g. for a soil sample you might include information on what contamination you are expecting.'
                   multiline
                   onChange={e => {
                     this.setState({ modified: true, });
@@ -406,7 +408,7 @@ class CocModal extends React.PureComponent {
                 {Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                   let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
                   return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
-                    <div className={disabled ? classes.flexRowHoverFat : classes.flexRowHover} key={i}>
+                    <div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
                       <div className={classes.spacerSmall} />
                       <div className={classes.columnSmall}>
                         <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
@@ -582,7 +584,7 @@ class CocModal extends React.PureComponent {
                         />
                       </div>
                       <div className={classes.columnSmall}>
-                        <Tooltip title={'Add Detailed Sample Information e.g. In-Situ Soil Characteristics'}>
+                        {/*<Tooltip title={'Add Detailed Sample Information e.g. In-Situ Soil Characteristics'}>
                           <IconButton onClick={() =>
                             this.props.showModalSecondary({
                               modalType: ASBESTOS_SAMPLE_EDIT_COC,
@@ -599,7 +601,7 @@ class CocModal extends React.PureComponent {
                             })}>
                             <EditIcon className={classes.iconRegular}  />
                           </IconButton>
-                        </Tooltip>
+                        </Tooltip>*/}
                       </div>
                     </div>
                   );
@@ -618,8 +620,10 @@ class CocModal extends React.PureComponent {
               this.props.resetModal()
             }} color="secondary">Cancel</Button>
             <Button disabled={!this.state.modified} onClick={() => {
-              if (modalProps.isNew) {
-                window.alert('Sync a job with WorkflowMax before submitting.');
+              if (!doc.jobNumber) {
+                window.alert('Job Number Required.');
+              } else if (modalProps.isNew) {
+                window.alert('Sync Job with WorkflowMax before submitting.');
                 return;
               } else {
                  if (wfmJob.client) {

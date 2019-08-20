@@ -349,6 +349,11 @@ const styles = theme => ({
     backgroundColor: theme.palette.secondary.dark
   },
 
+  bottomDottedStyle: {
+    borderBottomStyle: 'dotted',
+    borderBottomWidth: 1,
+  },
+
   // Icon Styles
 
   iconRegular: {
@@ -1106,10 +1111,24 @@ const styles = theme => ({
     },
   },
 
+  flexRowTotals: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    flexDirection: 'row',
+    display: 'flex',
+    borderRadius: 12,
+    alignItems: 'center',
+    fontWeight: 600,
+    backgroundColor: theme.palette.app.hover,
+  },
+
   flexRowHoverDisabled: {
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
-    padding: theme.spacing(1),
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
     flexDirection: 'row',
     display: 'flex',
     borderRadius: 12,
@@ -1117,15 +1136,16 @@ const styles = theme => ({
     color: theme.palette.app.disabled,
   },
 
-  flexRowHoverFat: {
-    minHeight: 60,
-    flexDirection: 'row',
-    display: 'flex',
-    alignItems: 'center',
-    "&:hover": {
-        backgroundColor: theme.palette.app.hover
-    },
-  },
+  // flexRowHoverDisabledFat: {
+  //   minHeight: 60,
+  //   flexDirection: 'row',
+  //   display: 'flex',
+  //   color: theme.palette.app.disabled,
+  //   alignItems: 'center',
+  //   "&:hover": {
+  //       backgroundColor: theme.palette.app.hover
+  //   },
+  // },
 
   flexRowHoverMed: {
     minHeight: 50,

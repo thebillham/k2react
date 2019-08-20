@@ -33,7 +33,6 @@ import {
 import { showModal } from "../../actions/modal";
 import CocModal from "./modals/CocModal";
 import UpdateCertificateVersionModal from "./modals/UpdateCertificateVersionModal";
-import WAAnalysisModal from "./modals/WAAnalysisModal";
 import SoilDetailsModal from "./modals/SoilDetailsModal";
 import AsbestosSampleEditModal from "./modals/AsbestosSampleEditModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
@@ -156,7 +155,6 @@ class AsbestosCocs extends React.PureComponent {
         { modalType === ASBESTOS_COC_EDIT && <CocModal /> }
         { modalType === UPDATE_CERTIFICATE_VERSION && <UpdateCertificateVersionModal /> }
         { modalType === ASBESTOS_SAMPLE_LOG && <SampleLogModal /> }
-        { modalType === WA_ANALYSIS && <WAAnalysisModal /> }
         <AsbestosSampleEditModal />
         { modalType === DOWNLOAD_LAB_CERTIFICATE && <DownloadLabCertificateModal /> }
         { modalType === COC_LOG && <CocLogModal /> }

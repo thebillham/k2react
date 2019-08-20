@@ -307,7 +307,7 @@ export const handleCocSubmit = ({ doc, me }) => dispatch => {
         // //console.log(`UID for old sample is ${doc.samples[sample].uid}`);
         sampleList.push(doc.samples[sample].uid);
       }
-      if (doc.samples[sample].description || doc.samples[sample].material) {
+      if (writeDescription(doc.samples[sample]) !== '') {
         // //console.log(`Submitting sample ${sample} to ${docid}`);
         let sample2 = doc.samples[sample];
         if (sample2.description)
@@ -1696,6 +1696,7 @@ export const writeDescription = (sample) => {
   } else {
     str = str + "No description";
   }
+  if (str.length > 1) str = str.charAt(0).toUpperCase() + str.slice(1);
   return str;
 };
 
@@ -1857,6 +1858,72 @@ export const getConfirmColor = (sample) => {
   return confirmColor;
 };
 
+export const getWAFractionDetails = (sample, fraction) => {
+  let result = {
+    totalAsbestosWeight: 0,
+    types: {},
+    result: {},
+  };
+
+  if (sample && sample.waLayerNum) {
+    [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 3).keys()].forEach(num => {
+      let layer = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
+      if (layer) {
+        if (layer.concentration && layer.weight) result.totalAsbestosWeight = result.totalAsbestosWeight + (parseFloat(layer.weight) * parseFloat(layer.concentration)/ 100)
+        if (layer.type) result.types[layer.type] = true;
+        if (layer.result) result.result = mergeAsbestosResult(result.result, layer.result);
+      }
+    });
+  }
+  console.log(result);
+
+  return result;
+};
+
+export const getWATotalDetails = (sample) => {
+  // Set detection limits
+
+  let result = {
+    totalAsbestosWeight: 0,
+    types: {},
+    result: {},
+    asbestosInACMConc: 0,
+    asbestosInFAAFConc: 0,
+    asbestosInFAConc: 0,
+    asbestosInAFConc: 0,
+    asbestosInACM: 0,
+    asbestosInFA: 0,
+    asbestosInAF: 0,
+  };
+  if (sample && sample.waSoilAnalysis) {
+    fractionNames.forEach(fraction => {
+      [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 3).keys()].forEach(num => {
+        let layer = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
+        if (layer) {
+          if (layer.concentration && layer.weight) {
+            let weight = (parseFloat(layer.weight) * parseFloat(layer.concentration)/ 100);
+            result.totalAsbestosWeight = result.totalAsbestosWeight + weight;
+            console.log(layer.type);
+            if (layer.type === 'acm') result.asbestosInACM = result.asbestosInACM + weight;
+              else if (layer.type === 'fa') result.asbestosInFA = result.asbestosInFA + weight;
+              else if (layer.type === 'af') result.asbestosInAF = result.asbestosInAF + weight;
+          }
+          if (layer.type) result.types[layer.type] = true;
+          if (layer.result) result.result = mergeAsbestosResult(result.result, layer.result);
+        }
+      });
+    });
+    if (sample.weightDry) {
+      result.asbestosInACMConc = ((result.asbestosInACM/sample.weightDry) * 100).toPrecision(2);
+      result.asbestosInFAAFConc = (((result.asbestosInFA + result.asbestosInAF)/sample.weightDry) * 100).toPrecision(2);
+      result.asbestosInFAConc = ((result.asbestosInFA/sample.weightDry) * 100).toPrecision(2);
+      result.asbestosInAFConc = ((result.asbestosInAF/sample.weightDry) * 100).toPrecision(2);
+    }
+  }
+  console.log(result);
+  return result;
+}
+
 export const getAllConfirmResult = sample => {
   if (!sample.confirm) return 'none';
   if (!sample.result) return 'none';
@@ -1906,6 +1973,15 @@ export const compareAsbestosResult = (confirm, result) => {
   });
   if (differentNonAsbestos) return 'differentNonAsbestos';
   return 'yes';
+}
+
+export const mergeAsbestosResult = (original, add) => {
+  let merge = original;
+  ['ch','am','cr','umf','org','smf','no',].forEach(type => {
+    if (add[type]) merge[type] = true;
+  });
+  if (merge['no'] && (merge['ch'] || merge['am'] || merge['cr'] || merge['umf'])) merge['no'] = false;
+  return merge;
 }
 
 export const writeChecks = (sample) => {
@@ -2229,14 +2305,16 @@ export const getStatus = (samples, job) => {
   let numberAnalysisStarted = 0;
   let numberResult = 0;
   let numberVerified = 0;
+  let numberWAAnalysisIncomplete = 0;
 
-  if (samples && samples.length > 0) {
-    samples.forEach(sample => {
+  if (samples && Object.values(samples).length > 0) {
+    Object.values(samples).forEach(sample => {
       if (sample.cocUid === jobID) {
         totalSamples = totalSamples + 1;
         if (sample.receivedByLab) numberReceived = numberReceived + 1;
         if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
         if (sample.verified) numberVerified = numberVerified + 1;
+        if (job.waAnalysis && !sample.waAnalysisComplete) numberWAAnalysisIncomplete = numberWAAnalysisIncomplete + 1;
         if (getBasicResult(sample) !== 'none') numberResult = numberResult + 1;
       }
     });
@@ -2256,7 +2334,8 @@ export const getStatus = (samples, job) => {
   } else if (numberResult === 0) {
     status = 'Analysis Begun';
   } else if (numberResult === totalSamples && numberVerified === 0) {
-    status = 'Analysis Complete';
+    if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = 'Bulk ID Complete, WA Analysis Incomplete';
+      else status = 'Analysis Complete';
   } else if (numberVerified > 0) {
     status = 'Analysis Partially Verified';
   } else if (numberResult > 0) {
