@@ -11,7 +11,7 @@ import { sendSlackMessage } from "../../../Slack";
 
 import { RichEditor } from "../../editor/RichEditor";
 import { EditorState, ContentState, convertToRaw } from "draft-js";
-import ReactRichEditor from 'react-rich-text-editor'
+// import ReactRichEditor from 'react-rich-text-editor'
 import draftToHtml from "draftjs-to-html";
 import htmlToDraft from "html-to-draftjs";
 
@@ -414,10 +414,10 @@ class DocumentModal extends React.Component {
             })
           }
         />
-        <ReactRichEditor
+        {/*<ReactRichEditor
           height={200}
           showAll={true}
-        />
+        />*/}
         {/*<RichEditor
           editorState={editorState[page - 2]}
           onEditorStateChange={changedState => {

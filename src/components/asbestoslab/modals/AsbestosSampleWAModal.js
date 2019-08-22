@@ -276,9 +276,7 @@ class AsbestosSampleWAModal extends React.Component {
 
     let log = {
       type: "Analysis",
-      log: `Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }) details edited.`,
+      log: `Sample ${sample.sampleNumber} (${writeDescription(sample)}) details edited.`,
       sample: sample.uid,
       chainOfCustody: sample.cocUid,
     };

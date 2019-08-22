@@ -17,7 +17,7 @@ import Select from 'react-select';
 
 import SuggestionField from '../../../widgets/SuggestionField';
 import { hideModalSecondary, handleModalChange, } from "../../../actions/modal";
-import { handleSampleChange } from '../../../actions/asbestosLab';
+import { handleSampleChange, writeDescription } from '../../../actions/asbestosLab';
 import { addLog, personnelConvert } from '../../../actions/local';
 import { SampleRadioSelector } from '../../../widgets/FormWidgets';
 
@@ -36,6 +36,7 @@ const mapStateToProps = state => {
     materialSuggestions: state.const.asbestosMaterialSuggestions,
     asbestosMaterialCategories: state.const.asbestosMaterialCategories,
     me: state.local.me,
+    samples: state.asbestosLab.samples,
   };
 };
 
@@ -87,7 +88,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     const { doc, sample } = this.state;
     let log = {
       type: 'Delete',
-      log: `Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description} ${sample.material}) deleted.`,
+      log: `Sample ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) deleted.`,
       chainOfCustody: sample.cocUid,
       sample: sample.uid,
     };
@@ -112,7 +113,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     const { doc, sample } = this.state;
     let log = {
       type: 'ID Change',
-      log: `Sample ${sample.jobNumber}-${sample.sampleNumber} (${sample.description} ${sample.material}) moved to sample number ${sample.jobNumber}-${this.state.sampleSwap}.`,
+      log: `Sample ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) moved to sample number ${sample.jobNumber}-${this.state.sampleSwap}.`,
       chainOfCustody: sample.cocUid,
       sample: sample.uid,
     };
@@ -122,7 +123,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
       [this.state.sampleSwap]: {
         ...sample,
         sampleNumber: this.state.sampleSwap,
-        reported: false,
+        verified: false,
       }
     };
 
@@ -137,14 +138,14 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     const { doc, sample } = this.state;
     let log = {
       type: 'ID Change',
-      log: `Samples ${sample.jobNumber}-${sample.sampleNumber} (${sample.description} ${sample.material}) and ${sample.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
+      log: `Samples ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) and ${sample.jobNumber}-${this.state.sampleSwap} (${writeDescription(doc.samples[this.state.sampleSwap])}) swapped numbers.`,
       chainOfCustody: sample.cocUid,
       sample: sample.uid,
     };
     addLog("asbestosLab", log, me);
     log = {
       type: 'ID Change',
-      log: `Samples ${sample.jobNumber}-${sample.sampleNumber} (${sample.description} ${sample.material}) and ${sample.jobNumber}-${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap].description} ${doc.samples[this.state.sampleSwap].material}) swapped numbers.`,
+      log: `Samples ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) and ${sample.jobNumber}-${this.state.sampleSwap} (${writeDescription(doc.samples[this.state.sampleSwap])}) swapped numbers.`,
       chainOfCustody: sample.cocUid,
       sample: doc.samples[this.state.sampleSwap].uid,
     };
@@ -154,12 +155,12 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
       [this.state.sampleSwap]: {
         ...sample,
         sampleNumber: this.state.sampleSwap,
-        reported: false,
+        verified: false,
       },
       [sample.sampleNumber]: {
         ...doc.samples[this.state.sampleSwap],
         sampleNumber: sample.sampleNumber,
-        reported: false,
+        verified: false,
       },
     };
 
@@ -191,21 +192,18 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
       window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
     }
   } else {
-      if (sample.uid && this.state.modified) {
+      if (sample.uid && sample !== this.props.samples[sample.jobNumber][sample.sampleNumber]) {
         log = {
           type: 'Edit',
-          log: `Details of sample ${this.state.sample.jobNumber}-${this.state.sample.sampleNumber} (${this.state.sample.description} ${this.state.sample.material}) modified.`,
+          log: `Details of sample ${this.state.sample.jobNumber}-${this.state.sample.sampleNumber} (${writeDescription(this.state.sample)}) modified.`,
           sample: sample.uid,
           chainOfCustody: sample.cocUid,
         };
         addLog("asbestosLab", log, this.props.me);
-      }
-
-      let i = parseInt(sample.sampleNumber) - 1;
-      if (sample.description || sample.material) {
+        let i = parseInt(sample.sampleNumber) - 1;
         this.props.handleSampleChange(i,
           {
-            reported: false,
+            verified: false,
             genericLocation: sample.genericLocation ? sample.genericLocation : null,
             specificLocation: sample.specificLocation ? sample.specificLocation : null,
             category: sample.category ? sample.category : 'Other',
@@ -216,6 +214,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
           }
         );
       }
+
       onComplete();
     }
   }

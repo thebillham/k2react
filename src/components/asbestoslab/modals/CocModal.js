@@ -31,6 +31,7 @@ import Chip from '@material-ui/core/Chip';
 import EditIcon from '@material-ui/icons/Edit';
 import Select from 'react-select';
 import SuggestionField from '../../../widgets/SuggestionField';
+import Hint from 'react-hints';
 
 import {
   DatePicker,
@@ -71,9 +72,9 @@ const mapDispatchToProps = dispatch => {
     onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
     handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 50),
     // handleModalChange: target => dispatch(handleModalChange(target)),
+    handleCocSubmit: doc => dispatch(handleCocSubmit(doc)),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
-    handleCocSubmit: (doc, docid, userName, userUid) => dispatch(handleCocSubmit(doc, docid, userName, userUid)),
     handleSampleChange: (number, changes) => dispatch(handleSampleChange(number, changes)),
     setModalError: error => dispatch(setModalError(error)),
     showModalSecondary: modal => dispatch(showModalSecondary(modal)),
@@ -124,7 +125,7 @@ const initState = {
 };
 
 class CocModal extends React.PureComponent {
-  static whyDidYouRender = true;
+  // static whyDidYouRender = true;
   state = initState;
 
   componentWillMount() {
@@ -200,6 +201,7 @@ class CocModal extends React.PureComponent {
       let sampleNumbers = [this.state.numberOfSamples];
       if (doc && doc.samples) sampleNumbers = sampleNumbers.concat(Object.keys(doc.samples).map(key => parseInt(key)));
       let numberOfSamples = Math.max(...sampleNumbers);
+      let wfmSynced = doc.jobNumber && !modalProps.isNew;
 
       return(
         <Dialog
@@ -465,51 +467,55 @@ class CocModal extends React.PureComponent {
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
                         <SuggestionField that={this} suggestions='genericLocationSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
+                          disabled={!wfmSynced}
                           onModify={(value) => {
                             this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, genericLocation: value});
+                            this.props.handleSampleChange(i, {genericLocation: value});
                           }} />
                         {/*{SuggestionField(this, disabled, null, 'genericLocationSuggestions',
                           doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : '',
                           (value) => {
                             // this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, genericLocation: value});
+                            this.props.handleSampleChange(i, {genericLocation: value});
                           }
                         )}*/}
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
                         <SuggestionField that={this} suggestions='specificLocationSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : ''}
+                          disabled={!wfmSynced}
                           onModify={(value) => {
                             this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, specificLocation: value});
+                            this.props.handleSampleChange(i, {specificLocation: value});
                           }} />
                         {/*{SuggestionField(this, disabled, null, 'specificLocationSuggestions',
                           doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : '',
                           (value) => {
                             // this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, specificLocation: value});
+                            this.props.handleSampleChange(i, {specificLocation: value});
                           }
                         )}*/}
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                         <SuggestionField that={this} suggestions='descriptionSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
+                          disabled={!wfmSynced}
                           onModify={(value) => {
                             this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, description: value});
+                            this.props.handleSampleChange(i, {description: value});
                           }} />
                         {/*{SuggestionField(this, disabled, null, 'descriptionSuggestions',
                           doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : '',
                           (value) => {
                             // this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, description: value});
+                            this.props.handleSampleChange(i, {description: value});
                           }
                         )}*/}
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                         <SuggestionField that={this} suggestions='materialSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : ''}
+                          disabled={!wfmSynced}
                           onModify={(value) => {
                             let category = '';
                             if (doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category) category = doc.samples[i+1].category;
@@ -520,13 +526,13 @@ class CocModal extends React.PureComponent {
                               }
                             }
                             this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, material: value, category});
+                            this.props.handleSampleChange(i, {material: value, category});
                           }} />
                         {/*{SuggestionField(this, disabled, null, 'materialSuggestions',
                           doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
                           (value) => {
                             // this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, material: value});
+                            this.props.handleSampleChange(i, {material: value});
                           }
                         )}*/}
                       </div>
@@ -535,9 +541,10 @@ class CocModal extends React.PureComponent {
                           className={classes.selectTight}
                           value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category ? {value: doc.samples[i+1].category, label: doc.samples[i+1].category} : {value: '', label: ''}}
                           options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
+                          isDisabled={!wfmSynced}
                           onChange={e => {
                             this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {reported: false, category: e.value});
+                            this.props.handleSampleChange(i, {category: e.value});
                           }}
                         />
                       </div>
@@ -547,6 +554,7 @@ class CocModal extends React.PureComponent {
                           className={classes.selectTight}
                           value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => ({value: e, label: e})) : this.state.defaultPersonnel}
                           options={names.map(e => ({ value: e.name, label: e.name }))}
+                          isDisabled={!wfmSynced}
                           onChange={e => {
                             let defaultPersonnel = this.state.defaultPersonnel;
                             let personnelSelected = this.state.personnelSelected;
@@ -564,8 +572,10 @@ class CocModal extends React.PureComponent {
                               defaultPersonnel = e;
                             }
 
+                            console.log(sampledBy);
+
                             this.setState({ modified: true, personnelSelected, defaultPersonnel});
-                            this.props.handleSampleChange(i, {reported: false, sampledBy});
+                            this.props.handleSampleChange(i, {sampledBy});
                           }}
                         />
                       </div>
@@ -574,12 +584,13 @@ class CocModal extends React.PureComponent {
                           value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampleDate ? doc.samples[i+1].sampleDate : this.state.defaultDate}
                           autoOk
                           format="ddd, D MMMM YYYY"
+                          disabled={!wfmSynced}
                           clearable
                           onChange={date => {
                             let defaultDate = this.state.defaultDate;
                             if (!this.state.dateSelected) defaultDate = date.toDate();
                             this.setState({ modified: true, dateSelected: true, defaultDate});
-                            this.props.handleSampleChange(i, {reported: false, sampleDate: date.toDate()});
+                            this.props.handleSampleChange(i, {sampleDate: date.toDate()});
                           }}
                         />
                       </div>
@@ -619,37 +630,23 @@ class CocModal extends React.PureComponent {
               this.props.resetWfmJob();
               this.props.resetModal()
             }} color="secondary">Cancel</Button>
-            <Button disabled={!this.state.modified} onClick={() => {
-              if (!doc.jobNumber) {
-                window.alert('Job Number Required.');
-              } else if (modalProps.isNew) {
-                window.alert('Sync Job with WorkflowMax before submitting.');
-                return;
-              } else {
-                 if (wfmJob.client) {
-                  doc.jobNumber = doc.jobNumber ? doc.jobNumber.toUpperCase().trim() : null;
-                  doc.client = wfmJob.client ? wfmJob.client.trim() : null;
-                  doc.address = wfmJob.address ? wfmJob.address.trim() : null;
-                  doc.clientOrderNumber = wfmJob.clientOrderNumber.trim() ? wfmJob.clientOrderNumber : null;
-                  doc.contact = wfmJob.contact ? wfmJob.contact.trim() : null;
-                  doc.contactName = wfmJob.contactName ? wfmJob.contactName.trim() : null;
-                  doc.contactEmail = wfmJob.contactEmail ? wfmJob.contactEmail.trim() : null;
-                  doc.dueDate = wfmJob.dueDate ? wfmJob.dueDate : null;
-                  doc.manager = wfmJob.manager ? wfmJob.manager.trim() : null;
-                  doc.type = wfmJob.type ? wfmJob.type : null;
-                  doc.wfmID = wfmJob.wfmID ? wfmJob.wfmID : null;
-                }
-                let now = new Date();
-                if (!doc.dateSubmit) doc.dateSubmit = now;
-                doc.lastModified = now;
-                doc.versionUpToDate = false;
-                doc.mostRecentIssueSent = false;
-                doc.defaultDate = this.state.defaultDate;
-                doc.defaultPersonnel = this.state.defaultPersonnel;
-                if (Object.keys(doc.samples).length === 0) doc.status = 'No Samples';
-                  else doc.status = 'In Transit';
-                this.props.resetWfmJob();
-                //console.log(`Doc UID exists it is ${doc.uid}`);
+            <Button disabled={!this.state.modified || !wfmSynced} onClick={() => {
+               if (wfmJob.client) {
+                doc.jobNumber = doc.jobNumber ? doc.jobNumber.toUpperCase().trim() : null;
+                doc.client = wfmJob.client ? wfmJob.client.trim() : null;
+                doc.address = wfmJob.address ? wfmJob.address.trim() : null;
+                doc.clientOrderNumber = wfmJob.clientOrderNumber.trim() ? wfmJob.clientOrderNumber : null;
+                doc.contact = wfmJob.contact ? wfmJob.contact.trim() : null;
+                doc.contactName = wfmJob.contactName ? wfmJob.contactName.trim() : null;
+                doc.contactEmail = wfmJob.contactEmail ? wfmJob.contactEmail.trim() : null;
+                doc.dueDate = wfmJob.dueDate ? wfmJob.dueDate : null;
+                doc.manager = wfmJob.manager ? wfmJob.manager.trim() : null;
+                doc.type = wfmJob.type ? wfmJob.type : null;
+                doc.wfmID = wfmJob.wfmID ? wfmJob.wfmID : null;
+              }
+              let now = new Date();
+              let originalSamples = {};
+              if (!doc.dateSubmit) {
                 let log = {
                     type: 'Create',
                     log: `Chain of Custody created.`,
@@ -657,11 +654,23 @@ class CocModal extends React.PureComponent {
                   };
                 addLog("asbestosLab", log, me);
                 doc.deleted = false;
-                this.props.handleCocSubmit({
-                  doc: doc,
-                  me: me,
-                });
-              }
+                doc.dateSubmit = now;
+                if (Object.keys(doc.samples).length === 0) doc.status = 'No Samples';
+                  else doc.status = 'In Transit';
+              } else originalSamples = this.props.samples[doc.uid];
+              console.log(doc.samples);
+
+              doc.lastModified = now;
+              doc.versionUpToDate = false;
+              doc.mostRecentIssueSent = false;
+              doc.defaultDate = this.state.defaultDate;
+              doc.defaultPersonnel = this.state.defaultPersonnel;
+              this.props.handleCocSubmit({
+                doc: doc,
+                me: me,
+                originalSamples,
+              });
+              this.props.resetWfmJob();
             }
           } color="primary" >Submit</Button>
           </DialogActions>

@@ -21,7 +21,6 @@ const mapStateToProps = state => {
 };
 
 const handleSuggestionFetchRequested = (that, suggestions, value) => {
-  console.log(value);
   that.setState({
     suggestions: getSuggestions(value, suggestions, that),
   });
@@ -134,6 +133,7 @@ class SuggestionField extends React.PureComponent {
         this.props.onModify(suggestionValue);
       }}
       inputProps={{
+        disabled: this.props.disabled,
         value: this.props.controlled ? this.props.value ? this.props.value : '' : this.state.value ? this.state.value : '',
         onChange: e => {this.props.controlled ? this.props.onModify(e.target.value): this.setState({ value: e.target.value })},
         onBlur: e => {this.props.onModify(e.target.value)},

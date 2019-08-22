@@ -86,6 +86,7 @@ const mapStateToProps = state => {
     specificLocationSuggestions: state.const.specificLocationSuggestions,
     descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
+    asbestosMaterialCategories: state.const.asbestosMaterialCategories,
     asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced
   };
 };
@@ -280,9 +281,7 @@ class AsbestosSampleEditModal extends React.Component {
 
     let log = {
       type: "Analysis",
-      log: `Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }) details edited.`,
+      log: `Sample ${sample.sampleNumber} (${writeDescription(sample)}) details edited.`,
       sample: sample.uid,
       chainOfCustody: sample.cocUid,
     };
@@ -423,6 +422,23 @@ class AsbestosSampleEditModal extends React.Component {
                     })
                   }}
                 />
+              <Select
+                className={classes.selectTight}
+                value={sample.category ? {value: sample.category, label: sample.category} : {value: '', label: ''}}
+                options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
+                onChange={e => {
+                  this.setState({
+                    modified: true,
+                    samples: {
+                      ...this.state.samples,
+                      [this.state.activeSample]: {
+                        ...this.state.samples[this.state.activeSample],
+                        category: e.value,
+                      },
+                    },
+                  })
+                }}
+              />
               <InputLabel className={classes.marginTopSmall}>Sampled By</InputLabel>
               <Select
                 isMulti
@@ -676,12 +692,8 @@ class AsbestosSampleEditModal extends React.Component {
                       let log = {
                         type: "Analysis",
                         log: e.target.checked === true
-                          ? `Sample ${sample.sampleNumber} (${sample.description} ${
-                              sample.material
-                            }) WA Analysis marked as complete.`
-                          : `Sample ${sample.sampleNumber} (${sample.description} ${
-                              sample.material
-                            }) WA Analysis marked as incomplete.`,
+                          ? `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as complete.`
+                          : `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as incomplete.`,
                         sample: sample.uid,
                         chainOfCustody: sample.cocUid,
                       };

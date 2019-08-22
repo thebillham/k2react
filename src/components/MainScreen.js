@@ -142,7 +142,7 @@ const mapDispatchToProps = dispatch => {
 };
 
 class MainScreen extends React.PureComponent {
-  static whyDidYouRender = true;
+  // static whyDidYouRender = true;
   constructor(props) {
     super(props);
     this.state = {
@@ -683,7 +683,7 @@ class MainScreen extends React.PureComponent {
                         />
                         <Route
                           path="/asbestosqc"
-                          render={() => <span><AsbestosQualityControl /> Asbestos Lab: Quality Control</span>}
+                          render={() => <span><QCIcon /> Asbestos Lab: Quality Control</span>}
                         />
                         <Route
                           path="/asbestosstats"

@@ -273,7 +273,7 @@ export const setSessionID = session => dispatch => {
 // COC EDIT
 //
 
-export const handleCocSubmit = ({ doc, me }) => dispatch => {
+export const handleCocSubmit = ({ doc, me, originalSamples }) => dispatch => {
   //console.log(doc);
   // //console.log(doc.samples);
   let sampleList = [];
@@ -290,21 +290,34 @@ export const handleCocSubmit = ({ doc, me }) => dispatch => {
         // //console.log(`UID for new sample is ${uid}`);
         let log = {
           type: 'Create',
-          log: `Sample ${sample} (${doc.samples[sample].description} ${doc.samples[sample].material}) created.`,
+          log: `Sample ${sample} (${writeDescription(doc.samples[sample])}) created.`,
           chainOfCustody: doc.uid,
           sample: uid,
         };
         addLog("asbestosLab", log, me);
+        console.log(doc.samples[sample]);
         doc.samples[sample].uid = uid;
         doc.samples[sample].deleted = false;
         doc.samples[sample].createdDate = new Date();
         doc.samples[sample].createdBy = {id: me.uid, name: me.name};
         if (!doc.samples[sample].sampleDate && doc.defaultDate !== null) doc.samples[sample].sampleDate = doc.defaultDate;
+          else doc.samples[sample].sampleDate = null;
         if (doc.samples[sample.sampleDate] && !(doc.samples[sample].sampleDate instanceof Date)) doc.samples[sample].sampleDate = doc.samples[sample].sampleDate.toDate();
-        if (!doc.samples[sample].sampledBy && doc.defaultPersonnel.length > 0) doc.samples[sample].sampledBy = doc.defaultPersonnel.value;
+        if (!doc.samples[sample].sampledBy && doc.defaultPersonnel.length > 0) doc.samples[sample].sampledBy = doc.defaultPersonnel.map(e => e.value);
+          else doc.samples[sample].sampledBy = null;
+        console.log(doc.samples[sample]);
         sampleList.push(uid);
       } else {
-        // //console.log(`UID for old sample is ${doc.samples[sample].uid}`);
+        if (doc.samples[sample].verified && doc.samples[sample] !== originalSamples[doc.samples[sample].sampleNumber]) {
+          let log = {
+            type: 'Edit',
+            log: `Sample ${sample} (${writeDescription(doc.samples[sample])}) modified.`,
+            chainOfCustody: doc.uid,
+            sample: doc.samples[sample].uid,
+          };
+          addLog("asbestosLab", log, me);
+          doc.samples[sample].verified = false;
+        }
         sampleList.push(doc.samples[sample].uid);
       }
       if (writeDescription(doc.samples[sample]) !== '') {
@@ -314,10 +327,6 @@ export const handleCocSubmit = ({ doc, me }) => dispatch => {
           sample2.description =
             sample2.description.charAt(0).toUpperCase() +
             sample2.description.slice(1);
-        if (doc.type === "air") {
-          sample2.isAirSample = true;
-          sample2.material = "Air Sample";
-        }
         sample2.jobNumber = doc.jobNumber;
         if (sample2.cocUid === undefined) sample2.cocUid = doc.uid;
         sample2.sampleNumber = parseInt(sample, 10);
@@ -424,12 +433,8 @@ export const holdSample = (sample, job, me) => {
   let log = {
     type: "Analysis",
     log: sample.onHold
-      ? `Sample ${sample.sampleNumber} (${sample.description} ${
-          sample.material
-        }) analysis taken off hold.`
-      : `Sample ${sample.sampleNumber} (${sample.description} ${
-          sample.material
-        }) analysis put on hold.`,
+      ? `Sample ${sample.sampleNumber} (${writeDescription(sample)}) analysis taken off hold.`
+      : `Sample ${sample.sampleNumber} (${writeDescription(sample)}) analysis put on hold.`,
     sample: sample.uid,
     chainOfCustody: job.uid,
   };
@@ -467,12 +472,8 @@ export const receiveSample = (sample, job, samples, sessionID, me, startDate) =>
   let log = {
     type: "Received",
     log: !sample.receivedByLab
-      ? `Sample ${sample.sampleNumber} (${sample.description} ${
-          sample.material
-        }) received by lab.`
-      : `Sample ${sample.sampleNumber} (${sample.description} ${
-          sample.material
-        }) unchecked as being received.`,
+      ? `Sample ${sample.sampleNumber} (${writeDescription(sample)}) received by lab.`
+      : `Sample ${sample.sampleNumber} (${writeDescription(sample)}) unchecked as being received.`,
     sample: sample.uid,
     chainOfCustody: job.uid,
   };
@@ -566,12 +567,8 @@ export const startAnalysis = (sample, job, samples, sessionID, me, startDate) =>
   let log = {
     type: "Analysis",
     log: !sample.analysisStart
-      ? `Analysis begun on Sample ${sample.sampleNumber} (${sample.description} ${
-          sample.material
-        }).`
-      : `Analysis stopped for Sample ${sample.sampleNumber} (${sample.description} ${
-          sample.material
-        }).`,
+      ? `Analysis begun on Sample ${sample.sampleNumber} (${writeDescription(sample)}).`
+      : `Analysis stopped for Sample ${sample.sampleNumber} (${writeDescription(sample)}).`,
     sample: sample.uid,
     chainOfCustody: job.uid,
   };
@@ -691,9 +688,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
   if (resultChanged) {
     let log = {
       type: "Analysis",
-      log: `New analysis for sample ${sample.sampleNumber} (${
-        sample.description
-      } ${sample.material}): ${writeResult(sample.result, sample.noAsbestosResultReason).replace('@~',' ')}`,
+      log: `New analysis for sample ${sample.sampleNumber} (${writeDescription(sample)}): ${writeResult(sample.result, sample.noAsbestosResultReason).replace('@~',' ')}`,
       sample: sample.uid,
       chainOfCustody: job.uid,
     };
@@ -766,9 +761,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
 export const removeResult = (sample, sessionID, me) => {
   let log = {
     type: "Analysis",
-    log: `Sample ${sample.sampleNumber} (${sample.description} ${
-          sample.material
-        }) result removed.`,
+    log: `Sample ${sample.sampleNumber} (${writeDescription(sample)}) result removed.`,
     sample: sample.uid,
     chainOfCustody: sample.cocUid,
   };
@@ -802,12 +795,8 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate, pro
     let log = {
       type: "Verified",
       log: !sample.verified
-        ? `Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }) result verified.`
-        : `Sample ${sample.sampleNumber} (${sample.description} ${
-            sample.material
-          }) verification removed.`,
+        ? `Sample ${sample.sampleNumber} (${writeDescription(sample)}) result verified.`
+        : `Sample ${sample.sampleNumber} (${writeDescription(sample)}) verification removed.`,
       sample: sample.uid,
       chainOfCustody: job.uid,
     };
@@ -1606,7 +1595,7 @@ export const deleteCoc = (job, me) => dispatch => {
       if (sample.cocUid === job.uid) {
         let log = {
           type: "Delete",
-          log: `Sample ${sample.sampleNumber} (${sample.description} ${sample.material}) deleted.`,
+          log: `Sample ${sample.sampleNumber} (${writeDescription(sample)}) deleted.`,
           sample: sample.uid,
           chainOfCustody: job.uid,
         };
