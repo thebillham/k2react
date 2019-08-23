@@ -299,11 +299,11 @@ export const handleCocSubmit = ({ doc, me, originalSamples }) => dispatch => {
         doc.samples[sample].uid = uid;
         doc.samples[sample].deleted = false;
         doc.samples[sample].createdDate = new Date();
-        doc.samples[sample].createdBy = {id: me.uid, name: me.name};
-        if (!doc.samples[sample].sampleDate && doc.defaultDate !== null) doc.samples[sample].sampleDate = doc.defaultDate;
+        doc.samples[sample].createdBy = {uid: me.uid, name: me.name};
+        if (!doc.samples[sample].sampleDate && doc.defaultSampleDate !== null) doc.samples[sample].sampleDate = doc.defaultSampleDate;
           else doc.samples[sample].sampleDate = null;
         if (doc.samples[sample.sampleDate] && !(doc.samples[sample].sampleDate instanceof Date)) doc.samples[sample].sampleDate = doc.samples[sample].sampleDate.toDate();
-        if (!doc.samples[sample].sampledBy && doc.defaultPersonnel.length > 0) doc.samples[sample].sampledBy = doc.defaultPersonnel.map(e => e.value);
+        if (!doc.samples[sample].sampledBy && doc.defaultSampledBy.length > 0) doc.samples[sample].sampledBy = doc.defaultSampledBy.map(e => e.value);
           else doc.samples[sample].sampledBy = null;
         console.log(doc.samples[sample]);
         sampleList.push(uid);
@@ -380,7 +380,7 @@ export const handleSampleChange = (number, changes) => dispatch => {
   });
 };
 
-export const logSample = (coc, sample, cocStats) => dispatch => {
+export const logSample = (coc, sample, cocStats) => {
   // let dateString = moment(new Date()).format('YYYY-MM-DD');
   let transitTime = sample.createdDate && sample.receivedDate ? moment.duration(moment(sample.receivedDate.toDate()).diff(sample.createdDate.toDate())).asMilliseconds() : null;
   let labTime = sample.receivedDate && sample.analysisDate ? moment.duration(moment(sample.analysisDate.toDate()).diff(sample.receivedDate.toDate())).asMilliseconds() : null;
@@ -388,31 +388,42 @@ export const logSample = (coc, sample, cocStats) => dispatch => {
   let turnaroundTime = sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null;
 
   let log = {
-    client: coc.client ? coc.client : '',
-    address: coc.address ? coc.address: '',
-    sampleDates: coc.dates ? coc.dates: [],
-    jobNumber: coc.jobNumber ? coc.jobNumber : '',
-    samplePersonnel: coc.personnel ? coc.personnel: [],
+    client: coc.client ? coc.client : null,
+    address: coc.address ? coc.address: null,
+    jobNumber: coc.jobNumber ? coc.jobNumber : null,
+    cocUid: coc.uid ? coc.uid : null,
+    cocType: coc.type ? coc.type : null,
     priority: coc.priority ? coc.priority: 0,
-    cocUid: coc.uid ? coc.uid : '',
-    cocType: coc.type ? coc.type : '',
+
     totalSamples: cocStats.totalSamples ? cocStats.totalSamples : 0,
     maxTurnaroundTime: cocStats.maxTurnaroundTime ? cocStats.maxTurnaroundTime : 0,
     averageTurnaroundTime: cocStats.averageTurnaroundTime ? cocStats.averageTurnaroundTime : 0,
-    genericLocation: sample.genericLocation ? sample.genericLocation : '',
-    specificLocation: sample.specificLocation ? sample.specificLocation : '',
-    sampleUid: sample.uid ? sample.uid : '',
-    sampleNumber: sample.sampleNumber ? sample.sampleNumber : '',
-    description: sample.description ? sample.description : '',
-    material: sample.material ? sample.material : '',
-    result: sample.result ? sample.result : {},
-    receivedBy: sample.receivedUser ? sample.receivedUser : '',
+
+    sampleNumber: sample.sampleNumber ? sample.sampleNumber : null,
+    sampleUid: sample.uid ? sample.uid : null,
+
+    genericLocation: sample.genericLocation ? sample.genericLocation : null,
+    specificLocation: sample.specificLocation ? sample.specificLocation : null,
+    description: sample.description ? sample.description : null,
+    material: sample.material ? sample.material : null,
+    category: sample.category ? sample.category : 'Other',
+
+    sampledBy: sample.sampledBy ? sample.sampledBy: null,
+    sampleDate: sample.sampleDate ? sample.sampleDate : null,
+    receivedBy: sample.receivedBy ? sample.receivedBy : null,
     receivedDate: sample.receivedDate ? sample.receivedDate : null,
-    analysisBy: sample.analyst ? sample.analyst : '',
+    analysisStartedBy: sample.analysisStartedBy ? sample.analysisStartedBy : null,
+    analysisStartDate : sample.analysisStartDate ? sample.analysisStartDate : null,
+    analysisBy: sample.analyst ? sample.analyst : null,
+    analysisRecordedBy: sample.analysisRecordedBy ? sample.analysisRecordedBy : null,
     analysisDate: sample.analysisDate ? sample.analysisDate : null,
-    resultBy: sample.analysisUser ? sample.analysisUser : '',
-    reportedBy: sample.reportUser ? sample.reportUser : '',
-    reportDate: new Date(),
+    sessionID: sample.sessionID ? sample.sessionID : null,
+    result: sample.result ? sample.result : {},
+    verifiedBy: sample.verifiedBy ? sample.verifiedBy : null,
+    verifyDate: sample.verifyDate ? sample.verifyDate : null,
+    issuedBy: sample.issuedBy ? sample.issuedBy : null,
+    issueDate: new Date(),
+
     turnaroundTime: turnaroundTime,
     analysisTime: analysisTime,
     transitTime: transitTime,
@@ -420,7 +431,8 @@ export const logSample = (coc, sample, cocStats) => dispatch => {
     analysisTime: analysisTime,
     analysisType: sample.analysisType ? sample.analysisType : 'normal',
   };
-  asbestosSampleLogRef.doc().set(log);
+  console.log(log);
+  asbestosSampleLogRef.add(log);
 }
 
 
@@ -461,12 +473,12 @@ export const receiveSample = (sample, job, samples, sessionID, me, startDate) =>
   //console.log(sample);
   if (sample.receivedByLab && sample.verified) {
     removeResult(sample, sessionID, me);
-    if (sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
+    if (sample.analysisStarted) startAnalysis(sample, job, samples, sessionID, me);
     verifySample(sample, job, samples, sessionID, me);
   } else if (sample.receivedByLab && sample.result) {
     removeResult(sample, sessionID, me);
-    if (sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
-  } else if (sample.receivedByLab && sample.analysisStart) {
+    if (sample.analysisStarted) startAnalysis(sample, job, samples, sessionID, me);
+  } else if (sample.receivedByLab && sample.analysisStarted) {
     startAnalysis(sample, job, samples, sessionID, me);
   }
   let log = {
@@ -485,13 +497,13 @@ export const receiveSample = (sample, job, samples, sessionID, me, startDate) =>
     asbestosSamplesRef.doc(sample.uid).update(
     {
       receivedByLab: true,
-      receivedUser: {id: me.uid, name: me.name},
+      receivedBy: {uid: me.uid, name: me.name},
       receivedDate: startDate ? startDate : new Date(),
     });
   } else {
     asbestosSamplesRef.doc(sample.uid).update({
       receivedByLab: false,
-      receivedUser: firebase.firestore.FieldValue.delete(),
+      receivedBy: firebase.firestore.FieldValue.delete(),
       receivedDate: firebase.firestore.FieldValue.delete(),
     });
   }
@@ -552,7 +564,7 @@ export const startAnalysisAll = (samples, job, sessionID, me) => {
   if (samples && Object.values(samples).length > 0) {
     Object.values(samples).forEach(sample => {
       if (sample.cocUid === job.uid) {
-        if (!sample.analysisStart) {
+        if (!sample.analysisStarted) {
           if (!sample.receivedByLab) receiveSample(sample, job, samples, sessionID, me);
           startAnalysis(sample, job, samples, sessionID, me);
         }
@@ -562,11 +574,11 @@ export const startAnalysisAll = (samples, job, sessionID, me) => {
 };
 
 export const startAnalysis = (sample, job, samples, sessionID, me, startDate) => {
-  if (!sample.receivedByLab && !sample.analysisStart) receiveSample(sample, job, samples, sessionID, me, startDate);
+  if (!sample.receivedByLab && !sample.analysisStarted) receiveSample(sample, job, samples, sessionID, me, startDate);
   if (sample.verified) verifySample(sample, job, samples, sessionID, me);
   let log = {
     type: "Analysis",
-    log: !sample.analysisStart
+    log: !sample.analysisStarted
       ? `Analysis begun on Sample ${sample.sampleNumber} (${writeDescription(sample)}).`
       : `Analysis stopped for Sample ${sample.sampleNumber} (${writeDescription(sample)}).`,
     sample: sample.uid,
@@ -576,18 +588,18 @@ export const startAnalysis = (sample, job, samples, sessionID, me, startDate) =>
   cocsRef
     .doc(sample.cocUid)
     .update({ versionUpToDate: false, });
-  if (!sample.analysisStart) {
+  if (!sample.analysisStarted) {
     asbestosSamplesRef.doc(sample.uid).update(
     {
-      analysisStart: true,
-      analysisStartUser: {id: me.uid, name: me.name},
+      analysisStarted: true,
+      analysisStartedBy: {uid: me.uid, name: me.name},
       analysisStartDate: startDate ? startDate : new Date(),
     });
   } else {
     asbestosSamplesRef.doc(sample.uid).update(
     {
-      analysisStart: false,
-      analysisStartUser: firebase.firestore.FieldValue.delete(),
+      analysisStarted: false,
+      analysisStartedBy: firebase.firestore.FieldValue.delete(),
       analysisStartDate: firebase.firestore.FieldValue.delete(),
     });
   }
@@ -601,7 +613,7 @@ export const startAnalyses = (samples) => {
     //console.log(sample.now);
     //console.log(sample.original);
     if (!sample.now) {
-      if (sample.analysisStart && sample.verified) {
+      if (sample.analysisStarted && sample.verified) {
         uid = sample.uid + 'NoAnalysisStart';
         issues[uid] = {
           type: 'confirm',
@@ -611,7 +623,7 @@ export const startAnalyses = (samples) => {
           sample,
           uid,
         };
-      } else if (sample.analysisStart && sample.result) {
+      } else if (sample.analysisStarted && sample.result) {
         uid = sample.uid + 'NoAnalysisStart';
         issues[uid] = {
           type: 'confirm',
@@ -718,7 +730,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
   });
 
   if (notBlankAnalysis) {
-    if (!sample.analysisStart) startAnalysis(sample, job, samples, sessionID, me);
+    if (!sample.analysisStarted) startAnalysis(sample, job, samples, sessionID, me);
     asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`).set({
       analyst: analyst,
       analystUID: me.uid,
@@ -733,7 +745,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
       analysisDate: new Date()
     });
     asbestosSamplesRef.doc(sample.uid).update({
-      analysisUser: {id: me.uid, name: me.name},
+      analysisRecordedBy: {uid: me.uid, name: me.name},
       sessionID: sessionID,
       analyst: analyst,
       result: sample.result,
@@ -750,7 +762,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
       .update({
         result: firebase.firestore.FieldValue.delete(),
         analysisDate: firebase.firestore.FieldValue.delete(),
-        analysisUser: firebase.firestore.FieldValue.delete(),
+        analysisRecordedBy: firebase.firestore.FieldValue.delete(),
         sessionID: firebase.firestore.FieldValue.delete(),
         analysisTime: firebase.firestore.FieldValue.delete(),
         analyst: firebase.firestore.FieldValue.delete(),
@@ -778,7 +790,7 @@ export const removeResult = (sample, sessionID, me) => {
     .update({
       result: firebase.firestore.FieldValue.delete(),
       analysisDate: firebase.firestore.FieldValue.delete(),
-      analysisUser: firebase.firestore.FieldValue.delete(),
+      analysisRecordedBy: firebase.firestore.FieldValue.delete(),
       sessionID: firebase.firestore.FieldValue.delete(),
     });
 }
@@ -790,7 +802,7 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate, pro
     (me.auth["Analysis Checker"] ||
       me.auth["Asbestos Admin"]))
   ) {
-    if (!sample.analysisStart && !sample.verified) startAnalysis(sample, job, samples, sessionID, me);
+    if (!sample.analysisStarted && !sample.verified) startAnalysis(sample, job, samples, sessionID, me);
     let verifyDate = null;
     let log = {
       type: "Verified",
@@ -808,12 +820,13 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate, pro
     if (!sample.verified) {
       sample.verifyDate = new Date();
       let cocStats = getStats(samples, job);
+      console.log(cocStats);
       logSample(job, sample, cocStats);
       asbestosSamplesRef.doc(sample.uid).update(
       {
         ...properties,
         verified: true,
-        verifyUser: {id: me.uid, name: me.name},
+        verifiedBy: {uid: me.uid, name: me.name},
         verifyDate: startDate ? startDate : new Date(),
         turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
       });
@@ -822,7 +835,7 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate, pro
       {
         ...properties,
         verified: false,
-        verifyUser: firebase.firestore.FieldValue.delete(),
+        verifiedBy: firebase.firestore.FieldValue.delete(),
         verifyDate: firebase.firestore.FieldValue.delete(),
         turnaroundTime: firebase.firestore.FieldValue.delete(),
       });
@@ -863,7 +876,7 @@ export const verifySamples = (samples, job, meUid) => {
         };
       }
     } else {
-      // if (sample.analysisUser && sample.analysisUser.id === meUid) {
+      // if (sample.analysisRecordedBy && sample.analysisRecordedBy.id === meUid) {
       //   uid = sample.uid + 'SameUser';
       //   issues[uid] = {
       //     type: 'block',
@@ -1359,7 +1372,7 @@ export const printCocBulk = (job, samples, me, staffList) => {
   let analysisRequired = job.waAnalysis ? 'Western Australian Standard' : 'Bulk Analysis ID';
   let warning = '';
   if (job.priority === 1) warning = 'URGENT';
-  if (job.clearance) warning = warning + ' CLEARANCE';
+  if (job.isClearance) warning = warning + ' CLEARANCE';
 
   samples &&
     Object.values(samples).forEach(sample => {
@@ -1530,7 +1543,7 @@ export const issueTestCertificate = (job, samples, version, changes, staffList, 
   };
   addLog("asbestosLab", log, me);
   versionHistory[version] = {
-    issueUser: me.uid,
+    issuedBy: {uid: me.uid, name: me.name },
     issueDate: new Date(),
     changes: changes ? changes : 'Not specified',
     data: json,
@@ -1731,9 +1744,11 @@ export const writeReportDescription = (sample) => {
   let dimensions = '';
   if (report['dimensions'] === true) {
     let dim = [];
-    if (sample.dimensionsL) dim.push(sample.dimensionsL);
-    if (sample.dimensionsW) dim.push(sample.dimensionsW);
-    if (sample.dimensionsD) dim.push(sample.dimensionsD);
+    if (sample.dimensions) {
+      if (sample.dimensions.length) dim.push(sample.dimensions.length);
+      if (sample.dimensions.width) dim.push(sample.dimensions.width);
+      if (sample.dimensions.depth) dim.push(sample.dimensions.depth);
+    }
     if (dim.length > 0) dimensions = dim.join(' x ') + ' mm';
   }
   // if (report['weight'] === true) {
@@ -1816,7 +1831,7 @@ export const getSampleColors = (sample) => {
     let returnMap = {
       // cameraColor: sample.imagePathRemote ? styles.greenIcon : styles.greyIcon,
       // receivedColor: sample.receivedByLab ? styles.greenIcon : styles.greyIcon,
-      // analysisColor: sample.analysisStart ? styles.greenIcon : styles.greyIcon,
+      // analysisColor: sample.analysisStarted ? styles.greenIcon : styles.greyIcon,
       // verifiedColor: sample.verified ? styles.greenIcon : styles.greyIcon,
       // waColor: sample.waAnalysisComplete ? styles.greenIcon : styles.greyIcon,
       confirm: confirmColor ? confirmColor : '',
@@ -2025,7 +2040,7 @@ export const getSampleStatus = (sample) => {
   let status = "inTransit";
   if (sample.verified) status = "verified";
   else if (writeShorthandResult(sample.result) !== 'NO RESULT') status = "analysisRecorded";
-  else if (sample.analysisStart) status = "analysisStarted";
+  else if (sample.analysisStarted) status = "analysisStarted";
   else if (sample.receivedByLab) status = "received";
   return status;
 }
@@ -2301,7 +2316,7 @@ export const getStatus = (samples, job) => {
       if (sample.cocUid === jobID) {
         totalSamples = totalSamples + 1;
         if (sample.receivedByLab) numberReceived = numberReceived + 1;
-        if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
+        if (sample.analysisStarted) numberAnalysisStarted = numberAnalysisStarted + 1;
         if (sample.verified) numberVerified = numberVerified + 1;
         if (job.waAnalysis && !sample.waAnalysisComplete) numberWAAnalysisIncomplete = numberWAAnalysisIncomplete + 1;
         if (getBasicResult(sample) !== 'none') numberResult = numberResult + 1;
@@ -2410,7 +2425,7 @@ export const getStats = (samples, job) => {
       if (sample.cocUid === jobID) {
         totalSamples = totalSamples + 1;
         if (sample.receivedByLab) numberReceived = numberReceived + 1;
-        if (sample.analysisStart) numberAnalysisStarted = numberAnalysisStarted + 1;
+        if (sample.analysisStarted) numberAnalysisStarted = numberAnalysisStarted + 1;
         if (sample.result && sample.analysisDate && sample.receivedDate) {
           numberResult = numberResult + 1;
           if (sample.result['no']) {
@@ -2587,8 +2602,8 @@ export const writeSampleMoisture = (sample, total) => {
 
 export const writeSampleDimensions = (sample, total) => {
   let dims = [];
-  ['dimensionsL','dimensionsW','dimensionsD'].forEach(dim => {
-    if (sample[dim] !== undefined && sample[dim] !== '') dims.push(parseInt(sample[dim]));
+  ['length','width','depth'].forEach(dim => {
+    if (sample.dimensions !== undefined && sample.dimensions[dim] !== undefined && sample.dimensions[dim] !== '') dims.push(parseInt(sample.dimensions[dim]));
   });
   if (dims.length === 0) return null;
   let app = '';

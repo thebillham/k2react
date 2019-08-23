@@ -255,6 +255,36 @@ export const SamplesTextyBox = (that, sample, field, label, helperText, multilin
   />);
 };
 
+export const SamplesTextyBoxAlt = (that, sample, base, field, label, helperText, multiline, rows, end, start) => {
+  return(<TextField
+    id={field}
+    value={sample[base] && sample[base][field] ? sample[base][field] : ''}
+    label={label}
+    style={{ width: '100%'}}
+    helperText={helperText}
+    multiline={multiline}
+    rows={rows}
+    InputProps={{
+      endAdornment: end ? <InputAdornment position="end">{end}</InputAdornment> : null,
+    }}
+    onChange={e => {
+      that.setState({
+        modified: true,
+        samples: {
+          ...that.state.samples,
+          [sample.sampleNumber]: {
+            ...sample,
+            [base]: {
+              ...sample[base],
+              [field]: e.target.value,
+            },
+          },
+        },
+      });
+    }}
+  />);
+};
+
 export const SampleRadioSelector = (that, sample, field, defaultValue, label, selections, helperText) => {
   return(<FormControl component="fieldset">
     <RadioGroup

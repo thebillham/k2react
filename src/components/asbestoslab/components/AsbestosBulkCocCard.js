@@ -183,7 +183,7 @@ class AsbestosBulkCocCard extends React.Component {
             <span className={classes.boldSmallText}>{job.jobNumber}</span>
             <span>{job.client} ({job.address})</span>
             {job.waAnalysis && <WAIcon color='action' className={classes.marginLeftSmall} />}
-            {(job.priority === 1 || job.clearance) && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
+            {(job.priority === 1 || job.isClearance) && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
             {job.versionUpToDate && <VerifyIcon color='primary' className={classes.marginLeftSmall} />}
             {job.status && <span className={classes.boldSmallText}>{job.status ? job.status : ''}</span>}
           </div>
@@ -229,7 +229,7 @@ class AsbestosBulkCocCard extends React.Component {
                     onClick={event => {
                       this.props.showModal({
                         modalType: ASBESTOS_ACTIONS,
-                        modalProps: { job: job, field: 'analysisStart', title: `Start Analysis on ${job.jobNumber}`,
+                        modalProps: { job: job, field: 'analysisStarted', title: `Start Analysis on ${job.jobNumber}`,
                       }});
                     }}>
                     <StartAnalysisIcon className={classes.iconRegular} />

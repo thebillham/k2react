@@ -163,7 +163,7 @@ class AsbestosActionsModal extends React.Component {
             this.state.issues.versionChanges && this.state.issues.versionChanges.comment ? this.state.issues.versionChanges.comment : '', this.props.staff, this.props.me);
           checks.filter(sample => (sample.now !== sample.original || sample.noAsbestosResultReason !== sample.originalNoAsbestosResultReason) && !sampleGates[sample.sampleNumber]).forEach(sample => {
             if (this.props.modalProps.field === 'receivedByLab') receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-            else if (this.props.modalProps.field === 'analysisStart') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+            else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
             else if (this.props.modalProps.field === 'verified') {
               if (sample.noAsbestosResultReason) {
                 verifySample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate, {noAsbestosResultReason: sample.noAsbestosResultReason});
@@ -182,7 +182,7 @@ class AsbestosActionsModal extends React.Component {
       let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], ...sample}));
 
       if (this.props.modalProps.field === 'receivedByLab') checkMap = receiveSamples(checks);
-      else if (this.props.modalProps.field === 'analysisStart') checkMap = startAnalyses(checks);
+      else if (this.props.modalProps.field === 'analysisStarted') checkMap = startAnalyses(checks);
       else if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job, this.props.me.uid);
       else if (this.props.modalProps.field === 'issue') checkMap = checkTestCertificateIssue(this.props.samples[this.props.modalProps.job.uid], this.props.modalProps.job, this.props.me.uid);
       let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
@@ -197,7 +197,7 @@ class AsbestosActionsModal extends React.Component {
         if (this.props.modalProps.field === 'issue') issueTestCertificate(this.props.modalProps.job, this.state.samples, 1, "First issue.", this.props.staff, this.props.me);
         else checks.filter(sample => sample.now !== sample.original).forEach(sample => {
           if (this.props.modalProps.field === 'receivedByLab') receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-          else if (this.props.modalProps.field === 'analysisStart') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
           else if (this.props.modalProps.field === 'verified') verifySample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
         });
         this.props.hideModal();
@@ -233,7 +233,7 @@ class AsbestosActionsModal extends React.Component {
             onClick={this.handleClickAll}
           >
             {modalProps.field === 'receivedByLab' && <span><ReceiveIcon className={classes.iconRegular} /> Receive All Samples</span>}
-            {modalProps.field === 'analysisStart' && <span><StartAnalysisIcon className={classes.iconRegular} /> Start Analysis On All Samples</span>}
+            {modalProps.field === 'analysisStarted' && <span><StartAnalysisIcon className={classes.iconRegular} /> Start Analysis On All Samples</span>}
             {modalProps.field === 'verified' && <span><VerifyIcon className={classes.iconRegular} /> Verify All Samples</span>}
 
           </Button>
@@ -278,7 +278,7 @@ class AsbestosActionsModal extends React.Component {
                     </span>
                   }
                   {modalProps.field === 'receivedByLab' && <ReceiveIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
-                  {modalProps.field === 'analysisStart' && <StartAnalysisIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
+                  {modalProps.field === 'analysisStarted' && <StartAnalysisIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
                   {modalProps.field === 'verified' && <VerifyIcon className={sample.now ? classes.iconRegularGreen : classes.iconRegular} />}
                 </div>
               </div>

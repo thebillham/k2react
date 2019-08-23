@@ -118,8 +118,8 @@ const initState = {
   // airFilterSwap: '',
   numberOfSamples: 10,
 
-  defaultDate: null,
-  defaultPersonnel: [],
+  defaultSampleDate: null,
+  defaultSampledBy: [],
   dateSelected: false,
   personnelSelected: false,
 };
@@ -202,6 +202,7 @@ class CocModal extends React.PureComponent {
       if (doc && doc.samples) sampleNumbers = sampleNumbers.concat(Object.keys(doc.samples).map(key => parseInt(key)));
       let numberOfSamples = Math.max(...sampleNumbers);
       let wfmSynced = doc.jobNumber && !modalProps.isNew;
+      console.log(doc.samples);
 
       return(
         <Dialog
@@ -299,12 +300,12 @@ class CocModal extends React.PureComponent {
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={doc.clearance === true ? true : false}
+                      checked={doc.isClearance === true ? true : false}
                       onClick={e => {
                         this.setState({ modified: true, });
-                        this.props.handleModalChange({id: 'clearance', value: e.target.checked});
+                        this.props.handleModalChange({id: 'isClearance', value: e.target.checked});
                       }}
-                      value="clearance"
+                      value="isClearance"
                       color="secondary"
                     />
                   }
@@ -552,44 +553,44 @@ class CocModal extends React.PureComponent {
                         <Select
                           isMulti
                           className={classes.selectTight}
-                          value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => ({value: e, label: e})) : this.state.defaultPersonnel}
-                          options={names.map(e => ({ value: e.name, label: e.name }))}
+                          value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => ({value: e.uid, label: e.name})) : this.state.defaultSampledBy}
+                          options={names.map(e => ({ value: e.uid, label: e.name }))}
                           isDisabled={!wfmSynced}
                           onChange={e => {
-                            let defaultPersonnel = this.state.defaultPersonnel;
+                            let defaultSampledBy = this.state.defaultSampledBy;
                             let personnelSelected = this.state.personnelSelected;
                             let sampledBy = personnelConvert(e);
 
                             if (personnelSelected === false) {
                               personnelSelected = i;
-                              defaultPersonnel = sampledBy.map(e => ({value: e, label: e}));
+                              defaultSampledBy = sampledBy.map(e => ({value: e, label: e}));
                             } else if (personnelSelected === i) {
-                              defaultPersonnel = sampledBy.map(e => ({value: e, label: e}));
+                              defaultSampledBy = sampledBy.map(e => ({value: e, label: e}));
                             }
 
                             if (e.length === 0) {
                               personnelSelected = false;
-                              defaultPersonnel = e;
+                              defaultSampledBy = e;
                             }
 
                             console.log(sampledBy);
 
-                            this.setState({ modified: true, personnelSelected, defaultPersonnel});
+                            this.setState({ modified: true, personnelSelected, defaultSampledBy});
                             this.props.handleSampleChange(i, {sampledBy});
                           }}
                         />
                       </div>
                       <div className={classes.columnMedSmall}>
                         <DatePicker
-                          value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampleDate ? doc.samples[i+1].sampleDate : this.state.defaultDate}
+                          value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampleDate ? doc.samples[i+1].sampleDate : this.state.defaultSampleDate}
                           autoOk
                           format="ddd, D MMMM YYYY"
                           disabled={!wfmSynced}
                           clearable
                           onChange={date => {
-                            let defaultDate = this.state.defaultDate;
-                            if (!this.state.dateSelected) defaultDate = date.toDate();
-                            this.setState({ modified: true, dateSelected: true, defaultDate});
+                            let defaultSampleDate = this.state.defaultSampleDate;
+                            if (!this.state.dateSelected) defaultSampleDate = date.toDate();
+                            this.setState({ modified: true, dateSelected: true, defaultSampleDate});
                             this.props.handleSampleChange(i, {sampleDate: date.toDate()});
                           }}
                         />
@@ -636,17 +637,19 @@ class CocModal extends React.PureComponent {
                 doc.client = wfmJob.client ? wfmJob.client.trim() : null;
                 doc.address = wfmJob.address ? wfmJob.address.trim() : null;
                 doc.clientOrderNumber = wfmJob.clientOrderNumber.trim() ? wfmJob.clientOrderNumber : null;
-                doc.contact = wfmJob.contact ? wfmJob.contact.trim() : null;
+                doc.contactID = wfmJob.contactID ? wfmJob.contactID.trim() : null;
                 doc.contactName = wfmJob.contactName ? wfmJob.contactName.trim() : null;
                 doc.contactEmail = wfmJob.contactEmail ? wfmJob.contactEmail.trim() : null;
                 doc.dueDate = wfmJob.dueDate ? wfmJob.dueDate : null;
                 doc.manager = wfmJob.manager ? wfmJob.manager.trim() : null;
-                doc.type = wfmJob.type ? wfmJob.type : null;
+                doc.managerID = wfmJob.managerID ? wfmJob.managerID.trim() : null;
+                doc.wfmType = wfmJob.wfmType ? wfmJob.wfmType : null;
                 doc.wfmID = wfmJob.wfmID ? wfmJob.wfmID : null;
+                doc.wfmState = wfmJob.wfmState ? wfmJob.wfmState : null;
               }
               let now = new Date();
               let originalSamples = {};
-              if (!doc.dateSubmit) {
+              if (!doc.createdDate) {
                 let log = {
                     type: 'Create',
                     log: `Chain of Custody created.`,
@@ -654,7 +657,8 @@ class CocModal extends React.PureComponent {
                   };
                 addLog("asbestosLab", log, me);
                 doc.deleted = false;
-                doc.dateSubmit = now;
+                doc.createdDate = now;
+                doc.createdBy = {id: me.uid, name: me.name};
                 if (Object.keys(doc.samples).length === 0) doc.status = 'No Samples';
                   else doc.status = 'In Transit';
               } else originalSamples = this.props.samples[doc.uid];
@@ -663,8 +667,8 @@ class CocModal extends React.PureComponent {
               doc.lastModified = now;
               doc.versionUpToDate = false;
               doc.mostRecentIssueSent = false;
-              doc.defaultDate = this.state.defaultDate;
-              doc.defaultPersonnel = this.state.defaultPersonnel;
+              doc.defaultSampleDate = this.state.defaultSampleDate;
+              doc.defaultSampledBy = this.state.defaultSampledBy;
               this.props.handleCocSubmit({
                 doc: doc,
                 me: me,

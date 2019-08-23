@@ -156,7 +156,7 @@ class AsbestosSampleDetailsModal extends React.Component {
       if (sample) {
         if (sample.verified) status = 'Complete';
           else if (sample.analysisDate) status = 'Waiting on Verification';
-          else if (sample.analysisStart) status = 'Analysis Started';
+          else if (sample.analysisStarted) status = 'Analysis Started';
           else if (sample.receivedByLab) status = 'Received By Lab';
       }
       if (sample.onHold) status = status + " (ON HOLD)";
@@ -204,9 +204,9 @@ class AsbestosSampleDetailsModal extends React.Component {
                   </div>
                   {SampleTextyLine('Analyst', sample.analyst ? sample.analyst : "Not analysed")}
                   {SampleTextyLine('Analysis Date', analysisDate)}
-                  {sample.analysisUser && sample.analysisUser.name !== sample.analyst && SampleTextyLine('Analysis Recorded By', sample.analysisUser.name)}
+                  {sample.analysisRecordedBy && sample.analysisRecordedBy.name !== sample.analyst && SampleTextyLine('Analysis Recorded By', sample.analysisRecordedBy.name)}
                   {SampleTextyLine('Result Verified?', sample.verified ? 'Yes' : 'No')}
-                  {sample.verifyUser && SampleTextyLine('Result Verified By', sample.verifyUser.name)}
+                  {sample.verifiedBy && SampleTextyLine('Result Verified By', sample.verifiedBy.name)}
                   {sample.layers && <div style={{ display: 'flex', flexDirection: 'row', }}>
                     <div style={{ width: '60%'}}>{SampleTextyLine('Sample Detail Results', writeShorthandResult(collateLayeredResults(sample.layers)))}</div>
                     <div style={{ width: '40%'}}>{(layersResult === 'yes' || layersResult === 'differentNonAsbestos') ? good : layersResult === 'no' ? bad : layersResult === 'none' ? '' : half}</div>
@@ -238,16 +238,16 @@ class AsbestosSampleDetailsModal extends React.Component {
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Sample History</div>
                   {SampleTextyLine('Received by Lab', sample.receivedDate ?
-                      `${moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.receivedUser ? sample.receivedUser.name : 'an unknown person'}`
+                      `${moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.receivedBy ? sample.receivedBy.name : 'an unknown person'}`
                       : 'Not yet received by lab')}
                   {SampleTextyLine('Analysis Started', sample.analysisStartDate ?
-                      `${moment(sample.analysisStartDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisStartUser ? sample.analysisStartUser.name : 'an unknown person'}`
+                      `${moment(sample.analysisStartDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisStartedBy ? sample.analysisStartedBy.name : 'an unknown person'}`
                       : 'Analysis not yet started')}
                   {SampleTextyLine('Result Logged', sample.analysisDate ?
-                      `${moment(sample.analysisDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisUser ? sample.analysisUser.name : 'an unknown person'}`
+                      `${moment(sample.analysisDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisRecordedBy ? sample.analysisRecordedBy.name : 'an unknown person'}`
                       : 'Result not yet logged')}
                   {SampleTextyLine('Result Verified', sample.verifyDate ?
-                      `${moment(sample.verifyDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.verifyUser ? sample.verifyUser.name : 'an unknown person'}`
+                      `${moment(sample.verifyDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.verifiedBy ? sample.verifiedBy.name : 'an unknown person'}`
                       : 'Result not yet verified')}
                   {SampleTextyLine('Created', sample.createdDate ?
                       `${moment(sample.createdDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.createdBy ? sample.createdBy.name : 'an unknown person'}`
@@ -270,7 +270,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                     {SampleTextyDisplay('Moisture Content',`${sampleMoisture}%`)}
                   </div>}
 
-                  {(sample.dimensionsD || sample.dimensionsL || sample.dimensionsW) && SampleTextyDisplay('Dimensions', writeSampleDimensions(sample))}
+                  {(sample.dimensions) && SampleTextyDisplay('Dimensions', writeSampleDimensions(sample))}
                   {sample.labDescription && SampleTextyDisplay('Lab Sample Description',sample.labDescription)}
                   {sample.labComments && SampleTextyDisplay('Lab Observations/Comments', sample.labComments)}
                   {sample.footnote && SampleTextyDisplay('Lab Footnote for Report', sample.footnote)}

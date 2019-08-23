@@ -1098,18 +1098,18 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
         if (wfmJob.Manager) {
           job.manager = wfmJob.Manager.Name
             ? wfmJob.Manager.Name
-            : "No contact name";
+            : "No manager name";
           job.managerID = wfmJob.Manager.ID
             ? wfmJob.Manager.ID
-            : "No contact ID";
+            : "No manager ID";
         } else {
-          job.manager = "No contact name";
-          job.managerID = "No contact ID";
+          job.manager = "No manager name";
+          job.managerID = "No manager ID";
         }
-        job.dueDate = wfmJob.DueDate ? wfmJob.DueDate : "";
-        job.startDate = wfmJob.StartDate ? wfmJob.StartDate : "";
-        job.state = wfmJob.State ? wfmJob.State : "Unknown state";
-        job.type = wfmJob.Type ? wfmJob.Type : "Other";
+        job.dueDate = wfmJob.DueDate ? wfmJob.DueDate instanceof Date ? wfmJob.DueDate : new Date(wfmJob.DueDate) : "";
+        job.startDate = wfmJob.StartDate ? wfmJob.StartDate instanceof Date ? wfmJob.StartDate : new Date(wfmJob.StartDate) : "";
+        job.wfmState = wfmJob.State ? wfmJob.State : "Unknown state";
+        job.wfmType = wfmJob.Type ? wfmJob.Type : "Other";
         job.wfmID = wfmJob.InternalID;
         if (createUid) {
           let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${moment().format('x')}`;
@@ -1525,9 +1525,9 @@ export const clearLog = () => dispatch => {
 
 export const personnelConvert = e => {
   if (e.filter(staff => staff.value === 'Client').length > 0) {
-    if (e[e.length - 1].value === 'Client') return ['Client'];
-      else return e.filter(staff => staff.value !== 'Client').map(staff => staff.value);
-  } else return e.map(staff => staff.value);
+    if (e[e.length - 1].value === 'Client') return [{uid: 'Client', name: 'Client'}];
+      else return e.filter(staff => staff.value !== 'Client').map(staff => ({uid: staff.value, name: staff.label}));
+  } else return e.map(staff => ({uid: staff.value, name: staff.label}));
 }
 
 //

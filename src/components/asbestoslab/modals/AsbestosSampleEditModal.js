@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import { ASBESTOS_SAMPLE_EDIT, SOIL_DETAILS, } from "../../../constants/modal-types";
 import "../../../config/tags.css";
 
-import { SamplesTickyBox, SamplesTextyBox, SamplesRadioSelector, SampleTextyLine, SamplesTickyBoxGroup, AsbButton, } from '../../../widgets/FormWidgets';
+import { SamplesTickyBox, SamplesTextyBox, SamplesTextyBoxAlt, SamplesRadioSelector, SampleTextyLine, SamplesTickyBoxGroup, AsbButton, } from '../../../widgets/FormWidgets';
 import { AsbestosClassification } from '../../../config/strings';
 
 import Button from "@material-ui/core/Button";
@@ -409,7 +409,15 @@ class AsbestosSampleEditModal extends React.Component {
                   value={sample.material ? sample.material : ''}
                   defaultValue=''
                   controlled={true}
-                  onModify={(value) => {
+                  onModify={value => {
+                    let category = '';
+                    if (sample.category) category = sample.category;
+                    else {
+                      let materialObj = Object.values(this.props.materialSuggestions).filter(e => e.label === value);
+                      if (materialObj.length > 0) {
+                        category = materialObj[0].category;
+                      }
+                    }
                     this.setState({
                       modified: true,
                       samples: {
@@ -417,6 +425,7 @@ class AsbestosSampleEditModal extends React.Component {
                         [this.state.activeSample]: {
                           ...this.state.samples[this.state.activeSample],
                           material: value,
+                          category: category,
                         },
                       },
                     })
@@ -601,11 +610,11 @@ class AsbestosSampleEditModal extends React.Component {
 
               <div className={classes.subHeading}>Dimensions</div>
               <div className={classes.flexRow}>
-                <div className={classes.formInputSmall}>{SamplesTextyBox(this, sample, 'dimensionsL', 'Length', null, false, 0, 'mm', null)}</div>
+                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'length', 'Length', null, false, 0, 'mm', null)}</div>
                 <span className={classes.timesSymbol}>X</span>
-                <div className={classes.formInputSmall}>{SamplesTextyBox(this, sample, 'dimensionsW', 'Width', null, false, 0, 'mm', null)}</div>
+                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'width', 'Width', null, false, 0, 'mm', null)}</div>
                 <span className={classes.timesSymbol}>X</span>
-                <div className={classes.formInputSmall}>{SamplesTextyBox(this, sample, 'dimensionsD', 'Depth/Thickness', null, false, 0, 'mm', null)}</div>
+                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'depth', 'Depth/Thickness', null, false, 0, 'mm', null)}</div>
                 {sampleDimensions && <span className={classes.informationBox}>
                   {sampleDimensions}
                 </span>}

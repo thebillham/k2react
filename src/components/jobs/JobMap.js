@@ -680,9 +680,9 @@ class JobMap extends React.Component {
         newJob.owner = job.manager;
         newJob.jobNumber = job.jobNumber;
         newJob.creationDate = today;
-        newJob.category = job.type;
+        newJob.category = job.wfmType;
         // lead.currentStatus = job.currentStatus;
-        newJob.state = job.state;
+        newJob.state = job.wfmState;
         newJob.dueDate = job.dueDate;
         newJob.lastActionType = job.state;
         newJob.lastActionDate = today;
@@ -1770,16 +1770,14 @@ class JobMap extends React.Component {
                   )}
 
                   <div style={{ padding: 16, textAlign: "center" }}>
-                    <Button variant="outlined" style={{ borderRadius: 20 }}>
-                      <a
-                        style={{ textDecoration: "none", color: "#FF2D00" }}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href={this.getWfmUrl(this.state.m)}
-                      >
-                        View on WorkflowMax
-                      </a>
-                    </Button>
+                    <a
+                      style={{ textDecoration: "none", color: "#FF2D00" }}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={this.getWfmUrl(this.state.m)}
+                    >
+                      View on WorkflowMax
+                    </a>
                   </div>
                 </div>
               </InfoWindow>
