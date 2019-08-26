@@ -15,7 +15,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import { hideModal, handleModalChange } from "../../../actions/modal";
-import { fetchLogs, clearLog, } from "../../../actions/local";
+import { fetchLogs, clearLog, dateOf } from "../../../actions/local";
 import _ from "lodash";
 import moment from "moment";
 
@@ -67,8 +67,6 @@ class CocLogModal extends React.Component {
               </Grid>
               {logs &&
                 logs.map(log => {
-                  let date =
-                    log.date instanceof Date ? log.date : log.date.toDate();
                   return (
                     <Grid
                       key={log.uid}
@@ -76,7 +74,7 @@ class CocLogModal extends React.Component {
                       style={{ marginTop: 12 }}
                     >
                       <Grid item xs={2}>
-                        {moment(date).format('D MMM YYYY, h:mma')}
+                        {moment(dateOf(log.date)).format('D MMM YYYY, h:mma')}
                       </Grid>
                       <Grid item xs={1}>
                         {log.type}

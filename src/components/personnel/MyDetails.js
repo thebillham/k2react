@@ -216,7 +216,7 @@ class UserDetails extends React.Component {
                     <ListItem>
                       <Select
                         className={classNames(classes.select, classes.textField)}
-                        defaultValue={{label: user.jobdescription, id: user.jobdescription }}
+                        value={{label: user.jobdescription, id: user.jobdescription }}
                         options={this.props.jobDescriptions.map(e => ({ value: e, label: e }))}
                         onChange={e =>
                           this.onEditUser({ id: "jobdescription", value: e ? e.value : e }, true )
@@ -227,7 +227,7 @@ class UserDetails extends React.Component {
                     <ListItem>
                       <Select
                         className={classNames(classes.select, classes.textField)}
-                        defaultValue={{label: user.office, id: user.office }}
+                        value={{label: user.office, id: user.office }}
                         options={this.props.offices.map(e => ({ value: e, label: e }))}
                         onChange={e =>
                           this.onEditUser({ id: "office", value: e ? e.value : e }, true )

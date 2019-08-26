@@ -39,7 +39,7 @@ import Good from "@material-ui/icons/ThumbUp";
 import Half from "@material-ui/icons/ThumbsUpDown";
 import Bad from "@material-ui/icons/ThumbDown";
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
-import { addLog, } from "../../../actions/local";
+import { addLog, dateOf } from "../../../actions/local";
 import moment from "moment";
 import {
   handleSampleChange,
@@ -89,8 +89,7 @@ class AsbestosCocDetailsModal extends React.Component {
     let job = modalProps.job;
 
     let dates = job && job.dates ? job.dates.map(date => {
-      let formatDate = date instanceof Date ? date : date.toDate();
-      return moment(formatDate).format('D MMMM YYYY');
+      return moment(dateOf(date)).format('D MMMM YYYY');
     }) : [];
 
     return (

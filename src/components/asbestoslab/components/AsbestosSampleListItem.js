@@ -96,7 +96,7 @@ class AsbestosSampleListItem extends React.Component {
     return (
         <ListItem key={sample.uid} className={classes.hoverItem}>
           <Grid container className={classes.fullWidth}>
-            <Grid item xs={12} xl={6}>
+            <Grid item xs={12} xl={4}>
               <div className={classes.flexRowLeftAlignEllipsis}>
                 <div className={classes.circleShaded}>
                   {sample.sampleNumber}
@@ -119,12 +119,17 @@ class AsbestosSampleListItem extends React.Component {
                 {basicResult === 'none' && sample.noAsbestosResultReason && <div className={classes.boldRedWarningText}>{this.props.noAsbestosResultReasons.filter(el => el.value === sample.noAsbestosResultReason)[0].label.toUpperCase()}</div>}
               </div>
             </Grid>
-            <Grid item xs={12} xl={6}>
+            <Grid item xs={12} xl={8}>
               <div className={classes.flexRowRightAlign}>
                 <AsbestosSampleStatus status={sampleStatus} />
                 <div className={basicResult === 'none' ? classes.roundButtonShadedLong : basicResult === 'negative' ? classes.roundButtonShadedLongGreen : classes.roundButtonShadedLongRed}>
                   {writeShorthandResult(sample.result)}
                 </div>
+                {job.waAnalysis &&
+                  <div className={sample.waAnalysisComplete ? classes.circleShadedOk : classes.circleShaded}>
+                    <WAIcon />
+                  </div>
+                }
                 <Tooltip title={'Weight on Receipt'}><div className={sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded}>{sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}</div></Tooltip>
                 {editor && <Tooltip id="det-tooltip" title={'Edit Sample Details'}>
                   <IconButton

@@ -39,7 +39,7 @@ import {
 import SuggestionField from '../../../widgets/SuggestionField';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
-import { addLog, personnelConvert, } from "../../../actions/local";
+import { addLog, personnelConvert, dateOf } from "../../../actions/local";
 import {
   handleSampleChange,
   writeSoilDetails,
@@ -467,7 +467,7 @@ class AsbestosSampleEditModal extends React.Component {
               />
               <div>
                 <DatePicker
-                  value={sample.sampleDate ? sample.sampleDate instanceof Date ? sample.sampleDate : sample.sampleDate.toDate() : null}
+                  value={dateOf(sample.sampleDate)}
                   autoOk
                   className={classes.formSelectDateTime}
                   format="D MMMM YYYY"
@@ -487,7 +487,7 @@ class AsbestosSampleEditModal extends React.Component {
               </div>
               <div className={classes.flexRow}>
                 <DateTimePicker
-                  value={sample.receivedDate ? sample.receivedDate instanceof Date ? sample.receivedDate : sample.receivedDate.toDate() : null}
+                  value={dateOf(sample.receivedDate)}
                   autoOk
                   className={classes.formSelectDateTime}
                   format="D MMMM YYYY, h:mma"
@@ -506,7 +506,7 @@ class AsbestosSampleEditModal extends React.Component {
                 />
                 <div className={classes.spacerMedium} />
                 <DateTimePicker
-                  value={sample.analysisStartDate ? sample.analysisStartDate instanceof Date ? sample.analysisStartDate : sample.analysisStartDate.toDate() : null}
+                  value={dateOf(sample.analysisStartDate)}
                   autoOk
                   className={classes.formSelectDateTime}
                   format="D MMMM YYYY, h:mma"
@@ -526,7 +526,7 @@ class AsbestosSampleEditModal extends React.Component {
               </div>
               <div className={classes.flexRow}>
                 <DateTimePicker
-                  value={sample.analysisDate ? sample.analysisDate instanceof Date ? sample.analysisDate : sample.analysisDate.toDate() : null}
+                  value={dateOf(sample.analysisDate)}
                   autoOk
                   className={classes.formSelectDateTime}
                   format="D MMMM YYYY, h:mma"
@@ -545,7 +545,7 @@ class AsbestosSampleEditModal extends React.Component {
                 />
                 <div className={classes.spacerMedium} />
                 <DateTimePicker
-                  value={sample.verifyDate ? sample.verifyDate instanceof Date ? sample.verifyDate : sample.verifyDate.toDate() : null}
+                  value={dateOf(sample.verifyDate)}
                   autoOk
                   className={classes.formSelectDateTime}
                   format="D MMMM YYYY, h:mma"

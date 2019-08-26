@@ -188,11 +188,11 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
         // Swap sample number
         this.swapSample(onComplete);
         // //console.log(doc.samples);
-    } else if (doc.samples[this.state.sampleSwap] !== undefined && doc.samples[this.state.sampleSwap]['cocUid'] !== doc.uid) {
-      window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
-    }
-  } else {
-      if (sample.uid && sample !== this.props.samples[sample.jobNumber][sample.sampleNumber]) {
+      } else if (doc.samples[this.state.sampleSwap] !== undefined && doc.samples[this.state.sampleSwap]['cocUid'] !== doc.uid) {
+        window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
+      }
+    } else {
+      if (sample.uid && sample !== this.props.samples[sample.cocUid][sample.sampleNumber]) {
         log = {
           type: 'Edit',
           log: `Details of sample ${this.state.sample.jobNumber}-${this.state.sample.sampleNumber} (${writeDescription(this.state.sample)}) modified.`,
@@ -214,8 +214,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
           }
         );
       }
-
-      onComplete();
+    onComplete();
     }
   }
 
@@ -359,8 +358,8 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
             <Select
               isMulti
               className={classes.select}
-              value={sample.sampledBy ? sample.sampledBy.map(e => ({value: e, label: e})) : []}
-              options={modalProps.names.map(e => ({ value: e.name, label: e.name }))}
+              value={sample.sampledBy ? sample.sampledBy.map(e => ({value: e.uid, label: e.name})) : []}
+              options={modalProps.names.map(e => ({ value: e.uid, label: e.name }))}
               disabled={disabled}
               onChange={e => {
                 this.setState({

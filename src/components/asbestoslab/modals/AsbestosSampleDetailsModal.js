@@ -20,7 +20,9 @@ import DialogActions from "@material-ui/core/DialogActions";
 import Good from "@material-ui/icons/ThumbUp";
 import Half from "@material-ui/icons/ThumbsUpDown";
 import Bad from "@material-ui/icons/ThumbDown";
+import AsbestosSampleWASummary from "../components/AsbestosSampleWASummary";
 import { hideModal, handleModalChange } from "../../../actions/modal";
+import { dateOf } from "../../../actions/local";
 import moment from "moment";
 import {
   writeSoilDetails,
@@ -118,14 +120,12 @@ class AsbestosSampleDetailsModal extends React.Component {
       let job = modalProps.job;
 
       let dates = job && job.dates ? job.dates.map(date => {
-        let formatDate = date instanceof Date ? date : date.toDate();
-        return moment(formatDate).format('D MMMM YYYY');
+        return moment(dateOf(date)).format('D MMMM YYYY');
       }) : [];
 
       let analysisDate = "Not analysed";
       if (sample && sample.analysisDate) {
-        analysisDate = sample.analysisDate instanceof Date ? sample.analysisDate : sample.analysisDate.toDate();
-        analysisDate = moment(analysisDate).format('D MMMM YYYY');
+        analysisDate = moment(dateOf(sample.analysisDate)).format('D MMMM YYYY');
       }
 
       let nz = moment.tz.setDefault("Pacific/Auckland");
@@ -145,7 +145,7 @@ class AsbestosSampleDetailsModal extends React.Component {
       });
 
       let endTime = new Date();
-      if (sample && sample.verifyDate) endTime = sample.verifyDate instanceof Date ? sample.verifyDate : sample.verifyDate.toDate();
+      if (sample && sample.verifyDate) endTime = dateOf(sample.verifyDate);
       let timeInLab = sample && sample.receivedDate ? moment(endTime).diff(sample.receivedDate.toDate()) : null;
 
       let timeInLabBusiness = sample && sample.receivedDate ? moment(endTime).workingDiff(sample.receivedDate.toDate()) : null;
@@ -258,7 +258,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Sample Details</div>
                   {SampleTextyLine('Sampling Personnel', sample.sampledBy ? sample.sampledBy.join(", ") : 'Not specified')}
-                  {SampleTextyLine('Sampling Date(s)', sample.sampleDate ? sample.sampleDate instanceof Date ? moment(sample.sampleDate).format("dddd, D MMMM YYYY") : moment(sample.sampleDate.toDate()).format("dddd, D MMMM YYYY")  : 'Not specified')}
+                  {SampleTextyLine('Sampling Date(s)', sample.sampleDate ? moment(dateOf(sample.sampleDate)).format("dddd, D MMMM YYYY") : 'Not specified')}
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                     {SampleTextyDisplay('Weight Received',sample.weightReceived ? sample.weightReceived + 'g' : 'N/A')}
                       {SampleTextyDisplay('Subsample Weight',sample.weightSubsample ? sample.weightSubsample + 'g' : 'N/A')}
@@ -296,7 +296,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                 </div>
                 {job.waAnalysis && <div className={classes.informationBox}>
                   <div className={classes.heading}>Western Australian Standard</div>
-                  {getWAAnalysisSummary(sample)}
+                  <AsbestosSampleWASummary sample={sample} />
                 </div>}
               </Grid>
             </Grid>

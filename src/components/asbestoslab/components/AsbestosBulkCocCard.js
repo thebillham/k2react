@@ -17,7 +17,7 @@ import {
   getPersonnel,
   getStatus,
 } from "../../../actions/asbestosLab";
-import { syncJobWithWFM, } from "../../../actions/local";
+import { syncJobWithWFM, dateOf } from "../../../actions/local";
 import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
 import { showModal } from "../../../actions/modal";
 import {
@@ -100,11 +100,6 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   componentWillMount = () => {
-    // this.props.job.dates = this.props.job.dates
-    //   ? this.props.job.dates.map(date => {
-    //       return date instanceof Date ? date : date.toDate();
-    //     })
-    //   : [];
     let uid = `${this.props.job}-${this.props.me.name}-${moment().format('x')}`;
     this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };
@@ -115,22 +110,6 @@ class AsbestosBulkCocCard extends React.Component {
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (nextState.expanded === false) return false;
     return true;
-
-    // if (nextProps.samples && nextProps.samples[nextProps.job] && this.props.samples && this.props.samples[this.props.job]) {
-    //   if (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length ||
-    //   this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
-    //   // this.props.samples[this.props.job] !== nextProps.samples[nextProps.job] ||
-    //   this.state !== nextState)
-    //   {
-    //     return true;
-    //   } else {
-    //     console.log('first not');
-    //     return true;
-    //   }
-    // } else {
-    //   console.log('second not');
-    //   return false;
-    // }
   }
 
   sampleAnchorMenu = (number, target) => {
@@ -158,8 +137,7 @@ class AsbestosBulkCocCard extends React.Component {
     let analysts = samples[this.props.job] ? getPersonnel(Object.values(samples[this.props.job]).filter(s => s.cocUid === job.uid), 'analyst', null, false).map(e => e.name) : '';
 
     let dates = job.dates.sort().map(date => {
-      let formatDate = date instanceof Date ? date : date.toDate();
-      return moment(formatDate).format('D MMMM YYYY');
+      return moment(dateOf(date)).format('D MMMM YYYY');
     });
     console.log(`${job.jobNumber} rendering`);
     let filteredSamples = {};

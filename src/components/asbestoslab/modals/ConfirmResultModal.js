@@ -23,7 +23,7 @@ import Input from "@material-ui/core/Input";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 import { hideModal, handleModalChange } from "../../../actions/modal";
-import { addLog } from "../../../actions/local";
+import { addLog, dateOf } from "../../../actions/local";
 import { updateResultMap, getSampleColors, setAnalyst, getBasicResult, } from "../../../actions/asbestosLab";
 import { AsbButton, } from '../../../widgets/FormWidgets';
 import _ from "lodash";
@@ -237,12 +237,7 @@ class ConfirmResultModal extends React.Component {
     const { classes } = this.props;
     let colors = getSampleColors(this.state[num]);
     //console.log(this.state[num].analyst);
-    let resultDate = 'N/A';
     let prevAnalyst = this.props.modalProps.sample && this.props.modalProps.sample.analyst ? this.props.modalProps.sample.analyst : null;
-    if (this.state[num].date !== undefined) {
-      if (this.state[num].date instanceof Date) resultDate = this.state[num].date;
-      else resultDate = this.state[num].date.toDate();
-    }
     return(<div key={num}>
       <div style={{ flexDirection: 'row', display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between'}}>
         <InputLabel shrink>Analyst</InputLabel>
@@ -252,7 +247,7 @@ class ConfirmResultModal extends React.Component {
           onChange={e => this.setAnalyst(e ? e.value : "", num)}
         />
         <div>
-          <b>Date:</b> {this.state[num].date ? moment(resultDate).format('D MMM YYYY, h:mma') : 'N/A'}
+          <b>Date:</b> {this.state[num].date ? moment(this.state[num].date ? dateOf(this.state[num].date) : 'N/A').format('D MMM YYYY, h:mma') : 'N/A'}
         </div>
         <Button className={classes.buttonIconText} aria-label='remove' onClick={() => this.deleteAnalysis(num)}><RemoveIcon /> Remove</Button>
       </div>

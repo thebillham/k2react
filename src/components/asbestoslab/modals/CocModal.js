@@ -41,7 +41,7 @@ import Add from '@material-ui/icons/Add';
 import Sync from '@material-ui/icons/Sync';
 import Link from '@material-ui/icons/Link';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, resetModal, showModalSecondary, } from '../../../actions/modal';
-import { fetchStaff, syncJobWithWFM, resetWfmJob, addLog, personnelConvert } from '../../../actions/local';
+import { fetchStaff, syncJobWithWFM, resetWfmJob, addLog, personnelConvert, dateOf } from '../../../actions/local';
 import { fetchSamples, handleCocSubmit, handleSampleChange } from '../../../actions/asbestosLab';
 import _ from 'lodash';
 
@@ -194,9 +194,7 @@ class CocModal extends React.PureComponent {
       const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
       if (!doc.dates) doc.dates = [];
-      let dates = doc.dates.map(date => {
-        return (date instanceof Date) ? date : date.toDate();
-      });
+      let dates = doc.dates.map(date => dateOf(date));
 
       let sampleNumbers = [this.state.numberOfSamples];
       if (doc && doc.samples) sampleNumbers = sampleNumbers.concat(Object.keys(doc.samples).map(key => parseInt(key)));
@@ -210,6 +208,7 @@ class CocModal extends React.PureComponent {
           onClose = {() => this.props.hideModal()}
           fullScreen = { true }
           maxWidth = "lg"
+          disableEscapeKeyDown = { true }
           fullWidth = { true }
         >
           <DialogTitle>{ modalProps.title ? modalProps.title : 'Add New Chain of Custody' }</DialogTitle>
@@ -434,11 +433,11 @@ class CocModal extends React.PureComponent {
                         {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category ? doc.samples[i+1].category : ''}
                       </div>
                       <div className={classes.columnMedLarge}>
-                        {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.join(', ') : ''}
+                        {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => e.name).join(', ') : ''}
                       </div>
                       <div className={classes.columnMedSmall}>
                         {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampleDate ?
-                          moment(doc.samples[i+1].sampleDate instanceof Date ? doc.samples[i+1].sampleDate : doc.samples[i+1].sampleDate.toDate()).format('ddd, D MMMM YYYY') : ''}
+                          moment(dateOf(doc.samples[i+1].sampleDate)).format('ddd, D MMMM YYYY') : ''}
                       </div>
                       <div className={classes.columnSmall}>
                         {!disabled && <IconButton onClick={() =>
@@ -563,9 +562,9 @@ class CocModal extends React.PureComponent {
 
                             if (personnelSelected === false) {
                               personnelSelected = i;
-                              defaultSampledBy = sampledBy.map(e => ({value: e, label: e}));
+                              defaultSampledBy = sampledBy.map(e => ({value: e.uid, label: e.name}));
                             } else if (personnelSelected === i) {
-                              defaultSampledBy = sampledBy.map(e => ({value: e, label: e}));
+                              defaultSampledBy = sampledBy.map(e => ({value: e.uid, label: e.name}));
                             }
 
                             if (e.length === 0) {

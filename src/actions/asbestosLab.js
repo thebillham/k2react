@@ -14,6 +14,7 @@ import {
 } from "../constants/action-types";
 import { DOWNLOAD_LAB_CERTIFICATE } from "../constants/modal-types";
 import { styles } from "../config/styles";
+import { dateOf } from "./local";
 import moment from "moment";
 import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
@@ -280,47 +281,47 @@ export const handleCocSubmit = ({ doc, me, originalSamples }) => dispatch => {
   if (doc.samples) {
     // //console.log(doc.samples);
     Object.keys(doc.samples).forEach(sample => {
-      // //console.log(sample);
-      if (!doc.samples[sample].uid) {
-        let uid = `${
-          doc.jobNumber
-        }-SAMPLE-${sample}-CREATED-${moment().format('x')}-${Math.round(
-          Math.random() * 1000
-        )}`;
-        // //console.log(`UID for new sample is ${uid}`);
-        let log = {
-          type: 'Create',
-          log: `Sample ${sample} (${writeDescription(doc.samples[sample])}) created.`,
-          chainOfCustody: doc.uid,
-          sample: uid,
-        };
-        addLog("asbestosLab", log, me);
-        console.log(doc.samples[sample]);
-        doc.samples[sample].uid = uid;
-        doc.samples[sample].deleted = false;
-        doc.samples[sample].createdDate = new Date();
-        doc.samples[sample].createdBy = {uid: me.uid, name: me.name};
-        if (!doc.samples[sample].sampleDate && doc.defaultSampleDate !== null) doc.samples[sample].sampleDate = doc.defaultSampleDate;
-          else doc.samples[sample].sampleDate = null;
-        if (doc.samples[sample.sampleDate] && !(doc.samples[sample].sampleDate instanceof Date)) doc.samples[sample].sampleDate = doc.samples[sample].sampleDate.toDate();
-        if (!doc.samples[sample].sampledBy && doc.defaultSampledBy.length > 0) doc.samples[sample].sampledBy = doc.defaultSampledBy.map(e => e.value);
-          else doc.samples[sample].sampledBy = null;
-        console.log(doc.samples[sample]);
-        sampleList.push(uid);
-      } else {
-        if (doc.samples[sample].verified && doc.samples[sample] !== originalSamples[doc.samples[sample].sampleNumber]) {
+      if (doc.samples[sample].genericLocation || doc.samples[sample].specificLocation || doc.samples[sample].description || doc.samples[sample].material) {
+        // //console.log(sample);
+        if (!doc.samples[sample].uid) {
+          let uid = `${
+            doc.jobNumber
+          }-SAMPLE-${sample}-CREATED-${moment().format('x')}-${Math.round(
+            Math.random() * 1000
+          )}`;
+          // //console.log(`UID for new sample is ${uid}`);
           let log = {
-            type: 'Edit',
-            log: `Sample ${sample} (${writeDescription(doc.samples[sample])}) modified.`,
+            type: 'Create',
+            log: `Sample ${sample} (${writeDescription(doc.samples[sample])}) created.`,
             chainOfCustody: doc.uid,
-            sample: doc.samples[sample].uid,
+            sample: uid,
           };
           addLog("asbestosLab", log, me);
-          doc.samples[sample].verified = false;
+          console.log(doc.samples[sample]);
+          doc.samples[sample].uid = uid;
+          doc.samples[sample].deleted = false;
+          doc.samples[sample].createdDate = new Date();
+          doc.samples[sample].createdBy = {uid: me.uid, name: me.name};
+          if (!doc.samples[sample].sampleDate && doc.defaultSampleDate !== null) doc.samples[sample].sampleDate = doc.defaultSampleDate;
+            else doc.samples[sample].sampleDate = null;
+          doc.samples[sample].sampleDate = dateOf(doc.samples[sample].sampleDate);
+          if (!doc.samples[sample].sampledBy && doc.defaultSampledBy.length > 0) doc.samples[sample].sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));
+            else doc.samples[sample].sampledBy = null;
+          console.log(doc.samples[sample]);
+          sampleList.push(uid);
+        } else {
+          if (doc.samples[sample].verified && doc.samples[sample] !== originalSamples[doc.samples[sample].sampleNumber]) {
+            let log = {
+              type: 'Edit',
+              log: `Sample ${sample} (${writeDescription(doc.samples[sample])}) modified.`,
+              chainOfCustody: doc.uid,
+              sample: doc.samples[sample].uid,
+            };
+            addLog("asbestosLab", log, me);
+            doc.samples[sample].verified = false;
+          }
+          sampleList.push(doc.samples[sample].uid);
         }
-        sampleList.push(doc.samples[sample].uid);
-      }
-      if (writeDescription(doc.samples[sample]) !== '') {
         // //console.log(`Submitting sample ${sample} to ${docid}`);
         let sample2 = doc.samples[sample];
         if (sample2.description)
@@ -330,7 +331,7 @@ export const handleCocSubmit = ({ doc, me, originalSamples }) => dispatch => {
         sample2.jobNumber = doc.jobNumber;
         if (sample2.cocUid === undefined) sample2.cocUid = doc.uid;
         sample2.sampleNumber = parseInt(sample, 10);
-        if (sample2.sampleDate && !(sample2.sampleDate instanceof Date)) sample2.sampleDate = sample2.sampleDate.toDate();
+        sample2.sampleDate = dateOf(sample2.sampleDate);
         if ("disabled" in sample2) delete sample2.disabled;
         asbestosSamplesRef.doc(doc.samples[sample].uid).set(sample2);
       }
@@ -380,7 +381,7 @@ export const handleSampleChange = (number, changes) => dispatch => {
   });
 };
 
-export const logSample = (coc, sample, cocStats) => {
+export const logSample = (coc, sample, cocStats, version) => {
   // let dateString = moment(new Date()).format('YYYY-MM-DD');
   let transitTime = sample.createdDate && sample.receivedDate ? moment.duration(moment(sample.receivedDate.toDate()).diff(sample.createdDate.toDate())).asMilliseconds() : null;
   let labTime = sample.receivedDate && sample.analysisDate ? moment.duration(moment(sample.analysisDate.toDate()).diff(sample.receivedDate.toDate())).asMilliseconds() : null;
@@ -819,9 +820,6 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate, pro
       .update({ versionUpToDate: false, mostRecentIssueSent: false, });
     if (!sample.verified) {
       sample.verifyDate = new Date();
-      let cocStats = getStats(samples, job);
-      console.log(cocStats);
-      logSample(job, sample, cocStats);
       asbestosSamplesRef.doc(sample.uid).update(
       {
         ...properties,
@@ -1335,21 +1333,6 @@ export const getWAAnalysisSummary = sample => {
     );
   }
 
-export const getSampleDetails = sample => {
-  let conditioning = [];
-  if (sample.sampleConditioningFurnace === true) conditioning.push('Furnance');
-  if (sample.sampleConditioningLowHeat === true) conditioning.push('Low Heat');
-  if (sample.sampleConditioningDCM === true) conditioning.push('DCM Acid');
-  return (
-    <div>
-      <div>SAMPLE DETAILS</div>
-      {sample.soilDetails && <div>Soil Description: {writeSoilDetails(sample.soilDetails)}</div>}
-      {conditioning.length > 0 && <div>Sample Conditioning: {conditioning.join(", ")}</div>}
-      {sample.layers && <div>Layers</div>}
-    </div>
-  );
-}
-
 
 //
 // ADMIN/ISSUE
@@ -1488,6 +1471,8 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
   // let aaNumbers = getAANumbers(staffList);
   let staffQualList = getStaffQuals(staffList);
   let sampleList = [];
+  let cocStats = getStats(samples, job);
+  console.log(cocStats);
   samples &&
     Object.values(samples).forEach(sample => {
       if (sample.verified && sample.cocUid === job.uid) {
@@ -1502,6 +1487,15 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
         sampleMap["footnote"] = sample.footnote ? sample.footnote : false;
         sampleMap["conditionings"] = writeConditionings(sample);
         sampleList.push(sampleMap);
+
+        // LOG SAMPLE
+        asbestosSamplesRef.doc(sample.uid).update(
+        {
+          issueVersion: version ? version : 1,
+          issueDate: new Date(),
+          issuedBy: {uid: me.uid, name: me.name},
+        });
+        logSample(job, sample, cocStats, version);
       }
     });
   let samplesFiltered = Object.values(samples).filter(s => s.cocUid === job.uid && !s.onHold);
@@ -1571,11 +1565,7 @@ export const printLabReport = (job, version, me, showModal) => {
   if (report.version && report.version > 1) {
     let versionHistory = [];
     [...Array(report.version).keys()].forEach(i => {
-      let formatDate =
-        job.versionHistory[i + 1].issueDate instanceof Date
-          ? job.versionHistory[i + 1].issueDate
-          : job.versionHistory[i + 1].issueDate.toDate();
-
+      let formatDate = dateOf(job.versionHistory[i + 1].issueDate);
       versionHistory.push({
         version: i + 1,
         issueDate: moment(formatDate).format('D MMMM YYYY'),
@@ -1898,6 +1888,8 @@ export const getWATotalDetails = (sample) => {
     asbestosInACM: 0,
     asbestosInFA: 0,
     asbestosInAF: 0,
+    allHaveTypes: true,
+    allHaveForms: true,
   };
   if (sample && sample.waSoilAnalysis) {
     fractionNames.forEach(fraction => {
@@ -1907,7 +1899,8 @@ export const getWATotalDetails = (sample) => {
           if (layer.concentration && layer.weight) {
             let weight = (parseFloat(layer.weight) * parseFloat(layer.concentration)/ 100);
             result.totalAsbestosWeight = result.totalAsbestosWeight + weight;
-            console.log(layer.type);
+            if (!layer.type) result.allHaveTypes = false;
+            if (!layer.result) result.allHaveForms = false;
             if (layer.type === 'acm') result.asbestosInACM = result.asbestosInACM + weight;
               else if (layer.type === 'fa') result.asbestosInFA = result.asbestosInFA + weight;
               else if (layer.type === 'af') result.asbestosInAF = result.asbestosInAF + weight;
@@ -1918,10 +1911,10 @@ export const getWATotalDetails = (sample) => {
       });
     });
     if (sample.weightDry) {
-      result.asbestosInACMConc = ((result.asbestosInACM/sample.weightDry) * 100).toPrecision(2);
-      result.asbestosInFAAFConc = (((result.asbestosInFA + result.asbestosInAF)/sample.weightDry) * 100).toPrecision(2);
-      result.asbestosInFAConc = ((result.asbestosInFA/sample.weightDry) * 100).toPrecision(2);
-      result.asbestosInAFConc = ((result.asbestosInAF/sample.weightDry) * 100).toPrecision(2);
+      result.asbestosInACMConc = parseFloat(((result.asbestosInACM/sample.weightDry) * 100));
+      result.asbestosInFAAFConc = parseFloat(((result.asbestosInFA + result.asbestosInAF)/sample.weightDry) * 100);
+      result.asbestosInFAConc = parseFloat((result.asbestosInFA/sample.weightDry) * 100);
+      result.asbestosInAFConc = parseFloat((result.asbestosInAF/sample.weightDry) * 100);
     }
   }
   console.log(result);
@@ -2375,15 +2368,14 @@ export const getStats = (samples, job) => {
     holidays: [],
   });
 
-  let status = '';
   let totalSamples = 0;
   let positiveSamples = 0;
   let negativeSamples = 0;
 
-  let numberReceived = 0;
-  let numberAnalysisStarted = 0;
-  let numberResult = 0;
-  let numberVerified = 0;
+  // let numberReceived = 0;
+  // let numberAnalysisStarted = 0;
+  // let numberResult = 0;
+  // let numberVerified = 0;
 
   let maxTurnaroundTime = 0;
   let averageTurnaroundTime = 0;
@@ -2424,10 +2416,10 @@ export const getStats = (samples, job) => {
     Object.values(samples).forEach(sample => {
       if (sample.cocUid === jobID) {
         totalSamples = totalSamples + 1;
-        if (sample.receivedByLab) numberReceived = numberReceived + 1;
-        if (sample.analysisStarted) numberAnalysisStarted = numberAnalysisStarted + 1;
+        // if (sample.receivedByLab) numberReceived = numberReceived + 1;
+        // if (sample.analysisStarted) numberAnalysisStarted = numberAnalysisStarted + 1;
         if (sample.result && sample.analysisDate && sample.receivedDate) {
-          numberResult = numberResult + 1;
+          // numberResult = numberResult + 1;
           if (sample.result['no']) {
             negativeSamples = negativeSamples + 1;
           } else positiveSamples = positiveSamples + 1;
@@ -2444,7 +2436,7 @@ export const getStats = (samples, job) => {
           averageAnalysisBusinessTime = totalAnalysisBusinessTime / numAnalysisBusinessTime;
         }
         if (sample.verified && sample.receivedDate && sample.verifyDate && sample.analysisDate) {
-          numberVerified = numberVerified + 1;
+          // numberVerified = numberVerified + 1;
           if (sample.turnaroundTime) {
             if (sample.turnaroundTime > maxTurnaroundTime) maxTurnaroundTime = sample.turnaroundTime;
             totalTurnaroundTime = totalTurnaroundTime + sample.turnaroundTime;
@@ -2482,40 +2474,14 @@ export const getStats = (samples, job) => {
     });
   }
 
-  if (versionUpToDate) {
-    if (job.mostRecentIssueSent) status = 'Issued and Sent';
-    else status = 'Issued';
-  } else if (totalSamples === 0) {
-    status = 'No Samples';
-  } else if (numberReceived === 0) {
-    status = 'In Transit';
-  } else if (numberAnalysisStarted === 0) {
-    status = 'Received By Lab';
-  } else if (numberResult === 0) {
-    status = 'Analysis Begun';
-  } else if (numberResult === totalSamples && numberVerified === 0) {
-    status = 'Analysis Complete';
-  } else if (numberVerified === totalSamples) {
-    status = 'Ready For Issue';
-  } else if (numberVerified > 0) {
-    status = 'Analysis Partially Verified';
-  } else if (numberResult > 0) {
-    status = 'Analysis Partially Complete';
-  } else if (numberAnalysisStarted > 0) {
-    status = 'Analysis Begun on Some Samples';
-  } else if (numberReceived > 0) {
-    status = 'Partially Received By Lab';
-  }
-
   let stats = {
-    status,
     totalSamples,
     positiveSamples,
     negativeSamples,
-    numberReceived,
-    numberAnalysisStarted,
-    numberResult,
-    numberVerified,
+    // numberReceived,
+    // numberAnalysisStarted,
+    // numberResult,
+    // numberVerified,
     maxTurnaroundTime,
     averageTurnaroundTime,
     maxAnalysisTime,
@@ -2658,15 +2624,7 @@ export const writeDates = (samples, field) => {
   let dateMap = {};
   let sortedMap = {};
   Object.values(samples).forEach(sample => {
-    if (sample[field]) {
-      let date = null;
-      if (sample[field] instanceof Date) {
-        date = sample[field];
-      } else {
-        date = sample[field].toDate();
-      }
-      dates.push(date);
-    }
+    if (sample[field]) dates.push(dateOf(sample[field]));
   });
   if (dates.length === 0) return "N/A";
   dates.forEach(date => {

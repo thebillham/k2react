@@ -16,6 +16,7 @@ import StepButton from "@material-ui/core/StepButton";
 
 import { auth, docsRef, usersRef } from "../../config/firebase";
 import { showModal } from "../../actions/modal";
+import { dateOf } from "../../actions/local";
 import DocumentModal from "./modals/DocumentModal";
 import moment from "moment";
 
@@ -179,12 +180,12 @@ class DocumentViewer extends React.Component {
                 )}
                 <Typography className={classes.note} style={{ marginTop: 12 }}>
                   <b>Date published: </b>
-                  {doc.date ? moment(doc.date instanceof Date ? doc.date : new Date(doc.date)).format('D MMMM YYYY')
+                  {doc.date ? moment(dateOf(doc.date)).format('D MMMM YYYY')
                    : <span>Unknown</span>}
                 </Typography>
                 <Typography className={classes.note}>
                   <b>Last updated: </b>
-                  {doc.updateDate ? moment(doc.updateDate instanceof Date ? doc.updateDate : new Date(doc.updateDate)).format('D MMMM YYYY')
+                  {doc.updateDate ? moment(dateOf(doc.updateDate)).format('D MMMM YYYY')
                    : <span>Unknown</span>}
                 </Typography>
                 <Typography className={classes.note}>

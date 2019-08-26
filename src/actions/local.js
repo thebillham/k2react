@@ -1106,8 +1106,8 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
           job.manager = "No manager name";
           job.managerID = "No manager ID";
         }
-        job.dueDate = wfmJob.DueDate ? wfmJob.DueDate instanceof Date ? wfmJob.DueDate : new Date(wfmJob.DueDate) : "";
-        job.startDate = wfmJob.StartDate ? wfmJob.StartDate instanceof Date ? wfmJob.StartDate : new Date(wfmJob.StartDate) : "";
+        job.dueDate = dateOf(wfmJob.DueDate);
+        job.startDate = dateOf(wfmJob.StartDate);
         job.wfmState = wfmJob.State ? wfmJob.State : "Unknown state";
         job.wfmType = wfmJob.Type ? wfmJob.Type : "Other";
         job.wfmID = wfmJob.InternalID;
@@ -1528,6 +1528,12 @@ export const personnelConvert = e => {
     if (e[e.length - 1].value === 'Client') return [{uid: 'Client', name: 'Client'}];
       else return e.filter(staff => staff.value !== 'Client').map(staff => ({uid: staff.value, name: staff.label}));
   } else return e.map(staff => ({uid: staff.value, name: staff.label}));
+}
+
+export const dateOf = d => {
+  if (d === undefined) return null;
+    else if (d instanceof Date) return d;
+    else return d.toDate();
 }
 
 //

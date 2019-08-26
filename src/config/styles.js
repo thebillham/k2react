@@ -694,6 +694,38 @@ const styles = theme => ({
     fontWeight: "bold"
   },
 
+  circleShadedOk: {
+    minWidth: 40,
+    maxWidth: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.palette.indicators.ok,
+    padding: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    // marginLeft: theme.spacing(1),
+    color: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
+  circleShadedBad: {
+    minWidth: 40,
+    maxWidth: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.palette.indicators.bad,
+    padding: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    // marginLeft: theme.spacing(1),
+    color: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
+    fontWeight: "bold"
+  },
+
   circleShadedDisabled: {
     minWidth: 40,
     maxWidth: 40,
@@ -1073,6 +1105,14 @@ const styles = theme => ({
     flexDirection: 'row',
     display: 'flex',
     alignItems: 'center'
+  },
+
+  flexRowBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    padding: theme.spacing(4),
+    margin: theme.spacing(1),
   },
 
   flexRowHoverButton: {
