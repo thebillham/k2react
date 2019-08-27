@@ -29,6 +29,7 @@
     "gatsby-plugin-material-ui": "^2.1.5",
     "google-map-react": "^1.1.2",
     "google-maps-react": "^2.0.2",
+    "html-react-parser": "^0.9.1",
     "html-to-draftjs": "^1.4.0",
     "image-extensions": "^1.1.0",
     "immutable": "^4.0.0-rc.12",

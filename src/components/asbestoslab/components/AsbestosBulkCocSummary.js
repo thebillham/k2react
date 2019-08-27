@@ -23,7 +23,7 @@ class AsbestosBulkCocSummary extends React.Component {
   // static whyDidYouRender = true;
 
   shouldComponentUpdate(nextProps) {
-    // return true;
+    return true;
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (nextProps.expanded) return true;
       // if (this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
@@ -42,6 +42,7 @@ class AsbestosBulkCocSummary extends React.Component {
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     console.log(`rendering summary ${job.jobNumber}`);
+    console.log(samples[job.uid]);
 
     return (
       <Grid container direction="row" className={classes.marginTopBottomSmall} alignItems="flex-start" justify="center">
@@ -58,7 +59,7 @@ class AsbestosBulkCocSummary extends React.Component {
           <br />
           <span className={classes.headingInline}>Analysis by:</span>{" "}
           <span className={ classes.infoLight }>
-            {analysts ? analysts.join(", ") : "Not specified"}
+            {analysts ? analysts.map(e => e.name).join(", ") : "Not specified"}
           </span>
         </Grid>
         <Grid item lg={8} xs={6}>

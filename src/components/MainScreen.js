@@ -347,7 +347,7 @@ class MainScreen extends React.PureComponent {
                 </ListItemIcon>
                 <ListItemText primary="Jobs" />
               </ListItem>
-              <ListItem
+              {/*<ListItem
                 button
                 component={Link}
                 to="/asbestossamplelog"
@@ -379,7 +379,7 @@ class MainScreen extends React.PureComponent {
                   <StatsIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Stats" />
-              </ListItem>
+              </ListItem>*/}
             </List>
           </Collapse>
         {/*<Divider />

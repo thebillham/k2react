@@ -516,8 +516,8 @@ export const receiveSamples = (samples) => {
   // Check for issues
   samples.forEach(sample => {
     if (!sample.now) {
+      uid = sample.uid + 'NotReceived';
       if (sample.receivedByLab && sample.verified) {
-        uid = sample.uid + 'NotReceived';
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been verified. Removing from the lab will remove the analysis result and verification.`,
@@ -527,7 +527,6 @@ export const receiveSamples = (samples) => {
           uid,
         };
       } else if (sample.receivedByLab && sample.result) {
-        uid = sample.uid + 'NotReceived';
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been logged. Removing from the lab will remove the analysis result.`,
@@ -537,16 +536,15 @@ export const receiveSamples = (samples) => {
           uid,
         };
       } else if (sample.original === sample.now) {
-        uid = sample.uid + 'NotReceived';
         issues[uid] = {
           type: 'check',
           description: `Sample has not been checked as received. Double check this is correct and leave a comment on why it has been missed.`,
           yes: 'This is correct',
           no: 'This needs fixing',
           sample,
+          uid,
         };
       } else {
-        uid = sample.uid + 'NotReceived';
         issues[uid] = {
           type: 'check',
           description: `Sample has been unchecked as received. Double check this is correct and leave a comment on why it has been removed.`,
@@ -614,8 +612,8 @@ export const startAnalyses = (samples) => {
     //console.log(sample.now);
     //console.log(sample.original);
     if (!sample.now) {
+      uid = sample.uid + 'NoAnalysisStart';
       if (sample.analysisStarted && sample.verified) {
-        uid = sample.uid + 'NoAnalysisStart';
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been verified. Are you sure you want to remove the analysis start date? This will not remove the result or verification.`,
@@ -625,7 +623,6 @@ export const startAnalyses = (samples) => {
           uid,
         };
       } else if (sample.analysisStarted && sample.result) {
-        uid = sample.uid + 'NoAnalysisStart';
         issues[uid] = {
           type: 'confirm',
           description: `The result has already been logged. Are you sure you want to remove the analysis start date? This will not remove the result.`,
@@ -635,7 +632,6 @@ export const startAnalyses = (samples) => {
           uid,
         };
       } else if (sample.original === sample.now) {
-        uid = sample.uid + 'NoAnalysisStart';
         issues[uid] = {
           type: 'check',
           description: `Analysis has not been checked as started. Double check this is correct and leave a comment on why it has been missed.`,
@@ -645,7 +641,6 @@ export const startAnalyses = (samples) => {
           uid,
         };
       } else {
-        uid = sample.uid + 'NoAnalysisStart';
         issues[uid] = {
           type: 'check',
           description: `Analysis has been unchecked as started. Double check this is correct and leave a comment on why it has been removed.`,
@@ -1418,19 +1413,21 @@ export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
   let personnel = {};
   samples &&
     Object.values(samples).forEach(sample => {
-        if (sample[field] && (!onlyShowVerified || (onlyShowVerified && sample.verified))) {
-          let person = sample[field];
-          // console.log(person);
-          if (person instanceof Array) {
-            person.forEach(p => {
-              personnel[p] = true;
-            })
-          } else {
-            personnel[person] = true;
-          }
+      if (sample[field] && (!onlyShowVerified || (onlyShowVerified && sample.verified))) {
+        let person = sample[field];
+        // console.log(person);
+        if (person instanceof Array) {
+          person.forEach(p => {
+            if (p === Object(p)) personnel[p.name] = true;
+            else personnel[p] = true;
+          })
+        } else {
+          if (person === Object(person)) personnel[person.name] = true;
+          else personnel[person] = true;
         }
+      }
     });
-  //console.log(personnel);
+  // console.log(personnel);
   let list = [];
   Object.keys(personnel).forEach(p => {
     let tertiary = null;
@@ -2128,9 +2125,9 @@ export const writeSoilDetails = details => {
       clay: 'clayey ',
       silt: 'silty ',
       topsoil: 'organic soily ',
-      organicclay: 'organic clayey ',
-      organicsilt: 'organic silty ',
-      organicsand: 'organic sandy ',
+      'organic clay': 'organic clayey ',
+      'organic silt': 'organic silty ',
+      'organic sand': 'organic sandy ',
       peat: 'peaty ',
     },
     fractionQualifier: {
@@ -2162,7 +2159,7 @@ export const writeSoilDetails = details => {
     if (details.subFractionType && details.subFractionType !== '') {
       str = dictionary.subFractionType[details.subFractionType];
     }
-    if ((details.majorFractionType === 'sand' || details.majorFractionType === 'gravel' || details.majorFractionType === 'organicsand' || details.majorFractionType === 'peat') && details.majorFractionQualifier) {
+    if ((details.majorFractionType === 'sand' || details.majorFractionType === 'gravel' || details.majorFractionType === 'organic sand' || details.majorFractionType === 'peat') && details.majorFractionQualifier) {
       str = str + dictionary.fractionQualifier[details.majorFractionQualifier] + ' ';
     }
     str = str + details.majorFractionType.toUpperCase() + ' ';
@@ -2250,7 +2247,7 @@ export const writeSoilDetails = details => {
     // Add major fraction
     if (details.majorFractionType && details.majorFractionType !== '') {
       let temp = details.majorFractionType;
-      if ((details.majorFractionType === 'sand' || details.majorFractionType === 'gravel' || details.majorFractionType === 'organicsand' || details.majorFractionType === 'peat') && details.majorFractionQualifier && details.majorFractionQualifier !== '') temp += ', ' + dictionary.fractionQualifier[details.majorFractionQualifier];
+      if ((details.majorFractionType === 'sand' || details.majorFractionType === 'gravel' || details.majorFractionType === 'organic sand' || details.majorFractionType === 'peat') && details.majorFractionQualifier && details.majorFractionQualifier !== '') temp += ', ' + dictionary.fractionQualifier[details.majorFractionQualifier];
       if (details.type !== 'fine' && details.particleShape && details.particleShape !== '') temp += ', ' + details.particleShape;
       if (details.type !== 'fine' && details.particleShapeSecondary && details.particleShapeSecondary !== '') temp += ', ' + details.particleShapeSecondary;
       if (details.majorFractionType === 'clay' && details.plasticity && details.plasticity !== '') temp += ', ' + dictionary.plasticity[details.plasticity];
@@ -2259,7 +2256,7 @@ export const writeSoilDetails = details => {
     // Add subordinate fraction
     if (details.subFractionType && details.subFractionType !== '') {
       let temp = details.subFractionType;
-      if ((details.subFractionType === 'sand' || details.subFractionType === 'gravel' || details.subFractionType === 'organicsand' || details.subFractionType === 'peat') && details.subFractionQualifier && details.subFractionQualifier !== '') temp += ', ' + dictionary.fractionQualifier[details.subFractionQualifier];
+      if ((details.subFractionType === 'sand' || details.subFractionType === 'gravel' || details.subFractionType === 'organic sand' || details.subFractionType === 'peat') && details.subFractionQualifier && details.subFractionQualifier !== '') temp += ', ' + dictionary.fractionQualifier[details.subFractionQualifier];
       if (details.subFractionType === 'clay' && details.plasticity && details.plasticity !== '') temp += ', ' + dictionary.plasticity[details.plasticity];
       sections.push(temp);
     }

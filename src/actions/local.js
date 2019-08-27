@@ -1531,9 +1531,127 @@ export const personnelConvert = e => {
 }
 
 export const dateOf = d => {
-  if (d === undefined) return null;
-    else if (d instanceof Date) return d;
-    else return d.toDate();
+  if (!d) {
+    return null;
+  } else if (d instanceof Date) {
+    return d;
+  } else {
+    try {
+      return d.toDate();
+    } catch (e) {
+      return new Date(d);
+    }
+  }
+}
+
+export const getEmailSignature = user => {
+  let officePhone = '+64 3 384 8966';
+  if (user.office === 'Auckland' || user.office === 'Hamilton') officePhone = '+64 9 275 1261';
+  let logo = `<img style='text-align: "left";' height='38px' width='128px' src="https://www.k2.co.nz/wp-content/uploads/2019/01/email_logos.png" alt="IANZ/OHSAS">`;
+  let addresses = {
+    Auckland: `Unit 23, 203 Kirkbride Road,<br />Airport Oaks, <b>Auckland</b> 2022`,
+    Wellington: `5/408 Hutt Road, Alicetown,<br /><b>Lower Hutt</b> 5010`,
+    Hamilton: `37 Lake Road, Frankton<br /><b>Hamilton</b> 3204`,
+    ChristchurchPostal: `PO Box 28147,<br /> Beckenham,<br /><b>Christchurch</b> 8242`,
+    ChristchurchPhysical: `Unit 24,<br />105 Bamford Street,<br />Woolston, <b>Christchurch</b>`,
+  }
+  let address = '';
+  if (user.office === 'Christchurch') address = `<tr>
+    <td colspan=3 style='vertical-align: top; white-space: nowrap'>
+      <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>
+          ${addresses.ChristchurchPostal}
+      </span>
+    </td>
+    <td colspan=2 style='vertical-align: top; white-space: nowrap'>
+      <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>
+          ${addresses.ChristchurchPhysical}<br/>${logo}
+      </span>
+    </td>
+  </tr>`;
+  else address = `<tr>
+    <td colspan=3 style='vertical-align: top; white-space: nowrap'>
+      <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>
+          ${addresses[user.office]}
+      </span>
+    </td>
+    <td colspan=2 style='vertical-align: top; white-space: nowrap'>
+      <span>${logo}</span>
+    </td>
+  </tr>`;
+  let addressChristchurch = `<tr>
+    <td colspan=3 style='vertical-align: top; white-space: nowrap'>
+      <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>
+          PO Box 28147,<br /> Beckenham,<br /><b>Christchurch</b> 8242
+      </span>
+    </td>
+    <td colspan=2 style='vertical-align: top; white-space: nowrap'>
+      <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>
+          Unit 24,<br />105 Bamford Street,<br />Woolston, <b>Christchurch</b><br/>${logo}
+      </span>
+    </td>
+  </tr>`;
+
+  return (
+      `<table border=0 cellspacing=0 cellpadding=0 style='border-collapse:collapse' width=300 bgcolor="#FFF">
+        <tr>
+          <td width=15% style='vertical-align: center'>
+            <img width='50px' height='50px' src="https://www.k2.co.nz/wp-content/uploads/2017/12/Logo-flat-icon.png" alt="K2">
+          </td>
+          <td colspan=4 style='vertical-align: top; white-space: nowrap'>
+            <span style='color: #006D44; font-family: Calibri, Arial, Sans Serif; font-size: medium; font-weight: bold'>${user.name}</span><br />
+            <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'><i>${user.jobdescription}</i><br />
+            <b>K2 Environmental Ltd</b></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan=5 style='vertical-align: top'>
+            <hr noshade size=2 />
+          </td>
+        </tr>
+        <tr>
+          <td colspan=3 style='vertical-align: bottom; white-space: nowrap'>
+            <span style='color: #FF2D00; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>T</span>
+            <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>${officePhone}</span><br />
+            <span style='color: #FF2D00; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>E</span>
+            <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>
+              <a href="mailto:${user.email}" onMouseOver="this.style.color='#FF2D00'" onMouseOut="this.style.color='#D32500'" style="color:#FFA28E; ">${user.email}</a>
+            </span><br />
+          </td>
+          <td colspan=2 style='vertical-align: bottom; white-space: nowrap'>
+            ${user.workphone && `<span style='color: #FF2D00; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>M</span>
+            <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>${user.workphone}</span><br />`}
+            <span style='color: #FF2D00; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>W</span>
+            <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>
+              <a href="https://www.k2.co.nz" onMouseOver="this.style.color='#FF2D00'" onMouseOut="this.style.color='#D32500'" style="color:#FFA28E; ">www.k2.co.nz</a>
+            </span><br />
+          </td>
+        </tr>
+        ${address}
+        <tr>
+          <td colspan=5 style='vertical-align: top'>
+            <hr noshade size=2 />
+          </td>
+        </tr>
+        <tr>
+          <td colspan=2 width=25% style='vertical-align: top; white-space: nowrap; padding-right: 20px '>
+            <span style='color: #006D44; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>Christchurch</span><br />
+              <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: x-small'>03 384 8966</span>
+          </td>
+          <td width=25% style='vertical-align: top; white-space: nowrap; padding-right: 20px'>
+            <span style='color: #006D44; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>Auckland</span><br />
+              <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: x-small'>09 275 1261</span>
+          </td>
+          <td width=25% style='vertical-align: top; white-space: nowrap; padding-right: 20px'>
+            <span style='color: #006D44; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>Wellington</span><br />
+              <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: x-small'>027 533 7872</span>
+          </td>
+          <td width=25% style='vertical-align: top; white-space: nowrap; padding-right: 20px'>
+            <span style='color: #006D44; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>Hamilton</span><br />
+              <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: x-small'>027 233 7874</span>
+          </td>
+        </tr>
+      </table>`
+  );
 }
 
 //

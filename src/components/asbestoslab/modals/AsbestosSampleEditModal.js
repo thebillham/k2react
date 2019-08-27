@@ -452,8 +452,8 @@ class AsbestosSampleEditModal extends React.Component {
               <Select
                 isMulti
                 className={classes.selectTight}
-                value={sample.sampledBy ? sample.sampledBy.map(e => ({value: e, label: e})) : null}
-                options={names.map(e => ({ value: e.name, label: e.name }))}
+                value={sample.sampledBy ? sample.sampledBy.map(e => ({value: e.uid, label: e.name})) : null}
+                options={names.map(e => ({ value: e.uid, label: e.name }))}
                 onChange={e => this.setState({
                   modified: true,
                   samples: {
@@ -479,7 +479,7 @@ class AsbestosSampleEditModal extends React.Component {
                       ...this.state.samples,
                       [this.state.activeSample]: {
                         ...this.state.samples[this.state.activeSample],
-                        sampleDate: date.toDate(),
+                        sampleDate: dateOf(date),
                       }
                     }
                   })}
@@ -499,7 +499,7 @@ class AsbestosSampleEditModal extends React.Component {
                       ...this.state.samples,
                       [this.state.activeSample]: {
                         ...this.state.samples[this.state.activeSample],
-                        receivedDate: date.toDate(),
+                        receivedDate: dateOf(date),
                       }
                     }
                   })}
@@ -518,7 +518,7 @@ class AsbestosSampleEditModal extends React.Component {
                       ...this.state.samples,
                       [this.state.activeSample]: {
                         ...this.state.samples[this.state.activeSample],
-                        analysisStartDate: date.toDate(),
+                        analysisStartDate: dateOf(date),
                       }
                     }
                   })}
@@ -538,7 +538,7 @@ class AsbestosSampleEditModal extends React.Component {
                       ...this.state.samples,
                       [this.state.activeSample]: {
                         ...this.state.samples[this.state.activeSample],
-                        analysisDate: date.toDate(),
+                        analysisDate: dateOf(date),
                       }
                     }
                   })}

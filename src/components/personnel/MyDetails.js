@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { connect } from "react-redux";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
@@ -20,6 +20,7 @@ import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Checkbox from "@material-ui/core/Checkbox";
+import Parser from 'html-react-parser';
 // import IconButton from '@material-ui/core/IconButton';
 
 import { auth, usersRef } from "../../config/firebase";
@@ -31,7 +32,7 @@ import AttrModal from "./modals/AttrModal";
 import AttrList from "./components/MyDetailsAttrListItem";
 import { USER_ATTR, EDITSTAFF } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
-import { getUserAttrs, getEditStaff, fetchStaff, } from "../../actions/local";
+import { getUserAttrs, getEditStaff, fetchStaff, getEmailSignature, } from "../../actions/local";
 import { tabMyDetails, } from "../../actions/display";
 import _ from "lodash";
 
@@ -295,12 +296,10 @@ class UserDetails extends React.Component {
                     </ListItem>
                   </Grid>
                   <Grid item xs={12} sm={9} md={8} lg={7} xl={6}>
-                    <ListItem>
-                      <Typography className={classes.subHeading}>
-                        Personal Contact Information
-                      </Typography>
-                    </ListItem>
-                    <ListItem>
+                    <div className={classes.subHeading}>
+                      Personal Contact Information
+                    </div>
+                    <div>
                       <TextField
                         label="Personal Phone"
                         id="personalphone"
@@ -310,8 +309,8 @@ class UserDetails extends React.Component {
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
-                    </ListItem>
-                    <ListItem>
+                    </div>
+                    <div>
                       <TextField
                         label="Home Address"
                         id="address"
@@ -322,7 +321,24 @@ class UserDetails extends React.Component {
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
-                    </ListItem>
+                    </div>
+                    <div className={classes.subHeading}>
+                      Email Signature
+                    </div>
+                    <div>
+                      {Parser(getEmailSignature(user))}
+                    </div>
+                    {/*<div>
+                      <Button
+                        variant="outlined"
+                        className={classes.marginBottomSmall}
+                        onClick={e => {
+                          this.emailSig.select();
+                          document.execCommand('copy');
+                          e.target.focus();
+                        }}
+                      >Copy To Clipboard</Button>
+                    </div>*/}
                   </Grid>
                 </Grid>
               )}

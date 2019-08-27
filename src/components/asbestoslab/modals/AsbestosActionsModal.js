@@ -73,18 +73,23 @@ class AsbestosActionsModal extends React.Component {
   };
 
   handleEnter = () => {
-    let sampleMap = {};
+    let samples = {};
     Object.values(this.props.samples[this.props.modalProps.job.uid]).filter(sample => sample.deleted === false && sample.cocUid === this.props.modalProps.job.uid).forEach(sample => {
-      sampleMap[sample.sampleNumber] = {
+      samples[sample.sampleNumber] = {
         ...sample,
-        original: sample[this.props.modalProps.field],
-        originalNoAsbestosResultReason: sample.originalNoAsbestosResultReason,
-        now: sample[this.props.modalProps.field],
+        original: sample[this.props.modalProps.field] ? sample[this.props.modalProps.field] : null,
+        originalNoAsbestosResultReason: sample.originalNoAsbestosResultReason ? sample.originalNoAsbestosResultReason : null,
+        now: sample[this.props.modalProps.field] ? sample[this.props.modalProps.field] : null,
       };
     });
 
+    let issues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
+
+    console.log(issues);
+
     this.setState({
-      samples: sampleMap,
+      samples,
+      issues,
       mode: 'actions',
     });
   };
@@ -128,22 +133,25 @@ class AsbestosActionsModal extends React.Component {
   submit = () => {
     let close = true;
     let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], ...sample}));
-    let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
     let issuesIncomplete = false;
     let blockAll = false;
+    let issuesMap = {};
     if (this.state.mode === 'issues') {
+      // SUBMITTED FROM THE ISSUES SCREEN
       let sampleGates = {};
       Object.values(this.state.issues).forEach(issue => {
-        if (issue.action !== 'proceed' && issue.action !== 'cancel') issuesIncomplete = true;
-        console.log(issue);
-        jobIssues[issue.uid] = {
+        issuesMap[issue.uid] = {
           action: issue.action,
           sampleUid: issue.sample ? issue.sample.uid : null,
           description: issue.description,
           type: issue.type,
+          uid: issue.uid,
+          yes: issue.yes ? issue.yes : null,
+          no: issue.no ? issue.no : null,
           noAsbestosResultReason: issue.noAsbestosResultReason ? issue.noAsbestosResultReason : null,
           comment: issue.comment ? issue.comment : null,
         };
+        if (issue.action !== 'proceed' && issue.action !== 'cancel') issuesIncomplete = true;
         if (issue.action !== 'proceed') {
           if (this.props.modalProps.field === 'issue') {
             console.log('Issue not proceed and is final issue');
@@ -161,7 +169,11 @@ class AsbestosActionsModal extends React.Component {
           console.log(this.state.issues);
           if (this.props.modalProps.field === 'issue') issueTestCertificate(this.props.modalProps.job, this.state.samples, this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion)+1 : 1,
             this.state.issues.versionChanges && this.state.issues.versionChanges.comment ? this.state.issues.versionChanges.comment : '', this.props.staff, this.props.me);
-          checks.filter(sample => (sample.now !== sample.original || sample.noAsbestosResultReason !== sample.originalNoAsbestosResultReason) && !sampleGates[sample.sampleNumber]).forEach(sample => {
+
+          console.log(checks);
+          console.log(issuesMap);
+
+          checks.filter(sample => sample.now !== sample.original && !sampleGates[sample.sampleNumber]).forEach(sample => {
             if (this.props.modalProps.field === 'receivedByLab') receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
             else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
             else if (this.props.modalProps.field === 'verified') {
@@ -173,7 +185,7 @@ class AsbestosActionsModal extends React.Component {
             }
             // if (this.props.modalProps.field === 'issue') checkTestCertificateIssue();
           });
-          cocsRef.doc(this.props.modalProps.job.uid).update({ issues: jobIssues });
+          cocsRef.doc(this.props.modalProps.job.uid).update({ issues: issuesMap, });
           this.props.hideModal();
         }
       }
@@ -185,13 +197,7 @@ class AsbestosActionsModal extends React.Component {
       else if (this.props.modalProps.field === 'analysisStarted') checkMap = startAnalyses(checks);
       else if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job, this.props.me.uid);
       else if (this.props.modalProps.field === 'issue') checkMap = checkTestCertificateIssue(this.props.samples[this.props.modalProps.job.uid], this.props.modalProps.job, this.props.me.uid);
-      let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
-      Object.values(checkMap).forEach(check => {
-        if (jobIssues[check.uid] && jobIssues[check.uid].action) checkMap[check.uid] = {
-          ...checkMap[check.uid],
-          action: jobIssues[check.uid].action,
-        };
-      });
+      // let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
       if (Object.values(checkMap).length === 0) {
         // No problems with any samples, do actions
         if (this.props.modalProps.field === 'issue') issueTestCertificate(this.props.modalProps.job, this.state.samples, 1, "First issue.", this.props.staff, this.props.me);
@@ -205,7 +211,10 @@ class AsbestosActionsModal extends React.Component {
         // Review issues with samples
         this.setState({
           mode: 'issues',
-          issues: checkMap,
+          issues: {
+            ...this.state.issues,
+            checkMap,
+          },
         })
       }
     }
@@ -328,6 +337,7 @@ class AsbestosActionsModal extends React.Component {
   }
 
   issueCard = issue => {
+    console.log(issue);
     let yes = `Issue Resolved, Proceed with Action`;
     if (issue.type === 'check') yes = `This is Correct`;
     let no = `Cancel Action on this Sample`;
@@ -335,7 +345,7 @@ class AsbestosActionsModal extends React.Component {
     if (issue.type === 'check') no =`This Needs Fixing`;
     if (issue.yes) yes = issue.yes;
     if (issue.no) no = issue.no;
-    return <Card key={issue.uid} className={classNames(this.props.classes.paddingAllMedium, this.props.classes.marginsAllMedium)}>
+    return <Card key={issue.uid} className={this.props.classes.marginsAllMedium}>
       <CardHeader
         avatar={
           <Avatar className={(issue.action === undefined || issue.action === null) ? this.props.classes.avatarRegularOrange :
@@ -346,7 +356,7 @@ class AsbestosActionsModal extends React.Component {
             <CancelActionIcon />}
           </Avatar>
         }
-        title={issue.sample ? `${issue.sample.jobNumber}-${issue.sample.sampleNumber} ${issue.sample.description}` : 'Issue'}
+        title={issue.sample ? `${issue.sample.jobNumber}-${issue.sample.sampleNumber} ${writeDescription(issue.sample)}` : 'Issue'}
       />
       <CardContent>
         {issue.description}
@@ -393,7 +403,6 @@ class AsbestosActionsModal extends React.Component {
           label={'Comment'}
           className={this.props.classes.commentBoxNoBorder}
           multiline={true}
-          rows={3}
           onChange={e => {
             this.setState({
               issues: {

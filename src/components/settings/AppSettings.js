@@ -207,8 +207,9 @@ const settings = {
     label: 'Reasons Why No Asbestos Result is Recorded',
     value: 'noAsbestosResultReasons',
     group: 'acmAssessment',
-    fields: ['label'],
-    hint: 'Put each suggestion on a new line.',
+    fields: ['label','value'],
+    noSort: true,
+    hint: 'Put each suggestion on a new line in the form "label|value".',
   },
 
   // OTHER
@@ -285,9 +286,9 @@ class AppSettings extends React.Component {
       console.log(setting);
       let newMap = this.state.text
         .split("\n")
-        .filter(Boolean)
-        .sort()
-        .map(option => {
+        .filter(Boolean);
+      if (!setting.noSort) newMap = newMap.sort();
+      newMap = newMap.map(option => {
           if (settings[setting].fields.length === 0) return option;
           else {
             let fields = settings[setting].fields;
