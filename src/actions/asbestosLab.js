@@ -297,16 +297,13 @@ export const handleCocSubmit = ({ doc, me, originalSamples }) => dispatch => {
             sample: uid,
           };
           addLog("asbestosLab", log, me);
-          console.log(doc.samples[sample]);
           doc.samples[sample].uid = uid;
           doc.samples[sample].deleted = false;
           doc.samples[sample].createdDate = new Date();
           doc.samples[sample].createdBy = {uid: me.uid, name: me.name};
           if (!doc.samples[sample].sampleDate && doc.defaultSampleDate !== null) doc.samples[sample].sampleDate = doc.defaultSampleDate;
-            else doc.samples[sample].sampleDate = null;
           doc.samples[sample].sampleDate = dateOf(doc.samples[sample].sampleDate);
           if (!doc.samples[sample].sampledBy && doc.defaultSampledBy.length > 0) doc.samples[sample].sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));
-            else doc.samples[sample].sampledBy = null;
           console.log(doc.samples[sample]);
           sampleList.push(uid);
         } else {
@@ -372,6 +369,7 @@ export const toggleWAAnalysis = (job, me) => {
 
 
 export const handleSampleChange = (number, changes) => dispatch => {
+  console.log(changes);
   dispatch({
     type: EDIT_MODAL_SAMPLE,
     payload: {
@@ -1372,7 +1370,7 @@ export const printCocBulk = (job, samples, me, staffList) => {
     contactEmail: job.contactEmail,
     orderNumber: job.clientOrderNumber ? job.clientOrderNumber : '',
     address: job.address,
-    type: job.type,
+    type: job.wfmType,
     analysisRequired,
     labToContactClient,
     labInstructions,

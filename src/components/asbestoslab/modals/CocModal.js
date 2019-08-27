@@ -253,14 +253,14 @@ class CocModal extends React.PureComponent {
                       { wfmJob.client ?
                         <div className={classes.informationBox}>
                           <b>{doc.jobNumber}</b><br />
-                          <b>{ wfmJob.type}</b><br />
+                          <b>{ wfmJob.wfmType}</b><br />
                           { wfmJob.client }<br />
                           { wfmJob.address }<br />
                         </div>
                         :
                         <div>{doc.type !== 'bulk' && <div className={classes.informationBox}>
                           <b>{doc.jobNumber}</b><br />
-                          <b>{ doc.type}</b><br />
+                          <b>{ doc.wfmType}</b><br />
                           { doc.client }<br />
                           { doc.address }<br />
                         </div>}</div>
@@ -504,13 +504,6 @@ class CocModal extends React.PureComponent {
                             this.setState({ modified: true, });
                             this.props.handleSampleChange(i, {description: value});
                           }} />
-                        {/*{SuggestionField(this, disabled, null, 'descriptionSuggestions',
-                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : '',
-                          (value) => {
-                            // this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {description: value});
-                          }
-                        )}*/}
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                         <SuggestionField that={this} suggestions='materialSuggestions'
@@ -528,13 +521,6 @@ class CocModal extends React.PureComponent {
                             this.setState({ modified: true, });
                             this.props.handleSampleChange(i, {material: value, category});
                           }} />
-                        {/*{SuggestionField(this, disabled, null, 'materialSuggestions',
-                          doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : '',
-                          (value) => {
-                            // this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {material: value});
-                          }
-                        )}*/}
                       </div>
                       <div className={classes.columnMedSmall}>
                         <Select
@@ -572,6 +558,7 @@ class CocModal extends React.PureComponent {
                               defaultSampledBy = e;
                             }
 
+                            console.log(defaultSampledBy);
                             console.log(sampledBy);
 
                             this.setState({ modified: true, personnelSelected, defaultSampledBy});
@@ -631,7 +618,8 @@ class CocModal extends React.PureComponent {
               this.props.resetModal()
             }} color="secondary">Cancel</Button>
             <Button disabled={!this.state.modified || !wfmSynced} onClick={() => {
-               if (wfmJob.client) {
+              console.log(doc.samples);
+              if (wfmJob.client) {
                 doc.jobNumber = doc.jobNumber ? doc.jobNumber.toUpperCase().trim() : null;
                 doc.client = wfmJob.client ? wfmJob.client.trim() : null;
                 doc.address = wfmJob.address ? wfmJob.address.trim() : null;
@@ -661,7 +649,6 @@ class CocModal extends React.PureComponent {
                 if (Object.keys(doc.samples).length === 0) doc.status = 'No Samples';
                   else doc.status = 'In Transit';
               } else originalSamples = this.props.samples[doc.uid];
-              console.log(doc.samples);
 
               doc.lastModified = now;
               doc.versionUpToDate = false;

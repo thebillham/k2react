@@ -1017,13 +1017,14 @@ export const fetchWFMClients = () => async dispatch => {
     });
 };
 
+
 export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
   let path = `${
     process.env.REACT_APP_WFM_ROOT
   }job.api/get/${jobNumber}?apiKey=${
     process.env.REACT_APP_WFM_API
   }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
-  // //console.log(path);
+  console.log(path);
   fetch(path)
     .then(results => results.text())
     .then(data => {
@@ -1119,6 +1120,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
             payload: { 'uid': uid }
           });
         }
+        console.log(job);
         dispatch({
           type: GET_WFM_JOB,
           payload: job
