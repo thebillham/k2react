@@ -134,7 +134,8 @@ class JobMap extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.saveWFMItems(this.state.leads.filter((lead) => lead.state !== 'Completed'));
+    console.log(this.state.leads.filter((lead) => lead.wfmState !== 'Completed'));
+    this.props.saveWFMItems(this.state.leads.filter((lead) => lead.wfmState !== 'Completed'));
     this.props.saveCurrentJobState(this.state.leads);
     // this.props.saveStats({
     //   staff: this.state.staffStats,

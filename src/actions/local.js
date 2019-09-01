@@ -835,8 +835,8 @@ export const fetchWFMJobs = () => async dispatch => {
         }
         job.dueDate = wfmJob.DueDate ? wfmJob.DueDate : "";
         job.startDate = wfmJob.StartDate ? wfmJob.StartDate : "";
-        job.state = wfmJob.State ? wfmJob.State : "Unknown state";
-        job.type = wfmJob.Type ? wfmJob.Type : "Other";
+        job.wfmState = wfmJob.State ? wfmJob.State : "Unknown state";
+        job.wfmType = wfmJob.Type ? wfmJob.Type : "Other";
         jobs.push(job);
       });
       dispatch({
@@ -1245,6 +1245,7 @@ export const updateGeocodes = geocodes => dispatch => {
 };
 
 export const saveWFMItems = items => dispatch => {
+  console.log(items);
   var date = moment().format("YYYY-MM-DD");
   // //console.log(items);
   stateRef
