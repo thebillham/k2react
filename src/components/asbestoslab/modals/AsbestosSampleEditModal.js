@@ -595,13 +595,13 @@ class AsbestosSampleEditModal extends React.Component {
                 </div>
               <div className={classes.subHeading}>Weights</div>
               <div className={classes.flexRow}>
-                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'REQUIRED Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null)}</div>
+                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'REQUIRED Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null, true)}</div>
                 <div className={classes.spacerSmall} />
-                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightSubsample', 'Weight of Subsample', 'Record the weight of the subsample if the entire sample is not analysed.', false, 0, 'g', null)}</div>
+                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightSubsample', 'Weight of Subsample', 'Record the weight of the subsample if the entire sample is not analysed.', false, 0, 'g', null, true)}</div>
                 <div className={classes.spacerSmall} />
-                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightDry', 'Dry Weight', 'Record the weight after drying (~105°).', false, 0, 'g', null)}</div>
+                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightDry', 'Dry Weight', 'Record the weight after drying (~105°).', false, 0, 'g', null, true)}</div>
                 <div className={classes.spacerSmall} />
-                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightAshed', 'Ashed Weight', 'Record the weight after ashing (~400°).', false, 0, 'g', null)}</div>
+                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightAshed', 'Ashed Weight', 'Record the weight after ashing (~400°).', false, 0, 'g', null, true)}</div>
               </div>
 
               {sampleMoisture && <div className={classes.informationBox}>
@@ -610,11 +610,11 @@ class AsbestosSampleEditModal extends React.Component {
 
               <div className={classes.subHeading}>Dimensions</div>
               <div className={classes.flexRow}>
-                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'length', 'Length', null, false, 0, 'mm', null)}</div>
+                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'length', 'Length', null, false, 0, 'mm', null, true)}</div>
                 <span className={classes.timesSymbol}>X</span>
-                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'width', 'Width', null, false, 0, 'mm', null)}</div>
+                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'width', 'Width', null, false, 0, 'mm', null, true)}</div>
                 <span className={classes.timesSymbol}>X</span>
-                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'depth', 'Depth/Thickness', null, false, 0, 'mm', null)}</div>
+                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'depth', 'Depth/Thickness', null, false, 0, 'mm', null, true)}</div>
                 {sampleDimensions && <span className={classes.informationBox}>
                   {sampleDimensions}
                 </span>}

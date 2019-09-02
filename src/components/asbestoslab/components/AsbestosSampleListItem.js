@@ -130,8 +130,12 @@ class AsbestosSampleListItem extends React.Component {
                     <WAIcon />
                   </div>
                 }
-                <Tooltip title={'Weight on Receipt'}><div className={sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded}>{sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}</div></Tooltip>
-                {editor && <Tooltip id="det-tooltip" title={'Edit Sample Details'}>
+                {/*<Tooltip title={'Weight on Receipt'}>*/}
+                  <div className={sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded}>
+                    {sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}
+                  </div>
+                {/*</Tooltip>*/}
+                {editor &&
                   <IconButton
                     onClick={event => {
                       if (!this.props.asbestosSampleDisplayAdvanced) this.props.toggleAsbestosSampleDisplayMode();
@@ -146,8 +150,9 @@ class AsbestosSampleListItem extends React.Component {
                   >
                     <EditIcon className={classes.iconRegular}/>
                   </IconButton>
-                </Tooltip>}
-                <Tooltip id="det-tooltip" title={'Sample Details'}>
+                }
+                {/*</Tooltip>*/}
+                {/*<Tooltip id="det-tooltip" title={'Sample Details'}>*/}
                   <IconButton
                     onClick={event => {
                       this.props.showModal({
@@ -160,7 +165,7 @@ class AsbestosSampleListItem extends React.Component {
                   >
                     <SampleDetailsIcon className={classes.iconRegular}/>
                   </IconButton>
-                </Tooltip>
+                {/*</Tooltip>*/}
                 {/*{job.waAnalysis &&
                   <Tooltip id="wa-tooltip" title={editor ? 'WA Analysis' : sample.waAnalysisComplete ? 'WA Analysis Complete' : 'WA Analysis Incomplete'}>
                     <IconButton
@@ -177,7 +182,7 @@ class AsbestosSampleListItem extends React.Component {
                     </IconButton>
                   </Tooltip>
                 }*/}
-                <Tooltip id="cr-tooltip" title={editor ? 'Result Checks' : confirmColor === 'Red' ? 'Contradictory result given by other analyst' : confirmColor === 'Green' ? 'Result confirmed by another analyst' : 'Slightly different result given by other analyst'}>
+                {/*<Tooltip id="cr-tooltip" title={editor ? 'Result Checks' : confirmColor === 'Red' ? 'Contradictory result given by other analyst' : confirmColor === 'Green' ? 'Result confirmed by another analyst' : 'Slightly different result given by other analyst'}>*/}
                   <IconButton
                     onClick={event => editor ?
                       this.props.showModal({
@@ -195,8 +200,8 @@ class AsbestosSampleListItem extends React.Component {
                     {confirmColor === 'Red' ? <ThumbsDown className={classes.iconRegularRed} /> :
                     <ConfirmIcon className={classes[`iconRegular${confirmColor}`]} />}
                   </IconButton>
-                </Tooltip>
-                <Tooltip id="h-tooltip" title={sample.onHold ? 'Take Sample off Hold' : 'Put Sample on Hold'}>
+                {/*</Tooltip>*/}
+                {/*<Tooltip id="h-tooltip" title={sample.onHold ? 'Take Sample off Hold' : 'Put Sample on Hold'}>*/}
                   <IconButton
                     onClick={event => {
                       //console.log('Clicked');
@@ -204,8 +209,8 @@ class AsbestosSampleListItem extends React.Component {
                     }}>
                     <HoldIcon className={sample.onHold ? classes.iconRegularRed : classes.iconRegular} />
                   </IconButton>
-                </Tooltip>
-                <Tooltip id="sl-tooltip" title={'Sample Log'}>
+                {/*</Tooltip>*/}
+                {/*<Tooltip id="sl-tooltip" title={'Sample Log'}>*/}
                   <IconButton
                     onClick={event => {
                       this.props.showModal({
@@ -220,7 +225,7 @@ class AsbestosSampleListItem extends React.Component {
                   >
                     <SampleLogIcon className={classes.iconRegular}/>
                   </IconButton>
-                </Tooltip>
+                {/*</Tooltip>*/}
               </div>
             </Grid>
           </Grid>

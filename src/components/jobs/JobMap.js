@@ -652,11 +652,11 @@ class JobMap extends React.Component {
         }
 
         // Check state has changed
-        if (job.state !== mappedJob.state) {
+        if (job.wfmState !== mappedJob.state) {
           // //console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
           mappedJob.lastActionDate = today;
-          mappedJob.state = job.state;
-          mappedJob.stateHistory[today] = job.state;
+          mappedJob.state = job.wfmState;
+          mappedJob.stateHistory[today] = job.wfmState;
         }
 
         // Check if address has changed
@@ -689,7 +689,7 @@ class JobMap extends React.Component {
         newJob.lastActionDate = today;
         newJob.stateHistory = {
           [today]: 'Job created',
-          [today]: job.state,
+          [today]: job.wfmState,
         };
         newJob.isJob = true;
 

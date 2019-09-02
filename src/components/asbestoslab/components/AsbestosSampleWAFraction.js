@@ -94,7 +94,7 @@ class AsbestosSampleWAFraction extends React.Component {
                   ...that.state.samples[that.state.activeSample],
                   waSoilAnalysis: {
                     ...that.state.samples[that.state.activeSample].waSoilAnalysis,
-                    ['fraction' + fraction + 'WeightAshed']: e.target.value,
+                    ['fraction' + fraction + 'WeightAshed']: e.target.value.replace(/[^$0-9.]/,''),
                   },
                 },
               },

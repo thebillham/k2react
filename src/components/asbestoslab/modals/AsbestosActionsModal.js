@@ -213,7 +213,7 @@ class AsbestosActionsModal extends React.Component {
           mode: 'issues',
           issues: {
             ...this.state.issues,
-            checkMap,
+            ...checkMap,
           },
         })
       }
@@ -338,6 +338,7 @@ class AsbestosActionsModal extends React.Component {
 
   issueCard = issue => {
     console.log(issue);
+    console.log(this.state);
     let yes = `Issue Resolved, Proceed with Action`;
     if (issue.type === 'check') yes = `This is Correct`;
     let no = `Cancel Action on this Sample`;
@@ -345,6 +346,7 @@ class AsbestosActionsModal extends React.Component {
     if (issue.type === 'check') no =`This Needs Fixing`;
     if (issue.yes) yes = issue.yes;
     if (issue.no) no = issue.no;
+    console.log(issue.uid);
     return <Card key={issue.uid} className={this.props.classes.marginsAllMedium}>
       <CardHeader
         avatar={

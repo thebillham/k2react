@@ -48,7 +48,7 @@ class AsbestosSampleEditBasicResultRow extends React.PureComponent {
                     ...that.state.samples,
                     [sample.sampleNumber]: {
                       ...that.state.samples[sample.sampleNumber],
-                      weightReceived: e.target.value,
+                      weightReceived: e.target.value.replace(/[^$0-9.]/,''),
                     },
                   },
                 });

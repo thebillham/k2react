@@ -105,10 +105,8 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   shouldComponentUpdate(nextProps, nextState) {
-    if (nextProps.job === nextProps.expanded) return true;
-    if (this.props.expanded === this.props.job && this.props.expanded !== nextProps.expanded) return true;
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
-    if (nextState.expanded === false) return false;
+    if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
     return true;
   }
 

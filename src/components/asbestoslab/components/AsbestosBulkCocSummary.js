@@ -16,6 +16,7 @@ const mapStateToProps = state => {
   return {
     samples: state.asbestosLab.samples,
     cocs: state.asbestosLab.cocs,
+    expanded: state.display.asbestosLabExpanded,
   };
 };
 
@@ -23,16 +24,12 @@ class AsbestosBulkCocSummary extends React.Component {
   // static whyDidYouRender = true;
 
   shouldComponentUpdate(nextProps) {
-    return true;
+    // return true;
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
-    if (nextProps.expanded) return true;
-      // if (this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
-      //   (this.props.samples && this.props.samples[this.props.job] &&
-      //   Object.keys(this.props.samples[this.props.job]).length < this.props.cocs[this.props.job].sampleList.length &&
-      //   Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length)) {
-      //     return true;
-      //   } else return false;
-      else return false;
+    if (nextProps.expanded !== nextProps.job) return false; // List is not expanded (hidden)
+    if (this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job]) return true; // CoC has changed
+    if (this.props.samples[this.props.job] !== nextProps.samples[nextProps.job]) return true; // Samples have changed
+    return false;
   }
 
   render() {
@@ -42,7 +39,7 @@ class AsbestosBulkCocSummary extends React.Component {
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     console.log(`rendering summary ${job.jobNumber}`);
-    console.log(samples[job.uid]);
+    // console.log(samples[job.uid]);
 
     return (
       <Grid container direction="row" className={classes.marginTopBottomSmall} alignItems="flex-start" justify="center">

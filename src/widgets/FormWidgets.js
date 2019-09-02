@@ -228,7 +228,7 @@ export const SampleTextyBox = (that, sample, field, label, helperText, multiline
   />);
 };
 
-export const SamplesTextyBox = (that, sample, field, label, helperText, multiline, rows, end, start) => {
+export const SamplesTextyBox = (that, sample, field, label, helperText, multiline, rows, end, start, numericOnly) => {
   return(<TextField
     id={field}
     value={sample[field] ? sample[field] : ''}
@@ -247,7 +247,7 @@ export const SamplesTextyBox = (that, sample, field, label, helperText, multilin
           ...that.state.samples,
           [sample.sampleNumber]: {
             ...sample,
-            [field]: e.target.value,
+            [field]: numericOnly ? e.target.value.replace(/[^$0-9.]/,'') : e.target.value,
           },
         },
       });
@@ -255,7 +255,7 @@ export const SamplesTextyBox = (that, sample, field, label, helperText, multilin
   />);
 };
 
-export const SamplesTextyBoxAlt = (that, sample, base, field, label, helperText, multiline, rows, end, start) => {
+export const SamplesTextyBoxAlt = (that, sample, base, field, label, helperText, multiline, rows, end, start, numericOnly) => {
   return(<TextField
     id={field}
     value={sample[base] && sample[base][field] ? sample[base][field] : ''}
@@ -276,7 +276,7 @@ export const SamplesTextyBoxAlt = (that, sample, base, field, label, helperText,
             ...sample,
             [base]: {
               ...sample[base],
-              [field]: e.target.value,
+              [field]: numericOnly ? parseFloat(e.target.value.replace(/[^$0-9.]/,'')) : e.target.value,
             },
           },
         },

@@ -1248,6 +1248,13 @@ export const saveWFMItems = items => dispatch => {
   console.log(items);
   var date = moment().format("YYYY-MM-DD");
   // //console.log(items);
+  Object.values(items).forEach(job => {
+    Object.keys(job).forEach(val => {
+      if (job[val] === undefined) {
+        console.log(`Job: ${job.isJob}, Number: ${job.jobNumber}, Val: ${val}`);
+      }
+    })
+  })
   stateRef
     .doc("wfmstate")
     .collection("states")
@@ -1308,6 +1315,7 @@ export const analyseJobHistory = () => dispatch => {
           buckets.forEach((bucket) => {
             if (jobMap[bucket] !== undefined) {
               Object.values(jobMap[bucket]).forEach((job) => {
+                console.log(job);
                 if (job.state !== 'Completed' && state.filter((stateJob) => stateJob.wfmID === job.wfmID).length === 0) {
                   // Job or lead has been completed
                   jobMap[bucket][job.wfmID]['state'] = 'Completed';
