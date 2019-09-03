@@ -276,7 +276,7 @@ export const SamplesTextyBoxAlt = (that, sample, base, field, label, helperText,
             ...sample,
             [base]: {
               ...sample[base],
-              [field]: numericOnly ? parseFloat(e.target.value.replace(/[^$0-9.]/,'')) : e.target.value,
+              [field]: numericOnly ? e.target.value.replace(/[^$0-9.]/,'') : e.target.value,
             },
           },
         },

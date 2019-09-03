@@ -203,6 +203,13 @@ const settings = {
     fields: ['label'],
     hint: 'Put each suggestion on a new line.',
   },
+  asbestosInSoilSuggestions: {
+    label: 'Asbestos in Soil Suggestions',
+    value: 'asbestosInSoilSuggestions',
+    group: 'acmAssessment',
+    fields: ['label'],
+    hint: 'Put each suggestion on a new line.',
+  },
   noAsbestosResultReasons: {
     label: 'Reasons Why No Asbestos Result is Recorded',
     value: 'noAsbestosResultReasons',

@@ -3,6 +3,7 @@ import {
   ASBESTOS_SAMPLE_DISPLAY_MODE,
   ASBESTOS_LAB_EXPANDED,
   RESET_DISPLAY,
+  TOGGLE_DO_NOT_RENDER,
   TAB_STAFF,
   TAB_MY_DETAILS,
   FILTER_STAFF,
@@ -65,5 +66,13 @@ export const setAsbestosLabExpanded = ex => dispatch => {
   dispatch({
     type: ASBESTOS_LAB_EXPANDED,
     payload: ex,
+  })
+}
+
+export const toggleDoNotRender = on => dispatch => {
+  console.log('toggling');
+  dispatch({
+    type: TOGGLE_DO_NOT_RENDER,
+    payload: on,
   })
 }

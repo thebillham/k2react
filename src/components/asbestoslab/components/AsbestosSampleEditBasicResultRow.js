@@ -33,13 +33,13 @@ class AsbestosSampleEditBasicResultRow extends React.PureComponent {
             return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res,
             () => that.handleResultClick(res, sample.sampleNumber))
           })}
-          <div className={classes.roundButtonShadedInput}>
+          <div className={sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded}>
             <TextField
               id={sample.uid}
               value={sample.weightReceived ? sample.weightReceived : ''}
               InputProps={{
-                endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                className: classes.roundButtonShadedInputText,
+                endAdornment: <div className={sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded}>g</div>,
+                className: sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded,
               }}
               onChange={e => {
                 that.setState({

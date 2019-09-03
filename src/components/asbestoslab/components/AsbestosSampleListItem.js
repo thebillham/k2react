@@ -66,18 +66,19 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosSampleListItem extends React.Component {
+class AsbestosSampleListItem extends React.PureComponent {
   // static whyDidYouRender = true;
 
-  shouldComponentUpdate(nextProps) {
-    // return true;
-    if (this.props.samples[this.props.job][this.props.sample] !== nextProps.samples[nextProps.job][nextProps.sample]) {
-      return true;
-    } else {
-      // //console.log('Blocked re-render of SampleList');
-      return false;
-    }
-  }
+  // shouldComponentUpdate(nextProps) {
+  //   // return true;
+  //   if (this.props.samples[this.props.job][this.props.sample] !== nextProps.samples[nextProps.job][nextProps.sample]) {
+  //     console.log(`Sample ${nextProps.sample} rendered`);
+  //     return true;
+  //   } else {
+  //     // //console.log('Blocked re-render of SampleList');
+  //     return false;
+  //   }
+  // }
 
   render() {
     const { samples, staff, anchorEl, classes } = this.props;

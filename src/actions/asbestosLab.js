@@ -19,6 +19,7 @@ import moment from "moment";
 import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
+import { toggleDoNotRender } from "./display"
 import { addLog } from "./local";
 import {
   asbestosSamplesRef,
@@ -275,6 +276,7 @@ export const setSessionID = session => dispatch => {
 //
 
 export const handleCocSubmit = ({ doc, me, originalSamples }) => dispatch => {
+  // toggleDoNotRender(true);
   //console.log(doc);
   // //console.log(doc.samples);
   let sampleList = [];
@@ -340,6 +342,7 @@ export const handleCocSubmit = ({ doc, me, originalSamples }) => dispatch => {
   doc2.sampleList = sampleList;
   cocsRef.doc(doc.uid).set(doc2);
   dispatch({ type: RESET_MODAL });
+  // toggleDoNotRender(false);
 };
 
 export const togglePriority = (job, me) => {
@@ -2554,17 +2557,18 @@ export const writeSampleMoisture = (sample, total) => {
     else postWeight = sample.weightDry;
   }
 
-  //console.log(preWeight);
-  //console.log(postWeight);
+  preWeight = parseFloat(preWeight);
+  postWeight = parseFloat(postWeight);
 
-  if (!preWeight || !postWeight || preWeight == 0 || preWeight < postWeight) return null;
+  if (!preWeight || !postWeight || preWeight == 0 || preWeight < postWeight || Math.round(((preWeight - postWeight)/preWeight) * 100) == 0) return null;
     else return Math.round(((preWeight - postWeight)/preWeight) * 100);
 };
 
 export const writeSampleDimensions = (sample, total) => {
   let dims = [];
   ['length','width','depth'].forEach(dim => {
-    if (sample.dimensions !== undefined && sample.dimensions[dim] !== undefined && sample.dimensions[dim] !== '') dims.push(parseInt(sample.dimensions[dim]));
+    sample.dimensions && console.log(sample.dimensions[dim]);
+    if (sample.dimensions !== undefined && sample.dimensions[dim] !== undefined && sample.dimensions[dim] !== '') dims.push(parseFloat(sample.dimensions[dim]));
   });
   if (dims.length === 0) return null;
   let app = '';
@@ -2572,23 +2576,23 @@ export const writeSampleDimensions = (sample, total) => {
     let volMM = dims[0]*dims[1]*dims[2];
     let volCM = volMM / 1000;
     let volM = volMM / 1000000000;
-    if (volM > 0.1) app += volM + 'm³';
-    else if (volCM > 0.1) app += volCM + 'cm³';
-    else app = volMM += 'mm³';
+    if (volM > 0.1) app = volM.toPrecision(2) + 'm³';
+    else if (volCM > 0.1) app = volCM.toPrecision(2) + 'cm³';
+    else app = volMM.toPrecision(2) + 'mm³';
   } else if (dims.length === 2) {
     let areaMM = dims[0] * dims[1];
     let areaCM = areaMM / 100;
     let areaM = areaMM / 1000000;
-    if (areaM > 1) app += areaM + 'm²';
-    else if (areaCM > 1) app += areaCM + 'cm²';
-    else app = areaMM += 'mm²';
+    if (areaM > 1) app = areaM.toPrecision(2) + 'm²';
+    else if (areaCM > 1) app = areaCM.toPrecision(2) + 'cm²';
+    else app = areaMM.toPrecision(2) + 'mm²';
   } else if (dims.length === 1) {
     let lMM = dims[0];
     let lCM = lMM / 10;
     let lM = lMM / 1000;
-    if (lM > 1) app = lM + 'm';
-    else if (lCM > 1) app = lCM + 'cm';
-    else app = lMM + 'mm';
+    if (lM > 1) app = lM.toPrecision(2) + 'm';
+    else if (lCM > 1) app = lCM.toPrecision(2) + 'cm';
+    else app = lMM.toPrecision(2) + 'mm';
   }
   if (total) return app;
     else return dims.map(dim => `${dim}mm`).join(' x ') + ` (${app})`;

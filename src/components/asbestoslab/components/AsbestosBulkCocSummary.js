@@ -27,8 +27,14 @@ class AsbestosBulkCocSummary extends React.Component {
     // return true;
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (nextProps.expanded !== nextProps.job) return false; // List is not expanded (hidden)
-    if (this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job]) return true; // CoC has changed
-    if (this.props.samples[this.props.job] !== nextProps.samples[nextProps.job]) return true; // Samples have changed
+    if (this.props.cocs[this.props.job] && nextProps.cocs[nextProps.job]
+      && (this.props.cocs[this.props.job].labHasContactedClient !== nextProps.cocs[nextProps.job].labHasContactedClient
+      || this.props.cocs[this.props.job].mostRecentIssueSent !== nextProps.cocs[nextProps.job].mostRecentIssueSent
+    )) return true;
+    if (this.props.samples[this.props.job] !== nextProps.samples[nextProps.job]) {
+      console.log('Summary samples have changed');
+      return true; // Samples have changed
+    }
     return false;
   }
 

@@ -68,6 +68,7 @@ const mapStateToProps = state => {
     bulkAnalysts: state.asbestosLab.bulkAnalysts,
     airAnalysts: state.asbestosLab.airAnalysts,
     cocs: state.asbestosLab.cocs,
+    doNotRender: state.display.doNotRender,
     expanded: state.display.asbestosLabExpanded,
     asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced
   };
@@ -90,14 +91,7 @@ const mapDispatchToProps = dispatch => {
 
 class AsbestosBulkCocCard extends React.Component {
   // static whyDidYouRender = true;
-  state = {
-    samples: {},
-    bulkAnalyst: "",
-    sampleAnchorEl: {},
-    cocAnchorEl: null,
-    samplesExpanded: {},
-    expanded: false,
-  };
+  state = { cocAnchorEl: null, };
 
   componentWillMount = () => {
     let uid = `${this.props.job}-${this.props.me.name}-${moment().format('x')}`;
@@ -106,16 +100,25 @@ class AsbestosBulkCocCard extends React.Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
+    // if (nextProps.doNotRender) return false;
     if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
+    if (this.props.expanded === this.props.job && nextProps.expanded !== this.props.job) {
+      console.log('List has been collapsed');
+      return true; // List has been collapsed (closed)
+    }
+    if (nextProps.expanded === nextProps.job && this.props.expanded !== this.props.job) {
+      console.log('List has been opened');
+      return true; // List has been collapsed (closed)
+    }
+    // if (nextProps.samples[nextProps.job] && nextProps.cocs[nextProps.job] && nextProps.cocs[nextProps.job].sampleList) {
+    //   console.log(Object.keys(nextProps.samples[nextProps.job]).length);
+    //   console.log(nextProps.cocs[nextProps.job].sampleList.length);
+    //   if (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length) {
+    //     console.log('Matched');
+    //     return true;
+    //   }
+    // }
     return true;
-  }
-
-  sampleAnchorMenu = (number, target) => {
-    this.setState({
-      sampleAnchorEl: {
-        [number]: target
-      }
-    });
   }
 
   getSamples = (expanded, cocUid, jobNumber) => {

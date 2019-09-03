@@ -32,6 +32,7 @@ import AsbestosSampleEditBasicResultRow from "../components/AsbestosSampleEditBa
 import AsbestosSampleEditLayerRow from "../components/AsbestosSampleEditLayerRow";
 import AsbestosSampleEditConfirmRow from "../components/AsbestosSampleEditConfirmRow";
 import AsbestosSampleWAFraction from "../components/AsbestosSampleWAFraction";
+import AsbestosSampleWAEditSummary from "../components/AsbestosSampleWAEditSummary";
 import {
   DatePicker,
   DateTimePicker,
@@ -87,6 +88,7 @@ const mapStateToProps = state => {
     descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
     asbestosMaterialCategories: state.const.asbestosMaterialCategories,
+    asbestosInSoilSuggestions: state.const.asbestosInSoilSuggestions,
     asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced
   };
 };
@@ -319,11 +321,6 @@ class AsbestosSampleEditModal extends React.Component {
     let sampleMoisture = null;
     let fractionMap = {};
     let waColors = {};
-
-    if (waAnalysis) {
-      fractionMap = getWATotalDetails(sample);
-      waColors = getSampleColors(fractionMap);
-    }
 
     if (sample) {
       sampleDimensions = writeSampleDimensions(sample, true);
@@ -714,40 +711,20 @@ class AsbestosSampleEditModal extends React.Component {
                 }
                 label="WA Analysis Complete"
               />
-            {waAnalysis && SamplesTextyBox(this, sample, 'asbestosFormDescription', null, 'Add a short description of the asbestos form (e.g. Asbestos cement, loose fibres). This will be displayed on the report.', false, 1, null, null)}
-            {SampleTextyLine('Asbestos in ACM as % of Total', `${fractionMap.asbestosInACMConc}%`)}
-            {SampleTextyLine('Combined FA and AF as % of Total', `${fractionMap.asbestosInFAAFConc}%`)}
-            {SampleTextyLine('Asbestos in Friable Asbestos as % of Total', `${fractionMap.asbestosInFAConc}%`)}
-            {SampleTextyLine('Asbestos in Asbestos Fines as % of Total', `${fractionMap.asbestosInAFConc}%`)}
-            {SampleTextyLine('Weight of Asbestos in ACM', `${fractionMap.asbestosInACM}g`)}
-            {SampleTextyLine('Weight of Asbestos as Friable Asbestos', `${fractionMap.asbestosInFA}g`)}
-            {SampleTextyLine('Weight of Asbestos as Asbestos Fines', `${fractionMap.asbestosInAF}g`)}
-            <div className={classes.flexRowTotals}>
-              <div className={classes.circleShadedHighlighted}>
-                ALL
-              </div>
-              <div className={classes.columnMedSmall} />
-              <div className={classes.spacerSmall} />
-              <div className={classes.columnMedSmall}>
-                {fractionMap && fractionMap.totalAsbestosWeight ? `Total Asbestos Weight:` : ''}
-              </div>
-              <div className={classes.spacerSmall} />
-              <div className={classes.columnMedSmall}>
-                {fractionMap && fractionMap.totalAsbestosWeight ? `${fractionMap.totalAsbestosWeight.toPrecision(6)}g` : ''}
-              </div>
-              <div className={classes.spacerSmall} />
-              <div className={classes.columnLarge}>
-                {['acm','fa','af'].filter(type => fractionMap && fractionMap.types[type]).map(type => {
-                  return type.toUpperCase()}).join(' ')
-                }
-              </div>
-              <div className={classes.flexRowRightAlign}>
-                {['ch','am','cr','umf','no','org','smf'].map(res => {
-                  return AsbButton(classes[`colorsButton${waColors[res]}`], classes[`colorsDiv${waColors[res]}`], res,
-                  null)
-                })}
-              </div>
-            </div>
+            <AsbestosSampleWAEditSummary sample={sample} />
+            <SuggestionField that={this} label='Short Description' suggestions='asbestosInSoilSuggestions'
+              value={sample.asbestosFormDescription}
+              label='Add a short description of the asbestos form. This will be displayed on the report.'
+              onModify={(value) => {
+                this.setState({
+                  modified: true,
+                  sample: {
+                    ...sample,
+                    asbestosFormDescription: value,
+                  }
+                });
+              }}
+            />
             {fractionNames.map(fraction => {
               return <AsbestosSampleWAFraction key={fraction} sample={sample} fraction={fraction} that={this} />;
             })}

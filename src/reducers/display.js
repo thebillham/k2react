@@ -5,6 +5,7 @@ import {
   RESET_DISPLAY,
   TAB_STAFF,
   TAB_MY_DETAILS,
+  TOGGLE_DO_NOT_RENDER,
   FILTER_STAFF,
   FILTER_MAP,
   FILTER_MAP_RESET,
@@ -48,6 +49,7 @@ const displayInit = {
   initialLoading: true,
   tabStaff: 0,
   tabMyDetails: 0,
+  doNotRender: false, // HOLDS OFF ON RENDERING UNTIL SWITCHED ON
   filterStaff: filterStaff,
   filterMap: filterMap,
   asbestosLabExpanded: null,
@@ -97,6 +99,13 @@ export default function displayReducer(state = displayInit, action) {
       return {
         ...state,
         filterMap: filterMap,
+      }
+    case TOGGLE_DO_NOT_RENDER:
+      console.log('togle');
+      console.log(action.payload);
+      return{
+        ...state,
+        doNotRender: action.payload,
       }
     default:
       return state;

@@ -17,6 +17,7 @@ const mapStateToProps = state => {
     specificLocationSuggestions: state.const.specificLocationSuggestions,
     descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
+    asbestosInSoilSuggestions: state.const.asbestosInSoilSuggestions,
    };
 };
 
