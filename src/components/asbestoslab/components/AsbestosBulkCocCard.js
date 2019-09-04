@@ -15,7 +15,7 @@ import {
   printLabReport,
   issueTestCertificate,
   getPersonnel,
-  getStatus,
+  getJobStatus,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM, dateOf } from "../../../actions/local";
 import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
@@ -135,11 +135,7 @@ class AsbestosBulkCocCard extends React.Component {
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
-    let analysts = samples[this.props.job] ? getPersonnel(Object.values(samples[this.props.job]).filter(s => s.cocUid === job.uid), 'analyst', null, false) : '';
-
-    let dates = job.dates.sort().map(date => {
-      return moment(dateOf(date)).format('D MMMM YYYY');
-    });
+    
     console.log(`${job.jobNumber} rendering`);
     let filteredSamples = {};
     if (samples && samples[job.uid]) {
@@ -147,7 +143,7 @@ class AsbestosBulkCocCard extends React.Component {
         filteredSamples[s.sampleNumber] = s;
       });
     }
-    getStatus(filteredSamples, job);
+    getJobStatus(filteredSamples, job);
     return (
       <ExpansionPanel
         expanded={this.props.expanded === job.uid}
@@ -338,7 +334,7 @@ class AsbestosBulkCocCard extends React.Component {
                 </MenuItem>
               </Menu>
             </div>
-            <AsbestosBulkCocSummary job={job.uid} analysts={analysts} dates={dates} expanded={this.state.expanded} />
+            <AsbestosBulkCocSummary job={job.uid} expanded={this.state.expanded} />
             {filteredSamples && Object.values(filteredSamples).length > 0 ? (
               <div>
                 {Object.values(filteredSamples)

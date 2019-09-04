@@ -12,7 +12,8 @@ import {
   holdSample,
   writeShorthandResult,
   getConfirmColor,
-  getSampleStatus,
+  getSampleStatusCode,
+  getWATotalDetails,
 } from "../../../actions/asbestosLab";
 import { AsbestosSampleStatus } from '../../../widgets/DisplayWidgets';
 import { AsbButton } from '../../../widgets/FormWidgets';
@@ -91,8 +92,13 @@ class AsbestosSampleListItem extends React.PureComponent {
     if (sample.confirm) confirmColor = getConfirmColor(sample);
     let editor = this.props.me.auth && this.props.me.auth['Asbestos Bulk Analysis'];
     let basicResult = getBasicResult(sample);
-    let sampleStatus = getSampleStatus(sample);
+    let sampleStatus = getSampleStatusCode(sample);
     let noResults = true;
+    let waOverLimit = false;
+    if (sample.waAnalysisComplete) {
+      let waTotals = getWATotalDetails(sample);
+      if (waTotals.concentration.acm > 0.01 || waTotals.concentration.faaf > 0.001) waOverLimit = true;
+    }
 
     return (
         <ListItem key={sample.uid} className={classes.hoverItem}>
@@ -127,7 +133,7 @@ class AsbestosSampleListItem extends React.PureComponent {
                   {writeShorthandResult(sample.result)}
                 </div>
                 {job.waAnalysis &&
-                  <div className={sample.waAnalysisComplete ? classes.circleShadedOk : classes.circleShaded}>
+                  <div className={sample.waAnalysisComplete ? waOverLimit ? classes.circleShadedBad : classes.circleShadedOk : classes.circleShaded}>
                     <WAIcon />
                   </div>
                 }

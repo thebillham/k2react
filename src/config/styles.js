@@ -925,6 +925,34 @@ const styles = theme => ({
     margin: -8
   },
 
+  // TABLES
+
+  headingRow: {
+    backgroundColor: "darkgrey",
+    color: "white",
+    fontWeight: 600,
+    padding: theme.spacing(1),
+    borderColor: "black",
+    borderStyle: "solid",
+    borderWidth: 1,
+  },
+
+  firstColumn: {
+    backgroundColor: "lightgrey",
+    fontWeight: 600,
+    padding: theme.spacing(1),
+    borderStyle: "solid",
+    borderWidth: 1,
+  },
+
+  numberColumn: {
+    padding: theme.spacing(1),
+    display: 'flex',
+    justifyContent: 'flex-end',
+    borderStyle: "solid",
+    borderWidth: 1,
+  },
+
   // SEARCH BOXES
   searchBoxRoot: {
     borderRadius: 4,

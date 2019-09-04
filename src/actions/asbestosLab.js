@@ -1410,13 +1410,11 @@ export const getStaffQuals = (staffList) => {
 };
 
 export const getPersonnel = (samples, field, qualList, onlyShowVerified) => {
-  //console.log(samples);
   let personnel = {};
   samples &&
     Object.values(samples).forEach(sample => {
       if (sample[field] && (!onlyShowVerified || (onlyShowVerified && sample.verified))) {
         let person = sample[field];
-        // console.log(person);
         if (person instanceof Array) {
           person.forEach(p => {
             if (p === Object(p)) personnel[p.name] = true;
@@ -1874,49 +1872,73 @@ export const getWAFractionDetails = (sample, fraction) => {
 
 export const getWATotalDetails = (sample) => {
   // Set detection limits
-
-  let result = {
-    totalAsbestosWeight: 0,
+  let totals = {
     types: {},
-    result: {},
-    asbestosInACMConc: 0,
-    asbestosInFAAFConc: 0,
-    asbestosInFAConc: 0,
-    asbestosInAFConc: 0,
-    asbestosInACM: 0,
-    asbestosInFA: 0,
-    asbestosInAF: 0,
+    result: {
+      total: {},
+      acm: {},
+      fa: {},
+      af: {},
+      faaf: {},
+    },
+    weight: {
+      total: 0,
+      acm: 0,
+      fa: 0,
+      af: 0,
+      faaf: 0,
+    },
+    concentration: {
+      total: 0,
+      acm: 0,
+      fa: 0,
+      af: 0,
+      faaf: 0,
+    },
     allHaveTypes: true,
     allHaveForms: true,
   };
+
   if (sample && sample.waSoilAnalysis) {
     fractionNames.forEach(fraction => {
       [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 3).keys()].forEach(num => {
         let layer = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
         if (layer) {
           if (layer.concentration && layer.weight) {
+            if (!layer.type) totals.allHaveTypes = false;
+            if (!layer.result) totals.allHaveForms = false;
             let weight = (parseFloat(layer.weight) * parseFloat(layer.concentration)/ 100);
-            result.totalAsbestosWeight = result.totalAsbestosWeight + weight;
-            if (!layer.type) result.allHaveTypes = false;
-            if (!layer.result) result.allHaveForms = false;
-            if (layer.type === 'acm') result.asbestosInACM = result.asbestosInACM + weight;
-              else if (layer.type === 'fa') result.asbestosInFA = result.asbestosInFA + weight;
-              else if (layer.type === 'af') result.asbestosInAF = result.asbestosInAF + weight;
+            totals.weight.total = totals.weight.total + weight;
+            if (layer.type === 'acm') totals.weight.acm = totals.weight.acm + weight;
+            else if (layer.type === 'fa') totals.weight.fa = totals.weight.fa + weight;
+            else if (layer.type === 'af') totals.weight.af = totals.weight.af + weight;
           }
-          if (layer.type) result.types[layer.type] = true;
-          if (layer.result) result.result = mergeAsbestosResult(result.result, layer.result);
+          if (layer.type) totals.types[layer.type] = true;
+          if (layer.result) {
+            totals.result.total = mergeAsbestosResult(totals.result.total, layer.result);
+            if (layer.type === 'acm') totals.result.acm = mergeAsbestosResult(totals.result.acm, layer.result);
+            else if (layer.type === 'fa') totals.result.fa = mergeAsbestosResult(totals.result.fa, layer.result);
+            else if (layer.type === 'af') totals.result.af = mergeAsbestosResult(totals.result.af, layer.result);
+          }
         }
       });
     });
+    // Combine AF FA
+    totals.result.faaf = mergeAsbestosResult(totals.result.af, totals.result.fa);
+    totals.weight.faaf = totals.weight.fa + totals.weight.af;
+    console.log(sample);
+    console.log(sample.weightDry);
     if (sample.weightDry) {
-      result.asbestosInACMConc = parseFloat(((result.asbestosInACM/sample.weightDry) * 100));
-      result.asbestosInFAAFConc = parseFloat(((result.asbestosInFA + result.asbestosInAF)/sample.weightDry) * 100);
-      result.asbestosInFAConc = parseFloat((result.asbestosInFA/sample.weightDry) * 100);
-      result.asbestosInAFConc = parseFloat((result.asbestosInAF/sample.weightDry) * 100);
+      console.log(sample.weightDry);
+      totals.concentration.total = parseFloat(((totals.weight.total/sample.weightDry) * 100));
+      totals.concentration.acm = parseFloat(((totals.weight.acm/sample.weightDry) * 100));
+      totals.concentration.faaf = parseFloat(((totals.weight.faaf)/sample.weightDry) * 100);
+      totals.concentration.fa = parseFloat((totals.weight.fa/sample.weightDry) * 100);
+      totals.concentration.af = parseFloat((totals.weight.af/sample.weightDry) * 100);
     }
   }
-  console.log(result);
-  return result;
+  console.log(totals);
+  return totals;
 }
 
 export const getAllConfirmResult = sample => {
@@ -2027,7 +2049,7 @@ export const getBasicResult = (sample) => {
   return result;
 }
 
-export const getSampleStatus = (sample) => {
+export const getSampleStatusCode = (sample) => {
   let status = "inTransit";
   if (sample.verified) status = "verified";
   else if (writeShorthandResult(sample.result) !== 'NO RESULT') status = "analysisRecorded";
@@ -2290,7 +2312,19 @@ export const writeSoilDetails = details => {
   return finalStr;
 };
 
-export const getStatus = (samples, job) => {
+export const getSampleStatus = sample => {
+  let status = 'In Transit';
+  if (sample) {
+    if (sample.verified) status = 'Complete';
+      else if (sample.analysisDate) status = 'Waiting on Verification';
+      else if (sample.analysisStarted) status = 'Analysis Started';
+      else if (sample.receivedByLab) status = 'Received By Lab';
+  }
+  if (sample.onHold) status = status + " (ON HOLD)";
+  return status;
+};
+
+export const getJobStatus = (samples, job) => {
   let jobID = job.uid;
   let versionUpToDate = job.versionUpToDate;
   let status = '';
@@ -2325,7 +2359,11 @@ export const getStatus = (samples, job) => {
   } else if (numberAnalysisStarted === 0) {
     status = 'Received By Lab';
   } else if (numberVerified === totalSamples) {
-    status = 'Ready For Issue';
+    if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = 'All Samples Verified, WA Analysis Incomplete';
+    else {
+      if (numberResult === totalSamples) status = 'Ready For Issue';
+      else status = 'All Samples Verified, Bulk ID Incomplete';
+    }
   } else if (numberResult === 0) {
     status = 'Analysis Begun';
   } else if (numberResult === totalSamples && numberVerified === 0) {
@@ -2646,7 +2684,7 @@ export const writeDates = (samples, field) => {
     sortedMap[year][month][day] = true;
   });
 
-  //console.log(sortedMap);
+  console.log(sortedMap);
 
   var monthNames = {
     "January": 1,

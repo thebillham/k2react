@@ -1,5 +1,15 @@
 import { createMuiTheme } from "@material-ui/core/styles";
 
+export const colorList = [
+  '#a2539c',
+  '#e33714',
+  '#6fa1b6',
+  '#995446',
+  '#ff0065',
+  '#87cc14',
+  '#7d6d26',
+];
+
 export default createMuiTheme({
   typography: {
     fontSize: 11,
@@ -37,6 +47,15 @@ export default createMuiTheme({
       bio: '#87cc14',
       asbestos: '#7d6d26',
     },
+    colorList: [
+      '#a2539c',
+      '#e33714',
+      '#6fa1b6',
+      '#995446',
+      '#ff0065',
+      '#87cc14',
+      '#7d6d26',
+    ],
     app: {
       hover: '#eee',
       hoverHighlight: '#eec',

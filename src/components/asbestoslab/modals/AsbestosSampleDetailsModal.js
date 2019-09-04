@@ -36,6 +36,7 @@ import {
   compareAsbestosResult,
   writeSampleMoisture,
   writePersonnelQualFull,
+  getSampleStatus,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
@@ -151,15 +152,7 @@ class AsbestosSampleDetailsModal extends React.Component {
       let timeInLabBusiness = sample && sample.receivedDate ? moment(endTime).workingDiff(sample.receivedDate.toDate()) : null;
       // //console.log(timeInLab);
       // //console.log(timeInLabBusiness);
-
-      let status = 'In Transit';
-      if (sample) {
-        if (sample.verified) status = 'Complete';
-          else if (sample.analysisDate) status = 'Waiting on Verification';
-          else if (sample.analysisStarted) status = 'Analysis Started';
-          else if (sample.receivedByLab) status = 'Received By Lab';
-      }
-      if (sample.onHold) status = status + " (ON HOLD)";
+      let status = getSampleStatus(sample);
       let colors = getSampleColors(sample, classes);
       let layersResult = null;
       let soilResult = null;
@@ -190,16 +183,17 @@ class AsbestosSampleDetailsModal extends React.Component {
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Basic Information</div>
                   {SampleTextyLine('Status', status.toUpperCase())}
-                  {SampleTextyLine('Generic Location',sample.genericLocation)}
-                  {SampleTextyLine('Specific Location',sample.specificLocation)}
-                  {SampleTextyLine('Short Description',sample.description)}
-                  {SampleTextyLine('Material', sample.material && sample.material.charAt(0).toUpperCase() + sample.material.slice(1))}
+                  {sample.genericLocation && SampleTextyLine('Generic Location',sample.genericLocation)}
+                  {sample.specificLocation && SampleTextyLine('Specific Location',sample.specificLocation)}
+                  {sample.description && SampleTextyLine('Short Description',sample.description)}
+                  {sample.material && SampleTextyLine('Material', sample.material.charAt(0).toUpperCase() + sample.material.slice(1))}
+                  {sample.category && SampleTextyLine('Material Category', sample.category)}
                 </div>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Results</div>
                   <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 12, }}>
                     {['ch','am','cr','umf','no','org','smf'].map(res => {
-                      if (sample.resuts && sample.result[res] === true) return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res, null);
+                      if (sample.result && sample.result[res] === true) return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res, null);
                     })}
                   </div>
                   {SampleTextyLine('Analyst', sample.analyst ? sample.analyst : "Not analysed")}
@@ -237,6 +231,9 @@ class AsbestosSampleDetailsModal extends React.Component {
                 </div>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Sample History</div>
+                  {SampleTextyLine('Created', sample.createdDate ?
+                      `${moment(sample.createdDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.createdBy ? sample.createdBy.name : 'an unknown person'}`
+                      : 'No creation date')}
                   {SampleTextyLine('Received by Lab', sample.receivedDate ?
                       `${moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.receivedBy ? sample.receivedBy.name : 'an unknown person'}`
                       : 'Not yet received by lab')}
@@ -249,15 +246,12 @@ class AsbestosSampleDetailsModal extends React.Component {
                   {SampleTextyLine('Result Verified', sample.verifyDate ?
                       `${moment(sample.verifyDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.verifiedBy ? sample.verifiedBy.name : 'an unknown person'}`
                       : 'Result not yet verified')}
-                  {SampleTextyLine('Created', sample.createdDate ?
-                      `${moment(sample.createdDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.createdBy ? sample.createdBy.name : 'an unknown person'}`
-                      : 'No creation date')}
                 </div>
               </Grid>
               <Grid item xs={6}>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Sample Details</div>
-                  {SampleTextyLine('Sampling Personnel', sample.sampledBy ? sample.sampledBy.join(", ") : 'Not specified')}
+                  {SampleTextyLine('Sampling Personnel', sample.sampledBy ? sample.sampledBy.map(e => e.name).join(", ") : 'Not specified')}
                   {SampleTextyLine('Sampling Date(s)', sample.sampleDate ? moment(dateOf(sample.sampleDate)).format("dddd, D MMMM YYYY") : 'Not specified')}
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                     {SampleTextyDisplay('Weight Received',sample.weightReceived ? sample.weightReceived + 'g' : 'N/A')}

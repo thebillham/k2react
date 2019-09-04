@@ -553,13 +553,10 @@ class CocModal extends React.PureComponent {
                               defaultSampledBy = sampledBy.map(e => ({value: e.uid, label: e.name}));
                             }
 
-                            if (e.length === 0) {
-                              personnelSelected = false;
-                              defaultSampledBy = e;
-                            }
-
-                            console.log(defaultSampledBy);
-                            console.log(sampledBy);
+                            // if (e.length === 0) {
+                            //   personnelSelected = false;
+                            //   defaultSampledBy = e;
+                            // }
 
                             this.setState({ modified: true, personnelSelected, defaultSampledBy});
                             this.props.handleSampleChange(i, {sampledBy});
@@ -575,9 +572,16 @@ class CocModal extends React.PureComponent {
                           clearable
                           onChange={date => {
                             let defaultSampleDate = this.state.defaultSampleDate;
-                            if (!this.state.dateSelected) defaultSampleDate = date.toDate();
-                            this.setState({ modified: true, dateSelected: true, defaultSampleDate});
-                            this.props.handleSampleChange(i, {sampleDate: date.toDate()});
+                            let dateSelected = this.state.dateSelected;
+
+                            if (!dateSelected) {
+                              dateSelected = i;
+                              defaultSampleDate = dateOf(date);
+                            } else if (dateSelected === i) {
+                              defaultSampleDate = dateOf(date);
+                            }
+                            this.setState({ modified: true, dateSelected, defaultSampleDate});
+                            this.props.handleSampleChange(i, {sampleDate: dateOf(date)});
                           }}
                         />
                       </div>

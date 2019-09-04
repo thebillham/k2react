@@ -15,7 +15,7 @@ import {
   printLabReport,
   issueTestCertificate,
   getPersonnel,
-  getStatus,
+  getJobStatus,
   getWATotalDetails,
   getSampleColors,
 } from "../../../actions/asbestosLab";
@@ -80,7 +80,7 @@ class AsbestosSampleWASummary extends React.Component {
   render() {
     const { sample, classes } = this.props;
     let wa = getWATotalDetails(sample);
-    let waColors = getSampleColors(wa);
+    let waColors = getSampleColors({result: wa.result.total});
 
     return(
       <div className={classes.flexRowBox}>
@@ -96,6 +96,7 @@ class AsbestosSampleWASummary extends React.Component {
             <div>{sample.weightAshed ? <span>{parseFloat(sample.weightAshed).toFixed(2)}g</span> : <span>N/A</span>}</div>
           </div>
         </div>
+        <div className={classes.marginTopSmall} />
         <div className={classes.flexRowRightAlign}>
           <div style={{ width: '40%'}}>
             <div>Type</div>
@@ -106,25 +107,27 @@ class AsbestosSampleWASummary extends React.Component {
           </div>
           <div style={{ width: '25%'}}>
             <div>Asbestos Weight</div>
-            <div className={classes.bottomDottedStyle}>{wa.asbestosInACM.toFixed(6)}g</div>
-            <div className={classes.bottomDottedStyle}>{wa.asbestosInFA.toFixed(6)}g</div>
-            <div className={classes.bottomDottedStyle}>{wa.asbestosInAF.toFixed(6)}g</div>
-            <div className={classes.bottomDottedStyle}>{(wa.asbestosInFA + wa.asbestosInAF).toFixed(6)}g</div>
+            <div className={classes.bottomDottedStyle}>{wa.weight.acm.toFixed(6)}g</div>
+            <div className={classes.bottomDottedStyle}>{wa.weight.fa.toFixed(6)}g</div>
+            <div className={classes.bottomDottedStyle}>{wa.weight.af.toFixed(6)}g</div>
+            <div className={classes.bottomDottedStyle}>{wa.weight.faaf.toFixed(6)}g</div>
           </div>
           <div>
             <div>Asbestos Concentration</div>
-            <div className={classes.bottomDottedStyle}>{wa.asbestosInACMConc ? <span className={wa.asbestosInACMConc > 0.01 ? classes.boldRedWarningText : classes.boldBlack }>{wa.asbestosInACMConc.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div className={classes.bottomDottedStyle}>{wa.asbestosInFAConc ? <span className={wa.asbestosInFAConc > 0.001 ? classes.boldRedWarningText : classes.boldBlack }>{wa.asbestosInFAConc.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div className={classes.bottomDottedStyle}>{wa.asbestosInAFConc ? <span className={wa.asbestosInAFConc > 0.001 ? classes.boldRedWarningText : classes.boldBlack }>{wa.asbestosInAFConc.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div className={classes.bottomDottedStyle}>{wa.asbestosInFAAFConc ? <span className={wa.asbestosInFAAFConc > 0.001 ? classes.boldRedWarningText : classes.boldBlack }>{wa.asbestosInFAAFConc.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div className={classes.bottomDottedStyle}>{wa.concentration.acm ? <span className={wa.concentration.acm > 0.01 ? classes.boldRedWarningText : classes.boldBlack }>{wa.concentration.acm.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div className={classes.bottomDottedStyle}>{wa.concentration.fa ? <span className={wa.concentration.fa > 0.001 ? classes.boldRedWarningText : classes.boldBlack }>{wa.concentration.fa.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div className={classes.bottomDottedStyle}>{wa.concentration.af ? <span className={wa.concentration.af > 0.001 ? classes.boldRedWarningText : classes.boldBlack }>{wa.concentration.af.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
+            <div className={classes.bottomDottedStyle}>{wa.concentration.faaf ? <span className={wa.concentration.faaf > 0.001 ? classes.boldRedWarningText : classes.boldBlack }>{wa.concentration.faaf.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
           </div>
         </div>
+        <div className={classes.marginTopSmall} />
         <div className={classes.flexRowRightAlign}>
           {['ch','am','cr','umf'].map(res => {
             return AsbButton(classes[`colorsButton${waColors[res]}`], classes[`colorsDiv${waColors[res]}`], res,
             null)
           })}
         </div>
+        <div className={classes.marginTopSmall} />
         { wa.allHaveTypes === false && <div className={classes.warningTextLight}>
           Not all subfractions have been assigned an asbestos type (i.e. CH/AM/CR/UMF).
         </div>}

@@ -413,7 +413,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                 }}
               />
             </div>}
-            {false && sample.uid && <div>
+            {sample.uid && <div>
               <div>
                 <Checkbox
                   checked={this.state.sampleDoSwap}

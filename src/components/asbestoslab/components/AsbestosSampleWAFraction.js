@@ -114,9 +114,7 @@ class AsbestosSampleWAFraction extends React.Component {
           </div>
           <div className={classes.columnMedSmall} />
           <div className={classes.spacerSmall} />
-          <div className={classes.columnMedSmall}>
-            {fractionMap && fractionMap.totalAsbestosWeight ? `Total Asbestos Weight:` : ''}
-          </div>
+          <div className={classes.columnMedSmall} />
           <div className={classes.spacerSmall} />
           <div className={classes.columnMedSmall}>
             {fractionMap && fractionMap.totalAsbestosWeight ? `${fractionMap.totalAsbestosWeight.toPrecision(6)}g` : ''}
