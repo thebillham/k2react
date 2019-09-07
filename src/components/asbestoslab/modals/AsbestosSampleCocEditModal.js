@@ -22,6 +22,7 @@ import { hideModalSecondary, handleModalChange, } from "../../../actions/modal";
 import { handleSampleChange, writeDescription } from '../../../actions/asbestosLab';
 import { addLog, personnelConvert } from '../../../actions/local';
 import { SampleRadioSelector } from '../../../widgets/FormWidgets';
+import NumberSpinner from '../../../widgets/NumberSpinner';
 
 import {
   DatePicker,
@@ -430,7 +431,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                 }
                 label="Move Sample to Number"
               />
-              <InputSpinner
+              <NumberSpinner
                 min={1}
                 value={this.state.sampleSwap}
                 onChange={(num) => this.setState({
