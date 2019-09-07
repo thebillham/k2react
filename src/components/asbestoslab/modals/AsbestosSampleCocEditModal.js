@@ -12,6 +12,8 @@ import DialogActions from "@material-ui/core/DialogActions";
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import Checkbox from "@material-ui/core/Checkbox";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 
 import Select from 'react-select';
 
@@ -413,43 +415,43 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                 }}
               />
             </div>}
-            {sample.uid && <div>
-              <div>
-                <Checkbox
-                  checked={this.state.sampleDoSwap}
-                  onChange={(event) => { this.setState({
-                    sampleDoSwap: event.target.checked,
-                    sampleDelete: false,
-                  })}}
-                  value='sampleSwap'
-                  color='secondary'
-                />
-                Move this sample to number
-                <Input
-                  className={classes.formInputNumber}
-                  type='number'
-                  value={this.state.sampleSwap}
-                  onChange={(event) => this.setState({
-                    sampleSwap: event.target.value
-                  })}
-                  inputProps={{
-                    min: 1,
-                  }}
-                />
-              </div>
-              <div>
-                <Checkbox
+            <div>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={this.state.sampleDoSwap}
+                    onChange={(event) => { this.setState({
+                      sampleDoSwap: !this.state.sampleDoSwap,
+                      sampleDelete: false,
+                    })}}
+                    value="priority"
+                    color="secondary"
+                  />
+                }
+                label="Move Sample to Number"
+              />
+              <InputSpinner
+                min={1}
+                value={this.state.sampleSwap}
+                onChange={(num) => this.setState({
+                  sampleSwap: num
+                })}
+              />
+            </div>
+            <FormControlLabel
+              control={
+                <Switch
                   checked={this.state.sampleDelete}
                   onChange={(event) => { this.setState({
-                    sampleDelete: event.target.checked,
+                    sampleDelete: !this.state.sampleDelete,
                     sampleDoSwap: false,
                   })}}
-                  value='sampleDelete'
-                  color='secondary'
+                  value="priority"
+                  color="secondary"
                 />
-                Delete this sample
-              </div>
-            </div>}
+              }
+              label="Delete Sample"
+            />
           </div>
         )}
         </DialogContent>
