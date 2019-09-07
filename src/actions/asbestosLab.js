@@ -692,7 +692,6 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
     addLog("asbestosLab", log, me);
   }
   //console.log(sample);
-  if (sample.verified) verifySample(sample, job, samples, sessionID, me, null);
 
   if (resultChanged) {
     let log = {
@@ -2605,7 +2604,7 @@ export const writeSampleMoisture = (sample, total) => {
 export const writeSampleDimensions = (sample, total) => {
   let dims = [];
   ['length','width','depth'].forEach(dim => {
-    sample.dimensions && console.log(sample.dimensions[dim]);
+    // console.log(dim);
     if (sample.dimensions !== undefined && sample.dimensions[dim] !== undefined && sample.dimensions[dim] !== '') dims.push(parseFloat(sample.dimensions[dim]));
   });
   if (dims.length === 0) return null;

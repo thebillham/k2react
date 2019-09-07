@@ -91,7 +91,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosCocs extends React.PureComponent {
+class AsbestosCocs extends React.Component {
   // static whyDidYouRender = true;
   state = {
     analyst: false,
@@ -118,6 +118,16 @@ class AsbestosCocs extends React.PureComponent {
     }
     if (!this.props.staff || Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
   };
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.cocs && Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length) return true;
+    if (this.props.search !== nextProps.search) return true;
+    if (this.state !== nextState) return true;
+    if (this.props.modalType !== nextProps.modalType) return true;
+    if (this.props.modalTypeSecondary !== nextProps.modalTypeSecondary) return true;
+    else return false;
+    // return true;
+  }
 
   // shouldComponentUpdate(nextProps, nextState) {
   //   // return true;
@@ -148,14 +158,14 @@ class AsbestosCocs extends React.PureComponent {
       holidays: [],
     });
 
-    //console.log('Asbestos Cocs Re-Rendering');
+    console.log('Asbestos Cocs Re-Rendering');
 
     return (
       <div className={classes.marginTopStandard}>
         { modalType === ASBESTOS_COC_EDIT && <CocModal /> }
         { modalType === UPDATE_CERTIFICATE_VERSION && <UpdateCertificateVersionModal /> }
         { modalType === ASBESTOS_SAMPLE_LOG && <SampleLogModal /> }
-        <AsbestosSampleEditModal />
+        { modalType === ASBESTOS_SAMPLE_EDIT && <AsbestosSampleEditModal /> }
         { modalType === DOWNLOAD_LAB_CERTIFICATE && <DownloadLabCertificateModal /> }
         { modalType === COC_LOG && <CocLogModal /> }
         { modalType === CONFIRM_RESULT && <ConfirmResultModal /> }

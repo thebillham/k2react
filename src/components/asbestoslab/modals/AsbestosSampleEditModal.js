@@ -38,6 +38,7 @@ import {
   DateTimePicker,
 } from "@material-ui/pickers";
 import SuggestionField from '../../../widgets/SuggestionField';
+import NumberSpinner from '../../../widgets/NumberSpinner';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
 import { addLog, personnelConvert, dateOf } from "../../../actions/local";
@@ -48,6 +49,7 @@ import {
   analyticalCriteraOK,
   traceAnalysisRequired,
   recordAnalysis,
+  verifySample,
   updateResultMap,
   writeDescription,
   writeSampleDimensions,
@@ -117,6 +119,11 @@ const initState = {
 
 class AsbestosSampleEditModal extends React.Component {
   state = initState;
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.state !== nextState) return true;
+    else return false;
+  }
 
   loadProps = (activeSample) => {
     let samples = {};
@@ -277,6 +284,7 @@ class AsbestosSampleEditModal extends React.Component {
   saveSample = () => {
     const { override } = this.state;
     let sample = this.state.samples[this.state.activeSample];
+    console.log(sample);
     asbestosSamplesRef
       .doc(sample.uid)
       .update(sample);
@@ -288,12 +296,22 @@ class AsbestosSampleEditModal extends React.Component {
       chainOfCustody: sample.cocUid,
     };
     addLog("asbestosLab", log, this.props.me);
-    if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] && this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result)
+    if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] &&
+      (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result ||
+      this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].weightReceived !== sample.weightReceived))
       recordAnalysis(this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
         this.props.samples, this.props.sessionID, this.props.me,
         this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result,
         this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result != sample.weightReceived,
       );
+    if (sample.verified) {
+      verifySample(sample,
+        this.props.cocs[this.props.modalProps.activeCoc],
+        this.props.samples,
+        this.props.sessionID,
+        this.props.me, null, null);
+      console.log('removing verification...');
+    }
   }
 
   saveMultipleSamples = () => {
@@ -301,6 +319,11 @@ class AsbestosSampleEditModal extends React.Component {
     let weightReceived = 0;
     let originalSamples = this.props.samples[this.props.modalProps.activeCoc];
     Object.values(this.state.samples).forEach(sample => {
+      if (sample.verified) verifySample(sample,
+        this.props.cocs[this.props.modalProps.activeCoc],
+        this.props.samples,
+        this.props.sessionID,
+        this.props.me, null);
       if (originalSamples[sample.sampleNumber].result !== sample.result || originalSamples[sample.sampleNumber].weightReceived !== sample.weightReceived) {
         recordAnalysis(this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc], this.props.samples, this.props.sessionID, this.props.me,
           sample.result !== originalSamples[sample.sampleNumber].result,
@@ -323,6 +346,7 @@ class AsbestosSampleEditModal extends React.Component {
     let waColors = {};
 
     if (sample) {
+      console.log('writing from detail modal');
       sampleDimensions = writeSampleDimensions(sample, true);
       sampleMoisture = writeSampleMoisture(sample, true);
     }
@@ -564,32 +588,26 @@ class AsbestosSampleEditModal extends React.Component {
             <Grid item xs={1} />
             <Grid item xs={6}>
               <div className={classes.subHeading}>Sampling Method</div>
-                <div className={classes.flexRowLeftDown}>
                 {SamplesRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
                   [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
-                  {(sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab') &&
-                  <div>
-                    <InputLabel>{`Number of ${sample.samplingMethod}s`}</InputLabel>
-                    <Input
-                      className={classes.formInputNumber}
-                      type='number'
-                      value={sample.sampleQuantity}
-                      onChange={(event) => this.setState({
-                        modified: true,
-                        samples: {
-                          ...this.state.samples,
-                          [this.state.activeSample]: {
-                            ...this.state.samples[this.state.activeSample],
-                            sampleQuantity: event.target.value,
-                          }
+                {(sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab') &&
+                <div>
+                  <InputLabel>{`Number of ${sample.samplingMethod}s`}</InputLabel>
+                  <NumberSpinner
+                    min={1}
+                    value={sample.sampleQuantity}
+                    onChange={value => this.setState({
+                      modified: true,
+                      samples: {
+                        ...this.state.samples,
+                        [this.state.activeSample]: {
+                          ...this.state.samples[this.state.activeSample],
+                          sampleQuantity: value,
                         }
-                      })}
-                      inputProps={{
-                        min: 1,
-                      }}
-                    />
-                  </div>}
-                </div>
+                      }
+                    })}
+                  />
+                </div>}
               <div className={classes.subHeading}>Weights</div>
               <div className={classes.flexRow}>
                 <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'REQUIRED Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null, true)}</div>

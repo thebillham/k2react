@@ -422,7 +422,7 @@ class AsbestosActionsModal extends React.Component {
           }}
         /> :
         <div>
-          {issue.comment !== undefined && issue.comment !== '' && <div className={this.props.classes.commentBox}>{issue.comment}</div>}
+          {issue.comment !== undefined && issue.comment !== null && issue.comment !== '' && <div className={this.props.classes.commentBox}>{issue.comment}</div>}
         </div>
       }
       </CardContent>

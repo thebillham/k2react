@@ -215,147 +215,152 @@ class CocModal extends React.PureComponent {
           <DialogContent>
             <Grid container spacing={1}>
               <Grid item xs={12} lg={2}>
-                  <div>
-                    <div className={classes.flexRow}>
-                      <FormControl style={{ width: '100%', marginRight: 8, }}>
-                        <InputLabel shrink>Job Number</InputLabel>
-                        <Input
-                          id="jobNumber"
-                          defaultValue={doc && doc.jobNumber}
-                          disabled={!(modalProps.isNew || modalProps.error)}
-                          onChange={e => {
-                            // this.setState({ modified: true, });
-                            this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'').toUpperCase()})}
-                          }
-                          // startAdornment={<InputAdornment position="start">AS</InputAdornment>}
-                        />
-                      </FormControl>
-                      {((doc && doc.wfmID) || (wfmJob && wfmJob.wfmID)) && <Tooltip title="View Job on WorkflowMax">
-                        <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${wfmJob ? wfmJob.wfmID : doc.wfmID}`) }>
-                          <Link className={classes.iconRegular}/>
-                        </IconButton>
-                      </Tooltip>}
-                      <Tooltip title="Sync Job with WorkflowMax">
-                        <IconButton onClick={ this.wfmSync }>
-                          <Sync className={classes.iconRegular}/>
-                        </IconButton>
-                      </Tooltip>
-                    </div>
-                  </div>
-                {modalProps.error &&
-                  <div className={classes.informationBox}>
-                    { modalProps.error }
-                  </div>
-                }
-                {!modalProps.isNew && wfmJob &&
-                  (
-                    <div>
-                      { wfmJob.client ?
+                  <Grid container spacing={1}>
+                    <Grid item xs={4} lg={12}>
+                      <div className={classes.flexRow}>
+                        <FormControl style={{ width: '100%', marginRight: 8, }}>
+                          <InputLabel shrink>Job Number</InputLabel>
+                          <Input
+                            id="jobNumber"
+                            defaultValue={doc && doc.jobNumber}
+                            disabled={!(modalProps.isNew || modalProps.error)}
+                            onChange={e => {
+                              // this.setState({ modified: true, });
+                              this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'').toUpperCase()})}
+                            }
+                            // startAdornment={<InputAdornment position="start">AS</InputAdornment>}
+                          />
+                        </FormControl>
+                        {((doc && doc.wfmID) || (wfmJob && wfmJob.wfmID)) && <Tooltip title="View Job on WorkflowMax">
+                          <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${wfmJob ? wfmJob.wfmID : doc.wfmID}`) }>
+                            <Link className={classes.iconRegular}/>
+                          </IconButton>
+                        </Tooltip>}
+                        <Tooltip title="Sync Job with WorkflowMax">
+                          <IconButton onClick={ this.wfmSync }>
+                            <Sync className={classes.iconRegular}/>
+                          </IconButton>
+                        </Tooltip>
+                      </div>
+                      {modalProps.error &&
                         <div className={classes.informationBox}>
-                          <b>{doc.jobNumber}</b><br />
-                          <b>{ wfmJob.wfmType}</b><br />
-                          { wfmJob.client }<br />
-                          { wfmJob.address }<br />
+                          { modalProps.error }
                         </div>
-                        :
-                        <div>{doc.type !== 'bulk' && <div className={classes.informationBox}>
-                          <b>{doc.jobNumber}</b><br />
-                          <b>{ doc.wfmType}</b><br />
-                          { doc.client }<br />
-                          { doc.address }<br />
-                        </div>}</div>
                       }
-                    </div>
-                  )
-                }
-                {/*<FormHelperText>Include any information that may be useful for the lab. E.g. for a soil sample you might include information on what contamination you are expecting.</FormHelperText>*/}
-                <TextField
-                  id="labInstructions"
-                  label="Lab Instructions"
-                  style={{ width: '100%' }}
-                  defaultValue={doc && doc.labInstructions}
-                  rows={5}
-                  helperText='Include any information that may be useful for the lab. E.g. for a soil sample you might include information on what contamination you are expecting.'
-                  multiline
-                  onChange={e => {
-                    this.setState({ modified: true, });
-                    this.props.handleModalChange({id: 'labInstructions', value: e.target.value});
-                  }}
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={doc.priority === 1 ? true : false}
-                      onClick={e => {
+                      {!modalProps.isNew && wfmJob &&
+                      (
+                        <div>
+                          { wfmJob.client ?
+                            <div className={classes.informationBox}>
+                              <b>{doc.jobNumber}</b><br />
+                              <b>{ wfmJob.wfmType}</b><br />
+                              { wfmJob.client }<br />
+                              { wfmJob.address }<br />
+                            </div>
+                            :
+                            <div>{doc.type !== 'bulk' && <div className={classes.informationBox}>
+                              <b>{doc.jobNumber}</b><br />
+                              <b>{ doc.wfmType}</b><br />
+                              { doc.client }<br />
+                              { doc.address }<br />
+                            </div>}</div>
+                          }
+                        </div>
+                      )
+                    }
+                      <TextField
+                        id="labInstructions"
+                        label="Lab Instructions"
+                        style={{ width: '100%' }}
+                        defaultValue={doc && doc.labInstructions}
+                        rows={5}
+                        helperText='Include any information that may be useful for the lab. E.g. for a soil sample you might include information on what contamination you are expecting.'
+                        multiline
+                        onChange={e => {
+                          this.setState({ modified: true, });
+                          this.props.handleModalChange({id: 'labInstructions', value: e.target.value});
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={8} lg={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={doc.priority === 1 ? true : false}
+                            onClick={e => {
+                              this.setState({ modified: true, });
+                              this.props.handleModalChange({id: 'priority', value: doc.priority === 1 ? 0 : 1});
+                            }}
+                            value="priority"
+                            color="secondary"
+                          />
+                        }
+                        label="Urgent"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={doc.isClearance === true ? true : false}
+                            onClick={e => {
+                              this.setState({ modified: true, });
+                              this.props.handleModalChange({id: 'isClearance', value: e.target.checked});
+                            }}
+                            value="isClearance"
+                            color="secondary"
+                          />
+                        }
+                        label="Clearance"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={doc.waAnalysis === true ? true : false}
+                            onClick={e => {
+                              this.setState({ modified: true, });
+                              this.props.handleModalChange({id: 'waAnalysis', value: e.target.checked});
+                            }}
+                            value="priority"
+                            color="primary"
+                          />
+                        }
+                        label="Western Australian Standard Analysis"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={doc.labToContactClient === true ? true : false}
+                            onClick={e => {
+                              this.setState({ modified: true, });
+                              this.props.handleModalChange({id: 'labToContactClient', value: e.target.checked});
+                            }}
+                            value="labToContactClient"
+                            color="primary"
+                          />
+                        }
+                        label="Lab to Contact Client"
+                      />
+                      <div>
+                        <TextField
+                          id="labContactName"
+                          label="Contact Name"
+                          defaultValue={doc && doc.labContactName ? doc.labContactName : doc.contactName}
+                          onChange={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'labContactName', value: e.target.value});
+                          }}
+                        />
+                        <TextField
+                      id="labContactNumber"
+                      label="Contact Number/Email"
+                      defaultValue={doc && doc.labContactNumber ? doc.labContactNumber : doc.contactEmail}
+                      onChange={e => {
                         this.setState({ modified: true, });
-                        this.props.handleModalChange({id: 'priority', value: doc.priority === 1 ? 0 : 1});
+                        this.props.handleModalChange({id: 'labContactNumber', value: e.target.value});
                       }}
-                      value="priority"
-                      color="secondary"
                     />
-                  }
-                  label="Urgent"
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={doc.isClearance === true ? true : false}
-                      onClick={e => {
-                        this.setState({ modified: true, });
-                        this.props.handleModalChange({id: 'isClearance', value: e.target.checked});
-                      }}
-                      value="isClearance"
-                      color="secondary"
-                    />
-                  }
-                  label="Clearance"
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={doc.waAnalysis === true ? true : false}
-                      onClick={e => {
-                        this.setState({ modified: true, });
-                        this.props.handleModalChange({id: 'waAnalysis', value: e.target.checked});
-                      }}
-                      value="priority"
-                      color="primary"
-                    />
-                  }
-                  label="Western Australian Standard Analysis"
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={doc.labToContactClient === true ? true : false}
-                      onClick={e => {
-                        this.setState({ modified: true, });
-                        this.props.handleModalChange({id: 'labToContactClient', value: e.target.checked});
-                      }}
-                      value="labToContactClient"
-                      color="primary"
-                    />
-                  }
-                  label="Lab to Contact Client"
-                />
-                <TextField
-                  id="labContactName"
-                  label="Contact Name"
-                  defaultValue={doc && doc.labContactName ? doc.labContactName : doc.contactName}
-                  onChange={e => {
-                    this.setState({ modified: true, });
-                    this.props.handleModalChange({id: 'labContactName', value: e.target.value});
-                  }}
-                />
-                <TextField
-                  id="labContactNumber"
-                  label="Contact Number/Email"
-                  defaultValue={doc && doc.labContactNumber ? doc.labContactNumber : doc.contactEmail}
-                  onChange={e => {
-                    this.setState({ modified: true, });
-                    this.props.handleModalChange({id: 'labContactNumber', value: e.target.value});
-                  }}
-                />
+                      </div>
+                    </Grid>
+                  </Grid>
               </Grid>
               <Grid item xs={12} lg={10}>
                 <div>
@@ -389,16 +394,16 @@ class CocModal extends React.PureComponent {
                     <div className={classes.spacerSmall} />
                     <div className={classes.columnSmall} />
                     <div className={classes.columnMedSmall}>
-                      e.g. 1st Floor or Block A
+                      <span className={classes.note}>e.g. 1st Floor or Block A</span>
                     </div>
                     <div className={classes.columnMedSmall}>
-                      e.g. South elevation or Kitchen
+                      <span className={classes.note}>e.g. South elevation or Kitchen</span>
                     </div>
                     <div className={classes.columnMedLarge}>
-                      e.g. Soffit or Blue patterned vinyl flooring
+                      <span className={classes.note}>e.g. Soffit or Blue patterned vinyl flooring</span>
                     </div>
                     <div className={classes.columnMedLarge}>
-                      e.g. fibre cement or vinyl with paper backing
+                      <span className={classes.note}>e.g. fibre cement or vinyl with paper backing</span>
                     </div>
                     <div className={classes.columnMedSmall} />
                     <div className={classes.columnMedLarge} />
@@ -466,7 +471,7 @@ class CocModal extends React.PureComponent {
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
                         <SuggestionField that={this} suggestions='genericLocationSuggestions'
-                          defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
+                          defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
                           disabled={!wfmSynced}
                           onModify={(value) => {
                             this.setState({ modified: true, });
@@ -482,7 +487,7 @@ class CocModal extends React.PureComponent {
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
                         <SuggestionField that={this} suggestions='specificLocationSuggestions'
-                          defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : ''}
+                          defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : ''}
                           disabled={!wfmSynced}
                           onModify={(value) => {
                             this.setState({ modified: true, });
@@ -498,7 +503,7 @@ class CocModal extends React.PureComponent {
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                         <SuggestionField that={this} suggestions='descriptionSuggestions'
-                          defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
+                          defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
                           disabled={!wfmSynced}
                           onModify={(value) => {
                             this.setState({ modified: true, });
@@ -507,7 +512,7 @@ class CocModal extends React.PureComponent {
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                         <SuggestionField that={this} suggestions='materialSuggestions'
-                          defaultValue={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : ''}
+                          defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].material ? doc.samples[i+1].material : ''}
                           disabled={!wfmSynced}
                           onModify={(value) => {
                             let category = '';
@@ -525,7 +530,7 @@ class CocModal extends React.PureComponent {
                       <div className={classes.columnMedSmall}>
                         <Select
                           className={classes.selectTight}
-                          value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category ? {value: doc.samples[i+1].category, label: doc.samples[i+1].category} : {value: '', label: ''}}
+                          value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].category ? {value: doc.samples[i+1].category, label: doc.samples[i+1].category} : {value: '', label: ''}}
                           options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
                           isDisabled={!wfmSynced}
                           onChange={e => {
@@ -538,7 +543,7 @@ class CocModal extends React.PureComponent {
                         <Select
                           isMulti
                           className={classes.selectTight}
-                          value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => ({value: e.uid, label: e.name})) : this.state.defaultSampledBy}
+                          value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => ({value: e.uid, label: e.name})) : this.state.defaultSampledBy}
                           options={names.map(e => ({ value: e.uid, label: e.name }))}
                           isDisabled={!wfmSynced}
                           onChange={e => {
@@ -565,7 +570,7 @@ class CocModal extends React.PureComponent {
                       </div>
                       <div className={classes.columnMedSmall}>
                         <DatePicker
-                          value={doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampleDate ? doc.samples[i+1].sampleDate : this.state.defaultSampleDate}
+                          value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].sampleDate ? doc.samples[i+1].sampleDate : this.state.defaultSampleDate}
                           autoOk
                           format="ddd, D MMMM YYYY"
                           disabled={!wfmSynced}

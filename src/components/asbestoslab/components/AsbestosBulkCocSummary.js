@@ -5,6 +5,10 @@ import { connect } from "react-redux";
 import {
   cocsRef,
 } from "../../../config/firebase";
+import {
+  ASBESTOS_COC_EDIT,
+  ASBESTOS_SAMPLE_EDIT,
+} from "../../../constants/modal-types";
 import moment from "moment";
 import { addLog, } from "../../../actions/local";
 
@@ -17,6 +21,7 @@ const mapStateToProps = state => {
     samples: state.asbestosLab.samples,
     cocs: state.asbestosLab.cocs,
     expanded: state.display.asbestosLabExpanded,
+    modalType: state.modal.modalType,
   };
 };
 
@@ -25,19 +30,46 @@ class AsbestosBulkCocSummary extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     // return true;
+    // return false;
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (nextProps.expanded !== nextProps.job) return false; // List is not expanded (hidden)
-    return true; // Until i can get it working
-    if (this.props.cocs[this.props.job].sampleList && this.props.samples[this.props.job] && this.props.cocs[this.props.job].sampleList.length !== Object.keys(this.props.samples[this.props.job]).length) return false;
-    if (this.props.cocs[this.props.job] && nextProps.cocs[nextProps.job]
-      && (this.props.cocs[this.props.job].labHasContactedClient !== nextProps.cocs[nextProps.job].labHasContactedClient
-      || this.props.cocs[this.props.job].mostRecentIssueSent !== nextProps.cocs[nextProps.job].mostRecentIssueSent
-    )) return true;
-    if (this.props.samples[this.props.job] !== nextProps.samples[nextProps.job]) {
-      console.log('Summary samples have changed');
-      return true; // Samples have changed
-    }
-    return false;
+    if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
+    if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
+    // return true; // Until i can get it working
+    return true;
+    // if (this.props.cocs[this.props.job].sampleList && this.props.samples[this.props.job] &&
+    //   this.props.cocs[this.props.job].sampleList.length !== Object.keys(this.props.samples[this.props.job]).length)
+    //   return false;
+    //
+    // if (nextProps.expanded === nextProps.job && this.props.expanded !== this.props.job) {
+    //   return true; // List has been collapsed (closed)
+    // }
+    //
+    // if (this.props.cocs[this.props.job] && nextProps.cocs[nextProps.job]
+    //   && (this.props.cocs[this.props.job].labHasContactedClient !== nextProps.cocs[nextProps.job].labHasContactedClient
+    //   || this.props.cocs[this.props.job].mostRecentIssueSent !== nextProps.cocs[nextProps.job].mostRecentIssueSent
+    // )) return true;
+    //
+    // if (this.props.samples[this.props.job] && nextProps.samples[nextProps.job] &&
+    //   this.props.samples[this.props.job] !== nextProps.samples[nextProps.job]) {
+    //   console.log('Samples has changed');
+    //   let update = false;
+    //   Object.keys(nextProps.samples[nextProps.job]).forEach(sampleNumber => {
+    //     console.log(this.props.samples[this.props.job][sampleNumber]);
+    //     console.log(nextProps.samples[nextProps.job][sampleNumber]);
+    //     if (this.props.samples[this.props.job] &&
+    //       (!this.props.samples[this.props.job][sampleNumber] ||
+    //       this.props.samples[this.props.job][sampleNumber].sampledBy !== nextProps.samples[nextProps.job][sampleNumber].sampledBy ||
+    //       this.props.samples[this.props.job][sampleNumber].sampleDate !== nextProps.samples[nextProps.job][sampleNumber].sampleDate ||
+    //       this.props.samples[this.props.job][sampleNumber].analyst !== nextProps.samples[nextProps.job][sampleNumber].analyst
+    //     )) {
+    //       console.log('update! summary');
+    //       update = true;
+    //     }
+    //   });
+    //   return update;
+    // }
+    // return false;
   }
 
   render() {

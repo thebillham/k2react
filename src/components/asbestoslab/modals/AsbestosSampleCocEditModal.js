@@ -74,6 +74,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     if (this.props.modalProps.doc) {
       this.setState({
         sample: this.props.modalProps.sample,
+        sampleSwap: this.props.modalProps.sample.sampleNumber,
         doc: this.props.modalProps.doc,
       });
     }
@@ -82,7 +83,9 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
   saveAndHide = () => {
     //console.log('Hiding');
     this.setState(stateInit);
-    this.props.modalProps.onExit(this.state.modified);
+    // console.log('on exit ' + this.state.modified);
+    this.props.modalProps.onExit(true);
+    // this.props.modalProps.onExit(this.state.modified);
     this.props.hideModal();
   }
 
@@ -172,8 +175,10 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     onComplete();
   }
 
-  saveSample = onComplete => {
+  saveSample = (onComplete) => {
+    console.log('saving sample');
     const { doc, sample } = this.state;
+    console.log(sample);
     let log = {};
     if (this.state.sampleDelete && window.confirm("Are you sure you wish to delete this sample?")) {
       // Delete sample
@@ -214,49 +219,64 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
             material: sample.material ? sample.material : null,
             sampleDate: sample.sampleDate ? sample.sampleDate : null,
             sampledBy: sample.sampledBy ? sample.sampledBy : null,
+            samplingMethod: sample.samplingMethod ? sample.samplingMethod : null,
+            sampleQuantity: sample.sampleQuantity ? sample.sampleQuantity : null,
           }
         );
       }
-    onComplete();
+      onComplete();
     }
   }
 
   previousSample = () => {
+    console.log('prev sample');
     let newSampleNumber = parseInt(this.state.sample.sampleNumber) - 1;
     if (this.state.doc.samples[newSampleNumber]) {
-      this.setState({ sample: this.state.doc.samples[newSampleNumber], ...actionInit});
+      this.setState({
+        sample: this.state.doc.samples[newSampleNumber],
+        sampleSwap: newSampleNumber,
+        ...actionInit
+      });
     } else {
       this.setState({
         sample: {
           sampleNumber: newSampleNumber,
           jobNumber: this.state.doc.jobNumber,
         },
+        sampleSwap: newSampleNumber,
         ...actionInit,
       });
     }
   }
 
   nextSample = () => {
+    console.log('next sample');
     let newSampleNumber = parseInt(this.state.sample.sampleNumber) + 1;
     if (this.state.doc.samples[newSampleNumber]) {
-      this.setState({ sample: this.state.doc.samples[newSampleNumber], ...actionInit});
+      this.setState({
+        sample: this.state.doc.samples[newSampleNumber],
+        sampleSwap: newSampleNumber,
+        ...actionInit
+      });
     } else {
       this.setState({
         sample: {
           sampleNumber: newSampleNumber,
           jobNumber: this.state.doc.jobNumber,
         },
+        sampleSwap: newSampleNumber,
         ...actionInit,
       });
     }
   }
 
   render() {
-    const { classes, modalProps, modalType, me } = this.props;
+    const { classes, modalProps, modalType, me, samples } = this.props;
     const { sample, doc } = this.state;
     const i = sample ? sample.sampleNumber - 1 : 0;
     const disabled = sample.cocUid != modalProps.doc.uid;
     console.log(sample);
+    console.log(this.state.sampleSwap);
     if (modalType === ASBESTOS_SAMPLE_EDIT_COC) {
       return (
       <Dialog
@@ -268,7 +288,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
         onEnter={this.loadProps}
       >
         <DialogTitle>
-          {sample && sample.jobNumber ? `Edit Sample ${sample.jobNumber}-${sample.sampleNumber}` : `Edit Sample`}
+          {sample && sample.jobNumber ? `Edit Sample ${sample.jobNumber}-${sample.sampleNumber}: ${writeDescription(sample)}` : `Edit Sample`}
         </DialogTitle>
         <DialogContent>
         {sample && (
@@ -375,6 +395,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
               }}
             />
             <DatePicker
+              className={classes.columnMedSmall}
               value={sample.sampleDate ? sample.sampleDate.toDate() : null}
               autoOk
               format="ddd, D MMMM YYYY"
@@ -400,23 +421,19 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
             {(sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab') &&
             <div>
               <InputLabel>{`Number of ${sample.samplingMethod}s`}</InputLabel>
-              <Input
-                className={classes.formInputNumber}
-                type='number'
-                value={sample.sampleQuantity ? sample.sampleQuantity : 1}
-                onChange={(event) => this.setState({
+              <NumberSpinner
+                min={1}
+                value={sample.sampleQuantity}
+                onChange={value => this.setState({
                   sample: {
                     ...this.state.sample,
-                    sampleQuantity: event.target.value,
+                    sampleQuantity: value,
                   },
                   modified: true,
                 })}
-                inputProps={{
-                  min: 1,
-                }}
               />
             </div>}
-            <div>
+            <div className={classes.flexRow}>
               <FormControlLabel
                 control={
                   <Switch
@@ -439,20 +456,30 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                 })}
               />
             </div>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={this.state.sampleDelete}
-                  onChange={(event) => { this.setState({
-                    sampleDelete: !this.state.sampleDelete,
-                    sampleDoSwap: false,
-                  })}}
-                  value="priority"
-                  color="secondary"
-                />
+            <div className={classes.informationBox}>
+              {samples &&
+                samples[sample.cocUid] &&
+                samples[sample.cocUid][this.state.sampleSwap] !== undefined ?
+                writeDescription(samples[sample.cocUid][this.state.sampleSwap])
+                : "<EMPTY>"
               }
-              label="Delete Sample"
-            />
+            </div>
+            <div className={classes.flexRow}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={this.state.sampleDelete}
+                    onChange={(event) => { this.setState({
+                      sampleDelete: !this.state.sampleDelete,
+                      sampleDoSwap: false,
+                    })}}
+                    value="priority"
+                    color="secondary"
+                  />
+                }
+                label="Delete Sample"
+              />
+            </div>
           </div>
         )}
         </DialogContent>

@@ -100,6 +100,8 @@ class AsbestosBulkCocCard extends React.Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
+    if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
+    if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
     // if (nextProps.doNotRender) return false;
     if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
     if (this.props.expanded === this.props.job && nextProps.expanded !== this.props.job) {
@@ -110,15 +112,15 @@ class AsbestosBulkCocCard extends React.Component {
       console.log('List has been opened');
       return true; // List has been collapsed (closed)
     }
-    // if (nextProps.samples[nextProps.job] && nextProps.cocs[nextProps.job] && nextProps.cocs[nextProps.job].sampleList) {
-    //   console.log(Object.keys(nextProps.samples[nextProps.job]).length);
-    //   console.log(nextProps.cocs[nextProps.job].sampleList.length);
-    //   if (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length) {
-    //     console.log('Matched');
-    //     return true;
-    //   }
-    // }
-    return true;
+    if (nextProps.samples[nextProps.job] && nextProps.cocs[nextProps.job] && nextProps.cocs[nextProps.job].sampleList) {
+      // console.log(Object.keys(nextProps.samples[nextProps.job]).length);
+      // console.log(nextProps.cocs[nextProps.job].sampleList.length);
+      if (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length) {
+        console.log('Matched');
+        return true;
+      }
+    }
+    return false;
   }
 
   getSamples = (expanded, cocUid, jobNumber) => {
@@ -135,7 +137,7 @@ class AsbestosBulkCocCard extends React.Component {
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
-    
+
     console.log(`${job.jobNumber} rendering`);
     let filteredSamples = {};
     if (samples && samples[job.uid]) {
