@@ -71,11 +71,10 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
   state = {...stateInit, ...actionInit};
 
   loadProps = () => {
-    if (this.props.modalProps.doc) {
+    if (this.props.modalProps) {
       this.setState({
         sample: this.props.modalProps.sample,
         sampleSwap: this.props.modalProps.sample.sampleNumber,
-        doc: this.props.modalProps.doc,
       });
     }
   }
@@ -90,8 +89,8 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
   }
 
   deleteSample = onComplete => {
-    const { me } = this.props;
-    const { doc, sample } = this.state;
+    const { me, modalProps, } = this.props;
+    const { sample } = this.state;
     let log = {
       type: 'Delete',
       log: `Sample ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) deleted.`,
@@ -102,21 +101,21 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
 
     // this.props.handleSampleChange(parseInt(sample.sampleNumber) - 1, {deleted: true});
     // Set sample DELETED flag to true
-    let newSamples = {...doc.samples,
+    let newSamples = {...modalProps.doc.samples,
       [sample.sampleNumber]: {
         ...sample,
         deleted: true,
       }
     };
     // delete newSamples[this.state.sampleEditModal.sampleNumber];
-    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: doc.uid, });
+    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: modalProps.doc.uid, });
     this.setState({ modified: true });
     onComplete();
   }
 
   moveSample = onComplete => {
-    const { me } = this.props;
-    const { doc, sample } = this.state;
+    const { me, modalProps } = this.props;
+    const { sample } = this.state;
     let log = {
       type: 'ID Change',
       log: `Sample ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) moved to sample number ${sample.jobNumber}-${this.state.sampleSwap}.`,
@@ -125,7 +124,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     };
     addLog("asbestosLab", log, me);
 
-    let newSamples = {...doc.samples,
+    let newSamples = {...modalProps.doc.samples,
       [this.state.sampleSwap]: {
         ...sample,
         sampleNumber: this.state.sampleSwap,
@@ -134,51 +133,50 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     };
 
     delete newSamples[sample.sampleNumber];
-    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: doc.uid, });
+    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: modalProps.doc.uid, });
     this.setState({ modified: true });
     onComplete();
   }
 
   swapSample = onComplete => {
-    const { me } = this.props;
-    const { doc, sample } = this.state;
+    const { me, modalProps } = this.props;
+    const { sample } = this.state;
     let log = {
       type: 'ID Change',
-      log: `Samples ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) and ${sample.jobNumber}-${this.state.sampleSwap} (${writeDescription(doc.samples[this.state.sampleSwap])}) swapped numbers.`,
+      log: `Samples ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) and ${sample.jobNumber}-${this.state.sampleSwap} (${writeDescription(modalProps.doc.samples[this.state.sampleSwap])}) swapped numbers.`,
       chainOfCustody: sample.cocUid,
       sample: sample.uid,
     };
     addLog("asbestosLab", log, me);
     log = {
       type: 'ID Change',
-      log: `Samples ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) and ${sample.jobNumber}-${this.state.sampleSwap} (${writeDescription(doc.samples[this.state.sampleSwap])}) swapped numbers.`,
+      log: `Samples ${sample.jobNumber}-${sample.sampleNumber} (${writeDescription(sample)}) and ${sample.jobNumber}-${this.state.sampleSwap} (${writeDescription(modalProps.doc.samples[this.state.sampleSwap])}) swapped numbers.`,
       chainOfCustody: sample.cocUid,
-      sample: doc.samples[this.state.sampleSwap].uid,
+      sample: modalProps.doc.samples[this.state.sampleSwap].uid,
     };
     addLog("asbestosLab", log, me);
 
-    let newSamples = {...doc.samples,
+    let newSamples = {...modalProps.doc.samples,
       [this.state.sampleSwap]: {
         ...sample,
         sampleNumber: this.state.sampleSwap,
         verified: false,
       },
       [sample.sampleNumber]: {
-        ...doc.samples[this.state.sampleSwap],
+        ...modalProps.doc.samples[this.state.sampleSwap],
         sampleNumber: sample.sampleNumber,
         verified: false,
       },
     };
 
-    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: doc.uid, });
+    this.props.handleModalChange({id: 'samples', value: newSamples, cocUid: modalProps.doc.uid, });
     this.setState({ modified: true });
     onComplete();
   }
 
   saveSample = (onComplete) => {
-    console.log('saving sample');
-    const { doc, sample } = this.state;
-    console.log(sample);
+    const { sample } = this.state;
+    const { modalProps } = this.props;
     let log = {};
     if (this.state.sampleDelete && window.confirm("Are you sure you wish to delete this sample?")) {
       // Delete sample
@@ -189,14 +187,14 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
         window.alert('You have not selected a sample number to move to.');
       } else if (this.state.sampleSwap < 1) {
         window.alert('Sample numbers must be a positive integer.')
-      } else if (doc.samples[this.state.sampleSwap] === undefined && window.confirm(`Are you sure you wish to move this sample to number ${this.state.sampleSwap}`)) {
+      } else if (modalProps.doc.samples[this.state.sampleSwap] === undefined && window.confirm(`Are you sure you wish to move this sample to number ${this.state.sampleSwap}`)) {
         // Move to sample number
         this.moveSample(onComplete);
-      } else if (doc.samples[this.state.sampleSwap] !== undefined && window.confirm(`There is already a sample using that sample number. Do you wish to swap sample ${this.state.sample.sampleNumber} with sample ${this.state.sampleSwap} (${doc.samples[this.state.sampleSwap]['description']} ${doc.samples[this.state.sampleSwap]['material']})?`)) {
+      } else if (modalProps.doc.samples[this.state.sampleSwap] !== undefined && window.confirm(`There is already a sample using that sample number. Do you wish to swap sample ${this.state.sample.sampleNumber} with sample ${this.state.sampleSwap} (${writeDescription(modalProps.doc.samples[this.state.sampleSwap])})?`)) {
         // Swap sample number
         this.swapSample(onComplete);
         // //console.log(doc.samples);
-      } else if (doc.samples[this.state.sampleSwap] !== undefined && doc.samples[this.state.sampleSwap]['cocUid'] !== doc.uid) {
+      } else if (modalProps.doc.samples[this.state.sampleSwap] !== undefined && modalProps.doc.samples[this.state.sampleSwap]['cocUid'] !== modalProps.doc.uid) {
         window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
       }
     } else {
@@ -229,11 +227,10 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
   }
 
   previousSample = () => {
-    console.log('prev sample');
     let newSampleNumber = parseInt(this.state.sample.sampleNumber) - 1;
-    if (this.state.doc.samples[newSampleNumber]) {
+    if (this.props.modalPropsMain.doc.samples[newSampleNumber]) {
       this.setState({
-        sample: this.state.doc.samples[newSampleNumber],
+        sample: this.props.modalPropsMain.doc.samples[newSampleNumber],
         sampleSwap: newSampleNumber,
         ...actionInit
       });
@@ -241,7 +238,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
       this.setState({
         sample: {
           sampleNumber: newSampleNumber,
-          jobNumber: this.state.doc.jobNumber,
+          jobNumber: this.props.modalPropsMain.doc.jobNumber,
         },
         sampleSwap: newSampleNumber,
         ...actionInit,
@@ -250,11 +247,10 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
   }
 
   nextSample = () => {
-    console.log('next sample');
     let newSampleNumber = parseInt(this.state.sample.sampleNumber) + 1;
-    if (this.state.doc.samples[newSampleNumber]) {
+    if (this.props.modalPropsMain.doc.samples[newSampleNumber]) {
       this.setState({
-        sample: this.state.doc.samples[newSampleNumber],
+        sample: this.props.modalPropsMain.doc.samples[newSampleNumber],
         sampleSwap: newSampleNumber,
         ...actionInit
       });
@@ -262,7 +258,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
       this.setState({
         sample: {
           sampleNumber: newSampleNumber,
-          jobNumber: this.state.doc.jobNumber,
+          jobNumber: this.props.modalPropsMain.doc.jobNumber,
         },
         sampleSwap: newSampleNumber,
         ...actionInit,
@@ -275,7 +271,6 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     const { sample, doc } = this.state;
     const i = sample ? sample.sampleNumber - 1 : 0;
     const disabled = sample.cocUid != modalProps.doc.uid;
-    console.log(sample);
     console.log(this.state.sampleSwap);
     if (modalType === ASBESTOS_SAMPLE_EDIT_COC) {
       return (
@@ -461,7 +456,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                 samples[sample.cocUid] &&
                 samples[sample.cocUid][this.state.sampleSwap] !== undefined ?
                 writeDescription(samples[sample.cocUid][this.state.sampleSwap])
-                : "<EMPTY>"
+                : !this.state.sampleSwap ? writeDescription(sample) : "<EMPTY>"
               }
             </div>
             <div className={classes.flexRow}>
@@ -486,7 +481,10 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
           <DialogActions>
             <Button onClick={this.props.hideModal} color="secondary">Cancel</Button>
             <Button onClick={() => this.saveSample(this.previousSample)} color="inherit" disabled={parseInt(sample.sampleNumber) === 1}>Previous</Button>
-            <Button onClick={() => this.saveSample(this.nextSample)} color="secondary">Next</Button>
+            <Button onClick={() => {
+              console.log(sample.specificLocation);
+              this.saveSample(this.nextSample);
+            }} color="secondary">Next</Button>
             <Button onClick={() => this.saveSample(this.saveAndHide)} color="primary" >Submit</Button>
           </DialogActions>
       </Dialog>

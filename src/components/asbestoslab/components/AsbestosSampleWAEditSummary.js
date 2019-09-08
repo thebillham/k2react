@@ -12,11 +12,13 @@ import classNames from 'classnames';
 import { SketchPicker } from 'react-color';
 import SuggestionField from '../../../widgets/SuggestionField';
 import TextField from "@material-ui/core/TextField";
-import { SampleTextyDisplay, SampleTextyLine, AsbButton, } from '../../../widgets/FormWidgets';
+import { SampleTextyDisplay, SampleTextyLine, SamplesTextyBox, AsbButton } from '../../../widgets/FormWidgets';
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
 import AsbestosSampleWASubfraction from './AsbestosSampleWASubfraction';
 import AddIcon from '@material-ui/icons/Add';
 import RemoveIcon from '@material-ui/icons/Remove';
@@ -31,6 +33,11 @@ const waMap = {
   to7: '2-7',
   lt2: '<2',
 }
+
+const asbestosPercentLimit = 0.001;
+const asbestosWeightLimit = 0.00001;
+const moistureLimit = 1;
+const soilWeightLimit = 0.1;
 
 
 const renderLabel = ({
@@ -58,7 +65,7 @@ class AsbestosSampleWAEditSummary extends React.Component {
   }
 
   render() {
-    const { classes, sample } = this.props;
+    const { classes, sample, that } = this.props;
     let fractionMap = getWATotalDetails(sample);
     let waColors = getSampleColors({result: fractionMap.result.total});
 
@@ -79,85 +86,117 @@ class AsbestosSampleWAEditSummary extends React.Component {
     return(
       <div>
         <Grid container direction='row'>
-          <Grid item xs={6} className={classes.headingRow}>
+          <Grid item xs={2}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={sample.waAnalysisComplete === true ? true : false}
+                  onClick={e => {
+                    that.setState({
+                      modified: true,
+                      samples: {
+                        ...that.state.samples,
+                        [that.state.activeSample]: {
+                          ...that.state.samples[that.state.activeSample],
+                          waAnalysisComplete: e.target.checked,
+                        }
+                      }
+                    });
+                    let log = {
+                      type: "Analysis",
+                      log: e.target.checked === true
+                        ? `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as complete.`
+                        : `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as incomplete.`,
+                      sample: sample.uid,
+                      chainOfCustody: sample.cocUid,
+                    };
+                    addLog("asbestosLab", log, this.props.me);
+                  }}
+                  value="waAnalysisComplete"
+                  color="primary"
+                />
+              }
+              label="WA Analysis Complete"
+            />
+          </Grid>
+          <Grid item xs={2} className={classes.headingRow}>
+            Short Description of Asbestos Detected
+          </Grid>
+          <Grid item xs={3} className={classes.entryRow}>
+            <SuggestionField that={this} label='Short Description' suggestions='asbestosInSoilSuggestions'
+              value={sample.asbestosFormDescription}
+              label='This will be displayed on the report.'
+              onModify={(value) => {
+                that.setState({
+                  modified: true,
+                  sample: {
+                    ...sample,
+                    asbestosFormDescription: value,
+                  }
+                });
+              }}
+            />
+          </Grid>
+          <Grid item xs={2} className={classes.headingRow}>
+            Dry Weight
+          </Grid>
+          <Grid item xs={3} className={classes.entryRow}>
+            <div className={classes.formInputMedium}>
+              {SamplesTextyBox(that, sample, 'weightDry', null, null, false, 0, 'g', null, true)}
+            </div>
+          </Grid>
+        </Grid>
+        <Grid container direction='row'>
+          <Grid item xs={4} className={classes.headingRow}>
             Asbestos Form
           </Grid>
-          <Grid item xs={3} className={classes.headingRow}>
+          <Grid item xs={2} className={classes.headingRow}>
+            Fractions Present
+          </Grid>
+          <Grid item xs={2} className={classes.headingRow}>
+            Asbestos Types
+          </Grid>
+          <Grid item xs={2} className={classes.headingRow}>
             Weight (g)
           </Grid>
-          <Grid item xs={3} className={classes.headingRow}>
+          <Grid item xs={2} className={classes.headingRow}>
             Percentage of Total
           </Grid>
         </Grid>
+        {[
+          {label: 'All Forms', value: 'total', red: (fractionMap.concentration.acm > 0.01 || fractionMap.concentration.faaf > 0.001)},
+          {label: 'Asbestos-containing Material (ACM)', value: 'acm', red: fractionMap.concentration.acm > 0.01},
+          {label: 'Friable Asbestos (FA)', value: 'fa', red: fractionMap.concentration.fa > 0.001},
+          {label: 'Asbestos Fines (AF)', value: 'af', red: fractionMap.concentration.af > 0.001},
+          {label: 'Combined FA and AF', value: 'faaf', red: fractionMap.concentration.faaf > 0.001},
+
+        ].map(row =>
         <Grid container direction='row'>
-          <Grid item xs={6} className={classes.firstColumn}>
-            Combined
+          <Grid item xs={4} className={classes.firstColumn}>
+            {row.label}
           </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            {fractionMap.weight.total.toPrecision(2)}g
+          <Grid item xs={2} className={classes.textColumn}>
+            {Object.keys(fractionMap.fractions[row.value]).map(f => waMap[f]).join(', ').toUpperCase()}
           </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            {fractionMap && fractionMap.concentration.total ?
-                <span className={(fractionMap.concentration.acm > 0.01 ||
-                fractionMap.concentration.faaf > 0.001) ?
-                  classes.boldRedWarningText :
-                  classes.boldBlack}>{fractionMap.concentration.total.toPrecision(2)}%</span> :
-            ''}
+          <Grid item xs={2} className={classes.textColumn}>
+            {Object.keys(fractionMap.result[row.value]).join(', ').toUpperCase()}
           </Grid>
-        </Grid>
-        <Grid container direction='row'>
-          <Grid item xs={6} className={classes.firstColumn}>
-            Asbestos-containing Material (ACM)
+          <Grid item xs={2} className={classes.numberColumn}>
+            {(!fractionMap.weight[row.value] || fractionMap.weight[row.value] < asbestosWeightLimit) ?
+              <span>{`<${asbestosWeightLimit}g`}</span> :
+              <span>{fractionMap.weight[row.value].toPrecision(2)}g</span>
+            }
           </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            {fractionMap.weight.acm.toPrecision(2)}g
+          <Grid item xs={2} className={classes.numberColumn}>
+            {(!fractionMap.concentration[row.value] || fractionMap.concentration[row.value] < asbestosPercentLimit) ?
+              <span className={classes.boldBlack}>{`<${asbestosPercentLimit}%`}</span> :
+              <span className={row.red ? classes.boldRedWarningText : classes.boldBlack}>
+                {fractionMap.concentration[row.value].toPrecision(2)}%
+              </span>
+            }
           </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            <span className={fractionMap.concentration.acm > 0.01 ?
-              classes.boldRedWarningText :
-              classes.boldBlack}>{fractionMap.concentration.acm.toPrecision(2)}%</span>
-          </Grid>
-        </Grid>
-        <Grid container direction='row'>
-          <Grid item xs={6} className={classes.firstColumn}>
-            Friable Asbestos (FA)
-          </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            {fractionMap.weight.fa.toPrecision(2)}g
-          </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            <span className={fractionMap.concentration.fa > 0.001 ?
-              classes.boldRedWarningText :
-              classes.boldBlack}>{fractionMap.concentration.fa.toPrecision(2)}%</span>
-          </Grid>
-        </Grid>
-        <Grid container direction='row'>
-          <Grid item xs={6} className={classes.firstColumn}>
-            Asbestos Fines (AF)
-          </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            {fractionMap.weight.af.toPrecision(2)}g
-          </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            <span className={fractionMap.concentration.af > 0.001 ?
-              classes.boldRedWarningText :
-              classes.boldBlack}>{fractionMap.concentration.af.toPrecision(2)}%</span>
-          </Grid>
-        </Grid>
-        <Grid container direction='row'>
-          <Grid item xs={6} className={classes.firstColumn}>
-            Combined FA and AF
-          </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            {fractionMap.weight.faaf.toPrecision(2)}g
-          </Grid>
-          <Grid item xs={3} className={classes.numberColumn}>
-            <span className={fractionMap.concentration.faaf > 0.001 ?
-              classes.boldRedWarningText :
-              classes.boldBlack}>{fractionMap.concentration.faaf.toPrecision(2)}%</span>
-          </Grid>
-        </Grid>
-        <div>
+        </Grid>)}
+        {false && <div>
           {chartData.length > 1 && <PieChart width={200} height={200}>
             <Pie data={chartData} dataKey="value" nameKey="name" labelLine={false} label>
               {
@@ -169,8 +208,8 @@ class AsbestosSampleWAEditSummary extends React.Component {
               }
             </Pie>
           </PieChart>}
-        </div>
-        {
+        </div>}
+        {false &&
           fractionMap && fractionMap.types && Object.keys(fractionMap.types).map(type => {
             console.log(type);
             return (
@@ -205,7 +244,7 @@ class AsbestosSampleWAEditSummary extends React.Component {
             );
           })
         }
-        <div className={classes.flexRowTotals}>
+        {false && <div className={classes.flexRowTotals}>
           <div className={classes.circleShadedHighlighted}>
             ALL
           </div>
@@ -231,7 +270,7 @@ class AsbestosSampleWAEditSummary extends React.Component {
               null)
             })}
           </div>
-        </div>
+        </div>}
       </div>
     );
   }

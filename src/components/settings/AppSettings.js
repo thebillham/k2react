@@ -171,9 +171,9 @@ const settings = {
     label: 'Asbestos Material Suggestions',
     value: 'asbestosMaterialSuggestions',
     group: 'acmAssessment',
-    fields: ['label','category'],
-    fallBack: 'Other',
-    hint: 'Put each material on a new line in the form "description|material category".',
+    fields: ['label','category','asbestosType','asbestosContent'],
+    fallBack: [null,'Other',null,null],
+    hint: 'Put each material on a new line in the form "description|material category|asbestos type|asbestos content (%)".',
   },
   asbestosMaterialCategories: {
     label: 'Asbestos Material Categories',
@@ -209,6 +209,14 @@ const settings = {
     group: 'acmAssessment',
     fields: ['label'],
     hint: 'Put each suggestion on a new line.',
+  },
+  asbestosInSoilForms: {
+    label: 'Asbestos in Soil Forms',
+    value: 'asbestosInSoilForms',
+    group: 'acmAssessment',
+    fields: ['description','form','concentration'],
+    noSort: true,
+    hint: 'Put each option on a new line in the form "description|form|concentration".',
   },
   noAsbestosResultReasons: {
     label: 'Reasons Why No Asbestos Result is Recorded',
@@ -303,7 +311,7 @@ class AppSettings extends React.Component {
             let fieldMap = {};
 
             for (var i = 0; i < fields.length; i++) {
-              fieldMap[fields[i]] = valueList[i] ? valueList[i] : settings[setting].fallBack ? settings[setting].fallBack : valueList[0];
+              fieldMap[fields[i]] = valueList[i] ? valueList[i] : settings[setting].fallBack ? settings[setting].fallBack[i] ? settings[setting].fallBack[i] : settings[setting].fallBack[0] : valueList[0];
             }
             console.log(fieldMap);
 

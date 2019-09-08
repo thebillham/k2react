@@ -937,6 +937,16 @@ const styles = theme => ({
     borderWidth: 1,
   },
 
+  entryRow: {
+    backgroundColor: "white",
+    color: "black",
+    fontWeight: 300,
+    padding: theme.spacing(1),
+    borderColor: "black",
+    borderStyle: "solid",
+    borderWidth: 1,
+  },
+
   firstColumn: {
     backgroundColor: "lightgrey",
     fontWeight: 600,
@@ -949,6 +959,14 @@ const styles = theme => ({
     padding: theme.spacing(1),
     display: 'flex',
     justifyContent: 'flex-end',
+    borderStyle: "solid",
+    borderWidth: 1,
+  },
+
+  textColumn: {
+    padding: theme.spacing(1),
+    display: 'flex',
+    justifyContent: 'flex-start',
     borderStyle: "solid",
     borderWidth: 1,
   },
@@ -1105,6 +1123,10 @@ const styles = theme => ({
 
   columnMedSmall: {
     width: 180,
+  },
+
+  columnMed: {
+    width: 220,
   },
 
   columnMedLarge: {
@@ -1286,6 +1308,12 @@ const styles = theme => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  // DISPLAY
+
+  cursorDefault: {
+    cursor: 'default',
   },
 
   // COLOUR PICKER

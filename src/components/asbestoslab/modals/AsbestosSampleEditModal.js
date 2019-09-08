@@ -49,6 +49,7 @@ import {
   analyticalCriteraOK,
   traceAnalysisRequired,
   recordAnalysis,
+  recordAnalysisOverride,
   verifySample,
   updateResultMap,
   writeDescription,
@@ -122,7 +123,8 @@ class AsbestosSampleEditModal extends React.Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     if (this.state !== nextState) return true;
-    else return false;
+    if (this.props.asbestosSampleDisplayAdvanced !== nextProps.asbestosSampleDisplayAdvanced) return true;
+    return false;
   }
 
   loadProps = (activeSample) => {
@@ -284,7 +286,7 @@ class AsbestosSampleEditModal extends React.Component {
   saveSample = () => {
     const { override } = this.state;
     let sample = this.state.samples[this.state.activeSample];
-    console.log(sample);
+
     asbestosSamplesRef
       .doc(sample.uid)
       .update(sample);
@@ -298,19 +300,19 @@ class AsbestosSampleEditModal extends React.Component {
     addLog("asbestosLab", log, this.props.me);
     if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] &&
       (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result ||
-      this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].weightReceived !== sample.weightReceived))
+      this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].weightReceived !== sample.weightReceived)) {
       recordAnalysis(this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
         this.props.samples, this.props.sessionID, this.props.me,
         this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result,
         this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result != sample.weightReceived,
       );
+    }
     if (sample.verified) {
       verifySample(sample,
         this.props.cocs[this.props.modalProps.activeCoc],
         this.props.samples,
         this.props.sessionID,
         this.props.me, null, null);
-      console.log('removing verification...');
     }
   }
 
@@ -350,6 +352,7 @@ class AsbestosSampleEditModal extends React.Component {
       sampleDimensions = writeSampleDimensions(sample, true);
       sampleMoisture = writeSampleMoisture(sample, true);
     }
+    console.log(this.props.asbestosSampleDisplayAdvanced);
 
     return (
     <Dialog
@@ -672,13 +675,13 @@ class AsbestosSampleEditModal extends React.Component {
             </Grid>
           </Grid>
           <Divider className={classes.marginTopSmall} />
+          <div className={classes.flexRowLeftAlignEllipsis}><div className={classes.subHeading}>Reported Asbestos Result</div></div>
+          <div className={classes.flexRowRightAlign}>
+            {['ch','am','cr','umf','no','org','smf'].map(res => {
+              return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res, () => this.handleResultClick(res, sample.sampleNumber))
+            })}
+          </div>
           {!waAnalysis && <div>
-            <div className={classes.flexRowLeftAlignEllipsis}><div className={classes.subHeading}>Reported Asbestos Result</div></div>
-            <div className={classes.flexRowRightAlign}>
-              {['ch','am','cr','umf','no','org','smf'].map(res => {
-                return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res, () => this.handleResultClick(res, sample.sampleNumber))
-              })}
-            </div>
             <Divider className={classes.marginTopSmall} />
             <div className={classNames(classes.subHeading, classes.flexRowCenter)}>
               Layers
@@ -698,51 +701,7 @@ class AsbestosSampleEditModal extends React.Component {
           {waAnalysis && <div>
             <Divider className={classes.marginTopSmall} />
             <div className={classes.subHeading}>Soil Concentrations</div>
-            <FormControlLabel
-                control={
-                  <Switch
-                    checked={sample.waAnalysisComplete === true ? true : false}
-                    onClick={e => {
-                      this.setState({
-                        modified: true,
-                        samples: {
-                          ...this.state.samples,
-                          [this.state.activeSample]: {
-                            ...this.state.samples[this.state.activeSample],
-                            waAnalysisComplete: e.target.checked,
-                          }
-                        }
-                      });
-                      let log = {
-                        type: "Analysis",
-                        log: e.target.checked === true
-                          ? `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as complete.`
-                          : `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as incomplete.`,
-                        sample: sample.uid,
-                        chainOfCustody: sample.cocUid,
-                      };
-                      addLog("asbestosLab", log, this.props.me);
-                    }}
-                    value="waAnalysisComplete"
-                    color="primary"
-                  />
-                }
-                label="WA Analysis Complete"
-              />
-            <AsbestosSampleWAEditSummary sample={sample} />
-            <SuggestionField that={this} label='Short Description' suggestions='asbestosInSoilSuggestions'
-              value={sample.asbestosFormDescription}
-              label='Add a short description of the asbestos form. This will be displayed on the report.'
-              onModify={(value) => {
-                this.setState({
-                  modified: true,
-                  sample: {
-                    ...sample,
-                    asbestosFormDescription: value,
-                  }
-                });
-              }}
-            />
+            <AsbestosSampleWAEditSummary sample={sample} that={this} me={this.props.me} />
             {fractionNames.map(fraction => {
               return <AsbestosSampleWAFraction key={fraction} sample={sample} fraction={fraction} that={this} />;
             })}

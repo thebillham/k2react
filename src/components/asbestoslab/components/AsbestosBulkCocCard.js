@@ -105,18 +105,15 @@ class AsbestosBulkCocCard extends React.Component {
     // if (nextProps.doNotRender) return false;
     if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
     if (this.props.expanded === this.props.job && nextProps.expanded !== this.props.job) {
-      console.log('List has been collapsed');
       return true; // List has been collapsed (closed)
     }
     if (nextProps.expanded === nextProps.job && this.props.expanded !== this.props.job) {
-      console.log('List has been opened');
       return true; // List has been collapsed (closed)
     }
     if (nextProps.samples[nextProps.job] && nextProps.cocs[nextProps.job] && nextProps.cocs[nextProps.job].sampleList) {
       // console.log(Object.keys(nextProps.samples[nextProps.job]).length);
       // console.log(nextProps.cocs[nextProps.job].sampleList.length);
       if (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length) {
-        console.log('Matched');
         return true;
       }
     }

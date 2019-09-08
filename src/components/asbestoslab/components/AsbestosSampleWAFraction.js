@@ -14,11 +14,17 @@ import SuggestionField from '../../../widgets/SuggestionField';
 import { AsbButton, } from '../../../widgets/FormWidgets';
 import TextField from "@material-ui/core/TextField";
 import IconButton from "@material-ui/core/IconButton";
+import InputLabel from '@material-ui/core/InputLabel';
 import Tooltip from "@material-ui/core/Tooltip";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import Grid from '@material-ui/core/Grid';
 import AsbestosSampleWASubfraction from './AsbestosSampleWASubfraction';
 import AddIcon from '@material-ui/icons/Add';
 import RemoveIcon from '@material-ui/icons/Remove';
+import ExpandMore from "@material-ui/icons/ExpandMore";
 
 import { addLog, } from '../../../actions/local';
 
@@ -30,9 +36,15 @@ const waMap = {
 }
 
 class AsbestosSampleWAFraction extends React.Component {
-  shouldComponentUpdate(nextProps) {
+  state = {
+    expanded: true,
+  };
+
+  shouldComponentUpdate(nextProps, nextState) {
     if (this.props.sample.sampleNumber !== nextProps.sample.sampleNumber) return true;
-    if (this.props.sample.waLayerNum !== nextProps.sample.waLayerNum) return true;
+    if (this.state.expanded !== nextState.expanded) return true; // List has been opened or closed
+    if (!nextState.expanded) return false; // List is not expanded (hidden)
+    if (this.props.sample.waLayerNum[this.props.fraction] !== nextProps.sample.waLayerNum[this.props.fraction]) return true;
     if (this.props.sample.waSoilAnalysis !== nextProps.sample.waSoilAnalysis) return true;
     return false;
   }
@@ -74,65 +86,86 @@ class AsbestosSampleWAFraction extends React.Component {
     let colors = getSampleColors(fractionMap);
 
     return(
-      <div className={classes.paddingAllMedium}>
-        <div className={classes.subHeading}>{title}</div>
-        <TextField
-          id="weightAshed"
-          label="Ashed Weight"
-          className={classes.columnMedSmall}
-          value={sample && sample.waSoilAnalysis && sample.waSoilAnalysis['fraction' + fraction + 'WeightAshed'] ? sample.waSoilAnalysis['fraction' + fraction + 'WeightAshed'] : ''}
-          helperText="Record the weight of this fraction after ashing at ~400°C"
-          InputProps={{
-            endAdornment: <InputAdornment position="end">g</InputAdornment>,
-          }}
-          onChange={e => {
-            that.setState({
-              modified: true,
-              samples: {
-                ...that.state.samples,
-                [that.state.activeSample]: {
-                  ...that.state.samples[that.state.activeSample],
-                  waSoilAnalysis: {
-                    ...that.state.samples[that.state.activeSample].waSoilAnalysis,
-                    ['fraction' + fraction + 'WeightAshed']: e.target.value.replace(/[^$0-9.]/,''),
-                  },
-                },
-              },
-            });
-          }}
-        />
-        <div className={classes.flexRowCenter}>
-          <IconButton size='small' aria-label='add' className={classes.marginLeftSmall} onClick={() => this.addLayer(fraction, sample, that)}><AddIcon /></IconButton>
-          <IconButton size='small' aria-label='remove' className={classes.marginLeftSmall} onClick={() => this.removeLayer(fraction, sample, that)}><RemoveIcon /></IconButton>
-        </div>
-        {[...Array(sample && sample.waLayerNum && sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : waLayerNum).keys()].map(num => {
-          return <AsbestosSampleWASubfraction key={num} sample={sample} num={num+1} fraction={fraction} that={that} />;
-        })}
-        <div className={classes.flexRowTotals}>
-          <div className={classes.circleShadedHighlighted}>
-            {waMap[fraction]}
-          </div>
-          <div className={classes.columnMedSmall} />
-          <div className={classes.spacerSmall} />
-          <div className={classes.columnMedSmall} />
-          <div className={classes.spacerSmall} />
-          <div className={classes.columnMedSmall}>
-            {fractionMap && fractionMap.totalAsbestosWeight ? `${fractionMap.totalAsbestosWeight.toPrecision(6)}g` : ''}
-          </div>
-          <div className={classes.spacerSmall} />
-          <div className={classes.columnLarge}>
-            {['acm','fa','af'].filter(type => fractionMap && fractionMap.types[type]).map(type => {
-              return type.toUpperCase()}).join(' ')
-            }
-          </div>
-          <div className={classes.flexRowRightAlign}>
-            {['ch','am','cr','umf','no','org','smf'].map(res => {
-              return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res,
-              null)
+      <ExpansionPanel
+        expanded={this.state.expanded}
+        onChange={(event, ex) => {
+          this.setState({
+            expanded: ex,
+          })
+        }}
+      >
+        <ExpansionPanelSummary className={classes.subHeading} expandIcon={<ExpandMore />}>{title}</ExpansionPanelSummary>
+        <ExpansionPanelDetails>
+          <div className={classes.fullWidth}>
+            <div className={classes.flexRowCenter}>
+              <div>
+                <InputLabel>Add/Remove Subsamples</InputLabel>
+                <div className={classes.flexRowCenter}>
+                  <IconButton size='small' aria-label='add' className={classes.marginLeftSmall} onClick={() => this.addLayer(fraction, sample, that)}><AddIcon /></IconButton>
+                  <IconButton size='small' aria-label='remove' className={classes.marginLeftSmall} onClick={() => this.removeLayer(fraction, sample, that)}><RemoveIcon /></IconButton>
+                </div>
+              </div>
+              <div className={classes.spacerMedium} />
+              <TextField
+                id="weightAshed"
+                label="Ashed Weight (400ºC)"
+                className={classes.columnSmall}
+                value={sample && sample.waSoilAnalysis && sample.waSoilAnalysis['fraction' + fraction + 'WeightAshed'] ? sample.waSoilAnalysis['fraction' + fraction + 'WeightAshed'] : ''}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">g</InputAdornment>,
+                }}
+                onChange={e => {
+                  that.setState({
+                    modified: true,
+                    samples: {
+                      ...that.state.samples,
+                      [that.state.activeSample]: {
+                        ...that.state.samples[that.state.activeSample],
+                        waSoilAnalysis: {
+                          ...that.state.samples[that.state.activeSample].waSoilAnalysis,
+                          ['fraction' + fraction + 'WeightAshed']: e.target.value.replace(/[^$0-9.]/,''),
+                        },
+                      },
+                    },
+                  });
+                }}
+              />
+            </div>
+            <div className={classes.marginTopSmall} />
+            {[...Array(sample && sample.waLayerNum && sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : waLayerNum).keys()].map(num => {
+              return <AsbestosSampleWASubfraction key={num} sample={sample} num={num+1} fraction={fraction} that={that} />;
             })}
+            {false && <Grid container className={classes.flexRowHover} direction='row'>
+              <Grid item xs={12} md={8} lg={6} className={classes.flexRow}>
+                <div className={classes.circleShadedHighlighted}>
+                  {waMap[fraction]}
+                </div>
+                <div className={classes.columnMedSmall} />
+                <div className={classes.spacerSmall} />
+                <div className={classes.columnMedSmall} />
+                <div className={classes.spacerSmall} />
+                <div className={classes.columnMedSmall}>
+                  {fractionMap && fractionMap.totalAsbestosWeight ? `${fractionMap.totalAsbestosWeight.toPrecision(6)}g` : ''}
+                </div>
+                <div className={classes.spacerSmall} />
+                <div className={classes.columnLarge}>
+                  {['acm','fa','af'].filter(form => fractionMap && fractionMap.forms[form]).map(form => {
+                    return form.toUpperCase()}).join(' ')
+                  }
+                </div>
+              </Grid>
+              <Grid item xs={12} lg={6}>
+                <div className={classes.flexRowRightAlign}>
+                  {['ch','am','cr','umf','no','org','smf'].map(res => {
+                    return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res,
+                    null)
+                  })}
+                </div>
+              </Grid>
+            </Grid>}
           </div>
-        </div>
-      </div>
+        </ExpansionPanelDetails>
+      </ExpansionPanel>
     );
   }
 

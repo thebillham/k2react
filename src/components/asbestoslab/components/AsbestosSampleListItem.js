@@ -102,7 +102,7 @@ class AsbestosSampleListItem extends React.PureComponent {
 
     return (
         <ListItem key={sample.uid} className={classes.hoverItem}>
-          <Grid container className={classes.fullWidth}>
+          <Grid container className={classes.fullWidth} spacing={1}>
             <Grid item xs={12} xl={4}>
               <div className={classes.flexRowLeftAlignEllipsis}>
                 <div className={classes.circleShaded}>
@@ -126,7 +126,7 @@ class AsbestosSampleListItem extends React.PureComponent {
                 {basicResult === 'none' && sample.noAsbestosResultReason && <div className={classes.boldRedWarningText}>{this.props.noAsbestosResultReasons.filter(el => el.value === sample.noAsbestosResultReason)[0].label.toUpperCase()}</div>}
               </div>
             </Grid>
-            <Grid item xs={12} xl={8}>
+            <Grid item md={12} lg={8} xl={5}>
               <div className={classes.flexRowRightAlign}>
                 <AsbestosSampleStatus status={sampleStatus} />
                 <div className={basicResult === 'none' ? classes.roundButtonShadedLong : basicResult === 'negative' ? classes.roundButtonShadedLongGreen : classes.roundButtonShadedLongRed}>
@@ -142,6 +142,10 @@ class AsbestosSampleListItem extends React.PureComponent {
                     {sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}
                   </div>
                 {/*</Tooltip>*/}
+                </div>
+              </Grid>
+              <Grid item md={12} lg={4} xl={3}>
+                <div className={classes.flexRowRightAlign}>
                 {editor &&
                   <IconButton
                     onClick={event => {

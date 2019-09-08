@@ -1850,7 +1850,7 @@ export const getConfirmColor = (sample) => {
 export const getWAFractionDetails = (sample, fraction) => {
   let result = {
     totalAsbestosWeight: 0,
-    types: {},
+    forms: {},
     result: {},
   };
 
@@ -1859,7 +1859,7 @@ export const getWAFractionDetails = (sample, fraction) => {
       let layer = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
       if (layer) {
         if (layer.concentration && layer.weight) result.totalAsbestosWeight = result.totalAsbestosWeight + (parseFloat(layer.weight) * parseFloat(layer.concentration)/ 100)
-        if (layer.type) result.types[layer.type] = true;
+        if (layer.form) result.forms[layer.form] = true;
         if (layer.result) result.result = mergeAsbestosResult(result.result, layer.result);
       }
     });
@@ -1872,7 +1872,7 @@ export const getWAFractionDetails = (sample, fraction) => {
 export const getWATotalDetails = (sample) => {
   // Set detection limits
   let totals = {
-    types: {},
+    forms: {},
     result: {
       total: {},
       acm: {},
@@ -1886,6 +1886,13 @@ export const getWATotalDetails = (sample) => {
       fa: 0,
       af: 0,
       faaf: 0,
+    },
+    fractions: {
+      total: {},
+      acm: {},
+      fa: {},
+      af: {},
+      faaf: {},
     },
     concentration: {
       total: 0,
@@ -1904,20 +1911,27 @@ export const getWATotalDetails = (sample) => {
         let layer = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
         if (layer) {
           if (layer.concentration && layer.weight) {
-            if (!layer.type) totals.allHaveTypes = false;
-            if (!layer.result) totals.allHaveForms = false;
+            if (!layer.form) totals.allHaveForms = false;
+            if (!layer.result) totals.allHaveTypes = false;
             let weight = (parseFloat(layer.weight) * parseFloat(layer.concentration)/ 100);
             totals.weight.total = totals.weight.total + weight;
-            if (layer.type === 'acm') totals.weight.acm = totals.weight.acm + weight;
-            else if (layer.type === 'fa') totals.weight.fa = totals.weight.fa + weight;
-            else if (layer.type === 'af') totals.weight.af = totals.weight.af + weight;
+            if (layer.form === 'acm') totals.weight.acm = totals.weight.acm + weight;
+            else if (layer.form === 'fa') totals.weight.fa = totals.weight.fa + weight;
+            else if (layer.form === 'af') totals.weight.af = totals.weight.af + weight;
           }
-          if (layer.type) totals.types[layer.type] = true;
+          if (layer.form) {
+            console.log(totals.fractions);
+            console.log(layer.form);
+            totals.forms[layer.form] = true;
+            totals.fractions.total[fraction] = true;
+            totals.fractions[layer.form][fraction] = true;
+            if (layer.form === 'fa' || layer.form === 'af') totals.fractions.faaf[fraction] = true;
+          }
           if (layer.result) {
             totals.result.total = mergeAsbestosResult(totals.result.total, layer.result);
-            if (layer.type === 'acm') totals.result.acm = mergeAsbestosResult(totals.result.acm, layer.result);
-            else if (layer.type === 'fa') totals.result.fa = mergeAsbestosResult(totals.result.fa, layer.result);
-            else if (layer.type === 'af') totals.result.af = mergeAsbestosResult(totals.result.af, layer.result);
+            if (layer.form === 'acm') totals.result.acm = mergeAsbestosResult(totals.result.acm, layer.result);
+            else if (layer.form === 'fa') totals.result.fa = mergeAsbestosResult(totals.result.fa, layer.result);
+            else if (layer.form === 'af') totals.result.af = mergeAsbestosResult(totals.result.af, layer.result);
           }
         }
       });
@@ -1925,8 +1939,7 @@ export const getWATotalDetails = (sample) => {
     // Combine AF FA
     totals.result.faaf = mergeAsbestosResult(totals.result.af, totals.result.fa);
     totals.weight.faaf = totals.weight.fa + totals.weight.af;
-    console.log(sample);
-    console.log(sample.weightDry);
+
     if (sample.weightDry) {
       console.log(sample.weightDry);
       totals.concentration.total = parseFloat(((totals.weight.total/sample.weightDry) * 100));

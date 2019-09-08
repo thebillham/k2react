@@ -31,6 +31,7 @@ import CancelActionIcon from "@material-ui/icons/Block";
 import ProceedActionIcon from "@material-ui/icons/Forward";
 import UnresolvedActionIcon from "@material-ui/icons/Report";
 import VerifyIcon from "@material-ui/icons/CheckCircleOutline";
+import WAIcon from "@material-ui/icons/GroupWork";
 import { toggleDoNotRender, } from "../../../actions/display";
 import { hideModal, } from "../../../actions/modal";
 import {
@@ -39,6 +40,7 @@ import {
   receiveSamples,
   startAnalysis,
   startAnalyses,
+  getWATotalDetails,
   verifySample,
   verifySamples,
   writeShorthandResult,
@@ -271,7 +273,13 @@ class AsbestosActionsModal extends React.Component {
               </span>
             </div>
           }
-          {this.state.samples && Object.values(this.state.samples).map(sample => (<div key={sample.sampleNumber}>
+          {this.state.samples && Object.values(this.state.samples).map(sample => {
+            let waOverLimit = false;
+            if (sample.waAnalysisComplete) {
+              let waTotals = getWATotalDetails(sample);
+              if (waTotals.concentration.acm > 0.01 || waTotals.concentration.faaf > 0.001) waOverLimit = true;
+            }
+            return (<div key={sample.sampleNumber}>
               <div className={modalProps.field !== 'issue' ? classes.flexRowHoverButton : sample.verified ? classes.flexRowHoverPretty : classes.flexRowHoverDisabled}
                 onClick={() => this.handleClick(sample)}>
                 <div className={classes.flexRowLeftAlignEllipsis}>
@@ -288,6 +296,11 @@ class AsbestosActionsModal extends React.Component {
                         : getBasicResult(sample) === 'none' ? classes.roundButtonShadedLong : getBasicResult(sample) === 'negative' ? classes.roundButtonShadedLongGreen : classes.roundButtonShadedLongRed}>
                         {writeShorthandResult(sample.result)}
                       </span>
+                      {modalProps.job.waAnalysis &&
+                        <span className={(modalProps.field === 'issue' && !sample.verified) ? classes.circleShadedDisabled : sample.waAnalysisComplete ? waOverLimit ? classes.circleShadedBad : classes.circleShadedOk : classes.circleShaded}>
+                          <WAIcon />
+                        </span>
+                      }
                       <span className={classes.spacerSmall} />
                       <Tooltip title={'Weight on Receipt'}><div className={(modalProps.field === 'issue' && !sample.verified) ? classes.roundButtonShadedDisabled :
                       sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded}>{sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}</div></Tooltip>
@@ -299,7 +312,7 @@ class AsbestosActionsModal extends React.Component {
                 </div>
               </div>
             </div>
-            )
+            )}
           )}</div>
           : this.state.issues &&
           <div>

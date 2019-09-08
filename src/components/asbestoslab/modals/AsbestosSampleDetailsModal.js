@@ -183,6 +183,8 @@ class AsbestosSampleDetailsModal extends React.Component {
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Basic Information</div>
                   {SampleTextyLine('Status', status.toUpperCase())}
+                  {job.client && SampleTextyLine('Client',job.client)}
+                  {job.address && SampleTextyLine('Address',job.address)}
                   {sample.genericLocation && SampleTextyLine('Generic Location',sample.genericLocation)}
                   {sample.specificLocation && SampleTextyLine('Specific Location',sample.specificLocation)}
                   {sample.description && SampleTextyLine('Short Description',sample.description)}
