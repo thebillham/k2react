@@ -191,14 +191,14 @@ class AsbestosSampleWAEditSummary extends React.Component {
           <Grid item xs={2} className={classes.numberColumn}>
             {(!fractionMap.weight[row.value] || fractionMap.weight[row.value] < asbestosWeightLimit) ?
               <span>{`<${asbestosWeightLimit}g`}</span> :
-              <span>{fractionMap.weight[row.value].toPrecision(2)}g</span>
+              <span>{fractionMap.weight[row.value]}g</span>
             }
           </Grid>
           <Grid item xs={2} className={classes.numberColumn}>
             {(!fractionMap.concentration[row.value] || fractionMap.concentration[row.value] < asbestosPercentLimit) ?
               <span className={classes.boldBlack}>{`<${asbestosPercentLimit}%`}</span> :
               <span className={row.red ? classes.boldRedWarningText : classes.boldBlack}>
-                {fractionMap.concentration[row.value].toPrecision(2)}%
+                {fractionMap.concentration[row.value]}%
               </span>
             }
           </Grid>
@@ -229,7 +229,7 @@ class AsbestosSampleWAEditSummary extends React.Component {
                 <div className={classes.columnMedSmall} />
                 <div className={classes.spacerSmall} />
                 <div className={classes.columnMedSmall}>
-                  {fractionMap && fractionMap.weight[type] ? `${fractionMap.weight[type].toPrecision(4)}g` : ''}
+                  {fractionMap && fractionMap.weight[type] ? `${fractionMap.weight[type]}g` : ''}
                 </div>
                 <div className={classes.spacerSmall} />
                 <div className={classes.columnLarge}>
@@ -237,7 +237,7 @@ class AsbestosSampleWAEditSummary extends React.Component {
                       <span className={((type === 'acm' && fractionMap.concentration.acm > 0.01) ||
                       (type !== 'acm' && fractionMap.concentration[type] > 0.001)) ?
                         classes.boldRedWarningText :
-                        classes.boldBlack}>{fractionMap.concentration[type].toPrecision(2)}%</span> :
+                        classes.boldBlack}>{fractionMap.concentration[type]}%</span> :
                   ''}
                 </div>
                 <div className={classes.flexRowRightAlign}>
@@ -260,7 +260,7 @@ class AsbestosSampleWAEditSummary extends React.Component {
           <div className={classes.columnMedSmall} />
           <div className={classes.spacerSmall} />
           <div className={classes.columnMedSmall}>
-            {fractionMap && fractionMap.weight.total ? `${fractionMap.weight.total.toPrecision(4)}g` : ''}
+            {fractionMap && fractionMap.weight.total ? `${fractionMap.weight.total}g` : ''}
           </div>
           <div className={classes.spacerSmall} />
           <div className={classes.columnLarge}>
@@ -268,7 +268,7 @@ class AsbestosSampleWAEditSummary extends React.Component {
                 <span className={(fractionMap.concentration.acm > 0.01 ||
                 fractionMap.concentration.faaf > 0.001) ?
                   classes.boldRedWarningText :
-                  classes.boldBlack}>{fractionMap.concentration.total.toPrecision(4)}%</span> :
+                  classes.boldBlack}>{fractionMap.concentration.total}%</span> :
             ''}
           </div>
           <div className={classes.flexRowRightAlign}>

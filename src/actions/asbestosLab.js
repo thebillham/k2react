@@ -721,7 +721,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
 
   // Check for situation where all results are unselected
   let notBlankAnalysis = false;
-  Object.values(sample.result).forEach(value => {
+  sample.result && Object.values(sample.result).forEach(value => {
     if (value) notBlankAnalysis = true;
   });
 
@@ -1963,12 +1963,19 @@ export const getWATotalDetails = (sample) => {
 
     if (sample.weightDry) {
       console.log(sample.weightDry);
-      totals.concentration.total = parseFloat(((totals.weight.total/sample.weightDry) * 100));
-      totals.concentration.acm = parseFloat(((totals.weight.acm/sample.weightDry) * 100));
-      totals.concentration.faaf = parseFloat(((totals.weight.faaf)/sample.weightDry) * 100);
-      totals.concentration.fa = parseFloat((totals.weight.fa/sample.weightDry) * 100);
-      totals.concentration.af = parseFloat((totals.weight.af/sample.weightDry) * 100);
+      totals.concentration.total = parseFloat(((totals.weight.total/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.total/sample.weightDry) * 100)).toFixed(3);
+      totals.concentration.acm = parseFloat(((totals.weight.acm/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.acm/sample.weightDry) * 100)).toFixed(3);
+      totals.concentration.faaf = parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.faaf)/sample.weightDry) * 100).toFixed(3);
+      totals.concentration.fa = parseFloat(((totals.weight.fa/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat((totals.weight.fa/sample.weightDry) * 100).toFixed(3);
+      totals.concentration.af = parseFloat(((totals.weight.af/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat((totals.weight.af/sample.weightDry) * 100).toFixed(3);
     }
+
+    // Round numbers
+    totals.weight.total = totals.weight.total < 0.00001 ? '<0.00001' : totals.weight.total.toFixed(5);
+    totals.weight.acm = totals.weight.acm < 0.00001 ? '<0.00001' : totals.weight.acm.toFixed(5);
+    totals.weight.faaf = totals.weight.faaf < 0.00001 ? '<0.00001' : totals.weight.faaf.toFixed(5);
+    totals.weight.fa = totals.weight.fa < 0.00001 ? '<0.00001' : totals.weight.fa.toFixed(5);
+    totals.weight.af = totals.weight.af < 0.00001 ? '<0.00001' : totals.weight.af.toFixed(5);
   }
   console.log(totals);
   return totals;
