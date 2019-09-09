@@ -124,14 +124,21 @@ class AsbestosSampleWAEditSummary extends React.Component {
           </Grid>
           <Grid item xs={3} className={classes.entryRow}>
             <SuggestionField that={this} label='Short Description' suggestions='asbestosInSoilSuggestions'
-              value={sample.asbestosFormDescription}
+              value={sample.waSoilAnalysis && sample.waSoilAnalysis.formDescription}
               label='This will be displayed on the report.'
+              controlled
               onModify={(value) => {
                 that.setState({
                   modified: true,
-                  sample: {
-                    ...sample,
-                    asbestosFormDescription: value,
+                  samples: {
+                    ...that.state.samples,
+                    [that.state.activeSample]: {
+                      ...that.state.samples[that.state.activeSample],
+                      waSoilAnalysis: {
+                        ...that.state.samples[that.state.activeSample].waSoilAnalysis,
+                        formDescription: value,
+                      },
+                    }
                   }
                 });
               }}
@@ -171,7 +178,7 @@ class AsbestosSampleWAEditSummary extends React.Component {
           {label: 'Combined FA and AF', value: 'faaf', red: fractionMap.concentration.faaf > 0.001},
 
         ].map(row =>
-        <Grid container direction='row'>
+        <Grid container direction='row' key={row.value}>
           <Grid item xs={4} className={classes.firstColumn}>
             {row.label}
           </Grid>

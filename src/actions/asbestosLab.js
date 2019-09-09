@@ -1481,6 +1481,29 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
         sampleMap["checks"] = writeChecks(sample);
         sampleMap["footnote"] = sample.footnote ? sample.footnote : false;
         sampleMap["conditionings"] = writeConditionings(sample);
+
+        if (job.waAnalysis) {
+          sampleMap["fullDescription"] = writeDescription(sample);
+          sampleMap["weightDry"] = sample.weightDry ? `${sample.weightDry}g` : 'N/A';
+          sampleMap["weightAshed"] = sample.weightAshed ? `${sample.weightAshed}g` : 'N/A';
+          sampleMap["moisture"] = writeSampleMoisture(sample);
+
+          if (sample.waSoilAnalysis !== undefined) {
+            sampleMap["formDescription"] = sample.waSoilAnalysis.formDescription ? sample.waSoilAnalysis.formDescription : 'N/A';
+            let waTotals = getWATotalDetails(sample);
+            sampleMap["concentrationACM"] = waTotals.concentration.acm ? `${waTotals.concentration.acm}%` : 'N/A';
+            sampleMap["concentrationFAAF"] = waTotals.concentration.faaf ? `${waTotals.concentration.faaf}%` : 'N/A';
+            sampleMap["concentrationFA"] = waTotals.concentration.fa ? `${waTotals.concentration.fa}%` : 'N/A';
+            sampleMap["concentrationAF"] = waTotals.concentration.af ? `${waTotals.concentration.af}%` : 'N/A';
+            sampleMap["weightACM"] = waTotals.weight.acm ? `${waTotals.weight.acm}g` : 'N/A';
+            sampleMap["weightFA"] = waTotals.weight.fa ? `${waTotals.weight.fa}g` : 'N/A';
+            sampleMap["weightAF"] = waTotals.weight.af ? `${waTotals.weight.af}g` : 'N/A';
+            sampleMap["weightAshedGt7"] = sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : 'N/A';
+            sampleMap["weightAshedTo7"] = sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : 'N/A';
+            sampleMap["weightAshedLt2"] = sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : 'N/A';
+          }
+        }
+
         sampleList.push(sampleMap);
 
         // LOG SAMPLE
@@ -1511,7 +1534,7 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
     version: version ? version : 1,
     samples: sampleList
   };
-  //console.log(report);
+  console.log(report);
   return report;
 };
 
@@ -1920,8 +1943,6 @@ export const getWATotalDetails = (sample) => {
             else if (layer.form === 'af') totals.weight.af = totals.weight.af + weight;
           }
           if (layer.form) {
-            console.log(totals.fractions);
-            console.log(layer.form);
             totals.forms[layer.form] = true;
             totals.fractions.total[fraction] = true;
             totals.fractions[layer.form][fraction] = true;
@@ -2695,8 +2716,6 @@ export const writeDates = (samples, field) => {
     sortedMap[year][month] = sortedMap[year][month] ? sortedMap[year][month] : {};
     sortedMap[year][month][day] = true;
   });
-
-  console.log(sortedMap);
 
   var monthNames = {
     "January": 1,
