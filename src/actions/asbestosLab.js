@@ -1483,14 +1483,17 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
         sampleMap["conditionings"] = writeConditionings(sample);
 
         if (job.waAnalysis) {
-          sampleMap["fullDescription"] = writeDescription(sample);
+          sampleMap["simpleDescription"] = writeSimpleDescription(sample);
+          sampleMap["simpleResult"] = writeSimpleResult(sample.result, sample.noAsbestosResultReason);
           sampleMap["weightDry"] = sample.weightDry ? `${sample.weightDry}g` : 'N/A';
           sampleMap["weightAshed"] = sample.weightAshed ? `${sample.weightAshed}g` : 'N/A';
-          sampleMap["moisture"] = writeSampleMoisture(sample);
+          sampleMap["moisture"] = writeSampleMoisture(sample) ? `${writeSampleMoisture(sample)}%` : 'N/A';
 
           if (sample.waSoilAnalysis !== undefined) {
             sampleMap["formDescription"] = sample.waSoilAnalysis.formDescription ? sample.waSoilAnalysis.formDescription : 'N/A';
             let waTotals = getWATotalDetails(sample);
+            // sampleMap["bold"] = waTotals.bold;
+            // sampleMap["soilConcentrationResult"] = waTotals.soilConcentrationResult;
             sampleMap["concentrationACM"] = waTotals.concentration.acm ? `${waTotals.concentration.acm}%` : 'N/A';
             sampleMap["concentrationFAAF"] = waTotals.concentration.faaf ? `${waTotals.concentration.faaf}%` : 'N/A';
             sampleMap["concentrationFA"] = waTotals.concentration.fa ? `${waTotals.concentration.fa}%` : 'N/A';
@@ -1705,6 +1708,26 @@ export const writeDescription = (sample) => {
     str = str + sample.material;
   } else {
     str = str + "No description";
+  }
+  if (str.length > 1) str = str.charAt(0).toUpperCase() + str.slice(1);
+  return str;
+};
+
+export const writeSimpleDescription = (sample) => {
+  var str = '';
+  if (sample.genericLocation) str = sample.genericLocation;
+  if (sample.specificLocation) {
+    if (str === '') {
+      str = sample.specificLocation;
+    } else {
+      str = str + ', ' + sample.specificLocation;
+    }
+  }
+  if (str !== '') str = str + ': ';
+  if (sample.description) {
+    str = str + sample.description;
+  } else {
+    str = str + 'No Description';
   }
   if (str.length > 1) str = str.charAt(0).toUpperCase() + str.slice(1);
   return str;
@@ -1926,6 +1949,8 @@ export const getWATotalDetails = (sample) => {
     },
     allHaveTypes: true,
     allHaveForms: true,
+    waOverLimit: false,
+    bold: {},
   };
 
   if (sample && sample.waSoilAnalysis) {
@@ -1961,8 +1986,17 @@ export const getWATotalDetails = (sample) => {
     totals.result.faaf = mergeAsbestosResult(totals.result.af, totals.result.fa);
     totals.weight.faaf = totals.weight.fa + totals.weight.af;
 
+    if (totals.result.total.no) {
+      totals.soilConcentrationResult = 'Not Detected';
+    } else if (parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) < 0.001 && parseFloat(((totals.weight.acm/sample.weightDry) * 100)) < 0.01) {
+      totals.soilConcentrationResult = 'Below Limit';
+    }
+
     if (sample.weightDry) {
-      console.log(sample.weightDry);
+      if ((parseFloat(((totals.weight.acm/sample.weightDry) * 100)) >= 0.01) ||
+      (parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) >= 0.001) ||
+      (parseFloat(((totals.weight.fa/sample.weightDry) * 100)) >= 0.001) ||
+      (parseFloat(((totals.weight.af/sample.weightDry) * 100)) >= 0.001)) totals.waOverLimit = true;
       totals.concentration.total = parseFloat(((totals.weight.total/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.total/sample.weightDry) * 100)).toFixed(3);
       totals.concentration.acm = parseFloat(((totals.weight.acm/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.acm/sample.weightDry) * 100)).toFixed(3);
       totals.concentration.faaf = parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.faaf)/sample.weightDry) * 100).toFixed(3);
@@ -1977,7 +2011,6 @@ export const getWATotalDetails = (sample) => {
     totals.weight.fa = totals.weight.fa < 0.00001 ? '<0.00001' : totals.weight.fa.toFixed(5);
     totals.weight.af = totals.weight.af < 0.00001 ? '<0.00001' : totals.weight.af.toFixed(5);
   }
-  console.log(totals);
   return totals;
 }
 
@@ -2154,6 +2187,41 @@ export const writeResult = (result, noAsbestosResultReason) => {
   });
   // Don't show other fibres with positives to avoid confusion
   return str.charAt(0).toUpperCase() + str.slice(1) + " Detected" + others;
+};
+
+export const writeSimpleResult = (result, noAsbestosResultReason) => {
+  let detected = [];
+  if (result === undefined) {
+    if (noAsbestosResultReason) {
+      let reasonMap = {
+        notAnalysed: 'Not Analysed',
+        sampleSizeTooSmall: 'Sample Size Too Small',
+        sampleNotReceived: 'Sample Not Received By Lab',
+        other: 'Not Analysed'
+      };
+      return reasonMap[noAsbestosResultReason];
+    }
+    return "Not Analysed";
+  }
+  Object.keys(result).forEach(type => {
+    if (result[type]) detected.push(type);
+  });
+  if (detected.length < 1) return "Not Analysed";
+  if (result["no"]) return "No Asbestos Detected";
+  let asbestos = [];
+  if (result["ch"]) asbestos.push("Chrysotile");
+  if (result["am"]) asbestos.push("Amosite");
+  if (result["cr"]) asbestos.push("Crocidolite");
+  if (result["umf"]) asbestos.push("Unidentified Mineral Fibres (UMF)");
+  let str = "";
+  if (asbestos.length === 1) {
+    str = asbestos[0];
+  } else if (asbestos.length > 1) {
+    var last_element = asbestos.pop();
+    str = asbestos.join(", ") + " and " + last_element;
+  }
+
+  return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
 export const writeShorthandResult = result => {

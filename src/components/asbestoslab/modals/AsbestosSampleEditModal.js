@@ -283,9 +283,11 @@ class AsbestosSampleEditModal extends React.Component {
     });
   };
 
-  saveSample = () => {
+  saveSample = async () => {
     const { override } = this.state;
     let sample = this.state.samples[this.state.activeSample];
+    let waTotals = await getWATotalDetails(sample);
+    sample.waTotals = waTotals;
 
     asbestosSamplesRef
       .doc(sample.uid)

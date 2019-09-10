@@ -6,6 +6,8 @@ import store from "../../../store";
 import { DOWNLOAD_LAB_CERTIFICATE } from "../../../constants/modal-types";
 import { docsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
+import FileSaver from 'file-saver';
+import axios from 'axios';
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -39,6 +41,22 @@ class DownloadLabCertificateModal extends React.Component {
     fileType: "doc",
     certificateType: "bulk",
     template: "single",
+  };
+
+  postData = async (data, url) => {
+    let res = await axios.post(url, data);
+    let newDocument = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    FileSaver.saveAs(res.data, 'test_doc.docx');
+    // console.log(res.data);
+    // this.writeToWindow(res.data);
+  }
+
+  writeToWindow = (data) => {
+    console.log(data);
+    let win = window.open('about:blank');
+    win.document.open();
+    win.document.write(data);
+    win.document.close();
   };
 
   render() {
@@ -101,23 +119,30 @@ class DownloadLabCertificateModal extends React.Component {
           <Button onClick={() => this.props.hideModal()} color="secondary">
             Cancel
           </Button>
-          <Button
+          <form method="post" target="_blank" action={"https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.certificateType + "/" + this.state.fileType + ".php?template=" + this.state.template}>
+            <input type="hidden" name="data" value={JSON.stringify(modalProps.report)} />
+            <Button type="submit">Download</Button>
+          </form>
+          {false && <Button
             onClick={() => {
-              // //console.log(modalProps.report);
+              //console.log(modalProps.report);
               let url =
                 "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.certificateType + "/" + this.state.fileType + ".php?template=" + this.state.template +
                 "&report=" + encodeURIComponent(JSON.stringify(modalProps.report));
               // url =
               //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=" +
-              // //console.log(encodeURIComponent(JSON.stringify(modalProps.report)));
+              //console.log(encodeURIComponent(JSON.stringify(modalProps.report)));
               //console.log(url);
               window.open(url);
+              // let url = "https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.certificateType + "/" + this.state.fileType + ".php?template=" + this.state.template;
+              // let data = JSON.stringify(modalProps.report);
+              // this.postData(data, url);
               this.props.hideModal();
             }}
             color="primary"
           >
             Download
-          </Button>
+          </Button>}
         </DialogActions>
       </Dialog>
     );

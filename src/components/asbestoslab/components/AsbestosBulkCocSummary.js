@@ -30,7 +30,7 @@ class AsbestosBulkCocSummary extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     // return true;
-    // return false;
+    return false;
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (nextProps.expanded !== nextProps.job) return false; // List is not expanded (hidden)
     if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
