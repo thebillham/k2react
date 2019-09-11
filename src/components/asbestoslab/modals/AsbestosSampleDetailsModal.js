@@ -20,7 +20,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import Good from "@material-ui/icons/ThumbUp";
 import Half from "@material-ui/icons/ThumbsUpDown";
 import Bad from "@material-ui/icons/ThumbDown";
-import AsbestosSampleWASummary from "../components/AsbestosSampleWASummary";
+import AsbestosSampleWAEditSummary from "../components/AsbestosSampleWAEditSummary";
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { dateOf } from "../../../actions/local";
 import moment from "moment";
@@ -290,12 +290,12 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }
                   {SampleTextyDisplay('Analytical Criteria OK?', analyticalCriteraOK(sample))}
                 </div>
-                {job.waAnalysis && <div className={classes.informationBox}>
-                  <div className={classes.heading}>Western Australian Standard</div>
-                  <AsbestosSampleWASummary sample={sample} />
-                </div>}
               </Grid>
             </Grid>
+            {job.waAnalysis && <div className={classes.informationBox}>
+              <div className={classes.heading}>Soil Concentrations</div>
+              <AsbestosSampleWAEditSummary sample={sample} noEdit />
+            </div>}
           </DialogContent>}
           <DialogActions>
             <Button onClick={() => this.previousSample(samples)} color="inherit" disabled={samples[0].uid == sample.uid}>Previous</Button>

@@ -12,7 +12,7 @@ import classNames from 'classnames';
 import { SketchPicker } from 'react-color';
 import SuggestionField from '../../../widgets/SuggestionField';
 import TextField from "@material-ui/core/TextField";
-import { SampleTextyDisplay, SampleTextyLine, SamplesTextyBox, AsbButton } from '../../../widgets/FormWidgets';
+import { SampleTextyDisplay, SampleTextyLine, SamplesTextyBox, SamplesTextyBoxAlt, AsbButton } from '../../../widgets/FormWidgets';
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
@@ -65,7 +65,7 @@ class AsbestosSampleWAEditSummary extends React.Component {
   }
 
   render() {
-    const { classes, sample, that } = this.props;
+    const { classes, sample, that, noEdit } = this.props;
     let fractionMap = getWATotalDetails(sample);
     let waColors = getSampleColors({result: fractionMap.result.total});
 
@@ -86,46 +86,17 @@ class AsbestosSampleWAEditSummary extends React.Component {
     return(
       <div>
         <Grid container direction='row'>
-          <Grid item xs={2}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={sample.waAnalysisComplete === true ? true : false}
-                  onClick={e => {
-                    that.setState({
-                      modified: true,
-                      samples: {
-                        ...that.state.samples,
-                        [that.state.activeSample]: {
-                          ...that.state.samples[that.state.activeSample],
-                          waAnalysisComplete: e.target.checked,
-                        }
-                      }
-                    });
-                    let log = {
-                      type: "Analysis",
-                      log: e.target.checked === true
-                        ? `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as complete.`
-                        : `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as incomplete.`,
-                      sample: sample.uid,
-                      chainOfCustody: sample.cocUid,
-                    };
-                    addLog("asbestosLab", log, this.props.me);
-                  }}
-                  value="waAnalysisComplete"
-                  color="primary"
-                />
-              }
-              label="WA Analysis Complete"
-            />
+          <Grid item xs={4} className={classes.headingRow}>Description of Asbestos Forms
           </Grid>
-          <Grid item xs={2} className={classes.headingRow}>
-            Short Description of Asbestos Detected
-          </Grid>
-          <Grid item xs={3} className={classes.entryRow}>
-            <SuggestionField that={this} label='Short Description' suggestions='asbestosInSoilSuggestions'
+          <Grid item xs={4} className={classes.headingRow}>Sample Weights</Grid>
+          <Grid item xs={4} className={classes.headingRow}>Fraction Weights (ashed)</Grid>
+        </Grid>
+        <Grid container direction='row'>
+          <Grid item xs={4} className={classes.entryRow}>
+            {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.formDescription : <SuggestionField
+              that={this}
+              suggestions='asbestosInSoilSuggestions'
               value={sample.waSoilAnalysis && sample.waSoilAnalysis.formDescription}
-              label='This will be displayed on the report.'
               controlled
               onModify={(value) => {
                 that.setState({
@@ -142,14 +113,69 @@ class AsbestosSampleWAEditSummary extends React.Component {
                   }
                 });
               }}
-            />
+            />}
           </Grid>
-          <Grid item xs={2} className={classes.headingRow}>
-            Dry Weight
-          </Grid>
-          <Grid item xs={3} className={classes.entryRow}>
+          <Grid item xs={2} className={classes.firstColumn}>Received Weight</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {SamplesTextyBox(that, sample, 'weightDry', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.weightReceived ? `${sample.weightReceived}g` : `N/A` : SamplesTextyBox(that, sample, 'weightReceived', null, null, false, 0, 'g', null, true)}
+            </div>
+          </Grid>
+          <Grid item xs={2} className={classes.firstColumn}>{`> 7mm`}</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
+            <div className={classes.formInputMedium}>
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractiongt7WeightAshed', null, null, false, 0, 'g', null, true)}
+            </div>
+          </Grid>
+        </Grid>
+        <Grid container direction='row'>
+          <Grid item xs={2} className={classes.firstColumn}>Moisture</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
+            {this.props.moisture ? <span>
+              {this.props.moisture}%
+            </span> : <span>N/A</span>}
+          </Grid>
+          <Grid item xs={2} className={classes.firstColumn}>Dry Weight</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
+            <div className={classes.formInputMedium}>
+              {noEdit ? sample.weightDry ? `${sample.weightDry}g` : `N/A` : SamplesTextyBox(that, sample, 'weightDry', null, null, false, 0, 'g', null, true)}
+            </div>
+          </Grid>
+          <Grid item xs={2} className={classes.firstColumn}>{`2 - 7mm`}</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
+            <div className={classes.formInputMedium}>
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionto7WeightAshed', null, null, false, 0, 'g', null, true)}
+            </div>
+          </Grid>
+        </Grid>
+        <Grid container direction='row'>
+          <Grid item xs={2} className={classes.firstColumn}>Total Ashed Fraction Weight</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
+            {sample.waSoilAnalysis && sample.waSoilAnalysis.fractiongt7WeightAshed && sample.waSoilAnalysis.fractionto7WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshed ?
+              <span className={
+                (parseFloat(sample.waSoilAnalysis.fractiongt7WeightAshed) +
+                parseFloat(sample.waSoilAnalysis.fractionto7WeightAshed) +
+                parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed)) !== parseFloat(sample.weightAshed) ?
+                classes.boldRedWarningText
+                : classes.boldBlack
+              }>{
+                (parseFloat(sample.waSoilAnalysis.fractiongt7WeightAshed) +
+                parseFloat(sample.waSoilAnalysis.fractionto7WeightAshed) +
+                parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed)).toFixed(1)
+              }g</span>
+              : <span>N/A</span>
+            }
+          </Grid>
+          <Grid item xs={2} className={classes.firstColumn}>Ashed Weight</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
+            <div className={classes.formInputMedium}>
+              {noEdit ? sample.weightAshed ? `${sample.weightAshed}g` : `N/A` : SamplesTextyBox(that, sample, 'weightAshed', null, null, false, 0, 'g', null, true)}
+            </div>
+          </Grid>
+          <Grid item xs={2} className={classes.firstColumn}>{`< 2mm`}</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
+            <div className={classes.formInputMedium}>
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshed', null, null, false, 0, 'g', null, true)}
             </div>
           </Grid>
         </Grid>
@@ -203,6 +229,39 @@ class AsbestosSampleWAEditSummary extends React.Component {
             }
           </Grid>
         </Grid>)}
+        <div className={classes.flexRowRightAlign}>
+          {noEdit ? sample.waAnalysisComplete ? <span className={classes.colorsDivOk}>Analysis Complete</span> : <span className={classes.colorsDivOff}>Analysis Incomplete</span> : <FormControlLabel
+            control={
+              <Switch
+                checked={sample.waAnalysisComplete === true ? true : false}
+                onClick={e => {
+                  that.setState({
+                    modified: true,
+                    samples: {
+                      ...that.state.samples,
+                      [that.state.activeSample]: {
+                        ...that.state.samples[that.state.activeSample],
+                        waAnalysisComplete: e.target.checked,
+                      }
+                    }
+                  });
+                  let log = {
+                    type: "Analysis",
+                    log: e.target.checked === true
+                      ? `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as complete.`
+                      : `Sample ${sample.sampleNumber} (${writeDescription(sample)}) WA Analysis marked as incomplete.`,
+                    sample: sample.uid,
+                    chainOfCustody: sample.cocUid,
+                  };
+                  addLog("asbestosLab", log, this.props.me);
+                }}
+                value="waAnalysisComplete"
+                color="primary"
+              />
+            }
+            label="WA Analysis Complete"
+          />}
+        </div>
         {false && <div>
           {chartData.length > 1 && <PieChart width={200} height={200}>
             <Pie data={chartData} dataKey="value" nameKey="name" labelLine={false} label>

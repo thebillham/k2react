@@ -142,6 +142,9 @@ class AsbestosBulkCocCard extends React.Component {
         filteredSamples[s.sampleNumber] = s;
       });
     }
+
+    let coc = JSON.stringify(printCocBulk(job, filteredSamples, this.props.me, this.props.staff));
+    console.log(coc);
     getJobStatus(filteredSamples, job);
     return (
       <ExpansionPanel
@@ -164,7 +167,7 @@ class AsbestosBulkCocCard extends React.Component {
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <div className={classes.fullWidth}>
-            <div>
+            <div className={classes.flexRow}>
               <Tooltip id="h-tooltip" title={'Edit Chain of Custody'}>
                 <IconButton
                   onClick={() => {
@@ -181,9 +184,14 @@ class AsbestosBulkCocCard extends React.Component {
                 </IconButton>
               </Tooltip>
               <Tooltip title={'Print Chain of Custody'}>
-                <IconButton onClick={() => {printCocBulk(job, filteredSamples, this.props.me, this.props.staff)}}>
-                  <PrintCocIcon className={classes.iconRegular} />
-                </IconButton>
+                <span>
+                  <form method="post" target="_blank" action={job.waAnalysis ? "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php" : "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php"}>
+                  <input type="hidden" name="data" value={coc} />
+                    <IconButton type="submit">
+                      <PrintCocIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </form>
+                </span>
               </Tooltip>
               <Tooltip id="reca-tooltip" title={'Receive Samples'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
                 <span>

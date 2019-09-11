@@ -1142,193 +1142,6 @@ export const checkTestCertificateIssue = (samples, job, meUid) => {
 const fractionNames = ['gt7','to7','lt2'];
 const layerNum = 3;
 
-const waStyle = { display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, margin: 12, };
-const totalStyle = { fontWeight: 500, fontSize: 16, textAlign: 'center', };
-const waBoxStyle = { flexDirection: 'row', display: 'flex', justifyContent: 'flex-end', textAlign: 'right', marginTop: 14, };
-const bufferStyle = { width: '40%'};
-const waSubheading = { fontWeight: 500 };
-const waSubheadingBoxStyle = { width: '35%', marginRight: 12, marginTop: 14, fontWeight: 500, };
-const waWeightStyle = { width: '25%', marginRight: 12, };
-const waWeightStyle2 = { width: '25%', };
-const bottomDottedStyle = { borderBottomStyle: 'dotted', borderBottomWidth: 1};
-const waConcStyle = { width: '35%', marginRight: 14, };
-const waDivRed = {backgroundColor: 'red', borderRadius: 5};
-const waDivWhite = {backgroundColor: 'white', borderRadius: 5};
-const blackTextStyle = { color: 'black' };
-const redTextStyle = { color: 'red' };
-const whiteTextStyle = { color: 'white', margin: 5 };
-const lightGreyTextStyle = { color: '#ddd', margin: 5 };
-
-export const getWAAnalysisSummary = sample => {
-    let weightACM = 0;
-    let weightFA = 0;
-    let weightAF = 0;
-    let weightDry = sample.weightDry;
-    let weightAshed = sample.weightAshed;
-    let ch = false;
-    let am = false;
-    let cr = false;
-    let umf = false;
-    let fractionTotalWeight = 0.0;
-    let fractionWeightNum = 0;
-    let subFractionTotalWeight = 0.0;
-    let asbestosTotalWeight = 0.0;
-    let allHaveTypes = true;
-    let allHaveForms = true;
-
-    fractionNames.forEach(fraction => {
-      if (sample && sample.waAnalysis && sample.waAnalysis['fraction' + fraction + 'WeightAshed'] > 0) {
-        fractionWeightNum++;
-        fractionTotalWeight += parseFloat(sample.waAnalysis['fraction' + fraction + 'WeightAshed']);
-      }
-
-      [...Array(sample && sample.layerNum && sample.layerNum[fraction] ? sample.layerNum[fraction] : layerNum).keys()].forEach(num => {
-        if (sample && sample.waSoilAnalysis && sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] !== undefined) {
-          let sub = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
-          if (sub.weight) {
-            subFractionTotalWeight += parseFloat(sub.weight);
-          }
-          if (sub.weight && sub.concentration) {
-            let asbestosWeight = (parseFloat(sub.weight) * parseFloat(sub.concentration) / 100);
-            asbestosTotalWeight += asbestosWeight;
-            if (sub.type === undefined) allHaveForms = false;
-            if (sub.type === 'fa') weightFA += parseFloat(asbestosWeight);
-              else if (sub.type === 'af') weightAF += parseFloat(asbestosWeight);
-              else if (sub.type === 'acm') weightACM += parseFloat(asbestosWeight);
-            if (sub.result) {
-              if (sub.result.ch === true) ch = true;
-              if (sub.result.am === true) am = true;
-              if (sub.result.cr === true) cr = true;
-              if (sub.result.umf === true) umf = true;
-              if (!sub.result.ch && !sub.result.am && !sub.result.cr && !sub.result.umf) allHaveTypes = false;
-            } else {
-              allHaveTypes = false;
-            }
-          }
-        }
-      });
-    });
-
-    let match = true;
-    if (sample.result) {
-      if ((ch || sample.result.ch) && ch !== sample.result.ch) match = false;
-      if ((am || sample.result.am) && am !== sample.result.am) match = false;
-      if ((cr || sample.result.cr) && cr !== sample.result.cr) match = false;
-      if ((umf || sample.result.umf) && umf !== sample.result.umf) match = false;
-    }
-
-    let concentrationFA = 0.0;
-    let concentrationAF = 0.0;
-    let concentrationACM = 0.0;
-    let concentrationFAAF = 0.0;
-    if (weightDry) {
-      concentrationFA = weightFA/weightDry*100;
-      concentrationAF = weightAF/weightDry*100;
-      concentrationACM = weightACM/weightDry*100;
-      concentrationFAAF = (weightFA+weightAF)/weightDry*100;
-    }
-    console.log(concentrationFA);
-    return(
-      <div style={waStyle}>
-        <div style={totalStyle}>Totals</div>
-        <div style={waBoxStyle}>
-          <div style={bufferStyle} />
-          <div style={waSubheadingBoxStyle}>
-            <div>Dry Weight: </div>
-            <div>Ashed Weight: </div>
-            <div>Ashed Fraction Total: </div>
-            <div>Ashed Subfraction Total: </div>
-            <div>Asbestos Total: </div>
-          </div>
-          <div style={waWeightStyle}>
-            <div>{weightDry ? <span>{parseFloat(weightDry).toFixed(2)}g</span> : <span>N/A</span>}</div>
-            <div>{weightAshed ? <span>{parseFloat(weightAshed).toFixed(2)}g</span> : <span>N/A</span>}</div>
-            <div>{fractionWeightNum === 3 ? <span>{parseFloat(fractionTotalWeight).toFixed(2)}g</span> : <span>N/A</span>}</div>
-            <div>{subFractionTotalWeight ? <span>{parseFloat(subFractionTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
-            <div>{asbestosTotalWeight > 0 ? <span>{parseFloat(asbestosTotalWeight).toFixed(4)}g</span> : <span>N/A</span>}</div>
-          </div>
-        </div>
-        <div style={waBoxStyle}>
-          <div style={waWeightStyle}>
-            <div style={waSubheading}>Type</div>
-            <div>ACM Bonded</div>
-            <div>Friable Asbestos</div>
-            <div>Asbestos Fines</div>
-            <div>FA/AF Total</div>
-          </div>
-          <div style={waWeightStyle2}>
-            <div style={waSubheading}>Asbestos Weight</div>
-            <div style={bottomDottedStyle}>{weightACM.toFixed(6)}g</div>
-            <div style={bottomDottedStyle}>{weightFA.toFixed(6)}g</div>
-            <div style={bottomDottedStyle}>{weightAF.toFixed(6)}g</div>
-            <div style={bottomDottedStyle}>{(weightFA+weightAF).toFixed(6)}g</div>
-          </div>
-          <div style={waConcStyle}>
-            <div style={waSubheading}>Asbestos Concentration</div>
-            <div style={bottomDottedStyle}>{weightDry ? <span style={concentrationACM > 0.01 ? {redTextStyle} : {blackTextStyle} }>{concentrationACM.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={bottomDottedStyle}>{weightDry ? <span style={concentrationFA > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationFA.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={bottomDottedStyle}>{weightDry ? <span style={concentrationAF > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-            <div style={bottomDottedStyle}>{weightDry ? <span style={concentrationFAAF > 0.001 ? {redTextStyle} : {blackTextStyle} }>{concentrationFAAF.toFixed(4)}%</span> : <span>&nbsp;</span>}</div>
-          </div>
-        </div>
-        <div style={waBoxStyle}>
-          <div style={ch ? waDivRed : waDivWhite}>
-            <Button
-              variant="outlined"
-              style={ch ? whiteTextStyle : lightGreyTextStyle}
-              onClick={null}
-            >
-              CH
-            </Button>
-          </div>
-          <div style={am ? waDivRed : waDivWhite}>
-            <Button
-              variant="outlined"
-              style={am ? whiteTextStyle : lightGreyTextStyle}
-              onClick={null}
-            >
-              AM
-            </Button>
-          </div>
-          <div style={cr ? waDivRed : waDivWhite}>
-            <Button
-              variant="outlined"
-              style={cr ? whiteTextStyle : lightGreyTextStyle}
-              onClick={null}
-            >
-              CR
-            </Button>
-          </div>
-          <div style={umf ? waDivRed : waDivWhite}>
-            <Button
-              variant="outlined"
-              style={umf ? whiteTextStyle : lightGreyTextStyle}
-              onClick={null}
-            >
-              UMF
-            </Button>
-          </div>
-        </div>
-        { weightAshed && fractionWeightNum === 3 && parseFloat(fractionTotalWeight) !== parseFloat(weightAshed) && <div className={styles.warningTextLight}>
-          The weight of all fractions does not match the total conditioned weight.
-        </div>}
-        { weightAshed && parseFloat(subFractionTotalWeight) > parseFloat(weightAshed) && <div className={styles.warningTextLight}>
-          The weight of all analysed subfractions exceeds the total conditioned weight of the entire sample!
-        </div>}
-        { allHaveTypes === false && <div className={styles.warningTextLight}>
-          Not all subfractions have been assigned an asbestos type (i.e. CH/AM/CR/UMF).
-        </div>}
-        { allHaveForms === false && <div className={styles.warningTextLight}>
-          Not all subfractions have been assigned an asbestos form (i.e. AF/FA/ACM). This will result in an incorrect concentration.
-        </div>}
-        { match === false && <div className={styles.warningTextLight}>
-          The cumulative result of the analysed fractions does not match with the reported asbestos result for the entire sample. Please check.
-        </div>}
-      </div>
-    );
-  }
-
-
 //
 // ADMIN/ISSUE
 //
@@ -1358,8 +1171,11 @@ export const printCocBulk = (job, samples, me, staffList) => {
         let sampleMap = {};
         if (sample.disabled) return;
         sampleMap["no"] = sample.sampleNumber;
-        sampleMap["description"] = writeCocDescription(sample);
-        sampleMap["category"] = sample.category ? sample.category : 'Other';
+        if (job.waAnalysis) sampleMap["desc"] = writeSimpleDescription(sample);
+        else {
+          sampleMap["description"] = writeCocDescription(sample);
+          sampleMap["category"] = sample.category ? sample.category : 'Other';
+        }
         // sampleMap["material"] = sample.material ?
         //   sample.material.charAt(0).toUpperCase() + sample.material.slice(1) : '';
         sampleList.push(sampleMap);
@@ -1383,13 +1199,14 @@ export const printCocBulk = (job, samples, me, staffList) => {
     samples: sampleList
   };
   //console.log(report);
-  let url = job.waAnalysis ?
-    "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php?report=" +
-    encodeURIComponent(JSON.stringify(report))
-    :
-    "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php?report=" +
-    encodeURIComponent(JSON.stringify(report));
-  window.open(url);
+  return report;
+  // let url = job.waAnalysis ?
+  //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php?report=" +
+  //   encodeURIComponent(JSON.stringify(report))
+  //   :
+  //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php?report=" +
+  //   encodeURIComponent(JSON.stringify(report));
+  // window.open(url);
 };
 
 export const getStaffQuals = (staffList) => {
@@ -2209,19 +2026,11 @@ export const writeSimpleResult = (result, noAsbestosResultReason) => {
   if (detected.length < 1) return "Not Analysed";
   if (result["no"]) return "No Asbestos Detected";
   let asbestos = [];
-  if (result["ch"]) asbestos.push("Chrysotile");
-  if (result["am"]) asbestos.push("Amosite");
-  if (result["cr"]) asbestos.push("Crocidolite");
-  if (result["umf"]) asbestos.push("Unidentified Mineral Fibres (UMF)");
-  let str = "";
-  if (asbestos.length === 1) {
-    str = asbestos[0];
-  } else if (asbestos.length > 1) {
-    var last_element = asbestos.pop();
-    str = asbestos.join(", ") + " and " + last_element;
-  }
-
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  if (result["ch"]) asbestos.push("CH");
+  if (result["am"]) asbestos.push("AM");
+  if (result["cr"]) asbestos.push("CR");
+  if (result["umf"]) asbestos.push("UMF");
+  return asbestos.join(" ");
 };
 
 export const writeShorthandResult = result => {

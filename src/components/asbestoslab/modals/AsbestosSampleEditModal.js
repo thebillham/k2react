@@ -703,7 +703,7 @@ class AsbestosSampleEditModal extends React.Component {
           {waAnalysis && <div>
             <Divider className={classes.marginTopSmall} />
             <div className={classes.subHeading}>Soil Concentrations</div>
-            <AsbestosSampleWAEditSummary sample={sample} that={this} me={this.props.me} />
+            <AsbestosSampleWAEditSummary sample={sample} that={this} me={this.props.me} moisture={sampleMoisture} />
             {fractionNames.map(fraction => {
               return <AsbestosSampleWAFraction key={fraction} sample={sample} fraction={fraction} that={this} />;
             })}
