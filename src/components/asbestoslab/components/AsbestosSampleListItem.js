@@ -94,6 +94,8 @@ class AsbestosSampleListItem extends React.PureComponent {
     let basicResult = getBasicResult(sample);
     let sampleStatus = getSampleStatusCode(sample);
     let noResults = true;
+    let acmLimit = job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01;
+    let overLimit = sample.waTotals && (sample.waTotals.waOverLimit || sample.waTotals.concentration.acmFloat >= acmLimit) ? true : false;
 
     return (
         <ListItem key={sample.uid} className={classes.hoverItem}>
@@ -128,7 +130,7 @@ class AsbestosSampleListItem extends React.PureComponent {
                   {writeShorthandResult(sample.result)}
                 </div>
                 {job.waAnalysis &&
-                  <div className={sample.waAnalysisComplete ? sample.waTotals && sample.waTotals.waOverLimit ? classes.circleShadedBad : classes.circleShadedOk : classes.circleShaded}>
+                  <div className={sample.waAnalysisComplete ? overLimit ? classes.circleShadedBad : classes.circleShadedOk : classes.circleShaded}>
                     <WAIcon />
                   </div>
                 }

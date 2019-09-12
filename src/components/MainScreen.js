@@ -313,12 +313,12 @@ class MainScreen extends React.PureComponent {
             {/*{this.state.openMyDetails ? <ExpandLess /> : <ExpandMore /> }*/}
           </ListItem>
         <Divider />
-          <ListItem button component={Link} to="/jobs/sites">
+          {/*<ListItem button component={Link} to="/jobs/sites">
             <ListItemIcon>
               <SiteIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Sites" />
-          </ListItem>
+          </ListItem>*/}
           <ListItem button component={Link} to="/jobs/map">
             <ListItemIcon>
               <MapIcon className={classes.colorAccent} />
@@ -493,7 +493,7 @@ class MainScreen extends React.PureComponent {
               </ListItem>
             </div>
           )}
-          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.2.3</div>
+          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.2.4</div>
         {/*<Divider />
           <ListItem button onClick={this.handleDevClick}>
             <ListItemIcon>

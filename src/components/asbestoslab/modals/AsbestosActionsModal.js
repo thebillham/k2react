@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import { connect } from "react-redux";
 import store from "../../../store";
 import { ASBESTOS_ACTIONS } from "../../../constants/modal-types";
-import { cocsRef, } from "../../../config/firebase";
+import { firestore, cocsRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
@@ -135,7 +135,7 @@ class AsbestosActionsModal extends React.Component {
     });
   }
 
-  submit = () => {
+  submit = async () => {
     let close = true;
     let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], ...sample}));
     let issuesIncomplete = false;
@@ -174,20 +174,22 @@ class AsbestosActionsModal extends React.Component {
           console.log(this.state.issues);
           if (this.props.modalProps.field === 'issue') issueTestCertificate(this.props.modalProps.job, this.state.samples, this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion)+1 : 1,
             this.state.issues.versionChanges && this.state.issues.versionChanges.comment ? this.state.issues.versionChanges.comment : '', this.props.staff, this.props.me);
-
-          checks.filter(sample => sample.now !== sample.original && !sampleGates[sample.sampleNumber]).forEach(sample => {
-            if (this.props.modalProps.field === 'receivedByLab') receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-            else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          let batch = firestore.batch();
+          console.log(batch);
+          await checks.filter(sample => sample.now !== sample.original && !sampleGates[sample.sampleNumber]).forEach(sample => {
+            if (this.props.modalProps.field === 'receivedByLab') receiveSample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+            else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
             else if (this.props.modalProps.field === 'verified') {
               if (sample.noAsbestosResultReason) {
-                verifySample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate, {noAsbestosResultReason: sample.noAsbestosResultReason});
+                verifySample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate, {noAsbestosResultReason: sample.noAsbestosResultReason});
               } else {
-                verifySample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+                verifySample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
               }
             }
             // if (this.props.modalProps.field === 'issue') checkTestCertificateIssue();
           });
-          cocsRef.doc(this.props.modalProps.job.uid).update({ issues: issuesMap, });
+          batch.update(cocsRef.doc(this.props.modalProps.job.uid), { issues: issuesMap, });
+          batch.commit();
           this.props.hideModal();
         }
       }
@@ -203,14 +205,18 @@ class AsbestosActionsModal extends React.Component {
       if (Object.values(checkMap).length === 0) {
         // No problems with any samples, do actions
         console.log('no problems, do actions');
+        let batch = firestore.batch();
         if (this.props.modalProps.field === 'issue') issueTestCertificate(this.props.modalProps.job, this.state.samples, 1, "First issue.", this.props.staff, this.props.me);
-        else checks.filter(sample => sample.now !== sample.original).forEach(sample => {
-          // this.props.doNotRenderOn(); // Block rendering while looping through sample updates
-          if (this.props.modalProps.field === 'receivedByLab') receiveSample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-          else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-          else if (this.props.modalProps.field === 'verified') verifySample(this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-          // this.props.doNotRenderOff();
-        });
+        else {
+          await checks.filter(sample => sample.now !== sample.original).forEach(sample => {
+            // this.props.doNotRenderOn(); // Block rendering while looping through sample updates
+            if (this.props.modalProps.field === 'receivedByLab') receiveSample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+            else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+            else if (this.props.modalProps.field === 'verified') verifySample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+            // this.props.doNotRenderOff();
+          });
+          batch.commit();
+        }
         // this.props.doNotRenderOff(); // Turn rendering back on
         this.props.hideModal();
       } else {

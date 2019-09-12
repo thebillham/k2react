@@ -34,6 +34,11 @@ const waMap = {
   to7: '2-7',
   lt2: '<2',
 }
+const subSampleMap = {
+  gt7: 'A',
+  to7: 'B',
+  lt2: 'C',
+}
 
 class AsbestosSampleWAFraction extends React.Component {
   state = {
@@ -105,7 +110,7 @@ class AsbestosSampleWAFraction extends React.Component {
                   <IconButton size='small' aria-label='remove' className={classes.marginLeftSmall} onClick={() => this.removeLayer(fraction, sample, that)}><RemoveIcon /></IconButton>
                 </div>
               </div>
-              <div className={classes.spacerMedium} />
+              {/*<div className={classes.spacerMedium} />
               <TextField
                 id="weightAshed"
                 label="Ashed Weight (400ºC)"
@@ -129,11 +134,11 @@ class AsbestosSampleWAFraction extends React.Component {
                     },
                   });
                 }}
-              />
+              />*/}
             </div>
             <div className={classes.marginTopSmall} />
             {[...Array(sample && sample.waLayerNum && sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : waLayerNum).keys()].map(num => {
-              return <AsbestosSampleWASubfraction key={num} sample={sample} num={num+1} fraction={fraction} that={that} />;
+              return <AsbestosSampleWASubfraction key={num} sample={sample} num={num+1} fraction={fraction} that={that} prefix={subSampleMap[fraction]} />;
             })}
             {false && <Grid container className={classes.flexRowHover} direction='row'>
               <Grid item xs={12} md={8} lg={6} className={classes.flexRow}>

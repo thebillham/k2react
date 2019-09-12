@@ -17,6 +17,7 @@ import IconButton from "@material-ui/core/IconButton";
 import FormControl from '@material-ui/core/FormControl';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import InputLabel from '@material-ui/core/InputLabel';
 import Radio from '@material-ui/core/Radio';
 import Select from 'react-select';
 import Grid from '@material-ui/core/Grid';
@@ -29,6 +30,7 @@ import { addLog, } from '../../../actions/local';
 const mapStateToProps = state => {
   return {
     asbestosInSoilForms: state.const.asbestosInSoilForms,
+    asbestosInSoilConcentrations: state.const.asbestosInSoilConcentrations,
    };
 };
 
@@ -46,7 +48,7 @@ class AsbestosSampleWASubfraction extends React.Component {
   }
 
   render() {
-    const { classes, num, sample, fraction, that } = this.props;
+    const { classes, num, sample, fraction, that, prefix } = this.props;
 
     let layer = {};
     let colors = {};
@@ -62,9 +64,9 @@ class AsbestosSampleWASubfraction extends React.Component {
       <Grid container className={classes.flexRowHover} direction='row' spacing={1}>
         <Grid item xs={12} lg={6} className={classes.flexRow}>
           <div className={classes.circleShaded}>
-            {num}
+            {`${prefix}${num}`}
           </div>
-          <div className={classes.columnSmall}>
+          <div className={classes.columnMedSmall}>
             <TextField
               id={`l${num}Weight`}
               label="Weight (g)"
@@ -76,10 +78,24 @@ class AsbestosSampleWASubfraction extends React.Component {
               }}
             />
           </div>
-          <div className={classes.columnMed}>
+          <div className={classes.spacerSmall} />
+          <div className={classes.columnMedSmall}>
+            <TextField
+              id={`l${num}TareWeight`}
+              label="Tare Weight (g)"
+              InputLabelProps={{ shrink: true }}
+              value={layer.tareWeight ? layer.tareWeight : ''}
+              type='number'
+              onChange={e => {
+                this.setLayerVar('tareWeight', num, fraction, e.target.value, that);
+              }}
+            />
+          </div>
+          <div className={classes.spacerSmall} />
+          <div className={classes.columnMedSmall}>
             <Select
-              value={layer.formDescription ? {value: layer.formDescription, label: layer.formDescription} : {value: '', label: ''}}
-              options={this.props.asbestosInSoilForms.map(e => ({ value: e, label: e.description }))}
+              value={layer.concentration ? {value: layer.concentration, label: this.props.asbestosInSoilConcentrations.filter(e => e.value === layer.concentration)[0].label} : {value: '', label: ''}}
+              options={this.props.asbestosInSoilConcentrations.map(e => ({ value: e.value, label: e.label }))}
               onChange={e => {
                 that.setState({
                   modified: true,
@@ -91,9 +107,7 @@ class AsbestosSampleWASubfraction extends React.Component {
                         ...that.state.samples[that.state.activeSample].waSoilAnalysis,
                         [`subfraction${fraction}-${num}`]: {
                           ...that.state.samples[that.state.activeSample].waSoilAnalysis[`subfraction${fraction}-${num}`],
-                          formDescription: e.value.description,
-                          form: e.value.form,
-                          concentration: e.value.concentration,
+                          concentration: e.value,
                         }
                       },
                     },
@@ -101,39 +115,40 @@ class AsbestosSampleWASubfraction extends React.Component {
                 })
               }}
             />
-            {false && <TextField
-              id={`l${num}Concentration`}
-              label="Asbestos %"
-              InputLabelProps={{ shrink: true }}
-              InputProps = {{ inputProps: { min: 0, max: 100 }}}
-              value={layer.concentration ? layer.concentration : ''}
-              type='number'
-              onChange={e => {
-                this.setLayerVar('concentration', num, fraction, e.target.value, that);
-              }}
-            />}
+        </div>
+        <div className={classes.spacerSmall} />
+        <div className={classes.columnMedSmall}>
+          <Select
+            value={layer.form ? {value: layer.form, label: this.props.asbestosInSoilForms.filter(e => e.value === layer.form)[0].label} : {value: '', label: ''}}
+            options={this.props.asbestosInSoilForms.map(e => ({ value: e.value, label: e.label }))}
+            onChange={e => {
+              that.setState({
+                modified: true,
+                samples: {
+                  ...that.state.samples,
+                  [that.state.activeSample]: {
+                    ...that.state.samples[that.state.activeSample],
+                    waSoilAnalysis: {
+                      ...that.state.samples[that.state.activeSample].waSoilAnalysis,
+                      [`subfraction${fraction}-${num}`]: {
+                        ...that.state.samples[that.state.activeSample].waSoilAnalysis[`subfraction${fraction}-${num}`],
+                        form: e.value,
+                      }
+                    },
+                  },
+                }
+              })
+            }}
+          />
+        </div>
+        <div className={classes.columnMedSmall}>
+          <div className={classNames(classes.informationBoxRounded, classes.bold)}>
+            {layer.concentration && layer.weight ? layer.tareWeight ?
+              ((parseFloat(layer.weight) - parseFloat(layer.tareWeight)) * parseFloat(layer.concentration) / 100).toFixed(5) + 'g'
+              : (parseFloat(layer.weight) * parseFloat(layer.concentration) / 100).toFixed(5) + 'g'
+            : ''}
           </div>
-          <div className={classNames(classes.columnSmall, classes.informationBox)}>
-            {layer.concentration && layer.weight ? (parseFloat(layer.weight) * parseFloat(layer.concentration) / 100).toPrecision(3) + 'g' : ''}
-          </div>
-          <div className={classes.spacerSmall} />
-          {false && <div className={classes.columnLarge}>
-            <FormControl component="fieldset">
-              <RadioGroup
-                aria-label="Form"
-                name="form"
-                value={ layer.form ? layer.form : '' }
-                row
-                onChange={e => {
-                  this.setLayerVar('form', num, fraction, e.target.value, that);
-                }}
-              >
-                <FormControlLabel value="acm" control={<Radio />} label="ACM" />
-                <FormControlLabel value="fa" control={<Radio />} label="FA" />
-                <FormControlLabel value="af" control={<Radio />} label="AF" />
-              </RadioGroup>
-            </FormControl>
-          </div>}
+        </div>
         </Grid>
         <Grid item xs={12} lg={6}>
           <div className={classes.flexRowRightAlign}>

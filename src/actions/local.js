@@ -1493,7 +1493,7 @@ export const saveCurrentJobState = state => dispatch => {
   });
 };
 
-export const addLog = (collection, log, user) => {
+export const addLog = (collection, log, user, batch) => {
   let uid = moment().format('YYYY-MMM-DD-HH-mm-ss') + parseInt(Math.floor(Math.random() * Math.floor(1000)));
   if (user === undefined) user = {uid: '', name: 'Mystery Person'};
   log = {
@@ -1505,8 +1505,9 @@ export const addLog = (collection, log, user) => {
 
   // //console.log('Adding Log');
   // //console.log(log);
-
-  logsRef.collection(collection).doc(uid).set(log);
+  console.log(batch);
+  if (batch) batch.set(logsRef.collection(collection).doc(uid), log);
+  else logsRef.collection(collection).doc(uid).set(log);
 };
 
 export const fetchLogs = (collection, filter, filterValue, limit) => async dispatch => {

@@ -54,6 +54,7 @@ const mapStateToProps = state => {
     // descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
     asbestosMaterialCategories: state.const.asbestosMaterialCategories,
+    acmInSoilLimits: state.const.acmInSoilLimits,
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
@@ -325,6 +326,20 @@ class CocModal extends React.PureComponent {
                         }
                         label="Western Australian Standard Analysis"
                       />
+                      {doc.waAnalysis && <div>
+                        <Select
+                          value={doc.acmInSoilLimit ? {value: doc.acmInSoilLimit, label: this.props.acmInSoilLimits.filter(e => e.value === doc.acmInSoilLimit)[0].label} : {value: '0.01', label: this.props.acmInSoilLimits.filter(e => e.value === '0.01')[0].label}}
+                          options={this.props.acmInSoilLimits.map(e => ({ value: e.value, label: e.label }))}
+                          onChange={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'acmInSoilLimit', value: e.value});
+                          }}
+                        />
+                        <div className={classes.informationBoxRounded}>
+                          <div className={classes.bold}>{doc.acmInSoilLimit ? this.props.acmInSoilLimits.filter(e => e.value === doc.acmInSoilLimit)[0].heading : this.props.acmInSoilLimits.filter(e => e.value === '0.01')[0].heading}</div>
+                          <div>{doc.acmInSoilLimit ? this.props.acmInSoilLimits.filter(e => e.value === doc.acmInSoilLimit)[0].description : this.props.acmInSoilLimits.filter(e => e.value === '0.01')[0].description}</div>
+                        </div>
+                      </div>}
                       <FormControlLabel
                         control={
                           <Switch

@@ -20,7 +20,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import Good from "@material-ui/icons/ThumbUp";
 import Half from "@material-ui/icons/ThumbsUpDown";
 import Bad from "@material-ui/icons/ThumbDown";
-import AsbestosSampleWAEditSummary from "../components/AsbestosSampleWAEditSummary";
+import AsbestosSampleWASummary from "../components/AsbestosSampleWASummary";
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { dateOf } from "../../../actions/local";
 import moment from "moment";
@@ -294,7 +294,7 @@ class AsbestosSampleDetailsModal extends React.Component {
             </Grid>
             {job.waAnalysis && <div className={classes.informationBox}>
               <div className={classes.heading}>Soil Concentrations</div>
-              <AsbestosSampleWAEditSummary sample={sample} noEdit />
+              <AsbestosSampleWASummary sample={sample} noEdit acmInSoilLimit={job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01}/>
             </div>}
           </DialogContent>}
           <DialogActions>

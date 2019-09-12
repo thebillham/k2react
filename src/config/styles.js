@@ -174,6 +174,16 @@ const styles = theme => ({
     margin: theme.spacing(1),
   },
 
+  informationBoxRounded: {
+    backgroundColor: '#eee',
+    borderRadius: theme.spacing(1),
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: theme.spacing(1),
+    fontSize: 12,
+    margin: theme.spacing(1),
+  },
+
   commentBox: {
     borderStyle: 'solid',
     borderRadius: 5,
@@ -270,6 +280,14 @@ const styles = theme => ({
       }
   },
 
+  hoverItemFat: {
+      // backgroundColor: "#fff",
+      height: 60,
+      "&:hover": {
+          backgroundColor: "#eee"
+      },
+  },
+
   toolbarIcon: {
     display: 'flex',
     alignItems: 'center',
@@ -294,6 +312,8 @@ const styles = theme => ({
       width: 200,
     },
   },
+
+
 
   button: {
     color: "#fff",
@@ -523,6 +543,10 @@ const styles = theme => ({
     color: '#333',
   },
 
+  bold: {
+    fontWeight: 'bold',
+  },
+
   headingInline: {
     fontSize: 11,
     fontWeight: 500,
@@ -583,6 +607,10 @@ const styles = theme => ({
   timesSymbol: {
     fontWeight: 450,
     fontSize: 12,
+  },
+
+  noTextDecoration: {
+    textDecoration: 'none',
   },
 
   // Colors
@@ -1021,6 +1049,11 @@ const styles = theme => ({
     marginRight: theme.spacing(1),
   },
 
+  formInputLarge: {
+    width: 500,
+    marginBottom: 10,
+  },
+
   selectTight: {
     margin: theme.spacing(1),
     // height: 20,
@@ -1094,6 +1127,10 @@ const styles = theme => ({
     marginTop: 80,
   },
 
+  marginBottomStandard: {
+    marginBottom: 80,
+  },
+
   marginTopLarge: {
     marginTop: 90,
   },
@@ -1146,9 +1183,19 @@ const styles = theme => ({
   },
 
   // CONTAINERS
+  paperWidth: {
+    position: "relative",
+    width: "80vw",
+  },
+
   flexRow: {
     display: 'flex',
     flexDirection: 'row',
+  },
+
+  paperFlexRow: {
+    display: "flex",
+    justifyContent: "center",
   },
 
   flexRowCenter: {

@@ -32,7 +32,7 @@ import AsbestosSampleEditBasicResultRow from "../components/AsbestosSampleEditBa
 import AsbestosSampleEditLayerRow from "../components/AsbestosSampleEditLayerRow";
 import AsbestosSampleEditConfirmRow from "../components/AsbestosSampleEditConfirmRow";
 import AsbestosSampleWAFraction from "../components/AsbestosSampleWAFraction";
-import AsbestosSampleWAEditSummary from "../components/AsbestosSampleWAEditSummary";
+import AsbestosSampleWASummary from "../components/AsbestosSampleWASummary";
 import {
   DatePicker,
   DateTimePicker,
@@ -61,7 +61,8 @@ import {
 } from "../../../actions/asbestosLab";
 import moment from "moment";
 import {
-  asbestosSamplesRef
+  asbestosSamplesRef,
+  firestore,
 } from "../../../config/firebase";
 
 const layerNum = 3;
@@ -288,10 +289,9 @@ class AsbestosSampleEditModal extends React.Component {
     let sample = this.state.samples[this.state.activeSample];
     let waTotals = await getWATotalDetails(sample);
     sample.waTotals = waTotals;
+    let batch = firestore.batch();
 
-    asbestosSamplesRef
-      .doc(sample.uid)
-      .update(sample);
+    batch.update(asbestosSamplesRef.doc(sample.uid), sample);
 
     let log = {
       type: "Analysis",
@@ -299,42 +299,48 @@ class AsbestosSampleEditModal extends React.Component {
       sample: sample.uid,
       chainOfCustody: sample.cocUid,
     };
-    addLog("asbestosLab", log, this.props.me);
+    addLog("asbestosLab", log, this.props.me, batch);
     if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] &&
       (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result ||
       this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].weightReceived !== sample.weightReceived)) {
-      recordAnalysis(this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
+      recordAnalysis(batch, this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
         this.props.samples, this.props.sessionID, this.props.me,
         this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result,
         this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result != sample.weightReceived,
       );
     }
     if (sample.verified) {
-      verifySample(sample,
+      verifySample(batch, sample,
         this.props.cocs[this.props.modalProps.activeCoc],
         this.props.samples,
         this.props.sessionID,
         this.props.me, null, null);
     }
+
+    batch.commit();
   }
 
-  saveMultipleSamples = () => {
+  saveMultipleSamples = async () => {
     let result = {};
     let weightReceived = 0;
     let originalSamples = this.props.samples[this.props.modalProps.activeCoc];
-    Object.values(this.state.samples).forEach(sample => {
-      if (sample.verified) verifySample(sample,
+    let batch = firestore.batch();
+
+    await Object.values(this.state.samples).forEach(sample => {
+      if (sample.verified) verifySample(batch, sample,
         this.props.cocs[this.props.modalProps.activeCoc],
         this.props.samples,
         this.props.sessionID,
         this.props.me, null);
       if (originalSamples[sample.sampleNumber].result !== sample.result || originalSamples[sample.sampleNumber].weightReceived !== sample.weightReceived) {
-        recordAnalysis(this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc], this.props.samples, this.props.sessionID, this.props.me,
+        recordAnalysis(batch, this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc], this.props.samples, this.props.sessionID, this.props.me,
           sample.result !== originalSamples[sample.sampleNumber].result,
           sample.weightReceived !== originalSamples[sample.sampleNumber].weightReceived
         );
       }
     });
+
+    batch.commit();
   }
 
   render() {
@@ -703,7 +709,7 @@ class AsbestosSampleEditModal extends React.Component {
           {waAnalysis && <div>
             <Divider className={classes.marginTopSmall} />
             <div className={classes.subHeading}>Soil Concentrations</div>
-            <AsbestosSampleWAEditSummary sample={sample} that={this} me={this.props.me} moisture={sampleMoisture} />
+            <AsbestosSampleWASummary sample={sample} that={this} me={this.props.me} moisture={sampleMoisture} acmInSoilLimit={this.props.cocs[modalProps.activeCoc] && this.props.cocs[modalProps.activeCoc].acmInSoilLimit ? parseFloat(this.props.cocs[modalProps.activeCoc].acmInSoilLimit) : 0.01} />
             {fractionNames.map(fraction => {
               return <AsbestosSampleWAFraction key={fraction} sample={sample} fraction={fraction} that={this} />;
             })}

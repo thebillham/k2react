@@ -470,18 +470,18 @@ export const receiveAll = (samples, job, sessionID, me) => {
   }
 };
 
-export const receiveSample = (sample, job, samples, sessionID, me, startDate) => {
+export const receiveSample = (batch, sample, job, samples, sessionID, me, startDate) => {
   //console.log('Receiving sample');
   //console.log(sample);
   if (sample.receivedByLab && sample.verified) {
-    removeResult(sample, sessionID, me);
-    if (sample.analysisStarted) startAnalysis(sample, job, samples, sessionID, me);
-    verifySample(sample, job, samples, sessionID, me);
+    removeResult(batch, sample, sessionID, me);
+    if (sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me);
+    verifySample(batch, sample, job, samples, sessionID, me);
   } else if (sample.receivedByLab && sample.result) {
-    removeResult(sample, sessionID, me);
-    if (sample.analysisStarted) startAnalysis(sample, job, samples, sessionID, me);
+    removeResult(batch, sample, sessionID, me);
+    if (sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me);
   } else if (sample.receivedByLab && sample.analysisStarted) {
-    startAnalysis(sample, job, samples, sessionID, me);
+    startAnalysis(batch, sample, job, samples, sessionID, me);
   }
   let log = {
     type: "Received",
@@ -491,19 +491,18 @@ export const receiveSample = (sample, job, samples, sessionID, me, startDate) =>
     sample: sample.uid,
     chainOfCustody: job.uid,
   };
-  addLog("asbestosLab", log, me);
-  cocsRef
-    .doc(sample.cocUid)
-    .update({ versionUpToDate: false, mostRecentIssueSent: false, });
+  addLog("asbestosLab", log, me, batch);
+  batch.update(cocsRef.doc(sample.cocUid), { versionUpToDate: false, mostRecentIssueSent: false, });
   if (!sample.receivedByLab) {
-    asbestosSamplesRef.doc(sample.uid).update(
+    batch.update(asbestosSamplesRef.doc(sample.uid),
     {
       receivedByLab: true,
       receivedBy: {uid: me.uid, name: me.name},
       receivedDate: startDate ? startDate : new Date(),
     });
   } else {
-    asbestosSamplesRef.doc(sample.uid).update({
+    batch.update(asbestosSamplesRef.doc(sample.uid),
+    {
       receivedByLab: false,
       receivedBy: firebase.firestore.FieldValue.delete(),
       receivedDate: firebase.firestore.FieldValue.delete(),
@@ -573,9 +572,9 @@ export const startAnalysisAll = (samples, job, sessionID, me) => {
   }
 };
 
-export const startAnalysis = (sample, job, samples, sessionID, me, startDate) => {
-  if (!sample.receivedByLab && !sample.analysisStarted) receiveSample(sample, job, samples, sessionID, me, startDate);
-  if (sample.verified) verifySample(sample, job, samples, sessionID, me);
+export const startAnalysis = (batch, sample, job, samples, sessionID, me, startDate) => {
+  if (!sample.receivedByLab && !sample.analysisStarted) receiveSample(batch, sample, job, samples, sessionID, me, startDate);
+  if (sample.verified) verifySample(batch, sample, job, samples, sessionID, me);
   let log = {
     type: "Analysis",
     log: !sample.analysisStarted
@@ -584,19 +583,17 @@ export const startAnalysis = (sample, job, samples, sessionID, me, startDate) =>
     sample: sample.uid,
     chainOfCustody: job.uid,
   };
-  addLog("asbestosLab", log, me);
-  cocsRef
-    .doc(sample.cocUid)
-    .update({ versionUpToDate: false, });
+  addLog("asbestosLab", log, me, batch);
+  batch.update(cocsRef.doc(sample.cocUid), { versionUpToDate: false, });
   if (!sample.analysisStarted) {
-    asbestosSamplesRef.doc(sample.uid).update(
+    batch.update(asbestosSamplesRef.doc(sample.uid),
     {
       analysisStarted: true,
       analysisStartedBy: {uid: me.uid, name: me.name},
       analysisStartDate: startDate ? startDate : new Date(),
     });
   } else {
-    asbestosSamplesRef.doc(sample.uid).update(
+    batch.update(asbestosSamplesRef.doc(sample.uid),
     {
       analysisStarted: false,
       analysisStartedBy: firebase.firestore.FieldValue.delete(),
@@ -679,7 +676,7 @@ export const updateResultMap = (result, map) => {
   return updatedMap;
 }
 
-export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, resultChanged, weightChanged) => {
+export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, me, resultChanged, weightChanged) => {
   if (sample.sessionID !== sessionID && sample.result) {
     let log = {
       type: "Analysis",
@@ -689,7 +686,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
       sample: sample.uid,
       chainOfCustody: job.uid,
     };
-    addLog("asbestosLab", log, me);
+    addLog("asbestosLab", log, me, batch);
   }
   //console.log(sample);
 
@@ -700,7 +697,7 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
       sample: sample.uid,
       chainOfCustody: job.uid,
     };
-    addLog("asbestosLab", log, me);
+    addLog("asbestosLab", log, me, batch);
   }
 
   if (weightChanged) {
@@ -712,12 +709,10 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
       sample: sample.uid,
       chainOfCustody: job.uid,
     };
-    addLog("asbestosLab", log, me);
+    addLog("asbestosLab", log, me, batch);
   }
 
-  cocsRef
-    .doc(job.uid)
-    .update({ versionUpToDate: false, mostRecentIssueSent: false, });
+  batch.update(cocsRef.doc(job.uid), { versionUpToDate: false, mostRecentIssueSent: false, });
 
   // Check for situation where all results are unselected
   let notBlankAnalysis = false;
@@ -726,8 +721,9 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
   });
 
   if (notBlankAnalysis) {
-    if (!sample.analysisStarted) startAnalysis(sample, job, samples, sessionID, me);
-    asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`).set({
+    if (!sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me);
+    batch.set(asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`),
+    {
       analyst: analyst,
       analystUID: me.uid,
       // mode: this.props.analysisMode,
@@ -740,7 +736,8 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
       samplers: job.personnel,
       analysisDate: new Date()
     });
-    asbestosSamplesRef.doc(sample.uid).update({
+    batch.update(asbestosSamplesRef.doc(sample.uid),
+    {
       analysisRecordedBy: {uid: me.uid, name: me.name},
       sessionID: sessionID,
       analyst: analyst,
@@ -750,12 +747,9 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
       analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null,
     });
   } else {
-    asbestosAnalysisRef
-      .doc(`${sessionID}-${sample.uid}`)
-      .delete();
-    asbestosSamplesRef
-      .doc(sample.uid)
-      .update({
+    batch.delete(asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`));
+    batch.update(asbestosSamplesRef.doc(sample.uid),
+      {
         result: firebase.firestore.FieldValue.delete(),
         analysisDate: firebase.firestore.FieldValue.delete(),
         analysisRecordedBy: firebase.firestore.FieldValue.delete(),
@@ -766,39 +760,34 @@ export const recordAnalysis = (analyst, sample, job, samples, sessionID, me, res
   }
 };
 
-export const removeResult = (sample, sessionID, me) => {
+export const removeResult = (batch, sample, sessionID, me) => {
   let log = {
     type: "Analysis",
     log: `Sample ${sample.sampleNumber} (${writeDescription(sample)}) result removed.`,
     sample: sample.uid,
     chainOfCustody: sample.cocUid,
   };
-  addLog("asbestosLab", log, me);
+  addLog("asbestosLab", log, me, batch);
 
-  cocsRef
-    .doc(sample.cocUid)
-    .update({ versionUpToDate: false, mostRecentIssueSent: false, });
-  asbestosAnalysisRef
-    .doc(`${sessionID}-${sample.uid}`)
-    .delete();
-  asbestosSamplesRef
-    .doc(sample.uid)
-    .update({
-      result: firebase.firestore.FieldValue.delete(),
-      analysisDate: firebase.firestore.FieldValue.delete(),
-      analysisRecordedBy: firebase.firestore.FieldValue.delete(),
-      sessionID: firebase.firestore.FieldValue.delete(),
-    });
+  batch.update(cocsRef.doc(sample.cocUid), { versionUpToDate: false, mostRecentIssueSent: false, });
+  batch.delete(asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`));
+  batch.update(asbestosSamplesRef.doc(sample.uid),
+  {
+    result: firebase.firestore.FieldValue.delete(),
+    analysisDate: firebase.firestore.FieldValue.delete(),
+    analysisRecordedBy: firebase.firestore.FieldValue.delete(),
+    sessionID: firebase.firestore.FieldValue.delete(),
+  });
 }
 
-export const verifySample = (sample, job, samples, sessionID, me, startDate, properties) => {
+export const verifySample = (batch, sample, job, samples, sessionID, me, startDate, properties) => {
   //console.log('Verifying');
   if (
     (me.auth &&
     (me.auth["Analysis Checker"] ||
       me.auth["Asbestos Admin"]))
   ) {
-    if (!sample.analysisStarted && !sample.verified) startAnalysis(sample, job, samples, sessionID, me);
+    if (!sample.analysisStarted && !sample.verified) startAnalysis(batch, sample, job, samples, sessionID, me);
     let verifyDate = null;
     let log = {
       type: "Verified",
@@ -808,14 +797,12 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate, pro
       sample: sample.uid,
       chainOfCustody: job.uid,
     };
-    addLog("asbestosLab", log, me);
+    addLog("asbestosLab", log, me, batch);
 
-    cocsRef
-      .doc(sample.cocUid)
-      .update({ versionUpToDate: false, mostRecentIssueSent: false, });
+    batch.update(cocsRef.doc(sample.cocUid), { versionUpToDate: false, mostRecentIssueSent: false, });
     if (!sample.verified) {
       sample.verifyDate = new Date();
-      asbestosSamplesRef.doc(sample.uid).update(
+      batch.update(asbestosSamplesRef.doc(sample.uid),
       {
         ...properties,
         verified: true,
@@ -824,7 +811,7 @@ export const verifySample = (sample, job, samples, sessionID, me, startDate, pro
         turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
       });
     } else {
-      asbestosSamplesRef.doc(sample.uid).update(
+      batch.update(asbestosSamplesRef.doc(sample.uid),
       {
         ...properties,
         verified: false,
@@ -1308,7 +1295,7 @@ export const writeVersionJson = (job, samples, version, staffList, me) => {
 
           if (sample.waSoilAnalysis !== undefined) {
             sampleMap["formDescription"] = sample.waSoilAnalysis.formDescription ? sample.waSoilAnalysis.formDescription : 'N/A';
-            let waTotals = getWATotalDetails(sample);
+            let waTotals = getWATotalDetails(sample, job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01);
             // sampleMap["bold"] = waTotals.bold;
             // sampleMap["soilConcentrationResult"] = waTotals.soilConcentrationResult;
             sampleMap["concentrationACM"] = waTotals.concentration.acm ? `${waTotals.concentration.acm}%` : 'N/A';
@@ -1732,7 +1719,7 @@ export const getWAFractionDetails = (sample, fraction) => {
   return result;
 };
 
-export const getWATotalDetails = (sample) => {
+export const getWATotalDetails = (sample, acmLimit) => {
   // Set detection limits
   let totals = {
     forms: {},
@@ -1763,6 +1750,7 @@ export const getWATotalDetails = (sample) => {
       fa: 0,
       af: 0,
       faaf: 0,
+      acmFloat: 0,
     },
     allHaveTypes: true,
     allHaveForms: true,
@@ -1771,6 +1759,8 @@ export const getWATotalDetails = (sample) => {
   };
 
   if (sample && sample.waSoilAnalysis) {
+    console.log('get totals for limit ');
+    console.log(acmLimit);
     fractionNames.forEach(fraction => {
       [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 3).keys()].forEach(num => {
         let layer = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
@@ -1805,17 +1795,17 @@ export const getWATotalDetails = (sample) => {
 
     if (totals.result.total.no) {
       totals.soilConcentrationResult = 'Not Detected';
-    } else if (parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) < 0.001 && parseFloat(((totals.weight.acm/sample.weightDry) * 100)) < 0.01) {
+    } else if (parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) < 0.001 && parseFloat(((totals.weight.acm/sample.weightDry) * 100)) < acmLimit) {
       totals.soilConcentrationResult = 'Below Limit';
     }
 
     if (sample.weightDry) {
-      if ((parseFloat(((totals.weight.acm/sample.weightDry) * 100)) >= 0.01) ||
-      (parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) >= 0.001) ||
+      totals.concentration.acmFloat = parseFloat(((totals.weight.acm/sample.weightDry) * 100));
+      if ((parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) >= 0.001) ||
       (parseFloat(((totals.weight.fa/sample.weightDry) * 100)) >= 0.001) ||
       (parseFloat(((totals.weight.af/sample.weightDry) * 100)) >= 0.001)) totals.waOverLimit = true;
       totals.concentration.total = parseFloat(((totals.weight.total/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.total/sample.weightDry) * 100)).toFixed(3);
-      totals.concentration.acm = parseFloat(((totals.weight.acm/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.acm/sample.weightDry) * 100)).toFixed(3);
+      totals.concentration.acm = totals.concentration.acmFloat < 0.001 ? '<0.001' : parseFloat(((totals.weight.acm/sample.weightDry) * 100)).toFixed(3);
       totals.concentration.faaf = parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.faaf)/sample.weightDry) * 100).toFixed(3);
       totals.concentration.fa = parseFloat(((totals.weight.fa/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat((totals.weight.fa/sample.weightDry) * 100).toFixed(3);
       totals.concentration.af = parseFloat(((totals.weight.af/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat((totals.weight.af/sample.weightDry) * 100).toFixed(3);
@@ -1976,7 +1966,7 @@ export const writeResult = (result, noAsbestosResultReason) => {
   let otherArray = [];
   if (result["org"]) otherArray.push("Organic Fibres");
   if (result["smf"]) otherArray.push("Synthetic Mineral Fibres");
-  if (otherArray.length > 0) others = `@~(${otherArray.join(', ')})`
+  if (otherArray.length > 0) others = `@~${otherArray.join(' and ')} Detected`
   if (result["no"]) return "No Asbestos Detected" + others;
   let asbestos = [];
   if (result["ch"]) asbestos.push("Chrysotile");

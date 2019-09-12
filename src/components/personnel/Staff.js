@@ -292,17 +292,11 @@ class Staff extends React.Component {
           Filters
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <Grid
-            container
-            spacing={1}
-            direction="row"
-            justify="space-between"
-            alignItems="flex-start"
-          >
-            <Grid item xs={6} md={3}>
+          <div>
+            <div className={classes.flexRow}>
               {this.props.offices.map(chip => {
                 return (
-                  <div key={chip} style={{ padding: 5 }}>
+                  <div key={chip} className={classes.paddingAllSmall}>
                     <Chip
                       icon={<LocationCity />}
                       variant="outlined"
@@ -315,8 +309,8 @@ class Staff extends React.Component {
                   </div>
                 );
               })}
-            </Grid>
-            <Grid item xs={6} md={3}>
+            </div>
+            <div className={classes.flexRow}>
               {[
                 "IP402",
                 "Asbestos Assessor",
@@ -326,7 +320,7 @@ class Staff extends React.Component {
                 "First Aid"
               ].map(chip => {
                 return (
-                  <div key={chip} style={{ padding: 5 }}>
+                  <div key={chip} className={classes.paddingAllSmall}>
                     <Chip
                       icon={<School />}
                       variant="outlined"
@@ -339,11 +333,11 @@ class Staff extends React.Component {
                   </div>
                 );
               })}
-            </Grid>
-            <Grid item xs={6} md={3}>
+            </div>
+            <div className={classes.flexRow}>
               {this.props.permissions.map(chip => {
                 return (
-                  <div key={chip.name} style={{ padding: 5 }}>
+                  <div key={chip.name} className={classes.paddingAllSmall}>
                     <Chip
                       icon={<Https />}
                       variant="outlined"
@@ -358,16 +352,15 @@ class Staff extends React.Component {
                   </div>
                 );
               })}
-            </Grid>
-          </Grid>
+            </div>
+          </div>
         </ExpansionPanelDetails>
       </ExpansionPanel>
     );
 
     return (
-      <div style={{ marginTop: 80 }}>
-        {/* <Paper style={{ padding: 20, }}>*/}
-        <div style={{ marginBottom: 20 }}>
+      <div className={classes.marginTopStandard}>
+        <div className={classes.marginBottomStandard}>
           <Tabs
             value={tab}
             onChange={this.handleTabChange}
@@ -381,9 +374,9 @@ class Staff extends React.Component {
             <Tab label="Documents" />
           </Tabs>
         </div>
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div className={classes.paperFlexRow}>
           {tab === 0 && (
-            <div style={{ position: "relative", width: "80vw" }}>
+            <div className={classes.paperWidth}>
               {filter}
               {staff.length > 0 ? (
                 <div className={classes.marginTopSmall}>
@@ -420,7 +413,7 @@ class Staff extends React.Component {
             </div>
           )}
           {tab === 1 && (
-            <div style={{ position: "relative", width: "80vw" }}>
+            <div className={classes.paperWidth}>
               <Button
                 onClick={() => this.email("all")}
                 color="primary"
@@ -502,18 +495,7 @@ class Staff extends React.Component {
                               position="bottom center"
                               on="hover"
                             >
-                              <div
-                                style={{
-                                  borderRadius: 20,
-                                  display: "inline-flex",
-                                  backgroundColor: "darkgrey",
-                                  color: "white",
-                                  whiteSpace: "nowrap",
-                                  fontSize: 96,
-                                  padding: 48,
-                                  margin: -8
-                                }}
-                              >
+                              <div className={classes.popupPhoneNumber}>
                                 {user.workphone}
                               </div>
                             </Popup>
@@ -523,10 +505,7 @@ class Staff extends React.Component {
                         </Grid>
                         <Grid item xs={3}>
                           {user.email ? (
-                            <a
-                              style={{ textDecoration: "none" }}
-                              href={"mailto:" + user.email}
-                            >
+                            <a className={classes.noTextDecoration} href={"mailto:" + user.email}>
                               {user.email}
                             </a>
                           ) : (
@@ -535,10 +514,7 @@ class Staff extends React.Component {
                         </Grid>
                         <Grid item xs={3}>
                           {user.gmail ? (
-                            <a
-                              style={{ textDecoration: "none" }}
-                              href={"mailto:" + user.gmail}
-                            >
+                            <a className={classes.noTextDecoration} href={"mailto:" + user.gmail}>
                               {user.gmail}
                             </a>
                           ) : (
@@ -552,10 +528,10 @@ class Staff extends React.Component {
             </div>
           )}
           {tab === 2 && (
-            <div style={{ position: "relative", width: "80vw" }}>
+            <div className={classes.paperWidth}>
               {filter}
               <ListItem>
-                <Grid container style={{ fontWeight: 600 }}>
+                <Grid container className={classes.bold}>
                   <Grid item xs={2}>
                     Name
                   </Grid>
@@ -593,7 +569,7 @@ class Staff extends React.Component {
                 })
                 .map(user => {
                   return (
-                    <ListItem className={classes.hoverItem} key={user.name}>
+                    <ListItem className={classes.hoverItemFat} key={user.name}>
                       <Grid container>
                         <Grid item xs={2}>
                           {user.name}
@@ -602,34 +578,20 @@ class Staff extends React.Component {
                           {user.tertiary}
                         </Grid>
                         <Grid item xs={1}>
-                          <div className={classes.flexRowCenter}>
-                            {user.ip402 && <CheckCircleOutline />}
-                          </div>
+                          {user.ip402 && <CheckCircleOutline className={classes.iconRegularGreen} />}
                         </Grid>
                         <Grid item xs={1}>
-                          <div className={classes.flexRowCenter}>
-                            {user.aanumber}
-                          </div>
+                          {user.aanumber}
                         </Grid>
                         <Grid item xs={1}>
-                          <div className={classes.flexRowCenter}>
-                            {user.maskfit &&
-                              (user.maskfit === "OK" ? (
-                                <Face />
-                              ) : (
-                                <Face className={classes.iconRegularRed} />
-                              ))}
-                          </div>
+                          {user.maskfit &&
+                            <Face className={user.maskfit === "OK" ? classes.iconRegularGreen : classes.iconRegularRed} />
+                          }
                         </Grid>
                         <Grid item xs={1}>
-                          <div className={classes.flexRowCenter}>
-                            {user.firstaid &&
-                              (user.firstaid === "OK" ? (
-                                <LocalHospital />
-                              ) : (
-                                <LocalHospital className={classes.iconRegularRed} />
-                              ))}
-                          </div>
+                          {user.firstaid &&
+                            <LocalHospital className={user.firstaid === "OK" ? classes.iconRegularGreen : classes.iconRegularRed} />
+                          }
                         </Grid>
                         <Grid item xs={5}>
                           {user.nzqatraining}
@@ -641,8 +603,8 @@ class Staff extends React.Component {
             </div>
           )}
           {tab === 3 && (
-            <div style={{ position: "relative", width: "80vw" }}>
-              <FormControl style={{ width: 500, marginBottom: 10 }}>
+            <div className={classes.paperWidth}>
+              <FormControl className={classes.formInputLarge}>
                 <InputLabel shrink>Document Type</InputLabel>
                 <Select
                   className={classes.select}
@@ -653,7 +615,7 @@ class Staff extends React.Component {
                 />
               </FormControl>
               <Button
-                style={{marginTop: 20}}
+                className={classes.marginTopStandard}
                 variant="outlined"
                 color="primary"
                 onClick={() => {
