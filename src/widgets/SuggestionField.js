@@ -21,9 +21,9 @@ const mapStateToProps = state => {
    };
 };
 
-const handleSuggestionFetchRequested = (that, suggestions, value) => {
+const handleSuggestionFetchRequested = (that, suggestions, value, addedSuggestions) => {
   that.setState({
-    suggestions: getSuggestions(value, suggestions, that),
+    suggestions: getSuggestions(value, suggestions, that, addedSuggestions),
   });
 };
 
@@ -76,14 +76,19 @@ const renderSuggestion = (suggestion, { query, isHighlighted }) => {
   );
 }
 
-const getSuggestions = (value, suggestions, that) => {
+const getSuggestions = (value, suggestions, that, addedSuggestions) => {
   const inputValue = deburr(value.trim()).toLowerCase();
   const inputLength = inputValue.length;
   let count = 0;
+  let suggestionList = that.props[suggestions];
+  console.log(suggestionList);
+  console.log(addedSuggestions);
+  if (addedSuggestions) suggestionList = suggestionList.concat(addedSuggestions);
+  console.log(suggestionList);
 
   return inputLength === 0
     ? []
-    : that.props[suggestions].filter(suggestion => {
+    : suggestionList.filter(suggestion => {
         const keep =
           count < 5 && suggestion.label.toLowerCase().includes(inputValue);
           // count < 5 && suggestion.label.slice(0, inputLength).toLowerCase() === inputValue;
@@ -123,6 +128,8 @@ class SuggestionField extends React.PureComponent {
       },
     };
 
+    // console.log(this.props.recentSuggestions);
+
     return (<Autosuggest
       {...autosuggestProps}
       suggestions = {this.state.suggestions}
@@ -148,7 +155,7 @@ class SuggestionField extends React.PureComponent {
         suggestion: {display: 'block', },
       }}
       onSuggestionsFetchRequested={({value, reason}) => {
-        handleSuggestionFetchRequested(this, this.props.suggestions, value)
+        handleSuggestionFetchRequested(this, this.props.suggestions, value, this.props.recentSuggestions)
       }}
       onSuggestionsClearRequested={() => handleSuggestionsClearRequested(this, this.props.suggestions)}
       renderSuggestionsContainer={options => (

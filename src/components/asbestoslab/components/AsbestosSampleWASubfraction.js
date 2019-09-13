@@ -120,7 +120,10 @@ class AsbestosSampleWASubfraction extends React.Component {
         <div className={classes.columnMedSmall}>
           <Select
             value={layer.form ? {value: layer.form, label: this.props.asbestosInSoilForms.filter(e => e.value === layer.form)[0].label} : {value: '', label: ''}}
-            options={this.props.asbestosInSoilForms.map(e => ({ value: e.value, label: e.label }))}
+            options={this.props.fraction === 'gt7' ?
+              this.props.asbestosInSoilForms.map(e => ({ value: e.value, label: e.label })) :
+              this.props.asbestosInSoilForms.filter(e => e.value !== 'acm').map(e => ({ value: e.value, label: e.label }))
+            }
             onChange={e => {
               that.setState({
                 modified: true,

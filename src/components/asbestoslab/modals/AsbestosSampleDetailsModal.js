@@ -294,7 +294,7 @@ class AsbestosSampleDetailsModal extends React.Component {
             </Grid>
             {job.waAnalysis && <div className={classes.informationBox}>
               <div className={classes.heading}>Soil Concentrations</div>
-              <AsbestosSampleWASummary sample={sample} noEdit acmInSoilLimit={job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01}/>
+              <AsbestosSampleWASummary sample={sample} noEdit moisture={sampleMoisture} acmInSoilLimit={job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01}/>
             </div>}
           </DialogContent>}
           <DialogActions>

@@ -1505,7 +1505,6 @@ export const addLog = (collection, log, user, batch) => {
 
   // //console.log('Adding Log');
   // //console.log(log);
-  console.log(batch);
   if (batch) batch.set(logsRef.collection(collection).doc(uid), log);
   else logsRef.collection(collection).doc(uid).set(log);
 };

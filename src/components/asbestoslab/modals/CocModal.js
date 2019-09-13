@@ -73,7 +73,7 @@ const mapDispatchToProps = dispatch => {
     onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
     handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 50),
     // handleModalChange: target => dispatch(handleModalChange(target)),
-    handleCocSubmit: doc => dispatch(handleCocSubmit(doc)),
+    // handleCocSubmit: doc => dispatch(handleCocSubmit(doc)),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
     handleSampleChange: (number, changes) => dispatch(handleSampleChange(number, changes)),
@@ -123,6 +123,10 @@ const initState = {
   defaultSampledBy: [],
   dateSelected: false,
   personnelSelected: false,
+  recentSuggestionsGenericLocation: [],
+  recentSuggestionsSpecificLocation: [],
+  recentSuggestionsDescription: [],
+  recentSuggestionsMaterial: [],
 };
 
 class CocModal extends React.PureComponent {
@@ -193,6 +197,7 @@ class CocModal extends React.PureComponent {
     const { modalProps, modalType, doc, wfmJob, classes, me } = this.props;
     if (modalType === ASBESTOS_COC_EDIT) {
       const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
+      // console.log(this.state.recentSuggestionsGenericLocation);
 
       if (!doc.dates) doc.dates = [];
       let dates = doc.dates.map(date => dateOf(date));
@@ -201,7 +206,7 @@ class CocModal extends React.PureComponent {
       if (doc && doc.samples) sampleNumbers = sampleNumbers.concat(Object.keys(doc.samples).map(key => parseInt(key)));
       let numberOfSamples = Math.max(...sampleNumbers);
       let wfmSynced = doc.jobNumber && !modalProps.isNew;
-      console.log(doc.samples);
+      // console.log(doc.samples);
 
       return(
         <Dialog
@@ -488,8 +493,12 @@ class CocModal extends React.PureComponent {
                         <SuggestionField that={this} suggestions='genericLocationSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
                           disabled={!wfmSynced}
+                          addedSuggestions={this.state.recentSuggestionsGenericLocation}
                           onModify={(value) => {
-                            this.setState({ modified: true, });
+                            this.setState({
+                              modified: true,
+                              recentSuggestionsGenericLocation: this.state.recentSuggestionsGenericLocation.concat(value),
+                            });
                             this.props.handleSampleChange(i, {genericLocation: value});
                           }} />
                         {/*{SuggestionField(this, disabled, null, 'genericLocationSuggestions',
@@ -569,9 +578,10 @@ class CocModal extends React.PureComponent {
                             if (personnelSelected === false) {
                               personnelSelected = i;
                               defaultSampledBy = sampledBy.map(e => ({value: e.uid, label: e.name}));
-                            } else if (personnelSelected === i) {
-                              defaultSampledBy = sampledBy.map(e => ({value: e.uid, label: e.name}));
                             }
+                            // } else if (personnelSelected === i) {
+                            //   defaultSampledBy = sampledBy.map(e => ({value: e.uid, label: e.name}));
+                            // }
 
                             // if (e.length === 0) {
                             //   personnelSelected = false;
@@ -597,9 +607,10 @@ class CocModal extends React.PureComponent {
                             if (!dateSelected) {
                               dateSelected = i;
                               defaultSampleDate = dateOf(date);
-                            } else if (dateSelected === i) {
-                              defaultSampleDate = dateOf(date);
                             }
+                            // } else if (dateSelected === i) {
+                            //   defaultSampleDate = dateOf(date);
+                            // }
                             this.setState({ modified: true, dateSelected, defaultSampleDate});
                             this.props.handleSampleChange(i, {sampleDate: dateOf(date)});
                           }}
@@ -679,11 +690,12 @@ class CocModal extends React.PureComponent {
               doc.mostRecentIssueSent = false;
               doc.defaultSampleDate = this.state.defaultSampleDate;
               doc.defaultSampledBy = this.state.defaultSampledBy;
-              this.props.handleCocSubmit({
+              handleCocSubmit({
                 doc: doc,
                 me: me,
                 originalSamples,
               });
+              this.props.resetModal();
               this.props.resetWfmJob();
             }
           } color="primary" >Submit</Button>

@@ -17,7 +17,7 @@ import {
   getPersonnel,
   getJobStatus,
 } from "../../../actions/asbestosLab";
-import { syncJobWithWFM, dateOf } from "../../../actions/local";
+import { syncJobWithWFM, dateOf, addLog } from "../../../actions/local";
 import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
 import { showModal } from "../../../actions/modal";
 import {
@@ -70,7 +70,8 @@ const mapStateToProps = state => {
     cocs: state.asbestosLab.cocs,
     doNotRender: state.display.doNotRender,
     expanded: state.display.asbestosLabExpanded,
-    asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced
+    asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced,
+    modalType: state.modal.modalType,
   };
 };
 
@@ -105,10 +106,10 @@ class AsbestosBulkCocCard extends React.Component {
     // if (nextProps.doNotRender) return false;
     if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
     if (this.props.expanded === this.props.job && nextProps.expanded !== this.props.job) {
-      return true; // List has been collapsed (closed)
+      return true; // List has been collapsed
     }
     if (nextProps.expanded === nextProps.job && this.props.expanded !== this.props.job) {
-      return true; // List has been collapsed (closed)
+      return true; // List has been opened
     }
     if (nextProps.samples[nextProps.job] && nextProps.cocs[nextProps.job] && nextProps.cocs[nextProps.job].sampleList) {
       // console.log(Object.keys(nextProps.samples[nextProps.job]).length);
@@ -135,7 +136,7 @@ class AsbestosBulkCocCard extends React.Component {
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
 
-    console.log(`${job.jobNumber} rendering`);
+    console.log(`${job.jobNumber} Bulk COC Card rendering`);
     let filteredSamples = {};
     if (samples && samples[job.uid]) {
       Object.values(samples[job.uid]).filter(s => !s.deleted && s.cocUid === job.uid).forEach(s => {
@@ -144,7 +145,6 @@ class AsbestosBulkCocCard extends React.Component {
     }
 
     let coc = JSON.stringify(printCocBulk(job, filteredSamples, this.props.me, this.props.staff));
-    console.log(coc);
     getJobStatus(filteredSamples, job);
     return (
       <ExpansionPanel
@@ -187,7 +187,14 @@ class AsbestosBulkCocCard extends React.Component {
                 <span>
                   <form method="post" target="_blank" action={job.waAnalysis ? "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php" : "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php"}>
                   <input type="hidden" name="data" value={coc} />
-                    <IconButton type="submit">
+                    <IconButton type="submit" onClick={() => {
+                      let log = {
+                        type: "Document",
+                        log: `Chain of Custody downloaded.`,
+                        chainOfCustody: job.uid,
+                      };
+                      addLog("asbestosLab", log, this.props.me);
+                    }}>
                       <PrintCocIcon className={classes.iconRegular} />
                     </IconButton>
                   </form>
@@ -350,6 +357,7 @@ class AsbestosBulkCocCard extends React.Component {
                       key={sample.uid}
                       job={job.uid}
                       sample={sample.sampleNumber}
+                      expanded={this.state.expanded}
                     />);
                 })}
               </div>

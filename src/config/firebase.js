@@ -29,17 +29,17 @@ const appSettingsRef = firestore.collection("appsettings");
 const asbestosAnalysisRef = firestore.collection("lab").doc("asbestos").collection("analysis");
 const asbestosSamplesRef = firestore.collection("lab").doc("asbestos").collection("samples");
 const asbestosSampleLogRef = firestore.collection("lab").doc("asbestos").collection("sampleLog");
+const cocsRef = firestore.collection("lab").doc("asbestos").collection("cocs");
+const logsRef = firestore.collection("logs").doc("logs");
 const assetsRef = firestore.collection("inventory").doc("entities").collection("assets");
 const modelsRef = firestore.collection("inventory").doc("categories").collection("models");
 const manufacturersRef = firestore.collection("inventory").doc("categories").collection("manufacturers");
-const cocsRef = firestore.collection("lab").doc("asbestos").collection("cocs");
 const constRef = firestore.collection("appsettings").doc("constants");
 const docsRef = firestore.collection("documents");
 const geocodesRef = firestore.collection("state").doc("geocodes");
 const helpRef = firestore.collection("help");
 const incidentsRef = firestore.collection("incidents");
 const jobsRef = firestore.collection("jobs");
-const logsRef = firestore.collection("logs").doc("logs");
 const methodsRef = firestore.collection("methods");
 const modulesRef = firestore.collection("modules");
 const noticesRef = firestore.collection("notices");
@@ -52,6 +52,13 @@ const trainingPathsRef = firestore.collection("trainingpaths");
 const updateRef = firestore.collection("updates");
 const usersRef = firestore.collection("users");
 const vehiclesRef = firestore.collection("vehicles");
+
+// Test collections
+// const asbestosAnalysisRef = firestore.collection("test_lab").doc("asbestos").collection("analysis");
+// const asbestosSamplesRef = firestore.collection("test_lab").doc("asbestos").collection("samples");
+// const asbestosSampleLogRef = firestore.collection("test_lab").doc("asbestos").collection("sampleLog");
+// const cocsRef = firestore.collection("test_lab").doc("asbestos").collection("cocs");
+// const logsRef = firestore.collection("test_logs").doc("logs");
 
 export { app, auth, firebase, firestore, provider, storage };
 export {

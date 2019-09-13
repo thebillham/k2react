@@ -355,12 +355,10 @@ class AsbestosSampleEditModal extends React.Component {
     let fractionMap = {};
     let waColors = {};
 
-    if (sample) {
-      console.log('writing from detail modal');
+    if (sample && this.props.asbestosSampleDisplayAdvanced) {
       sampleDimensions = writeSampleDimensions(sample, true);
       sampleMoisture = writeSampleMoisture(sample, true);
     }
-    console.log(this.props.asbestosSampleDisplayAdvanced);
 
     return (
     <Dialog

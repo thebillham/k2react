@@ -171,11 +171,10 @@ class AsbestosActionsModal extends React.Component {
       if (!blockAll) {
         if (!issuesIncomplete) {
           // All issues are decided, continue with
-          console.log(this.state.issues);
           if (this.props.modalProps.field === 'issue') issueTestCertificate(this.props.modalProps.job, this.state.samples, this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion)+1 : 1,
             this.state.issues.versionChanges && this.state.issues.versionChanges.comment ? this.state.issues.versionChanges.comment : '', this.props.staff, this.props.me);
           let batch = firestore.batch();
-          console.log(batch);
+          batch.update(cocsRef.doc(this.props.modalProps.job.uid), { versionUpToDate: false, mostRecentIssueSent: false, });
           await checks.filter(sample => sample.now !== sample.original && !sampleGates[sample.sampleNumber]).forEach(sample => {
             if (this.props.modalProps.field === 'receivedByLab') receiveSample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
             else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
@@ -205,9 +204,10 @@ class AsbestosActionsModal extends React.Component {
       if (Object.values(checkMap).length === 0) {
         // No problems with any samples, do actions
         console.log('no problems, do actions');
-        let batch = firestore.batch();
         if (this.props.modalProps.field === 'issue') issueTestCertificate(this.props.modalProps.job, this.state.samples, 1, "First issue.", this.props.staff, this.props.me);
         else {
+          let batch = firestore.batch();
+          batch.update(cocsRef.doc(this.props.modalProps.job.uid), { versionUpToDate: false, mostRecentIssueSent: false, });
           await checks.filter(sample => sample.now !== sample.original).forEach(sample => {
             // this.props.doNotRenderOn(); // Block rendering while looping through sample updates
             if (this.props.modalProps.field === 'receivedByLab') receiveSample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);

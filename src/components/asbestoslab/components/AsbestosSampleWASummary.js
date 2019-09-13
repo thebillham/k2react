@@ -81,7 +81,6 @@ class AsbestosSampleWASummary extends React.Component {
         }
       });
     }
-    console.log(chartData);
 
     return(
       <div>

@@ -38,8 +38,8 @@ const mapDispatchToProps = dispatch => {
 
 class DownloadLabCertificateModal extends React.Component {
   state = {
-    fileType: "doc",
-    certificateType: "bulk",
+    fileType: this.props.modalProps.defaultFileType ? this.props.modalProps.defaultFileType : "doc",
+    certificateType: this.props.modalProps.defaultCertificateType ? this.props.modalProps.defaultCertificateType : "bulk",
     template: "single",
   };
 

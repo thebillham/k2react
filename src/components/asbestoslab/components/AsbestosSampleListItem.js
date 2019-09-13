@@ -21,6 +21,7 @@ import { showModal } from "../../../actions/modal";
 import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
 import {
   ASBESTOS_SAMPLE_EDIT,
+  ASBESTOS_COC_EDIT,
   WA_ANALYSIS,
   ASBESTOS_SAMPLE_LOG,
   CONFIRM_RESULT,
@@ -56,7 +57,8 @@ const mapStateToProps = state => {
     sessionID: state.asbestosLab.sessionID,
     analysisMode: state.asbestosLab.analysisMode,
     noAsbestosResultReasons: state.const.noAsbestosResultReasons,
-    asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced
+    asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced,
+    modalType: state.modal.modalType,
   };
 };
 
@@ -67,19 +69,28 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosSampleListItem extends React.PureComponent {
+class AsbestosSampleListItem extends React.Component {
   // static whyDidYouRender = true;
 
-  // shouldComponentUpdate(nextProps) {
-  //   // return true;
-  //   if (this.props.samples[this.props.job][this.props.sample] !== nextProps.samples[nextProps.job][nextProps.sample]) {
-  //     console.log(`Sample ${nextProps.sample} rendered`);
-  //     return true;
-  //   } else {
-  //     // //console.log('Blocked re-render of SampleList');
-  //     return false;
-  //   }
-  // }
+  shouldComponentUpdate(nextProps) {
+    // return true;
+    // if (this.props.samples[this.props.job][this.props.sample] !== nextProps.samples[nextProps.job][nextProps.sample]) {
+    //   console.log(`Sample ${nextProps.sample} rendered`);
+    //   return true;
+    // } else {
+    //   console.log('Blocked re-render of SampleList');
+    //   return false;
+    // }
+
+    if (nextProps.expanded === nextProps.job && this.props.expanded !== this.props.job) {
+      return true; // List has been opened
+    }
+    if (nextProps.expanded !== nextProps.job) return false; // List is not expanded (hidden)
+    if (this.props.samples[this.props.job] === nextProps.samples[nextProps.job]) return false;
+    if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
+    if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
+    return true;
+  }
 
   render() {
     const { samples, staff, anchorEl, classes } = this.props;
@@ -96,6 +107,7 @@ class AsbestosSampleListItem extends React.PureComponent {
     let noResults = true;
     let acmLimit = job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01;
     let overLimit = sample.waTotals && (sample.waTotals.waOverLimit || sample.waTotals.concentration.acmFloat >= acmLimit) ? true : false;
+    console.log(`Asbestos Sample List Item: ${job.jobNumber}-${sample.sampleNumber}`)
 
     return (
         <ListItem key={sample.uid} className={classes.hoverItem}>
