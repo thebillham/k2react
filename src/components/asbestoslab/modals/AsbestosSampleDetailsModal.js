@@ -223,31 +223,13 @@ class AsbestosSampleDetailsModal extends React.Component {
                   })}
                 </div>
                 <div className={classes.informationBox}>
-                  <div className={classes.heading}>Turnaround Times</div>
-                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Total)', `${moment.utc(timeInLab).format('H:mm')}`)
-                    : SampleTextyLine('Time In Lab (Total)', `${moment.utc(timeInLab).format('H:mm')}`)
-                  : SampleTextyLine('Turnaround Time (Total)', 'Not yet received by lab')}
-                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Business Hours Only)', `${moment.utc(timeInLabBusiness).format('H:mm')}`)
-                    : SampleTextyLine('Time In Lab (Business Hours Only)', `${moment.utc(timeInLabBusiness).format('H:mm')}`)
-                  : SampleTextyLine('Turnaround Time (Business Hours Only)', 'Not yet received by lab')}
-                </div>
-                <div className={classes.informationBox}>
-                  <div className={classes.heading}>Sample History</div>
-                  {SampleTextyLine('Created', sample.createdDate ?
-                      `${moment(sample.createdDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.createdBy ? sample.createdBy.name : 'an unknown person'}`
-                      : 'No creation date')}
-                  {SampleTextyLine('Received by Lab', sample.receivedDate ?
-                      `${moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.receivedBy ? sample.receivedBy.name : 'an unknown person'}`
-                      : 'Not yet received by lab')}
-                  {SampleTextyLine('Analysis Started', sample.analysisStartDate ?
-                      `${moment(sample.analysisStartDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisStartedBy ? sample.analysisStartedBy.name : 'an unknown person'}`
-                      : 'Analysis not yet started')}
-                  {SampleTextyLine('Result Logged', sample.analysisDate ?
-                      `${moment(sample.analysisDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisRecordedBy ? sample.analysisRecordedBy.name : 'an unknown person'}`
-                      : 'Result not yet logged')}
-                  {SampleTextyLine('Result Verified', sample.verifyDate ?
-                      `${moment(sample.verifyDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.verifiedBy ? sample.verifiedBy.name : 'an unknown person'}`
-                      : 'Result not yet verified')}
+                  <div className={classes.heading}>Analysis Details</div>
+                  {sample.classification !== undefined && SampleTextyLine('Homogenous?', sample.classification === "homo" ? 'Yes' : 'No')}
+                  {sample.asbestosEvident !== undefined && SampleTextyLine('Asbestos Evident?', sample.asbestosEvident ? 'Yes' : 'No')}
+                  {sample.sampleConditioning !== undefined &&
+                    SampleTextyLine('Sample Conditioning', writeSampleConditioningList(sample.sampleConditioning))
+                  }
+                  {SampleTextyDisplay('Analytical Criteria OK?', analyticalCriteraOK(sample))}
                 </div>
               </Grid>
               <Grid item xs={6}>
@@ -282,13 +264,31 @@ class AsbestosSampleDetailsModal extends React.Component {
                   }
                 </div>
                 <div className={classes.informationBox}>
-                  <div className={classes.heading}>Analysis Details</div>
-                  {sample.classification !== undefined && SampleTextyLine('Homogenous?', sample.classification === "homo" ? 'Yes' : 'No')}
-                  {sample.asbestosEvident !== undefined && SampleTextyLine('Asbestos Evident?', sample.asbestosEvident ? 'Yes' : 'No')}
-                  {sample.sampleConditioning !== undefined &&
-                    SampleTextyLine('Sample Conditioning', writeSampleConditioningList(sample.sampleConditioning))
-                  }
-                  {SampleTextyDisplay('Analytical Criteria OK?', analyticalCriteraOK(sample))}
+                  <div className={classes.heading}>Turnaround Times</div>
+                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Total)', `${moment.utc(timeInLab).format('H:mm')}`)
+                    : SampleTextyLine('Time In Lab (Total)', `${moment.utc(timeInLab).format('H:mm')}`)
+                  : SampleTextyLine('Turnaround Time (Total)', 'Not yet received by lab')}
+                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Business Hours Only)', `${moment.utc(timeInLabBusiness).format('H:mm')}`)
+                    : SampleTextyLine('Time In Lab (Business Hours Only)', `${moment.utc(timeInLabBusiness).format('H:mm')}`)
+                  : SampleTextyLine('Turnaround Time (Business Hours Only)', 'Not yet received by lab')}
+                </div>
+                <div className={classes.informationBox}>
+                  <div className={classes.heading}>Sample History</div>
+                  {SampleTextyLine('Created', sample.createdDate ?
+                      `${moment(sample.createdDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.createdBy ? sample.createdBy.name : 'an unknown person'}`
+                      : 'No creation date')}
+                  {SampleTextyLine('Received by Lab', sample.receivedDate ?
+                      `${moment(sample.receivedDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.receivedBy ? sample.receivedBy.name : 'an unknown person'}`
+                      : 'Not yet received by lab')}
+                  {SampleTextyLine('Analysis Started', sample.analysisStartDate ?
+                      `${moment(sample.analysisStartDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisStartedBy ? sample.analysisStartedBy.name : 'an unknown person'}`
+                      : 'Analysis not yet started')}
+                  {SampleTextyLine('Result Logged', sample.analysisDate ?
+                      `${moment(sample.analysisDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.analysisRecordedBy ? sample.analysisRecordedBy.name : 'an unknown person'}`
+                      : 'Result not yet logged')}
+                  {SampleTextyLine('Result Verified', sample.verifyDate ?
+                      `${moment(sample.verifyDate.toDate()).format("h:mma, dddd, D MMMM YYYY")} by ${sample.verifiedBy ? sample.verifiedBy.name : 'an unknown person'}`
+                      : 'Result not yet verified')}
                 </div>
               </Grid>
             </Grid>
