@@ -1255,6 +1255,7 @@ export const saveWFMItems = items => dispatch => {
       }
     })
   })
+  console.log(Object.keys(items).length);
   stateRef
     .doc("wfmstate")
     .collection("states")
@@ -1486,10 +1487,12 @@ export const saveCurrentJobState = state => dispatch => {
     }
   });
 
-  // //console.log(sortedState);
+  console.log(sortedState);
 
   buckets.forEach((bucket) => {
-    stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket], { merge: true });
+    // console.log(sortedState[bucket]);
+    console.log(Object.keys(sortedState[bucket]).length);
+    stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket]);
   });
 };
 

@@ -134,8 +134,11 @@ class JobMap extends React.Component {
   }
 
   componentWillUnmount() {
-    console.log(this.state.leads.filter((lead) => lead.wfmState !== 'Completed'));
-    this.props.saveWFMItems(this.state.leads.filter((lead) => lead.wfmState !== 'Completed'));
+    Object.keys(this.state.leads).forEach(lead => {
+      if (lead.wfmState) console.log(lead.wfmState);
+    });
+    console.log(this.state.leads.filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
+    this.props.saveWFMItems(this.state.leads.filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
     this.props.saveCurrentJobState(this.state.leads);
     // this.props.saveStats({
     //   staff: this.state.staffStats,
@@ -685,7 +688,7 @@ class JobMap extends React.Component {
         // lead.currentStatus = job.currentStatus;
         newJob.state = job.wfmState;
         newJob.dueDate = job.dueDate;
-        newJob.lastActionType = job.state;
+        newJob.lastActionType = job.wfmState;
         newJob.lastActionDate = today;
         newJob.stateHistory = {
           [today]: 'Job created',
