@@ -1716,7 +1716,10 @@ export const getWAFractionDetails = (sample, fraction) => {
     [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 3).keys()].forEach(num => {
       let layer = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
       if (layer) {
-        if (layer.concentration && layer.weight) result.totalAsbestosWeight = result.totalAsbestosWeight + (parseFloat(layer.weight) * parseFloat(layer.concentration)/ 100)
+        let weight = 0;
+        if (layer.weight) weight = parseFloat(layer.weight);
+        if (layer.weight && layer.tareWeight) weight = weight - parseFloat(layer.tareWeight);
+        if (layer.concentration && layer.weight) result.totalAsbestosWeight = result.totalAsbestosWeight + (weight * parseFloat(layer.concentration)/ 100)
         if (layer.form) result.forms[layer.form] = true;
         if (layer.result) result.result = mergeAsbestosResult(result.result, layer.result);
       }
@@ -1774,7 +1777,10 @@ export const getWATotalDetails = (sample, acmLimit) => {
           if (layer.concentration && layer.weight) {
             if (!layer.form) totals.allHaveForms = false;
             if (!layer.result) totals.allHaveTypes = false;
-            let weight = (parseFloat(layer.weight) * parseFloat(layer.concentration)/ 100);
+            let weight = 0;
+            if (layer.weight) weight = parseFloat(layer.weight);
+            if (layer.weight && layer.tareWeight) weight = weight - parseFloat(layer.tareWeight);
+            weight = weight * parseFloat(layer.concentration)/ 100;
             totals.weight.total = totals.weight.total + weight;
             if (layer.form === 'acm') totals.weight.acm = totals.weight.acm + weight;
             else if (layer.form === 'fa') totals.weight.fa = totals.weight.fa + weight;
