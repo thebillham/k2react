@@ -16,7 +16,7 @@ class ImageMapQuestion extends React.Component {
     // this.onChanged = this.onChanged.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     let imageMap = {
       name: this.props.q.uid,
       areas: []

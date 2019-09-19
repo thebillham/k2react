@@ -53,7 +53,7 @@ class Library extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchDocuments();
     this.props.fetchMethods();
     this.props.fetchStaff();

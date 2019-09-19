@@ -273,6 +273,20 @@ const settings = {
     fields: ['name','workphone'],
     hint: 'Put each contact on a new line in the form "contact name|contact phone".',
   },
+  menuItems: {
+    label: 'Menu Items',
+    value: 'menuItems',
+    group: 'other',
+    fields: [],
+    hint: 'Enter each menu item on a new line.',
+  },
+  appVersion: {
+    label: 'App Version',
+    value: 'appVersion',
+    group: 'other',
+    fields: [],
+    hint: 'Enter the app version e.g. 1.2.6',
+  },
 };
 
 const settingTypes = [

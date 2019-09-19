@@ -52,7 +52,7 @@ const mapDispatchToProps = dispatch => {
 };
 
 class TrainingPaths extends React.Component {
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchTrainingPaths();
   }
   render() {

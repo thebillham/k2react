@@ -10,7 +10,7 @@ class NumberSpinner extends React.PureComponent {
   state = {
   };
 
-  componentWillMount = () => {
+  UNSAFE_componentWillMount = () => {
 
   };
 

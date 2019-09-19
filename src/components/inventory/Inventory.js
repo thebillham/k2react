@@ -48,7 +48,7 @@ class Inventory extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchAssets();
     this.props.fetchStaff();
     store.dispatch(onSearchChange(null));

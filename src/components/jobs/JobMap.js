@@ -123,7 +123,7 @@ class JobMap extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (this.state.leads.length === 0) {
       this.props.fetchWFMJobs();
       this.props.fetchWFMLeads();
@@ -623,8 +623,8 @@ class JobMap extends React.Component {
   collateLeadsData = () => {
     // //console.log(this.props.currentJobState);
     // //console.log('Jobs length');
-    // //console.log('Jobs: ' + this.props.wfmJobs.length);
-    // //console.log('Leads: ' + this.props.wfmLeads.length)
+    console.log('Jobs: ' + this.props.wfmJobs.length);
+    console.log('Leads: ' + this.props.wfmLeads.length)
     // //console.log(this.props.wfmJobs.length + this.props.wfmLeads.length);
     // var staffStats = { K2: this.state.statSheet };
     // var clientStats = {};
@@ -634,6 +634,8 @@ class JobMap extends React.Component {
 
     var completedJobs = Object.values(this.props.currentJobState).filter((job) => job.state === 'Completed');
     var currentState = {...this.props.currentJobState};
+
+    console.log(currentState);
 
     // Convert jobs into a 'lead' type object
     this.props.wfmJobs.forEach(job => {
@@ -1056,12 +1058,15 @@ class JobMap extends React.Component {
 
   render() {
     const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState } = this.props;
+    console.log(wfmJobs);
+    console.log(wfmLeads);
+    console.log(currentJobState);
     if (
       wfmJobs.length > 0 &&
       wfmLeads.length > 0 &&
       wfmClients.length > 0 &&
-      currentJobState !== undefined &&
-      Object.values(currentJobState).length > 0 &&
+      // currentJobState !== undefined &&
+      // Object.values(currentJobState).length > 0 &&
       this.state.leads.length === 0
     )
       this.collateLeadsData();

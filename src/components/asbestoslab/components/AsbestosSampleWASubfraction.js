@@ -63,8 +63,17 @@ class AsbestosSampleWASubfraction extends React.Component {
     return(
       <Grid container className={classes.flexRowHover} direction='row' spacing={1}>
         <Grid item xs={12} lg={6} className={classes.flexRow}>
-          <div className={classes.circleShaded}>
-            {`${prefix}${num}`}
+          <div className={classNames(classes.bold, classes.columnSmall)}>
+            <TextField
+              id={`l${num}ID`}
+              label="ID"
+              InputLabelProps={{ shrink: true }}
+              value={layer.containerID ? layer.containerID : ''}
+              onChange={e => {
+                this.setLayerVar('containerID', num, fraction, e.target.value, that);
+              }}
+            />
+            {/*`${prefix}${num}`*/}
           </div>
           <div className={classes.columnMedSmall}>
             <TextField
@@ -92,7 +101,7 @@ class AsbestosSampleWASubfraction extends React.Component {
             />
           </div>
           <div className={classes.spacerSmall} />
-          <div className={classes.columnMedSmall}>
+          <div className={classes.columnMedLarge}>
             <Select
               value={layer.concentration ? {value: layer.concentration, label: this.props.asbestosInSoilConcentrations.filter(e => e.value === layer.concentration)[0].label} : {value: '', label: ''}}
               options={this.props.asbestosInSoilConcentrations.map(e => ({ value: e.value, label: e.label }))}

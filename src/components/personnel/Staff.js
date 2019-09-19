@@ -159,7 +159,7 @@ class Staff extends React.Component {
       if (ApiCalendar.sign && !this.state.events[calendarid]) {
         //console.log("Api calendar is signed");
         ApiCalendar.listUpcomingEvents(7, calendarid).then(
-          ({ result }: any) => {
+          ({ result }: any) => { // Possible error here
             //console.log("Results in");
             this.setState({
               events: {

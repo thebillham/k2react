@@ -46,7 +46,7 @@ class DocumentViewer extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     docsRef
       .doc(this.props.match.params.uid)
       .get()

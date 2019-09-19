@@ -122,6 +122,8 @@ const mapStateToProps = state => {
     staff: state.local.staff,
     me: state.local.me,
     initialLoading: state.display.initialLoading,
+    latestVersion: state.const.appVersion,
+    menuItems: state.const.menuItems,
   };
 };
 
@@ -141,6 +143,8 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+const thisVersion = '1.2.6';
+
 class MainScreen extends React.PureComponent {
   // static whyDidYouRender = true;
   constructor(props) {
@@ -159,7 +163,7 @@ class MainScreen extends React.PureComponent {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchMe();
     this.props.initConstants();
     this.props.fetchGeocodes();
@@ -245,10 +249,11 @@ class MainScreen extends React.PureComponent {
   };
 
   render() {
-    const { classes } = this.props;
+    const { classes, latestVersion } = this.props;
     const { anchorEl } = this.state;
 
     let displayName;
+    let menuItems = this.props.menuItems ? this.props.menuItems : [];
     if (auth.currentUser) {
       displayName = auth.currentUser.displayName;
     } else {
@@ -278,7 +283,7 @@ class MainScreen extends React.PureComponent {
         </div>
         <Divider />
         <List>
-          <ListItem
+          {menuItems.includes('Noticeboard') && <div><ListItem
             button
             component={Link}
             to="/noticeboard"
@@ -289,9 +294,9 @@ class MainScreen extends React.PureComponent {
             <ListItemText primary="Noticeboard" />
           </ListItem>
 
-          <Divider />
+          <Divider /></div>}
 
-          <ListItem
+          {menuItems.includes('Staff') && <ListItem
             button
             component={Link}
             to="/staff"
@@ -300,8 +305,9 @@ class MainScreen extends React.PureComponent {
               <StaffIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Staff" />
-          </ListItem>
-          <ListItem
+          </ListItem>}
+
+          {menuItems.includes('My Details') && <div><ListItem
             button
             component={Link}
             to="/mydetails"
@@ -312,22 +318,23 @@ class MainScreen extends React.PureComponent {
             <ListItemText primary="My Details" />
             {/*{this.state.openMyDetails ? <ExpandLess /> : <ExpandMore /> }*/}
           </ListItem>
-        <Divider />
+        <Divider /></div>}
           {/*<ListItem button component={Link} to="/jobs/sites">
             <ListItemIcon>
               <SiteIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Sites" />
           </ListItem>*/}
-          <ListItem button component={Link} to="/jobs/map">
+          {menuItems.includes('Jobs Map') && <div><ListItem button component={Link} to="/jobs/map">
             <ListItemIcon>
               <MapIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Jobs Map" />
           </ListItem>
 
-        <Divider />
-          <ListItem button onClick={this.handleAsbestosClick}>
+        <Divider /></div>}
+
+          {menuItems.includes('Asbestos Lab') && <div><ListItem button onClick={this.handleAsbestosClick}>
             <ListItemIcon>
               <LabIcon className={classes.colorAccent} />
             </ListItemIcon>
@@ -389,8 +396,9 @@ class MainScreen extends React.PureComponent {
           </ListItemIcon>
           <ListItemText primary="Inventory" />
         </ListItem>*/}
-        <Divider />
-          <ListItem
+        <Divider /></div>}
+
+          {menuItems.includes('Training') && <div><ListItem
             button
             onClick={this.handleTrainingClick}
           >
@@ -451,8 +459,9 @@ class MainScreen extends React.PureComponent {
               />
             </ListItem>
           </Collapse>
-        <Divider />
-        <ListItem
+        <Divider /></div>}
+
+        {menuItems.includes('Library') && <div><ListItem
           button
           component={Link}
           to="/library"
@@ -462,7 +471,8 @@ class MainScreen extends React.PureComponent {
           </ListItemIcon>
           <ListItemText primary="Library" />
         </ListItem>
-        <Divider />
+        <Divider /></div>}
+
         {this.props.me.auth &&
           this.props.me.auth["Admin"] && (
             <div>
@@ -493,7 +503,12 @@ class MainScreen extends React.PureComponent {
               </ListItem>
             </div>
           )}
-          <div style={{ fontStyle: 'italic', fontSize: 14, marginTop: 12, marginLeft: 12, color: '#555' }}>v1.2.5</div>
+          <div className={classes.version}>{`v${thisVersion}`}</div>
+          <div className={latestVersion == thisVersion ? classes.version : classes.versionOld}>
+            {latestVersion == thisVersion ? `Your version is up to date.` :
+              `You are using an old version of MyK2. Hold the shift key and press F5 to force your browser to use the latest version (v${latestVersion})`
+            }
+          </div>
         {/*<Divider />
           <ListItem button onClick={this.handleDevClick}>
             <ListItemIcon>

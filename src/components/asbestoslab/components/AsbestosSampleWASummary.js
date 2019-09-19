@@ -6,6 +6,7 @@ import {
   getSampleColors,
   updateResultMap,
   getWATotalDetails,
+  writeSoilDetails,
 } from "../../../actions/asbestosLab";
 import classNames from 'classnames';
 
@@ -27,7 +28,7 @@ import theme from "../../../config/theme";
 
 import { addLog, } from '../../../actions/local';
 
-const waLayerNum = 3;
+const waLayerNum = 1;
 const waMap = {
   gt7: '>7',
   to7: '2-7',
@@ -175,6 +176,25 @@ class AsbestosSampleWASummary extends React.Component {
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
               {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshed', null, null, false, 0, 'g', null, true)}
+            </div>
+          </Grid>
+        </Grid>
+        <Grid container direction='row'>
+          <Grid item xs={1} className={classes.firstColumn}>Geotechnical Soil Description</Grid>
+          <Grid item xs={3} className={classes.entryRow}>
+            {writeSoilDetails(sample.soilDetails)}
+          </Grid>
+          <Grid item xs={2} className={classes.firstColumn}>Subsample Weight</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
+            <div className={classes.formInputMedium}>
+              {noEdit ? sample.weightSubsample ? `${sample.weightSubsample}g` : `N/A` : SamplesTextyBox(that, sample, 'weightSubsample', null, `Record the weight of the subsample before drying (if the whole sample isn't analysed)`, false, 0, 'g', null, true)}
+            </div>
+          </Grid>
+          <Grid item xs={2} className={classes.firstColumn}>{`< 2mm Subsample`}</Grid>
+          <Grid item xs={2} className={classes.entryRow}>
+            <div className={classes.formInputMedium}>
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample ? `${sample.waSoilAnalysis.fractionlt2WeightAshedSubsample}g` : `N/A` :
+              SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshedSubsample', null, `Record the weight of the subsample of the <2mm fraction if applicable. This will multiply the asbestos weights in that fraction according to the proportion analysed.`, false, 0, 'g', null, true)}
             </div>
           </Grid>
         </Grid>

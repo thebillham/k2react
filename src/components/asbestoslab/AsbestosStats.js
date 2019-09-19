@@ -46,7 +46,7 @@ class AsbestosStats extends React.Component {
     analyst: false
   };
 
-  componentWillMount = () => {
+  UNSAFE_componentWillMount = () => {
     //
   };
 

@@ -53,7 +53,7 @@ class Questions extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchQuestions();
     this.props.fetchQuizzes();
     store.dispatch(onSearchChange(null));

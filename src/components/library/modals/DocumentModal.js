@@ -93,7 +93,7 @@ class DocumentModal extends React.Component {
     };
   }
 
-  componentWillMount = () => {
+  UNSAFE_componentWillMount = () => {
     if (this.props.doc.content) {
       this.setState({
         editorState: {

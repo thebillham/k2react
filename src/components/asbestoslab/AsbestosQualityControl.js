@@ -46,7 +46,7 @@ class AsbestosQualityControl extends React.Component {
     //
   };
 
-  componentWillMount = () => {
+  UNSAFE_componentWillMount = () => {
     //
   };
 

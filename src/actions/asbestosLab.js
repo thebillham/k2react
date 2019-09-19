@@ -1731,7 +1731,7 @@ export const getWAFractionDetails = (sample, fraction) => {
 };
 
 export const getWATotalDetails = (sample, acmLimit) => {
-  // Set detection limits
+  // Declare vars
   let totals = {
     forms: {},
     result: {
@@ -1770,52 +1770,79 @@ export const getWATotalDetails = (sample, acmLimit) => {
   };
 
   if (sample && sample.waSoilAnalysis) {
+    // If <2mm is subsampled, multiply asbestos weights
+    let multiplier = null;
+    if (sample.waSoilAnalysis.fractionlt2WeightAshedSubsample)
+      multiplier = parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed) / parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample);
+
+    // Loop through each fraction in the job (gt7, to7, lt2)
     fractionNames.forEach(fraction => {
+      // Loop through each subsample in the fraction
       [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 3).keys()].forEach(num => {
-        let layer = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
-        if (layer) {
-          if (layer.concentration && layer.weight) {
-            if (!layer.form) totals.allHaveForms = false;
-            if (!layer.result) totals.allHaveTypes = false;
+        let subsample = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
+        if (subsample) {
+          // Check if subsample has concentration and weight set
+          if (subsample.concentration && subsample.weight) {
+            // Check subsample has the form and types of asbestos declared
+            if (!subsample.form) totals.allHaveForms = false;
+            if (!subsample.result) totals.allHaveTypes = false;
+
             let weight = 0;
-            if (layer.weight) weight = parseFloat(layer.weight);
-            if (layer.weight && layer.tareWeight) weight = weight - parseFloat(layer.tareWeight);
-            weight = weight * parseFloat(layer.concentration)/ 100;
+            if (subsample.weight) weight = parseFloat(subsample.weight);
+            // If subsample has a tare weight, subtract this from the weight
+            if (subsample.weight && subsample.tareWeight) weight = weight - parseFloat(subsample.tareWeight);
+
+            // Multiply the weight by the estimated concentration of asbestos in subsample
+            weight = weight * parseFloat(subsample.concentration)/ 100;
+
+            // Multiply weight if using <2mm subsample. This presumes the portion of the <2mm fraction that was analysed is representative of the whole <2mm fraction.
+            if (fraction === 'lt2' && multiplier) weight = weight * multiplier;
+
+            // Add weight to totals
             totals.weight.total = totals.weight.total + weight;
-            if (layer.form === 'acm') totals.weight.acm = totals.weight.acm + weight;
-            else if (layer.form === 'fa') totals.weight.fa = totals.weight.fa + weight;
-            else if (layer.form === 'af') totals.weight.af = totals.weight.af + weight;
+            if (subsample.form === 'acm') totals.weight.acm = totals.weight.acm + weight;
+            else if (subsample.form === 'fa') totals.weight.fa = totals.weight.fa + weight;
+            else if (subsample.form === 'af') totals.weight.af = totals.weight.af + weight;
           }
-          if (layer.form) {
-            totals.forms[layer.form] = true;
+          if (subsample.form) {
+            // Add forms to the list
+            totals.forms[subsample.form] = true;
             totals.fractions.total[fraction] = true;
-            totals.fractions[layer.form][fraction] = true;
-            if (layer.form === 'fa' || layer.form === 'af') totals.fractions.faaf[fraction] = true;
+            totals.fractions[subsample.form][fraction] = true;
+            if (subsample.form === 'fa' || subsample.form === 'af') totals.fractions.faaf[fraction] = true;
           }
-          if (layer.result) {
-            totals.result.total = mergeAsbestosResult(totals.result.total, layer.result);
-            if (layer.form === 'acm') totals.result.acm = mergeAsbestosResult(totals.result.acm, layer.result);
-            else if (layer.form === 'fa') totals.result.fa = mergeAsbestosResult(totals.result.fa, layer.result);
-            else if (layer.form === 'af') totals.result.af = mergeAsbestosResult(totals.result.af, layer.result);
+          if (subsample.result) {
+            // Add result to the list to check against the reported result
+            totals.result.total = mergeAsbestosResult(totals.result.total, subsample.result);
+            if (subsample.form === 'acm') totals.result.acm = mergeAsbestosResult(totals.result.acm, subsample.result);
+            else if (subsample.form === 'fa') totals.result.fa = mergeAsbestosResult(totals.result.fa, subsample.result);
+            else if (subsample.form === 'af') totals.result.af = mergeAsbestosResult(totals.result.af, subsample.result);
           }
         }
       });
     });
+
     // Combine AF FA
     totals.result.faaf = mergeAsbestosResult(totals.result.af, totals.result.fa);
     totals.weight.faaf = totals.weight.fa + totals.weight.af;
 
+    // Check if sample is not detected, above limit or below limit
     if (totals.result.total.no) {
       totals.soilConcentrationResult = 'Not Detected';
     } else if (parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) < 0.001 && parseFloat(((totals.weight.acm/sample.weightDry) * 100)) < acmLimit) {
       totals.soilConcentrationResult = 'Below Limit';
     }
 
+    // Calculate concentrations from weights (detection limit for concentrations is <0.001%)
     if (sample.weightDry) {
       totals.concentration.acmFloat = parseFloat(((totals.weight.acm/sample.weightDry) * 100));
-      if ((parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) >= 0.001) ||
-      (parseFloat(((totals.weight.fa/sample.weightDry) * 100)) >= 0.001) ||
-      (parseFloat(((totals.weight.af/sample.weightDry) * 100)) >= 0.001)) totals.waOverLimit = true;
+      // Check if concentration is over the limit (acmLimit varies depending on the land use set for the job)
+      if (
+        (parseFloat((totals.weight.faaf/sample.weightDry) * 100) >= 0.001) ||
+        (parseFloat((totals.weight.fa/sample.weightDry) * 100) >= 0.001) ||
+        (parseFloat((totals.weight.af/sample.weightDry) * 100) >= 0.001) ||
+        totals.concentration.acmFloat >= acmLimit
+      ) totals.waOverLimit = true;
       totals.concentration.total = parseFloat(((totals.weight.total/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.total/sample.weightDry) * 100)).toFixed(3);
       totals.concentration.acm = totals.concentration.acmFloat < 0.001 ? '<0.001' : parseFloat(((totals.weight.acm/sample.weightDry) * 100)).toFixed(3);
       totals.concentration.faaf = parseFloat(((totals.weight.faaf/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat(((totals.weight.faaf)/sample.weightDry) * 100).toFixed(3);
@@ -1823,7 +1850,7 @@ export const getWATotalDetails = (sample, acmLimit) => {
       totals.concentration.af = parseFloat(((totals.weight.af/sample.weightDry) * 100)) < 0.001 ? '<0.001' : parseFloat((totals.weight.af/sample.weightDry) * 100).toFixed(3);
     }
 
-    // Round numbers
+    // Round numbers, set detection limits for weight (detection limit for weights is <0.00001g)
     totals.weight.total = totals.weight.total < 0.00001 ? '<0.00001' : totals.weight.total.toFixed(5);
     totals.weight.acm = totals.weight.acm < 0.00001 ? '<0.00001' : totals.weight.acm.toFixed(5);
     totals.weight.faaf = totals.weight.faaf < 0.00001 ? '<0.00001' : totals.weight.faaf.toFixed(5);

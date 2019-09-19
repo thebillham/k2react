@@ -141,7 +141,7 @@ const styles = theme => ({
   drawerPaper: {
     background: '#fff',
     position: 'relative',
-    whiteSpace: 'nowrap',
+    // whiteSpace: 'nowrap',
     width: drawerWidth,
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
@@ -313,8 +313,6 @@ const styles = theme => ({
     },
   },
 
-
-
   button: {
     color: "#fff",
   },
@@ -341,6 +339,25 @@ const styles = theme => ({
     fontSize: 12,
     display: 'flex',
     flexDirection: 'row',
+  },
+
+  version: {
+    fontStyle: 'italic',
+    fontSize: 12,
+    marginTop: theme.spacing(2),
+    marginLeft: theme.spacing(2),
+    color: '#555',
+    width: '100%',
+    maxWidth: drawerWidth - theme.spacing(2),
+  },
+
+  versionOld: {
+    fontSize: 12,
+    marginTop: theme.spacing(2),
+    marginLeft: theme.spacing(2),
+    color: 'red',
+    width: '100%',
+    maxWidth: drawerWidth - theme.spacing(2),
   },
 
   todo: {

@@ -94,7 +94,7 @@ class AsbestosBulkCocCard extends React.Component {
   // static whyDidYouRender = true;
   state = { cocAnchorEl: null, };
 
-  componentWillMount = () => {
+  UNSAFE_componentWillMount = () => {
     let uid = `${this.props.job}-${this.props.me.name}-${moment().format('x')}`;
     this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };

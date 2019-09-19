@@ -47,7 +47,7 @@ class Sites extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchSites();
     this.props.fetchStaff();
     store.dispatch(onSearchChange(null));

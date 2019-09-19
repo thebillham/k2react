@@ -18,7 +18,7 @@ class ImageSelectSingleQuestion extends React.Component {
     // this.onChanged = this.onChanged.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     const shuffledincorrect = this.props.q.incorrect.sort(
       () => 0.5 - Math.random()
     );

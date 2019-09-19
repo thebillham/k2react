@@ -73,7 +73,7 @@ class TrainingPath extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.fetchStaff();
     this.props.fetchDocuments();
     this.props.fetchMethods();

@@ -56,7 +56,7 @@ class BucketImageQuestion extends React.Component {
     // this.onChanged = this.onChanged.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     // shuffle all options and distribute evenly to each bucket
     let options = [];
     let answerBuckets = this.props.q.buckets.slice();

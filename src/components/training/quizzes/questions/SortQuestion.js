@@ -41,7 +41,7 @@ class SortQuestion extends React.Component {
     // this.onChanged = this.onChanged.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     var answerList = this.props.q.answers.slice();
     this.props.onChanged(
       this.props.q.uid,

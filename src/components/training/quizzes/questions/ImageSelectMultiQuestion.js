@@ -18,7 +18,7 @@ class ImageSelectMultiQuestion extends React.Component {
     // this.onChanged = this.onChanged.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     let q = this.props.q;
     const shuffledcorrect = q.correct.sort(() => 0.5 - Math.random());
     const shuffledincorrect = q.incorrect.sort(() => 0.5 - Math.random());

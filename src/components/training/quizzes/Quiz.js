@@ -53,7 +53,7 @@ class Quiz extends React.Component {
     this.updateLists = this.updateLists.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     quizzesRef
       .doc(this.props.match.params.quiz)
       .get()

@@ -18,7 +18,7 @@ class MultiSingleQuestion extends React.Component {
     // this.onChanged = this.onChanged.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     // const shuffledcorrect = this.props.q.correct.sort(() => .5 - Math.random());
     const shuffledincorrect = this.props.q.incorrect.sort(
       () => 0.5 - Math.random()

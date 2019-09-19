@@ -42,7 +42,7 @@ class AsbestosLog extends React.Component {
     searchAnalyst: '',
   };
 
-  componentWillMount = () => {
+  UNSAFE_componentWillMount = () => {
     if (this.props.sampleLog === undefined || this.props.sampleLog.length === 0) this.props.fetchSampleLog(true);
   };
 

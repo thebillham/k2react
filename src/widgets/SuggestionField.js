@@ -108,7 +108,7 @@ class SuggestionField extends React.PureComponent {
     value: '',
   };
 
-  componentWillMount = () => {
+  UNSAFE_componentWillMount = () => {
     this.setState({
       suggestions: [],
       value: this.props.defaultValue,

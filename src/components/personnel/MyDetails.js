@@ -74,7 +74,7 @@ class UserDetails extends React.Component {
     this.props.tabMyDetails(value);
   };
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (this.props.match.params.user && this.props.me.auth && this.props.me.auth["Admin"]) {
       this.props.getEditStaff(this.props.match.params.user);
     } else if (!this.props.match.params.user && !this.props.me.attrs) {

@@ -133,7 +133,7 @@ class CocModal extends React.PureComponent {
   // static whyDidYouRender = true;
   state = initState;
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (Object.keys(this.props.staff).length < 1)
       this.props.fetchStaff();
   }

@@ -101,7 +101,7 @@ class AsbestosCocs extends React.Component {
     searchEndDate: moment().format('YYYY-MM-DD'),
   };
 
-  componentWillMount = () => {
+  UNSAFE_componentWillMount = () => {
     if (this.props.clients.length === 0) this.props.fetchWFMClients();
     this.props.fetchCocs();
     if (this.props.me && this.props.me.auth) {

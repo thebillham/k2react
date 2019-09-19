@@ -25,7 +25,7 @@ class TrainingReadingLog extends React.Component {
     this.state = {};
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     //console.log(this.props.logs);
     if (this.props.logs === undefined || this.props.logs.length < 1)
       this.props.fetchReadingLog();

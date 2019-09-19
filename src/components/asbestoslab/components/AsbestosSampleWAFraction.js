@@ -7,6 +7,8 @@ import {
   getWAFractionDetails,
   updateResultMap,
 } from "../../../actions/asbestosLab";
+import { SamplesTextyBoxAlt } from '../../../widgets/FormWidgets';
+
 import classNames from 'classnames';
 
 import { SketchPicker } from 'react-color';
@@ -28,7 +30,7 @@ import ExpandMore from "@material-ui/icons/ExpandMore";
 
 import { addLog, } from '../../../actions/local';
 
-const waLayerNum = 3;
+const waLayerNum = 1;
 const waMap = {
   gt7: '>7',
   to7: '2-7',
@@ -110,31 +112,20 @@ class AsbestosSampleWAFraction extends React.Component {
                   <IconButton size='small' aria-label='remove' className={classes.marginLeftSmall} onClick={() => this.removeLayer(fraction, sample, that)}><RemoveIcon /></IconButton>
                 </div>
               </div>
-              {/*<div className={classes.spacerMedium} />
-              <TextField
-                id="weightAshed"
-                label="Ashed Weight (400ºC)"
-                className={classes.columnSmall}
-                value={sample && sample.waSoilAnalysis && sample.waSoilAnalysis['fraction' + fraction + 'WeightAshed'] ? sample.waSoilAnalysis['fraction' + fraction + 'WeightAshed'] : ''}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">g</InputAdornment>,
-                }}
-                onChange={e => {
-                  that.setState({
-                    modified: true,
-                    samples: {
-                      ...that.state.samples,
-                      [that.state.activeSample]: {
-                        ...that.state.samples[that.state.activeSample],
-                        waSoilAnalysis: {
-                          ...that.state.samples[that.state.activeSample].waSoilAnalysis,
-                          ['fraction' + fraction + 'WeightAshed']: e.target.value.replace(/[^$0-9.]/,''),
-                        },
-                      },
-                    },
-                  });
-                }}
-              />*/}
+              { fraction === 'lt2' && <div className={classes.flexRow}>
+              <div className={classes.spacerMedium} />
+              <div className={classes.columnMedSmall}>
+                {SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshed', null, 'Total Fraction Weight', false, 0, 'g', null, true)}
+              </div>
+              <div className={classes.spacerMedium} />
+              <div className={classes.columnMedSmall}>
+                {SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshedSubsample', null, 'Weight of Fraction Analysed', false, 0, 'g', null, true)}
+              </div>
+              <div className={classes.spacerMedium} />
+              {sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample &&
+                <div className={classes.columnLarge}>Asbestos in this fraction multiplied by {parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed/sample.waSoilAnalysis.fractionlt2WeightAshedSubsample).toFixed(1)}</div>
+              }
+              </div>}
             </div>
             <div className={classes.marginTopSmall} />
             {[...Array(sample && sample.waLayerNum && sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : waLayerNum).keys()].map(num => {
