@@ -1,4 +1,6 @@
 import React from "react";
+import { withStyles } from "@material-ui/core/styles";
+import { styles } from "../../config/styles";
 
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
@@ -11,6 +13,7 @@ import NoticeCard from "./components/NoticeCard";
 import NoticeModal from "./modals/NoticeModal";
 import CommentModal from "./modals/CommentModal";
 import WhosReadModal from "./modals/WhosReadModal";
+import LinearProgress from "@material-ui/core/LinearProgress";
 
 // import IncidentModal from "../incidents/modals/IncidentModal";
 import { NOTICES, INCIDENT, COMMENT, WHOS_READ } from "../../constants/modal-types";
@@ -23,6 +26,7 @@ import {
   onReadNotice,
   onDeleteNotice,
   fetchNotices,
+  fetchNoticeReads,
 } from "../../actions/local";
 import { showModal } from "../../actions/modal";
 
@@ -31,6 +35,7 @@ const mapStateToProps = state => {
     staff: state.local.staff,
     me: state.local.me,
     notices: state.local.notices,
+    noticeReads: state.local.noticeReads,
     categories: state.const.noticeCategories,
     search: state.local.search,
     category: state.local.category
@@ -43,6 +48,7 @@ const mapDispatchToProps = dispatch => {
     onCatChange: cat => dispatch(onCatChange(cat)),
     showModal: modal => dispatch(showModal(modal)),
     fetchNotices: (update) => dispatch(fetchNotices(update)),
+    fetchNoticeReads: (update) => dispatch(fetchNoticeReads(update)),
   };
 };
 
@@ -55,7 +61,17 @@ class Noticeboard extends React.Component {
   }
 
   UNSAFE_componentWillMount() {
+    if (!this.props.staff) this.props.fetchStaff();
     this.props.fetchNotices();
+    this.props.fetchNoticeReads(true);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.notices !== nextProps.notices) return true;
+    if (this.props.notices && this.props.notices.length !== nextProps.notices.length) return true;
+    // //   this.props.me && this.props.me.settings && this.props.me.settings.showReadNotices === nextProps.me.settings.showReadNotices) return false;
+    if (this.state === nextState) return false;
+    return true;
   }
 
   switch = category => {
@@ -74,126 +90,18 @@ class Noticeboard extends React.Component {
     });
   };
 
-  onReadNotice = notice => {
-    let newArray = [];
-    if (notice.staff === undefined) {
-      newArray = [auth.currentUser.uid];
-    } else {
-      let staff = [...notice.staff];
-      if (staff.includes(auth.currentUser.uid)) {
-        newArray = staff.filter(item => item !== auth.currentUser.uid);
-      } else {
-        staff.push(auth.currentUser.uid);
-        newArray = staff;
-      }
-    }
-    noticesRef.doc(notice.uid).set(
-      {
-        staff: newArray,
-      },
-      { merge: true }
-    );
-    this.props.fetchNotices(true);
-  }
-
-  onFavNotice = uid => {
-    let newArray = [];
-    if (this.props.me.favnotices === undefined) {
-      newArray = [uid];
-    } else {
-      let notices = [...this.props.me.favnotices];
-      if (notices.includes(uid)) {
-        newArray = notices.filter(item => item !== uid);
-      } else {
-        notices.push(uid);
-        newArray = notices;
-      }
-    }
-    usersRef.doc(auth.currentUser.uid).set(
-        {
-          favnotices: newArray
-        },
-        { merge: true }
-      );
-  }
-
-  onDeleteNotice = (notice) => {
-    if (window.confirm("Are you sure you wish to delete this notice?")) {
-      noticesRef.doc(notice.uid).delete();
-      this.props.fetchNotices(true);
-    }
-  }
-
-  onEditNotice = note => {
-    this.props.showModal({
-      modalType: NOTICES,
-      modalProps: {
-        title: "Edit Notice",
-        doc: note,
-      }
-    });
-  }
-
-  onAddComment = (notice) => {
-    this.props.showModal({
-      modalType: COMMENT,
-      modalProps: {
-        title: "Add Comment",
-        doc: {
-          comment: {
-            text: null,
-            author: {
-              uid: auth.currentUser.uid,
-              name: this.props.me.name,
-            },
-            date: Date(),
-          },
-          notice: notice,
-        }
-      }
-    })
-  }
-
-  onEditComment = (comment, notice) => {
-    this.props.showModal({
-      modalType: COMMENT,
-      modalProps: {
-        title: "Edit Comment",
-        doc: {
-          comment,
-          notice,
-        }
-      }
-    });
-  }
-
-  onDeleteComment = (comment, notice) => {
-    let comments = notice.comments;
-    delete notice.comments[comment.uid];
-
-    noticesRef.doc(notice.uid).update({ comments: comments });
-    this.props.fetchNotices(true);
-  }
-
-  onCheckRead = (notice) => {
-    //console.log(notice);
-    this.props.showModal({
-      modalType: WHOS_READ,
-      modalProps: {
-        doc: notice,
-      }
-    });
-  }
-
   render() {
+    const { classes } = this.props;
+    console.log('Re-rendering Noticeboard');
     return (
-      <div style={{ marginTop: 80 }}>
+      <div className={classes.marginTopStandard}>
         <NoticeModal />
         <CommentModal />
         <WhosReadModal />
+
         <Button
           variant="outlined"
-          style={{ marginBottom: 16, marginRight: 8, }}
+          className={classes.marginRightBottomSmall}
           onClick={() => {
             this.props.showModal({
               modalType: NOTICES,
@@ -215,31 +123,8 @@ class Noticeboard extends React.Component {
           >
           Add New Notice
         </Button>
-        {/*<Button
-          variant="outlined"
-          style={{ marginBottom: 16 }}
-          onClick={() => {
-            this.props.showModal({
-              modalType: INCIDENT,
-              modalProps: {
-                title: "Submit New Incident Report",
-                doc: {
-                  message: '',
-                  category: 'incident',
-                  categorydesc: 'General',
-                  author: this.props.me.name,
-                  auth: '',
-                  date: moment().format('YYYY-MM-DD'),
-                  staff: [auth.currentUser.uid]
-                }
-              }
-            });
-          }}
-          >
-          Submit Incident Report
-        </Button>*/}
+
         <FormControlLabel
-          style={{ marginLeft: 1, }}
           control={
             <Checkbox
               checked={this.props.me && this.props.me.settings && this.props.me.settings.showReadNotices !== undefined ? this.props.me.settings.showReadNotices : true}
@@ -275,6 +160,65 @@ class Noticeboard extends React.Component {
             );
           })}
         </Grid>
+
+        {this.props.notices
+          .filter(notice => {
+            if (
+              this.props.me.favnotices &&
+              this.props.me.favnotices.includes(notice.uid) &&
+              (this.props.category === "fav" || this.props.category === "" || this.props.category === null)
+            ) {
+              return true;
+            }
+            if (this.props.me.settings && this.props.me.settings.showReadNotices !== undefined && !this.props.me.settings.showReadNotices && notice.staff && notice.staff.includes(auth.currentUser.uid)) return false;
+            if (
+              notice.auth !== undefined &&
+              this.props.me.auth &&
+              this.props.me.auth[notice.auth] === false
+            ) {
+              return false;
+            }
+            if (
+              this.props.me.deletednotices &&
+              this.props.me.deletednotices.includes(notice.uid)
+            ) {
+              return false;
+            }
+            if (this.props.category === "imp" && notice.important) return true;
+            if (this.props.search) {
+              let search = [
+                  notice.categorydesc,
+                  notice.text,
+                  notice.author,
+                ];
+              if (notice.category === 'has') search = [
+                notice.categorydesc,
+                notice.incidentdesc,
+                notice.incidentno,
+                notice.incidentstaff,
+                notice.job,
+                notice.text,
+                notice.author,
+              ];
+              let searchterm = this.props.search.toLowerCase().split(" ");
+              let res = true;
+              searchterm.forEach(term => {
+                if (
+                  search.find(
+                    tag => tag && tag.toLowerCase().includes(term)
+                  ) === undefined
+                )
+                  res = false;
+              });
+              return res;
+            } else if (this.props.category) {
+              return notice.category === this.props.category;
+            } else {
+              return true;
+            }
+          }).length < 1 && <div className={classes.marginTopSmall}>
+          <LinearProgress color="secondary" />
+        </div>}
         <Grid container spacing={2} style={{ paddingTop: 30 }}>
           {this.props.notices
             .filter(notice => {
@@ -337,20 +281,6 @@ class Noticeboard extends React.Component {
                 <Grid item sm={12} md={6} lg={4} xl={3} key={notice.uid}>
                   <NoticeCard
                     notice={notice}
-                    me={this.props.me}
-                    staff={this.props.staff}
-                    fav={this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid)}
-                    read={notice.staff && notice.staff.includes(auth.currentUser.uid)}
-                    edit={auth.currentUser.uid === notice.authorUid || this.props.me.auth['Admin'] || this.props.me.name === notice.author}
-                    // edit={notice.author === this.props.me.name || this.props.me.auth['Admin']}
-                    onFavNotice={() => this.onFavNotice(notice.uid)}
-                    onReadNotice={() => this.onReadNotice(notice)}
-                    onEditNotice={() => this.onEditNotice(notice)}
-                    onDeleteNotice={() => this.onDeleteNotice(notice)}
-                    onAddComment={() => this.onAddComment(notice)}
-                    onEditComment={this.onEditComment}
-                    onDeleteComment={this.onDeleteComment}
-                    onCheckRead={() => this.onCheckRead(notice)}
                   />
                 </Grid>
               );
@@ -361,7 +291,7 @@ class Noticeboard extends React.Component {
   }
 }
 
-export default connect(
+export default withStyles(styles)(connect(
   mapStateToProps,
   mapDispatchToProps
-)(Noticeboard);
+)(Noticeboard));

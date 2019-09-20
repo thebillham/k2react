@@ -1191,7 +1191,7 @@ export const printCocBulk = (job, samples, me, staffList) => {
     personnel: getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', null, false).map(p => p.name),
     samples: sampleList
   };
-  //console.log(report);
+  console.log(report);
   return report;
   // let url = job.waAnalysis ?
   //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php?report=" +

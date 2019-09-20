@@ -1,4 +1,4 @@
-import { docsRef } from "../config/firebase";
+import { docsRef, noticesRef, noticeReadsRef } from "../config/firebase";
 
 export const fixIds = () => dispatch => {
   //console.log("Running fixIds");
@@ -16,3 +16,23 @@ export const fixIds = () => dispatch => {
     });
   });
 };
+
+export const transferNoticeboardReads = () => {
+  noticesRef
+    .onSnapshot(querySnapshot => {
+      var notices = [];
+      querySnapshot.forEach(doc => {
+        let notice = doc.data();
+        if (notice.staff) {
+          notice.staff.forEach(staff => {
+            console.log(`Adding ${staff} to ${notice.uid}`);
+            noticeReadsRef.add({
+              noticeUid: notice.uid,
+              staffUid: staff,
+              date: new Date(),
+            });
+          });
+        }
+      });
+    });
+}

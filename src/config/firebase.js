@@ -43,6 +43,7 @@ const jobsRef = firestore.collection("jobs");
 const methodsRef = firestore.collection("methods");
 const modulesRef = firestore.collection("modules");
 const noticesRef = firestore.collection("notices");
+const noticeReadsRef = firestore.collection("noticereads");
 const questionsRef = firestore.collection("questions");
 const quizzesRef = firestore.collection("quizzes");
 const sitesRef = firestore.collection("sites");
@@ -79,6 +80,7 @@ export {
   methodsRef,
   modulesRef,
   noticesRef,
+  noticeReadsRef,
   questionsRef,
   quizzesRef,
   sitesRef,

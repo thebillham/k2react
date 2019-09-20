@@ -145,6 +145,7 @@ class AsbestosBulkCocCard extends React.Component {
     }
 
     let coc = JSON.stringify(printCocBulk(job, filteredSamples, this.props.me, this.props.staff));
+    console.log(coc);
     getJobStatus(filteredSamples, job);
     return (
       <ExpansionPanel
@@ -186,7 +187,7 @@ class AsbestosBulkCocCard extends React.Component {
               <Tooltip title={'Print Chain of Custody'}>
                 <span>
                   <form method="post" target="_blank" action={job.waAnalysis ? "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php" : "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php"}>
-                  <input type="hidden" name="data" value={coc} />
+                    <input type="hidden" name="data" value={coc} />
                     <IconButton type="submit" onClick={() => {
                       let log = {
                         type: "Document",

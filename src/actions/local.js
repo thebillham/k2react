@@ -18,6 +18,7 @@ import {
   GET_METHODLOG,
   GET_METHODS,
   GET_NOTICES,
+  GET_NOTICE_READS,
   GET_QUESTIONS,
   GET_QUIZZES,
   GET_QUIZLOG,
@@ -59,6 +60,7 @@ import {
   logsRef,
   methodsRef,
   noticesRef,
+  noticeReadsRef,
   questionsRef,
   quizzesRef,
   sitesRef,
@@ -383,6 +385,32 @@ export const fetchNotices = update => async dispatch => {
     stateRef.doc("notices").onSnapshot(doc => {
       if (doc.exists) {
         dispatch({ type: GET_NOTICES, payload: doc.data().payload });
+      } else {
+        //console.log("Notices doesn't exist");
+      }
+    });
+  }
+};
+
+export const fetchNoticeReads = update => async dispatch => {
+  if (update) {
+    noticeReadsRef
+      .onSnapshot(querySnapshot => {
+        var notices = [];
+        querySnapshot.forEach(doc => {
+          let notice = doc.data();
+          notices.push(notice);
+        });
+        dispatch({
+          type: GET_NOTICE_READS,
+          payload: notices,
+          update: true
+        });
+      });
+  } else {
+    stateRef.doc("noticereads").onSnapshot(doc => {
+      if (doc.exists) {
+        dispatch({ type: GET_NOTICE_READS, payload: doc.data().payload });
       } else {
         //console.log("Notices doesn't exist");
       }

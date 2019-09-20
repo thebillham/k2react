@@ -19,6 +19,7 @@ export const GET_ME = "GET_ME";
 export const GET_METHODLOG = "GET_METHODLOG";
 export const GET_METHODS = "GET_METHODS";
 export const GET_NOTICES = "GET_NOTICES";
+export const GET_NOTICE_READS = "GET_NOTICE_READS";
 export const GET_QUESTIONS = "GET_QUESTIONS";
 export const GET_QUIZZES = "GET_QUIZZES";
 export const GET_QUIZLOG = "GET_QUIZLOG";

@@ -23,6 +23,7 @@ import {
   GET_TOOLS,
   GET_INCIDENTS,
   GET_NOTICES,
+  GET_NOTICE_READS,
   GET_READINGLOG,
   GET_METHODLOG,
   GET_ME,
@@ -54,6 +55,7 @@ const localInit = {
   methodLog: [],
   methods: [],
   notices: [],
+  noticeReads: [],
   questions: [],
   quizzes: [],
   readingLog: [],
@@ -130,6 +132,27 @@ export default function localReducer(state = localInit, action) {
         ...state,
         notices: action.payload
       };
+    // case GET_NOTICE_READS:
+    //   if (action.update) {
+    //     let users = {};
+    //     let notices = {};
+    //     action.payload.forEach(noticeRead => {
+    //       if (notices[noticeRead.noticeUid]) notices[noticeRead.noticeUid].push(noticeRead);
+    //         else notices[noticeRead.noticeUid] = [noticeRead];
+    //       if (users[noticeRead.staffUid]) users[noticeRead.staffUid].push(noticeRead);
+    //         else users[noticeRead.staffUid] = [noticeRead];
+    //     });
+    //     Object.keys(users).forEach(user => {
+    //       stateRef.doc("noticereads").collection("users").doc(user).set({ payload: users[user] });
+    //     });
+    //     Object.keys(notices).forEach(notice => {
+    //       stateRef.doc("noticereads").collection("notices").doc(notice).set({ payload: notices[notice] });
+    //     });
+    //   }
+    //   return {
+    //     ...state,
+    //     noticeReads: action.payload
+    //   };
     case GET_INCIDENTS:
       if (action.update)
         stateRef.doc("incidents").set({ payload: action.payload });

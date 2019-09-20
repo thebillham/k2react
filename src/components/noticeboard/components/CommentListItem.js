@@ -17,30 +17,23 @@ import ReadIcon from "@material-ui/icons/CheckBox";
 import DiscardIcon from "@material-ui/icons/Delete";
 import EditIcon from '@material-ui/icons/Edit';
 import moment from "moment";
+import classNames from 'classnames';
 
 function CommentListItem(props) {
   const { classes, comment } = props;
 
   return (
-    <div className={classes.hoverItem}
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        wordWrap: 'break-word',
-        whiteSpace: 'pre-wrap',
-        padding: 12,
-      }}>
-      <div style={{ marginRight: 12, }}>
-        <div style={{ fontWeight: 500, fontSize: 14, }}>{comment.author.name}</div>
-        <div style={{ fontSize: 12, }}>
+    <div className={classNames(classes.noticeComments, classes.hoverItem)}>
+      <div className={classes.marginRightSmall}>
+        <div className={classes.bold}>{comment.author.name}</div>
+        <div>
           {moment(comment.date).format('ddd, D MMM YYYY')}
         </div>
-        <div style={{ fontSize: 14, }}><Linkify>{comment.text}</Linkify></div>
+        <div><Linkify>{comment.text}</Linkify></div>
       </div>
       <div>
         { props.edit &&
-          <div style={{ flexDirection: 'row', display: 'flex'}}>
+          <div className={classes.flexRow}>
             <Tooltip title={'Edit Comment'}>
               <IconButton
                 aira-label="Edit comment"

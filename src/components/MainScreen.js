@@ -85,7 +85,7 @@ import { fetchMe, resetLocal, copyStaff, fetchGeocodes, fetchStaff, fetchAssets,
 import { resetModal, showModal } from "../actions/modal";
 import { resetDisplay } from "../actions/display";
 import { initConstants } from "../actions/const";
-import { fixIds } from "../actions/temp";
+import { fixIds, transferNoticeboardReads } from "../actions/temp";
 
 // Pages
 const Noticeboard = lazy(() => import("./noticeboard/Noticeboard"));
@@ -170,6 +170,7 @@ class MainScreen extends React.PureComponent {
     // this.props.fetchAssets();
     if (!this.props.staff) this.props.fetchStaff();
     // this.props.fixIds();
+    // transferNoticeboardReads();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');

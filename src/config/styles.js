@@ -273,6 +273,11 @@ const styles = theme => ({
     fontSize: 16,
   },
 
+  cardHeaderNotice: {
+    height: '4vw',
+    backgroundColor: '#eee'
+  },
+
   hoverItem: {
       // backgroundColor: "#fff",
       "&:hover": {
@@ -389,6 +394,63 @@ const styles = theme => ({
   bottomDottedStyle: {
     borderBottomStyle: 'dotted',
     borderBottomWidth: 1,
+  },
+
+  noticeCard: {
+    minWidth: 50,
+    minHeight: 300,
+    borderRadius: 20,
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+
+  title: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: 600
+  },
+
+  subtitle: {
+    marginBottom: 0,
+    fontSize: 12,
+    fontStyle: "italic"
+  },
+
+  underline: {
+    fontWeight: 500,
+    textDecoration: 'underline',
+    marginBottom: 6,
+  },
+
+  details: {
+    fontSize: 12,
+    wordWrap: 'break-word',
+    whiteSpace: 'pre-wrap',
+  },
+
+  noticeComments: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    wordWrap: 'break-word',
+    whiteSpace: 'pre-wrap',
+    padding: 12,
+  },
+
+  whosRead: {
+    fontSize: 12
+  },
+
+  formIcon: {
+    color: "black",
+    fontSize: 12
+  },
+
+  bullet: {
+    display: "inline-block",
+    margin: "0 2px",
+    transform: "scale(0.8)"
   },
 
   // Icon Styles
@@ -1126,6 +1188,11 @@ const styles = theme => ({
     marginBottom: theme.spacing(1),
   },
 
+  marginRightBottomSmall: {
+    marginRight: theme.spacing(1),
+    marginBottom: theme.spacing(2),
+  },
+
   marginTopBottomSmall: {
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
@@ -1372,6 +1439,14 @@ const styles = theme => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  flexColumn: {
+    display: 'flex',
+    flex: 'auto',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
+    flexDirection: 'column',
   },
 
   // DISPLAY
