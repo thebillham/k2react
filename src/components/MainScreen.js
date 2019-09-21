@@ -168,7 +168,7 @@ class MainScreen extends React.PureComponent {
     this.props.initConstants();
     this.props.fetchGeocodes();
     // this.props.fetchAssets();
-    if (!this.props.staff) this.props.fetchStaff();
+    if (this.props.staff && Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
     // this.props.fixIds();
     // transferNoticeboardReads();
     // constRef.set(this.props.state.const);

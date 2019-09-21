@@ -27,8 +27,9 @@ import JobLeadsIcon from "@material-ui/icons/Call";
 import ClientIcon from "@material-ui/icons/RecordVoiceOver";
 import ReportIcon from "@material-ui/icons/ImportContacts"
 import moment from "moment";
-import { fetchNotices } from "../../../actions/local";
+import { fetchNotices, removeNoticeReads, readNotice, } from "../../../actions/local";
 import { showModal } from "../../../actions/modal";
+import _ from "lodash";
 
 import { NOTICES, INCIDENT, COMMENT, WHOS_READ } from "../../../constants/modal-types";
 import { auth, usersRef, noticesRef, noticeReadsRef } from "../../../config/firebase";
@@ -37,6 +38,7 @@ const mapStateToProps = state => {
   return {
     staff: state.local.staff,
     me: state.local.me,
+    noticeReads: state.local.noticeReads,
   };
 };
 
@@ -59,46 +61,33 @@ const bioIcon = (<Avatar style={{ backgroundColor: '#87cc14', color: 'white' }}>
 const noiseIcon = (<Avatar style={{ backgroundColor: '#995446', color: 'white' }}>N</Avatar>);
 const stackIcon = (<Avatar style={{ backgroundColor: '#e33714', color: 'white' }}>S</Avatar>);
 
-class NoticeCard extends React.Component {
-
-  shouldComponentUpdate(nextProps) {
-    // return false;
-    if
-    (this.props.notice.incidentno === nextProps.notice.incidentno &&
-      this.props.notice.job === nextProps.notice.job &&
-      this.props.notice.incidentstaff === nextProps.notice.incidentstaff &&
-      this.props.notice.incidentdesc === nextProps.notice.incidentdesc &&
-      this.props.notice.title === nextProps.notice.title &&
-      this.props.notice.subtitle === nextProps.notice.subtitle &&
-      this.props.notice.text === nextProps.notice.text &&
-      this.props.notice.comments === nextProps.notice.comments &&
-      this.props.me.favnotices && this.props.me.favnotices.includes(this.props.notice.uid) === nextProps.me.favnotices.includes(nextProps.notice.uid) &&
-      this.props.notice.staff && this.props.notice.staff.includes(this.props.me.uid) === nextProps.notice.staff.includes(nextProps.me.uid)
-    ) return false;
-    return true;
-  }
+class NoticeCard extends React.PureComponent {
+  // static whyDidYouRender = true;
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   return !_.isEqual(this.props, nextProps)
+  //     || !_.isEqual(this.state, nextState);
+  // }
+  // shouldComponentUpdate(nextProps) {
+  //   // return false;
+  //   if (this.props.notice == nextProps.notice) return false;
+  //   if
+  //   (this.props.notice.incidentno == nextProps.notice.incidentno &&
+  //     this.props.notice.job == nextProps.notice.job &&
+  //     this.props.notice.incidentstaff == nextProps.notice.incidentstaff &&
+  //     this.props.notice.incidentdesc == nextProps.notice.incidentdesc &&
+  //     this.props.notice.title == nextProps.notice.title &&
+  //     this.props.notice.subtitle == nextProps.notice.subtitle &&
+  //     this.props.notice.text == nextProps.notice.text &&
+  //     this.props.notice.comments == nextProps.notice.comments &&
+  //     this.props.me.favnotices && this.props.me.favnotices.includes(this.props.notice.uid) == nextProps.me.favnotices.includes(nextProps.notice.uid) &&
+  //     this.props.notice.staff && this.props.notice.staff.includes(this.props.me.uid) == nextProps.notice.staff.includes(nextProps.me.uid)
+  //   ) return false;
+  //   return true;
+  // }
 
   render() {
     console.log('Noticecard Re-rendering ' + this.props.notice.categorydesc);
-    const { classes, notice, staff, me } = this.props;
-    // let readlist = "no one";
-    // var count = 0;
-    //
-    // if (notice.staff !== undefined && notice.staff.length > 0) {
-    //   readlist = "";
-    //   notice.staff.forEach(staff => {
-    //     count = count + 1;
-    //     if (notice.staff.length === 1) {
-    //       readlist = staff && staff[staff] && staff[staff]['name'];
-    //     } else if (count === notice.staff.length) {
-    //       readlist = staff && staff[staff] && readlist + "and " + staff[staff]['name'];
-    //     } else if (count === notice.staff.length - 1) {
-    //       readlist = staff && staff[staff] && readlist + staff[staff]['name'] + " ";
-    //     } else {
-    //       readlist = staff && staff[staff] && readlist + staff[staff]['name'] + ", ";
-    //     }
-    //   });
-    // }
+    const { classes, notice, staff, me, noticeReads } = this.props;
 
     let avatar = generalIcon;
     if (notice.category === 'has') avatar = healthIcon;
@@ -113,7 +102,7 @@ class NoticeCard extends React.Component {
     else if (notice.category === 'jqfstack') avatar = stackIcon;
 
     const fav = this.props.me.favnotices && this.props.me.favnotices.includes(notice.uid);
-    const read = notice.staff && notice.staff.includes(me.uid);
+    const read = noticeReads && noticeReads.includes(notice.uid);
     const edit = me.uid === notice.authorUid || me.auth['Admin'] || me.name === notice.author;
 
     return (
@@ -175,7 +164,7 @@ class NoticeCard extends React.Component {
           }
         </CardContent>
         <div className={classes.flexColumn}>
-          <CardActions className={classes.flexRowRightAlign}>
+          <CardActions className={classes.flexRowLeftAlignEllipsis}>
             <Tooltip title={'Pin Notice'}>
               <IconButton
                 aira-label="Pin notice"
@@ -237,27 +226,7 @@ class NoticeCard extends React.Component {
 
 
   onReadNotice = () => {
-    const { notice, me } = this.props;
-    let newArray = [];
-    if (notice.staff === undefined) {
-      noticeReadsRef.add({
-        noticeUid: notice.uid,
-        staffUid: me.uid,
-        date: new Date(),
-      });
-    } else {
-      let staff = [...notice.staff];
-      if (staff.includes(auth.currentUser.uid)) {
-        newArray = staff.filter(item => item !== auth.currentUser.uid);
-      } else {
-        staff.push(auth.currentUser.uid);
-        newArray = staff;
-      }
-    }
-
-
-    noticesRef.doc(notice.uid).update({staff: newArray});
-    this.props.fetchNotices(true);
+    readNotice(this.props.notice, this.props.me, this.props.noticeReads);
   }
 
   onFavNotice = () => {
@@ -274,24 +243,25 @@ class NoticeCard extends React.Component {
         newArray = notices;
       }
     }
-    console.log(newArray);
+
     usersRef.doc(auth.currentUser.uid).update({favnotices: newArray});
   }
 
   onDeleteNotice = () => {
     const { notice } = this.props;
     if (window.confirm("Are you sure you wish to delete this notice?")) {
+      removeNoticeReads(notice, this.props.noticeReads);
       noticesRef.doc(notice.uid).delete();
       this.props.fetchNotices(true);
     }
   }
 
-  onEditNotice = (note) => {
+  onEditNotice = () => {
     this.props.showModal({
       modalType: NOTICES,
       modalProps: {
         title: "Edit Notice",
-        doc: note,
+        doc: this.props.notice,
       }
     });
   }

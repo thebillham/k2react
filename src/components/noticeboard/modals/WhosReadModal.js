@@ -12,6 +12,9 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
+import Grid from "@material-ui/core/Grid";
+import { stateRef } from "../../../config/firebase";
+import classNames from 'classnames';
 
 import { hideModal, } from "../../../actions/modal";
 
@@ -31,13 +34,26 @@ const mapDispatchToProps = dispatch => {
 };
 
 class WhosReadModal extends React.Component {
+  state = {
+    whosRead: [],
+  };
+
+  UNSAFE_componentWillMount() {
+    stateRef.doc("noticereads").collection("notices").doc(this.props.modalProps.doc.uid).get().then(doc => {
+      if (doc.exists)
+        this.setState({
+          whosRead: doc.data().payload,
+        });
+    });
+  }
+
   render() {
-    const { staff, modalProps } = this.props;
+    const { staff, modalProps, classes } = this.props;
     let notRead = [];
     let read = [];
     if (staff) {
       Object.values(staff).forEach((staff) => {
-        if (modalProps.doc && modalProps.doc.staff && modalProps.doc.staff.indexOf(staff.uid) > -1) {
+        if (this.state.whosRead.includes(staff.uid)) {
           read.push(staff.name);
         } else {
           notRead.push(staff.name);
@@ -48,32 +64,30 @@ class WhosReadModal extends React.Component {
     return (
       <Dialog
         open={this.props.modalType === WHOS_READ}
-        onClose={() => this.props.hideModal}
+        onClose={this.props.hideModal}
+        maxWidth='sm'
+        fullWidth={true}
       >
         <DialogTitle>
           {"Who Has Read The Notice"}
         </DialogTitle>
         <DialogContent>
-          <div style={{ fontWeight: 500, marginBottom: 12, }}>Has Read</div>
-          { read.length === 0 ? 'No one has read it.' :
-            read.sort().map(name => {
-              return (
-                <div key={name} style={{ fontSize: 14,}}>
-                  {name}
-                </div>
-              );
-            })
-          }
-          <hr />
-          <div style={{ fontWeight: 500, marginBottom: 12, }}>Has Not Read</div>
-          { notRead.length === 0 ? 'Everybody has read it.' :
-            notRead.sort().map(name => {
-              return (
-                <div key={name} style={{ fontSize: 14,}}>
-                  {name}
-                </div>
-              );
-          })}
+          <Grid container>
+            {notRead.length !== 0 && <Grid item xs={6}>
+              <div className={classNames(classes.marginBottomSmall, classes.bold)}>Has Read</div>
+              { read.length === 0 ? 'No one has read it.' :
+                read.sort().map(name => <div key={name}>{name}</div>)
+              }
+              </Grid>
+            }
+            {read.length !== 0 && <Grid item xs={6}>
+              <div className={classNames(classes.marginBottomSmall, classes.bold)}>Has Not Read</div>
+              { notRead.length === 0 ? 'Everybody has read it.' :
+                notRead.sort().map(name => <div key={name}>{name}</div>)
+              }
+              </Grid>
+            }
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button

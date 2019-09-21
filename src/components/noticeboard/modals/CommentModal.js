@@ -33,7 +33,7 @@ import {
   handleTagDelete,
   handleTagAddition
 } from "../../../actions/modal";
-import { getUserAttrs, fetchNotices, } from "../../../actions/local";
+import { getUserAttrs, fetchNotices, removeNoticeReads, } from "../../../actions/local";
 import _ from "lodash";
 
 const mapStateToProps = state => {
@@ -42,7 +42,8 @@ const mapStateToProps = state => {
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
     categories: state.const.noticeCategories,
-    questions: state.local.questions
+    questions: state.local.questions,
+    noticeReads: state.local.noticeReads,
   };
 };
 
@@ -145,9 +146,9 @@ class NoticeModal extends React.Component {
                   // Reset all staff read if a new or edited comment
                   newDoc = {
                     ...doc.notice,
-                    staff: [],
                     comments,
                   }
+                  removeNoticeReads(doc.notice, this.props.noticeReads);
                 }
 
                 //console.log(newDoc);

@@ -69,7 +69,8 @@ import {
   trainingPathsRef,
   updateRef,
   usersRef,
-  vehiclesRef
+  vehiclesRef,
+  firestore,
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 // import assetData from "./assetData.json";
@@ -313,7 +314,7 @@ export const getEditStaff = userPath => async dispatch => {
 
 export const fetchDocuments = update => async dispatch => {
   if (update) {
-    docsRef.orderBy("title").onSnapshot(querySnapshot => {
+    docsRef.orderBy("title").get().then(querySnapshot => {
       var docs = [];
       querySnapshot.forEach(doc => {
         let ref = doc.data();
@@ -327,7 +328,7 @@ export const fetchDocuments = update => async dispatch => {
       });
     });
   } else {
-    stateRef.doc("documents").onSnapshot(doc => {
+    stateRef.doc("documents").get().then(doc => {
       if (doc.exists) {
         dispatch({ type: GET_DOCUMENTS, payload: doc.data().payload });
       } else {
@@ -339,7 +340,7 @@ export const fetchDocuments = update => async dispatch => {
 
 export const fetchMethods = update => async dispatch => {
   if (update) {
-    methodsRef.orderBy("title").onSnapshot(querySnapshot => {
+    methodsRef.orderBy("title").get().then(querySnapshot => {
       var methods = [];
       querySnapshot.forEach(doc => {
         let method = doc.data();
@@ -353,7 +354,7 @@ export const fetchMethods = update => async dispatch => {
       });
     });
   } else {
-    stateRef.doc("methods").onSnapshot(doc => {
+    stateRef.doc("methods").get().then(doc => {
       if (doc.exists) {
         dispatch({ type: GET_METHODS, payload: doc.data().payload });
       } else {
@@ -368,7 +369,7 @@ export const fetchNotices = update => async dispatch => {
     noticesRef
       .orderBy("date", "desc")
       // .limit(100)
-      .onSnapshot(querySnapshot => {
+      .get().then(querySnapshot => {
         var notices = [];
         querySnapshot.forEach(doc => {
           let notice = doc.data();
@@ -392,7 +393,57 @@ export const fetchNotices = update => async dispatch => {
   }
 };
 
-export const fetchNoticeReads = update => async dispatch => {
+export const removeNoticeReads = async (notice, reads) => {
+  let noticeArray = [];
+  let batch = firestore.batch();
+
+  stateRef.doc("noticereads").collection("notices").doc(notice.uid).get().then(doc => {
+    if (doc.exists) {
+      doc.data().payload.forEach(user => {
+        let userArray = [];
+        stateRef.doc("noticereads").collection("users").doc(user).get().then(doc => {
+          if (doc.exists) userArray = userArray.filter(uid => uid !== notice.uid);
+          batch.set(stateRef.doc("noticereads").collection("users").doc(user), { payload: userArray });
+        });
+      });
+    }
+    console.log('commiting');
+    batch.delete(stateRef.doc("noticereads").collection("notices").doc(notice.uid));
+    batch.commit();
+  });
+}
+
+export const readNotice = (notice, me, reads) => {
+  let userArray = [];
+  let batch = firestore.batch();
+  let noticeArray = [];
+
+  console.log(reads);
+
+  if (reads) userArray = [...reads];
+  console.log(userArray);
+
+  stateRef.doc("noticereads").collection("notices").doc(notice.uid).get().then(doc => {
+    if (doc.exists) noticeArray = [...doc.data().payload];
+    if (userArray.includes(notice.uid)) {
+      // Remove read notice
+      userArray = userArray.filter(uid => uid !== notice.uid);
+      noticeArray = noticeArray.filter(uid => uid !== me.uid);
+    } else {
+      // Add to read notices
+      userArray.push(notice.uid);
+      noticeArray.push(me.uid);
+    }
+    batch.set(stateRef.doc("noticereads").collection("users").doc(me.uid), { payload: userArray });
+    batch.set(stateRef.doc("noticereads").collection("notices").doc(notice.uid), { payload: noticeArray });
+    // stateRef.doc("noticereads").collection("users").doc(me.uid).set({ payload: userArray });
+    // stateRef.doc("noticereads").collection("notices").doc(notice.uid).set({ payload: noticeArray });
+    // console.log('commiting');
+    batch.commit();
+  });
+}
+
+export const fetchNoticeReads = (update) => async dispatch => {
   if (update) {
     noticeReadsRef
       .onSnapshot(querySnapshot => {
@@ -408,13 +459,26 @@ export const fetchNoticeReads = update => async dispatch => {
         });
       });
   } else {
-    stateRef.doc("noticereads").onSnapshot(doc => {
-      if (doc.exists) {
-        dispatch({ type: GET_NOTICE_READS, payload: doc.data().payload });
-      } else {
-        //console.log("Notices doesn't exist");
-      }
+    // let noticeReads = {
+    //   "users": {},
+    //   "notices": {},
+    // };
+    console.log('Fetching notice reads');
+    stateRef.doc("noticereads").collection("users").doc(auth.currentUser.uid).onSnapshot(doc => {
+      console.log(doc.data());
+      dispatch({ type: GET_NOTICE_READS, payload: doc.data().payload });
     });
+    // stateRef.doc("noticereads").collection("users").onSnapshot(querySnapshot => {
+    //   querySnapshot.forEach(doc => {
+    //     noticeReads["users"][doc.id] = doc.data();
+    //   });
+    // });
+    // stateRef.doc("noticereads").collection("notices").onSnapshot(querySnapshot => {
+    //   querySnapshot.forEach(doc => {
+    //     noticeReads["notices"][doc.id] = doc.data();
+    //   });
+    // });
+    // dispatch({ type: GET_NOTICE_READS, payload: noticeReads });
   }
 };
 
@@ -1545,7 +1609,7 @@ export const fetchLogs = (collection, filter, filterValue, limit) => async dispa
       .where(filter, "==", filterValue)
       .orderBy('date','desc')
       .limit(limit)
-      .onSnapshot(querySnapshot => {
+      .get().then(querySnapshot => {
         var logs = [];
         querySnapshot.forEach(doc => {
           let log = doc.data();

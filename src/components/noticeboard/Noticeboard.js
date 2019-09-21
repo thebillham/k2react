@@ -1,4 +1,5 @@
 import React from "react";
+import { connect } from "react-redux";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
 
@@ -7,13 +8,12 @@ import Grid from "@material-ui/core/Grid";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 
-import { connect } from "react-redux";
-
 import NoticeCard from "./components/NoticeCard";
 import NoticeModal from "./modals/NoticeModal";
 import CommentModal from "./modals/CommentModal";
 import WhosReadModal from "./modals/WhosReadModal";
 import LinearProgress from "@material-ui/core/LinearProgress";
+import Add from '@material-ui/icons/Add';
 
 // import IncidentModal from "../incidents/modals/IncidentModal";
 import { NOTICES, INCIDENT, COMMENT, WHOS_READ } from "../../constants/modal-types";
@@ -21,6 +21,7 @@ import { onCatChange, onSearchChange } from "../../actions/local";
 import { auth, usersRef, noticesRef } from "../../config/firebase";
 import store from "../../store";
 import moment from "moment";
+import _ from "lodash";
 import {
   onFavNotice,
   onReadNotice,
@@ -38,7 +39,8 @@ const mapStateToProps = state => {
     noticeReads: state.local.noticeReads,
     categories: state.const.noticeCategories,
     search: state.local.search,
-    category: state.local.category
+    category: state.local.category,
+    modalType: state.modal.modalType,
   };
 };
 
@@ -52,27 +54,29 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class Noticeboard extends React.Component {
+class Noticeboard extends React.PureComponent {
+  // static whyDidYouRender = true;
   constructor(props) {
     super(props);
     this.state = {
-      hideRead: false
+      hideRead: false,
+      noticeLimit: 16,
     };
   }
 
   UNSAFE_componentWillMount() {
-    if (!this.props.staff) this.props.fetchStaff();
+    // console.log(this.props.staff);
+    // console.log(this.props.noticeReads);
+    // if (this.props.staff && Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
+    if (this.props.noticeReads && this.props.noticeReads.length === 0) this.props.fetchNoticeReads();
     this.props.fetchNotices();
-    this.props.fetchNoticeReads(true);
+    // this.props.fetchNoticeReads(true);
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    if (this.props.notices !== nextProps.notices) return true;
-    if (this.props.notices && this.props.notices.length !== nextProps.notices.length) return true;
-    // //   this.props.me && this.props.me.settings && this.props.me.settings.showReadNotices === nextProps.me.settings.showReadNotices) return false;
-    if (this.state === nextState) return false;
-    return true;
-  }
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   if (this.props != nextProps || this.state != nextState) return true;
+  //   return false;
+  // }
 
   switch = category => {
     this.props.category === category
@@ -91,13 +95,71 @@ class Noticeboard extends React.Component {
   };
 
   render() {
-    const { classes } = this.props;
+    const { classes, noticeReads, modalType } = this.props;
+    console.log(noticeReads);
+    const notices = this.props.notices
+      .filter(notice => {
+        if (
+          this.props.me.favnotices &&
+          this.props.me.favnotices.includes(notice.uid) &&
+          (this.props.category === "fav" || this.props.category === "" || this.props.category === null)
+        ) {
+          return true;
+        }
+        if (this.props.me.settings && this.props.me.settings.showReadNotices !== undefined &&
+          !this.props.me.settings.showReadNotices && noticeReads && noticeReads.includes(notice.uid)) return false;
+        if (
+          notice.auth !== undefined &&
+          this.props.me.auth &&
+          this.props.me.auth[notice.auth] === false
+        ) {
+          return false;
+        }
+        if (
+          this.props.me.deletednotices &&
+          this.props.me.deletednotices.includes(notice.uid)
+        ) {
+          return false;
+        }
+        if (this.props.category === "imp" && notice.important) return true;
+        if (this.props.search) {
+          let search = [
+              notice.categorydesc,
+              notice.text,
+              notice.author,
+            ];
+          if (notice.category === 'has') search = [
+            notice.categorydesc,
+            notice.incidentdesc,
+            notice.incidentno,
+            notice.incidentstaff,
+            notice.job,
+            notice.text,
+            notice.author,
+          ];
+          let searchterm = this.props.search.toLowerCase().split(" ");
+          let res = true;
+          searchterm.forEach(term => {
+            if (
+              search.find(
+                tag => tag && tag.toLowerCase().includes(term)
+              ) === undefined
+            )
+              res = false;
+          });
+          return res;
+        } else if (this.props.category) {
+          return notice.category === this.props.category;
+        } else {
+          return true;
+        }
+      }).slice(0, this.state.noticeLimit);
     console.log('Re-rendering Noticeboard');
     return (
       <div className={classes.marginTopStandard}>
-        <NoticeModal />
-        <CommentModal />
-        <WhosReadModal />
+        {modalType === NOTICES && <NoticeModal />}
+        {modalType === COMMENT && <CommentModal />}
+        {modalType === WHOS_READ && <WhosReadModal />}
 
         <Button
           variant="outlined"
@@ -115,7 +177,6 @@ class Noticeboard extends React.Component {
                   authorUid: auth.currentUser.uid,
                   auth: '',
                   date: moment().format('YYYY-MM-DD'),
-                  staff: []
                 }
               }
             });
@@ -161,131 +222,24 @@ class Noticeboard extends React.Component {
           })}
         </Grid>
 
-        {this.props.notices
-          .filter(notice => {
-            if (
-              this.props.me.favnotices &&
-              this.props.me.favnotices.includes(notice.uid) &&
-              (this.props.category === "fav" || this.props.category === "" || this.props.category === null)
-            ) {
-              return true;
-            }
-            if (this.props.me.settings && this.props.me.settings.showReadNotices !== undefined && !this.props.me.settings.showReadNotices && notice.staff && notice.staff.includes(auth.currentUser.uid)) return false;
-            if (
-              notice.auth !== undefined &&
-              this.props.me.auth &&
-              this.props.me.auth[notice.auth] === false
-            ) {
-              return false;
-            }
-            if (
-              this.props.me.deletednotices &&
-              this.props.me.deletednotices.includes(notice.uid)
-            ) {
-              return false;
-            }
-            if (this.props.category === "imp" && notice.important) return true;
-            if (this.props.search) {
-              let search = [
-                  notice.categorydesc,
-                  notice.text,
-                  notice.author,
-                ];
-              if (notice.category === 'has') search = [
-                notice.categorydesc,
-                notice.incidentdesc,
-                notice.incidentno,
-                notice.incidentstaff,
-                notice.job,
-                notice.text,
-                notice.author,
-              ];
-              let searchterm = this.props.search.toLowerCase().split(" ");
-              let res = true;
-              searchterm.forEach(term => {
-                if (
-                  search.find(
-                    tag => tag && tag.toLowerCase().includes(term)
-                  ) === undefined
-                )
-                  res = false;
-              });
-              return res;
-            } else if (this.props.category) {
-              return notice.category === this.props.category;
-            } else {
-              return true;
-            }
-          }).length < 1 && <div className={classes.marginTopSmall}>
+        {notices.length < 1 && <div className={classes.marginTopSmall}>
           <LinearProgress color="secondary" />
         </div>}
         <Grid container spacing={2} style={{ paddingTop: 30 }}>
-          {this.props.notices
-            .filter(notice => {
-              if (
-                this.props.me.favnotices &&
-                this.props.me.favnotices.includes(notice.uid) &&
-                (this.props.category === "fav" || this.props.category === "" || this.props.category === null)
-              ) {
-                return true;
-              }
-              if (this.props.me.settings && this.props.me.settings.showReadNotices !== undefined && !this.props.me.settings.showReadNotices && notice.staff && notice.staff.includes(auth.currentUser.uid)) return false;
-              if (
-                notice.auth !== undefined &&
-                this.props.me.auth &&
-                this.props.me.auth[notice.auth] === false
-              ) {
-                return false;
-              }
-              if (
-                this.props.me.deletednotices &&
-                this.props.me.deletednotices.includes(notice.uid)
-              ) {
-                return false;
-              }
-              if (this.props.category === "imp" && notice.important) return true;
-              if (this.props.search) {
-                let search = [
-                    notice.categorydesc,
-                    notice.text,
-                    notice.author,
-                  ];
-                if (notice.category === 'has') search = [
-                  notice.categorydesc,
-                  notice.incidentdesc,
-                  notice.incidentno,
-                  notice.incidentstaff,
-                  notice.job,
-                  notice.text,
-                  notice.author,
-                ];
-                let searchterm = this.props.search.toLowerCase().split(" ");
-                let res = true;
-                searchterm.forEach(term => {
-                  if (
-                    search.find(
-                      tag => tag && tag.toLowerCase().includes(term)
-                    ) === undefined
-                  )
-                    res = false;
-                });
-                return res;
-              } else if (this.props.category) {
-                return notice.category === this.props.category;
-              } else {
-                return true;
-              }
-            })
-            .map(notice => {
+          {notices.map(notice => {
               return (
                 <Grid item sm={12} md={6} lg={4} xl={3} key={notice.uid}>
-                  <NoticeCard
-                    notice={notice}
-                  />
+                  <NoticeCard notice={notice} />
                 </Grid>
               );
             })}
         </Grid>
+        <div className={classes.flexRowCentered}>
+          <Button
+            onClick={ () => { this.setState({ noticeLimit: this.state.noticeLimit + 8}) }}>
+            <Add className={classes.marginRightSmall} /> View More
+          </Button>
+        </div>
       </div>
     );
   }
