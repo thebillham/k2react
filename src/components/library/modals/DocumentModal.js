@@ -7,7 +7,6 @@ import { connect } from "react-redux";
 import { DOCUMENT } from "../../../constants/modal-types";
 import { docsRef, storage } from "../../../config/firebase";
 import "../../../config/tags.css";
-import { sendSlackMessage } from "../../../Slack";
 
 import { RichEditor } from "../../editor/RichEditor";
 import { EditorState, ContentState, convertToRaw } from "draft-js";
@@ -40,7 +39,7 @@ import {
   handleTagAddition,
   handleTagDelete
 } from "../../../actions/modal";
-import { getUserAttrs } from "../../../actions/local";
+import { getUserAttrs, sendSlackMessage, } from "../../../actions/local";
 import _ from "lodash";
 
 const mapStateToProps = state => {

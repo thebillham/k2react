@@ -26,13 +26,17 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "react-select";
 import IconButton from "@material-ui/core/IconButton";
 
+import {
+  DatePicker,
+} from "@material-ui/pickers";
+
 import UndoIcon from '@material-ui/icons/Undo';
 import RedoIcon from '@material-ui/icons/Redo';
 import MoveIcon from '@material-ui/icons/OpenWith';
 import ClearIcon from '@material-ui/icons/Clear';
 import AddIcon from '@material-ui/icons/Add';
 
-import {SketchField, Tools} from 'react-sketch';
+// import {SketchField, Tools} from ``'react-sketch';
 
 import {
   hideModal,
@@ -42,13 +46,14 @@ import {
   handleTagDelete,
   handleTagAddition
 } from "../../../actions/modal";
-import { getUserAttrs, fetchNotices, } from "../../../actions/local";
+import { getUserAttrs, fetchNotices, dateOf, sendSlackMessage } from "../../../actions/local";
 import _ from "lodash";
 
 const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
+    me: state.local.me,
     doc: state.modal.modalProps.doc,
     categories: state.const.noticeCategories,
     questions: state.local.questions
@@ -105,23 +110,21 @@ class NoticeModal extends React.Component {
                   }}
                 />
               </FormControl>
-              <TextField
-                id="date"
+              <DatePicker
+                value={doc.date}
+                autoOk
                 label={doc.category === 'has' ? "Incident Date" : "Date"}
-                value={doc && doc.date ? moment(doc.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')}
-                className={classes.dialogField}
-                type="date"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                onChange={e => {
-                  this.props.handleModalChange(e.target);
-                }}
+                openTo="year"
+                format="D MMMM YYYY"
+                views={['year', 'month', 'date']}
+                clearable
+                onChange={date => this.props.handleModalChange({ value: dateOf(date), id: 'date'})}
               />
+              <div className={classes.marginBottomSmall} />
               <TextField
                 id="job"
                 label={doc.category === 'client' ? "Client Name" : doc.category === 'geneq' ? "Title" : "Job Number, Site Address or Subject"}
-                value={doc && doc.job ? doc.job : ''}
+                defaultValue={doc && doc.job ? doc.job : ''}
                 className={classes.dialogField}
                 onChange={e => {
                   this.props.handleModalChange(e.target);
@@ -132,7 +135,7 @@ class NoticeModal extends React.Component {
                   <TextField
                     id="incidentno"
                     label="Incident No."
-                    value={doc && doc.incidentno ? doc.incidentno : ''}
+                    defaultValue={doc && doc.incidentno ? doc.incidentno : ''}
                     className={classes.dialogField}
                     onChange={e => {
                       this.props.handleModalChange(e.target);
@@ -141,7 +144,7 @@ class NoticeModal extends React.Component {
                   <TextField
                     id="incidentstaff"
                     label="Staff Involved"
-                    value={doc && doc.incidentstaff ? doc.incidentstaff : ''}
+                    defaultValue={doc && doc.incidentstaff ? doc.incidentstaff : ''}
                     className={classes.dialogField}
                     onChange={e => {
                       this.props.handleModalChange(e.target);
@@ -150,7 +153,7 @@ class NoticeModal extends React.Component {
                   <TextField
                     id="incidentdesc"
                     label="Incident Description"
-                    value={doc && doc.incidentdesc ? doc.incidentdesc : ''}
+                    defaultValue={doc && doc.incidentdesc ? doc.incidentdesc : ''}
                     className={classes.dialogField}
                     multiline
                     rows={3}
@@ -163,7 +166,7 @@ class NoticeModal extends React.Component {
               <TextField
                 id="text"
                 label={'genleadseqclient'.includes(doc.category) ? "Message" : "Learnings" }
-                value={doc && doc.text ? doc.text : ''}
+                defaultValue={doc && doc.text ? doc.text : ''}
                 className={classes.dialogField}
                 multiline
                 rows={10}
@@ -199,6 +202,13 @@ class NoticeModal extends React.Component {
                     doc: doc,
                     pathRef: noticesRef,
                   });
+                  let message = {
+                    text: `${
+                      this.props.me.name
+                    } has ${doc.uid ? 'edited a' : 'added a new'} ${doc.categorydesc} notice.
+                    ${doc.text && `\n${doc.text}`}`
+                  };
+                  sendSlackMessage(message, true);
                   this.props.fetchNotices(true);
                 } else {
                   window.alert("Add a category before submitting.");

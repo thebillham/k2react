@@ -65,9 +65,9 @@ function AttrList(props) {
           {attr.fileUrl ? (
             <Popup
               trigger={
-                <Image
+                <span><Image
                   style={{ fontSize: 24, color: cameracolor, margin: 10 }}
-                />
+                /></span>
               }
               position="right bottom"
               on="hover"

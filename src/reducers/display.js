@@ -101,7 +101,6 @@ export default function displayReducer(state = displayInit, action) {
         filterMap: filterMap,
       }
     case TOGGLE_DO_NOT_RENDER:
-      console.log('togle');
       console.log(action.payload);
       return{
         ...state,

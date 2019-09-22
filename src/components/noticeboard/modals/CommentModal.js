@@ -33,7 +33,7 @@ import {
   handleTagDelete,
   handleTagAddition
 } from "../../../actions/modal";
-import { getUserAttrs, fetchNotices, removeNoticeReads, } from "../../../actions/local";
+import { getUserAttrs, fetchNotices, removeNoticeReads, sendSlackMessage, } from "../../../actions/local";
 import _ from "lodash";
 
 const mapStateToProps = state => {
@@ -41,6 +41,7 @@ const mapStateToProps = state => {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
+    me: state.local.me,
     categories: state.const.noticeCategories,
     questions: state.local.questions,
     noticeReads: state.local.noticeReads,
@@ -65,25 +66,10 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class NoticeModal extends React.Component {
-  // getStyles = name => {
-  //   let requiredlist = this.props.doc.required ? this.props.doc.required : [];
-  //   let optionallist = this.props.doc.optional ? this.props.doc.optional : [];
-  //   let list = requiredlist.concat(optionallist);
-  //   return {
-  //     fontWeight: list.indexOf(name) === -1 ? 200 : 600
-  //   };
-  // };
-
+class CommentModal extends React.Component {
   render() {
     const { modalProps, doc, classes, categories, questions } = this.props;
-    let categorymap = {};
-    categories.forEach(cat => {
-      categorymap[cat.key] = cat.desc;
-    });
-    // let max = 0;
-    // if (doc.optional) max = max + doc.optional.length;
-    // if (doc.required) max = max + doc.required.length;
+
     return (
       <Dialog
         open={this.props.modalType === COMMENT}
@@ -122,6 +108,7 @@ class NoticeModal extends React.Component {
             <Button
               onClick={() => {
                 let comment = doc.comment;
+                let newComment = comment && !comment.uid;
                 if (comment && !comment.uid && comment.text && comment.text !== '') {
                   comment.uid = moment().format('x');
                 }
@@ -143,6 +130,14 @@ class NoticeModal extends React.Component {
                       [comment.uid]: comment
                     }
                   }
+
+                  let message = {
+                    text: `${
+                      this.props.me.name
+                    } has ${newComment ? 'added a new' : 'edited a'} comment.`
+                  };
+                  sendSlackMessage(message, true);
+
                   // Reset all staff read if a new or edited comment
                   newDoc = {
                     ...doc.notice,
@@ -173,5 +168,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(NoticeModal)
+  )(CommentModal)
 );

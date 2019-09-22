@@ -8,7 +8,7 @@ import { styles } from "../config/styles";
 import img_Logo from "../images/logo.png";
 import ApiCalendar from "react-google-calendar-api";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { sendSlackMessage } from "../Slack";
+import { sendSlackMessage } from "../actions/local";
 
 class K2SignInScreen extends Component {
   constructor(props) {
@@ -68,6 +68,14 @@ class K2SignInScreen extends Component {
             <div className={classes.signInWarning}>
               You have not been authorised to view this site. Please
               wait for the{" "}<a href="mailto:ben@k2.co.nz">site admin</a>{" "}to create your account.
+            </div>
+          </div>
+        }
+        { mode === 'oldVersion' &&
+          <div className={classes.flexRowCentered}>
+            <div className={classes.signInWarning}>
+              Your browser is using an old version of MyK2. Please hold the shift key and press F5
+              to force your browser to use the latest version.
             </div>
           </div>
         }

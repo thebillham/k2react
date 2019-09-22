@@ -8,7 +8,6 @@ import { connect } from "react-redux";
 import { USER_ATTR } from "../../../constants/modal-types";
 import { usersRef, storage } from "../../../config/firebase";
 import "../../../config/tags.css";
-import { sendSlackMessage } from "../../../Slack";
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -32,7 +31,7 @@ import {
   handleModalSubmit,
   onUploadFile
 } from "../../../actions/modal";
-import { getUserAttrs } from "../../../actions/local";
+import { getUserAttrs, sendSlackMessage, } from "../../../actions/local";
 import _ from "lodash";
 
 const mapStateToProps = state => {

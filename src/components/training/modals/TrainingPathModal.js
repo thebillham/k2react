@@ -15,7 +15,6 @@ import "react-quill/dist/quill.snow.css";
 import { TRAINING } from "../../../constants/modal-types";
 import { trainingPathsRef, storage } from "../../../config/firebase";
 import "../../../config/tags.css";
-import { sendSlackMessage } from "../../../Slack";
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -45,7 +44,7 @@ import {
   handleModalSubmit,
   onUploadFile
 } from "../../../actions/modal";
-import { getUserAttrs } from "../../../actions/local";
+import { getUserAttrs, sendSlackMessage, } from "../../../actions/local";
 import _ from "lodash";
 
 // Quill.register('modules/imageResize', ImageResize);

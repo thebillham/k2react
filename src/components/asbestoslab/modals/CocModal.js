@@ -7,7 +7,6 @@ import classNames from 'classnames';
 // import store from '../../store';
 import { ASBESTOS_COC_EDIT, ASBESTOS_SAMPLE_EDIT_COC, } from '../../../constants/modal-types';
 import moment from "moment";
-// import { sendSlackMessage } from '../../Slack';
 
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';

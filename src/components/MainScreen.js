@@ -78,8 +78,7 @@ import AppSettings from "./settings/AppSettings";
 import UpdateData from "./settings/UpdateData";
 
 import store from "../store";
-import { onSearchChange, onCatChange } from "../actions/local";
-import { sendSlackMessage } from "../Slack";
+import { onSearchChange, onCatChange, sendSlackMessage, } from "../actions/local";
 
 import { fetchMe, resetLocal, copyStaff, fetchGeocodes, fetchStaff, fetchAssets, } from "../actions/local";
 import { resetModal, showModal } from "../actions/modal";
@@ -143,7 +142,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const thisVersion = '1.2.6';
+const thisVersion = '1.2.7';
 
 class MainScreen extends React.PureComponent {
   // static whyDidYouRender = true;
@@ -155,6 +154,7 @@ class MainScreen extends React.PureComponent {
       staffUid: null,
       openDev: false,
       openAsbestos: true,
+      hidden: true,
       // openRef: false,
       // openStaff: false,
       // openMyDetails: false,
@@ -174,6 +174,9 @@ class MainScreen extends React.PureComponent {
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');
+    setTimeout(() => this.setState({
+      hidden: false,
+    }), 2000);
   }
 
   handleLogOut = () => {
@@ -505,11 +508,6 @@ class MainScreen extends React.PureComponent {
             </div>
           )}
           <div className={classes.version}>{`v${thisVersion}`}</div>
-          <div className={latestVersion == thisVersion ? classes.version : classes.versionOld}>
-            {latestVersion == thisVersion ? `Your version is up to date.` :
-              `You are using an old version of MyK2. Hold the shift key and press F5 to force your browser to use the latest version (v${latestVersion})`
-            }
-          </div>
         {/*<Divider />
           <ListItem button onClick={this.handleDevClick}>
             <ListItemIcon>
@@ -611,7 +609,7 @@ class MainScreen extends React.PureComponent {
 
     return (
       <React.Fragment>
-        {this.props.initialLoading ? (
+        {this.state.hidden ? (
           <Suspense fallback={<CircularProgress className={classes.signInCircle} />}>
             <K2SignInScreen mode='loading' />
           </Suspense>

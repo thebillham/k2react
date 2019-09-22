@@ -60,7 +60,7 @@ class Noticeboard extends React.PureComponent {
     super(props);
     this.state = {
       hideRead: false,
-      noticeLimit: 16,
+      noticeLimit: 12,
     };
   }
 
@@ -69,7 +69,7 @@ class Noticeboard extends React.PureComponent {
     // console.log(this.props.noticeReads);
     // if (this.props.staff && Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
     if (this.props.noticeReads && this.props.noticeReads.length === 0) this.props.fetchNoticeReads();
-    this.props.fetchNotices();
+    if (this.props.notices && this.props.notices.length === 0) this.props.fetchNotices();
     // this.props.fetchNoticeReads(true);
   }
 
@@ -84,7 +84,8 @@ class Noticeboard extends React.PureComponent {
       : this.props.onCatChange(category);
     this.props.onSearchChange(null);
     this.setState({
-      modPath: null
+      modPath: null,
+      noticeLimit: 12,
     });
   };
 
@@ -96,8 +97,8 @@ class Noticeboard extends React.PureComponent {
 
   render() {
     const { classes, noticeReads, modalType } = this.props;
-    console.log(noticeReads);
-    const notices = this.props.notices
+    // console.log(noticeReads);
+    const unslicedNotices = this.props.notices
       .filter(notice => {
         if (
           this.props.me.favnotices &&
@@ -153,8 +154,9 @@ class Noticeboard extends React.PureComponent {
         } else {
           return true;
         }
-      }).slice(0, this.state.noticeLimit);
-    console.log('Re-rendering Noticeboard');
+      });
+    const notices = unslicedNotices.slice(0, this.state.noticeLimit);
+    // console.log('Re-rendering Noticeboard');
     return (
       <div className={classes.marginTopStandard}>
         {modalType === NOTICES && <NoticeModal />}
@@ -228,18 +230,18 @@ class Noticeboard extends React.PureComponent {
         <Grid container spacing={2} style={{ paddingTop: 30 }}>
           {notices.map(notice => {
               return (
-                <Grid item sm={12} md={6} lg={4} xl={3} key={notice.uid}>
+                <Grid item xs={12} sm={6} md={4} lg={3} xl={2} key={notice.uid}>
                   <NoticeCard notice={notice} />
                 </Grid>
               );
             })}
         </Grid>
-        <div className={classes.flexRowCentered}>
+        {this.state.noticeLimit < unslicedNotices.length && <div className={classes.flexRowCentered}>
           <Button
-            onClick={ () => { this.setState({ noticeLimit: this.state.noticeLimit + 8}) }}>
+            onClick={ () => { this.setState({ noticeLimit: this.state.noticeLimit + 12}) }}>
             <Add className={classes.marginRightSmall} /> View More
           </Button>
-        </div>
+        </div>}
       </div>
     );
   }

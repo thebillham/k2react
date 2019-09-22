@@ -82,6 +82,7 @@ const settings = {
     value: 'noticeCategories',
     group: 'appCategories',
     fields: ['desc','key'],
+    noSort: true,
     hint: 'Put each category on a new line in the form "category description|category key".',
   },
   toolCategories: {
@@ -328,11 +329,15 @@ class AppSettings extends React.Component {
 
   saveText = setting => {
     if (setting) {
-      console.log(setting);
+      // console.log(setting);
+      // console.log(this.state.text);
       let newMap = this.state.text
         .split("\n")
         .filter(Boolean);
-      if (!setting.noSort) newMap = newMap.sort();
+      // console.log(newMap);
+      // console.log(settings[setting]);
+      if (!settings[setting].noSort) newMap = newMap.sort();
+      // console.log(newMap);
       newMap = newMap.map(option => {
           if (settings[setting].fields.length === 0) return option;
           else {
@@ -343,8 +348,6 @@ class AppSettings extends React.Component {
             for (var i = 0; i < fields.length; i++) {
               fieldMap[fields[i]] = valueList[i] ? valueList[i] : settings[setting].fallBack ? settings[setting].fallBack[i] ? settings[setting].fallBack[i] : settings[setting].fallBack[0] : valueList[0];
             }
-            console.log(fieldMap);
-
             return fieldMap;
           }
         });

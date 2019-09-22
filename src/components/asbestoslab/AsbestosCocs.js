@@ -19,6 +19,7 @@ import {
 import {
   ASBESTOS_COC_EDIT,
   UPDATE_CERTIFICATE_VERSION,
+  ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS,
   ASBESTOS_SAMPLE_LOG,
   WA_ANALYSIS,
   ASBESTOS_SAMPLE_EDIT,
@@ -39,6 +40,7 @@ import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
 import AsbestosSampleDetailsModal from "./modals/AsbestosSampleDetailsModal";
 import AsbestosActionsModal from "./modals/AsbestosActionsModal";
 import AsbestosSampleCocEditModal from "./modals/AsbestosSampleCocEditModal";
+import AsbestosSoilSubsampleWeightsModal from "./modals/AsbestosSoilSubsampleWeightsModal";
 import ConfirmResultModal from "./modals/ConfirmResultModal";
 import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
@@ -171,6 +173,7 @@ class AsbestosCocs extends React.Component {
         { modalType === CONFIRM_RESULT && <ConfirmResultModal /> }
         { modalType === ASBESTOS_SAMPLE_DETAILS && <AsbestosSampleDetailsModal /> }
         { modalType === ASBESTOS_ACTIONS && <AsbestosActionsModal /> }
+        { modalType === ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS && <AsbestosSoilSubsampleWeightsModal />}
         { modalTypeSecondary === SOIL_DETAILS && <SoilDetailsModal /> }
         { modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && <AsbestosSampleCocEditModal /> }
         <Button

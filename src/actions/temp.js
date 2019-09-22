@@ -19,7 +19,7 @@ export const fixIds = () => dispatch => {
 
 export const transferNoticeboardReads = () => {
   noticesRef
-    .onSnapshot(querySnapshot => {
+    .get().then(querySnapshot => {
       var notices = [];
       querySnapshot.forEach(doc => {
         let notice = doc.data();

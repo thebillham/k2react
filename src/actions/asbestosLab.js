@@ -67,7 +67,7 @@ export const fetchCocs = update => async dispatch => {
       .where("lastModified", ">", moment().subtract(1, 'days').toDate())
       // .orderBy("lastModified")
       // .orderBy("dueDate", "desc")
-      .onSnapshot(querySnapshot => {
+      .get().then(querySnapshot => {
         var cocs = {};
         querySnapshot.forEach(doc => {
           cocs[doc.id] = doc.data();
@@ -94,7 +94,7 @@ export const fetchCocsByJobNumber = (jobNumber) => async dispatch => {
     .where("deleted", "==", false)
     .where("jobNumber", "==", jobNumber.toUpperCase())
     .orderBy("lastModified")
-    .onSnapshot(querySnapshot => {
+    .get().then(querySnapshot => {
       var cocs = {};
       querySnapshot.forEach(doc => {
         cocs[doc.id] = doc.data();
@@ -122,7 +122,7 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
       .where("lastModified", ">=", startDate)
       .where("lastModified", "<=", endDate)
       .orderBy("lastModified")
-      .onSnapshot(querySnapshot => {
+      .get().then(querySnapshot => {
         var cocs = {};
         querySnapshot.forEach(doc => {
           cocs[doc.id] = doc.data();
@@ -140,7 +140,7 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
       .where("lastModified", ">=", startDate)
       .where("lastModified", "<=", endDate)
       .orderBy("lastModified")
-      .onSnapshot(querySnapshot => {
+      .get().then(querySnapshot => {
         var cocs = {};
         querySnapshot.forEach(doc => {
           cocs[doc.id] = doc.data();
@@ -167,7 +167,7 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
 export const fetchAsbestosAnalysis = update => async dispatch => {
   if (update) {
     asbestosAnalysisRef
-      .onSnapshot(querySnapshot => {
+      .get().then(querySnapshot => {
         var analysis = [];
         querySnapshot.forEach(doc => {
           analysis.push(doc.data());
@@ -221,7 +221,7 @@ export const fetchSampleLog = (update) => async dispatch => {
     asbestosSampleLogRef
       .where("reportDate", ">", startDate)
       .orderBy("reportDate")
-      .onSnapshot(logSnapshot => {
+      .get().then(logSnapshot => {
         let logs = {};
         logSnapshot.forEach(logDoc => {
           let log = logDoc.data();

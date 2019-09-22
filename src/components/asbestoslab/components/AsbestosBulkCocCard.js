@@ -22,6 +22,7 @@ import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../
 import { showModal } from "../../../actions/modal";
 import {
   ASBESTOS_SAMPLE_EDIT,
+  ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS,
   ASBESTOS_COC_EDIT,
   COC_STATS,
   ASBESTOS_ACTIONS,
@@ -103,6 +104,7 @@ class AsbestosBulkCocCard extends React.Component {
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
     if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
+    if (this.props.modalType === ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS) return false; // Soil subsample modal is open
     // if (nextProps.doNotRender) return false;
     if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
     if (this.props.expanded === this.props.job && nextProps.expanded !== this.props.job) {
@@ -213,7 +215,11 @@ class AsbestosBulkCocCard extends React.Component {
                   </IconButton>
                 </span>
               </Tooltip>
-              <Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+              {(this.props.me.auth &&
+                (this.props.me.auth['Asbestos Admin'] ||
+                this.props.me.auth['Admin'] ||
+                this.props.me.auth['Analysis Checker'] ||
+                this.props.me.auth['Asbestos Bulk Analysis'])) && <span><Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
                 <span>
                   <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
                     onClick={event => {
@@ -243,6 +249,22 @@ class AsbestosBulkCocCard extends React.Component {
                   </IconButton>
                 </span>
               </Tooltip>
+              {job.waAnalysis && <Tooltip title={'Record Soil Subsample Weights'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+                <span>
+                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
+                    onClick={event => {
+                      this.props.showModal({
+                        modalType: ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS,
+                        modalProps: {
+                          activeSample: Object.keys(filteredSamples)[0],
+                          activeCoc: job.uid,
+                          sampleList: job.sampleList,
+                      }});
+                    }}>
+                    <WAIcon className={classes.iconRegular} />
+                  </IconButton>
+                </span>
+              </Tooltip>}
               <Tooltip title={'Verify Results'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
                 <span>
                   <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
@@ -268,7 +290,7 @@ class AsbestosBulkCocCard extends React.Component {
                 <IssueVersionIcon className={classes.iconRegular} />
                 Issue Version {version}
               </Button>
-              <span className={classes.spacerSmall} />
+              <span className={classes.spacerSmall} /></span>}
               <Button
                 className={classes.buttonIconText}
                 disabled={!job.currentVersion || !job.versionUpToDate}

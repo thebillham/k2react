@@ -9,7 +9,6 @@ import { WithContext as ReactTags } from "react-tag-input";
 import { QUESTION } from "../../../../constants/modal-types";
 import { questionsRef } from "../../../../config/firebase";
 import "../../../../config/tags.css";
-// import { sendSlackMessage } from '../../Slack';
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";

@@ -274,8 +274,10 @@ const styles = theme => ({
   },
 
   cardHeaderNotice: {
-    height: '4vw',
-    backgroundColor: '#eee'
+    // height: '4vw',
+    // backgroundColor: '#eee',
+    borderRadius: 20,
+    padding: theme.spacing(1),
   },
 
   hoverItem: {

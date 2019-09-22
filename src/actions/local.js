@@ -368,7 +368,7 @@ export const fetchNotices = update => async dispatch => {
   if (update) {
     noticesRef
       .orderBy("date", "desc")
-      // .limit(100)
+      // .limit(200)
       .get().then(querySnapshot => {
         var notices = [];
         querySnapshot.forEach(doc => {
@@ -395,21 +395,25 @@ export const fetchNotices = update => async dispatch => {
 
 export const removeNoticeReads = async (notice, reads) => {
   let noticeArray = [];
-  let batch = firestore.batch();
+  // let batch = firestore.batch();
 
   stateRef.doc("noticereads").collection("notices").doc(notice.uid).get().then(doc => {
     if (doc.exists) {
       doc.data().payload.forEach(user => {
         let userArray = [];
+        // console.log(user);
         stateRef.doc("noticereads").collection("users").doc(user).get().then(doc => {
-          if (doc.exists) userArray = userArray.filter(uid => uid !== notice.uid);
-          batch.set(stateRef.doc("noticereads").collection("users").doc(user), { payload: userArray });
+          if (doc.exists && doc.data() && doc.data().payload)
+            userArray = doc.data().payload.filter(uid => uid !== notice.uid);
+          // console.log(userArray);
+          stateRef.doc("noticereads").collection("users").doc(user).set({ payload: userArray });
+          // batch.set(stateRef.doc("noticereads").collection("users").doc(user), { payload: userArray });
         });
       });
     }
-    console.log('commiting');
-    batch.delete(stateRef.doc("noticereads").collection("notices").doc(notice.uid));
-    batch.commit();
+    // console.log('commiting');
+    stateRef.doc("noticereads").collection("notices").doc(notice.uid).delete();
+    // batch.commit();
   });
 }
 
@@ -418,10 +422,10 @@ export const readNotice = (notice, me, reads) => {
   let batch = firestore.batch();
   let noticeArray = [];
 
-  console.log(reads);
+  // console.log(reads);
 
   if (reads) userArray = [...reads];
-  console.log(userArray);
+  // console.log(userArray);
 
   stateRef.doc("noticereads").collection("notices").doc(notice.uid).get().then(doc => {
     if (doc.exists) noticeArray = [...doc.data().payload];
@@ -446,7 +450,7 @@ export const readNotice = (notice, me, reads) => {
 export const fetchNoticeReads = (update) => async dispatch => {
   if (update) {
     noticeReadsRef
-      .onSnapshot(querySnapshot => {
+      .get().then(querySnapshot => {
         var notices = [];
         querySnapshot.forEach(doc => {
           let notice = doc.data();
@@ -463,9 +467,9 @@ export const fetchNoticeReads = (update) => async dispatch => {
     //   "users": {},
     //   "notices": {},
     // };
-    console.log('Fetching notice reads');
+    // console.log('Fetching notice reads');
     stateRef.doc("noticereads").collection("users").doc(auth.currentUser.uid).onSnapshot(doc => {
-      console.log(doc.data());
+      // console.log(doc.data());
       dispatch({ type: GET_NOTICE_READS, payload: doc.data().payload });
     });
     // stateRef.doc("noticereads").collection("users").onSnapshot(querySnapshot => {
@@ -487,7 +491,7 @@ export const fetchIncidents = update => async dispatch => {
     incidentsRef
       // .orderBy("date", "desc")
       // .limit(100)
-      .onSnapshot(querySnapshot => {
+      .get().then(querySnapshot => {
         var incidents = [];
         querySnapshot.forEach(doc => {
           let incident = doc.data();
@@ -513,7 +517,7 @@ export const fetchIncidents = update => async dispatch => {
 
 export const fetchQuestions = update => async dispatch => {
   if (update) {
-    questionsRef.orderBy("question").onSnapshot(querySnapshot => {
+    questionsRef.orderBy("question").get().then(querySnapshot => {
       var questions = [];
       querySnapshot.forEach(doc => {
         let question = doc.data();
@@ -539,7 +543,7 @@ export const fetchQuestions = update => async dispatch => {
 
 export const fetchQuizzes = update => async dispatch => {
   if (update) {
-    quizzesRef.orderBy("title").onSnapshot(querySnapshot => {
+    quizzesRef.orderBy("title").get().then(querySnapshot => {
       var quizzes = [];
       querySnapshot.forEach(doc => {
         let quiz = doc.data();
@@ -565,7 +569,7 @@ export const fetchQuizzes = update => async dispatch => {
 
 export const fetchTools = update => async dispatch => {
   if (update) {
-    toolsRef.orderBy("title").onSnapshot(querySnapshot => {
+    toolsRef.orderBy("title").get().then(querySnapshot => {
       var tools = [];
       querySnapshot.forEach(doc => {
         let tool = doc.data();
@@ -591,7 +595,7 @@ export const fetchTools = update => async dispatch => {
 
 export const fetchTrainingPaths = update => async dispatch => {
   if (update) {
-    trainingPathsRef.orderBy("title").onSnapshot(querySnapshot => {
+    trainingPathsRef.orderBy("title").get().then(querySnapshot => {
       var trainings = [];
       querySnapshot.forEach(doc => {
         let training = doc.data();
@@ -733,7 +737,7 @@ export const fetchReadingLog = () => async dispatch => {
     .doc(auth.currentUser.uid)
     .collection("readinglog")
     .orderBy("date", "desc")
-    .onSnapshot(querySnapshot => {
+    .get().then(querySnapshot => {
       var logs = [];
       querySnapshot.forEach(doc => {
         let log = doc.data();
@@ -763,7 +767,7 @@ export const fetchQuizLog = () => async dispatch => {
     .doc(auth.currentUser.uid)
     .collection("quizlog")
     .orderBy("latestSubmit", "desc")
-    .onSnapshot(querySnapshot => {
+    .get().then(querySnapshot => {
       var logs = [];
       querySnapshot.forEach(doc => {
         let log = doc.data();
@@ -796,7 +800,7 @@ export const fetchMethodLog = () => async dispatch => {
     .doc(auth.currentUser.uid)
     .collection("methodlog")
     .orderBy("methodCompleted", "desc")
-    .onSnapshot(querySnapshot => {
+    .get().then(querySnapshot => {
       var logs = [];
       querySnapshot.forEach(doc => {
         let log = doc.data();
@@ -828,7 +832,7 @@ export const fetchMethodLog = () => async dispatch => {
 };
 
 export const fetchHelp = () => async dispatch => {
-  helpRef.orderBy("date", "desc").onSnapshot(querySnapshot => {
+  helpRef.orderBy("date", "desc").get().then(querySnapshot => {
     var helps = [];
     querySnapshot.forEach(doc => {
       helps.push(doc.data());
@@ -841,7 +845,7 @@ export const fetchHelp = () => async dispatch => {
 };
 
 export const fetchUpdates = () => async dispatch => {
-  updateRef.orderBy("date", "desc").onSnapshot(querySnapshot => {
+  updateRef.orderBy("date", "desc").get().then(querySnapshot => {
     var updates = [];
     querySnapshot.forEach(doc => {
       updates.push(doc.data());
@@ -854,7 +858,7 @@ export const fetchUpdates = () => async dispatch => {
 };
 
 export const getUser = userRef => async dispatch => {
-  usersRef.doc(userRef).onSnapshot(doc => {
+  usersRef.doc(userRef).get().then(doc => {
     dispatch({
       type: GET_USER,
       payload: doc.data()
@@ -1649,6 +1653,16 @@ export const dateOf = d => {
     }
   }
 }
+
+export const sendSlackMessage = (message, json) => {
+  let text;
+  if (json) text = message;
+  else text = { text: message };
+  fetch(process.env.REACT_APP_SLACK_WEBHOOK, {
+    method: "POST",
+    body: JSON.stringify(text)
+  });
+};
 
 export const getEmailSignature = user => {
   let officePhone = '+64 3 384 8966';

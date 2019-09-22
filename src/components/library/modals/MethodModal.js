@@ -15,7 +15,6 @@ import htmlToDraft from "html-to-draftjs";
 import { METHOD, UPDATE_METHOD_VERSION } from "../../../constants/modal-types";
 import { methodsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
-import { sendSlackMessage } from "../../../Slack";
 
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -40,7 +39,7 @@ import {
   onUploadFile,
   handleGlossaryChange
 } from "../../../actions/modal";
-import { getUserAttrs } from "../../../actions/local";
+import { getUserAttrs, sendSlackMessage } from "../../../actions/local";
 import _ from "lodash";
 
 const mapStateToProps = state => {

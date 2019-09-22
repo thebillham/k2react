@@ -49,11 +49,11 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const generalIcon = (<GeneralIcon style={{ color: '6fa1b6'}} />);
-const healthIcon = (<HealthIcon style={{ color: 'red', }} />);
-const clientIcon = (<ClientIcon style={{ color: '#6fa1b6'}} />);
-const reportIcon = (<ReportIcon style={{ color: '#6fa1b6'}} />);
-const jobLeadsIcon = (<JobLeadsIcon style={{ color: '#6fa1b6'}} />);
+const generalIcon = (<GeneralIcon style={{ color: '6fa1b6', fontSize: 40, }} />);
+const healthIcon = (<HealthIcon style={{ color: 'red', fontSize: 40,  }} />);
+const clientIcon = (<ClientIcon style={{ color: '#6fa1b6', fontSize: 40, }} />);
+const reportIcon = (<ReportIcon style={{ color: '#6fa1b6', fontSize: 40, }} />);
+const jobLeadsIcon = (<JobLeadsIcon style={{ color: '#6fa1b6', fontSize: 40, }} />);
 const asbestosIcon = (<Avatar style={{ backgroundColor: '#7d6d26', color: 'white' }}>A</Avatar>);
 const methIcon = (<Avatar style={{ backgroundColor: '#ff0065', color: 'white' }}>M</Avatar>);
 const occIcon = (<Avatar style={{ backgroundColor: '#a2539c', color: 'white' }}>O</Avatar>);
@@ -61,32 +61,21 @@ const bioIcon = (<Avatar style={{ backgroundColor: '#87cc14', color: 'white' }}>
 const noiseIcon = (<Avatar style={{ backgroundColor: '#995446', color: 'white' }}>N</Avatar>);
 const stackIcon = (<Avatar style={{ backgroundColor: '#e33714', color: 'white' }}>S</Avatar>);
 
-class NoticeCard extends React.PureComponent {
+class NoticeCard extends React.Component {
   // static whyDidYouRender = true;
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   return !_.isEqual(this.props, nextProps)
-  //     || !_.isEqual(this.state, nextState);
-  // }
-  // shouldComponentUpdate(nextProps) {
-  //   // return false;
-  //   if (this.props.notice == nextProps.notice) return false;
-  //   if
-  //   (this.props.notice.incidentno == nextProps.notice.incidentno &&
-  //     this.props.notice.job == nextProps.notice.job &&
-  //     this.props.notice.incidentstaff == nextProps.notice.incidentstaff &&
-  //     this.props.notice.incidentdesc == nextProps.notice.incidentdesc &&
-  //     this.props.notice.title == nextProps.notice.title &&
-  //     this.props.notice.subtitle == nextProps.notice.subtitle &&
-  //     this.props.notice.text == nextProps.notice.text &&
-  //     this.props.notice.comments == nextProps.notice.comments &&
-  //     this.props.me.favnotices && this.props.me.favnotices.includes(this.props.notice.uid) == nextProps.me.favnotices.includes(nextProps.notice.uid) &&
-  //     this.props.notice.staff && this.props.notice.staff.includes(this.props.me.uid) == nextProps.notice.staff.includes(nextProps.me.uid)
-  //   ) return false;
-  //   return true;
-  // }
+
+  shouldComponentUpdate(nextProps) {
+    if (this.props.notice == nextProps.notice &&
+      (this.props.me.favnotices &&
+        this.props.me.favnotices.includes(this.props.notice.uid) == nextProps.me.favnotices.includes(nextProps.notice.uid)) &&
+      (this.props.noticeReads && nextProps.noticeReads &&
+      this.props.noticeReads.includes(this.props.notice.uid) == nextProps.noticeReads.includes(nextProps.notice.uid))
+    ) return false;
+    return true;
+  }
 
   render() {
-    console.log('Noticecard Re-rendering ' + this.props.notice.categorydesc);
+    // console.log('Noticecard Re-rendering ' + this.props.notice.categorydesc);
     const { classes, notice, staff, me, noticeReads } = this.props;
 
     let avatar = generalIcon;
@@ -105,28 +94,28 @@ class NoticeCard extends React.PureComponent {
     const read = noticeReads && noticeReads.includes(notice.uid);
     const edit = me.uid === notice.authorUid || me.auth['Admin'] || me.name === notice.author;
 
+    console.log('RE-RENDER');
     return (
       <Card className={classes.noticeCard} >
-        <CardHeader
-          className={classes.cardHeaderNotice}
-          avatar={avatar}
-          title={
-            <Typography className={classes.title} color="textSecondary">
-            {notice.categorydesc}
-            </Typography>
-          }
-          subheader={
-            <div>
-              <Typography color="textPrimary">
-                Submitted by <span className={classes.bold}>{notice.author}</span>
-              </Typography>
-              <Typography className={classes.subtitle} color="textSecondary">
-                {moment(notice.date).format('ddd, D MMM YYYY')}
-              </Typography>
-            </div>
-          }
-        />
+
         <CardContent>
+          <div className={classes.cardHeaderNotice}>
+            <div className={classes.flexRow}>
+              {avatar}
+              <div className={classes.spacerMedium} />
+              <div>
+                <Typography className={classes.title} color="textSecondary">
+                {notice.categorydesc}
+                </Typography>
+                <Typography color="textPrimary">
+                  Submitted by <span className={classes.bold}>{notice.author}</span>
+                </Typography>
+                <Typography className={classes.subtitle} color="textSecondary">
+                  {moment(notice.date).format('ddd, D MMM YYYY')}
+                </Typography>
+              </div>
+            </div>
+          </div>
           <div className={classes.details} color="textSecondary">
             {notice.category === 'has' ? <div>
             {notice.incidentno && <div><b>Incident No.: </b>{notice.incidentno}</div>}
@@ -136,9 +125,7 @@ class NoticeCard extends React.PureComponent {
             {notice.text && <div><b>Learnings: </b>{notice.text}</div>}
             </div> :
             <Linkify>
-              {!'geneq'.includes(notice.category) &&
-                <div className={classes.underline}>{notice.job}</div>
-              }
+              <div className={classes.underline}>{notice.job}</div>
               {notice.text}
             </Linkify>}
           </div><br />
