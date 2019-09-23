@@ -172,7 +172,11 @@ class MainScreen extends React.PureComponent {
     if (this.props.staff && Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
     // this.props.fixIds();
     // transferNoticeboardReads();
+<<<<<<< HEAD
     // restructureWAAnalysisSamples();
+=======
+    restructureWAAnalysisSamples();
+>>>>>>> 89a1d644f37be6d619a9360c494a7c6d1a7fff9d
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');
