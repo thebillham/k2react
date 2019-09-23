@@ -87,6 +87,7 @@ export const fetchMe = () => async dispatch => {
       if (doc.exists) {
         let user = doc.data();
         user.uid = doc.id;
+        sendSlackMessage(`${auth.currentUser.displayName} read fetchMe (1 document)`);
         if (user.auth && user.auth["Asbestos Air Analysis"]) {
           // dispatch({ type: GET_AIR_ANALYSTS, payload: [{uid: user.uid, name: user.name}] });
           dispatch({ type: SET_ANALYST, payload: user.name });
@@ -121,6 +122,7 @@ export const fetchStaff = update => async dispatch => {
     var users = {};
     usersRef.get().then(querySnapshot => {
       // //console.log(querySnapshot);
+      sendSlackMessage(`${auth.currentUser.displayName} read fetchStaff (${querySnapshot.size} documents)`);
       let airAnalysts = [];
       let bulkAnalysts = [];
       querySnapshot.forEach(doc => {
@@ -145,6 +147,7 @@ export const fetchStaff = update => async dispatch => {
   } else {
     // //console.log("Fetching staff from cache");
     stateRef.doc("staff").onSnapshot(doc => {
+      sendSlackMessage(`${auth.currentUser.displayName} read fetchStaff from state (1 document)`);
       if (doc.exists) {
         // //console.log(doc.data());
         // .filter((m) => m.uid !== auth.currentUser.uid)
@@ -157,6 +160,7 @@ export const fetchStaff = update => async dispatch => {
       .doc("airAnalysts")
       .get()
       .then(doc => {
+        sendSlackMessage(`${auth.currentUser.displayName} read fetchStaff air analysts from state (1 document)`);
         if (doc.exists) {
           dispatch({ type: GET_AIR_ANALYSTS, payload: doc.data().payload });
         }
@@ -165,6 +169,7 @@ export const fetchStaff = update => async dispatch => {
       .doc("bulkAnalysts")
       .get()
       .then(doc => {
+        sendSlackMessage(`${auth.currentUser.displayName} read fetchStaff bulk analysts from state (1 document)`);
         if (doc.exists) {
           dispatch({ type: GET_BULK_ANALYSTS, payload: doc.data().payload });
         }
@@ -181,6 +186,7 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
       .collection("attr")
       .get()
       .then(querySnapshot => {
+        sendSlackMessage(`${auth.currentUser.displayName} read getUserAttrs for ${userPath} (${querySnapshot.size} documents)`);
         user.attrs = {};
         user.aanumber = "";
         user.tertiary = "";
@@ -304,17 +310,20 @@ export const getEditStaff = userPath => async dispatch => {
   auth.currentUser &&
     usersRef
       .doc(userPath)
-      .onSnapshot((doc) =>
+      .onSnapshot((doc) => {
+        sendSlackMessage(`${auth.currentUser.displayName} read getEditStaff for ${userPath} (1 document)`);
         dispatch({
           type: GET_EDIT_STAFF,
           payload: doc.data(),
         })
+      }
     );
 }
 
 export const fetchDocuments = update => async dispatch => {
   if (update) {
     docsRef.orderBy("title").get().then(querySnapshot => {
+      sendSlackMessage(`${auth.currentUser.displayName} read fetchDocuments (${querySnapshot.size} documents)`);
       var docs = [];
       querySnapshot.forEach(doc => {
         let ref = doc.data();
@@ -329,6 +338,7 @@ export const fetchDocuments = update => async dispatch => {
     });
   } else {
     stateRef.doc("documents").get().then(doc => {
+      sendSlackMessage(`${auth.currentUser.displayName} read fetchDocuments from state (1 document)`);
       if (doc.exists) {
         dispatch({ type: GET_DOCUMENTS, payload: doc.data().payload });
       } else {
@@ -370,6 +380,8 @@ export const fetchNotices = update => async dispatch => {
       .orderBy("date", "desc")
       // .limit(200)
       .get().then(querySnapshot => {
+        console.log(querySnapshot);
+        sendSlackMessage(`${auth.currentUser.displayName} read fetchNotices (${querySnapshot.size} documents)`);
         var notices = [];
         querySnapshot.forEach(doc => {
           let notice = doc.data();
@@ -384,6 +396,7 @@ export const fetchNotices = update => async dispatch => {
       });
   } else {
     stateRef.doc("notices").onSnapshot(doc => {
+      sendSlackMessage(`${auth.currentUser.displayName} read fetchNotices from state (1 document)`);
       if (doc.exists) {
         dispatch({ type: GET_NOTICES, payload: doc.data().payload });
       } else {
@@ -398,11 +411,13 @@ export const removeNoticeReads = async (notice, reads) => {
   // let batch = firestore.batch();
 
   stateRef.doc("noticereads").collection("notices").doc(notice.uid).get().then(doc => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran removeNoticeReads (notices) (1 document)`);
     if (doc.exists) {
       doc.data().payload.forEach(user => {
         let userArray = [];
         // console.log(user);
         stateRef.doc("noticereads").collection("users").doc(user).get().then(doc => {
+          sendSlackMessage(`${auth.currentUser.displayName} ran removeNoticeReads (users) (1 document)`);
           if (doc.exists && doc.data() && doc.data().payload)
             userArray = doc.data().payload.filter(uid => uid !== notice.uid);
           // console.log(userArray);
@@ -428,6 +443,7 @@ export const readNotice = (notice, me, reads) => {
   // console.log(userArray);
 
   stateRef.doc("noticereads").collection("notices").doc(notice.uid).get().then(doc => {
+    sendSlackMessage(`${auth.currentUser.displayName} ran readNotice (1 document)`);
     if (doc.exists) noticeArray = [...doc.data().payload];
     if (userArray.includes(notice.uid)) {
       // Remove read notice
@@ -469,6 +485,7 @@ export const fetchNoticeReads = (update) => async dispatch => {
     // };
     // console.log('Fetching notice reads');
     stateRef.doc("noticereads").collection("users").doc(auth.currentUser.uid).onSnapshot(doc => {
+      sendSlackMessage(`${auth.currentUser.displayName} ran fetchNoticeReads (1 document)`);
       // console.log(doc.data());
       dispatch({ type: GET_NOTICE_READS, payload: doc.data().payload });
     });
@@ -516,6 +533,7 @@ export const fetchIncidents = update => async dispatch => {
 };
 
 export const fetchQuestions = update => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchQuestions`);
   if (update) {
     questionsRef.orderBy("question").get().then(querySnapshot => {
       var questions = [];
@@ -542,6 +560,7 @@ export const fetchQuestions = update => async dispatch => {
 };
 
 export const fetchQuizzes = update => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchQuizzes`);
   if (update) {
     quizzesRef.orderBy("title").get().then(querySnapshot => {
       var quizzes = [];
@@ -568,6 +587,7 @@ export const fetchQuizzes = update => async dispatch => {
 };
 
 export const fetchTools = update => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchTools`);
   if (update) {
     toolsRef.orderBy("title").get().then(querySnapshot => {
       var tools = [];
@@ -594,6 +614,7 @@ export const fetchTools = update => async dispatch => {
 };
 
 export const fetchTrainingPaths = update => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchTrainingPaths`);
   if (update) {
     trainingPathsRef.orderBy("title").get().then(querySnapshot => {
       var trainings = [];
@@ -620,6 +641,7 @@ export const fetchTrainingPaths = update => async dispatch => {
 };
 
 export const fetchVehicles = update => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchVehicles`);
   if (update) {
     vehiclesRef.get().then(querySnapshot => {
       var vehicles = [];
@@ -681,6 +703,7 @@ export const fetchVehicles = update => async dispatch => {
 // };
 
 export const fetchSites = update => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchSites`);
   if (update) {
     sitesRef.get().then(querySnapshot => {
       var sites = [];
@@ -705,6 +728,7 @@ export const fetchSites = update => async dispatch => {
 }
 
 export const fetchAssets = update => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchAssets`);
   if (update) {
     assetsRef.get().then(querySnapshot => {
       var assets = [];
@@ -733,6 +757,7 @@ export const fetchAssets = update => async dispatch => {
 }
 
 export const fetchReadingLog = () => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchReadingLogs`);
   usersRef
     .doc(auth.currentUser.uid)
     .collection("readinglog")
@@ -763,6 +788,7 @@ export const fetchReadingLog = () => async dispatch => {
 };
 
 export const fetchQuizLog = () => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchQuizLog`);
   usersRef
     .doc(auth.currentUser.uid)
     .collection("quizlog")
@@ -796,6 +822,7 @@ export const fetchQuizLog = () => async dispatch => {
 };
 
 export const fetchMethodLog = () => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchMethodLog`);
   usersRef
     .doc(auth.currentUser.uid)
     .collection("methodlog")
@@ -832,6 +859,7 @@ export const fetchMethodLog = () => async dispatch => {
 };
 
 export const fetchHelp = () => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchHelp`);
   helpRef.orderBy("date", "desc").get().then(querySnapshot => {
     var helps = [];
     querySnapshot.forEach(doc => {
@@ -845,6 +873,7 @@ export const fetchHelp = () => async dispatch => {
 };
 
 export const fetchUpdates = () => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchUpdates`);
   updateRef.orderBy("date", "desc").get().then(querySnapshot => {
     var updates = [];
     querySnapshot.forEach(doc => {
@@ -858,6 +887,7 @@ export const fetchUpdates = () => async dispatch => {
 };
 
 export const getUser = userRef => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran getUser`);
   usersRef.doc(userRef).get().then(doc => {
     dispatch({
       type: GET_USER,
@@ -867,6 +897,7 @@ export const getUser = userRef => async dispatch => {
 };
 
 export const fetchWFMJobs = () => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMJobs`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
   let path = `${process.env.REACT_APP_WFM_ROOT}job.api/current?apiKey=${
     process.env.REACT_APP_WFM_API
@@ -943,6 +974,7 @@ export const fetchWFMJobs = () => async dispatch => {
 };
 
 export const fetchWFMLeads = () => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMLeads`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
   let path = `${
     process.env.REACT_APP_WFM_ROOT
@@ -1074,6 +1106,7 @@ export const fetchWFMLeads = () => async dispatch => {
 };
 
 export const fetchWFMClients = () => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMClients`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
   let path = `${process.env.REACT_APP_WFM_ROOT}client.api/list?apiKey=${
     process.env.REACT_APP_WFM_API
@@ -1115,6 +1148,7 @@ export const fetchWFMClients = () => async dispatch => {
 
 
 export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran syncJobWithWFM`);
   let path = `${
     process.env.REACT_APP_WFM_ROOT
   }job.api/get/${jobNumber}?apiKey=${
@@ -1320,6 +1354,7 @@ export const saveGeocodes = geocodes => dispatch => {
 };
 
 export const fetchGeocodes = () => dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchGeocodes`);
   stateRef
     .doc("geocodes")
     .get()
@@ -1384,6 +1419,7 @@ export const saveStats = stats => dispatch => {
 
 // This function looks through all the daily states from the states collection and creates an up-to-date picture of the job state
 export const analyseJobHistory = () => dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran analyseJobHistory`);
   // vars
   const buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
   var jobMap = {};
@@ -1536,6 +1572,7 @@ export const analyseJobHistory = () => dispatch => {
 };
 
 export const fetchCurrentJobState = ignoreCompleted => dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchCurrentJobState`);
   var currentJobState = {};
   // Put all the buckets back together in one map
   stateRef.doc("wfmstate").collection("current").get().then((querySnapshot) => {
@@ -1561,6 +1598,7 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
 };
 
 export const saveCurrentJobState = state => dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran saveCurrentJobState`);
   // Sort into buckets to prevent firestore rejecting objects that are too large
   var sortedState = {};
   var buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
@@ -1614,6 +1652,7 @@ export const fetchLogs = (collection, filter, filterValue, limit) => async dispa
       .orderBy('date','desc')
       .limit(limit)
       .get().then(querySnapshot => {
+        sendSlackMessage(`${auth.currentUser.displayName} ran fetchLogs (${querySnapshot.size} documents)`);
         var logs = [];
         querySnapshot.forEach(doc => {
           let log = doc.data();

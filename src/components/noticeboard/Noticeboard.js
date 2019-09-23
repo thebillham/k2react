@@ -230,7 +230,7 @@ class Noticeboard extends React.PureComponent {
         <Grid container spacing={2} style={{ paddingTop: 30 }}>
           {notices.map(notice => {
               return (
-                <Grid item xs={12} sm={6} md={4} lg={3} xl={2} key={notice.uid}>
+                <Grid item sm={12} md={6} lg={4} xl={3} key={notice.uid}>
                   <NoticeCard notice={notice} />
                 </Grid>
               );

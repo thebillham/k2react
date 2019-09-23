@@ -31,7 +31,7 @@ import Select from 'react-select';
 import AsbestosSampleEditBasicResultRow from "../components/AsbestosSampleEditBasicResultRow";
 import AsbestosSampleEditLayerRow from "../components/AsbestosSampleEditLayerRow";
 import AsbestosSampleEditConfirmRow from "../components/AsbestosSampleEditConfirmRow";
-import AsbestosSampleWAFraction from "../components/AsbestosSampleWAFraction";
+import AsbestosSampleWASubsample from "../components/AsbestosSampleWASubsample";
 import AsbestosSampleWASummary from "../components/AsbestosSampleWASummary";
 import {
   DatePicker,
@@ -708,9 +708,10 @@ class AsbestosSampleEditModal extends React.Component {
             <Divider className={classes.marginTopSmall} />
             <div className={classes.subHeading}>Soil Concentrations</div>
             <AsbestosSampleWASummary sample={sample} that={this} me={this.props.me} moisture={sampleMoisture} acmInSoilLimit={this.props.cocs[modalProps.activeCoc] && this.props.cocs[modalProps.activeCoc].acmInSoilLimit ? parseFloat(this.props.cocs[modalProps.activeCoc].acmInSoilLimit) : 0.01} />
-            {fractionNames.map(fraction => {
-              return <AsbestosSampleWAFraction key={fraction} sample={sample} fraction={fraction} that={this} />;
+            {sample.waAnalysisSubsamples.map(subsample => {
+              return <AsbestosSampleWASubsample key={subsample} sample={sample} subsample={subsample} that={this} />;
             })}
+            <AsbestosSampleWASubsample sample={sample} that={this} />
           </div>}
           <Divider className={classes.marginTopSmall} />
           <Grid container alignItems='flex-start' justify='flex-end'>

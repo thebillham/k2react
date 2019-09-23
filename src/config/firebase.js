@@ -28,6 +28,7 @@ const storage = firebase.storage();
 const appSettingsRef = firestore.collection("appsettings");
 const asbestosAnalysisRef = firestore.collection("lab").doc("asbestos").collection("analysis");
 const asbestosSamplesRef = firestore.collection("lab").doc("asbestos").collection("samples");
+const asbestosWASubsamplesRef = firestore.collection("lab").doc("asbestos").collection("wasubsamples");
 const asbestosSampleLogRef = firestore.collection("lab").doc("asbestos").collection("sampleLog");
 const cocsRef = firestore.collection("lab").doc("asbestos").collection("cocs");
 const logsRef = firestore.collection("logs").doc("logs");
@@ -66,6 +67,7 @@ export {
   appSettingsRef,
   asbestosAnalysisRef,
   asbestosSamplesRef,
+  asbestosWASubsamplesRef,
   asbestosSampleLogRef,
   assetsRef,
   modelsRef,

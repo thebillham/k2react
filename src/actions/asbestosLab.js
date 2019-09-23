@@ -21,6 +21,7 @@ import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 import { toggleDoNotRender } from "./display";
+import { sendSlackMessage } from "./local";
 import {
   asbestosSamplesRef,
   asbestosAnalysisRef,
@@ -29,6 +30,7 @@ import {
   stateRef,
   firebase,
   firestore,
+  auth,
 } from "../config/firebase";
 import React from "react";
 import Button from "@material-ui/core/Button";
@@ -51,6 +53,7 @@ export const fetchCocs = update => async dispatch => {
       .where("versionUpToDate", "==", false)
       // .orderBy("lastModified")
       .onSnapshot(querySnapshot => {
+        sendSlackMessage(`${auth.currentUser.displayName} ran fetchCocs (${querySnapshot.size} documents)`);
         var cocs = {};
         querySnapshot.forEach(doc => {
           cocs[doc.id] = doc.data();
@@ -68,6 +71,7 @@ export const fetchCocs = update => async dispatch => {
       // .orderBy("lastModified")
       // .orderBy("dueDate", "desc")
       .get().then(querySnapshot => {
+        sendSlackMessage(`${auth.currentUser.displayName} ran fetchCocs (${querySnapshot.size} documents)`);
         var cocs = {};
         querySnapshot.forEach(doc => {
           cocs[doc.id] = doc.data();
@@ -80,6 +84,7 @@ export const fetchCocs = update => async dispatch => {
       });
   } else {
     stateRef.doc("cocs").onSnapshot(doc => {
+      sendSlackMessage(`${auth.currentUser.displayName} ran fetchCocs from state (1 document)`);
       if (doc.exists) {
         dispatch({ type: GET_COCS, payload: doc.data() });
       } else {
@@ -95,6 +100,7 @@ export const fetchCocsByJobNumber = (jobNumber) => async dispatch => {
     .where("jobNumber", "==", jobNumber.toUpperCase())
     .orderBy("lastModified")
     .get().then(querySnapshot => {
+      sendSlackMessage(`${auth.currentUser.displayName} ran fetchCocsByJobNumber (${querySnapshot.size} documents)`);
       var cocs = {};
       querySnapshot.forEach(doc => {
         cocs[doc.id] = doc.data();
@@ -124,6 +130,7 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
       .orderBy("lastModified")
       .get().then(querySnapshot => {
         var cocs = {};
+          sendSlackMessage(`${auth.currentUser.displayName} ran fetchCocsBySearch with Client (${querySnapshot.size} documents)`);
         querySnapshot.forEach(doc => {
           cocs[doc.id] = doc.data();
         });
@@ -141,6 +148,7 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
       .where("lastModified", "<=", endDate)
       .orderBy("lastModified")
       .get().then(querySnapshot => {
+        sendSlackMessage(`${auth.currentUser.displayName} ran fetchCocsBySearch (${querySnapshot.size} documents)`);
         var cocs = {};
         querySnapshot.forEach(doc => {
           cocs[doc.id] = doc.data();
@@ -168,6 +176,7 @@ export const fetchAsbestosAnalysis = update => async dispatch => {
   if (update) {
     asbestosAnalysisRef
       .get().then(querySnapshot => {
+        sendSlackMessage(`${auth.currentUser.displayName} ran fetchAsbestosAnalysis (${querySnapshot.size} documents)`);
         var analysis = [];
         querySnapshot.forEach(doc => {
           analysis.push(doc.data());
@@ -180,6 +189,7 @@ export const fetchAsbestosAnalysis = update => async dispatch => {
       });
   } else {
     stateRef.doc("asbestosanalysis").onSnapshot(doc => {
+      sendSlackMessage(`${auth.currentUser.displayName} ran fetchAsbestosAnalysis (1 document)`);
       if (doc.exists) {
         dispatch({ type: GET_ASBESTOS_ANALYSIS, payload: doc.data() });
       } else {
@@ -195,6 +205,7 @@ export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
     .where("jobNumber", "==", jobNumber)
     .where("deleted","==",false)
     .onSnapshot(sampleSnapshot => {
+      sendSlackMessage(`${auth.currentUser.displayName} ran fetchSamples (${sampleSnapshot.size} documents)`);
       let samples = {};
       sampleSnapshot.forEach(sampleDoc => {
         let sample = sampleDoc.data();
@@ -223,6 +234,7 @@ export const fetchSampleLog = (update) => async dispatch => {
       .orderBy("reportDate")
       .get().then(logSnapshot => {
         let logs = {};
+          sendSlackMessage(`${auth.currentUser.displayName} ran fetchSampleLog (${logSnapshot.size} documents)`);
         logSnapshot.forEach(logDoc => {
           let log = logDoc.data();
           log.uid = logDoc.id;
@@ -236,6 +248,7 @@ export const fetchSampleLog = (update) => async dispatch => {
       });
   } else {
     stateRef.doc("asbestosSampleLog").onSnapshot(doc => {
+      sendSlackMessage(`${auth.currentUser.displayName} ran fetchSampleLog (1 document)`);
       if (doc.exists) {
         dispatch({ type: GET_SAMPLE_LOG, payload: doc.data() });
       } else {
@@ -1043,7 +1056,7 @@ export const verifySamples = (samples, job, meUid) => {
           };
         }
 
-        if (!sample.waSoilAnalysis) {
+        if (!sample.waAnalysisSubsamples && !sample.result.no) {
           uid = sample.uid + 'WAAnalysisNotRecorded';
           issues[uid] = {
             type: 'confirm',
@@ -1052,7 +1065,7 @@ export const verifySamples = (samples, job, meUid) => {
             uid,
           };
         } else {
-          let soilResult = {result: collateLayeredResults(sample.waSoilAnalysis)};
+          let soilResult = {result: collateArrayResults(sample.waAnalysisSubsamples)};
           let soilMatch = compareAsbestosResult(soilResult, sample);
           if (soilMatch !== 'yes') {
             if (soilMatch === 'no') {
@@ -1299,23 +1312,22 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
           sampleMap["weightDry"] = sample.weightDry ? `${sample.weightDry}g` : 'N/A';
           sampleMap["weightAshed"] = sample.weightAshed ? `${sample.weightAshed}g` : 'N/A';
           sampleMap["moisture"] = writeSampleMoisture(sample) ? `${writeSampleMoisture(sample)}%` : 'N/A';
+          sampleMap["formDescription"] = sample.waAnalysisFormDescription ? sample.waAnalysisFormDescription : 'N/A';
+          sampleMap["weightAshedGt7"] = sample.waAnalysisWeightAshedGt7 ? `${sample.waAnalysisWeightAshedGt7}g` : 'N/A';
+          sampleMap["weightAshedTo7"] = sample.waAnalysisWeightAshedTo7 ? `${sample.waAnalysisWeightAshedTo7}g` : 'N/A';
+          sampleMap["weightAshedLt2"] = sample.waAnalysisWeightAshedLt2 ? `${sample.waAnalysisWeightAshedLt2}g` : 'N/A';
+          sampleMap["weightAshedLt2Subsample"] = sample.waAnalysisWeightAshedLt2Subsample ? `${sample.waAnalysisWeightAshedLt2Subsample}g` : 'N/A';
 
-          if (sample.waSoilAnalysis !== undefined) {
-            sampleMap["formDescription"] = sample.waSoilAnalysis.formDescription ? sample.waSoilAnalysis.formDescription : 'N/A';
-            let waTotals = getWATotalDetails(sample, job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01);
-            // sampleMap["bold"] = waTotals.bold;
-            // sampleMap["soilConcentrationResult"] = waTotals.soilConcentrationResult;
-            sampleMap["concentrationACM"] = waTotals.concentration.acm ? `${waTotals.concentration.acm}%` : 'N/A';
-            sampleMap["concentrationFAAF"] = waTotals.concentration.faaf ? `${waTotals.concentration.faaf}%` : 'N/A';
-            sampleMap["concentrationFA"] = waTotals.concentration.fa ? `${waTotals.concentration.fa}%` : 'N/A';
-            sampleMap["concentrationAF"] = waTotals.concentration.af ? `${waTotals.concentration.af}%` : 'N/A';
-            sampleMap["weightACM"] = waTotals.weight.acm ? `${waTotals.weight.acm}g` : 'N/A';
-            sampleMap["weightFA"] = waTotals.weight.fa ? `${waTotals.weight.fa}g` : 'N/A';
-            sampleMap["weightAF"] = waTotals.weight.af ? `${waTotals.weight.af}g` : 'N/A';
-            sampleMap["weightAshedGt7"] = sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : 'N/A';
-            sampleMap["weightAshedTo7"] = sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : 'N/A';
-            sampleMap["weightAshedLt2"] = sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : 'N/A';
-          }
+          let waTotals = getWATotalDetails(sample, job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01);
+          // sampleMap["bold"] = waTotals.bold;
+          // sampleMap["soilConcentrationResult"] = waTotals.soilConcentrationResult;
+          sampleMap["concentrationACM"] = waTotals.concentration.acm ? `${waTotals.concentration.acm}%` : 'N/A';
+          sampleMap["concentrationFAAF"] = waTotals.concentration.faaf ? `${waTotals.concentration.faaf}%` : 'N/A';
+          sampleMap["concentrationFA"] = waTotals.concentration.fa ? `${waTotals.concentration.fa}%` : 'N/A';
+          sampleMap["concentrationAF"] = waTotals.concentration.af ? `${waTotals.concentration.af}%` : 'N/A';
+          sampleMap["weightACM"] = waTotals.weight.acm ? `${waTotals.weight.acm}g` : 'N/A';
+          sampleMap["weightFA"] = waTotals.weight.fa ? `${waTotals.weight.fa}g` : 'N/A';
+          sampleMap["weightAF"] = waTotals.weight.af ? `${waTotals.weight.af}g` : 'N/A';
         }
 
         sampleList.push(sampleMap);
@@ -1705,31 +1717,6 @@ export const getConfirmColor = (sample) => {
   return confirmColor;
 };
 
-export const getWAFractionDetails = (sample, fraction) => {
-  let result = {
-    totalAsbestosWeight: 0,
-    forms: {},
-    result: {},
-  };
-
-  if (sample && sample.waLayerNum) {
-    [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 3).keys()].forEach(num => {
-      let layer = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
-      if (layer) {
-        let weight = 0;
-        if (layer.weight) weight = parseFloat(layer.weight);
-        if (layer.weight && layer.tareWeight) weight = weight - parseFloat(layer.tareWeight);
-        if (layer.concentration && layer.weight) result.totalAsbestosWeight = result.totalAsbestosWeight + (weight * parseFloat(layer.concentration)/ 100)
-        if (layer.form) result.forms[layer.form] = true;
-        if (layer.result) result.result = mergeAsbestosResult(result.result, layer.result);
-      }
-    });
-  }
-  console.log(result);
-
-  return result;
-};
-
 export const getWATotalDetails = (sample, acmLimit) => {
   // Declare vars
   let totals = {
@@ -1769,58 +1756,55 @@ export const getWATotalDetails = (sample, acmLimit) => {
     bold: {},
   };
 
-  if (sample && sample.waSoilAnalysis) {
+  if (sample) {
     // If <2mm is subsampled, multiply asbestos weights
     let multiplier = null;
-    if (sample.waSoilAnalysis.fractionlt2WeightAshedSubsample)
-      multiplier = parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed) / parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample);
+    if (sample.waAnalysisWeightAshedLt2 !== undefined && sample.waAnalysisWeightAshedLt2Subsample !== undefined)
+      multiplier = parseFloat(sample.waAnalysisWeightAshedLt2) / parseFloat(sample.waAnalysisWeightAshedLt2Subsample);
 
     // Loop through each fraction in the job (gt7, to7, lt2)
-    fractionNames.forEach(fraction => {
+    if (sample.waAnalysisSubsamples !== undefined) {
+      sample.waAnalysisSubsamples.forEach(subsample => {
       // Loop through each subsample in the fraction
-      [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 3).keys()].forEach(num => {
-        let subsample = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
-        if (subsample) {
-          // Check if subsample has concentration and weight set
-          if (subsample.concentration && subsample.weight) {
-            // Check subsample has the form and types of asbestos declared
-            if (!subsample.form) totals.allHaveForms = false;
-            if (!subsample.result) totals.allHaveTypes = false;
+      // Check if subsample has concentration and weight set
+      if (subsample.concentration && subsample.weight) {
+        // Check subsample has the form and types of asbestos declared
+        if (!subsample.form) totals.allHaveForms = false;
+        if (!subsample.result) totals.allHaveTypes = false;
 
-            let weight = 0;
-            if (subsample.weight) weight = parseFloat(subsample.weight);
-            // If subsample has a tare weight, subtract this from the weight
-            if (subsample.weight && subsample.tareWeight) weight = weight - parseFloat(subsample.tareWeight);
+        let weight = 0;
+        if (subsample.weight) weight = parseFloat(subsample.weight);
+        // If subsample has a tare weight, subtract this from the weight
+        if (subsample.weight && subsample.tareWeight) weight = weight - parseFloat(subsample.tareWeight);
 
-            // Multiply the weight by the estimated concentration of asbestos in subsample
-            weight = weight * parseFloat(subsample.concentration)/ 100;
+        // Multiply the weight by the estimated concentration of asbestos in subsample
+        weight = weight * parseFloat(subsample.concentration)/ 100;
 
-            // Multiply weight if using <2mm subsample. This presumes the portion of the <2mm fraction that was analysed is representative of the whole <2mm fraction.
-            if (fraction === 'lt2' && multiplier) weight = weight * multiplier;
+        // Multiply weight if using <2mm subsample. This presumes the portion of the <2mm fraction that was analysed is representative of the whole <2mm fraction.
+        if (subsample.fraction === 'lt2' && multiplier) weight = weight * multiplier;
 
-            // Add weight to totals
-            totals.weight.total = totals.weight.total + weight;
-            if (subsample.form === 'acm') totals.weight.acm = totals.weight.acm + weight;
-            else if (subsample.form === 'fa') totals.weight.fa = totals.weight.fa + weight;
-            else if (subsample.form === 'af') totals.weight.af = totals.weight.af + weight;
-          }
-          if (subsample.form) {
-            // Add forms to the list
-            totals.forms[subsample.form] = true;
-            totals.fractions.total[fraction] = true;
-            totals.fractions[subsample.form][fraction] = true;
-            if (subsample.form === 'fa' || subsample.form === 'af') totals.fractions.faaf[fraction] = true;
-          }
-          if (subsample.result) {
-            // Add result to the list to check against the reported result
-            totals.result.total = mergeAsbestosResult(totals.result.total, subsample.result);
-            if (subsample.form === 'acm') totals.result.acm = mergeAsbestosResult(totals.result.acm, subsample.result);
-            else if (subsample.form === 'fa') totals.result.fa = mergeAsbestosResult(totals.result.fa, subsample.result);
-            else if (subsample.form === 'af') totals.result.af = mergeAsbestosResult(totals.result.af, subsample.result);
-          }
-        }
-      });
+        // Add weight to totals
+        totals.weight.total = totals.weight.total + weight;
+        if (subsample.form === 'acm') totals.weight.acm = totals.weight.acm + weight;
+        else if (subsample.form === 'fa') totals.weight.fa = totals.weight.fa + weight;
+        else if (subsample.form === 'af') totals.weight.af = totals.weight.af + weight;
+      }
+      if (subsample.form) {
+        // Add forms to the list
+        totals.forms[subsample.form] = true;
+        totals.fractions.total[subsample.fraction] = true;
+        totals.fractions[subsample.form][subsample.fraction] = true;
+        if (subsample.form === 'fa' || subsample.form === 'af') totals.fractions.faaf[subsample.fraction] = true;
+      }
+      if (subsample.result) {
+        // Add result to the list to check against the reported result
+        totals.result.total = mergeAsbestosResult(totals.result.total, subsample.result);
+        if (subsample.form === 'acm') totals.result.acm = mergeAsbestosResult(totals.result.acm, subsample.result);
+        else if (subsample.form === 'fa') totals.result.fa = mergeAsbestosResult(totals.result.fa, subsample.result);
+        else if (subsample.form === 'af') totals.result.af = mergeAsbestosResult(totals.result.af, subsample.result);
+      }
     });
+    }
 
     // Combine AF FA
     totals.result.faaf = mergeAsbestosResult(totals.result.af, totals.result.fa);
@@ -2581,6 +2565,21 @@ export const writeSampleDimensions = (sample, total) => {
   if (total) return app;
     else return dims.map(dim => `${dim}mm`).join(' x ') + ` (${app})`;
 }
+
+export const collateArrayResults = layers => {
+  let results = {};
+  layers.forEach(layer => {
+    if (layer.result !== undefined && layer.result.deleted !== true) {
+      Object.keys(layer.result).forEach(k => {
+        if (layer.result[k] === true) results[k] = true;
+      });
+    }
+  });
+  if (results['no'] === true && (results['ch'] === true || results['am'] === true || results['cr'] === true || results['umf'] === true)) {
+    results['no'] = false;
+  }
+  return results;
+};
 
 export const collateLayeredResults = layers => {
   let results = {};
