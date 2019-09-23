@@ -24,9 +24,7 @@ import { addLog, personnelConvert } from '../../../actions/local';
 import { SampleRadioSelector } from '../../../widgets/FormWidgets';
 import NumberSpinner from '../../../widgets/NumberSpinner';
 
-import {
-  DatePicker,
-} from "@material-ui/pickers";
+import { DatePicker, } from "@material-ui/pickers";
 
 const mapStateToProps = state => {
   return {

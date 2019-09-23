@@ -84,7 +84,7 @@ import { fetchMe, resetLocal, copyStaff, fetchGeocodes, fetchStaff, fetchAssets,
 import { resetModal, showModal } from "../actions/modal";
 import { resetDisplay } from "../actions/display";
 import { initConstants } from "../actions/const";
-import { fixIds, transferNoticeboardReads } from "../actions/temp";
+import { fixIds, transferNoticeboardReads, restructureWAAnalysisSamples, } from "../actions/temp";
 
 // Pages
 const Noticeboard = lazy(() => import("./noticeboard/Noticeboard"));
@@ -164,6 +164,7 @@ class MainScreen extends React.PureComponent {
   }
 
   UNSAFE_componentWillMount() {
+    sendSlackMessage(`${auth.currentUser.displayName} is triggering MainScreen componentWillMount`);
     this.props.fetchMe();
     this.props.initConstants();
     this.props.fetchGeocodes();
@@ -171,6 +172,7 @@ class MainScreen extends React.PureComponent {
     if (this.props.staff && Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
     // this.props.fixIds();
     // transferNoticeboardReads();
+    restructureWAAnalysisSamples();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');
