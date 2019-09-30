@@ -852,24 +852,68 @@ export const verifySample = (batch, sample, job, samples, sessionID, me, startDa
   }
 };
 
-export const verifySamples = (samples, job, meUid) => {
+export const verifySubsample = (batch, sub, job, samples, sessionID, me, noLog) => {
+  console.log('Verifying subsample');
+  console.log(sub);
+  // return false;
+  if (
+    (me.auth &&
+    (me.auth["Analysis Checker"] ||
+      me.auth["Asbestos Admin"]))
+  ) {
+    let sample = samples[sub.sampleNumber] ? samples[sub.sampleNumber] : null;
+    if (sample && sample.waSoilAnalysis && sample.waSoilAnalysis[sub.uid]) {
+      if (!sub.verified) {
+        sub.verified = true;
+        sub.verifyDate = new Date();
+        sub.verifiedBy = {uid: me.uid, name: me.name};
+        batch.update(asbestosSamplesRef.doc(sample.uid),
+        {
+          waSoilAnalysis: {
+            ...sample.waSoilAnalysis,
+            [sub.uid]: sub,
+          },
+        });
+      } else {
+        console.log('Removing verification...');
+        sub.verified = false;
+        sub.verifyDate = null;
+        sub.verifiedBy = null;
+        batch.update(asbestosSamplesRef.doc(sample.uid),
+        {
+          waSoilAnalysis: {
+            ...sample.waSoilAnalysis,
+            [sub.uid]: sub,
+          },
+        });
+      }
+    }
+  } else {
+    window.alert(
+      "You don't have sufficient permissions to verify asbestos results."
+    );
+  }
+};
+
+export const verifySamples = (samples, job, meUid, checkIssues) => {
   let issues = {};
   let uid = '';
   // Check for issues
   samples.forEach(sample => {
     let uid = '';
-    if (!sample.now) {
-      if (sample.original === sample.now) {
-        uid = sample.uid + 'ResultNotVerified';
-        issues[uid] = {
-          type: 'check',
-          description: `Result has not been verified. This sample will not appear on lab reports.`,
-          yes: 'This is correct',
-          no: 'This needs fixing',
-          sample,
-          uid,
-        };
-      } else {
+    if (!sample.now && !checkIssues) {
+      // if (sample.original === sample.now) {
+      //   uid = sample.uid + 'ResultNotVerified';
+      //   issues[uid] = {
+      //     type: 'check',
+      //     description: `Result has not been verified. This sample will not appear on lab reports.`,
+      //     yes: 'This is correct',
+      //     no: 'This needs fixing',
+      //     sample,
+      //     uid,
+      //   };
+      // }
+      if (sample.original) {
         uid = sample.uid + 'ResultNotVerified';
         issues[uid] = {
           type: 'check',
@@ -881,7 +925,7 @@ export const verifySamples = (samples, job, meUid) => {
         };
       }
     } else {
-      if (sample.analysisRecordedBy && sample.analysisRecordedBy.id === meUid) {
+      if (sample.analysisRecordedBy && sample.analysisRecordedBy.uid === meUid && !checkIssues) {
         uid = sample.uid + 'SameUser';
         issues[uid] = {
           type: 'block',
@@ -940,7 +984,6 @@ export const verifySamples = (samples, job, meUid) => {
           uid,
         }
       }
-
 
       // Check sampling date
 
@@ -1046,6 +1089,185 @@ export const verifySamples = (samples, job, meUid) => {
 
       // Check WA Analysis if applicable
       if (job.waAnalysis) {
+        // Get subfractions of sample
+        let subsamples = [];
+        let allSubsVerified = true;
+        if (sample.waLayerNum) {
+          Object.keys(sample.waLayerNum).forEach(fraction => {
+            [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 2).keys()].forEach(num => {
+              if (sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] !== undefined) {
+                let sub = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
+                if (sub.containerID) {
+                  if (!sub.verified) allSubsVerified = false;
+                  subsamples.push(sub);
+                }
+              }
+            });
+          });
+        }
+
+        if (!sample.weightDry) {
+          uid = sample.uid + 'WAAnalysisNoDryWeight';
+          issues[uid] = {
+            type: 'confirm',
+            description: `No dry weight has been recorded. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (!sample.weightAshed) {
+          uid = sample.uid + 'WAAnalysisNoAshedWeight';
+          issues[uid] = {
+            type: 'confirm',
+            description: `No ashed weight has been recorded. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (!sample.waSoilAnalysis.formDescription && getBasicResult(sample) === 'positive') {
+          uid = sample.uid + 'WAAnalysisNoFormDescription';
+          issues[uid] = {
+            type: 'confirm',
+            description: `No asbestos form description has been recorded. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (!sample.waSoilAnalysis.fractiongt7WeightAshed) {
+          uid = sample.uid + 'WAAnalysisNoGt7WeightAshed';
+          issues[uid] = {
+            type: 'confirm',
+            description: `No ashed weight for the >7mm fraction has been recorded. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (!sample.waSoilAnalysis.fractionto7WeightAshed) {
+          uid = sample.uid + 'WAAnalysisNoTo7WeightAshed';
+          issues[uid] = {
+            type: 'confirm',
+            description: `No ashed weight for the 2-7mm fraction has been recorded. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (!sample.waSoilAnalysis.fractionlt2WeightAshed) {
+          uid = sample.uid + 'WAAnalysisNoLt2WeightAshed';
+          issues[uid] = {
+            type: 'confirm',
+            description: `No ashed weight for the <2mm fraction has been recorded. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (
+          sample.waSoilAnalysis.fractiongt7WeightAshed &&
+          sample.waSoilAnalysis.fractionto7WeightAshed &&
+          sample.waSoilAnalysis.fractionlt2WeightAshed &&
+          (parseFloat(sample.waSoilAnalysis.fractiongt7WeightAshed)
+          + parseFloat(sample.waSoilAnalysis.fractionto7WeightAshed)
+          + parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed)).toFixed(1)
+          !== parseFloat(sample.weightAshed).toFixed(1)
+        ) {
+          uid = sample.uid + 'WAAnalysisFractionWeightsNotEqual';
+          issues[uid] = {
+            type: 'confirm',
+            description: `Cumulative ashed weight of fractions does not equal the total ashed weight of sample. Check with the analyst why this is.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (sample.weightReceived && sample.weightDry && parseFloat(sample.weightDry) > parseFloat(sample.weightReceived)) {
+          uid = sample.uid + 'WAAnalysisDryWeightLarger';
+          issues[uid] = {
+            type: 'confirm',
+            description: `Dry weight is heavier than the received weight. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (sample.weightAshed && sample.weightDry && parseFloat(sample.weightAshed) > parseFloat(sample.weightDry)) {
+          uid = sample.uid + 'WAAnalysisAshedWeightLarger';
+          issues[uid] = {
+            type: 'confirm',
+            description: `Ashed weight is heavier than the dry weight. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (sample.waSoilAnalysis.fractionlt2WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample &&
+          parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample) > parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed)) {
+          uid = sample.uid + 'WAAnalysisLt2SubsampleWeightLarger';
+          issues[uid] = {
+            type: 'confirm',
+            description: `Subsample weight of the <2mm fraction is larger than the total weight of the <2mm fraction. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (sample.weightSubsample && sample.weightReceived &&
+          parseFloat(sample.weightSubsample) > parseFloat(sample.weightReceived)) {
+          uid = sample.uid + 'WAAnalysisSubsampleWeightLarger';
+          issues[uid] = {
+            type: 'confirm',
+            description: `Subsample weight is larger than the total weight received. Check with the analyst why this has not been done.`,
+            yes: 'This is correct',
+            no: 'This needs fixing',
+            sample,
+            uid,
+          }
+        }
+
+        if (subsamples.length === 0 && getBasicResult(sample) === 'positive') {
+          uid = sample.uid + 'WAAnalysisNoSubsamples';
+          issues[uid] = {
+            type: 'confirm',
+            description: `No subsamples recorded for sample, but sample result is positive. Check with analyst that analysis is complete before clicking Proceed.`,
+            sample,
+            uid,
+          };
+        }
+
+        if (!allSubsVerified) {
+          uid = sample.uid + 'WAAnalysisNotAllSubsVerified';
+          issues[uid] = {
+            type: 'block',
+            description: `Not all subsample weights have been verified. Go into the subsample verification screen and check these off first.`,
+            sample,
+            uid,
+          };
+        }
+
         if (!sample.waAnalysisComplete) {
           uid = sample.uid + 'WAAnalysisNotComplete';
           issues[uid] = {
@@ -1056,16 +1278,8 @@ export const verifySamples = (samples, job, meUid) => {
           };
         }
 
-        if (!sample.waAnalysisSubsamples && !sample.result.no) {
-          uid = sample.uid + 'WAAnalysisNotRecorded';
-          issues[uid] = {
-            type: 'confirm',
-            description: `WA Analysis has not been recorded. All results will appear blank in Soil Concentrations Report.`,
-            sample,
-            uid,
-          };
-        } else {
-          let soilResult = {result: collateArrayResults(sample.waAnalysisSubsamples)};
+        if (subsamples.length > 0) {
+          let soilResult = {result: collateArrayResults(subsamples)};
           let soilMatch = compareAsbestosResult(soilResult, sample);
           if (soilMatch !== 'yes') {
             if (soilMatch === 'no') {
@@ -1101,8 +1315,326 @@ export const verifySamples = (samples, job, meUid) => {
       }
     }
   });
+  if (checkIssues) {
+    let issueArray = [['Sample Number','Issue']];
+    Object.values(issues).forEach(issue => {
+      let sample = (issue.sample ? `${issue.sample.jobNumber}-${issue.sample.sampleNumber}` : '');
+
+      issueArray.push([sample, issue.description]);
+    });
+    return issueArray
+  } else return issues;
+};
+
+export const verifySubsamples = (subs, job, meUid, duplicateIDs) => {
+  let issues = {};
+  let uid = '';
+  // Check for duplicate IDs
+  if (duplicateIDs) {
+    uid = job.jobNumber + 'DuplicateSubsampleIDs';
+    issues[uid] = {
+      type: 'check',
+      description: `More than one subsample is using ID ${duplicateIDs}.`,
+      yes: 'This is correct',
+      no: 'This needs fixing',
+      uid,
+    };
+  }
+
+  // Check for issues
+  subs.forEach(sub => {
+    let uid = '';
+    if (!sub.now && sub.original) {
+      // if (sub.original === sub.now) {
+      //   uid = sub.containerID + 'ResultNotVerified';
+      //   issues[uid] = {
+      //     type: 'check',
+      //     description: `Subsample has not been verified.`,
+      //     yes: 'This is correct',
+      //     no: 'This needs fixing',
+      //     sub,
+      //     uid,
+      //   };
+      // } else {
+        uid = sub.containerID + 'ResultNotVerified';
+        issues[uid] = {
+          type: 'check',
+          description: `Subsample has been unverified. Double check this is correct and leave a comment on why verification has been removed.`,
+          yes: 'Remove Verification',
+          no: 'Do not remove',
+          sub,
+          uid,
+        };
+      // }
+    } else if (sub.now) {
+      // Check result has been added
+      if (getBasicResult(sub) === 'none') {
+        uid = sub.containerID + 'NoAsbestosResult';
+        issues[uid] = {
+          type: 'noresult',
+          description: `No asbestos result has been recorded.`,
+          sub,
+          uid,
+        };
+      }
+
+      // Check weight is there
+      if (!sub.weight) {
+        console.log(sub);
+        uid = sub.containerID + 'NoWeightRecorded';
+        issues[uid] = {
+          type: 'confirm',
+          description: `No weight has been recorded. Check with the analyst why this has not been done.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
+          sub,
+          uid,
+        }
+      }
+
+      // Check weight is there
+      if (!sub.concentration) {
+        uid = sub.containerID + 'NoConcentrationRecorded';
+        issues[uid] = {
+          type: 'confirm',
+          description: `No concentration has been recorded. Check with the analyst why this has not been done.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
+          sub,
+          uid,
+        }
+      }
+
+      // Check weight is there
+      if (!sub.form) {
+        uid = sub.containerID + 'NoFormRecorded';
+        issues[uid] = {
+          type: 'confirm',
+          description: `No asbestos form has been recorded. Check with the analyst why this has not been done.`,
+          yes: 'This is correct',
+          no: 'This needs fixing',
+          sub,
+          uid,
+        }
+      }
+
+    }
+  });
   return issues;
 };
+
+export const getSampleData = (samples, job) => {
+  let dataArray = [];
+  let subSampleMap = getWASubsampleList(samples);
+  if (job.waAnalysis) {
+    let firstArray = [
+      'Job Number',
+      'Sample Number',
+      'Generic Location',
+      'Specific Location',
+      'Description',
+      'Material',
+      'Material Category',
+      'Result',
+      'Sample Date',
+      'Sampled By',
+      'Created Date',
+      'Created By',
+      'Received Date',
+      'Received By',
+      'Analysis Start Date',
+      'Analysis Started By',
+      'Analysis Date',
+      'Analysis By',
+      'Analysis Recorded By',
+      'Verified Date',
+      'Verified By',
+      'Received Weight',
+      'Subsample Weight',
+      'Dry Weight',
+      'Ashed Weight',
+      'Moisture',
+      '>7mm Fraction Weight',
+      '2-7mm Fraction Weight',
+      '<2mm Fraction Weight',
+      '<2mm Subfraction Weight',
+      '<2mm Fraction/Subfraction Ratio',
+      'Asbestos Form Description',
+      'Geotechnical Soil Description',
+      'ACM Concentration',
+      'FA Concentration',
+      'AF Concentration',
+      'FAAF Concentration',
+      'Cumulative Result',
+      'Concentration Over Limit',
+      'Number of Subsamples',
+    ];
+    let midArray = [];
+    if (subSampleMap.subsampleCount > 0) {
+      [...Array(subSampleMap.subsampleCount).keys()].forEach(s => {
+        midArray = midArray.concat([
+          'Subsample ID',
+          'Fraction',
+          'Gross Weight',
+          'Tare Weight',
+          'Concentration',
+          'Asbestos Form',
+          'Asbestos Type',
+          'Asbestos Weight',
+        ]);
+      })
+    }
+    let lastArray = [
+      'WA Analysis Complete',
+      'Analysis Time',
+      'Session ID',
+    ];
+    dataArray.push(firstArray.concat(midArray.concat(lastArray)));
+    if (samples) {
+      Object.values(samples).forEach(sample => {
+        let multiplier = 1;
+        if (sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample) {
+          multiplier = parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample)/parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed);
+        }
+        let midArray = [];
+        let sampleSubs = subSampleMap.subsamples.filter(sub => sub.sampleNumber === sample.sampleNumber);
+        let firstArray = [
+          sample.jobNumber ? sample.jobNumber : '',
+          sample.sampleNumber ? sample.sampleNumber : '',
+          sample.genericLocation ? sample.genericLocation : '',
+          sample.specificLocation ? sample.specificLocation : '',
+          sample.description ? sample.description : '',
+          sample.material ? sample.material : '',
+          sample.category ? sample.category : '',
+          sample.result ? writeShorthandResult(sample.result) : '',
+          sample.sampleDate ? moment(dateOf(sample.sampleDate)).format('YYYY-MMM-DD') : '',
+          sample.sampledBy ? sample.sampledBy.map(p => p.name).join(', ') : '',
+          sample.createdDate ? moment(dateOf(sample.createdDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.createdBy ? sample.createdBy.name : '',
+          sample.receivedDate ? moment(dateOf(sample.receivedDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.receivedBy ? sample.receivedBy.name : '',
+          sample.analysisStartDate ? moment(dateOf(sample.analysisStartDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.analysisStartedBy ? sample.analysisStartedBy.name : '',
+          sample.analysisDate ? moment(dateOf(sample.analysisDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.analyst ? sample.analyst : '',
+          sample.analysisRecordedBy ? sample.analysisRecordedBy.name : '',
+          sample.verifyDate ? moment(dateOf(sample.verifyDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.verifiedBy ? sample.verifiedBy.name : '',
+          sample.weightReceived ? sample.weightReceived : '',
+          sample.weightSubsample ? sample.weightSubsample : '',
+          sample.weightDry ? sample.weightDry : '',
+          sample.weightAshed ? sample.weightAshed : '',
+          sample.weightDry && (sample.weightReceived || sample.weightSubsample) ? writeSampleMoisture(sample) : '',
+          sample.waSoilAnalysis && sample.waSoilAnalysis.fractiongt7WeightAshed ? sample.waSoilAnalysis.fractiongt7WeightAshed : '',
+          sample.waSoilAnalysis && sample.waSoilAnalysis.fractionto7WeightAshed ? sample.waSoilAnalysis.fractionto7WeightAshed : '',
+          sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed ? sample.waSoilAnalysis.fractionlt2WeightAshed : '',
+          sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample ? sample.waSoilAnalysis.fractionlt2WeightAshedSubsample : '',
+          sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample ? multiplier.toFixed(2) : '',
+          sample.waSoilAnalysis && sample.waSoilAnalysis.formDescription ? sample.waSoilAnalysis.formDescription : '',
+          sample.soilDetails ? writeSoilDetails(sample.soilDetails) : '',
+          sample.waTotals ? sample.waTotals.concentration.acm : '',
+          sample.waTotals ? sample.waTotals.concentration.fa : '',
+          sample.waTotals ? sample.waTotals.concentration.af : '',
+          sample.waTotals ? sample.waTotals.concentration.faaf : '',
+          sample.waTotals ? writeShorthandResult(sample.waTotals.result.total) : '',
+          sample.waTotals && sample.waTotals.waOverLimit ? 'TRUE' : 'FALSE',
+          sampleSubs.length,
+        ];
+        if (subSampleMap.subsampleCount > 0) {
+          [...Array(subSampleMap.subsampleCount).keys()].forEach(i => {
+            let sub = sampleSubs[i];
+            if (sub === undefined) sub = {};
+            midArray = midArray.concat([
+              sub.containerID,
+              sub.fraction,
+              sub.weight,
+              sub.tareWeight,
+              sub.concentration,
+              sub.form ? sub.form.toUpperCase() : '',
+              sub.result ? writeShorthandResult(sub.result) : '',
+              sub.containerID ? getAsbestosWeight(sub, multiplier) : '',
+            ]);
+          })
+        }
+        let lastArray = [
+          sample.waAnalysisComplete ? 'TRUE' : 'FALSE',
+          sample.analysisTime ? sample.analysisTime : '',
+          sample.sessionID ? sample.sessionID : '',
+        ];
+        dataArray.push(firstArray.concat(midArray.concat(lastArray)));
+      });
+    }
+  } else {
+    dataArray.push([
+      'Job Number',
+      'Sample Number',
+      'Generic Location',
+      'Specific Location',
+      'Description',
+      'Material',
+      'Result',
+      'Received Weight',
+    ]);
+    if (samples) {
+      Object.values(samples).forEach(sample => {
+        dataArray.push([
+          sample.jobNumber ? sample.jobNumber : '',
+          sample.sampleNumber ? sample.sampleNumber : '',
+          sample.genericLocation ? sample.genericLocation : '',
+          sample.specificLocation ? sample.specificLocation : '',
+          sample.description ? sample.description : '',
+          sample.material ? sample.material : '',
+          sample.result ? writeShorthandResult(sample) : '',
+        ])
+      });
+    }
+  }
+  return dataArray;
+}
+
+export const getAsbestosWeight = (sub, multiplier) => {
+  let weight = sub.weight ? parseFloat(sub.weight) : 0;
+  if (sub.tareWeight) weight = weight - parseFloat(sub.tareWeight);
+  if (weight < 0) weight = 0;
+  if (sub.concentration) weight = weight * (parseFloat(sub.concentration) / 100);
+  if (sub.fraction === 'lt2' && multiplier) weight = weight * multiplier;
+  if (weight < 0.00001) return '<0.00001';
+  else return weight.toFixed(5);
+}
+
+export const getWASubsampleList = (samples) => {
+  let subsamples = [];
+  let containerIDs = [];
+  let duplicateIDs = false;
+  let subsampleCount = 1;
+  if (samples) Object.values(samples).forEach(sample => {
+    if (sample.waSoilAnalysis && sample.waLayerNum) {
+      let subCount = 0;
+      Object.keys(sample.waLayerNum).forEach(fraction => {
+        [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 2).keys()].forEach(num => {
+          if (sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] !== undefined) {
+            let sub = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
+            if (sub.containerID) {
+              subCount++;
+              sub.fraction = fraction;
+              sub.uid = `subfraction${fraction}-${num+1}`;
+              sub.sampleNumber = sample.sampleNumber;
+              sub.original = sub.verified ? sub.verified : null;
+              sub.now = sub.verified ? sub.verified : null;
+              // if (sub.containerID === '001') console.log(sub);
+              subsamples.push(sub);
+              if (containerIDs.includes(sub.containerID)) duplicateIDs = sub.containerID;
+              containerIDs.push(sub.containerID);
+            }
+          }
+        });
+      });
+      if (subCount > subsampleCount) subsampleCount = subCount;
+    }
+  });
+  subsamples.sort((a, b) => a.containerID - b.containerID);
+  return {subsamples, duplicateIDs, subsampleCount}
+}
 
 export const checkTestCertificateIssue = (samples, job, meUid) => {
   let filteredSamples = [];
@@ -1204,7 +1736,7 @@ export const printCocBulk = (job, samples, me, staffList) => {
     personnel: getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', null, false).map(p => p.name),
     samples: sampleList
   };
-  console.log(report);
+  // console.log(report);
   return report;
   // let url = job.waAnalysis ?
   //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php?report=" +
@@ -1306,21 +1838,18 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
         sampleMap["footnote"] = sample.footnote ? sample.footnote : false;
         sampleMap["conditionings"] = writeConditionings(sample);
 
-        if (job.waAnalysis) {
+        if (sample.waSoilAnalysis !== undefined) {
           sampleMap["simpleDescription"] = writeSimpleDescription(sample);
           sampleMap["simpleResult"] = writeSimpleResult(sample.result, sample.noAsbestosResultReason);
-          sampleMap["weightDry"] = sample.weightDry ? `${sample.weightDry}g` : 'N/A';
+          sampleMap["formDescription"] = sample.waSoilAnalysis.formDescription ? sample.waSoilAnalysis.formDescription : 'N/A';
           sampleMap["weightAshed"] = sample.weightAshed ? `${sample.weightAshed}g` : 'N/A';
           sampleMap["moisture"] = writeSampleMoisture(sample) ? `${writeSampleMoisture(sample)}%` : 'N/A';
-          sampleMap["formDescription"] = sample.waAnalysisFormDescription ? sample.waAnalysisFormDescription : 'N/A';
-          sampleMap["weightAshedGt7"] = sample.waAnalysisWeightAshedGt7 ? `${sample.waAnalysisWeightAshedGt7}g` : 'N/A';
-          sampleMap["weightAshedTo7"] = sample.waAnalysisWeightAshedTo7 ? `${sample.waAnalysisWeightAshedTo7}g` : 'N/A';
-          sampleMap["weightAshedLt2"] = sample.waAnalysisWeightAshedLt2 ? `${sample.waAnalysisWeightAshedLt2}g` : 'N/A';
-          sampleMap["weightAshedLt2Subsample"] = sample.waAnalysisWeightAshedLt2Subsample ? `${sample.waAnalysisWeightAshedLt2Subsample}g` : 'N/A';
+          sampleMap["weightAshedGt7"] = sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : 'N/A';
+          sampleMap["weightAshedTo7"] = sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : 'N/A';
+          sampleMap["weightAshedLt2"] = sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : 'N/A';
+          sampleMap["weightAshedLt2Subsample"] = sample.waSoilAnalysis.waAnalysisWeightAshedLt2Subsample ? `${sample.waSoilAnalysis.waAnalysisWeightAshedLt2Subsample}g` : 'N/A';
 
           let waTotals = getWATotalDetails(sample, job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01);
-          // sampleMap["bold"] = waTotals.bold;
-          // sampleMap["soilConcentrationResult"] = waTotals.soilConcentrationResult;
           sampleMap["concentrationACM"] = waTotals.concentration.acm ? `${waTotals.concentration.acm}%` : 'N/A';
           sampleMap["concentrationFAAF"] = waTotals.concentration.faaf ? `${waTotals.concentration.faaf}%` : 'N/A';
           sampleMap["concentrationFA"] = waTotals.concentration.fa ? `${waTotals.concentration.fa}%` : 'N/A';
@@ -1756,55 +2285,61 @@ export const getWATotalDetails = (sample, acmLimit) => {
     bold: {},
   };
 
-  if (sample) {
+  if (sample && sample.waSoilAnalysis) {
     // If <2mm is subsampled, multiply asbestos weights
     let multiplier = null;
-    if (sample.waAnalysisWeightAshedLt2 !== undefined && sample.waAnalysisWeightAshedLt2Subsample !== undefined)
-      multiplier = parseFloat(sample.waAnalysisWeightAshedLt2) / parseFloat(sample.waAnalysisWeightAshedLt2Subsample);
+    if (sample.waSoilAnalysis.fractionlt2WeightAshedSubsample)
+      multiplier = parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed) / parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample);
 
     // Loop through each fraction in the job (gt7, to7, lt2)
-    if (sample.waAnalysisSubsamples !== undefined) {
-      sample.waAnalysisSubsamples.forEach(subsample => {
+    fractionNames.forEach(fraction => {
       // Loop through each subsample in the fraction
-      // Check if subsample has concentration and weight set
-      if (subsample.concentration && subsample.weight) {
-        // Check subsample has the form and types of asbestos declared
-        if (!subsample.form) totals.allHaveForms = false;
-        if (!subsample.result) totals.allHaveTypes = false;
+      [...Array(sample.waLayerNum[fraction] ? sample.waLayerNum[fraction] : 3).keys()].forEach(num => {
+        let subsample = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
+        if (subsample) {
+          // Check if subsample has concentration and weight set
+          if (subsample.concentration && subsample.weight) {
+            // Check subsample has the form and types of asbestos declared
+            if (!subsample.form) totals.allHaveForms = false;
+            if (!subsample.result) totals.allHaveTypes = false;
 
-        let weight = 0;
-        if (subsample.weight) weight = parseFloat(subsample.weight);
-        // If subsample has a tare weight, subtract this from the weight
-        if (subsample.weight && subsample.tareWeight) weight = weight - parseFloat(subsample.tareWeight);
+            let weight = 0;
+            if (subsample.weight) weight = parseFloat(subsample.weight);
+            // If subsample has a tare weight, subtract this from the weight
+            if (subsample.weight && subsample.tareWeight) weight = weight - parseFloat(subsample.tareWeight);
 
-        // Multiply the weight by the estimated concentration of asbestos in subsample
-        weight = weight * parseFloat(subsample.concentration)/ 100;
+            // If tare weight is greater than gross weight, set weight to zero
+            if (weight < 0) weight = 0;
 
-        // Multiply weight if using <2mm subsample. This presumes the portion of the <2mm fraction that was analysed is representative of the whole <2mm fraction.
-        if (subsample.fraction === 'lt2' && multiplier) weight = weight * multiplier;
+            // Multiply the weight by the estimated concentration of asbestos in subsample
+            weight = weight * parseFloat(subsample.concentration)/ 100;
 
-        // Add weight to totals
-        totals.weight.total = totals.weight.total + weight;
-        if (subsample.form === 'acm') totals.weight.acm = totals.weight.acm + weight;
-        else if (subsample.form === 'fa') totals.weight.fa = totals.weight.fa + weight;
-        else if (subsample.form === 'af') totals.weight.af = totals.weight.af + weight;
-      }
-      if (subsample.form) {
-        // Add forms to the list
-        totals.forms[subsample.form] = true;
-        totals.fractions.total[subsample.fraction] = true;
-        totals.fractions[subsample.form][subsample.fraction] = true;
-        if (subsample.form === 'fa' || subsample.form === 'af') totals.fractions.faaf[subsample.fraction] = true;
-      }
-      if (subsample.result) {
-        // Add result to the list to check against the reported result
-        totals.result.total = mergeAsbestosResult(totals.result.total, subsample.result);
-        if (subsample.form === 'acm') totals.result.acm = mergeAsbestosResult(totals.result.acm, subsample.result);
-        else if (subsample.form === 'fa') totals.result.fa = mergeAsbestosResult(totals.result.fa, subsample.result);
-        else if (subsample.form === 'af') totals.result.af = mergeAsbestosResult(totals.result.af, subsample.result);
-      }
+            // Multiply weight if using <2mm subsample. This presumes the portion of the <2mm fraction that was analysed is representative of the whole <2mm fraction.
+            if (fraction === 'lt2' && multiplier) weight = weight * multiplier;
+
+            // Add weight to totals
+            totals.weight.total = totals.weight.total + weight;
+            if (subsample.form === 'acm') totals.weight.acm = totals.weight.acm + weight;
+            else if (subsample.form === 'fa') totals.weight.fa = totals.weight.fa + weight;
+            else if (subsample.form === 'af') totals.weight.af = totals.weight.af + weight;
+          }
+          if (subsample.form) {
+            // Add forms to the list
+            totals.forms[subsample.form] = true;
+            totals.fractions.total[fraction] = true;
+            totals.fractions[subsample.form][fraction] = true;
+            if (subsample.form === 'fa' || subsample.form === 'af') totals.fractions.faaf[fraction] = true;
+          }
+          if (subsample.result) {
+            // Add result to the list to check against the reported result
+            totals.result.total = mergeAsbestosResult(totals.result.total, subsample.result);
+            if (subsample.form === 'acm') totals.result.acm = mergeAsbestosResult(totals.result.acm, subsample.result);
+            else if (subsample.form === 'fa') totals.result.fa = mergeAsbestosResult(totals.result.fa, subsample.result);
+            else if (subsample.form === 'af') totals.result.af = mergeAsbestosResult(totals.result.af, subsample.result);
+          }
+        }
+      });
     });
-    }
 
     // Combine AF FA
     totals.result.faaf = mergeAsbestosResult(totals.result.af, totals.result.fa);

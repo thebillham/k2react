@@ -262,6 +262,15 @@ const styles = theme => ({
     // marginBottom: theme.spacing(2),
   },
 
+  labelTopBold: {
+    marginBottom: theme.spacing(2),
+    fontSize: 12,
+    fontWeight: 'bold',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // marginBottom: theme.spacing(2),
+  },
+
   container: {
     marginTop: theme.spacing(10),
     justifyContent: 'center',
@@ -396,6 +405,12 @@ const styles = theme => ({
   bottomDottedStyle: {
     borderBottomStyle: 'dotted',
     borderBottomWidth: 1,
+  },
+
+  bottomBorder: {
+    borderBottomStyle: 'solid',
+    borderBottomWidth: 2,
+    paddingBottom: theme.spacing(1),
   },
 
   noticeCard: {
@@ -1175,6 +1190,8 @@ const styles = theme => ({
   verticalCenter: {
     padding: theme.spacing(1),
     justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
   },
 
   marginLeftSmall: {
@@ -1312,6 +1329,20 @@ const styles = theme => ({
     },
   },
 
+  hoverButton: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    padding: theme.spacing(1),
+    // flexDirection: 'row',
+    // display: 'flex',
+    borderRadius: 12,
+    alignItems: 'center',
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover,
+        cursor: 'pointer',
+    },
+  },
+
   flexRowHover: {
     flexDirection: 'row',
     display: 'flex',
@@ -1327,6 +1358,19 @@ const styles = theme => ({
     padding: theme.spacing(1),
     flexDirection: 'row',
     display: 'flex',
+    borderRadius: 12,
+    alignItems: 'center',
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover,
+    },
+  },
+
+  hoverPretty: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    padding: theme.spacing(1),
+    // flexDirection: 'row',
+    // display: 'flex',
     borderRadius: 12,
     alignItems: 'center',
     "&:hover": {
@@ -1354,6 +1398,18 @@ const styles = theme => ({
     paddingBottom: theme.spacing(1),
     flexDirection: 'row',
     display: 'flex',
+    borderRadius: 12,
+    alignItems: 'center',
+    color: theme.palette.app.disabled,
+  },
+
+  hoverDisabled: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    // flexDirection: 'row',
+    // display: 'flex',
     borderRadius: 12,
     alignItems: 'center',
     color: theme.palette.app.disabled,
@@ -1441,6 +1497,12 @@ const styles = theme => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  flexRowEvenlySpaced: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 
   flexColumn: {

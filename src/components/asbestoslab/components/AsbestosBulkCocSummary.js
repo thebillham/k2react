@@ -50,7 +50,7 @@ class AsbestosBulkCocSummary extends React.Component {
     if (job === undefined || job.deleted) return null;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
-    console.log(`rendering summary ${job.jobNumber}`);
+    // console.log(`rendering summary ${job.jobNumber}`);
     // console.log(samples[job.uid]);
     let sampledBy = 'N/A';
     let sampleDate = 'N/A';

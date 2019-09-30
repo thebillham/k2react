@@ -59,14 +59,9 @@ cx, cy, midAngle, innerRadius, outerRadius, percent, index,
 
 class AsbestosSampleWASummary extends React.Component {
   shouldComponentUpdate(nextProps) {
-    if (this.props.sample.waAnalysisSubsamples !== nextProps.sample.waAnalysisSubsamples ||
-      this.props.sample.waAnalysisComplete !== nextProps.sample.waAnalysisComplete ||
-      this.props.sample.waAnalysisWeightAshedGt7 !== nextProps.sample.waAnalysisWeightAshedGt7 ||
-      this.props.sample.waAnalysisWeightAshedTo7 !== nextProps.sample.waAnalysisWeightAshedTo7 ||
-      this.props.sample.waAnalysisWeightAshedLt2 !== nextProps.sample.waAnalysisWeightAshedLt2 ||
-      this.props.sample.waAnalysisWeightAshedLt2Subsample !== nextProps.sample.waAnalysisWeightAshedLt2Subsample ||
-      this.props.sample.waAnalysisFormDescription !== nextProps.sample.waAnalysisFormDescription ||
-      this.props.sample.weightDry !== nextProps.sample.weightDry) return true;
+    if (this.props.sample.waSoilAnalysis !== nextProps.sample.waSoilAnalysis ||
+    this.props.sample.waLayerNum !== nextProps.waLayerNum ||
+    this.props.sample.weightDry !== nextProps.sample.weightDry) return true;
     return false;
   }
 
@@ -98,11 +93,10 @@ class AsbestosSampleWASummary extends React.Component {
         </Grid>
         <Grid container direction='row'>
           <Grid item xs={4} className={classes.entryRow}>
-            {noEdit ? sample.waAnalysisFormDescription : <SuggestionField
+            {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.formDescription : <SuggestionField
               that={this}
               suggestions='asbestosInSoilSuggestions'
-              value={sample.waAnalysisFormDescription}
-              controlled
+              defaultValue={sample.waSoilAnalysis && sample.waSoilAnalysis.formDescription}
               onModify={(value) => {
                 that.setState({
                   modified: true,
@@ -110,8 +104,11 @@ class AsbestosSampleWASummary extends React.Component {
                     ...that.state.samples,
                     [that.state.activeSample]: {
                       ...that.state.samples[that.state.activeSample],
-                      waAnalysisFormDescription: value,
-                    },
+                      waSoilAnalysis: {
+                        ...that.state.samples[that.state.activeSample].waSoilAnalysis,
+                        formDescription: value,
+                      },
+                    }
                   }
                 });
               }}
@@ -126,7 +123,7 @@ class AsbestosSampleWASummary extends React.Component {
           <Grid item xs={2} className={classes.firstColumn}>{`> 7mm`}</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.waAnalysisWeightAshedGt7 ? `${sample.waAnalysisWeightAshedGt7}g` : `N/A` : SamplesTextyBox(that, sample, 'waAnalysisWeightAshedGt7', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractiongt7WeightAshed', null, null, false, 0, 'g', null, true)}
             </div>
           </Grid>
         </Grid>
@@ -146,24 +143,24 @@ class AsbestosSampleWASummary extends React.Component {
           <Grid item xs={2} className={classes.firstColumn}>{`2 - 7mm`}</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.waAnalysisWeightAshedTo7 ? `${sample.waAnalysisWeightAshedTo7}g` : `N/A` : SamplesTextyBox(that, sample, 'waAnalysisWeightAshedTo7', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionto7WeightAshed', null, null, false, 0, 'g', null, true)}
             </div>
           </Grid>
         </Grid>
         <Grid container direction='row'>
           <Grid item xs={2} className={classes.firstColumn}>Total Ashed Fraction Weight</Grid>
           <Grid item xs={2} className={classes.entryRow}>
-            {sample.waAnalysisWeightAshedGt7 && sample.waAnalysisWeightAshedTo7 && sample.waAnalysisWeightAshedLt2 ?
+            {sample.waSoilAnalysis && sample.waSoilAnalysis.fractiongt7WeightAshed && sample.waSoilAnalysis.fractionto7WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshed ?
               <span className={
-                (parseFloat(sample.waAnalysisWeightAshedGt7) +
-                parseFloat(sample.waAnalysisWeightAshedTo7) +
-                parseFloat(sample.waAnalysisWeightAshedLt2)) !== parseFloat(sample.weightAshed) ?
+                (parseFloat(sample.waSoilAnalysis.fractiongt7WeightAshed) +
+                parseFloat(sample.waSoilAnalysis.fractionto7WeightAshed) +
+                parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed)).toFixed(1) !== parseFloat(sample.weightAshed).toFixed(1) ?
                 classes.boldRed
                 : classes.boldBlack
               }>{
-                (parseFloat(sample.waAnalysisWeightAshedGt7) +
-                parseFloat(sample.waAnalysisWeightAshedTo7) +
-                parseFloat(sample.waAnalysisWeightAshedLt2)).toFixed(1)
+                (parseFloat(sample.waSoilAnalysis.fractiongt7WeightAshed) +
+                parseFloat(sample.waSoilAnalysis.fractionto7WeightAshed) +
+                parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed)).toFixed(1)
               }g</span>
               : <span>N/A</span>
             }
@@ -177,7 +174,7 @@ class AsbestosSampleWASummary extends React.Component {
           <Grid item xs={2} className={classes.firstColumn}>{`< 2mm`}</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.waAnalysisWeightAshedLt2 ? `${sample.waAnalysisWeightAshedLt2}g` : `N/A` : SamplesTextyBox(that, sample, 'waAnalysisWeightAshedLt2', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshed', null, null, false, 0, 'g', null, true)}
             </div>
           </Grid>
         </Grid>
@@ -195,61 +192,61 @@ class AsbestosSampleWASummary extends React.Component {
           <Grid item xs={2} className={classes.firstColumn}>{`< 2mm Subsample`}</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.waAnalysisWeightAshedLt2Subsample ? `${sample.waAnalysisWeightAshedLt2Subsample}g` : `N/A` :
-              SamplesTextyBox(that, sample, 'waAnalysisWeightAshedLt2Subsample', null, `Record the weight of the subsample of the <2mm fraction if applicable. This will multiply the asbestos weights in that fraction according to the proportion analysed.`, false, 0, 'g', null, true)}
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample ? `${sample.waSoilAnalysis.fractionlt2WeightAshedSubsample}g` : `N/A` :
+              SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshedSubsample', null, `Record the weight of the subsample of the <2mm fraction if applicable. This will multiply the asbestos weights in that fraction according to the proportion analysed.`, false, 0, 'g', null, true)}
             </div>
           </Grid>
         </Grid>
         <Grid container direction='row'>
-          <Grid item xs={4} className={classes.headingRow}>
-            Asbestos Form
-          </Grid>
-          <Grid item xs={2} className={classes.headingRow}>
-            Fractions Present
-          </Grid>
-          <Grid item xs={2} className={classes.headingRow}>
-            Asbestos Types
-          </Grid>
-          <Grid item xs={2} className={classes.headingRow}>
-            Weight (g)
-          </Grid>
-          <Grid item xs={2} className={classes.headingRow}>
-            Percentage of Total
-          </Grid>
+        <Grid item xs={4} className={classes.headingRow}>
+          Asbestos Form
         </Grid>
-        {[
-          {label: 'All Forms', value: 'total', red: (fractionMap.concentration.acmFloat > this.props.acmInSoilLimit || fractionMap.concentration.faaf >= 0.001)},
-          {label: 'Asbestos-containing Material (ACM)', value: 'acm', red: fractionMap.concentration.acmFloat >= this.props.acmInSoilLimit},
-          {label: 'Friable Asbestos (FA)', value: 'fa', red: fractionMap.concentration.fa >= 0.001},
-          {label: 'Asbestos Fines (AF)', value: 'af', red: fractionMap.concentration.af >= 0.001},
-          {label: 'Combined FA and AF', value: 'faaf', red: fractionMap.concentration.faaf >= 0.001},
+        <Grid item xs={2} className={classes.headingRow}>
+          Fractions Present
+        </Grid>
+        <Grid item xs={2} className={classes.headingRow}>
+          Asbestos Types
+        </Grid>
+        <Grid item xs={2} className={classes.headingRow}>
+          Weight (g)
+        </Grid>
+        <Grid item xs={2} className={classes.headingRow}>
+          Percentage of Total
+        </Grid>
+      </Grid>
+      {[
+        {label: 'All Forms', value: 'total', red: (fractionMap.concentration.acmFloat > this.props.acmInSoilLimit || fractionMap.concentration.faaf > 0.001)},
+        {label: 'Asbestos-containing Material (ACM)', value: 'acm', red: fractionMap.concentration.acmFloat >= this.props.acmInSoilLimit},
+        {label: 'Friable Asbestos (FA)', value: 'fa', red: fractionMap.concentration.fa >= 0.001},
+        {label: 'Asbestos Fines (AF)', value: 'af', red: fractionMap.concentration.af >= 0.001},
+        {label: 'Combined FA and AF', value: 'faaf', red: fractionMap.concentration.faaf >= 0.001},
 
-        ].map(row =>
-        <Grid container direction='row' key={row.value}>
-          <Grid item xs={4} className={classes.firstColumn}>
-            {row.label}
-          </Grid>
-          <Grid item xs={2} className={classes.textColumn}>
-            {Object.keys(fractionMap.fractions[row.value]).map(f => waMap[f]).join(', ').toUpperCase()}
-          </Grid>
-          <Grid item xs={2} className={classes.textColumn}>
-            {Object.keys(fractionMap.result[row.value]).join(', ').toUpperCase()}
-          </Grid>
-          <Grid item xs={2} className={classes.numberColumn}>
-            {(!fractionMap.weight[row.value] || fractionMap.weight[row.value] < asbestosWeightLimit) ?
-              <span>{`<${asbestosWeightLimit}g`}</span> :
-              <span>{fractionMap.weight[row.value]}g</span>
-            }
-          </Grid>
-          <Grid item xs={2} className={classes.numberColumn}>
-            {(!fractionMap.concentration[row.value] || fractionMap.concentration[row.value] < asbestosPercentLimit) ?
-              <span className={classes.boldBlack}>{`<${asbestosPercentLimit}%`}</span> :
-              <span className={row.red ? classes.boldRed : classes.boldBlack}>
-                {fractionMap.concentration[row.value]}%
-              </span>
-            }
-          </Grid>
-        </Grid>)}
+      ].map(row =>
+      <Grid container direction='row' key={row.value}>
+        <Grid item xs={4} className={classes.firstColumn}>
+          {row.label}
+        </Grid>
+        <Grid item xs={2} className={classes.textColumn}>
+          {Object.keys(fractionMap.fractions[row.value]).map(f => waMap[f]).join(', ').toUpperCase()}
+        </Grid>
+        <Grid item xs={2} className={classes.textColumn}>
+          {Object.keys(fractionMap.result[row.value]).join(', ').toUpperCase()}
+        </Grid>
+        <Grid item xs={2} className={classes.numberColumn}>
+          {(!fractionMap.weight[row.value] || fractionMap.weight[row.value] < asbestosWeightLimit) ?
+            <span>{`<${asbestosWeightLimit}g`}</span> :
+            <span>{fractionMap.weight[row.value]}g</span>
+          }
+        </Grid>
+        <Grid item xs={2} className={classes.numberColumn}>
+          {(!fractionMap.concentration[row.value] || fractionMap.concentration[row.value] < asbestosPercentLimit) ?
+            <span className={classes.boldBlack}>{`<${asbestosPercentLimit}%`}</span> :
+            <span className={row.red ? classes.boldRed : classes.boldBlack}>
+              {fractionMap.concentration[row.value]}%
+            </span>
+          }
+        </Grid>
+      </Grid>)}
         <div className={classes.flexRowRightAlign}>
           {noEdit ? sample.waAnalysisComplete ? <span className={classes.colorsDivOk}>Analysis Complete</span> : <span className={classes.colorsDivOff}>Analysis Incomplete</span> : <FormControlLabel
             control={
@@ -298,7 +295,7 @@ class AsbestosSampleWASummary extends React.Component {
         </div>*/}
         {false &&
           fractionMap && fractionMap.types && Object.keys(fractionMap.types).map(type => {
-            console.log(type);
+            // console.log(type);
             return (
               <div className={classes.flexRowTotals} key={type}>
                 <div className={classes.circleShadedHighlighted}>

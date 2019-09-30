@@ -142,7 +142,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const thisVersion = '1.2.7';
+const thisVersion = '1.2.8';
 
 class MainScreen extends React.PureComponent {
   // static whyDidYouRender = true;
@@ -165,8 +165,8 @@ class MainScreen extends React.PureComponent {
 
   UNSAFE_componentWillMount() {
     sendSlackMessage(`${auth.currentUser.displayName} is triggering MainScreen componentWillMount`);
-    this.props.fetchMe();
-    this.props.initConstants();
+    if (this.props.me && this.props.me.uid === undefined) this.props.fetchMe();
+    if (this.props.menuItems === undefined) this.props.initConstants();
     this.props.fetchGeocodes();
     // this.props.fetchAssets();
     if (this.props.staff && Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
@@ -510,6 +510,11 @@ class MainScreen extends React.PureComponent {
             </div>
           )}
           <div className={classes.version}>{`v${thisVersion}`}</div>
+          <div className={latestVersion == thisVersion ? classes.version : classes.versionOld}>
+            {latestVersion == thisVersion ? `Your version is up to date.` :
+              `You are using an old version of MyK2. Hold the shift key and press F5 to force your browser to use the latest version (v${latestVersion})`
+            }
+          </div>
         {/*<Divider />
           <ListItem button onClick={this.handleDevClick}>
             <ListItemIcon>

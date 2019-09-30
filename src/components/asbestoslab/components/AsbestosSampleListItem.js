@@ -107,7 +107,7 @@ class AsbestosSampleListItem extends React.Component {
     let noResults = true;
     let acmLimit = job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01;
     let overLimit = sample.waTotals && (sample.waTotals.waOverLimit || sample.waTotals.concentration.acmFloat >= acmLimit) ? true : false;
-    console.log(`Asbestos Sample List Item: ${job.jobNumber}-${sample.sampleNumber}`)
+    // console.log(`Asbestos Sample List Item: ${job.jobNumber}-${sample.sampleNumber}`)
 
     return (
         <ListItem key={sample.uid} className={classes.hoverItem}>
@@ -146,15 +146,13 @@ class AsbestosSampleListItem extends React.Component {
                     <WAIcon />
                   </div>
                 }
-                {/*<Tooltip title={'Weight on Receipt'}>*/}
-                  <div className={sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded}>
-                    {sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}
-                  </div>
-                {/*</Tooltip>*/}
+                <div className={sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded}>
+                  {sample.weightReceived ? `${sample.weightReceived}g` : 'NO WEIGHT'}
                 </div>
-              </Grid>
-              <Grid item md={12} lg={4} xl={3}>
-                <div className={classes.flexRowRightAlign}>
+              </div>
+            </Grid>
+            <Grid item md={12} lg={4} xl={3}>
+              <div className={classes.flexRowRightAlign}>
                 {editor &&
                   <IconButton
                     onClick={event => {

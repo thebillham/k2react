@@ -16,10 +16,13 @@ import {
   issueTestCertificate,
   getPersonnel,
   getJobStatus,
+  verifySamples,
+  getSampleData,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM, dateOf, addLog } from "../../../actions/local";
 import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
 import { showModal } from "../../../actions/modal";
+import { CSVLink, CSVDownload } from "react-csv";
 import {
   ASBESTOS_SAMPLE_EDIT,
   ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS,
@@ -138,7 +141,7 @@ class AsbestosBulkCocCard extends React.Component {
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
 
-    console.log(`${job.jobNumber} Bulk COC Card rendering`);
+    // console.log(`${job.jobNumber} Bulk COC Card rendering`);
     let filteredSamples = {};
     if (samples && samples[job.uid]) {
       Object.values(samples[job.uid]).filter(s => !s.deleted && s.cocUid === job.uid).forEach(s => {
@@ -147,7 +150,7 @@ class AsbestosBulkCocCard extends React.Component {
     }
 
     let coc = JSON.stringify(printCocBulk(job, filteredSamples, this.props.me, this.props.staff));
-    console.log(coc);
+    // console.log(coc);
     getJobStatus(filteredSamples, job);
     return (
       <ExpansionPanel
@@ -249,16 +252,13 @@ class AsbestosBulkCocCard extends React.Component {
                   </IconButton>
                 </span>
               </Tooltip>
-              {job.waAnalysis && <Tooltip title={'Record Soil Subsample Weights'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+              {job.waAnalysis && <Tooltip title={'Verify Subsample Weights'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
                 <span>
                   <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
                     onClick={event => {
                       this.props.showModal({
-                        modalType: ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS,
-                        modalProps: {
-                          activeSample: Object.keys(filteredSamples)[0],
-                          activeCoc: job.uid,
-                          sampleList: job.sampleList,
+                        modalType: ASBESTOS_ACTIONS,
+                        modalProps: { job: job, field: 'verifySubsample', title: `Verify Subsample Weights for ${job.jobNumber}`,
                       }});
                     }}>
                     <WAIcon className={classes.iconRegular} />
@@ -269,9 +269,10 @@ class AsbestosBulkCocCard extends React.Component {
                 <span>
                   <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
                     onClick={event => {
-                        this.props.showModal({
-                          modalType: ASBESTOS_ACTIONS,
-                          modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber}`, }});
+                      this.props.showModal({
+                        modalType: ASBESTOS_ACTIONS,
+                        modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber}`,
+                      }});
                     }}>
                     <VerifyIcon className={classes.iconRegular} />
                   </IconButton>
@@ -327,6 +328,21 @@ class AsbestosBulkCocCard extends React.Component {
                   }}
                 >
                   View Change Log
+                </MenuItem>
+                <MenuItem>
+                  <CSVLink
+                    data={filteredSamples ? verifySamples(Object.values(filteredSamples), job, this.props.me.uid, true) : null}
+                    filename={`${job.jobNumber}_issues_to_fix.csv`}
+                  >
+                    Download Issues as CSV
+                  </CSVLink>
+                </MenuItem>
+                <MenuItem>
+                  <CSVLink data={getSampleData(filteredSamples, job)}
+                    filename={`${job.jobNumber}_sample_data.csv`}
+                  >
+                    Download Sample Data as CSV
+                  </CSVLink>
                 </MenuItem>
                 {/*<MenuItem
                   onClick={() => {
