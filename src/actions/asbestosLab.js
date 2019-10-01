@@ -397,10 +397,10 @@ export const handleSampleChange = (number, changes) => dispatch => {
 
 export const logSample = (coc, sample, cocStats, version) => {
   // let dateString = moment(new Date()).format('YYYY-MM-DD');
-  let transitTime = sample.createdDate && sample.receivedDate ? moment.duration(moment(sample.receivedDate.toDate()).diff(sample.createdDate.toDate())).asMilliseconds() : null;
-  let labTime = sample.receivedDate && sample.analysisDate ? moment.duration(moment(sample.analysisDate.toDate()).diff(sample.receivedDate.toDate())).asMilliseconds() : null;
-  let analysisTime = sample.receivedDate && sample.analysisStartDate ? moment.duration(moment(sample.analysisDate.toDate()).diff(sample.analysisStartDate.toDate())).asMilliseconds() : null;
-  let turnaroundTime = sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null;
+  let transitTime = sample.createdDate && sample.receivedDate ? moment.duration(moment(dateOf(sample.receivedDate)).diff(dateOf(sample.createdDate))).asMilliseconds() : null;
+  let labTime = sample.receivedDate && sample.analysisDate ? moment.duration(moment(dateOf(sample.analysisDate)).diff(dateOf(sample.receivedDate))).asMilliseconds() : null;
+  let analysisTime = sample.receivedDate && sample.analysisStartDate ? moment.duration(moment(dateOf(sample.analysisDate)).diff(dateOf(sample.analysisStartDate))).asMilliseconds() : null;
+  let turnaroundTime = sample.receivedDate ? moment.duration(moment().diff(dateOf(sample.receivedDate))).asMilliseconds() : null;
 
   let log = {
     client: coc.client ? coc.client : null,
@@ -739,6 +739,7 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
   if (notBlankAnalysis) {
     if (!sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me, true);
     if (resultChanged) {
+      console.log('Result changed');
       batch.set(asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`),
       {
         analyst: analyst,
@@ -761,7 +762,7 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
         result: sample.result ? sample.result : null,
         weightReceived: sample.weightReceived ? sample.weightReceived : null,
         analysisDate: new Date(),
-        analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(sample.receivedDate.toDate())).asMilliseconds() : null,
+        analysisTime: sample.receivedDate ? moment.duration(moment(new Date()).diff(dateOf(sample.receivedDate))).asMilliseconds() : null,
       });
     } else if (weightChanged) {
       batch.update(asbestosSamplesRef.doc(sample.uid),
@@ -833,7 +834,7 @@ export const verifySample = (batch, sample, job, samples, sessionID, me, startDa
         verified: true,
         verifiedBy: {uid: me.uid, name: me.name},
         verifyDate: startDate ? startDate : new Date(),
-        turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(sample.receivedDate.toDate())).asMilliseconds() : null,
+        turnaroundTime: sample.receivedDate ? moment.duration(moment().diff(dateOf(sample.receivedDate))).asMilliseconds() : null,
       });
     } else {
       batch.update(asbestosSamplesRef.doc(sample.uid),
@@ -1130,7 +1131,7 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
           }
         }
 
-        if (!sample.waSoilAnalysis.formDescription && getBasicResult(sample) === 'positive') {
+        if (!sample.waSoilAnalysis || !sample.waSoilAnalysis.formDescription && getBasicResult(sample) === 'positive') {
           uid = sample.uid + 'WAAnalysisNoFormDescription';
           issues[uid] = {
             type: 'confirm',
@@ -1142,7 +1143,7 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
           }
         }
 
-        if (!sample.waSoilAnalysis.fractiongt7WeightAshed) {
+        if (!sample.waSoilAnalysis || !sample.waSoilAnalysis.fractiongt7WeightAshed) {
           uid = sample.uid + 'WAAnalysisNoGt7WeightAshed';
           issues[uid] = {
             type: 'confirm',
@@ -1154,7 +1155,7 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
           }
         }
 
-        if (!sample.waSoilAnalysis.fractionto7WeightAshed) {
+        if (!sample.waSoilAnalysis || !sample.waSoilAnalysis.fractionto7WeightAshed) {
           uid = sample.uid + 'WAAnalysisNoTo7WeightAshed';
           issues[uid] = {
             type: 'confirm',
@@ -1166,7 +1167,7 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
           }
         }
 
-        if (!sample.waSoilAnalysis.fractionlt2WeightAshed) {
+        if (!sample.waSoilAnalysis || !sample.waSoilAnalysis.fractionlt2WeightAshed) {
           uid = sample.uid + 'WAAnalysisNoLt2WeightAshed';
           issues[uid] = {
             type: 'confirm',
@@ -1178,7 +1179,7 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
           }
         }
 
-        if (
+        if (sample.waSoilAnalysis &&
           sample.waSoilAnalysis.fractiongt7WeightAshed &&
           sample.waSoilAnalysis.fractionto7WeightAshed &&
           sample.waSoilAnalysis.fractionlt2WeightAshed &&
@@ -1222,7 +1223,7 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
           }
         }
 
-        if (sample.waSoilAnalysis.fractionlt2WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample &&
+        if (sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample &&
           parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample) > parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed)) {
           uid = sample.uid + 'WAAnalysisLt2SubsampleWeightLarger';
           issues[uid] = {
@@ -1842,12 +1843,14 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
           sampleMap["simpleDescription"] = writeSimpleDescription(sample);
           sampleMap["simpleResult"] = writeSimpleResult(sample.result, sample.noAsbestosResultReason);
           sampleMap["formDescription"] = sample.waSoilAnalysis.formDescription ? sample.waSoilAnalysis.formDescription : 'N/A';
+          sampleMap["weightSubsample"] = sample.weightSubsample ? `${sample.weightSubsample}g` : 'N/A';
+          sampleMap["weightDry"] = sample.weightDry ? `${sample.weightDry}g` : 'N/A';
           sampleMap["weightAshed"] = sample.weightAshed ? `${sample.weightAshed}g` : 'N/A';
           sampleMap["moisture"] = writeSampleMoisture(sample) ? `${writeSampleMoisture(sample)}%` : 'N/A';
           sampleMap["weightAshedGt7"] = sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : 'N/A';
           sampleMap["weightAshedTo7"] = sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : 'N/A';
           sampleMap["weightAshedLt2"] = sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : 'N/A';
-          sampleMap["weightAshedLt2Subsample"] = sample.waSoilAnalysis.waAnalysisWeightAshedLt2Subsample ? `${sample.waSoilAnalysis.waAnalysisWeightAshedLt2Subsample}g` : 'N/A';
+          sampleMap["weightAshedLt2Subsample"] = sample.waSoilAnalysis.fractionlt2WeightAshedSubsample ? `${sample.waSoilAnalysis.fractionlt2WeightAshedSubsample}g` : 'N/A';
 
           let waTotals = getWATotalDetails(sample, job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01);
           sampleMap["concentrationACM"] = waTotals.concentration.acm ? `${waTotals.concentration.acm}%` : 'N/A';
@@ -2930,7 +2933,7 @@ export const getStats = (samples, job) => {
             numAnalysisTime = numAnalysisTime + 1;
             averageAnalysisTime = totalAnalysisTime / numAnalysisTime;
           }
-          let analysisBusinessTime = moment(sample.analysisDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
+          let analysisBusinessTime = moment(dateOf(sample.analysisDate)).workingDiff(moment(dateOf(sample.receivedDate)));
           if (analysisBusinessTime > maxAnalysisBusinessTime) maxAnalysisBusinessTime = analysisBusinessTime;
           totalAnalysisBusinessTime = totalAnalysisBusinessTime + analysisBusinessTime;
           numAnalysisBusinessTime = numAnalysisBusinessTime + 1;
@@ -2944,7 +2947,7 @@ export const getStats = (samples, job) => {
             numTurnaroundTime = numTurnaroundTime + 1;
             averageTurnaroundTime = totalTurnaroundTime / numTurnaroundTime;
             // Check for time between analysis logging and verification
-            let turnaroundBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.receivedDate.toDate()));
+            let turnaroundBusinessTime = moment(dateOf(sample.verifyDate)).workingDiff(moment(dateOf(sample.receivedDate)));
             if (turnaroundBusinessTime > maxTurnaroundBusinessTime) maxTurnaroundBusinessTime = turnaroundBusinessTime;
             totalTurnaroundBusinessTime = totalTurnaroundBusinessTime + turnaroundBusinessTime;
             numTurnaroundBusinessTime = numTurnaroundBusinessTime + 1;
@@ -2958,7 +2961,7 @@ export const getStats = (samples, job) => {
               averageReportTime = totalReportTime / numReportTime;
             }
 
-            let reportBusinessTime = moment(sample.verifyDate.toDate()).workingDiff(moment(sample.analysisDate.toDate()));
+            let reportBusinessTime = moment(dateOf(sample.verifyDate)).workingDiff(moment(dateOf(sample.analysisDate)));
             totalReportBusinessTime = totalReportBusinessTime + reportBusinessTime;
             numReportBusinessTime = numReportBusinessTime + 1;
             averageReportBusinessTime = totalReportBusinessTime / numReportBusinessTime;

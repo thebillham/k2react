@@ -251,7 +251,7 @@ class AsbestosSampleEditModal extends React.Component {
   };
 
   previousSample = () => {
-    if (this.state.modified) this.saveSample();
+    if (this.state.modified) this.saveSample(this.state.activeSample);
     let takeThisSample = false;
     Object.values(this.state.samples).reverse().forEach(sample => {
       if (takeThisSample) {
@@ -268,7 +268,7 @@ class AsbestosSampleEditModal extends React.Component {
   };
 
   nextSample = () => {
-    if (this.state.modified) this.saveSample();
+    if (this.state.modified) this.saveSample(this.state.activeSample);
     let takeThisSample = false;
     Object.values(this.state.samples).forEach(sample => {
       if (takeThisSample) {
@@ -284,9 +284,10 @@ class AsbestosSampleEditModal extends React.Component {
     });
   };
 
-  saveSample = async () => {
+  saveSample = async (activeSample) => {
     const { override } = this.state;
-    let sample = this.state.samples[this.state.activeSample];
+    let activeSampleNumber = activeSample ? activeSample : this.state.activeSample;
+    let sample = this.state.samples[activeSampleNumber];
     let waTotals = await getWATotalDetails(sample);
     sample.waTotals = waTotals;
     let batch = firestore.batch();
@@ -300,13 +301,15 @@ class AsbestosSampleEditModal extends React.Component {
       chainOfCustody: sample.cocUid,
     };
     addLog("asbestosLab", log, this.props.me, batch);
+    console.log(this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result);
+    console.log(sample.result);
     if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] &&
-      (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result ||
-      this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].weightReceived !== sample.weightReceived)) {
+      (this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result !== sample.result ||
+      this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived !== sample.weightReceived)) {
       recordAnalysis(batch, this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
         this.props.samples, this.props.sessionID, this.props.me,
-        this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result !== sample.result,
-        this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample].result != sample.weightReceived,
+        this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result !== sample.result,
+        this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result != sample.weightReceived,
       );
     }
     if (sample.verified) {
