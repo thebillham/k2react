@@ -1424,6 +1424,12 @@ export const verifySubsamples = (subs, job, meUid, duplicateIDs) => {
   return issues;
 };
 
+const fractionMap = {
+  gt7: '>7mm',
+  to7: '2-7mm',
+  lt2: '<2mm',
+}
+
 export const getSampleData = (samples, job) => {
   let dataArray = [];
   let subSampleMap = getWASubsampleList(samples);
@@ -1495,7 +1501,7 @@ export const getSampleData = (samples, job) => {
       Object.values(samples).forEach(sample => {
         let multiplier = 1;
         if (sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample) {
-          multiplier = parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample)/parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed);
+          multiplier = parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed)/parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample);
         }
         let midArray = [];
         let sampleSubs = subSampleMap.subsamples.filter(sub => sub.sampleNumber === sample.sampleNumber);
@@ -1547,13 +1553,13 @@ export const getSampleData = (samples, job) => {
             if (sub === undefined) sub = {};
             midArray = midArray.concat([
               sub.containerID,
-              sub.fraction,
+              sub.fraction ? fractionMap[sub.fraction] : '',
               sub.weight,
               sub.tareWeight,
               sub.concentration,
               sub.form ? sub.form.toUpperCase() : '',
               sub.result ? writeShorthandResult(sub.result) : '',
-              sub.containerID ? getAsbestosWeight(sub, multiplier) : '',
+              sub.containerID ? getAsbestosWeight(sub) : '',
             ]);
           })
         }
@@ -1573,8 +1579,26 @@ export const getSampleData = (samples, job) => {
       'Specific Location',
       'Description',
       'Material',
+      'Material Category',
       'Result',
+      'Sample Date',
+      'Sampled By',
+      'Created Date',
+      'Created By',
+      'Received Date',
+      'Received By',
+      'Analysis Start Date',
+      'Analysis Started By',
+      'Analysis Date',
+      'Analysis By',
+      'Analysis Recorded By',
+      'Verified Date',
+      'Verified By',
       'Received Weight',
+      'Subsample Weight',
+      'Dry Weight',
+      'Ashed Weight',
+      'Moisture',
     ]);
     if (samples) {
       Object.values(samples).forEach(sample => {
@@ -1585,7 +1609,27 @@ export const getSampleData = (samples, job) => {
           sample.specificLocation ? sample.specificLocation : '',
           sample.description ? sample.description : '',
           sample.material ? sample.material : '',
-          sample.result ? writeShorthandResult(sample) : '',
+          sample.category ? sample.category : '',
+          sample.result ? writeShorthandResult(sample.result) : '',
+          sample.sampleDate ? moment(dateOf(sample.sampleDate)).format('YYYY-MMM-DD') : '',
+          sample.sampledBy ? sample.sampledBy.map(p => p.name).join(', ') : '',
+          sample.createdDate ? moment(dateOf(sample.createdDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.createdBy ? sample.createdBy.name : '',
+          sample.receivedDate ? moment(dateOf(sample.receivedDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.receivedBy ? sample.receivedBy.name : '',
+          sample.analysisStartDate ? moment(dateOf(sample.analysisStartDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.analysisStartedBy ? sample.analysisStartedBy.name : '',
+          sample.analysisDate ? moment(dateOf(sample.analysisDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.analyst ? sample.analyst : '',
+          sample.analysisRecordedBy ? sample.analysisRecordedBy.name : '',
+          sample.verifyDate ? moment(dateOf(sample.verifyDate)).format('YYYY-MMM-DD HH:mm:ss') : '',
+          sample.verifiedBy ? sample.verifiedBy.name : '',
+          sample.weightReceived ? sample.weightReceived : '',
+          sample.weightSubsample ? sample.weightSubsample : '',
+          sample.weightDry ? sample.weightDry : '',
+          sample.weightAshed ? sample.weightAshed : '',
+          sample.weightDry && (sample.weightReceived || sample.weightSubsample) ? writeSampleMoisture(sample) : '',
+          // then layer data, dimensions etc.
         ])
       });
     }
@@ -1593,12 +1637,46 @@ export const getSampleData = (samples, job) => {
   return dataArray;
 }
 
-export const getAsbestosWeight = (sub, multiplier) => {
+export const getSubsampleData = (samples, job) => {
+  let dataArray = [];
+  let subSampleMap = getWASubsampleList(samples);
+  dataArray.push([
+      'Subsample ID',
+      'Sample Number',
+      'Tare Weight',
+      'Fraction',
+      'Concentration',
+      'Asbestos Form',
+      'Asbestos Types',
+      'Gross Weight',
+      'Multiplier',
+      'Asbestos Weight',
+    ]);
+  if (subSampleMap.subsamples.length > 0) {
+    subSampleMap.subsamples.forEach(sub => {
+      dataArray.push([
+        sub.containerID,
+        sub.sampleNumber,
+        sub.tareWeight,
+        sub.fraction ? fractionMap[sub.fraction] : '',
+        sub.concentration,
+        sub.form ? sub.form.toUpperCase() : '',
+        sub.result ? writeShorthandResult(sub.result) : '',
+        sub.weight,
+        sub.multiplier,
+        sub.containerID ? getAsbestosWeight(sub) : '',
+      ]);
+    });
+  }
+  return dataArray;
+}
+
+export const getAsbestosWeight = (sub) => {
   let weight = sub.weight ? parseFloat(sub.weight) : 0;
   if (sub.tareWeight) weight = weight - parseFloat(sub.tareWeight);
   if (weight < 0) weight = 0;
   if (sub.concentration) weight = weight * (parseFloat(sub.concentration) / 100);
-  if (sub.fraction === 'lt2' && multiplier) weight = weight * multiplier;
+  if (sub.fraction === 'lt2' && sub.multiplier) weight = weight * sub.multiplier;
   if (weight < 0.00001) return '<0.00001';
   else return weight.toFixed(5);
 }
@@ -1616,12 +1694,17 @@ export const getWASubsampleList = (samples) => {
           if (sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`] !== undefined) {
             let sub = sample.waSoilAnalysis[`subfraction${fraction}-${num+1}`];
             if (sub.containerID) {
+              let multiplier = 1;
+              if (fraction === 'lt2' && sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample) {
+                multiplier = parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshed)/parseFloat(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample);
+              }
               subCount++;
               sub.fraction = fraction;
               sub.uid = `subfraction${fraction}-${num+1}`;
               sub.sampleNumber = sample.sampleNumber;
               sub.original = sub.verified ? sub.verified : null;
               sub.now = sub.verified ? sub.verified : null;
+              sub.multiplier = multiplier;
               // if (sub.containerID === '001') console.log(sub);
               subsamples.push(sub);
               if (containerIDs.includes(sub.containerID)) duplicateIDs = sub.containerID;

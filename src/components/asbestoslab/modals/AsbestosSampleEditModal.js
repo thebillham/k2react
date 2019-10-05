@@ -301,17 +301,17 @@ class AsbestosSampleEditModal extends React.Component {
       chainOfCustody: sample.cocUid,
     };
     addLog("asbestosLab", log, this.props.me, batch);
-    console.log(this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result);
-    console.log(sample.result);
-    if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] &&
-      (this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result !== sample.result ||
-      this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived !== sample.weightReceived)) {
-      recordAnalysis(batch, this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
-        this.props.samples, this.props.sessionID, this.props.me,
-        this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result !== sample.result,
-        this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result != sample.weightReceived,
-      );
-    }
+    // console.log(this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result);
+    // console.log(sample.result);
+    // if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] &&
+    //   (this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result != sample.result ||
+    //   this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived != sample.weightReceived)) {
+    //   recordAnalysis(batch, this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
+    //     this.props.samples, this.props.sessionID, this.props.me,
+    //     this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result != sample.result,
+    //     this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result != sample.weightReceived,
+    //   );
+    // }
     if (sample.verified) {
       verifySample(batch, sample,
         this.props.cocs[this.props.modalProps.activeCoc],

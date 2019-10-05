@@ -18,6 +18,7 @@ import {
   getJobStatus,
   verifySamples,
   getSampleData,
+  getSubsampleData,
 } from "../../../actions/asbestosLab";
 import { syncJobWithWFM, dateOf, addLog } from "../../../actions/local";
 import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
@@ -342,6 +343,13 @@ class AsbestosBulkCocCard extends React.Component {
                     filename={`${job.jobNumber}_sample_data.csv`}
                   >
                     Download Sample Data as CSV
+                  </CSVLink>
+                </MenuItem>
+                <MenuItem>
+                  <CSVLink data={getSubsampleData(filteredSamples, job)}
+                    filename={`${job.jobNumber}_subsample_data.csv`}
+                  >
+                    Download Subsample Data as CSV
                   </CSVLink>
                 </MenuItem>
                 {/*<MenuItem
