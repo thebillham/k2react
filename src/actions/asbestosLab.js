@@ -3270,9 +3270,28 @@ export const writeDates = (samples, field) => {
     Object.keys(sortedMap[year]).sort((a, b) => {
       return monthNames[a] - monthNames[b];
     }).forEach(month => {
-      dateList.push(`${Object.keys(sortedMap[year][month]).sort((a, b) => {
+      let firstDay = null;
+      let lastDay = null;
+      let daysList = [];
+      Object.keys(sortedMap[year][month]).sort((a, b) => {
         return parseInt(a) - parseInt(b);
-      }).join(', ')} ${month} ${year}`);
+      }).forEach(day => {
+        console.log(day);
+        if (!firstDay) firstDay = day;
+        console.log(parseInt(day) - parseInt(lastDay));
+        if (lastDay === null || parseInt(day) - parseInt(lastDay) === 1) {
+          console.log(day);
+          lastDay = day;
+        } else {
+          if (parseInt(firstDay) === parseInt(lastDay)) daysList.push(firstDay);
+            else daysList.push(`${firstDay}-${lastDay}`);
+          firstDay = day;
+          lastDay = null;
+        }
+      })
+      if (lastDay === null || parseInt(firstDay) === parseInt(lastDay)) daysList.push(firstDay);
+        else daysList.push(`${firstDay}-${lastDay}`);
+      dateList.push(`${daysList.join(', ')} ${month} ${year}`);
     });
   });
 
