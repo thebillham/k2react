@@ -21,7 +21,7 @@ import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 import { toggleDoNotRender } from "./display";
-import { sendSlackMessage } from "./local";
+import { sendSlackMessage, writeDates, andList, } from "./local";
 import {
   asbestosSamplesRef,
   asbestosAnalysisRef,
@@ -2658,7 +2658,7 @@ export const writeSimpleResult = (result, noAsbestosResultReason) => {
     if (result[type]) detected.push(type);
   });
   if (detected.length < 1) return "Not Analysed";
-  if (result["no"]) return "No Asbestos Detected";
+  if (result["no"]) return "NO";
   let asbestos = [];
   if (result["ch"]) asbestos.push("CH");
   if (result["am"]) asbestos.push("AM");
@@ -2742,44 +2742,23 @@ export const writeSoilDetails = details => {
       Object.keys(details.someFractionTypes).forEach(key => {
         if (details.someFractionTypes[key] === true) fractionArray.push(key);
       });
-      if (fractionArray.length > 0) {
-        if (fractionArray.length > 1) {
-          minorFractions.push('some ' + fractionArray.slice(0, -1).join(', ') + ' and ' + fractionArray.slice(-1));
-        } else {
-          minorFractions.push('some ' + fractionArray[0]);
-        }
-      }
+      if (fractionArray.length > 0) minorFractions.push('some ' + andList(fractionArray));
     }
     if (details.minorFractionTypes) {
       let fractionArray = [];
       Object.keys(details.minorFractionTypes).forEach(key => {
         if (details.minorFractionTypes[key] === true) fractionArray.push(key);
       });
-      if (fractionArray.length > 0) {
-        if (fractionArray.length > 1) {
-          minorFractions.push('minor ' + fractionArray.slice(0, -1).join(', ') + ' and ' + fractionArray.slice(-1));
-        } else {
-          minorFractions.push('minor ' + fractionArray[0]);
-        }
-      }
+      if (fractionArray.length > 0) minorFractions.push('minor ' + andList(fractionArray));
     }
     if (details.traceFractionTypes) {
       let fractionArray = [];
       Object.keys(details.traceFractionTypes).forEach(key => {
         if (details.traceFractionTypes[key] === true) fractionArray.push(key);
       });
-      if (fractionArray.length > 0) {
-        if (fractionArray.length > 1) {
-          minorFractions.push('trace of ' + fractionArray.slice(0, -1).join(', ') + ' and ' + fractionArray.slice(-1));
-        } else {
-          minorFractions.push('trace of ' + fractionArray[0]);
-        }
-      }
+      if (fractionArray.length > 0) minorFractions.push('trace of ' + andList(fractionArray));
     }
-    if (minorFractions.length > 0) {
-      if (minorFractions.length === 1) str += 'with ' + minorFractions[0];
-      else str += 'with ' + minorFractions.slice(0, -1).join(', ') + ' and ' + minorFractions.slice(-1);
-    }
+    if (minorFractions.length > 0) str += 'with ' + andList(minorFractions);
     sections.push(str);
     str = '';
 
@@ -2845,8 +2824,8 @@ export const writeSoilDetails = details => {
     Object.keys(details.traceFractionTypes).forEach(key => {
       if (details.traceFractionTypes[key] === true) fractionArray.push(key);
     });
-    if (fractionArray.length > 1) sections.push(fractionArray.slice(0, -1).join(', ') + ' and ' + fractionArray.slice(-1));
-    else if (fractionArray.length === 1) sections.push(fractionArray[0]);
+
+    if (fractionArray.length > 0) sections.push(andList(fractionArray));
 
     if (details.additionalStructures && details.additionalStructures !== '') sections.push(details.additionalStructures.toLowerCase());
     if (sections.length > 0) {
@@ -3220,85 +3199,4 @@ export const collateLayeredResults = layers => {
 export const checkVerifyIssues = () => {
   let issues = [];
   return issues;
-};
-
-export const writeDates = (samples, field) => {
-  let dates = [];
-  let dateMap = {};
-  let sortedMap = {};
-  Object.values(samples).forEach(sample => {
-    if (sample[field]) dates.push(dateOf(sample[field]));
-  });
-  if (dates.length === 0) return "N/A";
-  dates.forEach(date => {
-    let formatDate = moment(date).format('D MMMM YYYY');
-    dateMap[formatDate] = true;
-  });
-
-  // return Object.keys(dateMap).join(', ');
-
-  // TODO: Join Dates in Prettier Way
-
-  Object.keys(dateMap).sort((b, a) => {
-    return new Date(b - a);
-  }).forEach(date => {
-    let year = moment(date).format('YYYY');
-    let month = moment(date).format('MMMM');
-    let day = moment(date).format('D');
-    sortedMap[year] = sortedMap[year] ? sortedMap[year] : {};
-    sortedMap[year][month] = sortedMap[year][month] ? sortedMap[year][month] : {};
-    sortedMap[year][month][day] = true;
-  });
-
-  var monthNames = {
-    "January": 1,
-    "February": 2,
-    "March": 3,
-    "April": 4,
-    "May": 5,
-    "June": 6,
-    "July": 7,
-    "August": 8,
-    "September": 9,
-    "October": 10,
-    "November": 11,
-    "December": 12
-  };
-
-  let dateList = [];
-  Object.keys(sortedMap).forEach(year => {
-    Object.keys(sortedMap[year]).sort((a, b) => {
-      return monthNames[a] - monthNames[b];
-    }).forEach(month => {
-      let firstDay = null;
-      let lastDay = null;
-      let daysList = [];
-      Object.keys(sortedMap[year][month]).sort((a, b) => {
-        return parseInt(a) - parseInt(b);
-      }).forEach(day => {
-        console.log(day);
-        if (!firstDay) firstDay = day;
-        console.log(parseInt(day) - parseInt(lastDay));
-        if (lastDay === null || parseInt(day) - parseInt(lastDay) === 1) {
-          console.log(day);
-          lastDay = day;
-        } else {
-          if (parseInt(firstDay) === parseInt(lastDay)) daysList.push(firstDay);
-            else daysList.push(`${firstDay}-${lastDay}`);
-          firstDay = day;
-          lastDay = null;
-        }
-      })
-      if (lastDay === null || parseInt(firstDay) === parseInt(lastDay)) daysList.push(firstDay);
-        else daysList.push(`${firstDay}-${lastDay}`);
-      dateList.push(`${daysList.join(', ')} ${month} ${year}`);
-    });
-  });
-
-  //console.log(dateList.join(', '));
-  // 17 August 2017, 6, 10, 12, 21, 31 August and 19 September 2019
-
-  return dateList.join(', ');
-
-  // //console.log(dateMap);
 };

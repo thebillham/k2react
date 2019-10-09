@@ -10,11 +10,11 @@ import {
   ASBESTOS_SAMPLE_EDIT,
 } from "../../../constants/modal-types";
 import moment from "moment";
-import { addLog, } from "../../../actions/local";
+import { addLog, writeDates, } from "../../../actions/local";
 
 import { TickyBox, } from '../../../widgets/FormWidgets';
 import Grid from "@material-ui/core/Grid";
-import { getPersonnel, writeDates } from '../../../actions/asbestosLab';
+import { getPersonnel } from '../../../actions/asbestosLab';
 
 const mapStateToProps = state => {
   return {

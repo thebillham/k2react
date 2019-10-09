@@ -14,6 +14,7 @@ import Grid from "@material-ui/core/Grid";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
+import Add from '@material-ui/icons/Add';
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { fetchLogs, clearLog, dateOf } from "../../../actions/local";
 import _ from "lodash";
@@ -36,6 +37,17 @@ const mapDispatchToProps = dispatch => {
 };
 
 class CocLogModal extends React.Component {
+  state = {
+    limit: 20,
+  }
+
+  increaseLimit = () => {
+    this.props.fetchLogs(this.props.modalProps.uid, this.state.limit + 20);
+    this.setState({
+      limit: this.state.limit + 20,
+    })
+  }
+
   render() {
     const { classes, modalProps, modalType, logs } = this.props;
     return (modalType === COC_LOG &&
@@ -44,7 +56,7 @@ class CocLogModal extends React.Component {
         onClose={this.props.hideModal}
         maxWidth="lg"
         fullWidth={true}
-        onEnter={() => this.props.fetchLogs(modalProps.uid, 20)}
+        onEnter={() => this.props.fetchLogs(modalProps.uid, this.state.limit)}
         onExit={this.props.clearLog}
       >
         <DialogTitle>Change Log for {modalProps.jobNumber}</DialogTitle>
@@ -88,6 +100,11 @@ class CocLogModal extends React.Component {
                     </Grid>
                   );
                 })}
+                <Button
+                  style={{ marginTop: 24, marginLeft: 128, }}
+                  onClick={this.increaseLimit}>
+                  <Add className={classes.marginRightSmall} /> View More Logs
+                </Button>
             </Grid>
           </Grid>
         </DialogContent>

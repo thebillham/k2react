@@ -1693,6 +1693,107 @@ export const dateOf = d => {
   }
 }
 
+export const writeDates = (objects, field) => {
+  let dates = [];
+  let dateMap = {};
+  let sortedMap = {};
+  Object.values(objects).forEach(obj => {
+    if (obj[field]) dates.push(dateOf(obj[field]));
+  });
+  if (dates.length === 0) return "N/A";
+  dates.forEach(date => {
+    let formatDate = moment(date).format('D MMMM YYYY');
+    dateMap[formatDate] = true;
+  });
+
+  // return Object.keys(dateMap).join(', ');
+
+  // TODO: Join Dates in Prettier Way
+
+  Object.keys(dateMap).sort((b, a) => {
+    return new Date(b - a);
+  }).forEach(date => {
+    let year = moment(date).format('YYYY');
+    let month = moment(date).format('MMMM');
+    let day = moment(date).format('D');
+    sortedMap[year] = sortedMap[year] ? sortedMap[year] : {};
+    sortedMap[year][month] = sortedMap[year][month] ? sortedMap[year][month] : {};
+    sortedMap[year][month][day] = true;
+  });
+
+  var monthNames = {
+    "January": 1,
+    "February": 2,
+    "March": 3,
+    "April": 4,
+    "May": 5,
+    "June": 6,
+    "July": 7,
+    "August": 8,
+    "September": 9,
+    "October": 10,
+    "November": 11,
+    "December": 12
+  };
+
+  let dateList = [];
+  Object.keys(sortedMap).forEach(year => {
+    let monthsList = [];
+    Object.keys(sortedMap[year]).sort((a, b) => {
+      return monthNames[a] - monthNames[b];
+    }).forEach(month => {
+      let lastDay = null;
+      let firstDay = null;
+      let daysList = [];
+      Object.keys(sortedMap[year][month]).sort((a, b) => {
+        return parseInt(a) - parseInt(b);
+      }).forEach(day => {
+        console.log(day);
+        if (!firstDay) firstDay = day;
+        if (lastDay === null || parseInt(day) - parseInt(lastDay) === 1) {
+          console.log(`Add ${day} to range`);
+          // day is either the first or only one after the one before
+          lastDay = day;
+        } else {
+          // day is further than one away, add the previous range to the list
+          if (parseInt(firstDay) === parseInt(lastDay)) {
+            daysList.push(firstDay);
+            console.log(`Just add ${firstDay}`);
+          } else {
+            daysList.push(`${firstDay}-${lastDay}`);
+            console.log(`Add range ${firstDay}-${lastDay}`);
+          }
+          firstDay = day;
+          lastDay = day;
+        }
+      })
+      if (lastDay === null || parseInt(firstDay) === parseInt(lastDay)) {
+        daysList.push(firstDay);
+        console.log(`Just add ${firstDay} at end`);
+      } else {
+
+        daysList.push(`${firstDay}-${lastDay}`);
+        console.log(`Add range ${firstDay}-${lastDay} at end`);
+      }
+      monthsList.push(`${andList(daysList)} ${month}`);
+    });
+    dateList.push(`${andList(monthsList)} ${year}`);
+  });
+
+  //console.log(dateList.join(', '));
+  // 17 August 2017, 6, 10, 12, 21, 31 August and 19 September 2019
+
+  return andList(dateList);
+
+  // //console.log(dateMap);
+};
+
+export const andList = (list) => {
+  if (list.length === 0) return ''
+  else if (list.length === 1) return list[0]
+  else return list.slice(0, -1).join(', ') + ' and ' + list.slice(-1);
+}
+
 export const sendSlackMessage = (message, json) => {
   let text;
   if (json) text = message;

@@ -40,8 +40,8 @@ import Add from '@material-ui/icons/Add';
 import Sync from '@material-ui/icons/Sync';
 import Link from '@material-ui/icons/Link';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, resetModal, showModalSecondary, } from '../../../actions/modal';
-import { fetchStaff, syncJobWithWFM, resetWfmJob, addLog, personnelConvert, dateOf } from '../../../actions/local';
-import { fetchSamples, handleCocSubmit, handleSampleChange, writeDates } from '../../../actions/asbestosLab';
+import { fetchStaff, syncJobWithWFM, resetWfmJob, addLog, personnelConvert, dateOf, writeDates, } from '../../../actions/local';
+import { fetchSamples, handleCocSubmit, handleSampleChange } from '../../../actions/asbestosLab';
 import _ from 'lodash';
 
 
@@ -378,9 +378,9 @@ class CocModal extends React.PureComponent {
                       }}
                     />
                       </div>
-                      <div>
+                      {/*<div>
                       {writeDates(doc.samples, 'sampleDate')}
-                      </div>
+                      </div>*/}
                     </Grid>
                   </Grid>
               </Grid>
