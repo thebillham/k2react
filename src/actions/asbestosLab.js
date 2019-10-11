@@ -645,14 +645,14 @@ export const startAnalyses = (samples) => {
           uid,
         };
       } else if (sample.original === sample.now) {
-        issues[uid] = {
-          type: 'check',
-          description: `Analysis has not been checked as started. Double check this is correct and leave a comment on why it has been missed.`,
-          yes: 'This is correct',
-          no: 'This needs fixing',
-          sample,
-          uid,
-        };
+        // issues[uid] = {
+        //   type: 'check',
+        //   description: `Analysis has not been checked as started. Double check this is correct and leave a comment on why it has been missed.`,
+        //   yes: 'This is correct',
+        //   no: 'This needs fixing',
+        //   sample,
+        //   uid,
+        // };
       } else {
         issues[uid] = {
           type: 'check',
