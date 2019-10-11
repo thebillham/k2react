@@ -390,10 +390,10 @@ class CocModal extends React.PureComponent {
                     <div className={classes.spacerSmall} />
                     <div className={classes.columnSmall} />
                     <div className={classes.columnMedSmall}>
-                      Generic Location
+                      Building or General Area
                     </div>
                     <div className={classes.columnMedSmall}>
-                      Specific Location
+                      Room or Specific Area
                     </div>
                     <div className={classes.columnMedLarge}>
                       Description

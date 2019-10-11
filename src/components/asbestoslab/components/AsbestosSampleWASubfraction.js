@@ -185,6 +185,7 @@ class AsbestosSampleWASubfraction extends React.Component {
             [`subfraction${fraction}-${num}`]: {
               ...that.state.samples[that.state.activeSample].waSoilAnalysis[`subfraction${fraction}-${num}`],
               [variable]: val,
+              verified: false,
             }
           },
         },

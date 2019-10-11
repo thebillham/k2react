@@ -22,8 +22,11 @@ import Half from "@material-ui/icons/ThumbsUpDown";
 import Bad from "@material-ui/icons/ThumbDown";
 import AsbestosSampleWASummary from "../components/AsbestosSampleWASummary";
 import { hideModal, handleModalChange } from "../../../actions/modal";
-import { dateOf } from "../../../actions/local";
+import { dateOf, milliToDHM } from "../../../actions/local";
 import moment from "moment";
+import momentbusinesstime from "moment-business-time";
+import momentbusinessdays from "moment-business-days";
+import momenttimezone from "moment-timezone";
 import {
   writeSoilDetails,
   getSampleColors,
@@ -129,27 +132,39 @@ class AsbestosSampleDetailsModal extends React.Component {
         analysisDate = moment(dateOf(sample.analysisDate)).format('D MMMM YYYY');
       }
 
-      let nz = moment.tz.setDefault("Pacific/Auckland");
-      moment.tz.setDefault("Pacific/Auckland");
+      // let nz = moment.tz.setDefault("Pacific/Auckland");
       moment.updateLocale('en', {
         // workingWeekdays: [1,2,3,4,5],
         workinghours: {
           0: null,
-          1: ['08:30:00', '17:00:00'],
-          2: ['08:30:00', '17:00:00'],
-          3: ['08:30:00', '17:00:00'],
-          4: ['08:30:00', '17:00:00'],
-          5: ['08:30:00', '17:00:00'],
+          1: ['08:00:00', '17:00:00'],
+          2: ['08:00:00', '17:00:00'],
+          3: ['08:00:00', '17:00:00'],
+          4: ['08:00:00', '17:00:00'],
+          5: ['08:00:00', '17:00:00'],
           6: null,
         },
         holidays: [],
       });
+      moment.locale('en');
+      moment.tz.setDefault("Pacific/Auckland");
+
+      // console.log(`is working time now ${moment().isWorkingTime()}`);
 
       let endTime = new Date();
       if (sample && sample.verifyDate) endTime = dateOf(sample.verifyDate);
-      let timeInLab = sample && sample.receivedDate ? moment(endTime).diff(sample.receivedDate.toDate()) : null;
-
-      let timeInLabBusiness = sample && sample.receivedDate ? moment(endTime).workingDiff(sample.receivedDate.toDate()) : null;
+      console.log(endTime);
+      let timeTotal = sample && sample.receivedDate ? moment(endTime).diff(moment(dateOf(sample.receivedDate))) : null;
+      let timeTotalBusiness = sample && sample.receivedDate ? moment(endTime).workingDiff(moment(dateOf(sample.receivedDate))) : null;
+      let timeAdmin = sample && sample.analysisDate ? moment(endTime).diff(moment(dateOf(sample.analysisDate))) : null;
+      let timeAdminBusiness = sample && sample.analysisDate ? moment(endTime).workingDiff(moment(dateOf(sample.analysisDate))) : null;
+      endTime = new Date();
+      if (sample && sample.analysisDate) endTime = dateOf(sample.analysisDate);
+      let timeLab = sample && sample.receivedDate ? moment(endTime).diff(moment(dateOf(sample.receivedDate))) : null;
+      let timeLabBusiness = sample && sample.receivedDate ? moment(endTime).workingDiff(moment(dateOf(sample.receivedDate))) : null;
+      // console.log(milliToDHM(timeInLab));
+      // console.log(milliToDHM(timeInLabBusiness));
+      // console.log(timeInLabBusiness);
       // //console.log(timeInLab);
       // //console.log(timeInLabBusiness);
       let status = getSampleStatus(sample);
@@ -265,12 +280,26 @@ class AsbestosSampleDetailsModal extends React.Component {
                 </div>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Turnaround Times</div>
-                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Total)', `${moment.utc(timeInLab).format('H:mm')}`)
-                    : SampleTextyLine('Time In Lab (Total)', `${moment.utc(timeInLab).format('H:mm')}`)
+                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Total)', milliToDHM(timeTotal, true, false))
+                    : SampleTextyLine('Time Since Received (Total)', milliToDHM(timeTotal, true, false))
                   : SampleTextyLine('Turnaround Time (Total)', 'Not yet received by lab')}
-                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Business Hours Only)', `${moment.utc(timeInLabBusiness).format('H:mm')}`)
-                    : SampleTextyLine('Time In Lab (Business Hours Only)', `${moment.utc(timeInLabBusiness).format('H:mm')}`)
+                  {sample.receivedDate ? sample.verified ? SampleTextyLine('Turnaround Time (Business Hours Only)', milliToDHM(timeTotalBusiness, true, true))
+                    : SampleTextyLine('Time Since Received (Business Hours Only)', milliToDHM(timeTotalBusiness, true, true))
                   : SampleTextyLine('Turnaround Time (Business Hours Only)', 'Not yet received by lab')}
+
+                  {sample.receivedDate ? sample.analysisDate ? SampleTextyLine('Lab Time (Total)', milliToDHM(timeLab, true, false))
+                    : SampleTextyLine('Time In Lab (Total)', milliToDHM(timeLab, true, false))
+                  : SampleTextyLine('Lab Time (Total)', 'Not yet received by lab')}
+                  {sample.receivedDate ? sample.analysisDate ? SampleTextyLine('Lab Time (Business Hours Only)', milliToDHM(timeLabBusiness, true, true))
+                    : SampleTextyLine('Time In Lab (Business Hours Only)', milliToDHM(timeLabBusiness, true, true))
+                  : SampleTextyLine('Lab Time (Business Hours Only)', 'Not yet received by lab')}
+
+                  {sample.analysisDate ? sample.verified ? SampleTextyLine('Admin Time (Total)', milliToDHM(timeAdmin, true, false))
+                    : SampleTextyLine('Time In Admin (Total)', milliToDHM(timeAdmin, true, false))
+                  : SampleTextyLine('Admin Time (Total)', 'Not yet received from lab')}
+                  {sample.analysisDate ? sample.verified ? SampleTextyLine('Admin Time (Business Hours Only)', milliToDHM(timeAdminBusiness, true, true))
+                    : SampleTextyLine('Time In Admin (Business Hours Only)', milliToDHM(timeAdminBusiness, true, true))
+                  : SampleTextyLine('Admin Time (Business Hours Only)', 'Not yet received from lab')}
                 </div>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Sample History</div>

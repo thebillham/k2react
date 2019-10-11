@@ -1693,6 +1693,30 @@ export const dateOf = d => {
   }
 }
 
+export const milliToDHM = (t, verbose, businessTime) => {
+  var cd = businessTime ? 9 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
+      ch = 60 * 60 * 1000,
+      d = Math.floor(t / cd),
+      h = Math.floor( (t - d * cd) / ch),
+      m = Math.round( (t - d * cd - h * ch) / 60000),
+      pad = function(n){ return n < 10 ? '0' + n : n; };
+  if( m === 60 ){
+    h++;
+    m = 0;
+  }
+  if( h === 24 ){
+    d++;
+    h = 0;
+  }
+  if (verbose) {
+    var dateArray = [];
+    if (d > 0) d === 1 ? dateArray.push('1 day') : dateArray.push(`${d} days`);
+    if (h > 0) h === 1 ? dateArray.push('1 hour') : dateArray.push(`${h} hours`);
+    if (m > 0) m === 1 ? dateArray.push('1 minute') : dateArray.push(`${m} minutes`);
+    return andList(dateArray);
+  } else return [d, pad(h), pad(m)].join(':');
+}
+
 export const writeDates = (objects, field) => {
   let dates = [];
   let dateMap = {};
@@ -1748,20 +1772,20 @@ export const writeDates = (objects, field) => {
       Object.keys(sortedMap[year][month]).sort((a, b) => {
         return parseInt(a) - parseInt(b);
       }).forEach(day => {
-        console.log(day);
+        // console.log(day);
         if (!firstDay) firstDay = day;
         if (lastDay === null || parseInt(day) - parseInt(lastDay) === 1) {
-          console.log(`Add ${day} to range`);
+          // console.log(`Add ${day} to range`);
           // day is either the first or only one after the one before
           lastDay = day;
         } else {
           // day is further than one away, add the previous range to the list
           if (parseInt(firstDay) === parseInt(lastDay)) {
             daysList.push(firstDay);
-            console.log(`Just add ${firstDay}`);
+            // console.log(`Just add ${firstDay}`);
           } else {
             daysList.push(`${firstDay}-${lastDay}`);
-            console.log(`Add range ${firstDay}-${lastDay}`);
+            // console.log(`Add range ${firstDay}-${lastDay}`);
           }
           firstDay = day;
           lastDay = day;
@@ -1769,11 +1793,11 @@ export const writeDates = (objects, field) => {
       })
       if (lastDay === null || parseInt(firstDay) === parseInt(lastDay)) {
         daysList.push(firstDay);
-        console.log(`Just add ${firstDay} at end`);
+        // console.log(`Just add ${firstDay} at end`);
       } else {
 
         daysList.push(`${firstDay}-${lastDay}`);
-        console.log(`Add range ${firstDay}-${lastDay} at end`);
+        // console.log(`Add range ${firstDay}-${lastDay} at end`);
       }
       monthsList.push(`${andList(daysList)} ${month}`);
     });
