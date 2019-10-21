@@ -1350,7 +1350,15 @@ export const copyStaff = (oldId, newId) => dispatch => {
 };
 
 export const saveGeocodes = geocodes => dispatch => {
-  stateRef.doc("geocodes").set({ payload: geocodes });
+  console.log(geocodes);
+  if (geocodes) {
+    Object.values(geocodes).forEach(g => {
+      Object.keys(g).forEach(k => {
+        if (g[k] === undefined) console.log(k)
+      });
+    })
+    stateRef.doc("geocodes").set({ payload: geocodes });
+  }
 };
 
 export const fetchGeocodes = () => dispatch => {
@@ -1418,10 +1426,21 @@ export const saveStats = stats => dispatch => {
 };
 
 // This function looks through all the daily states from the states collection and creates an up-to-date picture of the job state
-export const analyseJobHistory = () => dispatch => {
+export const analyseJobHistory = () => {
   sendSlackMessage(`${auth.currentUser.displayName} ran analyseJobHistory`);
   // vars
-  const buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
+  const buckets = [
+    'jobs',
+    'asbestos',
+    'asbestosbulkid',
+    'asbestosclearance',
+    'asbestosbackground',
+    'workplace',
+    'meth',
+    'bio',
+    'stack',
+    'noise'
+  ];
   var jobMap = {};
   buckets.forEach((bucket) => {
     jobMap[bucket] = {};
@@ -1433,6 +1452,9 @@ export const analyseJobHistory = () => dispatch => {
   var completionMap = {};
   var creationMap = {};
 
+  var leadBuckets = {};
+  var allBuckets = [];
+
   // get all wfm daily states from firebase
   stateRef
     .doc("wfmstate")
@@ -1443,13 +1465,12 @@ export const analyseJobHistory = () => dispatch => {
       // Loop through each day of the saved states
         var state = doc.data()['state'];
         // Loop through current job map and check if any are missing from this state (e.g. they have been completed since the last state)
-        const buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
         if (state.length > 0) {
           buckets.forEach((bucket) => {
             if (jobMap[bucket] !== undefined) {
               Object.values(jobMap[bucket]).forEach((job) => {
-                console.log(job);
                 if (job.state !== 'Completed' && state.filter((stateJob) => stateJob.wfmID === job.wfmID).length === 0) {
+                  // console.log(job);
                   // Job or lead has been completed
                   jobMap[bucket][job.wfmID]['state'] = 'Completed';
                   jobMap[bucket][job.wfmID]['completionDate'] = doc.id;
@@ -1489,6 +1510,9 @@ export const analyseJobHistory = () => dispatch => {
             // Split job Maps into Workplace, Asbestos and Other to prevent firebase documents being too large
             var bucket = 'jobs';
             if (job.category.toLowerCase().includes('asbestos')) bucket = 'asbestos';
+            if (job.category === 'Asbestos - Bulk ID') bucket = 'asbestosbulkid';
+            if (job.category === 'Asbestos - Clearance') bucket = 'asbestosclearance';
+            if (job.category === 'Asbestos - Background') bucket = 'asbestosbackground';
             if (job.category.toLowerCase().includes('meth')) bucket = 'meth';
             if (job.category === 'Workplace') bucket = 'workplace';
             if (job.category === 'Biological') bucket = 'bio';
@@ -1513,6 +1537,17 @@ export const analyseJobHistory = () => dispatch => {
                   [doc.id]: job.state,
                 };
               }
+              if (job.geocode !== mappedJob.geocode) {
+                if ((job.geocode && job.geocode.address === "New Zealand") || (mappedJob.geocode && mappedJob.geocode.address === "New Zealand")) {
+                  if (mappedJob.geocode.address === "New Zealand" && job.geocode.address !== "New Zealand") {
+                    mappedJob.geocode = job.geocode;
+                    // console.log(mappedJob);
+                    console.log(jobMap[bucket][job.wfmID]);
+                  }
+                }
+              }
+              // Add to mapped jobs
+              // jobMap[bucket][job.wfmID] = mappedJob;
             } else {
               // Talley how many jobs in each category (not necessary)
               if (jobCategorys[job.category] !== undefined) {
@@ -1557,13 +1592,29 @@ export const analyseJobHistory = () => dispatch => {
             if (job.daysSinceLastAction !== undefined) delete job.daysSinceLastAction;
             if (job.urgentAction !== undefined) delete job.urgentAction;
             if (job.completedActivities !== undefined) delete job.completedActivities;
-
-            jobMap['leads'][job.wfmID] = job;
+            var bucket = 'leads' + job.wfmID.slice(-2);
+            if (jobCategorys['leads'] !== undefined) {
+              jobCategorys['leads'] = jobCategorys['leads'] + 1;
+            } else {
+              jobCategorys['leads'] = 1;
+            }
+            // Talley how many jobs in each category (not necessary)
+            if (jobCategorys[bucket] !== undefined) {
+              jobCategorys[bucket] = jobCategorys[bucket] + 1;
+              leadBuckets[bucket] = true;
+            } else {
+              jobCategorys[bucket] = 1;
+            }
+            if (jobMap[bucket] === undefined) jobMap[bucket] = {};
+            jobMap[bucket][job.wfmID] = job;
           }
         });
       });
-      var buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
-      buckets.forEach((bucket) => {
+      console.log(jobCategorys);
+      allBuckets = buckets.concat(Object.keys(leadBuckets));
+      // console.log(leadBuckets);
+      allBuckets.forEach((bucket) => {
+        // console.log(bucket);
         stateRef.doc("wfmstate").collection("current").doc(bucket).set(jobMap[bucket]);
       });
       stateRef.doc("wfmstate").collection("timeline").doc('completion').set(completionMap);
@@ -1601,7 +1652,9 @@ export const saveCurrentJobState = state => dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran saveCurrentJobState`);
   // Sort into buckets to prevent firestore rejecting objects that are too large
   var sortedState = {};
-  var buckets = ['leads','jobs','asbestos','workplace','meth','bio','stack','noise'];
+  const buckets = ['leads','jobs','asbestos','asbestosbulkid','asbestosclearance','asbestosbackground','workplace','meth','bio','stack','noise'];
+  var allBuckets = [];
+  var leadBuckets = {};
   buckets.forEach((bucket) => {
     sortedState[bucket] = {};
   });
@@ -1610,6 +1663,9 @@ export const saveCurrentJobState = state => dispatch => {
     if (job.isJob) {
       var bucket = 'jobs';
       if (job.category.toLowerCase().includes('asbestos')) bucket = 'asbestos';
+      if (job.category === 'Asbestos - Bulk ID') bucket = 'asbestosbulkid';
+      if (job.category === 'Asbestos - Clearance') bucket = 'asbestosclearance';
+      if (job.category === 'Asbestos - Background') bucket = 'asbestosbackground';
       if (job.category.toLowerCase().includes('meth')) bucket = 'meth';
       if (job.category === 'Workplace') bucket = 'workplace';
       if (job.category === 'Biological') bucket = 'bio';
@@ -1617,15 +1673,19 @@ export const saveCurrentJobState = state => dispatch => {
       if (job.category === 'Noise') bucket = 'noise';
       sortedState[bucket][job.wfmID] = job;
     } else {
-      sortedState['leads'][job.wfmID] = job;
+      var bucket = 'leads' + job.wfmID.slice(-2);
+      leadBuckets[bucket] = true;
+      if (sortedState[bucket] === undefined) sortedState[bucket] = {};
+      sortedState[bucket][job.wfmID] = job;
     }
   });
 
   console.log(sortedState);
+  allBuckets = buckets.concat(Object.keys(leadBuckets));
 
-  buckets.forEach((bucket) => {
+  allBuckets.forEach((bucket) => {
     // console.log(sortedState[bucket]);
-    console.log(Object.keys(sortedState[bucket]).length);
+    // console.log(Object.keys(sortedState[bucket]).length);
     stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket]);
   });
 };

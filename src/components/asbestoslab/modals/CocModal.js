@@ -606,7 +606,7 @@ class CocModal extends React.PureComponent {
                             let defaultSampleDate = this.state.defaultSampleDate;
                             let dateSelected = this.state.dateSelected;
 
-                            if (!dateSelected) {
+                            if (dateSelected === false) {
                               dateSelected = i;
                               defaultSampleDate = dateOf(date);
                             }

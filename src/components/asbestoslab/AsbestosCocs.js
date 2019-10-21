@@ -103,7 +103,8 @@ class AsbestosCocs extends React.Component {
   };
 
   UNSAFE_componentWillMount = () => {
-    if (this.props.clients.length === 0) this.props.fetchWFMClients();
+    console.log(this.props.clients);
+    console.log(this.props.clients.length === 0);
     this.props.fetchCocs();
     if (this.props.me && this.props.me.auth) {
       if (

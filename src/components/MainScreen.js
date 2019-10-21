@@ -80,7 +80,7 @@ import UpdateData from "./settings/UpdateData";
 import store from "../store";
 import { onSearchChange, onCatChange, sendSlackMessage, } from "../actions/local";
 
-import { fetchMe, resetLocal, copyStaff, fetchGeocodes, fetchStaff, fetchAssets, } from "../actions/local";
+import { fetchMe, resetLocal, copyStaff, fetchGeocodes, fetchStaff, fetchAssets, fetchWFMClients, analyseJobHistory, } from "../actions/local";
 import { resetModal, showModal } from "../actions/modal";
 import { resetDisplay } from "../actions/display";
 import { initConstants } from "../actions/const";
@@ -119,6 +119,7 @@ const {whyDidYouUpdate} = require('why-did-you-update');
 const mapStateToProps = state => {
   return {
     staff: state.local.staff,
+    clients: state.local.wfmClients,
     me: state.local.me,
     initialLoading: state.display.initialLoading,
     latestVersion: state.const.appVersion,
@@ -134,6 +135,7 @@ const mapDispatchToProps = dispatch => {
     resetModal: () => dispatch(resetModal()),
     resetDisplay: () => dispatch(resetDisplay()),
     copyStaff: (oldId, newId) => dispatch(copyStaff(oldId, newId)),
+    fetchWFMClients: () => dispatch(fetchWFMClients()),
     initConstants: () => dispatch(initConstants()),
     showModal: modal => dispatch(showModal(modal)),
     fetchStaff: () => dispatch(fetchStaff()),
@@ -142,7 +144,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const thisVersion = '1.2.8';
+const thisVersion = '1.2.10';
 
 class MainScreen extends React.PureComponent {
   // static whyDidYouRender = true;
@@ -164,6 +166,7 @@ class MainScreen extends React.PureComponent {
   }
 
   UNSAFE_componentWillMount() {
+    if (!this.props.clients || this.props.clients.length === 0) this.props.fetchWFMClients();
     sendSlackMessage(`${auth.currentUser.displayName} is triggering MainScreen componentWillMount`);
     if (this.props.me && this.props.me.uid === undefined) this.props.fetchMe();
     if (this.props.menuItems === undefined) this.props.initConstants();
@@ -175,6 +178,7 @@ class MainScreen extends React.PureComponent {
     // restructureWAAnalysisSamples();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
+    // analyseJobHistory();
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');
     setTimeout(() => this.setState({
       hidden: false,

@@ -123,23 +123,38 @@ class JobMap extends React.Component {
     };
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.wfmJobs !== nextProps.wfmJobs) return true;
+    if (this.props.wfmLeads !== nextProps.wfmLeads) return true;
+    if (this.props.filter !== nextProps.filter) return true;
+    // if (this.state.leads !== nextState.leads) return true;
+    if (this.state.m !== nextState.m) return true;
+    if (this.state.modal !== nextState.modal) return true;
+    if (this.state.jobModal !== nextState.jobModal) return true;
+    if (this.state.activeMarker !== nextState.activeMarker) return true;
+    if (this.state.showingInfoWindow !== nextState.showingInfoWindow) return true;
+    return false;
+  }
+
   UNSAFE_componentWillMount() {
     if (this.state.leads.length === 0) {
-      this.props.fetchWFMJobs();
-      this.props.fetchWFMLeads();
-      this.props.fetchWFMClients();
+      if (this.props.wfmJobs.length === 0) this.props.fetchWFMJobs();
+      if (this.props.wfmLeads.length === 0) this.props.fetchWFMLeads();
+      if (this.props.wfmClients.length === 0) this.props.fetchWFMClients();
       this.props.fetchCurrentJobState(false);
       if(this.props.geocodes === undefined) this.props.fetchGeocodes();
     }
   }
 
   componentWillUnmount() {
-    Object.keys(this.state.leads).forEach(lead => {
-      if (lead.wfmState) console.log(lead.wfmState);
-    });
-    console.log(this.state.leads.filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
+    // Object.keys(this.state.leads).forEach(lead => {
+    //   if (lead.wfmState) console.log(lead.wfmState);
+    // });
+    // console.log(this.state.leads);
+    // console.log(this.state.leads.filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
     this.props.saveWFMItems(this.state.leads.filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
     this.props.saveCurrentJobState(this.state.leads);
+    this.props.saveGeocodes(this.props.geocodes);
     // this.props.saveStats({
     //   staff: this.state.staffStats,
     //   clients: this.state.clientStats
@@ -407,41 +422,41 @@ class JobMap extends React.Component {
     if (add === "NULL") {
       add = this.checkAddress(clientAddress);
     }
-    //
-    // if (this.props.geocodes[add] != undefined) {
-    //   //console.log("Already there");
-    //   lead.geocode = this.props.geocodes[add];
-    //   this.state.leads = [...this.state.leads, lead];
-    // } else
 
-    if (this.state.geocodeCount < 100 && add !== "NULL") {
-      this.setState({
-        geocodeCount: this.state.geocodeCount + 1,
-      });
-
-      let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${
-        process.env.REACT_APP_GOOGLE_MAPS_KEY
-      }`;
-      // //console.log("Getting GEOCODE for " + add);
-      fetch(path)
-        .then(response => response.json())
-        .then(response => {
-          var gc = this.props.geocodes;
-          // if (response.status = "ZERO_RESULTS") {
-          //   lead.geocode = { address: "New Zealand" };
-          // } else {
-          if (response.results[0] === undefined) {
-            //console.log('undefined response');
-            //console.log(response);
-            lead.geocode = { address: "New Zealand" };
-          } else {
-            gc[add] = this.simplifiedGeocode(response.results[0]);
-            this.props.updateGeocodes(gc);
-            lead.geocode = gc[add];
-          }
-          this.addLeadToState(lead);
-          return lead;
+    if (this.props.geocodes[add] != undefined) {
+      // console.log("Already there");
+      lead.geocode = this.props.geocodes[add];
+      this.state.leads = [...this.state.leads, lead];
+    } else {
+      if (this.state.geocodeCount < 100 && add !== "NULL") {
+        this.setState({
+          geocodeCount: this.state.geocodeCount + 1,
         });
+
+        let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${
+          process.env.REACT_APP_GOOGLE_MAPS_KEY
+        }`;
+        // console.log("Getting GEOCODE for " + add);
+        fetch(path)
+          .then(response => response.json())
+          .then(response => {
+            var gc = this.props.geocodes;
+            // if (response.status = "ZERO_RESULTS") {
+            //   lead.geocode = { address: "New Zealand" };
+            // } else {
+            if (response.results[0] === undefined) {
+              // console.log('undefined response');
+              // console.log(response);
+              lead.geocode = { address: "New Zealand" };
+            } else {
+              gc[add] = this.simplifiedGeocode(response.results[0]);
+              this.props.updateGeocodes(gc);
+              lead.geocode = gc[add];
+            }
+            this.addLeadToState(lead);
+            return lead;
+          });
+      }
     }
   };
 
@@ -460,7 +475,10 @@ class JobMap extends React.Component {
     var geo = this.props.geocodes[encodeURI(address)];
 
     // ignore all addresses that just return the country
-    if (geo !== undefined && geo.address === "New Zealand") return "NULL";
+    if (geo !== undefined && geo.address === "New Zealand") {
+      // console.log(address);
+      return "NULL";
+    }
 
     // ignore all addresses with blackListed words
     var blacklist = [
@@ -623,8 +641,8 @@ class JobMap extends React.Component {
   collateLeadsData = () => {
     // //console.log(this.props.currentJobState);
     // //console.log('Jobs length');
-    console.log('Jobs: ' + this.props.wfmJobs.length);
-    console.log('Leads: ' + this.props.wfmLeads.length)
+    // console.log('Jobs: ' + this.props.wfmJobs.length);
+    // console.log('Leads: ' + this.props.wfmLeads.length)
     // //console.log(this.props.wfmJobs.length + this.props.wfmLeads.length);
     // var staffStats = { K2: this.state.statSheet };
     // var clientStats = {};
@@ -635,12 +653,14 @@ class JobMap extends React.Component {
     var completedJobs = Object.values(this.props.currentJobState).filter((job) => job.state === 'Completed');
     var currentState = {...this.props.currentJobState};
 
-    console.log(currentState);
+    // console.log(currentState);
 
     // Convert jobs into a 'lead' type object
     this.props.wfmJobs.forEach(job => {
       var today = moment().format('YYYY-MM-DD');
       var mappedJob = currentState[job.wfmID];
+      // console.log(job.wfmID);
+      // console.log(mappedJob);
       delete currentState[job.wfmID];
       if (mappedJob !== undefined) {
         // Add all mapped jobs and lead to an array and then set state
@@ -665,8 +685,9 @@ class JobMap extends React.Component {
         }
 
         // Check if address has changed
+        // if (mappedJob.name !== job.address || mappedJob.geocode.address === "New Zealand") {
         if (mappedJob.name !== job.address) {
-          // //console.log(mappedJob.name + '->' + job.address + ' is new, get new geocode');
+          console.log(mappedJob.name + '->' + job.address + ' is new, get new geocode');
           mappedJob.name = job.address;
           this.handleGeocode(
             job.address,
@@ -1058,9 +1079,9 @@ class JobMap extends React.Component {
 
   render() {
     const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState } = this.props;
-    console.log(wfmJobs);
-    console.log(wfmLeads);
-    console.log(currentJobState);
+    // console.log(wfmJobs);
+    // console.log(wfmLeads);
+    // console.log(currentJobState);
     if (
       wfmJobs.length > 0 &&
       wfmLeads.length > 0 &&
@@ -1282,7 +1303,7 @@ class JobMap extends React.Component {
                     <ListItem
                       key={m.wfmID}
                       dense
-                      className={classes.hoverItem}
+                      className={classes.hoverItemPoint}
                       style={{ color: this.getColor(m.category) }}
                       onClick={() => {
                         this.openJobModal(m);
@@ -1312,7 +1333,7 @@ class JobMap extends React.Component {
     var addresses = {};
 
     return (
-      <div style={{ marginTop: 80 }}>
+      <div className={classes.marginTopStandard}>
         <div style={{ marginBottom: 20 }}>
         {/*
           <Tabs

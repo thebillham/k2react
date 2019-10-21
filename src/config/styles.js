@@ -292,7 +292,15 @@ const styles = theme => ({
   hoverItem: {
       // backgroundColor: "#fff",
       "&:hover": {
-          backgroundColor: "#eee"
+          backgroundColor: theme.palette.app.hover
+      }
+  },
+
+  hoverItemPoint: {
+      // backgroundColor: "#fff",
+      "&:hover": {
+          backgroundColor: theme.palette.app.hover,
+          cursor: 'pointer',
       }
   },
 

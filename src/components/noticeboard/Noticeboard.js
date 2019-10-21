@@ -129,15 +129,21 @@ class Noticeboard extends React.PureComponent {
               notice.text,
               notice.author,
             ];
-          if (notice.category === 'has') search = [
-            notice.categorydesc,
+          if (notice.category === 'has') search = search.concat([
             notice.incidentdesc,
             notice.incidentno,
             notice.incidentstaff,
             notice.job,
-            notice.text,
-            notice.author,
-          ];
+          ]);
+          if (notice.comments) {
+            Object.values(notice.comments).forEach(comment => {
+              search = search.concat([
+                comment.text,
+                comment.author.name,
+              ]);
+            })
+          }
+          // console.log(search);
           let searchterm = this.props.search.toLowerCase().split(" ");
           let res = true;
           searchterm.forEach(term => {
