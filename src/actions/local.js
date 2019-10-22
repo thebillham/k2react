@@ -1542,7 +1542,7 @@ export const analyseJobHistory = () => {
                   if (mappedJob.geocode.address === "New Zealand" && job.geocode.address !== "New Zealand") {
                     mappedJob.geocode = job.geocode;
                     // console.log(mappedJob);
-                    console.log(jobMap[bucket][job.wfmID]);
+                    // console.log(jobMap[bucket][job.wfmID]);
                   }
                 }
               }
@@ -1639,7 +1639,7 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
         }
       }
     });
-    // //console.log(currentJobState);
+    // console.log(currentJobState);
     // //console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
     dispatch({
       type: GET_CURRENT_JOB_STATE,

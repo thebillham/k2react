@@ -86,6 +86,9 @@ class AsbestosSampleListItem extends React.Component {
       return true; // List has been opened
     }
     if (nextProps.expanded !== nextProps.job) return false; // List is not expanded (hidden)
+    nextProps.cocs[nextProps.job].sampleList && console.log(nextProps.cocs[nextProps.job].sampleList[0]);
+    console.log(nextProps.sample);
+    if (nextProps.cocs[nextProps.job].sampleList && nextProps.cocs[nextProps.job].sampleList[0] === nextProps.sample) return true;
     if (this.props.samples[this.props.job] === nextProps.samples[nextProps.job]) return false;
     if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
     if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
@@ -107,7 +110,7 @@ class AsbestosSampleListItem extends React.Component {
     let noResults = true;
     let acmLimit = job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01;
     let overLimit = sample.waTotals && (sample.waTotals.waOverLimit || sample.waTotals.concentration.acmFloat >= acmLimit) ? true : false;
-    // console.log(`Asbestos Sample List Item: ${job.jobNumber}-${sample.sampleNumber}`)
+    console.log(`Asbestos Sample List Item: ${job.jobNumber}-${sample.sampleNumber}`)
 
     return (
         <ListItem key={sample.uid} className={classes.hoverItem}>

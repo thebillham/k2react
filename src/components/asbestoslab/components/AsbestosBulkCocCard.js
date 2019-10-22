@@ -124,7 +124,8 @@ class AsbestosBulkCocCard extends React.Component {
         return true;
       }
     }
-    return false;
+    return true;
+    // return false;
   }
 
   getSamples = (expanded, cocUid, jobNumber) => {
@@ -142,7 +143,7 @@ class AsbestosBulkCocCard extends React.Component {
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
 
-    // console.log(`${job.jobNumber} Bulk COC Card rendering`);
+    console.log(`${job.jobNumber} Bulk COC Card rendering`);
     let filteredSamples = {};
     if (samples && samples[job.uid]) {
       Object.values(samples[job.uid]).filter(s => !s.deleted && s.cocUid === job.uid).forEach(s => {

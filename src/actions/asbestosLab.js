@@ -703,7 +703,7 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
     };
     addLog("asbestosLab", log, me, batch);
   }
-  //console.log(sample);
+  console.log(sample);
 
   if (resultChanged) {
     let log = {
@@ -716,14 +716,26 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
   }
 
   if (weightChanged) {
-    let log = {
-      type: "Analysis",
-      log: `New received weight for sample ${sample.sampleNumber} (${
-        sample.description
-      } ${sample.material}): ${sample.weightReceived}g`,
-      sample: sample.uid,
-      chainOfCustody: job.uid,
-    };
+    let log = {};
+    if (sample.weightReceived === "") {
+      log = {
+        type: "Analysis",
+        log: `Received weight removed for sample ${sample.sampleNumber} (${
+          sample.description
+        } ${sample.material})`,
+        sample: sample.uid,
+        chainOfCustody: job.uid,
+      };
+    } else {
+      log = {
+        type: "Analysis",
+        log: `New received weight for sample ${sample.sampleNumber} (${
+          sample.description
+        } ${sample.material}): ${sample.weightReceived}g`,
+        sample: sample.uid,
+        chainOfCustody: job.uid,
+      };
+    }
     addLog("asbestosLab", log, me, batch);
   }
 
@@ -780,6 +792,7 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
         sessionID: firebase.firestore.FieldValue.delete(),
         analysisTime: firebase.firestore.FieldValue.delete(),
         analyst: firebase.firestore.FieldValue.delete(),
+        weightReceived: sample.weightReceived ? sample.weightReceived : null,
       });
   }
 };
@@ -926,16 +939,16 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
         };
       }
     } else {
-      if (sample.analysisRecordedBy && sample.analysisRecordedBy.uid === meUid && !checkIssues) {
-        uid = sample.uid + 'SameUser';
-        issues[uid] = {
-          type: 'block',
-          description: `You cannot verify this sample as you recorded the result. You will need to get someone else to verify it.`,
-          no: 'OK',
-          sample,
-          uid,
-        };
-      }
+      // if (sample.analysisRecordedBy && sample.analysisRecordedBy.uid === meUid && !checkIssues) {
+      //   uid = sample.uid + 'SameUser';
+      //   issues[uid] = {
+      //     type: 'block',
+      //     description: `You cannot verify this sample as you recorded the result. You will need to get someone else to verify it.`,
+      //     no: 'OK',
+      //     sample,
+      //     uid,
+      //   };
+      // }
       // Check sample if is on hold
       if (sample.onHold) {
         uid = sample.uid + 'OnHold';
@@ -1761,7 +1774,6 @@ export const checkTestCertificateIssue = (samples, job, meUid) => {
   }
   return issues;
 }
-
 
 //
 // WA ANALYSIS/SAMPLE DETAILS

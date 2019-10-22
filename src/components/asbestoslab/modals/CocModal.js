@@ -206,6 +206,7 @@ class CocModal extends React.PureComponent {
       let numberOfSamples = Math.max(...sampleNumbers);
       let wfmSynced = doc.jobNumber && !modalProps.isNew;
       // console.log(doc.samples);
+      console.log(modalProps.error);
 
       return(
         <Dialog
@@ -494,7 +495,7 @@ class CocModal extends React.PureComponent {
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
                         <SuggestionField that={this} suggestions='genericLocationSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
-                          disabled={!wfmSynced}
+                          disabled={!wfmSynced || modalProps.error !== null}
                           addedSuggestions={this.state.recentSuggestionsGenericLocation}
                           onModify={(value) => {
                             this.setState({
@@ -514,7 +515,7 @@ class CocModal extends React.PureComponent {
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
                         <SuggestionField that={this} suggestions='specificLocationSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : ''}
-                          disabled={!wfmSynced}
+                          disabled={!wfmSynced || modalProps.error !== null}
                           onModify={(value) => {
                             this.setState({ modified: true, });
                             this.props.handleSampleChange(i, {specificLocation: value});
@@ -530,7 +531,7 @@ class CocModal extends React.PureComponent {
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                         <SuggestionField that={this} suggestions='descriptionSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
-                          disabled={!wfmSynced}
+                          disabled={!wfmSynced || modalProps.error !== null}
                           onModify={(value) => {
                             this.setState({ modified: true, });
                             this.props.handleSampleChange(i, {description: value});
@@ -539,7 +540,7 @@ class CocModal extends React.PureComponent {
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                         <SuggestionField that={this} suggestions='materialSuggestions'
                           defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].material ? doc.samples[i+1].material : ''}
-                          disabled={!wfmSynced}
+                          disabled={!wfmSynced || modalProps.error !== null}
                           onModify={(value) => {
                             let category = '';
                             if (doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category) category = doc.samples[i+1].category;
@@ -558,7 +559,7 @@ class CocModal extends React.PureComponent {
                           className={classes.selectTight}
                           value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].category ? {value: doc.samples[i+1].category, label: doc.samples[i+1].category} : {value: '', label: ''}}
                           options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
-                          isDisabled={!wfmSynced}
+                          isDisabled={!wfmSynced || modalProps.error !== null}
                           onChange={e => {
                             this.setState({ modified: true, });
                             this.props.handleSampleChange(i, {category: e.value});
@@ -571,7 +572,7 @@ class CocModal extends React.PureComponent {
                           className={classes.selectTight}
                           value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => ({value: e.uid, label: e.name})) : this.state.defaultSampledBy}
                           options={names.map(e => ({ value: e.uid, label: e.name }))}
-                          isDisabled={!wfmSynced}
+                          isDisabled={!wfmSynced || modalProps.error !== null}
                           onChange={e => {
                             let defaultSampledBy = this.state.defaultSampledBy;
                             let personnelSelected = this.state.personnelSelected;
@@ -600,7 +601,7 @@ class CocModal extends React.PureComponent {
                           value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].sampleDate ? doc.samples[i+1].sampleDate : this.state.defaultSampleDate}
                           autoOk
                           format="ddd, D MMMM YYYY"
-                          disabled={!wfmSynced}
+                          disabled={!wfmSynced || modalProps.error !== null}
                           clearable
                           onChange={date => {
                             let defaultSampleDate = this.state.defaultSampleDate;

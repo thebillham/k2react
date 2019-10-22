@@ -103,8 +103,8 @@ class AsbestosCocs extends React.Component {
   };
 
   UNSAFE_componentWillMount = () => {
-    console.log(this.props.clients);
-    console.log(this.props.clients.length === 0);
+    // console.log(this.props.clients);
+    // console.log(this.props.clients.length === 0);
     this.props.fetchCocs();
     if (this.props.me && this.props.me.auth) {
       if (
@@ -160,7 +160,7 @@ class AsbestosCocs extends React.Component {
       holidays: [],
     });
 
-    // console.log('Asbestos Cocs Re-Rendering');
+    console.log('Asbestos Cocs Re-Rendering');
 
     return (
       <div className={classes.marginTopStandard}>

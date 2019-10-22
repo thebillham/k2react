@@ -127,7 +127,7 @@ class JobMap extends React.Component {
     if (this.props.wfmJobs !== nextProps.wfmJobs) return true;
     if (this.props.wfmLeads !== nextProps.wfmLeads) return true;
     if (this.props.filter !== nextProps.filter) return true;
-    // if (this.state.leads !== nextState.leads) return true;
+    if (this.state.leads !== nextState.leads) return true;
     if (this.state.m !== nextState.m) return true;
     if (this.state.modal !== nextState.modal) return true;
     if (this.state.jobModal !== nextState.jobModal) return true;
@@ -416,6 +416,8 @@ class JobMap extends React.Component {
   };
 
   handleGeocode = (address, clientAddress, lead) => {
+    // console.log('Relying on lead to state.');
+    // return;
     lead.clientAddress = clientAddress;
     // Pick either name or clientAddress to use as the geolocation
     var add = this.checkAddress(address);
@@ -426,9 +428,10 @@ class JobMap extends React.Component {
     if (this.props.geocodes[add] != undefined) {
       // console.log("Already there");
       lead.geocode = this.props.geocodes[add];
-      this.state.leads = [...this.state.leads, lead];
+      this.addLeadToState(lead);
     } else {
       if (this.state.geocodeCount < 100 && add !== "NULL") {
+        // console.log('setting state');
         this.setState({
           geocodeCount: this.state.geocodeCount + 1,
         });
@@ -461,7 +464,7 @@ class JobMap extends React.Component {
   };
 
   addLeadToState = lead => {
-    // //console.log('Add lead');
+    // console.log('Add lead to state is working.');
     // //console.log(lead);
     this.setState({
       leads: [...this.state.leads, lead]
@@ -639,7 +642,7 @@ class JobMap extends React.Component {
 
   // Collate Jobs (need booking) and Leads into a set of data that can be displayed nicely
   collateLeadsData = () => {
-    // //console.log(this.props.currentJobState);
+    // console.log(this.props.currentJobState);
     // //console.log('Jobs length');
     // console.log('Jobs: ' + this.props.wfmJobs.length);
     // console.log('Leads: ' + this.props.wfmLeads.length)
@@ -1086,8 +1089,8 @@ class JobMap extends React.Component {
       wfmJobs.length > 0 &&
       wfmLeads.length > 0 &&
       wfmClients.length > 0 &&
-      // currentJobState !== undefined &&
-      // Object.values(currentJobState).length > 0 &&
+      currentJobState !== undefined &&
+      Object.values(currentJobState).length > 0 &&
       this.state.leads.length === 0
     )
       this.collateLeadsData();

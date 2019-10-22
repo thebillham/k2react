@@ -343,8 +343,15 @@ class MainScreen extends React.PureComponent {
           </ListItem>
 
         <Divider /></div>}
+        {menuItems.includes('Asbestos Lab') && <div><ListItem button component={Link} to="/asbestoslab">
+          <ListItemIcon>
+            <LabIcon className={classes.colorAccent} />
+          </ListItemIcon>
+          <ListItemText primary="Asbestos Lab" />
+        </ListItem>
 
-          {menuItems.includes('Asbestos Lab') && <div><ListItem button onClick={this.handleAsbestosClick}>
+        <Divider /></div>}
+          {/*{menuItems.includes('Asbestos Lab') && <div><ListItem button onClick={this.handleAsbestosClick}>
             <ListItemIcon>
               <LabIcon className={classes.colorAccent} />
             </ListItemIcon>
@@ -364,7 +371,7 @@ class MainScreen extends React.PureComponent {
                 </ListItemIcon>
                 <ListItemText primary="Jobs" />
               </ListItem>
-              {/*<ListItem
+              <ListItem
                 button
                 component={Link}
                 to="/asbestossamplelog"
@@ -396,9 +403,9 @@ class MainScreen extends React.PureComponent {
                   <StatsIcon className={classes.colorAccent} />
                 </ListItemIcon>
                 <ListItemText primary="Stats" />
-              </ListItem>*/}
+              </ListItem>
             </List>
-          </Collapse>
+          </Collapse>*/}
         {/*<Divider />
         <ListItem button component={Link} to="/inventory">
           <ListItemIcon>
@@ -406,7 +413,6 @@ class MainScreen extends React.PureComponent {
           </ListItemIcon>
           <ListItemText primary="Inventory" />
         </ListItem>*/}
-        <Divider /></div>}
 
           {menuItems.includes('Training') && <div><ListItem
             button
@@ -822,7 +828,7 @@ class MainScreen extends React.PureComponent {
                     </Typography>
                     <Route
                       exact
-                      path="/(|library|training|modules|noticeboard|inventory|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
+                      path="/(|library|training|modules|noticeboard|inventory|job|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
                       render={() => (
                         <div className={classes.search}>
                           <div className={classes.searchIcon}>
