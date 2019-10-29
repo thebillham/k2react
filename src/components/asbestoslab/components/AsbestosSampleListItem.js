@@ -59,6 +59,7 @@ const mapStateToProps = state => {
     noAsbestosResultReasons: state.const.noAsbestosResultReasons,
     asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced,
     modalType: state.modal.modalType,
+    expanded: state.display.asbestosLabExpanded,
   };
 };
 
@@ -87,7 +88,6 @@ class AsbestosSampleListItem extends React.Component {
     }
     if (nextProps.expanded !== nextProps.job) return false; // List is not expanded (hidden)
     nextProps.cocs[nextProps.job].sampleList && console.log(nextProps.cocs[nextProps.job].sampleList[0]);
-    console.log(nextProps.sample);
     if (nextProps.cocs[nextProps.job].sampleList && nextProps.cocs[nextProps.job].sampleList[0] === nextProps.sample) return true;
     if (this.props.samples[this.props.job] === nextProps.samples[nextProps.job]) return false;
     if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open

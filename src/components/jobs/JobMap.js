@@ -894,6 +894,7 @@ class JobMap extends React.Component {
   }
 
   applyFilters = m => {
+    // if (m.state === 'Completed') console.log(m);
     if (!this.props.filter.filterViewCompleted && m.state === 'Completed') return false;
     if (!this.props.filter.filterK2Jobs && m.client === 'K2 Environmental Ltd') return false;
 
@@ -944,8 +945,17 @@ class JobMap extends React.Component {
       this.getDaysSinceDate(m.creationDate) >= this.props.filter.createdInTheLast) return false;
 
     // Completion date
+    // if (m.state === 'Completed' && this.props.filter.filterCompletedInTheLast) {
+    //   console.log(m);
+    //   console.log(this.getDaysSinceDate(m.lastActionDate));
+    //   console.log(this.props.filter.completedInTheLast);
+    //   console.log(m.state !== 'Completed');
+    //   console.log(this.getDaysSinceDate(m.lastActionDate) >= this.props.filter.completedInTheLast);
+    //   console.log((this.props.filter.filterCompletedInTheLast &&
+    //     (m.state !== 'Completed' || this.getDaysSinceDate(m.lastActionDate) >= this.props.filter.completedInTheLast)));
+    // }
     if (this.props.filter.filterCompletedInTheLast &&
-      (m.state !== 'Completed' || this.getDaysSinceDate(m.completeDate) >= this.props.filter.completedInTheLast)) return false;
+      (m.state !== 'Completed' || this.getDaysSinceDate(m.lastActionDate) >= this.props.filter.completedInTheLast)) return false;
 
     // Days since last update
     if (this.props.filter.filterUpdatedInTheLast &&
@@ -1275,6 +1285,7 @@ class JobMap extends React.Component {
                 })
                 // .sort((a, b) => b.isJob - a.isJob)
                 .map(m => {
+                  console.log(m);
                   var stateStr = '';
                   if (m.isJob) {
                     var days = this.getDaysSinceDate(m.lastActionDate);

@@ -53,7 +53,6 @@ const mapDispatchToProps = dispatch => {
     fetchTrainingPaths: () => dispatch(fetchTrainingPaths(true)),
     fetchVehicles: () => dispatch(fetchVehicles(true)),
     hideModal: modal => dispatch(hideModal(modal)),
-    analyseJobHistory: () => dispatch(analyseJobHistory()),
   };
 };
 
@@ -105,7 +104,7 @@ class UpdateData extends React.Component {
         title: "Vehicles"
       },
       {
-        event: this.props.analyseJobHistory,
+        event: analyseJobHistory,
         title: "Job Map"
       },
     ];

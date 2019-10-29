@@ -471,29 +471,29 @@ export const holdSample = (sample, job, me) => {
   asbestosSamplesRef.doc(sample.uid).update({ onHold: sample.onHold ? false : true, });
 }
 
-export const receiveAll = (samples, job, sessionID, me) => {
-  //console.log(samples);
-  if (samples && Object.values(samples).length > 0) {
-    Object.values(samples).forEach(sample => {
-      if (sample.cocUid === job.uid) {
-        if (!sample.receivedByLab) receiveSample(sample, job, samples, sessionID, me);
-      }
-    });
-  }
-};
+// export const receiveAll = (samples, job, sessionID, me) => {
+//   //console.log(samples);
+//   if (samples && Object.values(samples).length > 0) {
+//     Object.values(samples).forEach(sample => {
+//       if (sample.cocUid === job.uid) {
+//         if (!sample.receivedByLab) receiveSample(sample, job, samples, sessionID, me);
+//       }
+//     });
+//   }
+// };
 
 export const receiveSample = (batch, sample, job, samples, sessionID, me, startDate, noLog) => {
   //console.log('Receiving sample');
   //console.log(sample);
   if (sample.receivedByLab && sample.verified) {
     removeResult(batch, sample, sessionID, me);
-    if (sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me, true);
+    if (sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me, startDate, true);
     verifySample(batch, sample, job, samples, sessionID, me, true);
   } else if (sample.receivedByLab && sample.result) {
     removeResult(batch, sample, sessionID, me);
-    if (sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me, true);
+    if (sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me, startDate, true);
   } else if (sample.receivedByLab && sample.analysisStarted) {
-    startAnalysis(batch, sample, job, samples, sessionID, me, true);
+    startAnalysis(batch, sample, job, samples, sessionID, me, startDate, true);
   }
   if (!noLog) {
     let log = {
@@ -572,18 +572,18 @@ export const receiveSamples = (samples) => {
   return issues;
 };
 
-export const startAnalysisAll = (samples, job, sessionID, me) => {
-  if (samples && Object.values(samples).length > 0) {
-    Object.values(samples).forEach(sample => {
-      if (sample.cocUid === job.uid) {
-        if (!sample.analysisStarted) {
-          if (!sample.receivedByLab) receiveSample(sample, job, samples, sessionID, me);
-          startAnalysis(sample, job, samples, sessionID, me);
-        }
-      }
-    });
-  }
-};
+// export const startAnalysisAll = (samples, job, sessionID, me) => {
+//   if (samples && Object.values(samples).length > 0) {
+//     Object.values(samples).forEach(sample => {
+//       if (sample.cocUid === job.uid) {
+//         if (!sample.analysisStarted) {
+//           if (!sample.receivedByLab) receiveSample(sample, job, samples, sessionID, me);
+//           startAnalysis(sample, job, samples, sessionID, me, new Date(), );
+//         }
+//       }
+//     });
+//   }
+// };
 
 export const startAnalysis = (batch, sample, job, samples, sessionID, me, startDate, noLog) => {
   if (!sample.receivedByLab && !sample.analysisStarted) receiveSample(batch, sample, job, samples, sessionID, me, startDate, true);
@@ -749,7 +749,7 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
   if (sample.weightReceived) notBlankAnalysis = true;
 
   if (notBlankAnalysis) {
-    if (!sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me, true);
+    if (!sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me, new Date(), true);
     if (resultChanged) {
       console.log('Result changed');
       batch.set(asbestosAnalysisRef.doc(`${sessionID}-${sample.uid}`),

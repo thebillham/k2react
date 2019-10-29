@@ -105,11 +105,13 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   shouldComponentUpdate(nextProps, nextState) {
+    // return true;
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
     if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
     if (this.props.modalType === ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS) return false; // Soil subsample modal is open
     // if (nextProps.doNotRender) return false;
+    console.log(nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job);
     if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
     if (this.props.expanded === this.props.job && nextProps.expanded !== this.props.job) {
       return true; // List has been collapsed
@@ -405,7 +407,6 @@ class AsbestosBulkCocCard extends React.Component {
                       key={sample.uid}
                       job={job.uid}
                       sample={sample.sampleNumber}
-                      expanded={this.state.expanded}
                     />);
                 })}
               </div>
