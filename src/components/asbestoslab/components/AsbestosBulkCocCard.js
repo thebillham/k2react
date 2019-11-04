@@ -105,13 +105,12 @@ class AsbestosBulkCocCard extends React.Component {
   };
 
   shouldComponentUpdate(nextProps, nextState) {
-    // return true;
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
     if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
-    if (this.props.modalType === ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS) return false; // Soil subsample modal is open
+    if (this.props.modalType === ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS) return false; // Soil subsample modal is open)
     // if (nextProps.doNotRender) return false;
-    console.log(nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job);
+    // console.log(nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job);
     if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
     if (this.props.expanded === this.props.job && nextProps.expanded !== this.props.job) {
       return true; // List has been collapsed
@@ -119,6 +118,11 @@ class AsbestosBulkCocCard extends React.Component {
     if (nextProps.expanded === nextProps.job && this.props.expanded !== this.props.job) {
       return true; // List has been opened
     }
+    if (nextProps.cocs[nextProps.job]) {
+      console.log(this.props.cocs[this.props.job]);
+      console.log(nextProps.cocs[nextProps.job]);
+    }
+    if (this.props.cocs[this.props.job] && nextProps.cocs[nextProps.job] && this.props.cocs[this.props.job].versionUpToDate !== nextProps.cocs[nextProps.job].versionUpToDate) return true;
     if (nextProps.samples[nextProps.job] && nextProps.cocs[nextProps.job] && nextProps.cocs[nextProps.job].sampleList) {
       // console.log(Object.keys(nextProps.samples[nextProps.job]).length);
       // console.log(nextProps.cocs[nextProps.job].sampleList.length);
@@ -155,7 +159,8 @@ class AsbestosBulkCocCard extends React.Component {
 
     let coc = JSON.stringify(printCocBulk(job, filteredSamples, this.props.me, this.props.staff));
     // console.log(coc);
-    getJobStatus(filteredSamples, job);
+    let jobStatus = getJobStatus(filteredSamples, job);
+    if (job.status && jobStatus === "No Samples") jobStatus = job.status;
     return (
       <ExpansionPanel
         expanded={this.props.expanded === job.uid}
@@ -172,7 +177,7 @@ class AsbestosBulkCocCard extends React.Component {
             {job.waAnalysis && <WAIcon color='action' className={classes.marginLeftSmall} />}
             {(job.priority === 1 || job.isClearance) && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
             {job.versionUpToDate && <VerifyIcon color='primary' className={classes.marginLeftSmall} />}
-            {job.status && <span className={classes.boldSmallText}>{job.status ? job.status : ''}</span>}
+            {jobStatus && <span className={classes.boldSmallText}>{jobStatus ? jobStatus : ''}</span>}
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>

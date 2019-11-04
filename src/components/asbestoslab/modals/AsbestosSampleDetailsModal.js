@@ -219,7 +219,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   {SampleTextyLine('Result Verified?', sample.verified ? 'Yes' : 'No')}
                   {sample.verifiedBy && SampleTextyLine('Result Verified By', sample.verifiedBy.name)}
                   {sample.layers && <div style={{ display: 'flex', flexDirection: 'row', }}>
-                    <div style={{ width: '60%'}}>{SampleTextyLine('Sample Detail Results', writeShorthandResult(collateLayeredResults(sample.layers)))}</div>
+                    <div style={{ width: '60%'}}>{SampleTextyLine('Cumulative Layer Results', writeShorthandResult(collateLayeredResults(sample.layers)))}</div>
                     <div style={{ width: '40%'}}>{(layersResult === 'yes' || layersResult === 'differentNonAsbestos') ? good : layersResult === 'no' ? bad : layersResult === 'none' ? '' : half}</div>
                   </div>}
                   {sample.waSoilAnalysis && <div style={{ display: 'flex', flexDirection: 'row', }}>

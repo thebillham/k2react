@@ -73,8 +73,8 @@ export default createMuiTheme({
       workInProgressText: 'black',
       workComplete: '#6ea7b3',
       workCompleteText: 'white',
-      readyForIssue: '#1F4A53',
-      readyForIssueText: 'white',
+      readyForIssue: '#9fefff',
+      readyForIssueText: 'black',
     },
     stagesGreen: {
       start: '#e7f1ee',

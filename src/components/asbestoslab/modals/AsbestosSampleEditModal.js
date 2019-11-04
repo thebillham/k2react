@@ -330,12 +330,13 @@ class AsbestosSampleEditModal extends React.Component {
     let batch = firestore.batch();
 
     await Object.values(this.state.samples).forEach(sample => {
-      if (sample.verified) verifySample(batch, sample,
-        this.props.cocs[this.props.modalProps.activeCoc],
-        this.props.samples,
-        this.props.sessionID,
-        this.props.me, null);
       if (originalSamples[sample.sampleNumber].result !== sample.result || originalSamples[sample.sampleNumber].weightReceived !== sample.weightReceived) {
+        if (sample.verified)
+          verifySample(batch, sample,
+            this.props.cocs[this.props.modalProps.activeCoc],
+            this.props.samples,
+            this.props.sessionID,
+            this.props.me, null);
         recordAnalysis(batch, this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc], this.props.samples, this.props.sessionID, this.props.me,
           sample.result !== originalSamples[sample.sampleNumber].result,
           sample.weightReceived !== originalSamples[sample.sampleNumber].weightReceived
@@ -599,6 +600,7 @@ class AsbestosSampleEditModal extends React.Component {
             </Grid>
             <Grid item xs={1} />
             <Grid item xs={6}>
+            {sample.material !== 'soil' && <div>
               <div className={classes.subHeading}>Sampling Method</div>
                 {SamplesRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
                   [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
@@ -620,6 +622,7 @@ class AsbestosSampleEditModal extends React.Component {
                     })}
                   />
                 </div>}
+              </div>}
               <div className={classes.subHeading}>Weights</div>
               <div className={classes.flexRow}>
                 <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'REQUIRED Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null, true)}</div>
@@ -634,18 +637,19 @@ class AsbestosSampleEditModal extends React.Component {
               {sampleMoisture && <div className={classes.informationBox}>
                 Moisture: {sampleMoisture}%
               </div>}
-
-              <div className={classes.subHeading}>Dimensions</div>
-              <div className={classes.flexRow}>
-                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'length', 'Length', null, false, 0, 'mm', null, true)}</div>
-                <span className={classes.timesSymbol}>X</span>
-                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'width', 'Width', null, false, 0, 'mm', null, true)}</div>
-                <span className={classes.timesSymbol}>X</span>
-                <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'depth', 'Depth/Thickness', null, false, 0, 'mm', null, true)}</div>
-                {sampleDimensions && <span className={classes.informationBox}>
-                  {sampleDimensions}
-                </span>}
-              </div>
+              {sample.material !== 'soil' && <div>
+                <div className={classes.subHeading}>Dimensions</div>
+                <div className={classes.flexRow}>
+                  <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'length', 'Length', null, false, 0, 'mm', null, true)}</div>
+                  <span className={classes.timesSymbol}>X</span>
+                  <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'width', 'Width', null, false, 0, 'mm', null, true)}</div>
+                  <span className={classes.timesSymbol}>X</span>
+                  <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'depth', 'Depth/Thickness', null, false, 0, 'mm', null, true)}</div>
+                  {sampleDimensions && <span className={classes.informationBox}>
+                    {sampleDimensions}
+                  </span>}
+                </div>
+              </div>}
 
               <div className={classes.subHeading}>Lab Notes</div>
               {SamplesTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 1, null, null)}
@@ -730,15 +734,11 @@ class AsbestosSampleEditModal extends React.Component {
                 {value: 'nonhomo', label: 'Non-homogenous', tooltip: 'Small, discrete amounts of asbestos distributed unevenly in a large body of non-asbestos material (e.g. dust, soil)'},
                 {value: 'soil', label: 'Soil'},{value: 'ore', label: 'Ore'}],
               )}
-
               {SamplesTickyBox(this, 'Asbestos Evident', sample, 'asbestosEvident',)}
-
               {traceAnalysisRequired(sample)}
-
             </Grid>
             <Grid item xs={1} />
             <Grid item xs={8}>
-              <div className={classes.marginTopStandard} />
               {SamplesTickyBoxGroup(this, sample, 'Sample Conditioning', 'sampleConditioning',
                 [{value: 'furnace', label: 'Furnace'},
                 {value: 'flame', label: 'Flame'},

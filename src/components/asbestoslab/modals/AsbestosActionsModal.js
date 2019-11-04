@@ -197,7 +197,6 @@ class AsbestosActionsModal extends React.Component {
         if (issue.action !== 'proceed' && issue.action !== 'cancel') issuesIncomplete = true;
         if (issue.action !== 'proceed') {
           if (this.props.modalProps.field === 'issue') {
-            console.log('Issue not proceed and is final issue');
             blockAll = true;
           } else sampleGates[issue.sample.sampleNumber] = true;
         }
@@ -209,28 +208,31 @@ class AsbestosActionsModal extends React.Component {
       if (!blockAll) {
         if (!issuesIncomplete) {
           // All issues are decided, continue with
-          if (this.props.modalProps.field === 'issue') issueTestCertificate(this.props.modalProps.job, this.state.samples, this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion)+1 : 1,
-            this.state.issues.versionChanges && this.state.issues.versionChanges.comment ? this.state.issues.versionChanges.comment : '', this.props.staff, this.props.me);
-          let batch = firestore.batch();
-          batch.update(cocsRef.doc(this.props.modalProps.job.uid), { versionUpToDate: false, mostRecentIssueSent: false, });
-          if (this.props.modalProps.field === 'verifySubsample') {
-            await this.state.subsamples.filter(sub => sub.now !== sub.original).forEach(sub => {
-              verifySubsample(batch, sub, this.props.modalProps.job, this.props.samples[this.props.modalProps.job.uid], this.props.sessionID, this.props.me);
-            });
-          } else await checks.filter(sample => sample.now !== sample.original && !sampleGates[sample.sampleNumber]).forEach(sample => {
-            if (this.props.modalProps.field === 'receivedByLab') receiveSample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-            else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
-            else if (this.props.modalProps.field === 'verified') {
-              if (sample.noAsbestosResultReason) {
-                verifySample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate, {noAsbestosResultReason: sample.noAsbestosResultReason});
-              } else {
-                verifySample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+          if (this.props.modalProps.field === 'issue') {
+            issueTestCertificate(this.props.modalProps.job, this.state.samples, this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion)+1 : 1,
+              this.state.issues.versionChanges && this.state.issues.versionChanges.comment ? this.state.issues.versionChanges.comment : '', this.props.staff, this.props.me);
+          } else {
+            let batch = firestore.batch();
+            batch.update(cocsRef.doc(this.props.modalProps.job.uid), { versionUpToDate: false, mostRecentIssueSent: false, });
+            if (this.props.modalProps.field === 'verifySubsample') {
+              await this.state.subsamples.filter(sub => sub.now !== sub.original).forEach(sub => {
+                verifySubsample(batch, sub, this.props.modalProps.job, this.props.samples[this.props.modalProps.job.uid], this.props.sessionID, this.props.me);
+              });
+            } else await checks.filter(sample => sample.now !== sample.original && !sampleGates[sample.sampleNumber]).forEach(sample => {
+              if (this.props.modalProps.field === 'receivedByLab') receiveSample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+              else if (this.props.modalProps.field === 'analysisStarted') startAnalysis(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+              else if (this.props.modalProps.field === 'verified') {
+                if (sample.noAsbestosResultReason) {
+                  verifySample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate, {noAsbestosResultReason: sample.noAsbestosResultReason});
+                } else {
+                  verifySample(batch, this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], this.props.modalProps.job, this.props.samples, this.props.sessionID, this.props.me, sample.startDate);
+                }
               }
-            }
-            // if (this.props.modalProps.field === 'issue') checkTestCertificateIssue();
-          });
-          batch.update(cocsRef.doc(this.props.modalProps.job.uid), { issues: issuesMap, });
-          batch.commit();
+              // if (this.props.modalProps.field === 'issue') checkTestCertificateIssue();
+            });
+            batch.update(cocsRef.doc(this.props.modalProps.job.uid), { issues: issuesMap, });
+            batch.commit();
+          }
           this.props.hideModal();
         }
       }

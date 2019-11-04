@@ -471,17 +471,6 @@ export const holdSample = (sample, job, me) => {
   asbestosSamplesRef.doc(sample.uid).update({ onHold: sample.onHold ? false : true, });
 }
 
-// export const receiveAll = (samples, job, sessionID, me) => {
-//   //console.log(samples);
-//   if (samples && Object.values(samples).length > 0) {
-//     Object.values(samples).forEach(sample => {
-//       if (sample.cocUid === job.uid) {
-//         if (!sample.receivedByLab) receiveSample(sample, job, samples, sessionID, me);
-//       }
-//     });
-//   }
-// };
-
 export const receiveSample = (batch, sample, job, samples, sessionID, me, startDate, noLog) => {
   //console.log('Receiving sample');
   //console.log(sample);
@@ -571,19 +560,6 @@ export const receiveSamples = (samples) => {
   });
   return issues;
 };
-
-// export const startAnalysisAll = (samples, job, sessionID, me) => {
-//   if (samples && Object.values(samples).length > 0) {
-//     Object.values(samples).forEach(sample => {
-//       if (sample.cocUid === job.uid) {
-//         if (!sample.analysisStarted) {
-//           if (!sample.receivedByLab) receiveSample(sample, job, samples, sessionID, me);
-//           startAnalysis(sample, job, samples, sessionID, me, new Date(), );
-//         }
-//       }
-//     });
-//   }
-// };
 
 export const startAnalysis = (batch, sample, job, samples, sessionID, me, startDate, noLog) => {
   if (!sample.receivedByLab && !sample.analysisStarted) receiveSample(batch, sample, job, samples, sessionID, me, startDate, true);
@@ -1762,7 +1738,7 @@ export const checkTestCertificateIssue = (samples, job, meUid) => {
 
   // If new version, prompt for version change
   if (job.currentVersion) {
-    let uid = 'versionChanges';
+    let uid = 'versionChanges' + job.currentVersion;
     issues[uid] = {
       type: 'confirm',
       description: 'Please provide a description of the changes made since the last version issued. This will appear on the test certifcate.',
@@ -1969,7 +1945,7 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
         logSample(job, sample, cocStats, version);
       }
     });
-  let samplesFiltered = Object.values(samples).filter(s => s.cocUid === job.uid && !s.onHold);
+  let samplesFiltered = Object.values(samples).filter(s => s.cocUid === job.uid && !s.onHold && s.verified);
   let report = {
     jobNumber: job.jobNumber,
     client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
@@ -2018,7 +1994,7 @@ export const issueTestCertificate = async (job, samples, version, changes, staff
       versionUpToDate: true,
       lastModified: new Date(),
     };
-  // //console.log(update)
+  console.log(update)
   // //console.log(job);
   batch.update(cocsRef.doc(job.uid), update);
   batch.commit();
