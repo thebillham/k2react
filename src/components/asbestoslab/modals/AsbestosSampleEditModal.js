@@ -235,7 +235,8 @@ class AsbestosSampleEditModal extends React.Component {
   };
 
   removeLayer = () => {
-    let num = this.state.sample.layerNum ? this.state.sample.layerNum : layerNum;
+    let sample = this.state.samples[this.state.activeSample];
+    let num = sample.layerNum ? sample.layerNum : layerNum;
     num -= 1;
     if (num < 1) num = 1;
     this.setState({
@@ -339,7 +340,9 @@ class AsbestosSampleEditModal extends React.Component {
             this.props.me, null);
         recordAnalysis(batch, this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc], this.props.samples, this.props.sessionID, this.props.me,
           sample.result !== originalSamples[sample.sampleNumber].result,
-          sample.weightReceived !== originalSamples[sample.sampleNumber].weightReceived
+          sample.weightReceived !== originalSamples[sample.sampleNumber].weightReceived,
+          originalSamples[sample.sampleNumber].result !== undefined,
+          originalSamples[sample.sampleNumber].weightReceived !== undefined,
         );
       }
     });

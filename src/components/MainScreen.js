@@ -828,7 +828,7 @@ class MainScreen extends React.PureComponent {
                     </Typography>
                     <Route
                       exact
-                      path="/(|library|training|modules|noticeboard|inventory|job|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
+                      path="/(|library|training|modules|noticeboard|inventory|jobs/map|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
                       render={() => (
                         <div className={classes.search}>
                           <div className={classes.searchIcon}>

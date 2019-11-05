@@ -70,7 +70,7 @@ export const fetchCocs = update => async dispatch => {
       .where("lastModified", ">", moment().subtract(1, 'days').toDate())
       // .orderBy("lastModified")
       // .orderBy("dueDate", "desc")
-      .get().then(querySnapshot => {
+      .onSnapshot(querySnapshot => {
         sendSlackMessage(`${auth.currentUser.displayName} ran fetchCocs (${querySnapshot.size} documents)`);
         var cocs = {};
         querySnapshot.forEach(doc => {
@@ -667,31 +667,40 @@ export const updateResultMap = (result, map) => {
   return updatedMap;
 }
 
-export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, me, resultChanged, weightChanged) => {
-  if (sample.sessionID !== sessionID && sample.result) {
-    let log = {
-      type: "Analysis",
-      log: `Previous analysis of sample ${sample.sampleNumber} (${
-        sample.description
-      } ${sample.material}) overridden.`,
-      sample: sample.uid,
-      chainOfCustody: job.uid,
-    };
-    addLog("asbestosLab", log, me, batch);
-  }
-  console.log(sample);
-
+export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, me, resultChanged, weightChanged, resultOverridden, weightOverridden) => {
+  console.log(sample.samplenumber);
   if (resultChanged) {
-    let log = {
-      type: "Analysis",
-      log: `New analysis for sample ${sample.sampleNumber} (${writeDescription(sample)}): ${writeResult(sample.result, sample.noAsbestosResultReason).replace('@~',' ')}`,
-      sample: sample.uid,
-      chainOfCustody: job.uid,
-    };
+    let log = {};
+    if (resultOverridden) {
+      if (writeShorthandResult(sample) === "NO RESULT") {
+        log = {
+          type: "Analysis",
+          log: `Result removed for sample ${sample.sampleNumber} (${
+            sample.description
+          } ${sample.material})`,
+          sample: sample.uid,
+          chainOfCustody: job.uid,
+        };
+      } else {
+        log = {
+          type: "Analysis",
+          log: `Previous analysis of sample ${sample.sampleNumber} (${
+            sample.description
+          } ${sample.material}) overridden.`,
+          sample: sample.uid,
+          chainOfCustody: job.uid,
+        };
+      }
+    } else {
+      let log = {
+        type: "Analysis",
+        log: `New analysis for sample ${sample.sampleNumber} (${writeDescription(sample)}): ${writeResult(sample.result, sample.noAsbestosResultReason).replace('@~',' ')}`,
+        sample: sample.uid,
+        chainOfCustody: job.uid,
+      };
+    }
     addLog("asbestosLab", log, me, batch);
-  }
-
-  if (weightChanged) {
+  } else if (weightChanged) {
     let log = {};
     if (sample.weightReceived === "") {
       log = {
@@ -699,6 +708,15 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
         log: `Received weight removed for sample ${sample.sampleNumber} (${
           sample.description
         } ${sample.material})`,
+        sample: sample.uid,
+        chainOfCustody: job.uid,
+      };
+    } else if (weightOverridden) {
+      log = {
+        type: "Analysis",
+        log: `Previous received weight for sample ${sample.sampleNumber} (${
+          sample.description
+        } ${sample.material}) overridden`,
         sample: sample.uid,
         chainOfCustody: job.uid,
       };
@@ -890,6 +908,7 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
   let uid = '';
   // Check for issues
   samples.forEach(sample => {
+    // console.log(sample);
     let uid = '';
     if (!sample.now && !checkIssues) {
       // if (sample.original === sample.now) {
@@ -903,7 +922,7 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
       //     uid,
       //   };
       // }
-      if (sample.original) {
+      if (sample.original !== sample.now) {
         uid = sample.uid + 'ResultNotVerified';
         issues[uid] = {
           type: 'check',
@@ -914,7 +933,7 @@ export const verifySamples = (samples, job, meUid, checkIssues) => {
           uid,
         };
       }
-    } else {
+    } else if (sample.now !== sample.original) {
       // if (sample.analysisRecordedBy && sample.analysisRecordedBy.uid === meUid && !checkIssues) {
       //   uid = sample.uid + 'SameUser';
       //   issues[uid] = {
@@ -2186,14 +2205,18 @@ export const writeReportDescription = (sample) => {
   // ~ at start means make italic, * means make bold
   let soilDetails = writeSoilDetails(sample.soilDetails);
   if (soilDetails !== 'No details.') lines.push("~" + soilDetails);
-  if (report['layers'] === true && sample.layers !== undefined && sample.layerNum !== undefined) {
+  if (report['layers'] === true && sample.layers !== undefined) {
+    let layerNum = 3;
+    if (sample.layerNum) layerNum = sample.layerNum;
     let layArray = [];
-    [...Array(sample.layerNum).keys()].forEach(num => {
+    [...Array(layerNum).keys()].forEach(num => {
       if (sample.layers[`layer${num+1}`] !== undefined) {
         let lay = sample.layers[`layer${num+1}`];
-        let layStr = 'L' + (num+1).toString() + ': ' + lay.description.charAt(0).toUpperCase() + lay.description.slice(1);
-        if (getBasicResult(lay) === 'positive') layStr = layStr + '†';
-        if (lay.description !== undefined) layArray.push(layStr);
+        if (lay.description !== undefined) {
+          let layStr = 'L' + (num+1).toString() + ': ' + lay.description.charAt(0).toUpperCase() + lay.description.slice(1);
+          if (getBasicResult(lay) === 'positive') layStr = layStr + '†';
+          layArray.push(layStr);
+        }
       }
     });
     if (layArray.length > 0) lines.push(layArray.join(' / '));

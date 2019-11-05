@@ -1652,7 +1652,7 @@ export const saveCurrentJobState = state => dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran saveCurrentJobState`);
   // Sort into buckets to prevent firestore rejecting objects that are too large
   var sortedState = {};
-  const buckets = ['leads','jobs','asbestos','asbestosbulkid','asbestosclearance','asbestosbackground','workplace','meth','bio','stack','noise'];
+  const buckets = ['jobs','asbestos','asbestosbulkid','asbestosclearance','asbestosbackground','workplace','meth','bio','stack','noise'];
   var allBuckets = [];
   var leadBuckets = {};
   buckets.forEach((bucket) => {
@@ -1684,8 +1684,8 @@ export const saveCurrentJobState = state => dispatch => {
   allBuckets = buckets.concat(Object.keys(leadBuckets));
 
   allBuckets.forEach((bucket) => {
-    // console.log(sortedState[bucket]);
-    // console.log(Object.keys(sortedState[bucket]).length);
+    console.log(sortedState[bucket]);
+    console.log(Object.keys(sortedState[bucket]).length);
     stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket]);
   });
 };

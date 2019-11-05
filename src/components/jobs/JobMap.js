@@ -54,6 +54,7 @@ const mapStateToProps = state => {
     geocodes: state.local.geocodes,
     wfmItems: state.local.wfmItems,
     wfmStats: state.local.wfmStats,
+    search: state.local.search,
     me: state.local.me,
     filter: state.display.filterMap,
   };
@@ -124,6 +125,7 @@ class JobMap extends React.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.search !== nextProps.search) return true;
     if (this.props.wfmJobs !== nextProps.wfmJobs) return true;
     if (this.props.wfmLeads !== nextProps.wfmLeads) return true;
     if (this.props.filter !== nextProps.filter) return true;
@@ -416,7 +418,7 @@ class JobMap extends React.Component {
   };
 
   handleGeocode = (address, clientAddress, lead) => {
-    // console.log('Relying on lead to state.');
+    console.log('Relying on lead to state.');
     // return;
     lead.clientAddress = clientAddress;
     // Pick either name or clientAddress to use as the geolocation
@@ -663,7 +665,7 @@ class JobMap extends React.Component {
       var today = moment().format('YYYY-MM-DD');
       var mappedJob = currentState[job.wfmID];
       // console.log(job.wfmID);
-      // console.log(mappedJob);
+      console.log(mappedJob);
       delete currentState[job.wfmID];
       if (mappedJob !== undefined) {
         // Add all mapped jobs and lead to an array and then set state
@@ -701,7 +703,7 @@ class JobMap extends React.Component {
           mappedJobs = [...mappedJobs, mappedJob];
         }
       } else {
-        // //console.log('Making new job: ' + job['wfmID']);
+        // console.log('Making new job: ' + job['wfmID']);
         var newJob = {};
         newJob.wfmID = job.wfmID;
         newJob.client = job.client;
@@ -965,7 +967,26 @@ class JobMap extends React.Component {
     if (this.props.filter.filterActionsOverdueBy &&
       (m.isJob || this.getNextActionOverdueBy(m.activities) < this.props.filter.actionsOverdueBy)) return false;
 
-    return true;
+    // Search filter
+    let res = true;
+
+    if (this.props.search) {
+      // console.log(this.props.search);
+      let terms = this.props.search.split(" ");
+      let search =
+        m.jobNumber + " " + m.client + " " + m.category + " " + m.owner + " " + m.name;
+      if (m.geocode) search = search + " " + m.geocode.address;
+      terms.forEach(term => {
+        if (!search.toLowerCase().includes(term.toLowerCase())) {
+          res = false;
+        } else {
+          // console.log(term);
+          // console.log(search);
+        }
+      });
+    }
+
+    return res;
   }
 
   switchCategory = cat => {
@@ -1121,6 +1142,9 @@ class JobMap extends React.Component {
     //   var sortedDays = [].concat(daysData).sort((a, b) => a.days > b.days);
     //   //console.log(daysData);
     // }
+    //
+    // console.log(wfmJobs);
+    // console.log(wfmLeads);
 
     const jobModal = (
       <Dialog
@@ -1273,7 +1297,7 @@ class JobMap extends React.Component {
             : "List View"}
         </DialogTitle>
         <DialogContent>
-              {this.state.leads
+          {this.state.leads
                 .filter(
                   m => this.applyModalFilters(m, false)
                 )
@@ -1285,7 +1309,7 @@ class JobMap extends React.Component {
                 })
                 // .sort((a, b) => b.isJob - a.isJob)
                 .map(m => {
-                  console.log(m);
+                  // console.log(m);
                   var stateStr = '';
                   if (m.isJob) {
                     var days = this.getDaysSinceDate(m.lastActionDate);

@@ -118,10 +118,7 @@ class AsbestosBulkCocCard extends React.Component {
     if (nextProps.expanded === nextProps.job && this.props.expanded !== this.props.job) {
       return true; // List has been opened
     }
-    if (nextProps.cocs[nextProps.job]) {
-      console.log(this.props.cocs[this.props.job]);
-      console.log(nextProps.cocs[nextProps.job]);
-    }
+
     if (this.props.cocs[this.props.job] && nextProps.cocs[nextProps.job] && this.props.cocs[this.props.job].versionUpToDate !== nextProps.cocs[nextProps.job].versionUpToDate) return true;
     if (nextProps.samples[nextProps.job] && nextProps.cocs[nextProps.job] && nextProps.cocs[nextProps.job].sampleList) {
       // console.log(Object.keys(nextProps.samples[nextProps.job]).length);
@@ -143,7 +140,7 @@ class AsbestosBulkCocCard extends React.Component {
   render() {
     const { samples, classes } = this.props;
     const job = this.props.cocs[this.props.job];
-    // console.log(job);
+    console.log(job);
     if (job === undefined || job.deleted) return null;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;

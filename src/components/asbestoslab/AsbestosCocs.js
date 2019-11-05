@@ -92,7 +92,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosCocs extends React.Component {
+class AsbestosCocs extends React.PureComponent {
   // static whyDidYouRender = true;
   state = {
     analyst: false,
@@ -121,15 +121,15 @@ class AsbestosCocs extends React.Component {
     if (!this.props.staff || Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
-    if (this.props.cocs && Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length) return true;
-    if (this.props.search !== nextProps.search) return true;
-    if (this.state !== nextState) return true;
-    if (this.props.modalType !== nextProps.modalType) return true;
-    if (this.props.modalTypeSecondary !== nextProps.modalTypeSecondary) return true;
-    else return false;
-    // return true;
-  }
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   if (this.props.cocs && Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length) return true;
+  //   if (this.props.search !== nextProps.search) return true;
+  //   if (this.state !== nextState) return true;
+  //   if (this.props.modalType !== nextProps.modalType) return true;
+  //   if (this.props.modalTypeSecondary !== nextProps.modalTypeSecondary) return true;
+  //   else return false;
+  //   // return true;
+  // }
 
   // shouldComponentUpdate(nextProps, nextState) {
   //   // return true;

@@ -197,7 +197,6 @@ class CocModal extends React.PureComponent {
     if (modalType === ASBESTOS_COC_EDIT) {
       const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
       // console.log(this.state.recentSuggestionsGenericLocation);
-      const disabled = !doc.uid && (!wfmSynced || !modalProps.error);
 
       if (!doc.dates) doc.dates = [];
       let dates = doc.dates.map(date => dateOf(date));
@@ -206,7 +205,8 @@ class CocModal extends React.PureComponent {
       if (doc && doc.samples) sampleNumbers = sampleNumbers.concat(Object.keys(doc.samples).map(key => parseInt(key)));
       let numberOfSamples = Math.max(...sampleNumbers);
       let wfmSynced = doc.jobNumber && !modalProps.isNew;
-      // console.log(doc.samples);
+
+      const blockInput = !doc.uid && (!wfmSynced || modalProps.error);
 
       return(
         <Dialog
@@ -229,7 +229,7 @@ class CocModal extends React.PureComponent {
                           <Input
                             id="jobNumber"
                             defaultValue={doc && doc.jobNumber}
-                            disabled={disabled}
+                            disabled={!blockInput}
                             onChange={e => {
                               // this.setState({ modified: true, });
                               this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'').toUpperCase()})}
@@ -436,7 +436,7 @@ class CocModal extends React.PureComponent {
                 </div>
 
                 {Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
-                  let disabled = doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
+                  let disabled = blockInput || doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
                   return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
                     <div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
                       <div className={classes.spacerSmall} />

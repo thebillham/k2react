@@ -208,9 +208,12 @@ class AsbestosActionsModal extends React.Component {
       if (!blockAll) {
         if (!issuesIncomplete) {
           // All issues are decided, continue with
+          console.log(this.state.issues);
           if (this.props.modalProps.field === 'issue') {
             issueTestCertificate(this.props.modalProps.job, this.state.samples, this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion)+1 : 1,
-              this.state.issues.versionChanges && this.state.issues.versionChanges.comment ? this.state.issues.versionChanges.comment : '', this.props.staff, this.props.me);
+              this.state.issues[`versionChanges${this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion) : 1}`] &&
+              this.state.issues[`versionChanges${this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion) : 1}`].comment ?
+              this.state.issues[`versionChanges${this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion) : 1}`].comment : '', this.props.staff, this.props.me);
           } else {
             let batch = firestore.batch();
             batch.update(cocsRef.doc(this.props.modalProps.job.uid), { versionUpToDate: false, mostRecentIssueSent: false, });
@@ -237,6 +240,7 @@ class AsbestosActionsModal extends React.Component {
         }
       }
     } else {
+      console.log(this.props.modalProps);
       let checkMap = {};
       let checks = Object.values(this.state.samples).map(sample => ({...this.props.samples[this.props.modalProps.job.uid][sample.sampleNumber], ...sample}));
 

@@ -260,6 +260,11 @@ class AsbestosSampleWASummary extends React.Component {
                       [that.state.activeSample]: {
                         ...that.state.samples[that.state.activeSample],
                         waAnalysisComplete: e.target.checked,
+                        waAnalysisCompletedBy: {
+                          name: this.props.me.name,
+                          uid: this.props.me.uid,
+                        },
+                        waAnalysisCompleteDate: new Date(),
                       }
                     }
                   });
