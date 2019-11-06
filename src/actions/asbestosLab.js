@@ -11,6 +11,7 @@ import {
   SET_ANALYSIS_MODE,
   SET_ANALYST,
   SET_ANALYSIS_SESSION_ID,
+  SET_VIEW_SAMPLE_DETAIL,
 } from "../constants/action-types";
 import { DOWNLOAD_LAB_CERTIFICATE } from "../constants/modal-types";
 import { styles } from "../config/styles";
@@ -226,12 +227,38 @@ export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
     });
 };
 
-export const fetchSampleLog = (update) => async dispatch => {
-  if (update) {
-    let startDate = moment().subtract(20, 'days').toDate();
+export const resetSampleView = () => async dispatch => {
+  dispatch({
+    type: SET_VIEW_SAMPLE_DETAIL,
+    payload: null,
+  });
+}
+
+export const fetchSampleView = (cocUid, sampleUid, jobNumber) => async dispatch => {
+  asbestosSamplesRef.doc(sampleUid).get().then(sample => {
+    if (sample.exists) {
+      cocsRef.doc(cocUid).get().then(coc => {
+        if (coc.exists) {
+          dispatch({
+            type: SET_VIEW_SAMPLE_DETAIL,
+            payload: {
+              coc: coc.data(),
+              sample: sample.data(),
+            },
+          });
+        }
+      });
+    }
+  });
+}
+
+export const fetchSampleLog = (limit) => async dispatch => {
+  if (true) {
+    let startDate = moment().subtract(limit, 'days').toDate();
     asbestosSampleLogRef
-      .where("reportDate", ">", startDate)
-      .orderBy("reportDate")
+      .where("cocUid", "==", "AS190906_PORT OTAGO_1568328045951")
+      .where("issueDate", ">", startDate)
+      .orderBy("issueDate", "desc")
       .get().then(logSnapshot => {
         let logs = {};
           sendSlackMessage(`${auth.currentUser.displayName} ran fetchSampleLog (${logSnapshot.size} documents)`);
@@ -409,6 +436,7 @@ export const logSample = (coc, sample, cocStats, version) => {
     cocUid: coc.uid ? coc.uid : null,
     cocType: coc.type ? coc.type : null,
     priority: coc.priority ? coc.priority: 0,
+    version: version,
 
     totalSamples: cocStats.totalSamples ? cocStats.totalSamples : 0,
     maxTurnaroundTime: cocStats.maxTurnaroundTime ? cocStats.maxTurnaroundTime : 0,
@@ -422,6 +450,11 @@ export const logSample = (coc, sample, cocStats, version) => {
     description: sample.description ? sample.description : null,
     material: sample.material ? sample.material : null,
     category: sample.category ? sample.category : 'Other',
+
+    weightReceived: sample.weightReceived ? sample.weightReceived : null,
+    weightSubsample: sample.weightSubsample ? sample.weightSubsample : null,
+    weightDry: sample.weightDry ? sample.weightDry : null,
+    weightAshed: sample.weightAshed ? sample.weightAshed : null,
 
     sampledBy: sample.sampledBy ? sample.sampledBy: null,
     sampleDate: sample.sampleDate ? sample.sampleDate : null,
@@ -446,6 +479,13 @@ export const logSample = (coc, sample, cocStats, version) => {
     analysisTime: analysisTime,
     analysisType: sample.analysisType ? sample.analysisType : 'normal',
   };
+
+  if (sample.waTotals) {
+    log = {
+      ...log,
+      waTotals: sample.waTotals,
+    }
+  }
   asbestosSampleLogRef.add(log);
 }
 
@@ -2860,8 +2900,8 @@ export const getSampleStatus = sample => {
       else if (sample.analysisDate) status = 'Waiting on Verification';
       else if (sample.analysisStarted) status = 'Analysis Started';
       else if (sample.receivedByLab) status = 'Received By Lab';
+    if (sample.onHold) status = status + " (ON HOLD)";
   }
-  if (sample.onHold) status = status + " (ON HOLD)";
   return status;
 };
 

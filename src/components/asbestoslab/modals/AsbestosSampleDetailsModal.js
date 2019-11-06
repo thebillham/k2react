@@ -21,7 +21,7 @@ import Good from "@material-ui/icons/ThumbUp";
 import Half from "@material-ui/icons/ThumbsUpDown";
 import Bad from "@material-ui/icons/ThumbDown";
 import AsbestosSampleWASummary from "../components/AsbestosSampleWASummary";
-import { hideModal, handleModalChange } from "../../../actions/modal";
+import { hideModal, hideModalSecondary, handleModalChange } from "../../../actions/modal";
 import { dateOf, milliToDHM } from "../../../actions/local";
 import moment from "moment";
 import momentbusinesstime from "moment-business-time";
@@ -40,6 +40,7 @@ import {
   writeSampleMoisture,
   writePersonnelQualFull,
   getSampleStatus,
+  resetSampleView,
 } from "../../../actions/asbestosLab";
 import {
   asbestosSamplesRef
@@ -50,6 +51,9 @@ const mapStateToProps = state => {
   return {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
+    modalTypeSecondary: state.modal.modalTypeSecondary,
+    modalPropsSecondary: state.modal.modalPropsSecondary,
+    sampleView: state.asbestosLab.sampleView,
     samples: state.asbestosLab.samples,
     me: state.local.me,
     staff: state.local.staff,
@@ -60,7 +64,9 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     hideModal: () => dispatch(hideModal()),
+    hideModalSecondary: () => dispatch(hideModalSecondary()),
     handleModalChange: (target) => dispatch(handleModalChange(target)),
+    resetSampleView: () => dispatch(resetSampleView()),
   };
 };
 
@@ -118,10 +124,15 @@ class AsbestosSampleDetailsModal extends React.Component {
   }
 
   render() {
-    const { classes, modalProps, modalType } = this.props;
-    if (modalType === ASBESTOS_SAMPLE_DETAILS) {
-      let sample = modalProps.doc;
-      let job = modalProps.job;
+    const { classes, modalProps, modalType, modalTypeSecondary, modalPropsSecondary, } = this.props;
+    if (modalType === ASBESTOS_SAMPLE_DETAILS || modalTypeSecondary === ASBESTOS_SAMPLE_DETAILS) {
+      let sample = null;
+      let job = null;
+      if (!modalPropsSecondary || modalPropsSecondary.doc !== false) sample = modalProps.doc;
+        else if (this.props.sampleView) sample = this.props.sampleView.sample;
+      // let sample = modalProps.doc;
+      if (!modalPropsSecondary || modalPropsSecondary.job !== false) job = modalProps.job;
+        else if (this.props.sampleView) job = this.props.sampleView.coc;
 
       let dates = job && job.dates ? job.dates.map(date => {
         return moment(dateOf(date)).format('D MMMM YYYY');
@@ -153,7 +164,7 @@ class AsbestosSampleDetailsModal extends React.Component {
 
       let endTime = new Date();
       if (sample && sample.verifyDate) endTime = dateOf(sample.verifyDate);
-      console.log(endTime);
+      // console.log(endTime);
       let timeTotal = sample && sample.receivedDate ? moment(endTime).diff(moment(dateOf(sample.receivedDate))) : null;
       let timeTotalBusiness = sample && sample.receivedDate ? moment(endTime).workingDiff(moment(dateOf(sample.receivedDate))) : null;
       let timeAdmin = sample && sample.analysisDate ? moment(endTime).diff(moment(dateOf(sample.analysisDate))) : null;
@@ -171,8 +182,8 @@ class AsbestosSampleDetailsModal extends React.Component {
       let colors = getSampleColors(sample, classes);
       let layersResult = null;
       let soilResult = null;
-      if (sample.layers) layersResult = compareAsbestosResult({result: collateLayeredResults(sample.layers)}, sample);
-      if (sample.waSoilAnalysis) soilResult = compareAsbestosResult({result: collateLayeredResults(sample.waSoilAnalysis)}, sample);
+      if (sample && sample.layers) layersResult = compareAsbestosResult({result: collateLayeredResults(sample.layers)}, sample);
+      if (sample && sample.waSoilAnalysis) soilResult = compareAsbestosResult({result: collateLayeredResults(sample.waSoilAnalysis)}, sample);
 
       const good = (<Good style={{ color: 'green', fontSize: 14, }}/>);
       const half = (<Bad style={{ color: 'orange', fontSize: 14, }}/>);
@@ -180,19 +191,23 @@ class AsbestosSampleDetailsModal extends React.Component {
 
       let sampleMoisture = null;
       if (sample) sampleMoisture = writeSampleMoisture(sample, true);
-      let samples = Object.values(this.props.samples[job.uid]).filter(s => s.cocUid === job.uid);
+      let samples = [];
+      if (!modalPropsSecondary || modalPropsSecondary.noNext === undefined) samples = Object.values(this.props.samples[job.uid]).filter(s => s.cocUid === job.uid);
 
       return (
         <div>
-        {job && sample && modalType === ASBESTOS_SAMPLE_DETAILS &&
+        {job && sample && (modalType === ASBESTOS_SAMPLE_DETAILS || modalTypeSecondary === ASBESTOS_SAMPLE_DETAILS) &&
         <Dialog
-          open={modalType === ASBESTOS_SAMPLE_DETAILS}
-          onClose={this.props.hideModal}
+          open={modalType === ASBESTOS_SAMPLE_DETAILS || modalTypeSecondary === ASBESTOS_SAMPLE_DETAILS}
+          onClose={() => {
+            if (modalType === ASBESTOS_SAMPLE_DETAILS) this.props.hideModal();
+              else this.props.hideModalSecondary();
+          }}
           maxWidth="lg"
           fullWidth={true}
         >
           <DialogTitle>{`Analysis Details for Sample ${sample.jobNumber}-${sample.sampleNumber}`}</DialogTitle>
-          {modalType === ASBESTOS_SAMPLE_DETAILS && <DialogContent>
+          {(modalType === ASBESTOS_SAMPLE_DETAILS || modalTypeSecondary === ASBESTOS_SAMPLE_DETAILS) && <DialogContent>
             <Grid container alignItems='flex-start' justify='flex-end'>
               <Grid item xs={6}>
                 <div className={classes.informationBox}>
@@ -327,9 +342,16 @@ class AsbestosSampleDetailsModal extends React.Component {
             </div>}
           </DialogContent>}
           <DialogActions>
-            <Button onClick={() => this.previousSample(samples)} color="inherit" disabled={samples[0].uid == sample.uid}>Previous</Button>
-            <Button onClick={() => this.nextSample(samples)} color="secondary" disabled={samples[samples.length - 1].uid == sample.uid}>Next</Button>
-            <Button onClick={this.props.hideModal} color="primary">OK</Button>
+            {(!modalPropsSecondary || modalPropsSecondary.noNext === undefined) &&
+              <span><Button onClick={() => this.previousSample(samples)} color="inherit" disabled={samples[0].uid == sample.uid}>Previous</Button>
+              <Button onClick={() => this.nextSample(samples)} color="secondary" disabled={samples[samples.length - 1].uid == sample.uid}>Next</Button></span>}
+            <Button onClick={() => {
+              if (modalType === ASBESTOS_SAMPLE_DETAILS) this.props.hideModal();
+                else {
+                  this.props.resetSampleView();
+                  this.props.hideModalSecondary();
+                }
+              }} color="primary">OK</Button>
           </DialogActions>
         </Dialog>}
         </div>

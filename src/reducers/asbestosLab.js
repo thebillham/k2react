@@ -11,6 +11,7 @@ import {
   SET_ANALYST,
   SET_ANALYSIS_SESSION_ID,
   RESET_ASBESTOS_LAB,
+  SET_VIEW_SAMPLE_DETAIL
 } from "../constants/action-types";
 
 import { stateRef } from "../config/firebase";
@@ -24,6 +25,7 @@ const asbestosLabInit = {
     cocs: {},
     samples: {},
     sampleLog: [],
+    sampleView: null,
     sessionID: '',
 };
 
@@ -73,13 +75,24 @@ export default function asbestosLabReducer(state = asbestosLabInit, action) {
     case GET_SAMPLES:
       return {
         ...state,
-        samples: { ...state.samples, [action.cocUid]: action.payload }
+        samples: {
+          ...state.samples,
+          [action.cocUid]: {
+            ...state.samples[action.cocUid],
+            ...action.payload,
+          },
+        }
       };
     case GET_SAMPLE_LOG:
       if (action.update) stateRef.doc("asbestosSampleLog").set(action.payload);
       return {
         ...state,
         sampleLog: action.payload
+      };
+    case SET_VIEW_SAMPLE_DETAIL:
+      return {
+        ...state,
+        sampleView: action.payload
       };
     case RESET_ASBESTOS_LAB:
       return asbestosLabInit;

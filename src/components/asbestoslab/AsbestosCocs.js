@@ -21,6 +21,8 @@ import {
   UPDATE_CERTIFICATE_VERSION,
   ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS,
   ASBESTOS_SAMPLE_LOG,
+  ASBESTOS_LAB_STATS,
+  ASBESTOS_LAB_MANAGER,
   WA_ANALYSIS,
   ASBESTOS_SAMPLE_EDIT,
   DOWNLOAD_LAB_CERTIFICATE,
@@ -30,6 +32,7 @@ import {
   CONFIRM_RESULT,
   ASBESTOS_SAMPLE_DETAILS,
   ASBESTOS_ACTIONS,
+  ASBESTOS_LOGGED_SAMPLES,
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import CocModal from "./modals/CocModal";
@@ -43,6 +46,7 @@ import AsbestosSampleCocEditModal from "./modals/AsbestosSampleCocEditModal";
 import ConfirmResultModal from "./modals/ConfirmResultModal";
 import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
+import LoggedSamplesModal from "./modals/LoggedSamplesModal";
 
 import AsbestosBulkCocCard from "./components/AsbestosBulkCocCard";
 
@@ -92,7 +96,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosCocs extends React.PureComponent {
+class AsbestosCocs extends React.Component {
   // static whyDidYouRender = true;
   state = {
     analyst: false,
@@ -121,15 +125,15 @@ class AsbestosCocs extends React.PureComponent {
     if (!this.props.staff || Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
   };
 
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   if (this.props.cocs && Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length) return true;
-  //   if (this.props.search !== nextProps.search) return true;
-  //   if (this.state !== nextState) return true;
-  //   if (this.props.modalType !== nextProps.modalType) return true;
-  //   if (this.props.modalTypeSecondary !== nextProps.modalTypeSecondary) return true;
-  //   else return false;
-  //   // return true;
-  // }
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.cocs && Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length) return true;
+    if (this.props.search !== nextProps.search) return true;
+    if (this.state !== nextState) return true;
+    if (this.props.modalType !== nextProps.modalType) return true;
+    if (this.props.modalTypeSecondary !== nextProps.modalTypeSecondary) return true;
+    else return false;
+    // return true;
+  }
 
   // shouldComponentUpdate(nextProps, nextState) {
   //   // return true;
@@ -171,26 +175,74 @@ class AsbestosCocs extends React.PureComponent {
         { modalType === DOWNLOAD_LAB_CERTIFICATE && <DownloadLabCertificateModal /> }
         { modalType === COC_LOG && <CocLogModal /> }
         { modalType === CONFIRM_RESULT && <ConfirmResultModal /> }
-        { modalType === ASBESTOS_SAMPLE_DETAILS && <AsbestosSampleDetailsModal /> }
+        { (modalType === ASBESTOS_SAMPLE_DETAILS || modalTypeSecondary === ASBESTOS_SAMPLE_DETAILS) && <AsbestosSampleDetailsModal /> }
         { modalType === ASBESTOS_ACTIONS && <AsbestosActionsModal /> }
         { modalTypeSecondary === SOIL_DETAILS && <SoilDetailsModal /> }
         { modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && <AsbestosSampleCocEditModal /> }
-        <Button
-          variant="outlined"
-          className={classes.marginBottomSmall}
-          onClick={() => {
-            this.props.showModal({
-              modalType: ASBESTOS_COC_EDIT,
-              modalProps: {
-                title: "Add New Chain of Custody",
-                doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, },
-                isNew: true,
-              }
-            });
-          }}
-        >
-          New Chain of Custody
-        </Button>
+        { modalType === ASBESTOS_LOGGED_SAMPLES && <LoggedSamplesModal />}
+        <span>
+          <Button
+            variant="outlined"
+            className={classes.marginBottomSmall}
+            onClick={() => {
+              this.props.showModal({
+                modalType: ASBESTOS_COC_EDIT,
+                modalProps: {
+                  title: "Add New Chain of Custody",
+                  doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, },
+                  isNew: true,
+                }
+              });
+            }}
+          >
+            New Chain of Custody
+          </Button>
+          <Button
+            variant="outlined"
+            className={classes.marginLeftBottomSmall}
+            onClick={() => {
+              this.props.showModal({
+                modalType: ASBESTOS_LOGGED_SAMPLES,
+                modalProps: {
+                }
+              });
+            }}
+          >
+            Sample Log
+          </Button>
+          <Button
+            variant="outlined"
+            className={classes.marginLeftBottomSmall}
+            onClick={() => {
+              this.props.showModal({
+                modalType: ASBESTOS_LAB_STATS,
+                modalProps: {
+                  title: "Add New Chain of Custody",
+                  doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, },
+                  isNew: true,
+                }
+              });
+            }}
+          >
+            Lab Stats
+          </Button>
+          <Button
+            variant="outlined"
+            className={classes.marginLeftBottomSmall}
+            onClick={() => {
+              this.props.showModal({
+                modalType: ASBESTOS_LAB_MANAGER,
+                modalProps: {
+                  title: "Add New Chain of Custody",
+                  doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, },
+                  isNew: true,
+                }
+              });
+            }}
+          >
+            Lab Manager
+          </Button>
+        </span>
         <div className={classes.flexRow}>
           <div className={classes.searchBoxRoot}>
             <InputLabel className={classes.marginLeftBottomSmall}>Search by Job Number</InputLabel>

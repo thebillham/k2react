@@ -67,7 +67,9 @@ class AsbestosSampleEditLayerRow extends React.Component {
             </div>
             <div className={classes.columnMedLarge}>
               <SuggestionField that={that} suggestions='materialSuggestions'
-                defaultValue={layer.description}
+                value={layer.description}
+                defaultValue=''
+                controlled={true}
                 onModify={(value) => {
                     this.setLayerVar('description', num, value, that);
                   }}

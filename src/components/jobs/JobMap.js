@@ -1419,14 +1419,13 @@ class JobMap extends React.Component {
 
             <ExpansionPanel>
               <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                Filter View
+                FILTER VIEW
               </ExpansionPanelSummary>
               <ExpansionPanelDetails>
                 <div>
                   <Grid container spacing={1}>
                     <Grid item>
                       <Button
-                        style={{ fontSize: 12 }}
                         variant="outlined"
                         color="default"
                         onClick={this.resetFilter}
@@ -1441,7 +1440,6 @@ class JobMap extends React.Component {
                       return (
                         <Grid item key={chip}>
                           <Button
-                            style={{ fontSize: 12 }}
                             variant="outlined"
                             color={
                               this.props.filter.filterJobLead === chip ? "secondary" : "default"
@@ -1503,7 +1501,6 @@ class JobMap extends React.Component {
                       return (
                         <Grid item key={chip}>
                           <Button
-                            style={{ fontSize: 12 }}
                             variant="outlined"
                             color={
                               this.props.filter.filterState === chip ? "secondary" : "default"
@@ -1530,7 +1527,7 @@ class JobMap extends React.Component {
                       return (
                         <Grid item key={chip}>
                           <Button
-                            style={{ fontSize: 12, color: color }}
+                            style={{ color: color }}
                             variant="outlined"
                             color={
                               this.props.filter.filterCategory === chip
@@ -1546,7 +1543,7 @@ class JobMap extends React.Component {
                     })}
                   </Grid>
                   <Grid container spacing={1}>
-                    <Grid style={{ fontSize: 14 }}>
+                    <Grid>
                       <Checkbox
                         checked={this.props.filter.filterUpdatedInTheLast}
                         onChange={(event) => { this.props.filterMap({
@@ -1571,7 +1568,7 @@ class JobMap extends React.Component {
                     </Grid>
                   </Grid>
                   <Grid container spacing={1}>
-                    <Grid style={{ fontSize: 14 }}>
+                    <Grid>
                       <Checkbox
                         checked={this.props.filter.filterCreatedInTheLast}
                         onChange={(event) => { this.props.filterMap({
@@ -1596,7 +1593,7 @@ class JobMap extends React.Component {
                     </Grid>
                   </Grid>
                   <Grid container spacing={1}>
-                    <Grid style={{ fontSize: 14 }}>
+                    <Grid>
                       <Checkbox
                         checked={this.props.filter.filterCompletedInTheLast}
                         onChange={(event) => {
@@ -1623,7 +1620,7 @@ class JobMap extends React.Component {
                     </Grid>
                   </Grid>
                   <Grid container spacing={1}>
-                    <Grid style={{ fontSize: 14 }}>
+                    <Grid>
                       <Checkbox
                         checked={this.props.filter.filterActionsOverdueBy}
                         onChange={(event) => { this.props.filterMap({
@@ -1653,7 +1650,7 @@ class JobMap extends React.Component {
             <Grid container spacing={1} style={{ marginTop: 12}}>
               <Grid item>
                 <Button onClick={this.openLeadsModal} variant='outlined'>
-                  <span style={{ fontSize: 12 }}>
+                  <span>
                     View As List (
                     {this.state.leads &&
                       this.state.leads.filter(
@@ -1666,7 +1663,7 @@ class JobMap extends React.Component {
               </Grid>
               <Grid item>
                 <Button onClick={this.openNoLocation} variant='outlined'>
-                  <span style={{ fontSize: 12 }}>
+                  <span>
                     View Jobs/Leads With No Location Data (
                     {this.state.leads &&
                       this.state.leads.filter(

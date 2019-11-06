@@ -127,8 +127,8 @@ class AsbestosBulkCocCard extends React.Component {
         return true;
       }
     }
-    return true;
-    // return false;
+    // return true;
+    return false;
   }
 
   getSamples = (expanded, cocUid, jobNumber) => {
