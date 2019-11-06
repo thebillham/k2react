@@ -180,7 +180,9 @@ export const fetchAsbestosAnalysis = update => async dispatch => {
         sendSlackMessage(`${auth.currentUser.displayName} ran fetchAsbestosAnalysis (${querySnapshot.size} documents)`);
         var analysis = [];
         querySnapshot.forEach(doc => {
-          analysis.push(doc.data());
+          let log = doc.data();
+          log.uid = doc.id;
+          analysis.push(log);
         });
         dispatch({
           type: GET_ASBESTOS_ANALYSIS,
@@ -790,14 +792,21 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
       {
         analyst: analyst,
         analystUID: me.uid,
+        analysisRecordedBy: {
+          name: me.name,
+          uid: me.uid,
+        },
         // mode: this.props.analysisMode,
         sessionID: sessionID,
         cocUID: job.uid,
         sampleUID: sample.uid,
         result: sample.result,
+        jobNumber: job.jobNumber,
+        sampleNumber: sample.sampleNumber,
         weightReceived: sample.weightReceived ? sample.weightReceived : null,
         description: writeDescription(sample),
-        samplers: job.personnel,
+        category: sample.category,
+        samplers: sample.sampledBy.map(p => p.name),
         analysisDate: new Date()
       });
       batch.update(asbestosSamplesRef.doc(sample.uid),

@@ -70,7 +70,7 @@ export default function asbestosLabReducer(state = asbestosLabInit, action) {
     case GET_ASBESTOS_ANALYSIS:
       if (action.update) stateRef.doc("asbestosAnalysis").set(action.payload);
       return { ...state,
-        asbestosanalysis: action.payload,
+        asbestosAnalysis: action.payload,
       }
     case GET_SAMPLES:
       return {
