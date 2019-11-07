@@ -25,12 +25,22 @@ import {
   fetchWFMClients,
   fetchCurrentJobState,
   saveCurrentJobState,
+  collateJobsList,
   saveWFMItems,
   saveGeocodes,
   fetchGeocodes,
   updateGeocodes,
   saveStats,
-} from "../../actions/local";
+  getJobColor,
+  getJobIcon,
+  getWfmUrl,
+  getNextActionType,
+  getNextActionOverdueBy,
+} from "../../actions/jobs";
+
+import {
+  getDaysSinceDate,
+} from "../../actions/helpers";
 
 import {
   filterMap,
@@ -47,13 +57,14 @@ const mapStyles = {
 
 const mapStateToProps = state => {
   return {
-    wfmJobs: state.local.wfmJobs,
-    wfmLeads: state.local.wfmLeads,
-    wfmClients: state.local.wfmClients,
-    currentJobState: state.local.currentJobState,
-    geocodes: state.local.geocodes,
-    wfmItems: state.local.wfmItems,
-    wfmStats: state.local.wfmStats,
+    wfmJobs: state.jobs.wfmJobs,
+    wfmLeads: state.jobs.wfmLeads,
+    wfmClients: state.jobs.wfmClients,
+    currentJobState: state.jobs.currentJobState,
+    geocodes: state.jobs.geocodes,
+    wfmItems: state.jobs.wfmItems,
+    wfmStats: state.jobs.wfmStats,
+    jobList: state.jobs.jobList,
     search: state.local.search,
     me: state.local.me,
     filter: state.display.filterMap,
@@ -74,6 +85,7 @@ const mapDispatchToProps = dispatch => {
     saveStats: stats => dispatch(saveStats(stats)),
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
+    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients)),
   };
 };
 
@@ -81,41 +93,8 @@ class JobMap extends React.Component {
   constructor(props) {
     super(props);
 
-    // Set up stat sheet for new names
-    // Averages in form { number of items, sum, average }
-    var statSheet = {
-      // Totals
-      jobNeedsBookingTotal: 0,
-      leadTotal: 0,
-      jobTotal: 0,
-      completedActions: 0,
-      overdueActions: 0,
-      upcomingActions: 0,
-      valueTotal: 0,
-
-      // Averages
-      averageActionOverdueDays: [0, 0, 0],
-      averageCompletedActionOverdueDays: [0, 0, 0],
-      averageCurrentOverdueDays: [0, 0, 0],
-      averageLeadAge: [0, 0, 0],
-      averageJobAge: [0, 0, 0],
-      averageJobNeedsBookingAge: [0, 0, 0],
-
-      // List of ages to be graphed
-      leadAges: [],
-      jobAges: [],
-      jobNeedsBookingAges: [],
-      actionOverdueDays: [],
-      completedActionOverdueDays: []
-    };
-
     this.state = {
       leads: [],
-      tabValue: 0,
-      statSheet: statSheet,
-      staffStats: {
-        K2: statSheet
-      },
       clientStats: {},
       activeMarker: {},
       showingInfoWindow: false,
@@ -129,7 +108,7 @@ class JobMap extends React.Component {
     if (this.props.wfmJobs !== nextProps.wfmJobs) return true;
     if (this.props.wfmLeads !== nextProps.wfmLeads) return true;
     if (this.props.filter !== nextProps.filter) return true;
-    if (this.state.leads !== nextState.leads) return true;
+    if (this.props.jobList !== nextProps.jobList) return true;
     if (this.state.m !== nextState.m) return true;
     if (this.state.modal !== nextState.modal) return true;
     if (this.state.jobModal !== nextState.jobModal) return true;
@@ -137,492 +116,6 @@ class JobMap extends React.Component {
     if (this.state.showingInfoWindow !== nextState.showingInfoWindow) return true;
     return false;
   }
-
-  UNSAFE_componentWillMount() {
-    if (this.state.leads.length === 0) {
-      if (this.props.wfmJobs.length === 0) this.props.fetchWFMJobs();
-      if (this.props.wfmLeads.length === 0) this.props.fetchWFMLeads();
-      if (this.props.wfmClients.length === 0) this.props.fetchWFMClients();
-      this.props.fetchCurrentJobState(false);
-      if(this.props.geocodes === undefined) this.props.fetchGeocodes();
-    }
-  }
-
-  componentWillUnmount() {
-    // Object.keys(this.state.leads).forEach(lead => {
-    //   if (lead.wfmState) console.log(lead.wfmState);
-    // });
-    // console.log(this.state.leads);
-    // console.log(this.state.leads.filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
-    this.props.saveWFMItems(this.state.leads.filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
-    this.props.saveCurrentJobState(this.state.leads);
-    this.props.saveGeocodes(this.props.geocodes);
-    // this.props.saveStats({
-    //   staff: this.state.staffStats,
-    //   clients: this.state.clientStats
-    // });
-  }
-
-  handleTabChange = (event, value) => {
-    this.setState({ tabValue: value });
-    if (value === 3) this.computeStats();
-  };
-
-  computeStats = () => {
-    var client = {};
-    var staff = {};
-    staff["K2"] = { ...this.state.statSheet };
-
-    this.state.leads.forEach(m => {
-      var age = this.getDaysSinceDate(m.creationDate);
-      if (staff[m.owner] === undefined)
-        staff[m.owner] = { ...this.state.statSheet };
-      if (client[m.client] === undefined)
-        client[m.client] = { ...this.state.statSheet };
-      if (m.state === "Needs Booking") {
-        staff["K2"]["jobNeedsBookingTotal"] += 1;
-        staff["K2"]["jobNeedsBookingTotal"] =
-          staff["K2"]["jobNeedsBookingTotal"] + 1;
-        staff[m.owner]["jobNeedsBookingTotal"] += 1;
-        client[m.client]["jobNeedsBookingTotal"] += 1;
-        staff["K2"]["averageJobNeedsBookingAge"] = this.averageStaffStat(
-          age,
-          staff["K2"]["averageJobNeedsBookingAge"]
-        );
-        staff[m.owner]["averageJobNeedsBookingAge"] = this.averageStaffStat(
-          age,
-          staff[m.owner]["averageJobNeedsBookingAge"]
-        );
-        client[m.client]["averageJobNeedsBookingAge"] = this.averageStaffStat(
-          age,
-          client[m.client]["averageJobNeedsBookingAge"]
-        );
-        staff["K2"]["jobNeedsBookingAges"] = [
-          ...staff["K2"]["jobNeedsBookingAges"],
-          age
-        ];
-        staff[m.owner]["jobNeedsBookingAges"] = [
-          ...staff[m.owner]["jobNeedsBookingAges"],
-          age
-        ];
-        client[m.client]["jobNeedsBookingAges"] = [
-          ...client[m.client]["jobNeedsBookingAges"],
-          age
-        ];
-      }
-
-      if (m.isJob) {
-        staff["K2"]["jobTotal"] += 1;
-        staff[m.owner]["jobTotal"] += 1;
-        client[m.client]["jobTotal"] += 1;
-        staff["K2"]["averageJobAge"] = this.averageStaffStat(
-          age,
-          staff["K2"]["averageJobAge"]
-        );
-        staff[m.owner]["averageJobAge"] = this.averageStaffStat(
-          age,
-          staff[m.owner]["averageJobAge"]
-        );
-        client[m.client]["averageJobAge"] = this.averageStaffStat(
-          age,
-          client[m.client]["averageJobAge"]
-        );
-        staff["K2"]["jobAges"] = [...staff["K2"]["jobAges"], age];
-        staff[m.owner]["jobAges"] = [...staff[m.owner]["jobAges"], age];
-        client[m.client]["jobAges"] = [...client[m.client]["jobAges"], age];
-      }
-
-      if (!m.isJob) {
-        staff["K2"]["leadTotal"] += 1;
-        staff[m.owner]["leadTotal"] += 1;
-        client[m.client]["leadTotal"] += 1;
-        staff["K2"]["averageLeadAge"] = this.averageStaffStat(
-          age,
-          staff["K2"]["averageLeadAge"]
-        );
-        staff[m.owner]["averageLeadAge"] = this.averageStaffStat(
-          age,
-          staff[m.owner]["averageLeadAge"]
-        );
-        client[m.client]["averageLeadAge"] = this.averageStaffStat(
-          age,
-          client[m.client]["averageLeadAge"]
-        );
-        staff["K2"]["leadAges"] = [...staff["K2"]["leadAges"], age];
-        staff[m.owner]["leadAges"] = [...staff[m.owner]["leadAges"], age];
-        client[m.client]["leadAges"] = [...client[m.client]["leadAges"], age];
-      }
-
-      m.activities &&
-        m.activities.forEach(a => {
-          if (staff[a.responsible] === undefined)
-            staff[a.responsible] = this.state.statSheet;
-          // Check if activity is completed
-          if (a.completed === "Yes") {
-            staff["K2"]["completedActions"] += 1;
-            staff[a.responsible]["completedActions"] += 1;
-            client[m.client]["completedActions"] += 1;
-            staff["K2"][
-              "averageCompletedActionOverdueDays"
-            ] = this.averageStaffStat(
-              a.completedOverdueBy,
-              staff["K2"]["averageCompletedActionOverdueDays"]
-            );
-            staff[a.responsible][
-              "averageCompletedActionOverdueDays"
-            ] = this.averageStaffStat(
-              a.completedOverdueBy,
-              staff[a.responsible]["averageCompletedActionOverdueDays"]
-            );
-            client[m.client][
-              "averageCompletedActionOverdueDays"
-            ] = this.averageStaffStat(
-              a.completedOverdueBy,
-              client[m.client]["averageCompletedActionOverdueDays"]
-            );
-            staff["K2"]["completedActionOverdueDays"] = [
-              ...staff["K2"]["completedActionOverdueDays"],
-              a.completedOverdueBy
-            ];
-            staff[a.responsible]["completedActionOverdueDays"] = [
-              ...staff[a.responsible]["completedActionOverdueDays"],
-              a.completedOverdueBy
-            ];
-            client[m.client]["completedActionOverdueDays"] = [
-              ...client[m.client]["completedActionOverdueDays"],
-              a.completedOverdueBy
-            ];
-          } else {
-            var overdueDays = this.getDaysSinceDate(a.date);
-            if (overdueDays > 0) {
-              // Overdue Action
-              staff["K2"]["overdueActions"] += 1;
-              staff[a.responsible]["overdueActions"] += 1;
-              client[m.client]["overdueActions"] += 1;
-              staff["K2"]["averageActionOverdueDays"] = this.averageStaffStat(
-                overdueDays,
-                staff["K2"]["averageActionOverdueDays"]
-              );
-              staff[a.responsible][
-                "averageActionOverdueDays"
-              ] = this.averageStaffStat(
-                overdueDays,
-                staff[a.responsible]["averageActionOverdueDays"]
-              );
-              client[m.client][
-                "averageActionOverdueDays"
-              ] = this.averageStaffStat(
-                overdueDays,
-                client[m.client]["averageActionOverdueDays"]
-              );
-              staff["K2"]["actionOverdueDays"] = [
-                ...staff["K2"]["actionOverdueDays"],
-                overdueDays
-              ];
-              staff[m.owner]["actionOverdueDays"] = [
-                ...staff[m.owner]["actionOverdueDays"],
-                overdueDays
-              ];
-              client[m.client]["actionOverdueDays"] = [
-                ...client[m.client]["actionOverdueDays"],
-                overdueDays
-              ];
-            } else {
-              // Action on target
-              staff["K2"]["upcomingActions"] += 1;
-              staff[a.responsible]["upcomingActions"] += 1;
-              client[m.client]["upcomingActions"] += 1;
-            }
-          }
-        });
-    });
-    // //console.log("Computed stats");
-    // //console.log(client);
-    // //console.log(staff);
-
-    this.setState({
-      clientStats: client,
-      staffStats: staff
-    });
-  };
-
-  displayTimeDifference = date => {
-    var timeDifference = new Date() - new Date(date);
-    var divideBy = {
-      d: 86400000,
-      m: 2629800000,
-      y: 31557600000
-    };
-    var years = Math.floor(timeDifference / divideBy["y"]);
-    timeDifference = timeDifference % divideBy["y"];
-    var months = Math.floor(timeDifference / divideBy["m"]);
-    timeDifference = timeDifference % divideBy["m"];
-    var days = Math.floor(timeDifference / divideBy["d"]);
-    let y = years + " years ";
-    let m = months + " months ";
-    let d = days + " days";
-    if (years === 1) y = years + " year ";
-    if (months === 1) m = months + " month ";
-    if (days === 1) d = days + " day";
-    if (years === 0) y = "";
-    if (months === 0) m = "";
-    return y + m + d;
-  };
-
-  getDaysSinceDate = date => {
-    var timeDifference = new Date() - new Date(date);
-    var divideBy = 86400000;
-    var days = Math.floor(timeDifference / divideBy);
-
-    return days;
-  };
-
-  getDaysBetweenDates = (d1, d2) => {
-    var timeDifference = new Date(d1) - new Date(d2);
-    var divideBy = 86400000;
-    var days = Math.floor(timeDifference / divideBy);
-
-    return days;
-  };
-
-  getCompletionDateFromHistory = (activity, history) => {
-    if (activity.completed === "No") return activity;
-    // Get only actions that are of activities being completed
-    var actions = history.filter(
-      item => item.type === "Activity" && item.detail.includes(activity.subject)
-    );
-
-    if (actions.length > 0) {
-      activity.completeDate = actions[0].date;
-      activity.completedOverdueBy = this.getDaysBetweenDates(
-        activity.completeDate,
-        activity.date
-      );
-    }
-    return activity;
-  };
-
-  getAddressFromClient = clientID => {
-    var client = this.props.wfmClients.filter(
-      client => client.wfmID === clientID
-    );
-    if (client.length > 0) {
-      var address =
-        client[0].city === ""
-          ? client[0].address
-          : client[0].address + ", " + client[0].city;
-      return address;
-    } else {
-      return "";
-    }
-  };
-
-  handleGeocode = (address, clientAddress, lead) => {
-    console.log('Relying on lead to state.');
-    // return;
-    lead.clientAddress = clientAddress;
-    // Pick either name or clientAddress to use as the geolocation
-    var add = this.checkAddress(address);
-    if (add === "NULL") {
-      add = this.checkAddress(clientAddress);
-    }
-
-    if (this.props.geocodes[add] != undefined) {
-      // console.log("Already there");
-      lead.geocode = this.props.geocodes[add];
-      this.addLeadToState(lead);
-    } else {
-      if (this.state.geocodeCount < 100 && add !== "NULL") {
-        // console.log('setting state');
-        this.setState({
-          geocodeCount: this.state.geocodeCount + 1,
-        });
-
-        let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${
-          process.env.REACT_APP_GOOGLE_MAPS_KEY
-        }`;
-        // console.log("Getting GEOCODE for " + add);
-        fetch(path)
-          .then(response => response.json())
-          .then(response => {
-            var gc = this.props.geocodes;
-            // if (response.status = "ZERO_RESULTS") {
-            //   lead.geocode = { address: "New Zealand" };
-            // } else {
-            if (response.results[0] === undefined) {
-              // console.log('undefined response');
-              // console.log(response);
-              lead.geocode = { address: "New Zealand" };
-            } else {
-              gc[add] = this.simplifiedGeocode(response.results[0]);
-              this.props.updateGeocodes(gc);
-              lead.geocode = gc[add];
-            }
-            this.addLeadToState(lead);
-            return lead;
-          });
-      }
-    }
-  };
-
-  addLeadToState = lead => {
-    // console.log('Add lead to state is working.');
-    // //console.log(lead);
-    this.setState({
-      leads: [...this.state.leads, lead]
-    });
-  }
-
-  checkAddress = address => {
-    if (address === "") return "NULL";
-    // if (address.trim().split(/\s+/).length < 2) return "NULL";
-
-    var geo = this.props.geocodes[encodeURI(address)];
-
-    // ignore all addresses that just return the country
-    if (geo !== undefined && geo.address === "New Zealand") {
-      // console.log(address);
-      return "NULL";
-    }
-
-    // ignore all addresses with blackListed words
-    var blacklist = [
-      "acoustic",
-      "air quality",
-      "testing",
-      "asbestos",
-      "samples",
-      "website",
-      "query",
-      "analysis",
-      "pricing",
-      "biological",
-      "assessment",
-      "dust",
-      "monitoring",
-      "lead",
-      "asbetsos",
-      "survey",
-      "silica",
-      "consulting",
-      "biologial",
-      "emission",
-      "mould",
-      "noise",
-      "stack",
-      "welding"
-    ];
-
-    var blackListed = false;
-
-    blacklist.forEach(w => {
-      if (address.toLowerCase().includes(w)) blackListed = true;
-    });
-
-    if (blackListed) return "NULL";
-
-    return encodeURI(address);
-  };
-
-  simplifiedGeocode = g => {
-    return {
-      address: g.formatted_address,
-      location: [g.geometry.location.lat, g.geometry.location.lng],
-      locationType: g.geometry.location_type,
-      place: g.place_id
-    };
-  };
-
-  getCompletedActivities = activities => {
-    var completedActivities = activities.filter(
-      activity => activity.completed === "Yes"
-    );
-    return completedActivities
-      .sort((a, b) => {
-        return (
-          new Date(a.completeDate).getTime() -
-          new Date(b.completeDate).getTime()
-        );
-      })
-      .reverse();
-  };
-
-  getUncompletedActivities = activities => {
-    if (activities !== undefined) {
-      var uncompletedActivities = activities.filter(
-        activity => activity.completed === "No"
-      );
-      return uncompletedActivities
-        .sort((a, b) => {
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
-        });
-        // .reverse();
-    } else {
-      return [];
-    }
-  };
-
-  getLastActionDateFromActivities = (completedActivities, defaultDate) => {
-    if (completedActivities.length === 0) return defaultDate;
-    return completedActivities[0].completeDate;
-  };
-
-  getLastActionTypeFromActivities = completedActivities => {
-    if (completedActivities.length === 0) return "Lead created";
-    return completedActivities[0].subject;
-  };
-
-  getAverageCompletedActionOverdueDays = completedActivities => {
-    if (completedActivities.length === 0) return 0;
-    var sum = 0;
-    var total = 0;
-    completedActivities.forEach(a => {
-      total = total + 1;
-      sum = sum + a.completedOverdueBy;
-    });
-    return Math.floor(sum / total);
-  };
-
-  getNextActionType = activities => {
-    var todo = this.getUncompletedActivities(activities);
-    if (todo.length > 0) {
-      return todo[0].subject;
-    } else {
-      return "Convert to job or add new action";
-    }
-  };
-
-  getNextActionDate = activities => {
-    var todo = this.getUncompletedActivities(activities);
-    if (todo.length > 0) {
-      return todo[0].date;
-    } else {
-      return 0;
-    }
-  };
-
-  getNextActionOverdueBy = activities => {
-    var todo = this.getUncompletedActivities(activities);
-    if (todo.length > 0) {
-      return this.getDaysSinceDate(todo[0].date);
-    } else {
-      return 0;
-    }
-  };
-
-  averageStaffStat = (value, average) => {
-    // Averages in form { number of items, sum, average }
-
-    if (average[0] > 0) {
-      average[0] = average[0] + 1;
-      average[1] = average[1] + value;
-      average[2] = Math.floor(average[1] / average[0]);
-    } else {
-      average = [1, value, value];
-    }
-
-    return average;
-  };
 
   openNoLocation = () => {
     this.setState({
@@ -639,219 +132,6 @@ class JobMap extends React.Component {
   openJobModal = m => {
     this.setState({
       jobModal: m
-    });
-  };
-
-  // Collate Jobs (need booking) and Leads into a set of data that can be displayed nicely
-  collateLeadsData = () => {
-    // console.log(this.props.currentJobState);
-    // //console.log('Jobs length');
-    // console.log('Jobs: ' + this.props.wfmJobs.length);
-    // console.log('Leads: ' + this.props.wfmLeads.length)
-    // //console.log(this.props.wfmJobs.length + this.props.wfmLeads.length);
-    // var staffStats = { K2: this.state.statSheet };
-    // var clientStats = {};
-
-    // //console.log("COLLATING LEADS AND JOBS");
-    var mappedJobs = [];
-
-    var completedJobs = Object.values(this.props.currentJobState).filter((job) => job.state === 'Completed');
-    var currentState = {...this.props.currentJobState};
-
-    // console.log(currentState);
-
-    // Convert jobs into a 'lead' type object
-    this.props.wfmJobs.forEach(job => {
-      var today = moment().format('YYYY-MM-DD');
-      var mappedJob = currentState[job.wfmID];
-      // console.log(job.wfmID);
-      console.log(mappedJob);
-      delete currentState[job.wfmID];
-      if (mappedJob !== undefined) {
-        // Add all mapped jobs and lead to an array and then set state
-        // Then go ahead with sorting the new jobs and leads
-        // Update state history of job
-
-        if (mappedJob.nextActionType !== undefined) delete mappedJob.nextActionType;
-        if (mappedJob.nextActionDate !== undefined) delete mappedJob.nextActionDate;
-        if (mappedJob.nextActionOverdueBy !== undefined) delete mappedJob.nextActionOverdueBy;
-
-        if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory)[0] < mappedJob.creationDate) {
-          mappedJob.creationDate = Object.keys(mappedJob.stateHistory)[0];
-          mappedJob.stateHistory[mappedJob.creationDate] = 'Job Started';
-        }
-
-        // Check state has changed
-        if (job.wfmState !== mappedJob.state) {
-          // //console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
-          mappedJob.lastActionDate = today;
-          mappedJob.state = job.wfmState;
-          mappedJob.stateHistory[today] = job.wfmState;
-        }
-
-        // Check if address has changed
-        // if (mappedJob.name !== job.address || mappedJob.geocode.address === "New Zealand") {
-        if (mappedJob.name !== job.address) {
-          console.log(mappedJob.name + '->' + job.address + ' is new, get new geocode');
-          mappedJob.name = job.address;
-          this.handleGeocode(
-            job.address,
-            this.getAddressFromClient(job.clientID),
-            mappedJob,
-          );
-        } else {
-          mappedJobs = [...mappedJobs, mappedJob];
-        }
-      } else {
-        // console.log('Making new job: ' + job['wfmID']);
-        var newJob = {};
-        newJob.wfmID = job.wfmID;
-        newJob.client = job.client;
-        newJob.clientID = job.clientID;
-        newJob.name = job.address;
-        newJob.owner = job.manager;
-        newJob.jobNumber = job.jobNumber;
-        newJob.creationDate = today;
-        newJob.category = job.wfmType;
-        // lead.currentStatus = job.currentStatus;
-        newJob.state = job.wfmState;
-        newJob.dueDate = job.dueDate;
-        newJob.lastActionType = job.wfmState;
-        newJob.lastActionDate = today;
-        newJob.stateHistory = {
-          [today]: 'Job created',
-          [today]: job.wfmState,
-        };
-        newJob.isJob = true;
-
-        this.handleGeocode(
-          job.address,
-          this.getAddressFromClient(job.clientID),
-          newJob,
-        );
-      }
-    });
-
-    this.props.wfmLeads.forEach(wfmLead => {
-      var lead = currentState[wfmLead.wfmID];
-      delete currentState[wfmLead.wfmID];
-      if (lead !== undefined) {
-        // Update state history of job
-        // if(mappedJob.nextActionDate == undefined) {
-        //   mappedJob.nextActionDate = this.getNextActionDate(wfmLead.activities);
-        // }
-
-        // Map actions to history to get completion date of each action
-        if (wfmLead.activities[0] === "NO PLAN!") {
-          lead.urgentAction = "Add Milestones to Lead";
-          lead.activities = [];
-        } else if (wfmLead.history[0] === "No History") {
-          lead.activities = [];
-        } else {
-          lead.activities = wfmLead.activities.map(activity =>
-            this.getCompletionDateFromHistory(activity, wfmLead.history)
-          );
-        }
-        var completedActivities = this.getCompletedActivities(lead.activities);
-        lead.lastActionDate = this.getLastActionDateFromActivities(
-          completedActivities,
-          lead.creationDate
-        );
-        lead.lastActionType = this.getLastActionTypeFromActivities(
-          completedActivities
-        );
-
-        lead.nextActionType = this.getNextActionType(lead.activities);
-        lead.nextActionDate = this.getNextActionDate(lead.activities);
-
-        // Check if address has changed
-        if (lead.name !== wfmLead.name) {
-          // //console.log(wfmLead.name + ' is new, get new geocode');
-          lead.name = wfmLead.name;
-          this.handleGeocode(
-            wfmLead.name,
-            this.getAddressFromClient(wfmLead.clientID),
-            lead,
-          );
-        } else {
-          mappedJobs = [...mappedJobs, lead];
-        }
-      } else {
-        // //console.log('Making new job: ' + wfmLead['wfmID']);
-        lead = {};
-        lead.wfmID = wfmLead.wfmID;
-        lead.client = wfmLead.client;
-        lead.name = wfmLead.name;
-        lead.owner = wfmLead.owner;
-        lead.jobNumber = "Lead";
-        lead.creationDate = wfmLead.date;
-        lead.category = wfmLead.category;
-        lead.urgentAction = "";
-        lead.value = wfmLead.value;
-
-        // Map actions to history to get completion date of each action
-        if (wfmLead.activities[0] === "NO PLAN!") {
-          lead.urgentAction = "Add Milestones to Lead";
-          lead.activities = [];
-        } else if (wfmLead.history[0] === "No History") {
-          lead.activities = [];
-        } else {
-          lead.activities = wfmLead.activities.map(activity =>
-            this.getCompletionDateFromHistory(activity, wfmLead.history)
-          );
-        }
-        completedActivities = this.getCompletedActivities(lead.activities);
-
-        lead.lastActionDate = this.getLastActionDateFromActivities(
-          completedActivities,
-          lead.creationDate
-        );
-        lead.lastActionType = this.getLastActionTypeFromActivities(
-          completedActivities
-        );
-
-        // lead.averageCompletedActionOverdueDays = this.getAverageCompletedActionOverdueDays(
-        //   lead.completedActivities
-        // );
-        lead.nextActionType = this.getNextActionType(lead.activities);
-        lead.nextActionDate = this.getNextActionDate(lead.activities);
-        // lead.nextActionOverdueBy = this.getNextActionOverdueBy(lead.activities);
-
-        lead.isJob = false;
-
-        // Get extra client information
-        // lead.clientAddress = this.getAddressFromClient(wfmLead.clientID);
-        // lead.geoCode = this.handleGeocode(wfmLead.name);
-
-        this.handleGeocode(
-          wfmLead.name,
-          this.getAddressFromClient(wfmLead.clientID),
-          lead
-        );
-      }
-    });
-
-    var recentlyCompleted = Object.values(currentState).filter((job) => job.state !== 'Completed');
-    var today = moment().format('YYYY-MM-DD');
-    recentlyCompleted.forEach((job) => {
-      // //console.log('Recently completed');
-      // //console.log(job);
-      job.lastActionDate = today;
-      job.state = 'Completed';
-      if (job.stateHistory !== undefined) {
-        job.stateHistory[today] = 'Completed';
-      } else {
-        job.stateHistory = {[today]: 'Completed'};
-      }
-    });
-
-    this.setState({
-      leads: [
-        ...this.state.leads,
-        ...mappedJobs,
-        ...completedJobs,
-        ...recentlyCompleted,
-      ],
     });
   };
 
@@ -944,28 +224,28 @@ class JobMap extends React.Component {
 
     // Creation date
     if (this.props.filter.filterCreatedInTheLast &&
-      this.getDaysSinceDate(m.creationDate) >= this.props.filter.createdInTheLast) return false;
+      getDaysSinceDate(m.creationDate) >= this.props.filter.createdInTheLast) return false;
 
     // Completion date
     // if (m.state === 'Completed' && this.props.filter.filterCompletedInTheLast) {
     //   console.log(m);
-    //   console.log(this.getDaysSinceDate(m.lastActionDate));
+    //   console.log(getDaysSinceDate(m.lastActionDate));
     //   console.log(this.props.filter.completedInTheLast);
     //   console.log(m.state !== 'Completed');
-    //   console.log(this.getDaysSinceDate(m.lastActionDate) >= this.props.filter.completedInTheLast);
+    //   console.log(getDaysSinceDate(m.lastActionDate) >= this.props.filter.completedInTheLast);
     //   console.log((this.props.filter.filterCompletedInTheLast &&
-    //     (m.state !== 'Completed' || this.getDaysSinceDate(m.lastActionDate) >= this.props.filter.completedInTheLast)));
+    //     (m.state !== 'Completed' || getDaysSinceDate(m.lastActionDate) >= this.props.filter.completedInTheLast)));
     // }
     if (this.props.filter.filterCompletedInTheLast &&
-      (m.state !== 'Completed' || this.getDaysSinceDate(m.lastActionDate) >= this.props.filter.completedInTheLast)) return false;
+      (m.state !== 'Completed' || getDaysSinceDate(m.lastActionDate) >= this.props.filter.completedInTheLast)) return false;
 
     // Days since last update
     if (this.props.filter.filterUpdatedInTheLast &&
-      this.getDaysSinceDate(m.lastActionDate) < this.props.filter.updatedInTheLast) return false;
+      getDaysSinceDate(m.lastActionDate) < this.props.filter.updatedInTheLast) return false;
 
     // Actions overdue by
     if (this.props.filter.filterActionsOverdueBy &&
-      (m.isJob || this.getNextActionOverdueBy(m.activities) < this.props.filter.actionsOverdueBy)) return false;
+      (m.isJob || getNextActionOverdueBy(m.activities) < this.props.filter.actionsOverdueBy)) return false;
 
     // Search filter
     let res = true;
@@ -1001,28 +281,6 @@ class JobMap extends React.Component {
     });
   };
 
-  getWfmUrl = m => {
-    var path;
-    if (m.isJob) {
-      path = `https://my.workflowmax.com/job/jobview.aspx?id=${m.wfmID}`;
-    } else {
-      path = `https://my.workflowmax.com/lead/view.aspx?id=${m.wfmID}`;
-    }
-    return path;
-  };
-
-  gotoWFM = m => {
-    // //console.log("GoTO");
-    var path;
-    if (m.isJob) {
-      path = `https://my.workflowmax.com/job/jobview.aspx?id=${m.wfmID}`;
-    } else {
-      path = `https://my.workflowmax.com/lead/view.aspx?id=${m.wfmID}`;
-    }
-    var win = window.open(path, "_blank");
-    win.focus();
-  };
-
   onMarkerClick = (marker, m) => {
     this.setState({
       activeMarker: marker,
@@ -1041,43 +299,6 @@ class JobMap extends React.Component {
     this.setState({
       showInfoBox: false
     });
-  };
-
-  getIcon = cat => {
-    var img = "other";
-    ["asbestos", "meth", "stack", "bio", "noise", "workplace"].map(i => {
-      if (cat.toLowerCase().includes(i)) img = i;
-    });
-    var url = "http://my.k2.co.nz/icons/" + img + ".png";
-    return url;
-  };
-
-  getColor = cat => {
-    var col = "other";
-    if (!cat) return "#6fa1b6";
-    ["show all", "asbestos", "meth", "stack", "bio", "noise", "workplace"].map(
-      i => {
-        if (cat.toLowerCase().includes(i)) col = i;
-      }
-    );
-    switch (col) {
-      case "show all":
-        return "#555";
-      case "asbestos":
-        return "#7d6d26";
-      case "meth":
-        return "#ff0065";
-      case "stack":
-        return "#e33714";
-      case "bio":
-        return "#87cc14";
-      case "noise":
-        return "#995446";
-      case "workplace":
-        return "#a2539c";
-      default:
-        return "#6fa1b6";
-    }
   };
 
   getOffset = n => {
@@ -1112,19 +333,15 @@ class JobMap extends React.Component {
   };
 
   render() {
-    const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState } = this.props;
-    // console.log(wfmJobs);
-    // console.log(wfmLeads);
-    // console.log(currentJobState);
+    const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList } = this.props;
     if (
       wfmJobs.length > 0 &&
       wfmLeads.length > 0 &&
       wfmClients.length > 0 &&
-      currentJobState !== undefined &&
-      Object.values(currentJobState).length > 0 &&
-      this.state.leads.length === 0
+      currentJobState !== undefined && Object.values(currentJobState).length > 0 &&
+      jobList && Object.values(jobList).length === 0
     )
-      this.collateLeadsData();
+      this.props.collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients);
     // if (Object.keys(this.state.staffStats).length > 1) {
     //   var daysMap = {};
     //   //console.log(this.state.staffStats["K2"]["completedActionOverdueDays"]);
@@ -1156,7 +373,7 @@ class JobMap extends React.Component {
         <DialogTitle>
         {this.state.jobModal && (
           <h5
-            style={{ color: this.getColor(this.state.jobModal.category) }}
+            style={{ color: getJobColor(this.state.jobModal.category) }}
           >
             {this.state.jobModal.jobNumber}: {this.state.jobModal.client}
           </h5>)}
@@ -1171,7 +388,7 @@ class JobMap extends React.Component {
               padding: 20
             }}
           >
-            <div style={{ color: this.getColor(this.state.jobModal.category) }}>
+            <div style={{ color: getJobColor(this.state.jobModal.category) }}>
               <h6>{this.state.jobModal.category}</h6>
             </div>
             {this.state.jobModal.geocode && (
@@ -1193,11 +410,11 @@ class JobMap extends React.Component {
               {this.state.jobModal.lastActionDate && (
                 <div>
                   {this.state.jobModal.state && (<span><b>Last Action:</b> State changed to <i>{this.state.jobModal.state}</i> </span>) }
-                   ({this.getDaysSinceDate(this.state.jobModal.lastActionDate)} {this.getDaysSinceDate(this.state.jobModal.lastActionDate) === 1 ? 'day' : 'days'} ago)
+                   ({getDaysSinceDate(this.state.jobModal.lastActionDate)} {getDaysSinceDate(this.state.jobModal.lastActionDate) === 1 ? 'day' : 'days'} ago)
                 </div>
               )}
               {this.state.jobModal.stateHistory && (
-                <div><br /><h6 style={{ color: this.getColor(this.state.jobModal.category) }}>State History</h6>
+                <div><br /><h6 style={{ color: getJobColor(this.state.jobModal.category) }}>State History</h6>
                 { Object.keys(this.state.jobModal.stateHistory).map((key) => {
                   return (
                     <span key={key}>
@@ -1220,30 +437,30 @@ class JobMap extends React.Component {
               {this.state.jobModal.lastActionDate && (
                 <div>
                   {this.state.jobModal.lastActionType && (<span><b>Last Action:</b> {this.state.jobModal.lastActionType} </span>)}
-                   ({this.getDaysSinceDate(this.state.jobModal.lastActionDate)} {this.getDaysSinceDate(this.state.jobModal.lastActionDate) === 1 ? 'day' : 'days'} ago)
+                   ({getDaysSinceDate(this.state.jobModal.lastActionDate)} {getDaysSinceDate(this.state.jobModal.lastActionDate) === 1 ? 'day' : 'days'} ago)
                 </div>
               )}
               {this.state.jobModal.nextActionType && (
                 <div>
-                  <b>Next Action:</b> {this.getNextActionType(this.state.jobModal.activities)}{" "}
-                  {this.getNextActionOverdueBy(this.state.jobModal.activities) > 0 ? (
+                  <b>Next Action:</b> {getNextActionType(this.state.jobModal.activities)}{" "}
+                  {getNextActionOverdueBy(this.state.jobModal.activities) > 0 ? (
                     <span
                       style={{
                         fontColor: "#ff0000",
                         textDecoration: "underline"
                       }}
                     >
-                      (Overdue by {this.getNextActionOverdueBy(this.state.jobModal.activities)} days)
+                      (Overdue by {getNextActionOverdueBy(this.state.jobModal.activities)} days)
                     </span>
                   ) : (
                     <span>
-                      (Due in {this.getNextActionOverdueBy(this.state.jobModal.activities) * -1} days)
+                      (Due in {getNextActionOverdueBy(this.state.jobModal.activities) * -1} days)
                     </span>
                   )}
                 </div>
               )}
               {this.state.jobModal.activities && this.state.jobModal.activities.length > 0 && (
-                <div><br /><h6 style={{ color: this.getColor(this.state.jobModal.category) }}>Activities</h6>
+                <div><br /><h6 style={{ color: getJobColor(this.state.jobModal.category) }}>Activities</h6>
                 { this.state.jobModal.activities.map((activity) => {
                   if(activity.completed === 'Yes') {
                     return (
@@ -1272,7 +489,7 @@ class JobMap extends React.Component {
                   style={{ textDecoration: "none", color: "#FF2D00" }}
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={this.getWfmUrl(this.state.jobModal)}
+                  href={getWfmUrl(this.state.jobModal)}
                 >
                   View on WorkflowMax
                 </a>
@@ -1297,22 +514,22 @@ class JobMap extends React.Component {
             : "List View"}
         </DialogTitle>
         <DialogContent>
-          {this.state.leads
+          {this.props.jobList && Object.values(this.props.jobList)
                 .filter(
                   m => this.applyModalFilters(m, false)
                 )
                 .sort((a, b) => {
-                  var metricA = a.isJob ? this.getDaysSinceDate(a.lastActionDate) : this.getNextActionOverdueBy(a.activities);
-                  var metricB = b.isJob ? this.getDaysSinceDate(b.lastActionDate) : this.getNextActionOverdueBy(b.activities);
+                  var metricA = a.isJob ? getDaysSinceDate(a.lastActionDate) : getNextActionOverdueBy(a.activities);
+                  var metricB = b.isJob ? getDaysSinceDate(b.lastActionDate) : getNextActionOverdueBy(b.activities);
                   return metricB - metricA;
-                  // this.getDaysSinceDate(a.lastActionDate) - this.getDaysSinceDate(b.lastActionDate))
+                  // getDaysSinceDate(a.lastActionDate) - getDaysSinceDate(b.lastActionDate))
                 })
                 // .sort((a, b) => b.isJob - a.isJob)
                 .map(m => {
                   // console.log(m);
                   var stateStr = '';
                   if (m.isJob) {
-                    var days = this.getDaysSinceDate(m.lastActionDate);
+                    var days = getDaysSinceDate(m.lastActionDate);
                     if (days < 1) {
                       stateStr = 'Changed state to ' + m.state + ' today';
                     } else if (days === 1) {
@@ -1323,7 +540,7 @@ class JobMap extends React.Component {
                       stateStr = 'Has not changed state in ' + days + ' days';
                     }
                   } else {
-                    days = this.getNextActionOverdueBy(m.activities);
+                    days = getNextActionOverdueBy(m.activities);
                     if (days > 1) {
                       stateStr = 'Actions overdue by ' + days + ' days';
                     } else if (days === 1) {
@@ -1342,7 +559,7 @@ class JobMap extends React.Component {
                       key={m.wfmID}
                       dense
                       className={classes.hoverItemPoint}
-                      style={{ color: this.getColor(m.category) }}
+                      style={{ color: getJobColor(m.category) }}
                       onClick={() => {
                         this.openJobModal(m);
                       }}
@@ -1370,50 +587,11 @@ class JobMap extends React.Component {
 
     var addresses = {};
 
+    console.log(jobList);
+
     return (
       <div className={classes.marginTopStandard}>
         <div style={{ marginBottom: 20 }}>
-        {/*
-          <Tabs
-            value={this.state.tabValue}
-            onChange={this.handleTabChange}
-            indicatorColor="secondary"
-            textColor="secondary"
-            centered
-          >
-            <Tab label="Current Jobs" />
-            <Tab label="Leads" />
-            <Tab label="Map" />
-            <Tab label="Stats" />
-            <Tab label="Permissions" />
-          </Tabs>
-        </div>
-        {this.state.tabValue === 0 && (
-          <div width='100%'>
-            <ReactTable
-              data={this.props.jobHistoryAnalysis && this.props.jobHistoryAnalysis['jobs'] && Object.values(this.props.jobHistoryAnalysis['jobs'])}
-              columns={[{
-                Header: 'WFM ID',
-                accessor: 'wfmID',
-                width: 100,
-              },{
-                  Header: 'Client',
-                  accessor: 'client',
-                  width: 100,
-                },{
-                  Header: 'Address',
-                  accessor: 'address',
-                  width: 250,
-                }]}
-              defaultPageSize={10}
-            />
-          </div>
-        )}
-        {this.state.tabValue === 1 && (
-          <div></div>
-        )}
-        {this.state.tabValue === 2 && (
-          <div>*/}
             {this.state.jobModal && jobModal}
             {this.state.modal && jobListModal}
 
@@ -1523,7 +701,7 @@ class JobMap extends React.Component {
                       "Workplace",
                       "Other"
                     ].map(chip => {
-                      var color = this.getColor(chip);
+                      var color = getJobColor(chip);
                       return (
                         <Grid item key={chip}>
                           <Button
@@ -1652,8 +830,8 @@ class JobMap extends React.Component {
                 <Button onClick={this.openLeadsModal} variant='outlined'>
                   <span>
                     View As List (
-                    {this.state.leads &&
-                      this.state.leads.filter(
+                    {jobList &&
+                      Object.values(jobList).filter(
                         m =>
                           this.applyFilters(m)
                       ).length}
@@ -1665,8 +843,8 @@ class JobMap extends React.Component {
                 <Button onClick={this.openNoLocation} variant='outlined'>
                   <span>
                     View Jobs/Leads With No Location Data (
-                    {this.state.leads &&
-                      this.state.leads.filter(
+                    {jobList &&
+                      Object.values(jobList).filter(
                         m =>
                           this.applyModalFilters(m, true)
                       ).length}
@@ -1684,7 +862,7 @@ class JobMap extends React.Component {
                 lng: 174.4070603
               }}
             >
-              {this.state.leads && this.state.leads.map(m => {
+              {jobList && Object.values(jobList).map(m => {
                 if (this.filterLabels(m)) {
                   if (addresses[m.geocode.address] >= 0) {
                     addresses[m.geocode.address] =
@@ -1693,7 +871,7 @@ class JobMap extends React.Component {
                   } else {
                     addresses[m.geocode.address] = 0;
                   }
-                  var url = this.getIcon(m.category);
+                  var url = getJobIcon(m.category);
                   return (
                     <Marker
                       // animation={this.props.google.maps.Animation.DROP}
@@ -1734,12 +912,12 @@ class JobMap extends React.Component {
                 >
                   <div>
                     <h5
-                      style={{ color: this.getColor(this.state.m.category) }}
+                      style={{ color: getJobColor(this.state.m.category) }}
                     >
                       {this.state.m.jobNumber}: {this.state.m.client}
                     </h5>
                   </div>
-                  <div style={{ color: this.getColor(this.state.m.category) }}>
+                  <div style={{ color: getJobColor(this.state.m.category) }}>
                     <h6>{this.state.m.category}</h6>
                   </div>
                   {this.state.m.geocode && (
@@ -1761,11 +939,11 @@ class JobMap extends React.Component {
                     {this.state.m.lastActionDate && (
                       <div>
                         {this.state.m.state && (<span><b>Last Action:</b> State changed to <i>{this.state.m.state}</i> </span>) }
-                         ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
+                         ({getDaysSinceDate(this.state.m.lastActionDate)} {getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
                       </div>
                     )}
                     {this.state.m.stateHistory && (
-                      <div><br /><h6 style={{ color: this.getColor(this.state.m.category) }}>State History</h6>
+                      <div><br /><h6 style={{ color: getJobColor(this.state.m.category) }}>State History</h6>
                       { Object.keys(this.state.m.stateHistory).map((key) => {
                         return (
                           <span key={key}>
@@ -1788,30 +966,30 @@ class JobMap extends React.Component {
                     {this.state.m.lastActionDate && (
                       <div>
                         {this.state.m.lastActionType && (<span><b>Last Action:</b> {this.state.m.lastActionType} </span>)}
-                         ({this.getDaysSinceDate(this.state.m.lastActionDate)} {this.getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
+                         ({getDaysSinceDate(this.state.m.lastActionDate)} {getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
                       </div>
                     )}
                     {this.state.m.nextActionType && (
                       <div>
-                        <b>Next Action:</b> {this.getNextActionType(this.state.m.activities)}{" "}
-                        {this.getNextActionOverdueBy(this.state.m.activities) > 0 ? (
+                        <b>Next Action:</b> {getNextActionType(this.state.m.activities)}{" "}
+                        {getNextActionOverdueBy(this.state.m.activities) > 0 ? (
                           <span
                             style={{
                               fontColor: "#ff0000",
                               textDecoration: "underline"
                             }}
                           >
-                            (Overdue by {this.getNextActionOverdueBy(this.state.m.activities)} days)
+                            (Overdue by {getNextActionOverdueBy(this.state.m.activities)} days)
                           </span>
                         ) : (
                           <span>
-                            (Due in {this.getNextActionOverdueBy(this.state.m.activities) * -1} days)
+                            (Due in {getNextActionOverdueBy(this.state.m.activities) * -1} days)
                           </span>
                         )}
                       </div>
                     )}
                     {this.state.m.activities && this.state.m.activities.length > 0 && (
-                      <div><br /><h6 style={{ color: this.getColor(this.state.m.category) }}>Activities</h6>
+                      <div><br /><h6 style={{ color: getJobColor(this.state.m.category) }}>Activities</h6>
                       { this.state.m.activities.map((activity) => {
                         if(activity.completed === 'Yes') {
                           return (
@@ -1839,7 +1017,7 @@ class JobMap extends React.Component {
                       style={{ textDecoration: "none", color: "#FF2D00" }}
                       target="_blank"
                       rel="noopener noreferrer"
-                      href={this.getWfmUrl(this.state.m)}
+                      href={getWfmUrl(this.state.m)}
                     >
                       View on WorkflowMax
                     </a>
@@ -1848,180 +1026,6 @@ class JobMap extends React.Component {
               </InfoWindow>
             </Map>
           </div>
-        {/*)}
-        {this.state.tabValue === 3 && (
-          <div>
-            <LineChart
-              width={1200}
-              height={350}
-              data={daysData}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="days" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="K2" stroke="#8884d8" />
-              <Line type="monotone" dataKey="Shona" stroke="#82ca9d" />
-            </LineChart>
-            <div>
-              <ListItem>
-                <Grid container style={{ fontWeight: 600 }}>
-                  <Grid item xs={2}>
-                    Name
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Total Jobs
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Total Leads
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Jobs Need Booking
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Average Days Completed Actions Overdue By
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Average Days Current Actions Overdue By
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Average Lead Age
-                    </div>
-                  </Grid>
-                </Grid>
-              </ListItem>
-
-              {this.state.staffStats &&
-                Object.keys(this.state.staffStats).map(s => {
-                  var stats = this.state.staffStats[s];
-                  return (
-                    <ListItem className={classes.hoverItem} key={s}>
-                      <Grid container>
-                        <Grid item xs={2}>
-                          {s}
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["jobTotal"]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["leadTotal"]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["jobNeedsBookingTotal"]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["averageCompletedActionOverdueDays"][2]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["averageActionOverdueDays"][2]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["averageLeadAge"][2]}
-                          </div>
-                        </Grid>
-                      </Grid>
-                    </ListItem>
-                  );
-                })}
-            </div>
-          </div>
-        )}*/}
       </div>
     );
   }

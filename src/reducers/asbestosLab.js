@@ -3,6 +3,8 @@ import {
   GET_ASBESTOS_ANALYSIS,
   GET_AIR_ANALYSTS,
   GET_ASBESTOS_SAMPLES,
+  GET_ASBESTOS_ANALYSIS_LOGS,
+  GET_ASBESTOS_SAMPLE_ISSUE_LOGS,
   GET_BULK_ANALYSTS,
   GET_COCS,
   GET_SAMPLES,
@@ -20,11 +22,11 @@ const asbestosLabInit = {
     airAnalysts: [],
     analysisMode: "normal",
     analyst: "",
-    asbestosAnalysis: [],
     bulkAnalysts: [],
     cocs: {},
     samples: {},
-    sampleLog: [],
+    sampleIssueLog: {},
+    sampleAnalysisLog: {},
     sampleView: null,
     sessionID: '',
 };
@@ -71,6 +73,18 @@ export default function asbestosLabReducer(state = asbestosLabInit, action) {
       if (action.update) stateRef.doc("asbestosAnalysis").set(action.payload);
       return { ...state,
         asbestosAnalysis: action.payload,
+      }
+    case GET_ASBESTOS_ANALYSIS_LOGS:
+      if (action.update) stateRef.doc("asbestosAnalysisLogs").set(action.payload);
+      return {
+        ...state,
+        asbestosAnalysisLogs: action.payload,
+      }
+    case GET_ASBESTOS_SAMPLE_ISSUE_LOGS:
+      if (action.update) stateRef.doc("asbestosSampleIssueLogs").set(action.payload);
+      return {
+        ...state,
+        asbestosSampleIssueLogs: action.payload,
       }
     case GET_SAMPLES:
       return {

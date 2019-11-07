@@ -20,7 +20,8 @@ import {
   getSampleData,
   getSubsampleData,
 } from "../../../actions/asbestosLab";
-import { syncJobWithWFM, dateOf, addLog } from "../../../actions/local";
+import { dateOf, addLog } from "../../../actions/local";
+import { syncJobWithWFM, } from "../../../actions/jobs";
 import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
 import { showModal } from "../../../actions/modal";
 import { CSVLink, CSVDownload } from "react-csv";
@@ -140,13 +141,13 @@ class AsbestosBulkCocCard extends React.Component {
   render() {
     const { samples, classes } = this.props;
     const job = this.props.cocs[this.props.job];
-    console.log(job);
+    // console.log(job);
     if (job === undefined || job.deleted) return null;
     let version = 1;
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
 
-    console.log(`${job.jobNumber} Bulk COC Card rendering`);
+    // console.log(`${job.jobNumber} Bulk COC Card rendering`);
     let filteredSamples = {};
     if (samples && samples[job.uid]) {
       Object.values(samples[job.uid]).filter(s => !s.deleted && s.cocUid === job.uid).forEach(s => {

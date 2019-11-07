@@ -101,7 +101,7 @@ class CocLogModal extends React.Component {
                   );
                 })}
                 <Button
-                  style={{ marginTop: 24, marginLeft: 128, }}
+                  className={classes.buttonViewMore}
                   onClick={this.increaseLimit}>
                   <Add className={classes.marginRightSmall} /> View More Logs
                 </Button>

@@ -110,7 +110,7 @@ class AsbestosSampleListItem extends React.Component {
     let noResults = true;
     let acmLimit = job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01;
     let overLimit = sample.waTotals && (sample.waTotals.waOverLimit || sample.waTotals.concentration.acmFloat >= acmLimit) ? true : false;
-    console.log(`Asbestos Sample List Item: ${job.jobNumber}-${sample.sampleNumber}`)
+    // console.log(`Asbestos Sample List Item: ${job.jobNumber}-${sample.sampleNumber}`)
 
     return (
         <ListItem key={sample.uid} className={classes.hoverItem}>

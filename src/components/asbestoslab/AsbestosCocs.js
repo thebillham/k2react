@@ -11,9 +11,11 @@ import {
   deleteCoc,
 } from "../../actions/asbestosLab";
 import {
-  fetchWFMClients,
   fetchStaff,
 } from "../../actions/local";
+import {
+  fetchWFMClients,
+} from "../../actions/jobs";
 
 //Modals
 import {

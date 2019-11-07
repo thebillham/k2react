@@ -40,7 +40,8 @@ import Add from '@material-ui/icons/Add';
 import Sync from '@material-ui/icons/Sync';
 import Link from '@material-ui/icons/Link';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, resetModal, showModalSecondary, } from '../../../actions/modal';
-import { fetchStaff, syncJobWithWFM, resetWfmJob, addLog, personnelConvert, dateOf, writeDates, } from '../../../actions/local';
+import { fetchStaff, addLog, personnelConvert, dateOf, writeDates, } from '../../../actions/local';
+import { syncJobWithWFM, resetWfmJob, } from '../../../actions/jobs';
 import { fetchSamples, handleCocSubmit, handleSampleChange } from '../../../actions/asbestosLab';
 import _ from 'lodash';
 
@@ -643,7 +644,7 @@ class CocModal extends React.PureComponent {
                   );
                 })}
                 <Button
-                  style={{ marginTop: 24, marginLeft: 128, }}
+                  className={classes.buttonViewMore}
                   onClick={ () => { this.setState({ numberOfSamples: numberOfSamples + 10}) }}>
                   <Add className={classes.marginRightSmall} /> Add More Samples
                 </Button>

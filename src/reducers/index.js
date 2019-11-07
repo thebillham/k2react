@@ -6,6 +6,7 @@ import modalReducer from "./modal";
 import displayReducer from "./display";
 import constReducer from "./const";
 import footprintsReducer from "./footprints";
+import jobsReducer from "./jobs";
 
 const rootReducer = combineReducers({
   local: localReducer,
@@ -14,6 +15,7 @@ const rootReducer = combineReducers({
   const: constReducer,
   footprints: footprintsReducer,
   asbestosLab: asbestosLabReducer,
+  jobs: jobsReducer,
 });
 
 export default rootReducer;

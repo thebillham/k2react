@@ -22,13 +22,12 @@ const mapStateToProps = state => {
   return {
     search: state.local.search,
     me: state.local.me,
-    sampleLog: state.asbestosLab.sampleLog,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchSampleLog: update => dispatch(fetchSampleLog(update)),
+    // fetchSampleLog: update => dispatch(fetchSampleLog(update)),
   };
 };
 
@@ -43,7 +42,7 @@ class AsbestosLog extends React.Component {
   };
 
   UNSAFE_componentWillMount = () => {
-    if (this.props.sampleLog === undefined || this.props.sampleLog.length === 0) this.props.fetchSampleLog(true);
+    // if (this.props.sampleLog === undefined || this.props.sampleLog.length === 0) this.props.fetchSampleLog(true);
   };
 
   render() {

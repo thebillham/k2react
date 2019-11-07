@@ -78,13 +78,33 @@ import AppSettings from "./settings/AppSettings";
 import UpdateData from "./settings/UpdateData";
 
 import store from "../store";
-import { onSearchChange, onCatChange, sendSlackMessage, } from "../actions/local";
 
-import { fetchMe, resetLocal, copyStaff, fetchGeocodes, fetchStaff, fetchAssets, fetchWFMClients, analyseJobHistory, } from "../actions/local";
+import {
+  fetchMe,
+  resetLocal,
+  copyStaff,
+  fetchStaff,
+  fetchAssets,
+  onSearchChange,
+  onCatChange,
+  sendSlackMessage,
+} from "../actions/local";
+import {
+  fetchGeocodes,
+  analyseJobHistory,
+  fetchWFMClients,
+} from "../actions/jobs";
 import { resetModal, showModal } from "../actions/modal";
 import { resetDisplay } from "../actions/display";
 import { initConstants } from "../actions/const";
-import { fixIds, transferNoticeboardReads, restructureWAAnalysisSamples, } from "../actions/temp";
+import {
+  fixIds,
+  transferNoticeboardReads,
+  restructureWAAnalysisSamples,
+  restructureAnalysisLog,
+  restructureSampleIssueLog,
+  cleanLogs,
+} from "../actions/temp";
 
 // Pages
 const Noticeboard = lazy(() => import("./noticeboard/Noticeboard"));
@@ -93,6 +113,7 @@ const AsbestosLog = lazy(() => import("./asbestoslab/AsbestosLog"));
 const AsbestosQualityControl = lazy(() => import("./asbestoslab/AsbestosQualityControl"));
 const AsbestosStats = lazy(() => import("./asbestoslab/AsbestosStats"));
 const JobMap = lazy(() => import("./jobs/JobMap"));
+const Jobs = lazy(() => import("./jobs/Jobs"));
 const Sites = lazy(() => import("./jobs/Sites"));
 
 const Staff = lazy(() => import("./personnel/Staff"));
@@ -176,6 +197,8 @@ class MainScreen extends React.PureComponent {
     // this.props.fixIds();
     // transferNoticeboardReads();
     // restructureWAAnalysisSamples();
+    // restructureSampleIssueLog();
+    // cleanLogs();
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // analyseJobHistory();
@@ -335,11 +358,11 @@ class MainScreen extends React.PureComponent {
             </ListItemIcon>
             <ListItemText primary="Sites" />
           </ListItem>*/}
-          {menuItems.includes('Jobs Map') && <div><ListItem button component={Link} to="/jobs/map">
+          {menuItems.includes('Jobs') && <div><ListItem button component={Link} to="/jobs">
             <ListItemIcon>
               <MapIcon className={classes.colorAccent} />
             </ListItemIcon>
-            <ListItemText primary="Jobs Map" />
+            <ListItemText primary="Jobs" />
           </ListItem>
 
         <Divider /></div>}
@@ -828,7 +851,7 @@ class MainScreen extends React.PureComponent {
                     </Typography>
                     <Route
                       exact
-                      path="/(|library|training|modules|noticeboard|inventory|jobs/map|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
+                      path="/(|library|training|modules|noticeboard|inventory|jobs|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
                       render={() => (
                         <div className={classes.search}>
                           <div className={classes.searchIcon}>
@@ -911,6 +934,7 @@ class MainScreen extends React.PureComponent {
                       {/*<Route path="/incidents" component={Incidents} />*/}
                       {/*<Route exact path="/jobs" component={Jobs} />*/}
                       <Route path="/inventory" render={props => <Inventory {...props} />} />
+                      <Route exact path="/jobs" render={props => <Jobs {...props} />} />
                       <Route exact path="/jobs/map" render={props => <JobMap {...props} />} />
                       <Route exact path="/jobs/sites" render={props => <Sites {...props} />} />
                       <Route path="/asbestoslab" render={props => <AsbestosCocs {...props} />} />

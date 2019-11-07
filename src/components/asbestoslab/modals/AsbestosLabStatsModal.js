@@ -21,12 +21,10 @@ import Grid from "@material-ui/core/Grid";
 import { hideModal, showModalSecondary } from "../../../actions/modal";
 import { clearLog, dateOf, milliToDHM } from "../../../actions/local";
 import {
-  fetchSampleLog,
   writeShorthandResult,
   writeDescription,
   fetchSamples,
   fetchSampleView,
-  fetchAsbestosAnalysis,
 } from "../../../actions/asbestosLab";
 import _ from "lodash";
 import moment from "moment";
@@ -44,9 +42,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchSampleLog: () => dispatch(fetchSampleLog(50)),
     fetchSampleView: (cocUid, sampleUid, jobNumber) => dispatch(fetchSampleView(cocUid, sampleUid, jobNumber)),
-    fetchAsbestosAnalysis: () => dispatch(fetchAsbestosAnalysis(true)),
     showModalSecondary: modal => dispatch(showModalSecondary(modal)),
     hideModal: () => dispatch(hideModal()),
   };
@@ -61,7 +57,7 @@ class AsbestosLabStatsModal extends React.Component {
         onClose={this.props.hideModal}
         maxWidth="xl"
         fullWidth={true}
-        onEnter={this.props.fetchAsbestosAnalysis}
+        onEnter={null}
       >
         <DialogTitle>
           LAB STATS

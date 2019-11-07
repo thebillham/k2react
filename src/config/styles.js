@@ -570,6 +570,11 @@ const styles = theme => ({
     borderRadius: 15,
   },
 
+  buttonViewMore: {
+    marginTop: 24,
+    marginLeft: 128,
+  },
+
   redBg: {
     borderRadius: 5,
     margin: 5,

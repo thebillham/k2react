@@ -3,16 +3,9 @@ import {
   GET_ASSETS,
   GET_DOCUMENTS,
   GET_EDIT_STAFF,
-  GET_GEOCODES,
   GET_USER,
-  GET_SITES,
   GET_LOGS,
   CLEAR_LOG,
-  GET_WFM_JOBS,
-  GET_WFM_JOB,
-  GET_WFM_LEADS,
-  GET_WFM_CLIENTS,
-  GET_WFM_CONTACT,
   GET_QUIZZES,
   GET_QUIZLOG,
   GET_QUESTIONS,
@@ -28,14 +21,11 @@ import {
   GET_METHODLOG,
   GET_ME,
   SET_STEPPER,
-  GET_CURRENT_JOB_STATE,
   GET_HELP,
   GET_UPDATES,
   RESET_LOCAL,
   UPDATE_STAFF,
   GET_VEHICLES,
-  SAVE_WFM_ITEMS,
-  SAVE_WFM_STATS,
 } from "../constants/action-types";
 
 import { stateRef } from "../config/firebase";
@@ -44,10 +34,8 @@ const localInit = {
   auth: [],
   assets: [],
   category: "",
-  currentJobState: {},
   documents: [],
   editstaff: {},
-  geocodes: {},
   incidents: [],
   helps: [],
   logs: [],
@@ -60,7 +48,6 @@ const localInit = {
   quizzes: [],
   readingLog: [],
   search: null,
-  sites: [],
   staff: {},
   steppers: [],
   tools: [],
@@ -70,12 +57,6 @@ const localInit = {
   userRef: null,
   userRefName: null,
   vehicles: [],
-  wfmJob: null,
-  wfmItems: [],
-  wfmJobs: [],
-  wfmLeads: [],
-  wfmClients: [],
-  wfmStats: {},
 };
 
 // Properties related to local data retrieved from firebase
@@ -211,12 +192,6 @@ export default function localReducer(state = localInit, action) {
           ...action.payload,
         }
       };
-    case GET_SITES:
-      if (action.update) stateRef.doc("sites").set({ payload: action.payload });
-      return {
-        ...state,
-        sites: action.payload
-      };
     case GET_TOOLS:
       if (action.update) stateRef.doc("tools").set({ payload: action.payload });
       return {
@@ -246,51 +221,6 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         vehicles: action.payload
-      };
-    case GET_WFM_JOBS:
-      return {
-        ...state,
-        wfmJobs: action.payload
-      };
-    case GET_WFM_JOB:
-      return {
-        ...state,
-        wfmJob: action.payload
-      };
-    case GET_WFM_CONTACT:
-      return {
-        ...state,
-        wfmJob: {...state.wfmJob, ...action.payload}
-      };
-    case GET_WFM_LEADS:
-      return {
-        ...state,
-        wfmLeads: action.payload
-      };
-    case GET_WFM_CLIENTS:
-      return {
-        ...state,
-        wfmClients: action.payload
-      };
-    case SAVE_WFM_ITEMS:
-      return {
-        ...state,
-        wfmItems: action.payload
-      };
-    case SAVE_WFM_STATS:
-      return {
-        ...state,
-        wfmStats: action.payload
-      };
-    case GET_GEOCODES:
-      return {
-        ...state,
-        geocodes: action.payload
-      };
-    case GET_CURRENT_JOB_STATE:
-      return {
-        ...state,
-        currentJobState: action.payload
       };
     case CAT_CHANGE:
       return {

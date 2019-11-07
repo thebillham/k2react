@@ -1,4 +1,21 @@
-import { docsRef, noticesRef, noticeReadsRef, firebase, asbestosSamplesRef, firestore, asbestosWASubsamplesRef } from "../config/firebase";
+import {
+  docsRef,
+  logsRef,
+  noticesRef,
+  noticeReadsRef,
+  firebase,
+  asbestosSamplesRef,
+  firestore,
+  asbestosAnalysisRef,
+  asbestosWASubsamplesRef,
+  asbestosSampleLogRef,
+  asbestosSampleIssueLogRef,
+  asbestosAnalysisLogRef,
+  usersRef,
+} from "../config/firebase";
+import {
+  dateOf,
+} from "../actions/local";
 import moment from 'moment';
 
 export const fixIds = () => dispatch => {
@@ -6,12 +23,6 @@ export const fixIds = () => dispatch => {
   docsRef.get().then(docSnap => {
     docSnap.forEach(doc => {
       if (doc.id.includes(":")) {
-        // var id = doc.id.replace(":", "-");
-        // //console.log("Changing id " + doc.id + " to " + id);
-        // //console.log("Deleting document " + doc.id);
-        // //console.log("Deleting document " + doc.id);
-        // var data = doc.data();
-        // docsRef.doc(id).set(data);
         docsRef.doc(doc.id).delete();
       }
     });
@@ -38,66 +49,142 @@ export const transferNoticeboardReads = () => {
     });
 }
 
-// export const restructureWAAnalysisSamples = () => {
-//   console.log('Restructuring....');
-//   asbestosSamplesRef.get().then(querySnapshot => {
-//     let batch = firestore.batch();
-//     querySnapshot.forEach(sampleDoc => {
-//       let sample = sampleDoc.data();
-//       // console.log(sample);
-//       if (sample.waSoilAnalysis !== undefined) {
-//         batch.update(asbestosSamplesRef.doc(sample.uid), {
-//           layers: firebase.firestore.FieldValue.delete(),
-//           waLayerNum: firebase.firestore.FieldValue.delete(),
-//         });
-//         if (sample.waSoilAnalysis.formDescription !== undefined)
-//           batch.update(asbestosSamplesRef.doc(sample.uid), {
-//             waAnalysisFormDescription: sample.waSoilAnalysis.formDescription,
-//           });
-//         if (sample.waSoilAnalysis.fractiongt7WeightAshed !== undefined)
-//           batch.update(asbestosSamplesRef.doc(sample.uid), {
-//             waAnalysisWeightAshedGt7: sample.waSoilAnalysis.fractiongt7WeightAshed,
-//           });
-//         if (sample.waSoilAnalysis.fractionto7WeightAshed !== undefined)
-//           batch.update(asbestosSamplesRef.doc(sample.uid), {
-//             waAnalysisWeightAshedTo7: sample.waSoilAnalysis.fractionto7WeightAshed,
-//           });
-//         if (sample.waSoilAnalysis.fractionlt2WeightAshed !== undefined)
-//           batch.update(asbestosSamplesRef.doc(sample.uid), {
-//             waAnalysisWeightAshedLt2: sample.waSoilAnalysis.fractionlt2WeightAshed,
-//           });
-//         if (sample.waSoilAnalysis.fractionlt2WeightAshedSubsample !== undefined)
-//           batch.update(asbestosSamplesRef.doc(sample.uid), {
-//             waAnalysisWeightAshedLt2Subsample: sample.waSoilAnalysis.fractionlt2WeightAshedSubsample,
-//           });
-//         let subsamples = [];
-//         Object.keys(sample.waSoilAnalysis).forEach(key => {
-//           console.log(key.slice(0, 11));
-//           if (key.slice(0, 11) == 'subfraction' &&
-//             (sample.waSoilAnalysis[key].concentration !== undefined ||
-//              sample.waSoilAnalysis[key].containerID !== undefined ||
-//              sample.waSoilAnalysis[key].form !== undefined ||
-//              sample.waSoilAnalysis[key].tareWeight !== undefined ||
-//              sample.waSoilAnalysis[key].weight !== undefined)
-//             ) {
-//             console.log(key.slice(11, 14));
-//             let subsample = {
-//               ...sample.waSoilAnalysis[key],
-//               fraction: key.slice(11, 14),
-//             };
-//             subsamples.push(subsample);
-//           }
-//         });
-//         if (subsamples.length > 0) {
-//           batch.update(asbestosSamplesRef.doc(sample.uid), {
-//             waAnalysisSubsamples: subsamples,
-//           });
-//         }
-//       }
-//     });
-//     batch.commit();
-//   })
-// }
+export const restructureAnalysisLog = () => {
+  asbestosAnalysisRef.get().then(querySnapshot => {
+    querySnapshot.forEach(logDoc => {
+      if (logDoc.data().cocUID === "AS190906_PORT OTAGO_1568328045951") {
+        let log = {
+          analysisDate: logDoc.data().analysisDate,
+          analyst: logDoc.data().analyst,
+          sessionID: logDoc.data().sessionID,
+          weightReceived: logDoc.data().weightReceived,
+          result: logDoc.data().result,
+          cocUid: logDoc.data().cocUID,
+          sessionID: logDoc.data().sessionID,
+        };
+        let uid = `${logDoc.data().sampleUID}-${logDoc.data().sessionID}`;
+        let sample = {};
+        asbestosSamplesRef.doc(logDoc.data().sampleUID).get().then(sampleSnapshot => {
+          sample = sampleSnapshot.data();
+          log = {
+            ...log,
+            analysisRecordedBy: sample.analysisRecordedBy,
+            analysisStartDate: sample.analysisStartDate,
+            analysisStartedBy: sample.analysisStartedBy,
+            analysisTime: sample.analysisTime,
+            category: sample.category,
+            issueVersion: sample.issueVersion ? sample.issueVersion : 1,
+            jobNumber: sample.jobNumber,
+            material: sample.material,
+            receivedDate: sample.receivedDate,
+            sampleNumber: sample.sampleNumber,
+            genericLocation: sample.genericLocation,
+            specificLocation: sample.specificLocation,
+            description: sample.description,
+            sampleUID: sample.uid,
+            waAnalysisComplete: sample.waAnalysisComplete ? sample.waAnalysisComplete : null,
+            waTotals: sample.waTotals ? sample.waTotals : null,
+            weightAshed: sample.weightAshed ? sample.weightAshed : null,
+            weightDry: sample.weightDry ? sample.weightDry : null,
+            uid: uid,
+          }
+          asbestosAnalysisLogRef.doc(uid).set(log);
+        });
+      }
+    });
+  });
+}
+
+export const restructureSampleIssueLog = () => {
+  asbestosSampleLogRef.get().then(querySnapshot => {
+    let batch = firestore.batch();
+    querySnapshot.forEach(logDoc => {
+      // console.log(logDoc.data());
+      if (logDoc.data().cocUid === "AS190906_PORT OTAGO_1568328045951") {
+        let log = logDoc.data();
+        let uid = `${log.sampleUid}-${moment(dateOf(log.issueDate)).format('x')}`;
+        log.uid = uid;
+        batch.set(asbestosSampleIssueLogRef.doc(uid), log);
+      }
+    });
+    batch.commit();
+  });
+}
+
+export const cleanLogs = () => {
+  let counter = 1;
+  logsRef.collection("asbestosLab").get().then(querySnapshot => {
+    let batch = firestore.batch();
+    querySnapshot.forEach(logDoc => {
+      if (counter <= 499 && logDoc.data().chainOfCustody !== undefined && logDoc.data().chainOfCustody !== "AS190906_PORT OTAGO_1568328045951") {
+        batch.delete(logsRef.collection("asbestosLab").doc(logDoc.id));
+        if (counter === 499) batch.commit();
+        counter++;
+      }
+    })
+  })
+}
+
+export const copyStaff = (oldId, newId) => dispatch => {
+  usersRef
+    .doc(oldId)
+    .get()
+    .then(doc => {
+      usersRef.doc(newId).set(doc.data());
+    });
+  usersRef
+    .doc(oldId)
+    .collection("attr")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        usersRef
+          .doc(newId)
+          .collection("attr")
+          .doc(doc.id)
+          .set(doc.data());
+      });
+    });
+  usersRef
+    .doc(oldId)
+    .collection("readinglog")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        usersRef
+          .doc(newId)
+          .collection("readinglog")
+          .doc(doc.id)
+          .set(doc.data());
+      });
+    });
+  usersRef
+    .doc(oldId)
+    .collection("quizlog")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        usersRef
+          .doc(newId)
+          .collection("quizlog")
+          .doc(doc.id)
+          .set(doc.data());
+      });
+    });
+  usersRef
+    .doc(oldId)
+    .collection("myjobs")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        usersRef
+          .doc(newId)
+          .collection("myjobs")
+          .doc(doc.id)
+          .set(doc.data());
+      });
+    });
+};
 
 export const restructureWAAnalysisSamples = () => {
   console.log('Restructuring....');

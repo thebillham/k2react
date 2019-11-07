@@ -5,12 +5,9 @@ export const ADD_DOCUMENT = "ADD_DOCUMENT";
 export const AUTH_USER = "AUTH_USER";
 export const CAT_CHANGE = "CAT_CHANGE";
 export const EDIT_USER = "EDIT_USER";
-export const GET_CURRENT_JOB_STATE = "GET_CURRENT_JOB_STATE";
 export const GET_DOCUMENTS = "GET_DOCUMENTS";
 export const GET_EDIT_STAFF = "GET_EDIT_STAFF";
-export const GET_GEOCODES = "GET_GEOCODES";
 export const GET_ASSETS = "GET_ASSETS";
-export const GET_SITES = "GET_SITES";
 export const GET_LOGS = "GET_LOGS";
 export const CLEAR_LOG = "CLEAR_LOG";
 export const GET_HELP = "GET_HELP";
@@ -30,17 +27,10 @@ export const GET_TRAININGS = "GET_TRAININGS";
 export const GET_UPDATES = "GET_UPDATES";
 export const GET_USER = "GET_USER";
 export const GET_VEHICLES = "GET_VEHICLES";
-export const GET_WFM_JOBS = "GET_WFM_JOBS";
-export const GET_WFM_JOB = "GET_WFM_JOB";
-export const GET_WFM_LEADS = "GET_WFM_LEADS";
-export const GET_WFM_CLIENTS = "GET_WFM_CLIENTS";
-export const GET_WFM_CONTACT = "GET_WFM_CONTACT";
 export const RESET_LOCAL = "RESET_LOCAL";
 export const SEARCH_CHANGE = "SEARCH_CHANGE";
 export const SET_STEPPER = "SET_STEPPER";
 export const UPDATE_STAFF = "UPDATE_STAFF";
-export const SAVE_WFM_ITEMS = "SAVE_WFM_ITEMS";
-export const SAVE_WFM_STATS = "SAVE_WFM_STATS";
 
 // Modal
 export const EDIT_MODAL = "EDIT_MODAL";
@@ -70,11 +60,30 @@ export const GET_BULK_ANALYSTS = "GET_BULK_ANALYSTS";
 export const GET_COCS = "GET_COCS";
 export const GET_SAMPLES = "GET_SAMPLES";
 export const GET_SAMPLE_LOG = "GET_SAMPLE_LOG";
+export const GET_ASBESTOS_SAMPLE_ISSUE_LOGS = "GET_ASBESTOS_SAMPLE_ISSUE_LOGS";
+export const GET_ASBESTOS_ANALYSIS_LOGS = "GET_ASBESTOS_ANALYSIS_LOGS";
 export const SET_ANALYSIS_MODE = "SET_ANALYSIS_MODE";
 export const SET_ANALYST = "SET_ANALYST";
 export const SET_ANALYSIS_SESSION_ID = "SET_ANALYSIS_SESSION_ID";
 export const SET_VIEW_SAMPLE_DETAIL = "SET_VIEW_SAMPLE_DETAIL";
 export const RESET_ASBESTOS_LAB = "RESET_ASBESTOS_LAB";
+
+// Jobs
+export const GET_CURRENT_JOB_STATE = "GET_CURRENT_JOB_STATE";
+export const GET_GEOCODES = "GET_GEOCODES";
+export const ADD_TO_GEOCODES = "ADD_TO_GEOCODES";
+export const GET_SITES = "GET_SITES";
+export const GET_WFM_JOBS = "GET_WFM_JOBS";
+export const GET_WFM_JOB = "GET_WFM_JOB";
+export const GET_WFM_LEADS = "GET_WFM_LEADS";
+export const GET_WFM_CLIENTS = "GET_WFM_CLIENTS";
+export const GET_WFM_CONTACT = "GET_WFM_CONTACT";
+export const SAVE_WFM_ITEMS = "SAVE_WFM_ITEMS";
+export const SAVE_WFM_STATS = "SAVE_WFM_STATS";
+export const GET_JOB_STATS = "GET_JOB_STATS";
+export const GET_JOB_LIST = "GET_JOB_LIST";
+export const ADD_TO_JOB_LIST = "ADD_TO_JOB_LIST";
+export const RESET_JOBS = "RESET_JOBS";
 
 // Display
 export const APP_HAS_LOADED = "APP_HAS_LOADED";
