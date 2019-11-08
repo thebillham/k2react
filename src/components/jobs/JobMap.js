@@ -85,7 +85,7 @@ const mapDispatchToProps = dispatch => {
     saveStats: stats => dispatch(saveStats(stats)),
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
-    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients)),
+    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
 
@@ -333,7 +333,7 @@ class JobMap extends React.Component {
   };
 
   render() {
-    const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList } = this.props;
+    const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, } = this.props;
     if (
       wfmJobs.length > 0 &&
       wfmLeads.length > 0 &&
@@ -341,7 +341,7 @@ class JobMap extends React.Component {
       currentJobState !== undefined && Object.values(currentJobState).length > 0 &&
       jobList && Object.values(jobList).length === 0
     )
-      this.props.collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients);
+      this.props.collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes, );
     // if (Object.keys(this.state.staffStats).length > 1) {
     //   var daysMap = {};
     //   //console.log(this.state.staffStats["K2"]["completedActionOverdueDays"]);
@@ -587,445 +587,443 @@ class JobMap extends React.Component {
 
     var addresses = {};
 
-    console.log(jobList);
+    // console.log(jobList);
 
     return (
-      <div className={classes.marginTopStandard}>
-        <div style={{ marginBottom: 20 }}>
-            {this.state.jobModal && jobModal}
-            {this.state.modal && jobListModal}
+      <div style={{ marginBottom: 20 }}>
+          {this.state.jobModal && jobModal}
+          {this.state.modal && jobListModal}
 
-            <ExpansionPanel>
-              <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                FILTER VIEW
-              </ExpansionPanelSummary>
-              <ExpansionPanelDetails>
-                <div>
-                  <Grid container spacing={1}>
-                    <Grid item>
-                      <Button
-                        variant="outlined"
-                        color="default"
-                        onClick={this.resetFilter}
-                      >
-                        Reset Filter
-                      </Button>
-                    </Grid>
-                    {[
-                      "Leads",
-                      "Jobs",
-                    ].map(chip => {
-                      return (
-                        <Grid item key={chip}>
-                          <Button
-                            variant="outlined"
-                            color={
-                              this.props.filter.filterJobLead === chip ? "secondary" : "default"
-                            }
-                            onClick={() => this.filterSet(chip,"JobLead")}
-                          >
-                            {chip}
-                          </Button>
-                        </Grid>
-                      )
-                    })}
-                    <Grid>
-                      <FormControlLabel
-                        style={{ marginLeft: 1, }}
-                        control={
-                          <Checkbox
-                            checked={this.props.filter.filterViewCompleted}
-                            onChange={(event) => { this.props.filterMap({
-                              ...this.props.filter,
-                              filterViewCompleted: event.target.checked,
-                            })}}
-                            value='filterViewCompleted'
-                            color='secondary'
-                          />
-                        }
-                        label="Show Completed Jobs and Leads"
-                      />
-                    </Grid>
-                    <Grid>
-                      <FormControlLabel
-                        style={{ marginLeft: 1, }}
-                        control={
-                          <Checkbox
-                            checked={this.props.filter.filterK2Jobs}
-                            onChange={(event) => { this.props.filterMap({
-                              ...this.props.filter,
-                              filterK2Jobs: event.target.checked,
-                            })}}
-                            value='filterK2Jobs'
-                            color='secondary'
-                          />
-                        }
-                        label="Show In-House Jobs"
-                      />
-                    </Grid>
-                  </Grid>
-                  <Grid container spacing={1} style={{ marginBottom: 8 }}>
-                    {[
-                      "Lead",
-                      "On Hold",
-                      "Needs Booking",
-                      "Planned",
-                      "Site Work",
-                      "Lab",
-                      "Report",
-                      "Admin",
-                      "Completed",
-                    ].map(chip => {
-                      return (
-                        <Grid item key={chip}>
-                          <Button
-                            variant="outlined"
-                            color={
-                              this.props.filter.filterState === chip ? "secondary" : "default"
-                            }
-                            onClick={() => this.filterSet(chip,"State")}
-                          >
-                            {chip}
-                          </Button>
-                        </Grid>
-                      );
-                    })}
-                  </Grid>
-                  <Grid container spacing={1} style={{ marginBottom: 8 }}>
-                    {[
-                      "Asbestos",
-                      "Meth",
-                      "Stack",
-                      "Noise",
-                      "Bio",
-                      "Workplace",
-                      "Other"
-                    ].map(chip => {
-                      var color = getJobColor(chip);
-                      return (
-                        <Grid item key={chip}>
-                          <Button
-                            style={{ color: color }}
-                            variant="outlined"
-                            color={
-                              this.props.filter.filterCategory === chip
-                                ? "secondary"
-                                : "default"
-                            }
-                            onClick={() => this.filterSet(chip,"Category")}
-                          >
-                            {chip}
-                          </Button>
-                        </Grid>
-                      );
-                    })}
-                  </Grid>
-                  <Grid container spacing={1}>
-                    <Grid>
-                      <Checkbox
-                        checked={this.props.filter.filterUpdatedInTheLast}
-                        onChange={(event) => { this.props.filterMap({
-                          ...this.props.filter,
-                          filterUpdatedInTheLast: event.target.checked,
-                        })}}
-                        value='filterUpdatedInTheLast'
-                        color='secondary'
-                      />
-
-                      Only show jobs/leads that haven't been updated for
-                      <Input
-                        className={classes.formInputNumber}
-                        type='number'
-                        value={this.props.filter.updatedInTheLast}
-                        onChange={(event) => this.props.filterMap({
-                          ...this.props.filter,
-                          updatedInTheLast: event.target.value,
-                        })}
-                      />
-                      days or more
-                    </Grid>
-                  </Grid>
-                  <Grid container spacing={1}>
-                    <Grid>
-                      <Checkbox
-                        checked={this.props.filter.filterCreatedInTheLast}
-                        onChange={(event) => { this.props.filterMap({
-                          ...this.props.filter,
-                          filterCreatedInTheLast: event.target.checked,
-                        })}}
-                        value='filterCreatedInTheLast'
-                        color='secondary'
-                      />
-
-                      Only show jobs/leads that were created in the last
-                      <Input
-                        className={classes.formInputNumber}
-                        type='number'
-                        value={this.props.filter.createdInTheLast}
-                        onChange={(event) => { this.props.filterMap({
-                          ...this.props.filter,
-                          createdInTheLast: event.target.value,
-                        })}}
-                      />
-                      days or less
-                    </Grid>
-                  </Grid>
-                  <Grid container spacing={1}>
-                    <Grid>
-                      <Checkbox
-                        checked={this.props.filter.filterCompletedInTheLast}
-                        onChange={(event) => {
-                          this.props.filterMap({
-                          ...this.props.filter,
-                          filterViewCompleted: event.target.checked,
-                          filterCompletedInTheLast: event.target.checked,
-                        })}}
-                        value='filterCompletedInTheLast'
-                        color='secondary'
-                      />
-
-                      Only show jobs/leads that were completed in the last
-                      <Input
-                        className={classes.formInputNumber}
-                        type='number'
-                        value={this.props.filter.completedInTheLast}
-                        onChange={(event) => this.props.filterMap({
-                          ...this.props.filter,
-                          completedInTheLast: event.target.value,
-                        })}
-                      />
-                      days or less
-                    </Grid>
-                  </Grid>
-                  <Grid container spacing={1}>
-                    <Grid>
-                      <Checkbox
-                        checked={this.props.filter.filterActionsOverdueBy}
-                        onChange={(event) => { this.props.filterMap({
-                          ...this.props.filter,
-                          filterActionsOverdueBy: event.target.checked,
-                        })}}
-                        value='filterActionsOverdueBy'
-                        color='secondary'
-                      />
-
-                      Only show leads that have actions overdue by
-                      <Input
-                        className={classes.formInputNumber}
-                        type='number'
-                        value={this.props.filter.actionsOverdueBy}
-                        onChange={(event) => this.props.filterMap({
-                          ...this.props.filter,
-                          actionsOverdueBy: event.target.value,
-                        })}
-                      />
-                      days or more
-                    </Grid>
-                  </Grid>
-                </div>
-              </ExpansionPanelDetails>
-            </ExpansionPanel>
-            <Grid container spacing={1} style={{ marginTop: 12}}>
-              <Grid item>
-                <Button onClick={this.openLeadsModal} variant='outlined'>
-                  <span>
-                    View As List (
-                    {jobList &&
-                      Object.values(jobList).filter(
-                        m =>
-                          this.applyFilters(m)
-                      ).length}
-                    )
-                  </span>
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button onClick={this.openNoLocation} variant='outlined'>
-                  <span>
-                    View Jobs/Leads With No Location Data (
-                    {jobList &&
-                      Object.values(jobList).filter(
-                        m =>
-                          this.applyModalFilters(m, true)
-                      ).length}
-                    )
-                  </span>
-                </Button>
-              </Grid>
-            </Grid>
-            <Map
-              google={this.props.google}
-              zoom={6.27}
-              style={mapStyles}
-              initialCenter={{
-                lat: -40.9261681,
-                lng: 174.4070603
-              }}
-            >
-              {jobList && Object.values(jobList).map(m => {
-                if (this.filterLabels(m)) {
-                  if (addresses[m.geocode.address] >= 0) {
-                    addresses[m.geocode.address] =
-                      addresses[m.geocode.address] + 1;
-                    // //console.log(m.jobNumber + ': ' + m.geocode.address + ' (' + addresses[m.geocode.address] + ')');
-                  } else {
-                    addresses[m.geocode.address] = 0;
-                  }
-                  var url = getJobIcon(m.category);
-                  return (
-                    <Marker
-                      // animation={this.props.google.maps.Animation.DROP}
-                      key={m.wfmID}
-                      onClick={(props, marker, e) => {
-                        this.onMarkerClick(marker, m);
-                      }}
-                      position={{
-                        lat: m.geocode.location[0],
-                        lng: m.geocode.location[1]
-                      }}
-                      title={`${m.jobNumber}: ${m.client}`}
-                      icon={{
-                        url: url,
-                        anchor: new this.props.google.maps.Point(
-                          16 + this.getOffset(addresses[m.geocode.address])[0],
-                          16 + this.getOffset(addresses[m.geocode.address])[1]
-                        ),
-                        scaledSize: new this.props.google.maps.Size(32, 32)
-                      }}
-                    />
-                  );
-                } else {
-                  return false;
-                }
-              })}
-              <InfoWindow
-                marker={this.state.activeMarker}
-                visible={this.state.showingInfoWindow}
-              >
-                <div
-                  style={{
-                    width: 350,
-                    lineHeight: 2,
-                    fontSize: 14,
-                    padding: 20
-                  }}
-                >
-                  <div>
-                    <h5
-                      style={{ color: getJobColor(this.state.m.category) }}
+          <ExpansionPanel>
+            <ExpansionPanelSummary expandIcon={<ExpandMore />}>
+              FILTER VIEW
+            </ExpansionPanelSummary>
+            <ExpansionPanelDetails>
+              <div>
+                <Grid container spacing={1}>
+                  <Grid item>
+                    <Button
+                      variant="outlined"
+                      color="default"
+                      onClick={this.resetFilter}
                     >
-                      {this.state.m.jobNumber}: {this.state.m.client}
-                    </h5>
-                  </div>
-                  <div style={{ color: getJobColor(this.state.m.category) }}>
-                    <h6>{this.state.m.category}</h6>
-                  </div>
-                  {this.state.m.geocode && (
-                    <div>
-                      <i>{this.state.m.geocode.address}</i>
-                    </div>
-                  )}
-                  {this.state.m.state && (
-                    <div>
-                      <b>State:</b> {this.state.m.state}
-                    </div>
-                  )}
-                  <div>
-                    <b>Owner:</b> {this.state.m.owner}
-                  </div>
+                      Reset Filter
+                    </Button>
+                  </Grid>
+                  {[
+                    "Leads",
+                    "Jobs",
+                  ].map(chip => {
+                    return (
+                      <Grid item key={chip}>
+                        <Button
+                          variant="outlined"
+                          color={
+                            this.props.filter.filterJobLead === chip ? "secondary" : "default"
+                          }
+                          onClick={() => this.filterSet(chip,"JobLead")}
+                        >
+                          {chip}
+                        </Button>
+                      </Grid>
+                    )
+                  })}
+                  <Grid>
+                    <FormControlLabel
+                      style={{ marginLeft: 1, }}
+                      control={
+                        <Checkbox
+                          checked={this.props.filter.filterViewCompleted}
+                          onChange={(event) => { this.props.filterMap({
+                            ...this.props.filter,
+                            filterViewCompleted: event.target.checked,
+                          })}}
+                          value='filterViewCompleted'
+                          color='secondary'
+                        />
+                      }
+                      label="Show Completed Jobs and Leads"
+                    />
+                  </Grid>
+                  <Grid>
+                    <FormControlLabel
+                      style={{ marginLeft: 1, }}
+                      control={
+                        <Checkbox
+                          checked={this.props.filter.filterK2Jobs}
+                          onChange={(event) => { this.props.filterMap({
+                            ...this.props.filter,
+                            filterK2Jobs: event.target.checked,
+                          })}}
+                          value='filterK2Jobs'
+                          color='secondary'
+                        />
+                      }
+                      label="Show In-House Jobs"
+                    />
+                  </Grid>
+                </Grid>
+                <Grid container spacing={1} style={{ marginBottom: 8 }}>
+                  {[
+                    "Lead",
+                    "On Hold",
+                    "Needs Booking",
+                    "Planned",
+                    "Site Work",
+                    "Lab",
+                    "Report",
+                    "Admin",
+                    "Completed",
+                  ].map(chip => {
+                    return (
+                      <Grid item key={chip}>
+                        <Button
+                          variant="outlined"
+                          color={
+                            this.props.filter.filterState === chip ? "secondary" : "default"
+                          }
+                          onClick={() => this.filterSet(chip,"State")}
+                        >
+                          {chip}
+                        </Button>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+                <Grid container spacing={1} style={{ marginBottom: 8 }}>
+                  {[
+                    "Asbestos",
+                    "Meth",
+                    "Stack",
+                    "Noise",
+                    "Bio",
+                    "Workplace",
+                    "Other"
+                  ].map(chip => {
+                    var color = getJobColor(chip);
+                    return (
+                      <Grid item key={chip}>
+                        <Button
+                          style={{ color: color }}
+                          variant="outlined"
+                          color={
+                            this.props.filter.filterCategory === chip
+                              ? "secondary"
+                              : "default"
+                          }
+                          onClick={() => this.filterSet(chip,"Category")}
+                        >
+                          {chip}
+                        </Button>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+                <Grid container spacing={1}>
+                  <Grid>
+                    <Checkbox
+                      checked={this.props.filter.filterUpdatedInTheLast}
+                      onChange={(event) => { this.props.filterMap({
+                        ...this.props.filter,
+                        filterUpdatedInTheLast: event.target.checked,
+                      })}}
+                      value='filterUpdatedInTheLast'
+                      color='secondary'
+                    />
 
-                  {this.state.m.isJob && (
+                    Only show jobs/leads that haven't been updated for
+                    <Input
+                      className={classes.formInputNumber}
+                      type='number'
+                      value={this.props.filter.updatedInTheLast}
+                      onChange={(event) => this.props.filterMap({
+                        ...this.props.filter,
+                        updatedInTheLast: event.target.value,
+                      })}
+                    />
+                    days or more
+                  </Grid>
+                </Grid>
+                <Grid container spacing={1}>
+                  <Grid>
+                    <Checkbox
+                      checked={this.props.filter.filterCreatedInTheLast}
+                      onChange={(event) => { this.props.filterMap({
+                        ...this.props.filter,
+                        filterCreatedInTheLast: event.target.checked,
+                      })}}
+                      value='filterCreatedInTheLast'
+                      color='secondary'
+                    />
+
+                    Only show jobs/leads that were created in the last
+                    <Input
+                      className={classes.formInputNumber}
+                      type='number'
+                      value={this.props.filter.createdInTheLast}
+                      onChange={(event) => { this.props.filterMap({
+                        ...this.props.filter,
+                        createdInTheLast: event.target.value,
+                      })}}
+                    />
+                    days or less
+                  </Grid>
+                </Grid>
+                <Grid container spacing={1}>
+                  <Grid>
+                    <Checkbox
+                      checked={this.props.filter.filterCompletedInTheLast}
+                      onChange={(event) => {
+                        this.props.filterMap({
+                        ...this.props.filter,
+                        filterViewCompleted: event.target.checked,
+                        filterCompletedInTheLast: event.target.checked,
+                      })}}
+                      value='filterCompletedInTheLast'
+                      color='secondary'
+                    />
+
+                    Only show jobs/leads that were completed in the last
+                    <Input
+                      className={classes.formInputNumber}
+                      type='number'
+                      value={this.props.filter.completedInTheLast}
+                      onChange={(event) => this.props.filterMap({
+                        ...this.props.filter,
+                        completedInTheLast: event.target.value,
+                      })}
+                    />
+                    days or less
+                  </Grid>
+                </Grid>
+                <Grid container spacing={1}>
+                  <Grid>
+                    <Checkbox
+                      checked={this.props.filter.filterActionsOverdueBy}
+                      onChange={(event) => { this.props.filterMap({
+                        ...this.props.filter,
+                        filterActionsOverdueBy: event.target.checked,
+                      })}}
+                      value='filterActionsOverdueBy'
+                      color='secondary'
+                    />
+
+                    Only show leads that have actions overdue by
+                    <Input
+                      className={classes.formInputNumber}
+                      type='number'
+                      value={this.props.filter.actionsOverdueBy}
+                      onChange={(event) => this.props.filterMap({
+                        ...this.props.filter,
+                        actionsOverdueBy: event.target.value,
+                      })}
+                    />
+                    days or more
+                  </Grid>
+                </Grid>
+              </div>
+            </ExpansionPanelDetails>
+          </ExpansionPanel>
+          <Grid container spacing={1} style={{ marginTop: 12}}>
+            <Grid item>
+              <Button onClick={this.openLeadsModal} variant='outlined'>
+                <span>
+                  View As List (
+                  {jobList &&
+                    Object.values(jobList).filter(
+                      m =>
+                        this.applyFilters(m)
+                    ).length}
+                  )
+                </span>
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button onClick={this.openNoLocation} variant='outlined'>
+                <span>
+                  View Jobs/Leads With No Location Data (
+                  {jobList &&
+                    Object.values(jobList).filter(
+                      m =>
+                        this.applyModalFilters(m, true)
+                    ).length}
+                  )
+                </span>
+              </Button>
+            </Grid>
+          </Grid>
+          <Map
+            google={this.props.google}
+            zoom={6.27}
+            style={mapStyles}
+            initialCenter={{
+              lat: -40.9261681,
+              lng: 174.4070603
+            }}
+          >
+            {jobList && Object.values(jobList).map(m => {
+              if (this.filterLabels(m)) {
+                if (addresses[m.geocode.address] >= 0) {
+                  addresses[m.geocode.address] =
+                    addresses[m.geocode.address] + 1;
+                  // //console.log(m.jobNumber + ': ' + m.geocode.address + ' (' + addresses[m.geocode.address] + ')');
+                } else {
+                  addresses[m.geocode.address] = 0;
+                }
+                var url = getJobIcon(m.category);
+                return (
+                  <Marker
+                    // animation={this.props.google.maps.Animation.DROP}
+                    key={m.wfmID}
+                    onClick={(props, marker, e) => {
+                      this.onMarkerClick(marker, m);
+                    }}
+                    position={{
+                      lat: m.geocode.location[0],
+                      lng: m.geocode.location[1]
+                    }}
+                    title={`${m.jobNumber}: ${m.client}`}
+                    icon={{
+                      url: url,
+                      anchor: new this.props.google.maps.Point(
+                        16 + this.getOffset(addresses[m.geocode.address])[0],
+                        16 + this.getOffset(addresses[m.geocode.address])[1]
+                      ),
+                      scaledSize: new this.props.google.maps.Size(32, 32)
+                    }}
+                  />
+                );
+              } else {
+                return false;
+              }
+            })}
+            <InfoWindow
+              marker={this.state.activeMarker}
+              visible={this.state.showingInfoWindow}
+            >
+              <div
+                style={{
+                  width: 350,
+                  lineHeight: 2,
+                  fontSize: 14,
+                  padding: 20
+                }}
+              >
+                <div>
+                  <h5
+                    style={{ color: getJobColor(this.state.m.category) }}
+                  >
+                    {this.state.m.jobNumber}: {this.state.m.client}
+                  </h5>
+                </div>
+                <div style={{ color: getJobColor(this.state.m.category) }}>
+                  <h6>{this.state.m.category}</h6>
+                </div>
+                {this.state.m.geocode && (
+                  <div>
+                    <i>{this.state.m.geocode.address}</i>
+                  </div>
+                )}
+                {this.state.m.state && (
+                  <div>
+                    <b>State:</b> {this.state.m.state}
+                  </div>
+                )}
+                <div>
+                  <b>Owner:</b> {this.state.m.owner}
+                </div>
+
+                {this.state.m.isJob && (
+                  <div>
+                  {this.state.m.lastActionDate && (
                     <div>
-                    {this.state.m.lastActionDate && (
-                      <div>
-                        {this.state.m.state && (<span><b>Last Action:</b> State changed to <i>{this.state.m.state}</i> </span>) }
-                         ({getDaysSinceDate(this.state.m.lastActionDate)} {getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
-                      </div>
-                    )}
-                    {this.state.m.stateHistory && (
-                      <div><br /><h6 style={{ color: getJobColor(this.state.m.category) }}>State History</h6>
-                      { Object.keys(this.state.m.stateHistory).map((key) => {
+                      {this.state.m.state && (<span><b>Last Action:</b> State changed to <i>{this.state.m.state}</i> </span>) }
+                       ({getDaysSinceDate(this.state.m.lastActionDate)} {getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
+                    </div>
+                  )}
+                  {this.state.m.stateHistory && (
+                    <div><br /><h6 style={{ color: getJobColor(this.state.m.category) }}>State History</h6>
+                    { Object.keys(this.state.m.stateHistory).map((key) => {
+                      return (
+                        <span key={key}>
+                          <b>{key}:</b> {this.state.m.stateHistory[key]}<br/>
+                        </span>
+                      )
+                    }) }
+                    </div>
+                  )}
+                </div>
+                )}
+
+                {!this.state.m.isJob && (
+                  <div>
+                  {this.state.m.value > 0 && (
+                    <div>
+                      <b>Estimated Value:</b> ${this.state.m.value}{" "}
+                    </div>
+                  )}
+                  {this.state.m.lastActionDate && (
+                    <div>
+                      {this.state.m.lastActionType && (<span><b>Last Action:</b> {this.state.m.lastActionType} </span>)}
+                       ({getDaysSinceDate(this.state.m.lastActionDate)} {getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
+                    </div>
+                  )}
+                  {this.state.m.nextActionType && (
+                    <div>
+                      <b>Next Action:</b> {getNextActionType(this.state.m.activities)}{" "}
+                      {getNextActionOverdueBy(this.state.m.activities) > 0 ? (
+                        <span
+                          style={{
+                            fontColor: "#ff0000",
+                            textDecoration: "underline"
+                          }}
+                        >
+                          (Overdue by {getNextActionOverdueBy(this.state.m.activities)} days)
+                        </span>
+                      ) : (
+                        <span>
+                          (Due in {getNextActionOverdueBy(this.state.m.activities) * -1} days)
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {this.state.m.activities && this.state.m.activities.length > 0 && (
+                    <div><br /><h6 style={{ color: getJobColor(this.state.m.category) }}>Activities</h6>
+                    { this.state.m.activities.map((activity) => {
+                      if(activity.completed === 'Yes') {
                         return (
-                          <span key={key}>
-                            <b>{key}:</b> {this.state.m.stateHistory[key]}<br/>
+                          <span key={activity.date} style={{ textDecoration: 'line-through'}}>
+                            <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
+                            <br/>
                           </span>
                         )
-                      }) }
-                      </div>
-                    )}
-                  </div>
-                  )}
-
-                  {!this.state.m.isJob && (
-                    <div>
-                    {this.state.m.value > 0 && (
-                      <div>
-                        <b>Estimated Value:</b> ${this.state.m.value}{" "}
-                      </div>
-                    )}
-                    {this.state.m.lastActionDate && (
-                      <div>
-                        {this.state.m.lastActionType && (<span><b>Last Action:</b> {this.state.m.lastActionType} </span>)}
-                         ({getDaysSinceDate(this.state.m.lastActionDate)} {getDaysSinceDate(this.state.m.lastActionDate) === 1 ? 'day' : 'days'} ago)
-                      </div>
-                    )}
-                    {this.state.m.nextActionType && (
-                      <div>
-                        <b>Next Action:</b> {getNextActionType(this.state.m.activities)}{" "}
-                        {getNextActionOverdueBy(this.state.m.activities) > 0 ? (
-                          <span
-                            style={{
-                              fontColor: "#ff0000",
-                              textDecoration: "underline"
-                            }}
-                          >
-                            (Overdue by {getNextActionOverdueBy(this.state.m.activities)} days)
+                      } else {
+                        return (
+                          <span key={activity.date}>
+                            <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
+                            <br/>
                           </span>
-                        ) : (
-                          <span>
-                            (Due in {getNextActionOverdueBy(this.state.m.activities) * -1} days)
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {this.state.m.activities && this.state.m.activities.length > 0 && (
-                      <div><br /><h6 style={{ color: getJobColor(this.state.m.category) }}>Activities</h6>
-                      { this.state.m.activities.map((activity) => {
-                        if(activity.completed === 'Yes') {
-                          return (
-                            <span key={activity.date} style={{ textDecoration: 'line-through'}}>
-                              <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
-                              <br/>
-                            </span>
-                          )
-                        } else {
-                          return (
-                            <span key={activity.date}>
-                              <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
-                              <br/>
-                            </span>
-                          )
-                        }
-                      }) }
-                      </div>
-                    )}
+                        )
+                      }
+                    }) }
                     </div>
                   )}
-
-                  <div style={{ padding: 16, textAlign: "center" }}>
-                    <a
-                      style={{ textDecoration: "none", color: "#FF2D00" }}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href={getWfmUrl(this.state.m)}
-                    >
-                      View on WorkflowMax
-                    </a>
                   </div>
+                )}
+
+                <div style={{ padding: 16, textAlign: "center" }}>
+                  <a
+                    style={{ textDecoration: "none", color: "#FF2D00" }}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={getWfmUrl(this.state.m)}
+                  >
+                    View on WorkflowMax
+                  </a>
                 </div>
-              </InfoWindow>
-            </Map>
-          </div>
+              </div>
+            </InfoWindow>
+          </Map>
       </div>
     );
   }

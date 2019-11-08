@@ -76,7 +76,7 @@ const mapStateToProps = state => {
     search: state.local.search,
     me: state.local.me,
     staff: state.local.staff,
-    clients: state.local.wfmClients,
+    clients: state.jobs.wfmClients,
     bulkAnalysts: state.asbestosLab.bulkAnalysts,
     airAnalysts: state.asbestosLab.airAnalysts,
     analyst: state.asbestosLab.analyst,

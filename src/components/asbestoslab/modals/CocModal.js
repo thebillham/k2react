@@ -58,7 +58,7 @@ const mapStateToProps = state => {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
-    wfmJob: state.local.wfmJob,
+    wfmJob: state.jobs.wfmJob,
     me: state.local.me,
     userRefName: state.local.userRefName,
     staff: state.local.staff,

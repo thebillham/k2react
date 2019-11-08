@@ -483,6 +483,7 @@ export const saveStats = stats => dispatch => {
 export const analyseJobHistory = () => {
   sendSlackMessage(`${auth.currentUser.displayName} ran analyseJobHistory`);
   // vars
+  console.log('Running job history');
   const buckets = [
     'jobs',
     'asbestos',
@@ -508,7 +509,6 @@ export const analyseJobHistory = () => {
 
   var leadBuckets = {};
   var allBuckets = [];
-
   // get all wfm daily states from firebase
   stateRef
     .doc("wfmstate")
@@ -516,8 +516,11 @@ export const analyseJobHistory = () => {
     .get()
     .then(querySnapshot => {
       querySnapshot.forEach(doc => {
-      // Loop through each day of the saved states
+        // console.log(doc);
+        // Loop through each day of the saved states
+        console.log(doc.id);
         var state = doc.data()['state'];
+        // console.log(state);
         // Loop through current job map and check if any are missing from this state (e.g. they have been completed since the last state)
         if (state.length > 0) {
           buckets.forEach((bucket) => {
@@ -533,6 +536,13 @@ export const analyseJobHistory = () => {
                     ...jobMap[bucket][job.wfmID]['stateHistory'],
                     [doc.id]: 'Completed',
                   };
+
+
+                  if (job.wfmID === "38030211") {
+                    console.log(job.state);
+                    console.log(jobMap[bucket][job.wfmID].state);
+                    console.log(jobMap[bucket][job.wfmID]);
+                  }
 
                   // Add to calendar of when jobs were completed
                   var completionDoc = {
@@ -560,6 +570,7 @@ export const analyseJobHistory = () => {
         // Loop through each job/lead in the state
         // This will not loop through any completed jobs
         state.forEach(job => {
+          // console.log(job);
           if (job.isJob) {
             // Split job Maps into Workplace, Asbestos and Other to prevent firebase documents being too large
             var bucket = 'jobs';
@@ -590,6 +601,12 @@ export const analyseJobHistory = () => {
                   ...mappedJob.stateHistory,
                   [doc.id]: job.state,
                 };
+
+                if (job.wfmID === "38030211") {
+                  console.log(job.state);
+                  console.log(mappedJob.state);
+                  console.log(mappedJob);
+                }
               }
               if (job.geocode !== mappedJob.geocode) {
                 if ((job.geocode && job.geocode.address === "New Zealand") || (mappedJob.geocode && mappedJob.geocode.address === "New Zealand")) {
@@ -664,11 +681,12 @@ export const analyseJobHistory = () => {
           }
         });
       });
-      console.log(jobCategorys);
+      // console.log(jobCategorys);
       allBuckets = buckets.concat(Object.keys(leadBuckets));
       // console.log(leadBuckets);
+      buckets.forEach((bucket) => console.log(jobMap[bucket]));
       allBuckets.forEach((bucket) => {
-        // console.log(bucket);
+        // console.log(jobMap[bucket]);
         stateRef.doc("wfmstate").collection("current").doc(bucket).set(jobMap[bucket]);
       });
       stateRef.doc("wfmstate").collection("timeline").doc('completion').set(completionMap);
@@ -941,8 +959,8 @@ export const saveCurrentJobState = state => dispatch => {
   allBuckets = buckets.concat(Object.keys(leadBuckets));
 
   allBuckets.forEach((bucket) => {
-    console.log(sortedState[bucket]);
-    console.log(Object.keys(sortedState[bucket]).length);
+    // console.log(sortedState[bucket]);
+    // console.log(Object.keys(sortedState[bucket]).length);
     stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket]);
   });
 };
@@ -989,9 +1007,9 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
     add = checkAddress(clientAddress, geocodes);
   }
 
-  if (this.props.geocodes[add] != undefined) {
+  if (geocodes[add] != undefined) {
     // console.log("Already there");
-    lead.geocode = this.props.geocodes[add];
+    lead.geocode = geocodes[add];
     dispatch({type: ADD_TO_JOB_LIST, payload: lead, });
   } else {
     if (add !== "NULL") {
@@ -1002,7 +1020,7 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
       fetch(path)
         .then(response => response.json())
         .then(response => {
-          var gc = this.props.geocodes;
+          var gc = geocodes;
           // if (response.status = "ZERO_RESULTS") {
           //   lead.geocode = { address: "New Zealand" };
           // } else {
@@ -1022,7 +1040,7 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
   }
 };
 
-export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients) => dispatch => {
+export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch => {
   console.log("COLLATING LEADS AND JOBS");
   var mappedJobs = {};
 
@@ -1032,11 +1050,17 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients) 
     completedJobMap[job.wfmID] = job;
   })
   var currentState = {...currentJobState};
+  // console.log(geocodes);
+  // console.log(wfmJobs);
+  // console.log(wfmLeads);
+  // console.log(currentJobState);
 
   // Convert jobs into a 'lead' type object
   wfmJobs.forEach(job => {
+    // console.log(job);
     var today = moment().format('YYYY-MM-DD');
     var mappedJob = currentState[job.wfmID];
+    console.log(mappedJob);
     delete currentState[job.wfmID];
     if (mappedJob !== undefined) {
       if (mappedJob.nextActionType !== undefined) delete mappedJob.nextActionType;
@@ -1050,7 +1074,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients) 
 
       // Check state has changed
       if (job.wfmState !== mappedJob.state) {
-        // //console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
+        console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
         mappedJob.lastActionDate = today;
         mappedJob.state = job.wfmState;
         mappedJob.stateHistory[today] = job.wfmState;
@@ -1065,6 +1089,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients) 
           job.address,
           getAddressFromClient(job.clientID, wfmClients),
           mappedJob,
+          geocodes,
         );
       } else {
         mappedJobs = {
@@ -1073,7 +1098,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients) 
         };
       }
     } else {
-      // console.log('Making new job: ' + job['wfmID']);
+      console.log('Making new job: ' + job['wfmID']);
       var newJob = {};
       newJob.wfmID = job.wfmID;
       newJob.client = job.client;
@@ -1098,6 +1123,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients) 
         job.address,
         getAddressFromClient(job.clientID, wfmClients),
         newJob,
+        geocodes,
       );
     }
   });
@@ -1137,6 +1163,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients) 
           wfmLead.name,
           getAddressFromClient(wfmLead.clientID, wfmClients),
           lead,
+          geocodes,
         );
       } else {
         mappedJobs = {
@@ -1194,7 +1221,8 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients) 
       handleGeocode(
         wfmLead.name,
         getAddressFromClient(wfmLead.clientID, wfmClients),
-        lead
+        lead,
+        geocodes,
       );
     }
   });
@@ -1219,7 +1247,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients) 
     ...recentlyCompletedMap,
   }
 
-  console.log(jobList);
+  // console.log(jobList);
 
   dispatch({
     type: GET_JOB_LIST,
