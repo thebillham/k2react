@@ -214,7 +214,7 @@ class AsbestosCocs extends React.Component {
           >
             Sample Log
           </Button>
-          <Button
+          {/*<Button
             variant="outlined"
             className={classes.marginLeftBottomSmall}
             onClick={() => {
@@ -245,7 +245,7 @@ class AsbestosCocs extends React.Component {
             }}
           >
             Lab Manager
-          </Button>
+          </Button>*/}
         </span>
         <div className={classes.flexRow}>
           <div className={classes.searchBoxRoot}>

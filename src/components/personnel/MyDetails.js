@@ -33,6 +33,7 @@ import AttrList from "./components/MyDetailsAttrListItem";
 import { USER_ATTR, EDITSTAFF } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import { getUserAttrs, getEditStaff, fetchStaff, getEmailSignature, } from "../../actions/local";
+import { displayTimeDifference, } from "../../actions/helpers";
 import { tabMyDetails, } from "../../actions/display";
 import _ from "lodash";
 
@@ -125,24 +126,25 @@ class UserDetails extends React.Component {
       user = this.props.me;
     }
     if (user.startdate) {
-      var timeAtK2 = new Date() - new Date(user.startdate);
-      var divideBy = {
-        d: 86400000,
-        m: 2629800000,
-        y: 31557600000
-      };
-      var years = Math.floor(timeAtK2 / divideBy["y"]);
-      timeAtK2 = timeAtK2 % divideBy["y"];
-      var months = Math.floor(timeAtK2 / divideBy["m"]);
-      timeAtK2 = timeAtK2 % divideBy["m"];
-      var days = Math.floor(timeAtK2 / divideBy["d"]);
-      let y = " years ";
-      let m = " months and ";
-      let d = " days";
-      if (years === 1) y = " year ";
-      if (months === 1) m = " month and ";
-      if (days === 1) d = " day";
-      return years + y + months + m + days + d;
+      return displayTimeDifference(user.startdate);
+      // var timeAtK2 = new Date() - new Date(user.startdate);
+      // var divideBy = {
+      //   d: 86400000,
+      //   m: 2629800000,
+      //   y: 31557600000
+      // };
+      // var years = Math.floor(timeAtK2 / divideBy["y"]);
+      // timeAtK2 = timeAtK2 % divideBy["y"];
+      // var months = Math.floor(timeAtK2 / divideBy["m"]);
+      // timeAtK2 = timeAtK2 % divideBy["m"];
+      // var days = Math.floor(timeAtK2 / divideBy["d"]);
+      // let y = " years ";
+      // let m = " months and ";
+      // let d = " days";
+      // if (years === 1) y = " year ";
+      // if (months === 1) m = " month and ";
+      // if (days === 1) d = " day";
+      // return years + y + months + m + days + d;
     } else {
       return "No start date set";
     }

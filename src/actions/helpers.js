@@ -46,26 +46,35 @@ export const milliToDHM = (t, verbose, businessTime) => {
 }
 
 export const displayTimeDifference = date => {
-  var timeDifference = new Date() - new Date(date);
+  var timeDifference = new Date() - dateOf(date);
   var divideBy = {
     d: 86400000,
     m: 2629800000,
     y: 31557600000
   };
+  var timeList = [];
   var years = Math.floor(timeDifference / divideBy["y"]);
   timeDifference = timeDifference % divideBy["y"];
   var months = Math.floor(timeDifference / divideBy["m"]);
   timeDifference = timeDifference % divideBy["m"];
   var days = Math.floor(timeDifference / divideBy["d"]);
-  let y = years + " years ";
-  let m = months + " months ";
+  if (days < 0) days = 0;
+  let y = years + " years";
+  let m = months + " months";
   let d = days + " days";
-  if (years === 1) y = years + " year ";
-  if (months === 1) m = months + " month ";
+  if (years === 1) y = years + " year";
+  if (months === 1) m = months + " month";
   if (days === 1) d = days + " day";
-  if (years === 0) y = "";
-  if (months === 0) m = "";
-  return y + m + d;
+  if (years > 0) {
+    timeList.push(y);
+    timeList.push(m);
+    timeList.push(d);
+    return andList(timeList);
+  } else if (months > 0) {
+    timeList.push(m);
+    timeList.push(d);
+    return andList(timeList);
+  } else return d;
 };
 
 export const getDaysSinceDate = date => {

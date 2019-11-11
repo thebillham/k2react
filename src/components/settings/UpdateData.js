@@ -101,7 +101,7 @@ class UpdateData extends React.Component {
       },
       {
         event: analyseJobHistory,
-        title: "Job Map"
+        title: "Jobs"
       },
     ];
     return (
@@ -112,16 +112,16 @@ class UpdateData extends React.Component {
         <DialogTitle>Update Cached Data</DialogTitle>
         <DialogContent>
           {updateTypes.map(update => (
-            <div key={update.title}>
+            <span key={update.title}>
               <Button
                 variant="outlined"
                 color="default"
-                style={{ marginTop: 16 }}
+                className={this.props.classes.marginLeftBottomSmall}
                 onClick={update.event}
               >
                 {update.title}
               </Button>
-            </div>
+            </span>
           ))}
         </DialogContent>
         <DialogActions>

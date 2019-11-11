@@ -118,8 +118,8 @@ class Jobs extends React.Component {
           <Tab label="Leads" />
           <Tab label="Map" />
           <Tab label="Stats" />
-          <Tab label="Permissions" />
         </Tabs>
+        {this.state.tabValue !== 2 && (<div className={classes.paleLarge}>Under Development</div>)}
         {/*
         {this.state.tabValue === 0 && (
           <div width='100%'>

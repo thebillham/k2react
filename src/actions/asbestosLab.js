@@ -567,7 +567,7 @@ export const logSample = (coc, sample, cocStats, version) => {
   }
 
   let uid = `${log.sampleUid}-${moment(dateOf(log.issueDate)).format('x')}`;
-  asbestosSampleIssueLogRef.doc(uid).add(log);
+  asbestosSampleIssueLogRef.doc(uid).set(log);
 }
 
 
@@ -879,19 +879,19 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
           name: me.name,
           uid: me.uid,
         },
-        analysisStartDate: sample.analysisStartDate,
-        analysisStartedBy: sample.analysisStartedBy,
-        analysisTime: sample.analysisTime,
+        analysisStartDate: sample.analysisStartDate ? sample.analysisStartDate : new Date(),
+        analysisStartedBy: sample.analysisStartedBy ? sample.analysisStartedBy : {name: me.name, uid: me.uid},
+        analysisTime: sample.analysisTime ? sample.analysisTime : 0,
         category: sample.category ? sample.category : 'Other',
         issueVersion: job.currentVersion ? job.currentVersion : 1,
-        jobNumber: sample.jobNumber,
+        jobNumber: sample.jobNumber ? sample.jobNumber : null,
         material: sample.material ? sample.material : null,
-        receivedDate: sample.receivedDate,
-        sampleNumber: sample.sampleNumber,
+        receivedDate: sample.receivedDate ? sample.receivedDate : new Date(),
+        sampleNumber: sample.sampleNumber ? sample.sampleNumber : null,
         genericLocation: sample.genericLocation ? sample.genericLocation : null,
         specificLocation: sample.specificLocation ? sample.specificLocation : null,
         description: sample.description ? sample.description : null,
-        sampleUID: sample.uid,
+        sampleUID: sample.uid ? sample.uid : null,
         waAnalysisComplete: sample.waAnalysisComplete ? sample.waAnalysisComplete : null,
         waTotals: sample.waTotals ? sample.waTotals : null,
         weightAshed: sample.weightAshed ? sample.weightAshed : null,

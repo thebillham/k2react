@@ -90,6 +90,7 @@ class LoggedSamplesModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType, sampleLog, asbestosAnalysis } = this.props;
+    console.log(sampleLog);
     return (modalType === ASBESTOS_LOGGED_SAMPLES &&
       <Dialog
         open={modalType === ASBESTOS_LOGGED_SAMPLES}
@@ -200,12 +201,12 @@ class LoggedSamplesModal extends React.Component {
                       </Grid>
                     );
                   })}
+                  <Button
+                    className={classes.buttonViewMore}
+                    onClick={this.increaseIssueLimit}>
+                    <Add className={classes.marginRightSmall} /> View More Logs
+                  </Button>
               </Grid>
-              <Button
-                className={classes.buttonViewMore}
-                onClick={this.increaseIssueLimit}>
-                <Add className={classes.marginRightSmall} /> View More Logs
-              </Button>
             </Grid>
           :
             <Grid container direction="column">

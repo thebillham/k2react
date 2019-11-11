@@ -30,6 +30,19 @@ import {
 } from "./helpers";
 // import assetData from "./assetData.json";
 
+const buckets = [
+  'jobs',
+  'asbestos',
+  'asbestosbulkid',
+  'asbestosclearance',
+  'asbestosbackground',
+  'workplace',
+  'meth',
+  'bio',
+  'stack',
+  'noise'
+];
+
 export const resetJobs = () => dispatch => {
   dispatch({ type: RESET_JOBS });
 };
@@ -481,21 +494,21 @@ export const saveStats = stats => dispatch => {
 
 // This function looks through all the daily states from the states collection and creates an up-to-date picture of the job state
 export const analyseJobHistory = () => {
-  sendSlackMessage(`${auth.currentUser.displayName} ran analyseJobHistory`);
+  // sendSlackMessage(`${auth.currentUser.displayName} ran analyseJobHistory`);
   // vars
   console.log('Running job history');
-  const buckets = [
-    'jobs',
-    'asbestos',
-    'asbestosbulkid',
-    'asbestosclearance',
-    'asbestosbackground',
-    'workplace',
-    'meth',
-    'bio',
-    'stack',
-    'noise'
-  ];
+  // const buckets = [
+  //   'jobs',
+  //   'asbestos',
+  //   'asbestosbulkid',
+  //   'asbestosclearance',
+  //   'asbestosbackground',
+  //   'workplace',
+  //   'meth',
+  //   'bio',
+  //   'stack',
+  //   'noise'
+  // ];
   var jobMap = {};
   buckets.forEach((bucket) => {
     jobMap[bucket] = {};
@@ -516,9 +529,7 @@ export const analyseJobHistory = () => {
     .get()
     .then(querySnapshot => {
       querySnapshot.forEach(doc => {
-        // console.log(doc);
         // Loop through each day of the saved states
-        console.log(doc.id);
         var state = doc.data()['state'];
         // console.log(state);
         // Loop through current job map and check if any are missing from this state (e.g. they have been completed since the last state)
@@ -526,9 +537,7 @@ export const analyseJobHistory = () => {
           buckets.forEach((bucket) => {
             if (jobMap[bucket] !== undefined) {
               Object.values(jobMap[bucket]).forEach((job) => {
-                if (job.state !== 'Completed' && state.filter((stateJob) => stateJob.wfmID === job.wfmID).length === 0) {
-                  // console.log(job);
-                  // Job or lead has been completed
+                if (job.state !== 'Completed' && state.filter((stateJob) => stateJob.wfmID === job.wfmID).length === 0 && state.filter((stateJob) => stateJob.isJob).length > 0) {
                   jobMap[bucket][job.wfmID]['state'] = 'Completed';
                   jobMap[bucket][job.wfmID]['completionDate'] = doc.id;
                   jobMap[bucket][job.wfmID]['lastActionDate'] = doc.id;
@@ -536,13 +545,6 @@ export const analyseJobHistory = () => {
                     ...jobMap[bucket][job.wfmID]['stateHistory'],
                     [doc.id]: 'Completed',
                   };
-
-
-                  if (job.wfmID === "38030211") {
-                    console.log(job.state);
-                    console.log(jobMap[bucket][job.wfmID].state);
-                    console.log(jobMap[bucket][job.wfmID]);
-                  }
 
                   // Add to calendar of when jobs were completed
                   var completionDoc = {
@@ -570,7 +572,6 @@ export const analyseJobHistory = () => {
         // Loop through each job/lead in the state
         // This will not loop through any completed jobs
         state.forEach(job => {
-          // console.log(job);
           if (job.isJob) {
             // Split job Maps into Workplace, Asbestos and Other to prevent firebase documents being too large
             var bucket = 'jobs';
@@ -588,45 +589,50 @@ export const analyseJobHistory = () => {
             if (mappedJob !== undefined) {
             // Update current job (Check if state has been updated)
               if (job.state !== mappedJob.state) {
-                // State has been updated
-
                 // Create a list of all job states/change dates (not necessary)
                 if (jobTypes[job.state] !== undefined) jobTypes[job.state][bucket] = ''; else jobTypes[job.state] = {[bucket]: ''};
                 if (stateChangeDates[doc.id] !== undefined) stateChangeDates[doc.id][bucket] = ''; else stateChangeDates[doc.id] = {[bucket]: ''};
+                let update = true;
 
-                // Update mapped job
+                if (mappedJob.state === 'Completed') {
+                  // Mapped job was incorrectly marked as completed
+                  // console.log(mappedJob);
+                  mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).forEach(k => {
+                    if (mappedJob.stateHistory[k] === 'Completed') {
+                      // console.log(mappedJob.stateHistory);
+                      delete mappedJob.stateHistory[k];
+                      if (completionMap[k]) {
+                        delete completionMap[k];
+                      }
+                      // console.log(mappedJob.stateHistory);
+                    }
+                  });
+                  if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] && mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.state) update = false;
+                }
+
                 mappedJob.state = job.state;
-                mappedJob.lastActionDate = doc.id;
-                mappedJob.stateHistory = {
-                  ...mappedJob.stateHistory,
-                  [doc.id]: job.state,
-                };
 
-                if (job.wfmID === "38030211") {
-                  console.log(job.state);
-                  console.log(mappedJob.state);
-                  console.log(mappedJob);
+                if (update) {
+                  // Update mapped job
+                  mappedJob.lastActionDate = doc.id;
+                  mappedJob.stateHistory = {
+                    ...mappedJob.stateHistory,
+                    [doc.id]: job.state,
+                  };
+                } else {
+                  mappedJob.lastActionDate = Object.keys(mappedJob.stateHistory).slice(-1)[0];
+                  // console.log(Object.keys(mappedJob.stateHistory).slice(-1)[0]);
                 }
               }
               if (job.geocode !== mappedJob.geocode) {
                 if ((job.geocode && job.geocode.address === "New Zealand") || (mappedJob.geocode && mappedJob.geocode.address === "New Zealand")) {
                   if (mappedJob.geocode.address === "New Zealand" && job.geocode.address !== "New Zealand") {
                     mappedJob.geocode = job.geocode;
-                    // console.log(mappedJob);
-                    // console.log(jobMap[bucket][job.wfmID]);
                   }
                 }
               }
               // Add to mapped jobs
-              // jobMap[bucket][job.wfmID] = mappedJob;
             } else {
-              // Talley how many jobs in each category (not necessary)
-              if (jobCategorys[job.category] !== undefined) {
-                jobCategorys[job.category] = jobCategorys[job.category] + 1;
-              } else {
-                jobCategorys[job.category] = 1;
-              }
-
               // Add new job to map
               job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
               job.lastActionDate = doc.id;
@@ -681,12 +687,9 @@ export const analyseJobHistory = () => {
           }
         });
       });
-      // console.log(jobCategorys);
+
       allBuckets = buckets.concat(Object.keys(leadBuckets));
-      // console.log(leadBuckets);
-      buckets.forEach((bucket) => console.log(jobMap[bucket]));
       allBuckets.forEach((bucket) => {
-        // console.log(jobMap[bucket]);
         stateRef.doc("wfmstate").collection("current").doc(bucket).set(jobMap[bucket]);
       });
       stateRef.doc("wfmstate").collection("timeline").doc('completion').set(completionMap);
@@ -927,7 +930,6 @@ export const saveCurrentJobState = state => dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran saveCurrentJobState`);
   // Sort into buckets to prevent firestore rejecting objects that are too large
   var sortedState = {};
-  const buckets = ['jobs','asbestos','asbestosbulkid','asbestosclearance','asbestosbackground','workplace','meth','bio','stack','noise'];
   var allBuckets = [];
   var leadBuckets = {};
   buckets.forEach((bucket) => {
@@ -1072,13 +1074,42 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
         mappedJob.stateHistory[mappedJob.creationDate] = 'Job Started';
       }
 
-      // Check state has changed
-      if (job.wfmState !== mappedJob.state) {
-        console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
-        mappedJob.lastActionDate = today;
-        mappedJob.state = job.wfmState;
-        mappedJob.stateHistory[today] = job.wfmState;
+      let update = true;
+
+      if (mappedJob.state === 'Completed') {
+        // Mapped job was incorrectly marked as completed
+        // console.log(mappedJob);
+        mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).forEach(k => {
+          if (mappedJob.stateHistory[k] === 'Completed') {
+            // console.log(mappedJob.stateHistory);
+            delete mappedJob.stateHistory[k];
+            // console.log(mappedJob.stateHistory);
+          }
+        });
+        if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] && mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.state) update = false;
       }
+
+      mappedJob.state = job.wfmState;
+
+      if (update) {
+        // Update mapped job
+        mappedJob.lastActionDate = today;
+        mappedJob.stateHistory = {
+          ...mappedJob.stateHistory,
+          [today]: job.state,
+        };
+      } else {
+        mappedJob.lastActionDate = Object.keys(mappedJob.stateHistory).slice(-1)[0];
+        // console.log(Object.keys(mappedJob.stateHistory).slice(-1)[0]);
+      }
+
+      // // Check state has changed
+      // if (job.wfmState !== mappedJob.state) {
+      //   // console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
+      //   mappedJob.lastActionDate = today;
+      //   mappedJob.state = job.wfmState;
+      //   mappedJob.stateHistory[today] = job.wfmState;
+      // }
 
       // Check if address has changed
       // if (mappedJob.name !== job.address || mappedJob.geocode.address === "New Zealand") {

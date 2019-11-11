@@ -1146,6 +1146,7 @@ export const getEmailSignature = user => {
   let officePhone = '+64 3 384 8966';
   if (user.office === 'Auckland' || user.office === 'Hamilton') officePhone = '+64 9 275 1261';
   let logo = `<img style='text-align: "left";' height='38px' width='128px' src="https://www.k2.co.nz/wp-content/uploads/2019/01/email_logos.png" alt="IANZ/OHSAS">`;
+  if (user.office !== 'Christchurch') logo =  `<img style='text-align: "left";' height='38px' width='128px' src="https://www.k2.co.nz/wp-content/uploads/2019/11/email_logos_non_chch.png" alt="IANZ">`;
   let addresses = {
     Auckland: `Unit 23, 203 Kirkbride Road,<br />Airport Oaks, <b>Auckland</b> 2022`,
     Wellington: `5/408 Hutt Road, Alicetown,<br /><b>Lower Hutt</b> 5010`,
