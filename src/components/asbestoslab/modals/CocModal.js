@@ -599,7 +599,8 @@ class CocModal extends React.PureComponent {
                       </div>
                       <div className={classes.columnMedSmall}>
                         <DatePicker
-                          value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].sampleDate ? doc.samples[i+1].sampleDate : this.state.defaultSampleDate}
+                          value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].sampleDate !== undefined ? doc.samples[i+1].sampleDate :
+                            this.state.defaultSampleDate}
                           autoOk
                           format="ddd, D MMMM YYYY"
                           disabled={disabled}
@@ -657,7 +658,6 @@ class CocModal extends React.PureComponent {
               this.props.resetModal()
             }} color="secondary">Cancel</Button>
             <Button disabled={!this.state.modified || !wfmSynced} onClick={() => {
-              console.log(doc.samples);
               if (wfmJob.client) {
                 doc.jobNumber = doc.jobNumber ? doc.jobNumber.toUpperCase().trim() : null;
                 doc.client = wfmJob.client ? wfmJob.client.trim() : null;

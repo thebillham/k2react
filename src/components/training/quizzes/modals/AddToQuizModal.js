@@ -44,7 +44,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class UpdateCertificateVersion extends React.Component {
+class AddToQuizModal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -156,5 +156,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(UpdateCertificateVersion)
+  )(AddToQuizModal)
 );

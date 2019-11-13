@@ -442,6 +442,12 @@ const styles = theme => ({
     fontStyle: "italic"
   },
 
+  noItems: {
+    marginTop: theme.spacing(1),
+    fontSize: 14,
+    color: '#ccc',
+  },
+
   underline: {
     fontWeight: 500,
     textDecoration: 'underline',

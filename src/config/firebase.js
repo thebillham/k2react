@@ -26,10 +26,10 @@ const auth = firebase.auth();
 const storage = firebase.storage();
 
 const appSettingsRef = firestore.collection("appsettings");
-const asbestosAnalysisRef = firestore.collection("lab").doc("asbestos").collection("analysis");
 const asbestosSamplesRef = firestore.collection("lab").doc("asbestos").collection("samples");
 const asbestosAnalysisLogRef = firestore.collection("lab").doc("asbestos").collection("analysisLog");
 const asbestosSampleIssueLogRef = firestore.collection("lab").doc("asbestos").collection("sampleIssueLog");
+const asbestosCheckLogRef = firestore.collection("lab").doc("asbestos").collection("checkLog");
 const asbestosWASubsamplesRef = firestore.collection("lab").doc("asbestos").collection("wasubsamples");
 const asbestosSampleLogRef = firestore.collection("lab").doc("asbestos").collection("sampleLog");
 const cocsRef = firestore.collection("lab").doc("asbestos").collection("cocs");
@@ -58,7 +58,7 @@ const usersRef = firestore.collection("users");
 const vehiclesRef = firestore.collection("vehicles");
 
 // Test collections
-// const asbestosAnalysisRef = firestore.collection("test_lab").doc("asbestos").collection("analysis");
+// const asbestosAnalysisLogRef = firestore.collection("test_lab").doc("asbestos").collection("analysis");
 // const asbestosSamplesRef = firestore.collection("test_lab").doc("asbestos").collection("samples");
 // const asbestosSampleLogRef = firestore.collection("test_lab").doc("asbestos").collection("sampleLog");
 // const cocsRef = firestore.collection("test_lab").doc("asbestos").collection("cocs");
@@ -67,12 +67,12 @@ const vehiclesRef = firestore.collection("vehicles");
 export { app, auth, firebase, firestore, provider, storage };
 export {
   appSettingsRef,
-  asbestosAnalysisRef,
   asbestosSamplesRef,
   asbestosWASubsamplesRef,
   asbestosSampleLogRef,
   asbestosSampleIssueLogRef,
   asbestosAnalysisLogRef,
+  asbestosCheckLogRef,
   assetsRef,
   modelsRef,
   manufacturersRef,

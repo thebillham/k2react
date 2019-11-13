@@ -87,8 +87,9 @@ class AsbestosSampleListItem extends React.Component {
       return true; // List has been opened
     }
     if (nextProps.expanded !== nextProps.job) return false; // List is not expanded (hidden)
-    nextProps.cocs[nextProps.job].sampleList && console.log(nextProps.cocs[nextProps.job].sampleList[0]);
+    // nextProps.cocs[nextProps.job].sampleList && console.log(nextProps.cocs[nextProps.job].sampleList[0]);
     if (nextProps.cocs[nextProps.job].sampleList && nextProps.cocs[nextProps.job].sampleList[0] === nextProps.sample) return true;
+    if (this.props.samples[this.props.job][this.props.sample].sampleNumber !== nextProps.samples[nextProps.job][nextProps.sample].sampleNumber) return true;
     if (this.props.samples[this.props.job] === nextProps.samples[nextProps.job]) return false;
     if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
     if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
@@ -173,7 +174,7 @@ class AsbestosSampleListItem extends React.Component {
                   </IconButton>
                 }
                 {/*</Tooltip>*/}
-                {/*<Tooltip id="det-tooltip" title={'Sample Details'}>*/}
+                <Tooltip id="det-tooltip" title={'Sample Details'}>
                   <IconButton
                     onClick={event => {
                       this.props.showModal({
@@ -186,7 +187,7 @@ class AsbestosSampleListItem extends React.Component {
                   >
                     <SampleDetailsIcon className={classes.iconRegular}/>
                   </IconButton>
-                {/*</Tooltip>*/}
+                </Tooltip>
                 {/*{job.waAnalysis &&
                   <Tooltip id="wa-tooltip" title={editor ? 'WA Analysis' : sample.waAnalysisComplete ? 'WA Analysis Complete' : 'WA Analysis Incomplete'}>
                     <IconButton
@@ -203,26 +204,26 @@ class AsbestosSampleListItem extends React.Component {
                     </IconButton>
                   </Tooltip>
                 }*/}
-                {/*<Tooltip id="cr-tooltip" title={editor ? 'Result Checks' : confirmColor === 'Red' ? 'Contradictory result given by other analyst' : confirmColor === 'Green' ? 'Result confirmed by another analyst' : 'Slightly different result given by other analyst'}>*/}
+                <Tooltip id="cr-tooltip" title={editor ? 'Result Checks' : confirmColor === 'Red' ? 'Contradictory result given by other analyst' : confirmColor === 'Green' ? 'Result confirmed by another analyst' : 'Slightly different result given by other analyst'}>
                   <IconButton
-                    onClick={event => editor ?
+                    onClick={event =>
                       this.props.showModal({
                         modalType: CONFIRM_RESULT,
                         modalProps: {
-                          title: `Confirm Result for ${
+                          title: `Analysis Checks for ${
                             job.jobNumber
                           }-${sample.sampleNumber.toString()}`,
                           sample: sample,
                           jobUid: job.uid,
                         }
-                      }) : null
+                      })
                     }
                   >
                     {confirmColor === 'Red' ? <ThumbsDown className={classes.iconRegularRed} /> :
                     <ConfirmIcon className={classes[`iconRegular${confirmColor}`]} />}
                   </IconButton>
-                {/*</Tooltip>*/}
-                {/*<Tooltip id="h-tooltip" title={sample.onHold ? 'Take Sample off Hold' : 'Put Sample on Hold'}>*/}
+                </Tooltip>
+                <Tooltip id="h-tooltip" title={sample.onHold ? 'Take Sample off Hold' : 'Put Sample on Hold'}>
                   <IconButton
                     onClick={event => {
                       //console.log('Clicked');
@@ -230,8 +231,8 @@ class AsbestosSampleListItem extends React.Component {
                     }}>
                     <HoldIcon className={sample.onHold ? classes.iconRegularRed : classes.iconRegular} />
                   </IconButton>
-                {/*</Tooltip>*/}
-                {/*<Tooltip id="sl-tooltip" title={'Sample Log'}>*/}
+                </Tooltip>
+                <Tooltip id="sl-tooltip" title={'Sample Log'}>
                   <IconButton
                     onClick={event => {
                       this.props.showModal({
@@ -246,7 +247,7 @@ class AsbestosSampleListItem extends React.Component {
                   >
                     <SampleLogIcon className={classes.iconRegular}/>
                   </IconButton>
-                {/*</Tooltip>*/}
+                </Tooltip>
               </div>
             </Grid>
           </Grid>

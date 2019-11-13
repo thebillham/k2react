@@ -338,7 +338,7 @@ class AsbestosBulkCocCard extends React.Component {
                 </MenuItem>
                 <MenuItem>
                   <CSVLink
-                    data={filteredSamples ? verifySamples(Object.values(filteredSamples), job, this.props.me.uid, true) : null}
+                    data={filteredSamples ? verifySamples(Object.values(filteredSamples), job, this.props.me.uid, true, false) : null}
                     filename={`${job.jobNumber}_issues_to_fix.csv`}
                   >
                     Download Issues as CSV

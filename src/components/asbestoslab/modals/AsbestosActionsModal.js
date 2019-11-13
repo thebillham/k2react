@@ -69,6 +69,7 @@ const mapStateToProps = state => {
   return {
     me: state.local.me,
     staff: state.local.staff,
+    otherOptions: state.const.otherOptions,
     sessionID: state.asbestosLab.sessionID,
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
@@ -179,6 +180,9 @@ class AsbestosActionsModal extends React.Component {
     let issuesIncomplete = false;
     let blockAll = false;
     let issuesMap = {};
+    let allowSameUserVerification = false;
+    if (this.props.otherOptions && this.props.otherOptions.filter(v => v.option === "allowSameUserVerification")[0].value === "true")
+      allowSameUserVerification = true;
     if (this.state.mode === 'issues') {
       // SUBMITTED FROM THE ISSUES SCREEN
       let sampleGates = {};
@@ -246,7 +250,7 @@ class AsbestosActionsModal extends React.Component {
 
       if (this.props.modalProps.field === 'receivedByLab') checkMap = receiveSamples(checks);
       else if (this.props.modalProps.field === 'analysisStarted') checkMap = startAnalyses(checks);
-      else if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job, this.props.me.uid);
+      else if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job, this.props.me.uid, false, allowSameUserVerification);
       else if (this.props.modalProps.field === 'issue') checkMap = checkTestCertificateIssue(this.props.samples[this.props.modalProps.job.uid], this.props.modalProps.job, this.props.me.uid);
       else if (this.props.modalProps.field === 'verifySubsample') checkMap = verifySubsamples(this.state.subsamples, this.props.modalProps.job, this.props.me.uid, this.state.duplicateIDs)
       // let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};

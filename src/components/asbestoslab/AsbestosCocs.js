@@ -38,7 +38,6 @@ import {
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import CocModal from "./modals/CocModal";
-import UpdateCertificateVersionModal from "./modals/UpdateCertificateVersionModal";
 import SoilDetailsModal from "./modals/SoilDetailsModal";
 import AsbestosSampleEditModal from "./modals/AsbestosSampleEditModal";
 import DownloadLabCertificateModal from "./modals/DownloadLabCertificateModal";
@@ -65,6 +64,7 @@ import TextField from "@material-ui/core/TextField";
 import moment from "moment";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
+import classNames from "classnames";
 
 import {
   DatePicker,
@@ -167,12 +167,11 @@ class AsbestosCocs extends React.Component {
       holidays: [],
     });
 
-    console.log('Asbestos Cocs Re-Rendering');
+    // console.log('Asbestos Cocs Re-Rendering');
 
     return (
       <div className={classes.marginTopStandard}>
         { modalType === ASBESTOS_COC_EDIT && <CocModal /> }
-        { modalType === UPDATE_CERTIFICATE_VERSION && <UpdateCertificateVersionModal /> }
         { modalType === ASBESTOS_SAMPLE_LOG && <SampleLogModal /> }
         { modalType === ASBESTOS_SAMPLE_EDIT && <AsbestosSampleEditModal /> }
         { modalType === DOWNLOAD_LAB_CERTIFICATE && <DownloadLabCertificateModal /> }
@@ -333,7 +332,12 @@ class AsbestosCocs extends React.Component {
             </div>
           )}
         </div>
-        {Object.keys(cocs)
+        {cocs && Object.keys(cocs).length === 0 ?
+          <div className={classes.marginTopSmall}>
+            <LinearProgress color="secondary" />
+          </div>
+        :
+          Object.keys(cocs)
           .filter(job => {
             let res = true;
             if (this.props.search) {
@@ -352,8 +356,8 @@ class AsbestosCocs extends React.Component {
             if (cocs[job].deleted === true) res = false;
             return res;
           }).length < 1 ? (
-            <div className={classes.marginTopSmall}>
-              <LinearProgress color="secondary" />
+            <div className={classNames(classes.marginTopSmall, classes.noItems)}>
+              No Chains of Custody to display.
             </div>
           ) : (
             <div className={classes.marginTopSmall}>

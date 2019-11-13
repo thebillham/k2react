@@ -6,7 +6,6 @@ import {
   firebase,
   asbestosSamplesRef,
   firestore,
-  asbestosAnalysisRef,
   asbestosWASubsamplesRef,
   asbestosSampleLogRef,
   asbestosSampleIssueLogRef,
@@ -50,7 +49,7 @@ export const transferNoticeboardReads = () => {
 }
 
 export const restructureAnalysisLog = () => {
-  asbestosAnalysisRef.get().then(querySnapshot => {
+  asbestosAnalysisLogRef.get().then(querySnapshot => {
     querySnapshot.forEach(logDoc => {
       if (logDoc.data().cocUID === "AS190906_PORT OTAGO_1568328045951") {
         let log = {

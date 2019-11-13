@@ -58,6 +58,7 @@ import {
   getConfirmColor,
   compareAsbestosResult,
   getWATotalDetails,
+  overrideResult,
 } from "../../../actions/asbestosLab";
 import moment from "moment";
 import {
@@ -184,6 +185,7 @@ class AsbestosSampleEditModal extends React.Component {
         //console.log(`This state override sample ${!this.state.override[sample.sampleNumber]}`);
       }
       if (window.confirm("This sample has already been analysed. Do you wish to override the result?")) {
+        overrideResult(sample, {name: me.name, uid: me.uid});
         if (!this.state.override) {
           override = {[sampleNumber]: true};
         } else {
@@ -329,9 +331,12 @@ class AsbestosSampleEditModal extends React.Component {
     let weightReceived = 0;
     let originalSamples = this.props.samples[this.props.modalProps.activeCoc];
     let batch = firestore.batch();
+    console.log('Saving multiple samples');
 
     await Object.values(this.state.samples).forEach(sample => {
+      console.log(sample);
       if (originalSamples[sample.sampleNumber].result !== sample.result || originalSamples[sample.sampleNumber].weightReceived !== sample.weightReceived) {
+        console.log('Changing analysis');
         if (sample.verified)
           verifySample(batch, sample,
             this.props.cocs[this.props.modalProps.activeCoc],
@@ -605,8 +610,8 @@ class AsbestosSampleEditModal extends React.Component {
             <Grid item xs={6}>
             {sample.material !== 'soil' && <div>
               <div className={classes.subHeading}>Sampling Method</div>
-                {SamplesRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
-                  [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
+                {SamplesRadioSelector(this, sample, 'samplingMethod', 'bulk', 'Sampling Method',
+                  [{value: 'bulk', label: 'Bulk'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
                 {(sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab') &&
                 <div>
                   <InputLabel>{`Number of ${sample.samplingMethod}s`}</InputLabel>
@@ -711,7 +716,7 @@ class AsbestosSampleEditModal extends React.Component {
           {sample.confirm && <div><Divider className={classes.marginTopSmall} />
             <div className={classNames(classes.subHeading, classes.flexRowCenter)}>Result Checks</div>
             {Object.keys(sample.confirm).map(key => {
-              if (key !== 'totalNum') return <AsbestosSampleEditConfirmRow key={sample.confirm[key].date} confirm={sample.confirm[key]} that={this} />;
+              if (key !== 'totalNum' && sample.confirm[key].deleted !== true) return <AsbestosSampleEditConfirmRow key={sample.confirm[key].date} confirm={sample.confirm[key]} that={this} />;
             })}
           </div>}
           {waAnalysis && <div>

@@ -281,6 +281,13 @@ const settings = {
     fields: [],
     hint: 'Enter each menu item on a new line.',
   },
+  otherOptions: {
+    label: 'Other Options',
+    value: 'otherOptions',
+    group: 'other',
+    fields: ['option','value'],
+    hint: 'Set option to true or false.',
+  },
   appVersion: {
     label: 'App Version',
     value: 'appVersion',
@@ -402,7 +409,7 @@ class AppSettings extends React.Component {
                 },
               }}
               value={text}
-              helperText={setting ? settings[setting].hint : ''}
+              helperText={setting && settings[setting] ? settings[setting].hint : ''}
               className={classes.dialogFieldTall}
               onChange={e => this.setState({ text: e.target.value })}
             />

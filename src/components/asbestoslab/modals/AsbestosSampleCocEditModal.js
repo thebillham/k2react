@@ -410,8 +410,8 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
 
             <div className={classes.marginTopSmall}>
               <InputLabel>Sampling Method</InputLabel>
-              {SampleRadioSelector(this, sample, 'samplingMethod', 'normal', 'Sampling Method',
-                [{value: 'normal', label: 'Normal'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
+              {SampleRadioSelector(this, sample, 'samplingMethod', 'bulk', 'Sampling Method',
+                [{value: 'bulk', label: 'Bulk'},{value: 'tape', label: 'Tape'},{value: 'swab', label: 'Swab'}])}
             </div>
             {(sample.samplingMethod === 'tape' || sample.samplingMethod === 'swab') &&
             <div>

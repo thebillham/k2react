@@ -265,7 +265,7 @@ class AsbestosSampleDetailsModal extends React.Component {
               <Grid item xs={6}>
                 <div className={classes.informationBox}>
                   <div className={classes.heading}>Sample Details</div>
-                  {SampleTextyLine('Sampling Personnel', sample.sampledBy ? sample.sampledBy.map(e => e.name).join(", ") : 'Not specified')}
+                  {SampleTextyLine('Sampling Personnel', sample.sampledBy && sample.sampledBy.length > 0 ? sample.sampledBy.map(e => e.name).join(", ") : 'Not specified')}
                   {SampleTextyLine('Sampling Date(s)', sample.sampleDate ? moment(dateOf(sample.sampleDate)).format("dddd, D MMMM YYYY") : 'Not specified')}
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                     {SampleTextyDisplay('Weight Received',sample.weightReceived ? sample.weightReceived + 'g' : 'N/A')}

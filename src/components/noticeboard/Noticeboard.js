@@ -22,6 +22,7 @@ import { auth, usersRef, noticesRef } from "../../config/firebase";
 import store from "../../store";
 import moment from "moment";
 import _ from "lodash";
+import classNames from "classnames";
 import {
   onFavNotice,
   onReadNotice,
@@ -208,12 +209,7 @@ class Noticeboard extends React.PureComponent {
           label="Show Read Notices"
         />
         <Grid container spacing={1}>
-          {[
-            {
-              key: "fav",
-              desc: "Favourites",
-            },
-            ...this.props.categories].map(cat => {
+          { this.props.categories.map(cat => {
             return (
               <Grid item key={cat.key}>
                 <Button
@@ -230,18 +226,26 @@ class Noticeboard extends React.PureComponent {
           })}
         </Grid>
 
-        {notices.length < 1 && <div className={classes.marginTopSmall}>
-          <LinearProgress color="secondary" />
-        </div>}
-        <Grid container spacing={2} style={{ paddingTop: 30 }}>
-          {notices.map(notice => {
-              return (
-                <Grid item sm={12} md={6} lg={4} xl={3} key={notice.uid}>
-                  <NoticeCard notice={notice} />
-                </Grid>
-              );
-            })}
-        </Grid>
+        {this.props.notices && this.props.notices.length === 0 ?
+          <div className={classes.marginTopSmall}>
+            <LinearProgress color="secondary" />
+          </div>
+          :
+          notices.length === 0 ?
+          <div className={classNames(classes.marginTopSmall, classes.noItems)}>
+            No notices to display.
+          </div>
+          :
+          <Grid container spacing={2} style={{ paddingTop: 30 }}>
+            {notices.map(notice => {
+                return (
+                  <Grid item sm={12} md={6} lg={4} xl={3} key={notice.uid}>
+                    <NoticeCard notice={notice} />
+                  </Grid>
+                );
+              })}
+          </Grid>
+        }
         {this.state.noticeLimit < unslicedNotices.length && <div className={classes.flexRowCentered}>
           <Button
             onClick={ () => { this.setState({ noticeLimit: this.state.noticeLimit + 12}) }}>
