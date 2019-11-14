@@ -6,7 +6,6 @@ import {
   firebase,
   asbestosSamplesRef,
   firestore,
-  asbestosWASubsamplesRef,
   asbestosSampleLogRef,
   asbestosSampleIssueLogRef,
   asbestosAnalysisLogRef,
@@ -185,31 +184,31 @@ export const copyStaff = (oldId, newId) => dispatch => {
     });
 };
 
-export const restructureWAAnalysisSamples = () => {
-  console.log('Restructuring....');
-  asbestosSamplesRef.get().then(querySnapshot => {
-    let batch = firestore.batch();
-    querySnapshot.forEach(sampleDoc => {
-      let sample = sampleDoc.data();
-      // console.log(sample);
-      if (sample.waAnalysisSubsamples !== undefined && sample.waAnalysisSubsamples.length > 0) {
-        sample.waAnalysisSubsamples.forEach(subsample => {
-          let containerID = 'XXX';
-          let fraction = '-';
-          let form = 'fff';
-          if (subsample.containerID !== undefined) containerID = subsample.containerID;
-          if (subsample.fraction !== undefined) fraction = subsample.fraction;
-          if (subsample.form !== undefined) form = subsample.form;
-          subsample.sampleUid = sample.uid;
-          subsample.jobNumber = sample.jobNumber;
-          subsample.cocUid = sample.cocUid;
-          let uid = `${sample.jobNumber}-${sample.sampleNumber}-${containerID}-${fraction}-${form}-CREATED-${moment().format('x')}-${Math.round(
-            Math.random() * 1000
-          )}`;
-          batch.set(asbestosWASubsamplesRef.doc(uid), subsample);
-        });
-      }
-    });
-    batch.commit();
-  })
-}
+// export const restructureWAAnalysisSamples = () => {
+//   console.log('Restructuring....');
+//   asbestosSamplesRef.get().then(querySnapshot => {
+//     let batch = firestore.batch();
+//     querySnapshot.forEach(sampleDoc => {
+//       let sample = sampleDoc.data();
+//       // console.log(sample);
+//       if (sample.waAnalysisSubsamples !== undefined && sample.waAnalysisSubsamples.length > 0) {
+//         sample.waAnalysisSubsamples.forEach(subsample => {
+//           let containerID = 'XXX';
+//           let fraction = '-';
+//           let form = 'fff';
+//           if (subsample.containerID !== undefined) containerID = subsample.containerID;
+//           if (subsample.fraction !== undefined) fraction = subsample.fraction;
+//           if (subsample.form !== undefined) form = subsample.form;
+//           subsample.sampleUid = sample.uid;
+//           subsample.jobNumber = sample.jobNumber;
+//           subsample.cocUid = sample.cocUid;
+//           let uid = `${sample.jobNumber}-${sample.sampleNumber}-${containerID}-${fraction}-${form}-CREATED-${moment().format('x')}-${Math.round(
+//             Math.random() * 1000
+//           )}`;
+//           batch.set(asbestosWASubsamplesRef.doc(uid), subsample);
+//         });
+//       }
+//     });
+//     batch.commit();
+//   })
+// }

@@ -78,6 +78,7 @@ export const fetchWFMJobs = () => async dispatch => {
           ? wfmJob.Description
           : "No description";
         if (wfmJob.Client) {
+          console.log(wfmJob.Client);
           job.client = wfmJob.Client.Name
             ? wfmJob.Client.Name
             : "No client name";
@@ -304,7 +305,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
   }job.api/get/${jobNumber}?apiKey=${
     process.env.REACT_APP_WFM_API
   }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
-  console.log(path);
+  // console.log(path);
   fetch(path)
     .then(results => results.text())
     .then(data => {
@@ -325,6 +326,7 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
           ? wfmJob.Description
           : "No description";
         if (wfmJob.Client) {
+          console.log(wfmJob.Client);
           job.client = wfmJob.Client.Name
             ? wfmJob.Client.Name
             : "No client name";
@@ -356,25 +358,38 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
                 } else {
                   let contact = json.Response.Contact;
                   let wfmContact = {};
-                  //console.log(contact);
-                  wfmContact.contactID = contactID;
-                  wfmContact.contactName = contact.Name;
-                  wfmContact.contactEmail = contact.Email instanceof String ? contact.Email.toLowerCase() : '';
+                  console.log(contact);
+                  job.contact = {
+                    wfmID: contactID,
+                    name: contact.Name ? contact.Name.toString().trim() : '',
+                    position: contact.Position === Object(contact.Position) ? '' : contact.Position.toString().trim(),
+                    mobile: contact.Mobile === Object(contact.Mobile) ? '' : contact.Mobile.toString().replace('-',' ').trim(),
+                    phone: contact.Phone === Object(contact.Phone) ? '' : contact.Phone.toString().replace('-',' ').trim(),
+                    email: contact.Email === Object(contact.Email) ? '' : contact.Email.toString().toLowerCase().trim(),
+                  }
                   dispatch({
-                    type: GET_WFM_CONTACT,
-                    payload: wfmContact,
+                    type: GET_WFM_JOB,
+                    payload: job
+                  });
+                  dispatch({
+                    type: EDIT_MODAL_DOC,
+                    payload: job
                   });
                 }
               });
           } else {
-            job.contactName = "No contact name";
-            job.contactEmail = "No contact email";
-            job.contactID = "No contact ID";
+            job.contact = {
+              wfmID: null,
+              name: null,
+              email: null,
+            };
           }
         } else {
-          job.contactName = "No contact name";
-          job.contactEmail = "No contact email";
-          job.contactID = "No contact ID";
+          job.contact = {
+            wfmID: null,
+            name: null,
+            email: null,
+          };
         }
         if (wfmJob.Manager) {
           job.manager = wfmJob.Manager.Name
@@ -405,6 +420,10 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
           type: GET_WFM_JOB,
           payload: job
         });
+        dispatch({
+          type: EDIT_MODAL_DOC,
+          payload: job
+        })
       }
     });
 };

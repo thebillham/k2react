@@ -203,3 +203,16 @@ export const sendSlackMessage = (message, json) => {
     body: JSON.stringify(text)
   });
 };
+
+export const mapsAreEqual = (res1, res2) => {
+  let res = true;
+  if (res1 && res2) {
+    Object.keys(res1).forEach(k => {
+      if (res1[k] !== res2[k]) res = false;
+    });
+    Object.keys(res2).forEach(k => {
+      if (res1[k] !== res2[k]) res = false;
+    });
+  }
+  return res;
+}

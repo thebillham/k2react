@@ -184,6 +184,23 @@ const styles = theme => ({
     margin: theme.spacing(1),
   },
 
+  informationBoxWhite: {
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: theme.spacing(1),
+    fontSize: 12,
+    margin: theme.spacing(1),
+  },
+
+  informationBoxWhiteRounded: {
+    borderRadius: theme.spacing(1),
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: theme.spacing(1),
+    fontSize: 12,
+    margin: theme.spacing(1),
+  },
+
   commentBox: {
     borderStyle: 'solid',
     borderRadius: 5,

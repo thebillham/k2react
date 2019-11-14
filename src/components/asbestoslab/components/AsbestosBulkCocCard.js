@@ -351,13 +351,13 @@ class AsbestosBulkCocCard extends React.Component {
                     Download Sample Data as CSV
                   </CSVLink>
                 </MenuItem>
-                <MenuItem>
+                {job.waAnalysis && <MenuItem>
                   <CSVLink data={getSubsampleData(filteredSamples, job)}
                     filename={`${job.jobNumber}_subsample_data.csv`}
                   >
                     Download Subsample Data as CSV
                   </CSVLink>
-                </MenuItem>
+                </MenuItem>}
                 {/*<MenuItem
                   onClick={() => {
                     this.props.showModal({

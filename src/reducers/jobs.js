@@ -49,7 +49,7 @@ export default function jobsReducer(state = jobsInit, action) {
     case GET_WFM_JOB:
       return {
         ...state,
-        wfmJob: action.payload
+        wfmJob: {...state.wfmJob, ...action.payload}
       };
     case GET_WFM_CONTACT:
       return {

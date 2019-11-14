@@ -195,6 +195,7 @@ class CocModal extends React.PureComponent {
 
   render() {
     const { modalProps, modalType, doc, wfmJob, classes, me } = this.props;
+    // console.log(doc);
     if (modalType === ASBESTOS_COC_EDIT) {
       const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
       // console.log(this.state.recentSuggestionsGenericLocation);
@@ -207,7 +208,8 @@ class CocModal extends React.PureComponent {
       let numberOfSamples = Math.max(...sampleNumbers);
       let wfmSynced = doc.jobNumber && !modalProps.isNew;
 
-      const blockInput = !doc.uid && (!wfmSynced || modalProps.error);
+      let blockInput = !doc.uid && (!wfmSynced || modalProps.error);
+      if (blockInput !== false) blockInput = true;
 
       return(
         <Dialog
@@ -222,59 +224,60 @@ class CocModal extends React.PureComponent {
           <DialogContent>
             <Grid container spacing={1}>
               <Grid item xs={12} lg={2}>
-                  <Grid container spacing={1}>
-                    <Grid item xs={4} lg={12}>
-                      <div className={classes.flexRow}>
-                        <FormControl style={{ width: '100%', marginRight: 8, }}>
-                          <InputLabel shrink>Job Number</InputLabel>
-                          <Input
-                            id="jobNumber"
-                            defaultValue={doc && doc.jobNumber}
-                            disabled={!blockInput}
-                            onChange={e => {
-                              // this.setState({ modified: true, });
-                              this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'').toUpperCase()})}
-                            }
-                            // startAdornment={<InputAdornment position="start">AS</InputAdornment>}
-                          />
-                        </FormControl>
-                        {((doc && doc.wfmID) || (wfmJob && wfmJob.wfmID)) && <Tooltip title="View Job on WorkflowMax">
-                          <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${wfmJob ? wfmJob.wfmID : doc.wfmID}`) }>
-                            <Link className={classes.iconRegular}/>
-                          </IconButton>
-                        </Tooltip>}
-                        <Tooltip title="Sync Job with WorkflowMax">
-                          <IconButton onClick={ this.wfmSync }>
-                            <Sync className={classes.iconRegular}/>
-                          </IconButton>
-                        </Tooltip>
-                      </div>
-                      {modalProps.error &&
-                        <div className={classes.informationBox}>
-                          { modalProps.error }
-                        </div>
-                      }
-                      {!modalProps.isNew && wfmJob &&
-                      (
-                        <div>
-                          { wfmJob.client ?
-                            <div className={classes.informationBox}>
-                              <b>{doc.jobNumber}</b><br />
-                              <b>{ wfmJob.wfmType}</b><br />
-                              { wfmJob.client }<br />
-                              { wfmJob.address }<br />
-                            </div>
-                            :
-                            <div>{doc.type !== 'bulk' && <div className={classes.informationBox}>
-                              <b>{doc.jobNumber}</b><br />
-                              <b>{ doc.wfmType}</b><br />
-                              { doc.client }<br />
-                              { doc.address }<br />
-                            </div>}</div>
+                <Grid container spacing={1}>
+                  <Grid item xs={4} lg={12}>
+                    <div className={classes.flexRow}>
+                      <FormControl style={{ width: '100%', marginRight: 8, }}>
+                        <InputLabel shrink>Job Number</InputLabel>
+                        <Input
+                          id="jobNumber"
+                          defaultValue={doc && doc.jobNumber}
+                          disabled={!blockInput}
+                          onChange={e => {
+                            // this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'').toUpperCase()})}
                           }
-                        </div>
+                          // startAdornment={<InputAdornment position="start">AS</InputAdornment>}
+                        />
+                      </FormControl>
+                      {((doc && doc.wfmID) || (wfmJob && wfmJob.wfmID)) && <Tooltip title="View Job on WorkflowMax">
+                        <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${wfmJob ? wfmJob.wfmID : doc.wfmID}`) }>
+                          <Link className={classes.iconRegular}/>
+                        </IconButton>
+                      </Tooltip>}
+                      <Tooltip title="Sync Job with WorkflowMax">
+                        <IconButton onClick={ this.wfmSync }>
+                          <Sync className={classes.iconRegular}/>
+                        </IconButton>
+                      </Tooltip>
+                    </div>
+                    {modalProps.error &&
+                      <div className={classes.informationBox}>
+                        { modalProps.error }
+                      </div>
+                    }
+                    {!modalProps.isNew && wfmJob && !modalProps.error &&
+                      (
+                      <div>
+                        { wfmJob.client ?
+                          <div className={classes.informationBox}>
+                            <b>{doc.jobNumber}</b><br />
+                            <b>{ wfmJob.wfmType}</b><br />
+                            { wfmJob.client }<br />
+                            { wfmJob.address }<br />
+                          </div>
+                          :
+                          <div>{doc.type !== 'bulk' && <div className={classes.informationBox}>
+                            <b>{doc.jobNumber}</b><br />
+                            <b>{ doc.wfmType}</b><br />
+                            { doc.client }<br />
+                            { doc.address }<br />
+                          </div>}</div>
+                        }
+                      </div>
                       )
                     }
+                    <div className={classes.informationBoxWhiteRounded}>
                       <TextField
                         id="labInstructions"
                         label="Lab Instructions"
@@ -288,8 +291,6 @@ class CocModal extends React.PureComponent {
                           this.props.handleModalChange({id: 'labInstructions', value: e.target.value});
                         }}
                       />
-                    </Grid>
-                    <Grid item xs={8} lg={12}>
                       <FormControlLabel
                         control={
                           <Switch
@@ -318,6 +319,10 @@ class CocModal extends React.PureComponent {
                         }
                         label="Clearance"
                       />
+                    </div>
+                  </Grid>
+                  <Grid item xs={8} lg={12}>
+                    <div className={classes.informationBoxWhiteRounded}>
                       <FormControlLabel
                         control={
                           <Switch
@@ -346,6 +351,8 @@ class CocModal extends React.PureComponent {
                           <div>{doc.acmInSoilLimit ? this.props.acmInSoilLimits.filter(e => e.value === doc.acmInSoilLimit)[0].description : this.props.acmInSoilLimits.filter(e => e.value === '0.01')[0].description}</div>
                         </div>
                       </div>}
+                    </div>
+                    <div className={classes.informationBoxWhiteRounded}>
                       <FormControlLabel
                         control={
                           <Switch
@@ -364,26 +371,51 @@ class CocModal extends React.PureComponent {
                         <TextField
                           id="labContactName"
                           label="Contact Name"
-                          defaultValue={doc && doc.labContactName ? doc.labContactName : doc.contactName}
+                          value={doc && doc.labContactName ? doc.labContactName : doc.contact && doc.contact.name ? doc.contact.name : ''}
                           onChange={e => {
                             this.setState({ modified: true, });
                             this.props.handleModalChange({id: 'labContactName', value: e.target.value});
                           }}
                         />
                         <TextField
-                      id="labContactNumber"
-                      label="Contact Number/Email"
-                      defaultValue={doc && doc.labContactNumber ? doc.labContactNumber : doc.contactEmail}
+                          id="labContactNumber"
+                          label="Contact Number"
+                          value={doc && doc.labContactNumber ? doc.labContactNumber : doc.contact && doc.contact.mobile ? doc.contact.mobile : doc.contact && doc.contact.phone ? doc.contact.phone : ''}
+                          onChange={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'labContactNumber', value: e.target.value});
+                          }}
+                        />
+                        <TextField
+                          id="labContactEmail"
+                          label="Contact Email"
+                          value={doc && doc.labContactEmail ? doc.labContactEmail : doc.contact && doc.contact.email ? doc.contact.email : ''}
+                          onChange={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'labContactEmail', value: e.target.value});
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className={classes.informationBoxWhiteRounded}>
+                      <TextField
+                      id="letterAddress"
+                      label="Cover Letter Address"
+                      style={{ width: '100%' }}
+                      defaultValue={doc && doc.labInstructions}
+                      rows={5}
+                      helperText='The address to be put on the front page of the certificate cover letter.'
+                      multiline
                       onChange={e => {
                         this.setState({ modified: true, });
-                        this.props.handleModalChange({id: 'labContactNumber', value: e.target.value});
+                        this.props.handleModalChange({id: 'labInstructions', value: e.target.value});
                       }}
                     />
-                      </div>
-                      {/*<div>
-                      {writeDates(doc.samples, 'sampleDate')}
-                      </div>*/}
-                    </Grid>
+                    </div>
+                    {/*<div>
+                    {writeDates(doc.samples, 'sampleDate')}
+                    </div>*/}
+                  </Grid>
                   </Grid>
               </Grid>
               <Grid item xs={12} lg={10}>
@@ -438,6 +470,7 @@ class CocModal extends React.PureComponent {
 
                 {Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                   let disabled = blockInput || doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
+                  if (!disabled) disabled = false;
                   return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
                     <div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
                       <div className={classes.spacerSmall} />
@@ -663,9 +696,7 @@ class CocModal extends React.PureComponent {
                 doc.client = wfmJob.client ? wfmJob.client.trim() : null;
                 doc.address = wfmJob.address ? wfmJob.address.trim() : null;
                 doc.clientOrderNumber = wfmJob.clientOrderNumber.trim() ? wfmJob.clientOrderNumber : null;
-                doc.contactID = wfmJob.contactID ? wfmJob.contactID.trim() : null;
-                doc.contactName = wfmJob.contactName ? wfmJob.contactName.trim() : null;
-                doc.contactEmail = wfmJob.contactEmail ? wfmJob.contactEmail.trim() : null;
+                doc.contact = wfmJob.contact ? wfmJob.contact : null;
                 doc.dueDate = wfmJob.dueDate ? wfmJob.dueDate : null;
                 doc.manager = wfmJob.manager ? wfmJob.manager.trim() : null;
                 doc.managerID = wfmJob.managerID ? wfmJob.managerID.trim() : null;

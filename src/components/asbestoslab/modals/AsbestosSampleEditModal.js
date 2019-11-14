@@ -42,6 +42,7 @@ import NumberSpinner from '../../../widgets/NumberSpinner';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
 import { addLog, personnelConvert, dateOf } from "../../../actions/local";
+import { mapsAreEqual, } from "../../../actions/helpers";
 import {
   handleSampleChange,
   writeSoilDetails,
@@ -304,17 +305,15 @@ class AsbestosSampleEditModal extends React.Component {
       chainOfCustody: sample.cocUid,
     };
     addLog("asbestosLab", log, this.props.me, batch);
-    // console.log(this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result);
-    // console.log(sample.result);
-    // if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] &&
-    //   (this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result != sample.result ||
-    //   this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived != sample.weightReceived)) {
-    //   recordAnalysis(batch, this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
-    //     this.props.samples, this.props.sessionID, this.props.me,
-    //     this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result != sample.result,
-    //     this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result != sample.weightReceived,
-    //   );
-    // }
+    if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] &&
+      (!mapsAreEqual(this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result, sample.result) ||
+      this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived != sample.weightReceived)) {
+      recordAnalysis(batch, this.props.analyst, sample, this.props.cocs[this.props.modalProps.activeCoc],
+        this.props.samples, this.props.sessionID, this.props.me,
+        this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result != undefined,
+        this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived != undefined,
+      );
+    }
     if (sample.verified) {
       verifySample(batch, sample,
         this.props.cocs[this.props.modalProps.activeCoc],
@@ -334,8 +333,7 @@ class AsbestosSampleEditModal extends React.Component {
     console.log('Saving multiple samples');
 
     await Object.values(this.state.samples).forEach(sample => {
-      console.log(sample);
-      if (originalSamples[sample.sampleNumber].result !== sample.result || originalSamples[sample.sampleNumber].weightReceived !== sample.weightReceived) {
+      if (!mapsAreEqual(originalSamples[sample.sampleNumber].result, sample.result) || originalSamples[sample.sampleNumber].weightReceived !== sample.weightReceived) {
         console.log('Changing analysis');
         if (sample.verified)
           verifySample(batch, sample,

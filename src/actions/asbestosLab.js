@@ -770,6 +770,7 @@ export const updateResultMap = (result, map) => {
 }
 
 export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, me, resultChanged, weightChanged, resultOverridden, weightOverridden) => {
+  console.log('Record Analysis');
   if (resultChanged) {
     let log = {};
     if (resultOverridden) {
@@ -832,8 +833,6 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
     if (value) notBlankAnalysis = true;
   });
   if (sample.weightReceived) notBlankAnalysis = true;
-  console.log(notBlankAnalysis);
-  console.log(resultChanged);
   if (notBlankAnalysis) {
     if (!sample.analysisStarted) startAnalysis(batch, sample, job, samples, sessionID, me, new Date(), true);
     if (resultChanged) {
@@ -1912,7 +1911,7 @@ export const printCocBulk = (job, samples, me, staffList) => {
         let sampleMap = {};
         if (sample.disabled) return;
         sampleMap["no"] = sample.sampleNumber;
-        if (job.waAnalysis) sampleMap["desc"] = writeSimpleDescription(sample);
+        if (job.waAnalysis) sampleMap["description"] = writeSimpleDescription(sample);
         else {
           sampleMap["description"] = writeCocDescription(sample);
           sampleMap["category"] = sample.category ? sample.category : 'Other';
@@ -1925,8 +1924,8 @@ export const printCocBulk = (job, samples, me, staffList) => {
   let report = {
     jobNumber: job.jobNumber,
     client: job.client,
-    contactName: job.contactName,
-    contactEmail: job.contactEmail,
+    contactName: job.contact && job.contact.name ? job.contact.name : '',
+    contactEmail: job.contact && job.contact.email ? job.contact.email : '',
     orderNumber: job.clientOrderNumber ? job.clientOrderNumber : '',
     address: job.address,
     type: job.wfmType,
@@ -1940,7 +1939,7 @@ export const printCocBulk = (job, samples, me, staffList) => {
     personnel: getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', null, false).map(p => p.name),
     samples: sampleList
   };
-  // console.log(report);
+  console.log(report);
   return report;
   // let url = job.waAnalysis ?
   //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php?report=" +
@@ -2083,9 +2082,10 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
     client: `${job.client} ${job.clientOrderNumber && Object.keys(job.clientOrderNumber).length > 0 ? job.clientOrderNumber : ''}`,
     address: job.address,
     sampleDate: writeDates(samplesFiltered, 'sampleDate'),
-    // ktp: 'Stuart Keer-Keer',
     receivedDate: writeDates(samplesFiltered, 'receivedDate'),
     analysisDate: writeDates(samplesFiltered, 'analysisDate'),
+    contactName: job.contact && job.contact.name ? job.contact.name : '',
+    contactEmail: job.contact && job.contact.email ? job.contact.email : '',
     personnel: writePersonnelQualFull(getPersonnel(samplesFiltered, 'sampledBy', staffQualList, true)),
     waAnalysis: job.waAnalysis ? job.waAnalysis : false,
     // assessors: job.personnel.sort().map(staff => {
@@ -2282,13 +2282,11 @@ export const writeSimpleDescription = (sample) => {
       str = str + ', ' + sample.specificLocation;
     }
   }
-  if (str !== '') str = str + ': ';
-  if (sample.description) {
+  if (sample.description && str !== '') str = str + ': ';
+  if (sample.description)
     str = str + sample.description;
-  } else {
-    str = str + 'No Description';
-  }
   if (str.length > 1) str = str.charAt(0).toUpperCase() + str.slice(1);
+  // console.log(str);
   return str;
 };
 
@@ -2736,7 +2734,8 @@ export const writeResult = (result, noAsbestosResultReason) => {
   let otherArray = [];
   if (result["org"]) otherArray.push("organic fibres");
   if (result["smf"]) otherArray.push("synthetic mineral fibres");
-  if (otherArray.length > 0) others = `@~${otherArray.join(' and ')} detected`
+  if (otherArray.length > 0) others = `${otherArray.join(' and ')} detected`
+  if (others !== '') others = `@~${others.charAt(0).toUpperCase()}${others.slice(1)}`;
   if (result["no"]) return "No asbestos detected" + others;
   let asbestos = [];
   if (result["ch"]) asbestos.push("chrysotile");
