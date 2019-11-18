@@ -27,6 +27,24 @@ export const fixIds = () => dispatch => {
   });
 };
 
+export const fixSamples = () => {
+  asbestosSamplesRef
+    .where("cocUid", "==", "AS191071_CANTERBURY DEMOLITION_1573695746768")
+    .get().then(querySnapshot => {
+      querySnapshot.forEach(s => {
+        let sample = s.data();
+        asbestosSamplesRef.doc(s.id).update({
+          analyst: 'Ben Dodd',
+          analysisDate: new Date("November 18, 2019 14:00:00"),
+          analysisRecordedBy: {
+            name: 'Ben Dodd',
+            uid: 'OgNBX60s1GThob3pODjtqM4tkNn1',
+          },
+        });
+      })
+    })
+}
+
 export const transferNoticeboardReads = () => {
   noticesRef
     .get().then(querySnapshot => {

@@ -104,6 +104,7 @@ import {
   restructureAnalysisLog,
   restructureSampleIssueLog,
   cleanLogs,
+  fixSamples,
 } from "../actions/temp";
 
 // Pages
@@ -165,7 +166,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const thisVersion = '1.2.12';
+const thisVersion = '1.2.13';
 
 class MainScreen extends React.PureComponent {
   // static whyDidYouRender = true;
@@ -202,6 +203,7 @@ class MainScreen extends React.PureComponent {
     // constRef.set(this.props.state.const);
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // analyseJobHistory();
+    // fixSamples();
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');
     setTimeout(() => this.setState({
       hidden: false,

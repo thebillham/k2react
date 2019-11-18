@@ -155,7 +155,22 @@ class AsbestosSampleDetailsModal extends React.Component {
           5: ['08:00:00', '17:00:00'],
           6: null,
         },
-        holidays: [],
+        holidays: [
+          '2019-11-15',
+          '2019-12-25',
+          '2019-12-26',
+          '2020-01-01',
+          '2020-01-02',
+          '2020-02-06',
+          '2020-04-10',
+          '2020-04-13',
+          '2020-04-27',
+          '2020-06-01',
+          '2020-10-26',
+          '2020-11-13',
+          '2020-12-25',
+          '2020-12-26',
+        ],
       });
       moment.locale('en');
       moment.tz.setDefault("Pacific/Auckland");

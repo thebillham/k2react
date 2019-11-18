@@ -2260,7 +2260,8 @@ export const writeDescription = (sample) => {
   }
   if (str !== '') str = str + ': ';
   if (sample.description && sample.material) {
-    str = str + sample.description + ", " + sample.material;
+    if (sample.description.toLowerCase().includes(sample.material.toLowerCase())) str = str + sample.description;
+    else str = str + sample.description + ", " + sample.material;
   } else if (sample.description) {
     str = str + sample.description;
   } else if (sample.material) {
@@ -2379,7 +2380,8 @@ export const writeCocDescription = (sample) => {
   }
   if (str !== '') str = str + ': ';
   if (sample.description && sample.material) {
-    str = str + sample.description + ", " + sample.material;
+    if (sample.description.toLowerCase().includes(sample.material.toLowerCase())) str = str + sample.description;
+    else str = str + sample.description + ", " + sample.material;
   } else if (sample.description) {
     str = str + sample.description;
   } else if (sample.material) {
@@ -3056,7 +3058,22 @@ export const getStats = (samples, job) => {
       5: ['08:30:00', '17:00:00'],
       6: null,
     },
-    holidays: [],
+    holidays: [
+      '2019-11-15',
+      '2019-12-25',
+      '2019-12-26',
+      '2020-01-01',
+      '2020-01-02',
+      '2020-02-06',
+      '2020-04-10',
+      '2020-04-13',
+      '2020-04-27',
+      '2020-06-01',
+      '2020-10-26',
+      '2020-11-13',
+      '2020-12-25',
+      '2020-12-26',
+    ],
   });
 
   let totalSamples = 0;
