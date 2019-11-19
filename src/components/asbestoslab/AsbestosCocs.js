@@ -105,7 +105,7 @@ class AsbestosCocs extends React.Component {
     analyst: false,
     searchClient: '',
     searchJobNumber: '',
-    searchStartDate: moment().subtract(100, 'days').format('YYYY-MM-DD'),
+    searchStartDate: moment().subtract(1, 'months').format('YYYY-MM-DD'),
     searchEndDate: moment().format('YYYY-MM-DD'),
   };
 

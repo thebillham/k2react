@@ -18,7 +18,8 @@ import Add from "@material-ui/icons/Add";
 import ConfirmIcon from "@material-ui/icons/ThumbUp";
 import ThumbsDown from "@material-ui/icons/ThumbDown";
 import { hideModal, showModalSecondary } from "../../../actions/modal";
-import { clearLog, dateOf, milliToDHM } from "../../../actions/local";
+import { clearLog, } from "../../../actions/local";
+import { dateOf, milliToDHM, } from '../../../actions/helpers';
 import {
   writeShorthandResult,
   writeDescription,
@@ -234,7 +235,8 @@ class LoggedSamplesModal extends React.Component {
                         className={classes.hoverItemPoint}
                         spacing={2}
                         onClick={() => {
-                          if (this.props.cocs === undefined || this.props.cocs[log.cocUid] === undefined) this.props.fetchSampleView(log.cocUid, log.sampleUid, log.jobNumber);
+                          console.log('onclick');
+                          this.props.fetchSampleView(log.cocUid, log.sampleUid, log.jobNumber);
                           this.props.showModalSecondary({
                             modalType: ASBESTOS_SAMPLE_DETAILS,
                             modalProps: {
@@ -304,7 +306,7 @@ class LoggedSamplesModal extends React.Component {
                         className={classes.hoverItemPoint}
                         spacing={2}
                         onClick={() => {
-                          if (this.props.cocs === undefined || this.props.cocs[log.cocUid] === undefined) this.props.fetchSampleView(log.cocUid, log.sampleUid, log.jobNumber);
+                          this.props.fetchSampleView(log.cocUid, log.sampleUid, log.jobNumber);
                           this.props.showModalSecondary({
                             modalType: ASBESTOS_SAMPLE_DETAILS,
                             modalProps: {

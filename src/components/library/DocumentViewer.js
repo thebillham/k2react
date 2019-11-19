@@ -16,7 +16,7 @@ import StepButton from "@material-ui/core/StepButton";
 
 import { auth, docsRef, usersRef } from "../../config/firebase";
 import { showModal } from "../../actions/modal";
-import { dateOf } from "../../actions/local";
+import { dateOf } from "../../actions/helpers";
 import DocumentModal from "./modals/DocumentModal";
 import moment from "moment";
 

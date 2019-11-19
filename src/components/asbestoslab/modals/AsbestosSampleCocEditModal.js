@@ -20,7 +20,8 @@ import Select from 'react-select';
 import SuggestionField from '../../../widgets/SuggestionField';
 import { hideModalSecondary, handleModalChange, } from "../../../actions/modal";
 import { handleSampleChange, writeDescription } from '../../../actions/asbestosLab';
-import { addLog, personnelConvert } from '../../../actions/local';
+import { addLog, } from '../../../actions/local';
+import { sentenceCase, titleCase, personnelConvert, } from '../../../actions/helpers';
 import { SampleRadioSelector } from '../../../widgets/FormWidgets';
 import NumberSpinner from '../../../widgets/NumberSpinner';
 
@@ -296,7 +297,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                   this.setState({
                     sample: {
                       ...sample,
-                      genericLocation: value,
+                      genericLocation: titleCase(value),
                     },
                     modified: true,
                   });
@@ -311,7 +312,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                   this.setState({
                     sample: {
                       ...sample,
-                      specificLocation: value,
+                      specificLocation: titleCase(value),
                     },
                     modified: true,
                   });
@@ -326,7 +327,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
                   this.setState({
                     sample: {
                       ...this.state.sample,
-                      description: value,
+                      description: sentenceCase(value),
                     },
                     modified: true,
                   });

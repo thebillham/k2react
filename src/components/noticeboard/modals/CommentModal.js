@@ -33,7 +33,8 @@ import {
   handleTagDelete,
   handleTagAddition
 } from "../../../actions/modal";
-import { getUserAttrs, fetchNotices, removeNoticeReads, sendSlackMessage, } from "../../../actions/local";
+import { getUserAttrs, fetchNotices, removeNoticeReads, } from "../../../actions/local";
+import { sendSlackMessage, } from '../../../actions/helpers';
 import _ from "lodash";
 
 const mapStateToProps = state => {

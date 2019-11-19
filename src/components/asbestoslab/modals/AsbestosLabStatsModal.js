@@ -19,7 +19,8 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import Grid from "@material-ui/core/Grid";
 import { hideModal, showModalSecondary } from "../../../actions/modal";
-import { clearLog, dateOf, milliToDHM } from "../../../actions/local";
+import { clearLog, } from "../../../actions/local";
+import { dateOf, milliToDHM, } from '../../../actions/helpers';
 import {
   writeShorthandResult,
   writeDescription,

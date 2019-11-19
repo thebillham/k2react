@@ -13,6 +13,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import Radio from '@material-ui/core/Radio';
 import Tooltip from '@material-ui/core/Tooltip';
 import Button from '@material-ui/core/Button';
+import { numericAndLessThanOnly, titleCase, } from '../actions/helpers';
 
 export const SampleTickyBox = (that, label, sample, field) => {
   return(<FormControlLabel
@@ -248,7 +249,7 @@ export const SamplesTextyBox = (that, sample, field, label, helperText, multilin
           ...that.state.samples,
           [sample.sampleNumber]: {
             ...sample,
-            [field]: numericOnly ? e.target.value.replace(/[^$0-9.]/,'') : e.target.value,
+            [field]: numericOnly ? numericAndLessThanOnly(e.target.value) : e.target.value,
           },
         },
       });
@@ -277,7 +278,7 @@ export const SamplesTextyBoxAlt = (that, sample, base, field, label, helperText,
             ...sample,
             [base]: {
               ...sample[base],
-              [field]: numericOnly ? e.target.value.replace(/[^$0-9.]/,'') : e.target.value,
+              [field]: numericOnly ? numericAndLessThanOnly(e.target.value) : e.target.value,
             },
           },
         },

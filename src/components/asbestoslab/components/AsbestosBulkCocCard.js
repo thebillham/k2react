@@ -90,7 +90,7 @@ const mapDispatchToProps = dispatch => {
     syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
     logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
     setSessionID: session => dispatch(setSessionID(session)),
-    deleteCoc: (coc, me) => dispatch(deleteCoc(coc, me)),
+    deleteCoc: (coc, samples, me) => dispatch(deleteCoc(coc, samples, me)),
     setAsbestosLabExpanded: ex => dispatch(setAsbestosLabExpanded(ex)),
     toggleAsbestosSampleDisplayMode: () => dispatch(toggleAsbestosSampleDisplayMode()),
   };
@@ -396,7 +396,7 @@ class AsbestosBulkCocCard extends React.Component {
                     );
                   })}
                 <Divider />
-                <MenuItem onClick={() => this.props.deleteCoc(job, this.props.me)}>
+                <MenuItem onClick={() => this.props.deleteCoc(job, filteredSamples, this.props.me)}>
                   Delete Chain of Custody
                 </MenuItem>
               </Menu>

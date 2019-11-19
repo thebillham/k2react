@@ -46,7 +46,8 @@ import {
   handleTagDelete,
   handleTagAddition
 } from "../../../actions/modal";
-import { getUserAttrs, fetchNotices, dateOf, sendSlackMessage } from "../../../actions/local";
+import { getUserAttrs, fetchNotices, } from "../../../actions/local";
+import { dateOf, sendSlackMessage, } from '../../../actions/helpers';
 import _ from "lodash";
 
 const mapStateToProps = state => {

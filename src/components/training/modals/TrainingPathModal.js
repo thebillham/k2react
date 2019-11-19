@@ -44,7 +44,8 @@ import {
   handleModalSubmit,
   onUploadFile
 } from "../../../actions/modal";
-import { getUserAttrs, sendSlackMessage, } from "../../../actions/local";
+import { getUserAttrs, } from "../../../actions/local";
+import { sendSlackMessage, } from '../../../actions/helpers';
 import _ from "lodash";
 
 // Quill.register('modules/imageResize', ImageResize);

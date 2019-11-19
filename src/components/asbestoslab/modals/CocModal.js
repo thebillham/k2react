@@ -40,9 +40,10 @@ import Add from '@material-ui/icons/Add';
 import Sync from '@material-ui/icons/Sync';
 import Link from '@material-ui/icons/Link';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, resetModal, showModalSecondary, } from '../../../actions/modal';
-import { fetchStaff, addLog, personnelConvert, dateOf, writeDates, } from '../../../actions/local';
-import { syncJobWithWFM, resetWfmJob, } from '../../../actions/jobs';
+import { fetchStaff, addLog, } from '../../../actions/local';
+import { syncJobWithWFM, resetWfmJob, getDefaultLetterAddress, } from '../../../actions/jobs';
 import { fetchSamples, handleCocSubmit, handleSampleChange } from '../../../actions/asbestosLab';
+import { titleCase, sentenceCase, dateOf, writeDates, personnelConvert } from '../../../actions/helpers';
 import _ from 'lodash';
 
 
@@ -367,7 +368,7 @@ class CocModal extends React.PureComponent {
                         }
                         label="Lab to Contact Client"
                       />
-                      <div>
+                      {doc.labToContactClient && <div>
                         <TextField
                           id="labContactName"
                           label="Contact Name"
@@ -395,22 +396,38 @@ class CocModal extends React.PureComponent {
                             this.props.handleModalChange({id: 'labContactEmail', value: e.target.value});
                           }}
                         />
-                      </div>
+                      </div>}
                     </div>
                     <div className={classes.informationBoxWhiteRounded}>
-                      <TextField
-                      id="letterAddress"
-                      label="Cover Letter Address"
-                      style={{ width: '100%' }}
-                      defaultValue={doc && doc.labInstructions}
-                      rows={5}
-                      helperText='The address to be put on the front page of the certificate cover letter.'
-                      multiline
-                      onChange={e => {
-                        this.setState({ modified: true, });
-                        this.props.handleModalChange({id: 'labInstructions', value: e.target.value});
-                      }}
-                    />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={doc.sendCoverLetterWithCertificate === true ? true : false}
+                            onClick={e => {
+                              this.setState({ modified: true, });
+                              this.props.handleModalChange({id: 'sendCoverLetterWithCertificate', value: e.target.checked});
+                            }}
+                            value="sendCoverLetterWithCertificate"
+                            color="primary"
+                          />
+                        }
+                        label="Send Cover Letter with Certificate"
+                      />
+                      {doc.sendCoverLetterWithCertificate && <div>
+                        <TextField
+                          id="letterAddress"
+                          label="Cover Letter Address"
+                          style={{ width: '100%' }}
+                          defaultValue={getDefaultLetterAddress(doc)}
+                          rows={5}
+                          helperText='The address to be put on the front page of the certificate cover letter.'
+                          multiline
+                          onChange={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'coverLetterAddress', value: e.target.value});
+                          }}
+                        />
+                      </div>}
                     </div>
                     {/*<div>
                     {writeDates(doc.samples, 'sampleDate')}
@@ -528,7 +545,7 @@ class CocModal extends React.PureComponent {
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
                         <SuggestionField that={this} suggestions='genericLocationSuggestions'
-                          defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
+                          value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
                           disabled={disabled}
                           addedSuggestions={this.state.recentSuggestionsGenericLocation}
                           onModify={(value) => {
@@ -536,7 +553,7 @@ class CocModal extends React.PureComponent {
                               modified: true,
                               recentSuggestionsGenericLocation: this.state.recentSuggestionsGenericLocation.concat(value),
                             });
-                            this.props.handleSampleChange(i, {genericLocation: value});
+                            this.props.handleSampleChange(i, {genericLocation: titleCase(value.trim())});
                           }} />
                         {/*{SuggestionField(this, disabled, null, 'genericLocationSuggestions',
                           doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : '',
@@ -552,7 +569,7 @@ class CocModal extends React.PureComponent {
                           disabled={disabled}
                           onModify={(value) => {
                             this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {specificLocation: value});
+                            this.props.handleSampleChange(i, {specificLocation: titleCase(value.trim())});
                           }} />
                         {/*{SuggestionField(this, disabled, null, 'specificLocationSuggestions',
                           doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : '',
@@ -568,7 +585,7 @@ class CocModal extends React.PureComponent {
                           disabled={disabled}
                           onModify={(value) => {
                             this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {description: value});
+                            this.props.handleSampleChange(i, {description: sentenceCase(value.trim())});
                           }} />
                       </div>
                       <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
@@ -585,7 +602,7 @@ class CocModal extends React.PureComponent {
                               }
                             }
                             this.setState({ modified: true, });
-                            this.props.handleSampleChange(i, {material: value, category});
+                            this.props.handleSampleChange(i, {material: value.trim(), category});
                           }} />
                       </div>
                       <div className={classes.columnMedSmall}>

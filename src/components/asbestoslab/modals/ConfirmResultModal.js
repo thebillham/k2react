@@ -24,7 +24,8 @@ import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/RemoveCircle";
 import SetIcon from "@material-ui/icons/Publish";
 import { hideModal, handleModalChange } from "../../../actions/modal";
-import { addLog, dateOf } from "../../../actions/local";
+import { addLog, } from "../../../actions/local";
+import { dateOf, } from '../../../actions/helpers';
 import { updateResultMap, getSampleColors, setAnalyst, getBasicResult, getAllConfirmResult, compareAsbestosResult, setCheckAnalysis } from "../../../actions/asbestosLab";
 import { AsbButton, } from '../../../widgets/FormWidgets';
 import _ from "lodash";
@@ -153,7 +154,7 @@ class ConfirmResultModal extends React.Component {
       genericLocation: sample.genericLocation ? sample.genericLocation : null,
       specificLocation: sample.specificLocation ? sample.specificLocation : null,
       description: sample.description ? sample.description : null,
-      sampleUID: sample.uid ? sample.uid : null,
+      sampleUid: sample.uid ? sample.uid : null,
       originalResult: sample.result ? sample.result : null,
       originalAnalysisBy: sample.analyst ? sample.analyst : null,
       originalAnalysisRecordedBy: sample.analysisRecordedBy ? sample.analysisRecordedBy : null,

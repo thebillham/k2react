@@ -39,7 +39,8 @@ import {
   onUploadFile,
   handleGlossaryChange
 } from "../../../actions/modal";
-import { getUserAttrs, sendSlackMessage } from "../../../actions/local";
+import { sendSlackMessage, } from '../../../actions/helpers';
+import { getUserAttrs, } from "../../../actions/local";
 import _ from "lodash";
 
 const mapStateToProps = state => {

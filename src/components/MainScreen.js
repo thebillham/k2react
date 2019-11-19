@@ -87,13 +87,13 @@ import {
   fetchAssets,
   onSearchChange,
   onCatChange,
-  sendSlackMessage,
 } from "../actions/local";
 import {
   fetchGeocodes,
   analyseJobHistory,
   fetchWFMClients,
 } from "../actions/jobs";
+import { sendSlackMessage, } from '../actions/helpers';
 import { resetModal, showModal } from "../actions/modal";
 import { resetDisplay } from "../actions/display";
 import { initConstants } from "../actions/const";
@@ -105,6 +105,7 @@ import {
   restructureSampleIssueLog,
   cleanLogs,
   fixSamples,
+  renameAnalysisLog,
 } from "../actions/temp";
 
 // Pages
@@ -204,6 +205,7 @@ class MainScreen extends React.PureComponent {
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // analyseJobHistory();
     // fixSamples();
+    // renameAnalysisLog();
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');
     setTimeout(() => this.setState({
       hidden: false,

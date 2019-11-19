@@ -22,7 +22,7 @@ import Half from "@material-ui/icons/ThumbsUpDown";
 import Bad from "@material-ui/icons/ThumbDown";
 import AsbestosSampleWASummary from "../components/AsbestosSampleWASummary";
 import { hideModal, hideModalSecondary, handleModalChange } from "../../../actions/modal";
-import { dateOf, milliToDHM } from "../../../actions/local";
+import { dateOf, milliToDHM } from "../../../actions/helpers";
 import moment from "moment";
 import momentbusinesstime from "moment-business-time";
 import momentbusinessdays from "moment-business-days";

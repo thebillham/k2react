@@ -7,44 +7,6 @@ export const personnelConvert = e => {
   } else return e.map(staff => ({uid: staff.value, name: staff.label}));
 }
 
-export const dateOf = d => {
-  if (!d) {
-    return null;
-  } else if (d instanceof Date) {
-    return d;
-  } else {
-    try {
-      return d.toDate();
-    } catch (e) {
-      return new Date(d);
-    }
-  }
-}
-
-export const milliToDHM = (t, verbose, businessTime) => {
-  var cd = businessTime ? 9 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
-      ch = 60 * 60 * 1000,
-      d = Math.floor(t / cd),
-      h = Math.floor( (t - d * cd) / ch),
-      m = Math.round( (t - d * cd - h * ch) / 60000),
-      pad = function(n){ return n < 10 ? '0' + n : n; };
-  if( m === 60 ){
-    h++;
-    m = 0;
-  }
-  if( h === 24 ){
-    d++;
-    h = 0;
-  }
-  if (verbose) {
-    var dateArray = [];
-    if (d > 0) d === 1 ? dateArray.push('1 day') : dateArray.push(`${d} days`);
-    if (h > 0) h === 1 ? dateArray.push('1 hour') : dateArray.push(`${h} hours`);
-    if (m > 0) m === 1 ? dateArray.push('1 minute') : dateArray.push(`${m} minutes`);
-    return andList(dateArray);
-  } else return [d, pad(h), pad(m)].join(':');
-}
-
 export const displayTimeDifference = date => {
   var timeDifference = new Date() - dateOf(date);
   var divideBy = {
@@ -92,6 +54,112 @@ export const getDaysBetweenDates = (d1, d2) => {
 
   return days;
 };
+
+export const mapsAreEqual = (res1, res2) => {
+  console.log(res1);
+  console.log(res2);
+  console.log(res1 !== res2);
+  if (res1 === res2) return true;
+  if ((!res1 && res2) || (res1 && !res2)) return false;
+  let res = true;
+  if (res1 && res2) {
+    Object.keys(res1).forEach(k => {
+      if (res1[k] !== res2[k]) res = false;
+    });
+    Object.keys(res2).forEach(k => {
+      if (res1[k] !== res2[k]) res = false;
+    });
+  }
+  return res;
+}
+
+export const numericAndLessThanOnly = num => {
+  if (num) {
+    let str = num.replace(/[^$0-9.<]/,'');
+    if (num.charAt(0) === '.') return `0${str}`;
+    else return str;
+  } else return '';
+}
+
+export const titleCase = input => {
+  let small = ['and','a','an','as','at','but','by','en','for','from','if','is','in','of','on','or','the','to'];
+  let parts = input.split(' ');
+  let partsList = [];
+  let count = 1;
+  parts.forEach(word => {
+    if (count === 1 || count === parts.length) partsList.push(upper(word));
+    else if (small.includes(word.toLowerCase()) && word !== 'A') partsList.push(lower(word))
+    else partsList.push(upper(word));
+    count++;
+  });
+  return partsList.join(' ');
+}
+
+export const sentenceCase = input => {
+  let parts = input.split(' ');
+  let partsList = [];
+  partsList.push(upper(parts[0]));
+  parts.slice(1).forEach(word => {
+    partsList.push(lower(word));
+  });
+  return partsList.join(' ');
+}
+
+export const lower = word => {
+  let inwordCapitalization = false;
+  [...word.substr(1)].forEach(letter => {
+    if (letter !== letter.toLowerCase()) inwordCapitalization = true;
+  });
+  if (inwordCapitalization) return word;
+   else return word.toLowerCase();
+}
+
+export const upper = word => {
+  let inwordCapitalization = false;
+  [...word.substr(1)].forEach(letter => {
+    if (letter !== letter.toLowerCase()) inwordCapitalization = true;
+  });
+  if (inwordCapitalization) return word;
+   else return word.substr(0,1).toUpperCase() + word.substr(1);
+}
+
+export const dateOf = d => {
+  if (!d) {
+    return null;
+  } else if (d instanceof Date) {
+    return d;
+  } else {
+    try {
+      return d.toDate();
+    } catch (e) {
+      return new Date(d);
+    }
+  }
+}
+
+export const milliToDHM = (t, verbose, businessTime) => {
+  var cd = businessTime ? 9 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
+      ch = 60 * 60 * 1000,
+      d = Math.floor(t / cd),
+      h = Math.floor( (t - d * cd) / ch),
+      m = Math.round( (t - d * cd - h * ch) / 60000),
+      pad = function(n){ return n < 10 ? '0' + n : n; };
+  if( m === 60 ){
+    h++;
+    m = 0;
+  }
+  if( h === 24 ){
+    d++;
+    h = 0;
+  }
+  if (verbose) {
+    var dateArray = [];
+    if (d > 0) d === 1 ? dateArray.push('1 day') : dateArray.push(`${d} days`);
+    if (h > 0) h === 1 ? dateArray.push('1 hour') : dateArray.push(`${h} hours`);
+    if (m > 0) m === 1 ? dateArray.push('1 minute') : dateArray.push(`${m} minutes`);
+    return andList(dateArray);
+  } else return [d, pad(h), pad(m)].join(':');
+}
 
 export const writeDates = (objects, field) => {
   let dates = [];
@@ -203,16 +271,3 @@ export const sendSlackMessage = (message, json) => {
     body: JSON.stringify(text)
   });
 };
-
-export const mapsAreEqual = (res1, res2) => {
-  let res = true;
-  if (res1 && res2) {
-    Object.keys(res1).forEach(k => {
-      if (res1[k] !== res2[k]) res = false;
-    });
-    Object.keys(res2).forEach(k => {
-      if (res1[k] !== res2[k]) res = false;
-    });
-  }
-  return res;
-}

@@ -9,11 +9,12 @@ import {
   asbestosSampleLogRef,
   asbestosSampleIssueLogRef,
   asbestosAnalysisLogRef,
+  asbestosCheckLogRef,
   usersRef,
 } from "../config/firebase";
 import {
   dateOf,
-} from "../actions/local";
+} from "../actions/helpers";
 import moment from 'moment';
 
 export const fixIds = () => dispatch => {
@@ -65,6 +66,22 @@ export const transferNoticeboardReads = () => {
     });
 }
 
+export const renameAnalysisLog = () => {
+  let batch = firestore.batch();
+  asbestosCheckLogRef.get().then(querySnapshot => {
+    querySnapshot.forEach(logDoc => {
+      let log = logDoc.data();
+      if (log.sampleUID) {
+        batch.update(asbestosCheckLogRef.doc(logDoc.id), {
+          sampleUid: log.sampleUID,
+          sampleUID: firebase.firestore.FieldValue.delete(),
+        });
+      }
+    });
+    batch.commit();
+  });
+}
+
 export const restructureAnalysisLog = () => {
   asbestosAnalysisLogRef.get().then(querySnapshot => {
     querySnapshot.forEach(logDoc => {
@@ -97,7 +114,7 @@ export const restructureAnalysisLog = () => {
             genericLocation: sample.genericLocation,
             specificLocation: sample.specificLocation,
             description: sample.description,
-            sampleUID: sample.uid,
+            sampleUid: sample.uid,
             waAnalysisComplete: sample.waAnalysisComplete ? sample.waAnalysisComplete : null,
             waTotals: sample.waTotals ? sample.waTotals : null,
             weightAshed: sample.weightAshed ? sample.weightAshed : null,

@@ -10,7 +10,8 @@ import {
   ASBESTOS_SAMPLE_EDIT,
 } from "../../../constants/modal-types";
 import moment from "moment";
-import { addLog, writeDates, } from "../../../actions/local";
+import { addLog, } from "../../../actions/local";
+import { writeDates, } from '../../../actions/helpers';
 
 import { TickyBox, } from '../../../widgets/FormWidgets';
 import Grid from "@material-ui/core/Grid";

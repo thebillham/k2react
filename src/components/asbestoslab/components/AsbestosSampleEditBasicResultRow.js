@@ -1,10 +1,6 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
-import {
-  writeDescription,
-  getSampleColors,
-} from "../../../actions/asbestosLab";
 
 import { AsbButton, } from '../../../widgets/FormWidgets';
 import TextField from "@material-ui/core/TextField";
@@ -12,7 +8,12 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 
+import {
+  writeDescription,
+  getSampleColors,
+} from "../../../actions/asbestosLab";
 import { addLog, } from '../../../actions/local';
+import { numericAndLessThanOnly, } from '../../../actions/helpers';
 
 class AsbestosSampleEditBasicResultRow extends React.PureComponent {
   render() {
@@ -48,7 +49,7 @@ class AsbestosSampleEditBasicResultRow extends React.PureComponent {
                     ...that.state.samples,
                     [sample.sampleNumber]: {
                       ...that.state.samples[sample.sampleNumber],
-                      weightReceived: e.target.value.replace(/[^$0-9.]/,''),
+                      weightReceived: numericAndLessThanOnly(e.target.value),
                     },
                   },
                 });

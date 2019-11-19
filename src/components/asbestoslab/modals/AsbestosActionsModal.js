@@ -34,7 +34,7 @@ import ProceedActionIcon from "@material-ui/icons/Forward";
 import UnresolvedActionIcon from "@material-ui/icons/Report";
 import VerifyIcon from "@material-ui/icons/CheckCircleOutline";
 import WAIcon from "@material-ui/icons/GroupWork";
-import { dateOf, writeDates, } from "../../../actions/local";
+import { dateOf, writeDates, } from "../../../actions/helpers";
 import { toggleDoNotRender, } from "../../../actions/display";
 import { hideModal, } from "../../../actions/modal";
 import {

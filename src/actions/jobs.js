@@ -27,6 +27,7 @@ import {
   dateOf,
   getDaysBetweenDates,
   getDaysSinceDate,
+  titleCase,
 } from "./helpers";
 // import assetData from "./assetData.json";
 
@@ -326,11 +327,56 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
           ? wfmJob.Description
           : "No description";
         if (wfmJob.Client) {
-          console.log(wfmJob.Client);
           job.client = wfmJob.Client.Name
             ? wfmJob.Client.Name
             : "No client name";
           job.clientID = wfmJob.Client.ID ? wfmJob.Client.ID : "No client ID";
+          if (job.clientID) {
+            let path = `${process.env.REACT_APP_WFM_ROOT}client.api/get/${job.clientID}?apiKey=${
+              process.env.REACT_APP_WFM_API
+            }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+            fetch(path)
+            fetch(path)
+              .then(results => results.text())
+              .then(data => {
+                var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
+                var json = xmlToJson(xmlDOM);
+                if (json.Response.Status === "ERROR") {
+                  dispatch({
+                    type: SET_MODAL_ERROR,
+                    payload: json.Response.ErrorDescription
+                  });
+                } else {
+                  let client = json.Response.Client;
+                  let wfmClient = {};
+                  job.clientDetails = {
+                    wfmID: job.clientID,
+                    name: client.Name === Object(client.Phone) ? null : titleCase(client.Name.toString().trim()),
+                    email: client.Email === Object(client.Email) ? null : client.Email ? client.Email.toString().trim().toLowerCase() : null,
+                    address: client.Address === Object(client.Address) ? null : titleCase(client.Address.toString().trim()),
+                    city: client.City === Object(client.City) ? null : titleCase(client.City.toString().trim()),
+                    region: client.Region === Object(client.Region) ? null : titleCase(client.Region.toString().trim()),
+                    postcode: client.PostCode === Object(client.PostCode) ? null : client.PostCode.toString().trim(),
+                    country: client.Country === Object(client.Country) ? null : titleCase(client.Country.toString().trim()),
+                    postalAddress: client.PostalAddress === Object(client.PostalAddress) ? null : titleCase(client.PostalAddress.toString().trim()),
+                    postalCity: client.PostalCity === Object(client.PostalCity) ? null : titleCase(client.PostalCity.toString().trim()),
+                    postalRegion: client.PostalRegion === Object(client.PostalRegion) ? null : titleCase(client.PostalRegion.toString().trim()),
+                    postalPostCode: client.PostalPostCode === Object(client.PostalPostCode) ? null : client.PostalPostCode.toString().trim(),
+                    postalCountry: client.PostalCountry === Object(client.PostalCountry) ? null : titleCase(client.PostalCountry.toString().trim()),
+                    phone: client.Phone === Object(client.Phone) ? null : client.Phone.toString().replace('-',' ').trim(),
+                  }
+                  console.log(job.clientDetails);
+                  dispatch({
+                    type: GET_WFM_JOB,
+                    payload: job
+                  });
+                  dispatch({
+                    type: EDIT_MODAL_DOC,
+                    payload: job
+                  });
+                }
+              });
+          }
         } else {
           job.client = "No client name";
           job.clientID = "No client ID";
@@ -1514,3 +1560,13 @@ export const averageStaffStat = (value, average) => {
 
   return average;
 };
+
+export const getDefaultLetterAddress = doc => {
+  console.log(doc);
+  if (doc) {
+    if (doc.coverLetterAddress) return doc.coverLetterAddress;
+    else return '';
+  } else {
+    return '';
+  }
+}

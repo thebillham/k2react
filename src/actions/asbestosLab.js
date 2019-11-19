@@ -16,14 +16,14 @@ import {
 } from "../constants/action-types";
 import { DOWNLOAD_LAB_CERTIFICATE } from "../constants/modal-types";
 import { styles } from "../config/styles";
-import { dateOf, addLog } from "./local";
+import { addLog } from "./local";
 import { resetModal } from "./modal";
 import moment from "moment";
 import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 import { toggleDoNotRender } from "./display";
-import { sendSlackMessage, writeDates, andList, } from "./local";
+import { sendSlackMessage, writeDates, andList, dateOf } from "./helpers";
 import {
   asbestosSamplesRef,
   asbestosAnalysisLogRef,
@@ -771,6 +771,8 @@ export const updateResultMap = (result, map) => {
 
 export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, me, resultChanged, weightChanged, resultOverridden, weightOverridden) => {
   console.log('Record Analysis');
+  console.log(resultChanged);
+  console.log(weightChanged);
   if (resultChanged) {
     let log = {};
     if (resultOverridden) {
@@ -790,15 +792,17 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
         };
       }
     } else {
-      let log = {
+      log = {
         type: "Analysis",
         log: `New analysis for sample ${sample.sampleNumber} (${writeDescription(sample)}): ${writeResult(sample.result, sample.noAsbestosResultReason).replace('@~',' ')}`,
         sample: sample.uid,
         chainOfCustody: job.uid,
       };
     }
+    console.log(log);
     addLog("asbestosLab", log, me, batch);
-  } else if (weightChanged) {
+  }
+  if (weightChanged) {
     let log = {};
     if (sample.weightReceived === "") {
       log = {
@@ -861,7 +865,7 @@ export const recordAnalysis = (batch, analyst, sample, job, samples, sessionID, 
         genericLocation: sample.genericLocation ? sample.genericLocation : null,
         specificLocation: sample.specificLocation ? sample.specificLocation : null,
         description: sample.description ? sample.description : null,
-        sampleUID: sample.uid ? sample.uid : null,
+        sampleUid: sample.uid ? sample.uid : null,
         waAnalysisComplete: sample.waAnalysisComplete ? sample.waAnalysisComplete : null,
         waTotals: sample.waTotals ? sample.waTotals : null,
         weightAshed: sample.weightAshed ? sample.weightAshed : null,
@@ -1939,7 +1943,7 @@ export const printCocBulk = (job, samples, me, staffList) => {
     personnel: getPersonnel(Object.values(samples).filter(s => s.cocUid === job.uid), 'sampledBy', null, false).map(p => p.name),
     samples: sampleList
   };
-  console.log(report);
+  // console.log(report);
   return report;
   // let url = job.waAnalysis ?
   //   "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php?report=" +
@@ -2170,23 +2174,24 @@ export const printLabReport = (job, version, me, showModal) => {
   // fetch('http://api.k2.co.nz/v1/doc/scripts/asbestos/issue/labreport_singlepage.php?report=' + JSON.stringify(report));
 };
 
-export const deleteCoc = (job, me) => dispatch => {
+export const deleteCoc = (job, samples, me) => dispatch => {
   if (
     window.confirm("Are you sure you wish to delete this Chain of Custody?")
   ) {
-    job.samples && Object.values(job.samples).forEach(sample => {
-      if (sample.cocUid === job.uid) {
-        let log = {
-          type: "Delete",
-          log: `Sample ${sample.sampleNumber} (${writeDescription(sample)}) deleted.`,
-          sample: sample.uid,
-          chainOfCustody: job.uid,
-        };
-        addLog("asbestosLab", log, me);
-        asbestosSamplesRef.doc(sample.uid).update({ deleted: true })
-      }
+    let log = {};
+    samples && Object.values(samples).forEach(sample => {
+      // console.log(sample);
+      log = {
+        type: "Delete",
+        log: `Sample ${sample.sampleNumber} (${writeDescription(sample)}) deleted.`,
+        sample: sample.uid,
+        chainOfCustody: job.uid,
+      };
+      // console.log(log);
+      addLog("asbestosLab", log, me);
+      asbestosSamplesRef.doc(sample.uid).update({ deleted: true })
     });
-    let log = {
+    log = {
       type: "Delete",
       log: "Chain of Custody deleted.",
       chainOfCustody: job.uid,

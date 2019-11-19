@@ -15,7 +15,8 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import Grid from "@material-ui/core/Grid";
 import { hideModal } from "../../../actions/modal";
-import { fetchLogs, clearLog, dateOf } from "../../../actions/local";
+import { fetchLogs, clearLog, } from "../../../actions/local";
+import {  dateOf, } from '../../../actions/helpers';
 import _ from "lodash";
 import moment from "moment";
 
