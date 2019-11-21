@@ -193,6 +193,7 @@ const styles = theme => ({
   },
 
   informationBoxWhiteRounded: {
+    backgroundColor: '#fff',
     borderRadius: theme.spacing(1),
     borderStyle: 'solid',
     borderWidth: 1,
@@ -254,6 +255,13 @@ const styles = theme => ({
 
   textSpaced: {
     lineHeight: 1.5,
+  },
+
+  bigInput: {
+    fontSize: 48,
+    color: '#000',
+    backgroundColor: '#fff',
+    width: 300,
   },
 
   textField: {
@@ -824,6 +832,15 @@ const styles = theme => ({
   highlightBoxBlack: {
     marginBottom: theme.spacing(1),
     backgroundColor: '#eee',
+  },
+
+  boxDark : {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.palette.stages.readyForIssue,
+    color: '#000',
   },
 
   circle: {
