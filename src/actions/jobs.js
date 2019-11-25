@@ -1565,6 +1565,7 @@ export const getDefaultLetterAddress = doc => {
   console.log(doc);
   if (doc) {
     if (doc.coverLetterAddress) return doc.coverLetterAddress;
+    
     else return '';
   } else {
     return '';

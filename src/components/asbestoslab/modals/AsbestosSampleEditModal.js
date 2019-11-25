@@ -201,6 +201,7 @@ class AsbestosSampleEditModal extends React.Component {
     }
 
     let newMap = updateResultMap(res, sample.result);
+    console.log('Setting modified to true');
 
     this.setState({
       samples: {
@@ -349,6 +350,13 @@ class AsbestosSampleEditModal extends React.Component {
           resultChanged && !(originalResult === undefined || originalResult === null),
           weightChanged && !(originalWeight === undefined || originalWeight === null),
         );
+        if (sample.verified) {
+          verifySample(batch, sample,
+            this.props.cocs[this.props.modalProps.activeCoc],
+            this.props.samples,
+            this.props.sessionID,
+            this.props.me, null, null);
+        }
       }
     });
 

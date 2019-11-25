@@ -27,6 +27,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
 import Tooltip from "@material-ui/core/Tooltip";
 import FormControl from "@material-ui/core/FormControl";
+import Checkbox from "@material-ui/core/Checkbox";
 import ReceiveIcon from "@material-ui/icons/Inbox";
 import StartAnalysisIcon from "@material-ui/icons/Colorize";
 import CancelActionIcon from "@material-ui/icons/Block";
@@ -91,6 +92,7 @@ class AsbestosActionsModal extends React.Component {
   state = {
     samples: {},
     subsamples: [],
+    newVersionWithIssue: true,
   };
 
   handleEnter = () => {
@@ -212,12 +214,20 @@ class AsbestosActionsModal extends React.Component {
       if (!blockAll) {
         if (!issuesIncomplete) {
           // All issues are decided, continue with
-          console.log(this.state.issues);
           if (this.props.modalProps.field === 'issue') {
-            issueTestCertificate(this.props.modalProps.job, this.state.samples, this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion)+1 : 1,
+            issueTestCertificate(
+              this.props.modalProps.job,
+              this.state.samples,
+              this.props.modalProps.job.currentVersion ?
+                this.state.newVersionWithIssue ? parseInt(this.props.modalProps.job.currentVersion)+1 : this.props.modalProps.job.currentVersion
+                : 1,
               this.state.issues[`versionChanges${this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion) : 1}`] &&
-              this.state.issues[`versionChanges${this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion) : 1}`].comment ?
-              this.state.issues[`versionChanges${this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion) : 1}`].comment : '', this.props.staff, this.props.me);
+                this.state.issues[`versionChanges${this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion) : 1}`].comment ?
+                this.state.issues[`versionChanges${this.props.modalProps.job.currentVersion ? parseInt(this.props.modalProps.job.currentVersion) : 1}`].comment : '',
+              this.props.staff,
+              this.props.me,
+              this.state.newVersionWithIssue,
+            );
           } else {
             let batch = firestore.batch();
             batch.update(cocsRef.doc(this.props.modalProps.job.uid), { versionUpToDate: false, mostRecentIssueSent: false, });
@@ -251,13 +261,25 @@ class AsbestosActionsModal extends React.Component {
       if (this.props.modalProps.field === 'receivedByLab') checkMap = receiveSamples(checks);
       else if (this.props.modalProps.field === 'analysisStarted') checkMap = startAnalyses(checks);
       else if (this.props.modalProps.field === 'verified') checkMap = verifySamples(checks, this.props.modalProps.job, this.props.me.uid, false, allowSameUserVerification);
-      else if (this.props.modalProps.field === 'issue') checkMap = checkTestCertificateIssue(this.props.samples[this.props.modalProps.job.uid], this.props.modalProps.job, this.props.me.uid);
+      else if (this.props.modalProps.field === 'issue') checkMap = checkTestCertificateIssue(this.props.samples[this.props.modalProps.job.uid], this.props.modalProps.job, this.props.me.uid, this.state.newVersionWithIssue);
       else if (this.props.modalProps.field === 'verifySubsample') checkMap = verifySubsamples(this.state.subsamples, this.props.modalProps.job, this.props.me.uid, this.state.duplicateIDs)
       // let jobIssues = this.props.modalProps.job.issues ? this.props.modalProps.job.issues : {};
       if (Object.values(checkMap).length === 0) {
         // No problems with any samples, do actions
         console.log('no problems, do actions');
-        if (this.props.modalProps.field === 'issue') issueTestCertificate(this.props.modalProps.job, this.state.samples, 1, "First issue.", this.props.staff, this.props.me);
+        if (this.props.modalProps.field === 'issue')
+          issueTestCertificate(
+            this.props.modalProps.job,
+            this.state.samples,
+            this.props.modalProps.job.currentVersion ?
+              this.state.newVersionWithIssue ? parseInt(this.props.modalProps.job.currentVersion)+1 : this.props.modalProps.job.currentVersion
+              : 1,
+            this.props.modalProps.job.currentVersion ?
+              '' : 'First issue.',
+            this.props.staff,
+            this.props.me,
+            this.state.newVersionWithIssue,
+          );
         else {
           let batch = firestore.batch();
           batch.update(cocsRef.doc(this.props.modalProps.job.uid), { versionUpToDate: false, mostRecentIssueSent: false, });
@@ -295,6 +317,9 @@ class AsbestosActionsModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType, } = this.props;
+    let version = this.props.modalProps.job.currentVersion ?
+      this.state.newVersionWithIssue ? parseInt(this.props.modalProps.job.currentVersion)+1 : this.props.modalProps.job.currentVersion
+      : 1;
     // console.log(this.state.subsamples);
     return (
       modalType === ASBESTOS_ACTIONS ? <Dialog
@@ -321,6 +346,19 @@ class AsbestosActionsModal extends React.Component {
           </Button>
           {modalProps.field === 'issue' &&
             <div>
+              <span className={classes.headingInline}>Version Number:</span>{" "}
+              <span className={ classes.infoLight }>
+                {version}
+              </span>
+              <br />
+              <span className={classes.headingInline}>Update Number:</span>{" "}
+              <span className={ classes.infoLight }>
+                {this.props.modalProps.job.versionHistory && this.props.modalProps.job.versionHistory[version] &&
+                this.props.modalProps.job.versionHistory[version].updateNumber ?
+                  this.props.modalProps.job.versionHistory[version].updateNumber + 1 : 'New version'
+                }
+              </span>
+              <br />
               <span className={classes.headingInline}>Sampled by:</span>{" "}
               <span className={ classes.infoLight }>
                 {this.state.samples ? getPersonnel(Object.values(this.state.samples), 'sampledBy', null, true).map(e => e.name).join(', ') : 'Not specified'}
@@ -335,6 +373,22 @@ class AsbestosActionsModal extends React.Component {
               <span className={ classes.infoLight }>
                 {this.state.samples ? getPersonnel(Object.values(this.state.samples), 'analyst', null, true).map(e => e.name).join(', ') : "Not specified"}
               </span>
+              {this.props.modalProps.job.currentVersion !== undefined &&
+                <div>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={this.state.newVersionWithIssue}
+                        onChange={() => {
+                          this.setState({ newVersionWithIssue: !this.state.newVersionWithIssue });
+                        }}
+                        value="required"
+                      />
+                    }
+                    label="Issue Certificate as New Version"
+                  />
+                </div>
+              }
             </div>
           }
           {modalProps.field === 'verifySubsample' ?

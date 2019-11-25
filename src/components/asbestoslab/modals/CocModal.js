@@ -227,7 +227,7 @@ class CocModal extends React.PureComponent {
           onClose = {() => this.props.hideModal()}
           fullScreen = { true }
           maxWidth = "lg"
-          disableEscapeKeyDown = { !blockInput && (doc || wfmJob) }
+          disableEscapeKeyDown = { !blockInput && (doc || wfmJob) !== false }
           fullWidth = { true }
         >
           {!blockInput && (doc || wfmJob) && <DialogTitle>{ modalProps.title ? modalProps.title : 'Create New Chain of Custody' }</DialogTitle>}

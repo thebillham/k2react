@@ -144,6 +144,12 @@ class AsbestosBulkCocCard extends React.Component {
     // console.log(job);
     if (job === undefined || job.deleted) return null;
     let version = 1;
+    let labFunctions = this.props.me.auth &&
+      (this.props.me.auth['Asbestos Admin'] ||
+      this.props.me.auth['Admin'] ||
+      this.props.me.auth['Analysis Checker'] ||
+      this.props.me.auth['Asbestos Bulk Analysis']);
+    // labFunctions = false;
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
 
@@ -197,7 +203,7 @@ class AsbestosBulkCocCard extends React.Component {
                 </IconButton>
               </Tooltip>
               <Tooltip title={'Print Chain of Custody'}>
-                <span>
+                <div>
                   <form method="post" target="_blank" action={job.waAnalysis ? "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php" : "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php"}>
                     <input type="hidden" name="data" value={coc} />
                     <IconButton type="submit" onClick={() => {
@@ -211,94 +217,100 @@ class AsbestosBulkCocCard extends React.Component {
                       <PrintCocIcon className={classes.iconRegular} />
                     </IconButton>
                   </form>
-                </span>
+                </div>
               </Tooltip>
-              <Tooltip id="reca-tooltip" title={'Receive Samples'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
-                <span>
-                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
-                    onClick={event => {
-                      this.props.showModal({
-                        modalType: ASBESTOS_ACTIONS,
-                        modalProps: { job: job, field: 'receivedByLab', title: `Receive Samples for ${job.jobNumber}`, }});
-                    }}>
-                    <ReceiveIcon className={classes.iconRegular} />
-                  </IconButton>
-                </span>
+              {labFunctions &&
+                <Tooltip id="reca-tooltip" title={'Receive Samples'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+                  <div>
+                    <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
+                      onClick={event => {
+                        this.props.showModal({
+                          modalType: ASBESTOS_ACTIONS,
+                          modalProps: { job: job, field: 'receivedByLab', title: `Receive Samples for ${job.jobNumber}`, }});
+                      }}>
+                      <ReceiveIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </div>
+                </Tooltip>
+              }
+              {labFunctions &&
+                  <Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+                    <div>
+                      <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
+                        onClick={event => {
+                          this.props.showModal({
+                            modalType: ASBESTOS_ACTIONS,
+                            modalProps: { job: job, field: 'analysisStarted', title: `Start Analysis on ${job.jobNumber} (${job.client}: ${job.address})`,
+                          }});
+                        }}>
+                        <StartAnalysisIcon className={classes.iconRegular} />
+                      </IconButton>
+                    </div>
+                </Tooltip>
+              }
+              {labFunctions &&
+                <Tooltip title={'Record Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+                  <div>
+                    <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
+                      onClick={event => {
+                        if (this.props.asbestosSampleDisplayAdvanced) this.props.toggleAsbestosSampleDisplayMode();
+                        this.props.showModal({
+                          modalType: ASBESTOS_SAMPLE_EDIT,
+                          modalProps: {
+                            activeSample: Object.keys(filteredSamples)[0],
+                            activeCoc: job.uid,
+                            sampleList: job.sampleList,
+                        }});
+                      }}>
+                      <RecordAnalysisIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </div>
+                </Tooltip>
+              }
+              {labFunctions && job.waAnalysis &&
+                <Tooltip title={'Verify Subsample Weights'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+                  <div>
+                    <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
+                      onClick={event => {
+                        this.props.showModal({
+                          modalType: ASBESTOS_ACTIONS,
+                          modalProps: { job: job, field: 'verifySubsample', title: `Verify Subsample Weights for ${job.jobNumber} (${job.client}: ${job.address})`,
+                        }});
+                      }}>
+                      <WAIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </div>
               </Tooltip>
-              {(this.props.me.auth &&
-                (this.props.me.auth['Asbestos Admin'] ||
-                this.props.me.auth['Admin'] ||
-                this.props.me.auth['Analysis Checker'] ||
-                this.props.me.auth['Asbestos Bulk Analysis'])) && <span><Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
-                <span>
-                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
-                    onClick={event => {
-                      this.props.showModal({
-                        modalType: ASBESTOS_ACTIONS,
-                        modalProps: { job: job, field: 'analysisStarted', title: `Start Analysis on ${job.jobNumber}`,
-                      }});
-                    }}>
-                    <StartAnalysisIcon className={classes.iconRegular} />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              <Tooltip title={'Record Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
-                <span>
-                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
-                    onClick={event => {
-                      if (this.props.asbestosSampleDisplayAdvanced) this.props.toggleAsbestosSampleDisplayMode();
-                      this.props.showModal({
-                        modalType: ASBESTOS_SAMPLE_EDIT,
-                        modalProps: {
-                          activeSample: Object.keys(filteredSamples)[0],
-                          activeCoc: job.uid,
-                          sampleList: job.sampleList,
-                      }});
-                    }}>
-                    <RecordAnalysisIcon className={classes.iconRegular} />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              {job.waAnalysis && <Tooltip title={'Verify Subsample Weights'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
-                <span>
-                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
-                    onClick={event => {
-                      this.props.showModal({
-                        modalType: ASBESTOS_ACTIONS,
-                        modalProps: { job: job, field: 'verifySubsample', title: `Verify Subsample Weights for ${job.jobNumber}`,
-                      }});
-                    }}>
-                    <WAIcon className={classes.iconRegular} />
-                  </IconButton>
-                </span>
-              </Tooltip>}
+              }
+              {labFunctions &&
               <Tooltip title={'Verify Results'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
-                <span>
+                <div>
                   <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
                     onClick={event => {
                       this.props.showModal({
                         modalType: ASBESTOS_ACTIONS,
-                        modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber}`,
+                        modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber} (${job.client}: ${job.address})`,
                       }});
                     }}>
                     <VerifyIcon className={classes.iconRegular} />
                   </IconButton>
-                </span>
+                </div>
               </Tooltip>
-              <span className={classes.spacerSmall} />
-              <Button
+              }
+              {labFunctions && <div className={classes.spacerSmall} />}
+              {labFunctions && <Button
                 className={classes.buttonIconText}
                 // disabled={job.versionUpToDate}
                 onClick={() => {
                   this.props.showModal({
                     modalType: ASBESTOS_ACTIONS,
-                    modalProps: { job: job, field: 'issue', title: `Issue ${job.jobNumber}`, }
+                    modalProps: { job: job, field: 'issue', title: `Issue ${job.jobNumber} (${job.client}: ${job.address})`, }
                   });
                 }} >
                 <IssueVersionIcon className={classes.iconRegular} />
-                Issue Version {version}
-              </Button>
-              <span className={classes.spacerSmall} /></span>}
+                Issue Certificate
+              </Button>}
+              {labFunctions && <div className={classes.spacerSmall} />}
               <Button
                 className={classes.buttonIconText}
                 disabled={!job.currentVersion || !job.versionUpToDate}
@@ -306,8 +318,7 @@ class AsbestosBulkCocCard extends React.Component {
                   printLabReport(job, job.currentVersion, this.props.me, this.props.showModal);
                 }}
               >
-                <DownloadIcon className={classes.iconRegular} /> Download Test
-                Certificate
+                <DownloadIcon className={classes.iconRegular} /> Download Certificate
               </Button>
               <IconButton
                 onClick={event => {

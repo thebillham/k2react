@@ -1841,7 +1841,7 @@ export const getWASubsampleList = (samples) => {
   return {subsamples, duplicateIDs, subsampleCount}
 }
 
-export const checkTestCertificateIssue = (samples, job, meUid) => {
+export const checkTestCertificateIssue = (samples, job, meUid, newVersionWithIssue) => {
   let filteredSamples = [];
   if (samples) {
     filteredSamples = Object.values(samples).filter(sample => sample.cocUid === job.uid && !sample.deleted).map(sample => ({...sample, now: sample.verified, original: sample.verified }));
@@ -1869,7 +1869,7 @@ export const checkTestCertificateIssue = (samples, job, meUid) => {
   }
 
   // If new version, prompt for version change
-  if (job.currentVersion) {
+  if (job.currentVersion && newVersionWithIssue) {
     let uid = 'versionChanges' + job.currentVersion;
     issues[uid] = {
       type: 'confirm',
@@ -2103,7 +2103,7 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
   return report;
 };
 
-export const issueTestCertificate = async (job, samples, version, changes, staffList, me) => {
+export const issueTestCertificate = async (job, samples, version, changes, staffList, me, newVersion) => {
   // first check all samples have been checked
   // if not version 1, prompt for reason for new version
   let batch = firestore.batch();
@@ -2113,16 +2113,35 @@ export const issueTestCertificate = async (job, samples, version, changes, staff
     : {};
   let log = {
     type: "Issue",
-    log: `Version ${version} issued.`,
+    log: newVersion ? `Version ${version} issued.` : `Version ${version} re-issued.`,
     chainOfCustody: job.uid,
   };
   addLog("asbestosLab", log, me, batch);
-  versionHistory[version] = {
-    issuedBy: {uid: me.uid, name: me.name },
-    issueDate: new Date(),
-    changes: changes ? changes : 'Not specified',
-    data: json,
-  };
+  if (!newVersion && versionHistory[version]) {
+    let updates = versionHistory[version].updates ? versionHistory[version].updates : {};
+    let updateNumber = versionHistory[version].updateNumber ? versionHistory[version].updateNumber : 0;
+    updateNumber++;
+    updates[updateNumber.toString()] = {
+      issuedBy: versionHistory[version].issuedBy,
+      issueDate: versionHistory[version].issueDate,
+      data: versionHistory[version].data,
+    };
+    versionHistory[version] = {
+      ...versionHistory[version],
+      updates,
+      updateNumber,
+      issuedBy: {uid: me.uid, name: me.name },
+      issueDate: new Date(),
+      data: json,
+    }
+  } else {
+    versionHistory[version] = {
+      issuedBy: {uid: me.uid, name: me.name },
+      issueDate: new Date(),
+      changes: changes ? changes : 'Not specified',
+      data: json,
+    };
+  }
   //console.log(versionHistory);
   let update = {
       currentVersion: version,
@@ -3042,7 +3061,7 @@ export const getJobStatus = (samples, job) => {
   } else if (numberReceived === 0) {
     status = `In Transit (${totalSamples})`;
   } else if (numberAnalysisStarted === 0) {
-    status = `Received By Lab (${numberReceived} ${numberReceived == 1 ? 'sample' : 'samples'}; ${milliToDHM(timeInLab, true, false)} ago)`;
+    status = `Received By Lab (${numberReceived} ${numberReceived == 1 ? 'sample' : 'samples'}${timeInLab > 600000 ? `; ${milliToDHM(timeInLab, true, false)} ago` : ''})`;
   } else if (numberVerified === totalSamples) {
     if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = `All Samples Verified, WA Analysis Incomplete (${totalSamples - numberWAAnalysisIncomplete}/${totalSamples})`;
     else {
@@ -3054,7 +3073,7 @@ export const getJobStatus = (samples, job) => {
   } else if (numberResult === totalSamples && numberVerified === 0) {
     if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = `Bulk ID Complete, WA Analysis Incomplete (${totalSamples - numberWAAnalysisIncomplete}/${totalSamples})`;
       else if (numberWeight !== totalSamples) status = `Asbestos Result Complete, Weights Required (${numberWeight}/${totalSamples})`;
-      else status = `Analysis Complete (${readyForIssue} ${readyForIssue == 1 ? 'sample' : 'samples'}; ${milliToDHM(timeInAdmin, true, false)} ago)`;
+      else status = `Analysis Complete (${readyForIssue} ${readyForIssue == 1 ? 'sample' : 'samples'}${timeInAdmin > 600000 ? `; ${milliToDHM(timeInAdmin, true, false)} ago` : ''})`;
   } else if (numberVerified > 0) {
     status = `Analysis Partially Verified (${numberVerified}/${totalSamples})`;
   } else if (numberResult > 0 ) {

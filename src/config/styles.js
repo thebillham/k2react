@@ -688,12 +688,12 @@ const styles = theme => ({
   },
 
   headingInline: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 500,
   },
 
   infoLight: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 250,
   },
 
