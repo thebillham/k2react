@@ -23,7 +23,7 @@ import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 import { toggleDoNotRender } from "./display";
-import { sendSlackMessage, writeDates, andList, dateOf } from "./helpers";
+import { sendSlackMessage, writeDates, andList, dateOf, milliToDHM, } from "./helpers";
 import {
   asbestosSamplesRef,
   asbestosAnalysisLogRef,
@@ -2975,12 +2975,14 @@ export const writeSoilDetails = details => {
 };
 
 export const getSampleStatus = sample => {
+  console.log(sample);
   let status = 'In Transit';
   if (sample) {
     if (sample.verified) status = 'Complete';
-      else if (sample.analysisDate) status = 'Waiting on Verification';
-      else if (sample.analysisStarted) status = 'Analysis Started';
-      else if (sample.receivedByLab) status = 'Received By Lab';
+      else if (sample.analysisDate && sample.weightReceived) status = 'Waiting on Verification';
+      else if (sample.analysisStarted) status = `Analysis Started`;
+      else if (sample.receivedByLab) status = `Received by Lab`;
+    if (sample.deleted) status = status + " (DELETED)";
     if (sample.onHold) status = status + " (ON HOLD)";
   }
   return status;
@@ -2995,50 +2997,72 @@ export const getJobStatus = (samples, job) => {
   let numberReceived = 0;
   let numberAnalysisStarted = 0;
   let numberResult = 0;
+  let numberWeight = 0;
   let numberVerified = 0;
   let numberWAAnalysisIncomplete = 0;
+  let analysisStartedBy = 'Lab';
+  let timeInLab = 0;
+  let timeInAdmin = 0;
+  let readyForIssue = 0;
 
   if (samples && Object.values(samples).length > 0) {
     Object.values(samples).forEach(sample => {
       if (sample.cocUid === jobID) {
-        totalSamples = totalSamples + 1;
-        if (sample.receivedByLab) numberReceived = numberReceived + 1;
-        if (sample.analysisStarted) numberAnalysisStarted = numberAnalysisStarted + 1;
-        if (sample.verified) numberVerified = numberVerified + 1;
-        if (job.waAnalysis && !sample.waAnalysisComplete) numberWAAnalysisIncomplete = numberWAAnalysisIncomplete + 1;
-        if (getBasicResult(sample) !== 'none') numberResult = numberResult + 1;
+        totalSamples++;
+        if (sample.receivedByLab) {
+          timeInLab = timeInLab + (new Date() - dateOf(sample.receivedDate));
+          numberReceived++;
+        }
+        if (sample.analysisStarted){
+          numberAnalysisStarted++;
+          if (analysisStartedBy === 'Lab') analysisStartedBy = sample.analysisStartedBy.name;
+        }
+        if (sample.verified) numberVerified++;
+        if (job.waAnalysis && !sample.waAnalysisComplete) numberWAAnalysisIncomplete++;
+        if (getBasicResult(sample) !== 'none') {
+          if (sample.weightReceived) {
+            timeInAdmin = timeInAdmin + (new Date() - dateOf(sample.analysisDate));
+            readyForIssue++;
+          }
+          numberResult++;
+        }
+        if (sample.weightReceived) numberWeight++;
       }
     });
   }
 
+  if (numberReceived > 0) timeInLab = timeInLab / numberReceived;
+  if (readyForIssue > 0) timeInAdmin = timeInAdmin / readyForIssue;
+
   if (versionUpToDate) {
-    if (job.mostRecentIssueSent) status = 'Issued and Sent';
-    else status = 'Issued';
+    if (job.mostRecentIssueSent) status = `Issued and Sent`;
+    else status = `Issued`;
   } else if (totalSamples === 0) {
     status = 'No Samples';
   } else if (numberReceived === 0) {
-    status = 'In Transit';
+    status = `In Transit (${totalSamples})`;
   } else if (numberAnalysisStarted === 0) {
-    status = 'Received By Lab';
+    status = `Received By Lab (${numberReceived} ${numberReceived == 1 ? 'sample' : 'samples'}; ${milliToDHM(timeInLab, true, false)} ago)`;
   } else if (numberVerified === totalSamples) {
-    if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = 'All Samples Verified, WA Analysis Incomplete';
+    if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = `All Samples Verified, WA Analysis Incomplete (${totalSamples - numberWAAnalysisIncomplete}/${totalSamples})`;
     else {
       if (numberResult === totalSamples) status = 'Ready For Issue';
-      else status = 'All Samples Verified, Bulk ID Incomplete';
+      else status = `All Samples Verified, Bulk ID Incomplete (${numberResult}/${totalSamples})`;
     }
   } else if (numberResult === 0) {
-    status = 'Analysis Begun';
+    status = `Analysis Started By ${analysisStartedBy} (${numberAnalysisStarted})`;
   } else if (numberResult === totalSamples && numberVerified === 0) {
-    if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = 'Bulk ID Complete, WA Analysis Incomplete';
-      else status = 'Analysis Complete';
+    if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = `Bulk ID Complete, WA Analysis Incomplete (${totalSamples - numberWAAnalysisIncomplete}/${totalSamples})`;
+      else if (numberWeight !== totalSamples) status = `Asbestos Result Complete, Weights Required (${numberWeight}/${totalSamples})`;
+      else status = `Analysis Complete (${readyForIssue} ${readyForIssue == 1 ? 'sample' : 'samples'}; ${milliToDHM(timeInAdmin, true, false)} ago)`;
   } else if (numberVerified > 0) {
-    status = 'Analysis Partially Verified';
-  } else if (numberResult > 0) {
-    status = 'Analysis Partially Complete';
+    status = `Analysis Partially Verified (${numberVerified}/${totalSamples})`;
+  } else if (numberResult > 0 ) {
+    status = `Analysis Partially Complete (${numberResult}/${totalSamples})`;
   } else if (numberAnalysisStarted > 0) {
-    status = 'Analysis Begun on Some Samples';
+    status = `Analysis Partially Started By ${analysisStartedBy} (${numberAnalysisStarted}/${totalSamples})`;
   } else if (numberReceived > 0) {
-    status = 'Partially Received By Lab';
+    status = `Partially Received By Lab (${numberReceived}/${totalSamples})`;
   }
 
   if (totalSamples !== 0 && job.status !== status) cocsRef.doc(jobID).update({ status });
@@ -3340,6 +3364,7 @@ export const collateLayeredResults = layers => {
   if (results['no'] === true && (results['ch'] === true || results['am'] === true || results['cr'] === true || results['umf'] === true)) {
     results['no'] = false;
   }
+  // console.log(results);
   return results;
 };
 

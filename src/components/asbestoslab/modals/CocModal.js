@@ -31,6 +31,8 @@ import EditIcon from '@material-ui/icons/Edit';
 import Select from 'react-select';
 import SuggestionField from '../../../widgets/SuggestionField';
 import Hint from 'react-hints';
+// import { CSSTransition } from 'react-transition-group';
+// import '../../../config/styles.css';
 
 import {
   DatePicker,
@@ -39,6 +41,8 @@ import {
 import Add from '@material-ui/icons/Add';
 import Sync from '@material-ui/icons/Sync';
 import Link from '@material-ui/icons/Link';
+import Close from '@material-ui/icons/Close';
+import Go from '@material-ui/icons/ArrowForwardIos';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, resetModal, showModalSecondary, } from '../../../actions/modal';
 import { fetchStaff, addLog, } from '../../../actions/local';
 import { syncJobWithWFM, resetWfmJob, getDefaultLetterAddress, } from '../../../actions/jobs';
@@ -97,6 +101,8 @@ function getStyles(name, that) {
 }
 
 const initState = {
+  jobNumber: null,
+
   personnel: [],
   personnelSetup: [],
   personnelPickup: [],
@@ -128,6 +134,7 @@ const initState = {
   recentSuggestionsSpecificLocation: [],
   recentSuggestionsDescription: [],
   recentSuggestionsMaterial: [],
+  showBulkChangeSamples: false,
 };
 
 class CocModal extends React.PureComponent {
@@ -171,6 +178,8 @@ class CocModal extends React.PureComponent {
 
   wfmSync = () => {
     let jobNumber = this.props.doc.jobNumber;
+    let initJobNumber = this.state.jobNumber;
+    if (!jobNumber && this.state.jobNumber) jobNumber = this.state.jobNumber;
     if (!jobNumber) {
       this.props.setModalError('Enter the job number to sync with WorkflowMax');
     } else if (jobNumber.substring(0,2).toUpperCase() !== 'AS') {
@@ -218,7 +227,7 @@ class CocModal extends React.PureComponent {
           onClose = {() => this.props.hideModal()}
           fullScreen = { true }
           maxWidth = "lg"
-          disableEscapeKeyDown = { true }
+          disableEscapeKeyDown = { !blockInput && (doc || wfmJob) }
           fullWidth = { true }
         >
           {!blockInput && (doc || wfmJob) && <DialogTitle>{ modalProps.title ? modalProps.title : 'Create New Chain of Custody' }</DialogTitle>}
@@ -436,9 +445,36 @@ class CocModal extends React.PureComponent {
                           />
                         </div>}
                       </div>
-                      {/*<div>
-                      {writeDates(doc.samples, 'sampleDate')}
-                      </div>*/}
+                      {doc.uid && <div className={classes.informationBoxWhiteRounded}>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={this.state.showBulkChangeSamples === true ? true : false}
+                              onClick={e => {
+                                this.setState({ showBulkChangeSamples: true, });
+                              }}
+                              value="showBulkChangeSamples"
+                              color="primary"
+                            />
+                          }
+                          label="Bulk Change Sample Details"
+                        />
+                        {this.state.showBulkChangeSamples && <div>
+                          <TextField
+                            id="letterAddress"
+                            label="Cover Letter Address"
+                            style={{ width: '100%' }}
+                            defaultValue={getDefaultLetterAddress(doc)}
+                            rows={5}
+                            helperText='The address to be put on the front page of the certificate cover letter.'
+                            multiline
+                            onChange={e => {
+                              this.setState({ modified: true, });
+                              this.props.handleModalChange({id: 'coverLetterAddress', value: e.target.value});
+                            }}
+                          />
+                        </div>}
+                      </div>}
                     </Grid>
                     </Grid>
                 </Grid>
@@ -712,26 +748,29 @@ class CocModal extends React.PureComponent {
             :
             <DialogContent className={classes.boxDark}>
               <div className={classes.informationBoxWhiteRounded}>
-                <div style={{ fontSize: 24, alignItems: 'center', justifyContent: 'center', }}>
+                <div style={{ fontSize: 24, }}>
                 Create New Chain of Custody
                 </div>
-                <FormControl style={{ width: '100', marginRight: 8, }}>
-                  <InputLabel shrink>Job Number</InputLabel>
-                  <Input
-                    id="jobNumber"
-                    className={classes.bigInput}
-                    defaultValue={doc && doc.jobNumber}
-                    disabled={!blockInput}
-                    onChange={e => {
-                      // this.setState({ modified: true, });
-                      this.props.handleModalChange({id: 'jobNumber', value: e.target.value.replace(/\s/g,'').toUpperCase()})}
-                    }
-                    // startAdornment={<InputAdornment position="start">AS</InputAdornment>}
-                  />
-                </FormControl>
-                <Tooltip title="Sync Job with WorkflowMax">
-                  <IconButton onClick={ this.wfmSync } style={{ fontSize: 48, alignItems: 'center', }}>
-                    <Sync className={classes.iconRegular}/>
+                <Tooltip title="Step 1: Enter the job number to get details from WorkflowMax">
+                  <FormControl>
+                    <InputLabel shrink>Job Number</InputLabel>
+                    <Input
+                      id="jobNumber"
+                      className={classes.bigInput}
+                      value={this.state.jobNumber}
+                      onChange={e => {
+                        // this.setState({ modified: true, });
+                        this.setState({
+                          jobNumber: e.target.value.replace(/\s/g,'').toUpperCase(),
+                        })
+                      }}
+                      // startAdornment={<InputAdornment position="start">AS</InputAdornment>}
+                    />
+                  </FormControl>
+                </Tooltip>
+                <Tooltip title="Step 2: Click the button to begin adding samples">
+                  <IconButton onClick={ this.wfmSync }>
+                    <Go style={{ fontSize: 48, }} />
                   </IconButton>
                 </Tooltip>
                 {modalProps.error &&

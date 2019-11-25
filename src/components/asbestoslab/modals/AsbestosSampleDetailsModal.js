@@ -248,7 +248,7 @@ class AsbestosSampleDetailsModal extends React.Component {
                   {sample.analysisRecordedBy && sample.analysisRecordedBy.name !== sample.analyst && SampleTextyLine('Analysis Recorded By', sample.analysisRecordedBy.name)}
                   {SampleTextyLine('Result Verified?', sample.verified ? 'Yes' : 'No')}
                   {sample.verifiedBy && SampleTextyLine('Result Verified By', sample.verifiedBy.name)}
-                  {sample.layers && <div style={{ display: 'flex', flexDirection: 'row', }}>
+                  {sample.layers && Object.keys(collateLayeredResults(sample.layers)).length > 0 && <div style={{ display: 'flex', flexDirection: 'row', }}>
                     <div style={{ width: '60%'}}>{SampleTextyLine('Cumulative Layer Results', writeShorthandResult(collateLayeredResults(sample.layers)))}</div>
                     <div style={{ width: '40%'}}>{(layersResult === 'yes' || layersResult === 'differentNonAsbestos') ? good : layersResult === 'no' ? bad : layersResult === 'none' ? '' : half}</div>
                   </div>}

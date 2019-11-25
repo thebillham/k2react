@@ -73,9 +73,14 @@ class DownloadLabCertificateModal extends React.Component {
               name="certificate"
               className={classes.group}
               value={this.state.certificateType}
-              onChange={event => this.setState({
-                certificateType: event.target.value,
-              })}
+              onChange={event => {
+                let template = this.state.template;
+                if (event.target.value === "wa") template = "single";
+                this.setState({
+                  certificateType: event.target.value,
+                  template,
+                });
+              }}
             >
               <FormControlLabel value="bulk" control={<Radio />} label="Bulk ID" />
               <FormControlLabel value="wa" control={<Radio disabled={!modalProps.report.waAnalysis} />} label="WA Analysis" />
@@ -93,7 +98,7 @@ class DownloadLabCertificateModal extends React.Component {
               })}
             >
               <FormControlLabel value="single" control={<Radio />} label="Single Page Appendable" />
-              <FormControlLabel value="cover" control={<Radio />} label="Lab Report with Cover Letter" />
+              <FormControlLabel value="cover" control={<Radio disabled={this.state.certificateType !== 'bulk'} />} label="Lab Report with Cover Letter" />
             </RadioGroup>
           </FormControl>
           <FormControl component="fieldset" className={classes.formControl}>
@@ -117,7 +122,7 @@ class DownloadLabCertificateModal extends React.Component {
           <Button onClick={() => this.props.hideModal()} color="secondary">
             Cancel
           </Button>
-          <form method="post" target="_blank" action={"https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.certificateType + "/" + this.state.fileType + ".php?template=" + this.state.template}>
+          <form method="post" target="_blank" action={"https://api.k2.co.nz/v1/doc/scripts/asbestos/issue/" + this.state.certificateType + "/doc.php?template=" + this.state.template + "&filetype=" + this.state.fileType}>
             <input type="hidden" name="data" value={JSON.stringify(modalProps.report)} />
             <Button type="submit">Download</Button>
           </form>

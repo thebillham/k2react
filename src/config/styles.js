@@ -261,7 +261,7 @@ const styles = theme => ({
     fontSize: 48,
     color: '#000',
     backgroundColor: '#fff',
-    width: 300,
+    width: 240,
   },
 
   textField: {

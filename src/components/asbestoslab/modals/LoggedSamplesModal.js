@@ -107,10 +107,11 @@ class LoggedSamplesModal extends React.Component {
         maxWidth="xl"
         fullWidth={true}
         onEnter={this.loadLogs}
+        style={{minHeight: 600}}
       >
         {this.state.mode === "issue" ? <DialogTitle>
           SAMPLE ISSUE LOG
-          <div>
+          <div className={classes.marginTopBottomSmall}>
             {[
               {key: "issue", desc: "Samples Issued"},
               {key: "analysis", desc: "Sample Analysis"},
@@ -149,7 +150,7 @@ class LoggedSamplesModal extends React.Component {
         :
         this.state.mode === "analysis" ? <DialogTitle>
           SAMPLE ANALYSIS LOG
-          <div>
+          <div className={classes.marginTopBottomSmall}>
             {[
               {key: "issue", desc: "Samples Issued"},
               {key: "analysis", desc: "Sample Analysis"},
@@ -172,7 +173,7 @@ class LoggedSamplesModal extends React.Component {
             style={{ fontWeight: "bold", fontSize: 12, }}
             spacing={2}
           >
-            <Grid item xs={2}>Analysis Date</Grid>
+            <Grid item xs={1}>Analysis Date</Grid>
             <Grid item xs={1}>Sample Number</Grid>
             <Grid item xs={3}>Description</Grid>
             <Grid item xs={2}>Material Category</Grid>
@@ -184,7 +185,7 @@ class LoggedSamplesModal extends React.Component {
         </DialogTitle> :
         <DialogTitle>
           QUALITY CONTROL LOG
-          <div>
+          <div className={classes.marginTopBottomSmall}>
             {[
               {key: "issue", desc: "Samples Issued"},
               {key: "analysis", desc: "Sample Analysis"},
@@ -235,7 +236,6 @@ class LoggedSamplesModal extends React.Component {
                         className={classes.hoverItemPoint}
                         spacing={2}
                         onClick={() => {
-                          console.log('onclick');
                           this.props.fetchSampleView(log.cocUid, log.sampleUid, log.jobNumber);
                           this.props.showModalSecondary({
                             modalType: ASBESTOS_SAMPLE_DETAILS,
@@ -319,14 +319,14 @@ class LoggedSamplesModal extends React.Component {
                           });
                         }}
                       >
-                        <Grid item xs={2}>{moment(dateOf(log.analysisDate)).format('D MMM YYYY, h:mma')}</Grid>
+                        <Grid item xs={1}>{moment(dateOf(log.analysisDate)).format('D MMM YYYY, h:mma')}</Grid>
                         <Grid item xs={1}>{log.jobNumber && log.sampleNumber && `${log.jobNumber}-${log.sampleNumber}`}</Grid>
                         <Grid item xs={3}>{writeDescription(log)}</Grid>
                         <Grid item xs={2}>{log.category ? log.category : ''}</Grid>
                         <Grid item xs={1}>{writeShorthandResult(log.result)}</Grid>
                         <Grid item xs={1}>{log.weightReceived ? `${log.weightReceived}g` : ''}</Grid>
                         <Grid item xs={1}>{log.analyst}</Grid>
-                        {/*<Grid item xs={1}>{log.turnaroundTime && milliToDHM(log.turnaroundTime, false, false)}</Grid>*/}
+                        <Grid item xs={1}>{log.receivedDate && log.analysisDate && milliToDHM(dateOf(log.analysisDate)-dateOf(log.receivedDate), false, false)}</Grid>
                       </Grid>
                     );
                   })

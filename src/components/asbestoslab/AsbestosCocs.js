@@ -184,6 +184,26 @@ class AsbestosCocs extends React.Component {
 
     // console.log('Asbestos Cocs Re-Rendering');
 
+    let filteredCocs = Object.keys(cocs)
+    .filter(job => {
+      let res = true;
+      if (this.props.search) {
+        let terms = this.props.search.split(" ");
+        let search =
+          job + " " + cocs[job].client + " " + cocs[job].address;
+        terms.forEach(term => {
+          if (!search.toLowerCase().replace('ā','a').includes(term.toLowerCase()))
+            res = false;
+        });
+      }
+      if (this.state.searchClient !== "" && cocs[job].client !== this.state.searchClient) res = false;
+      if (this.state.searchStartDate !== "" && moment(cocs[job].lastModified.toDate()).isBefore(new Date(this.state.searchStartDate), 'day')) res = false;
+      if (this.state.searchEndDate !== "" && moment(cocs[job].lastModified.toDate()).isAfter(new Date(this.state.searchEndDate), 'day')) res = false;
+      if (this.state.searchJobNumber !== "" && cocs[job].jobNumber.includes(this.state.searchJobNumber.toUpperCase()) === false) res = false;
+      if (cocs[job].deleted === true) res = false;
+      return res;
+    });
+
     return (
       <div className={classes.marginTopStandard}>
         { modalType === ASBESTOS_COC_EDIT && <CocModal /> }
@@ -206,8 +226,8 @@ class AsbestosCocs extends React.Component {
               this.props.showModal({
                 modalType: ASBESTOS_COC_EDIT,
                 modalProps: {
-                  title: "Add New Chain of Custody",
-                  doc: { dates: [], personnel: [], samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, },
+                  title: "Create New Chain of Custody",
+                  doc: { samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, },
                   isNew: true,
                 }
               });
@@ -352,50 +372,13 @@ class AsbestosCocs extends React.Component {
             <LinearProgress color="secondary" />
           </div>
         :
-          Object.keys(cocs)
-          .filter(job => {
-            let res = true;
-            if (this.props.search) {
-              let terms = this.props.search.split(" ");
-              let search =
-                job + " " + cocs[job].client + " " + cocs[job].address;
-              terms.forEach(term => {
-                if (!search.toLowerCase().includes(term.toLowerCase()))
-                  res = false;
-              });
-            }
-            if (this.state.searchClient !== "" && cocs[job].client !== this.state.searchClient) res = false;
-            if (this.state.searchStartDate !== "" && moment(cocs[job].lastModified.toDate()).isBefore(new Date(this.state.searchStartDate), 'day')) res = false;
-            if (this.state.searchEndDate !== "" && moment(cocs[job].lastModified.toDate()).isAfter(new Date(this.state.searchEndDate), 'day')) res = false;
-            if (this.state.searchJobNumber !== "" && cocs[job].jobNumber.includes(this.state.searchJobNumber.toUpperCase()) === false) res = false;
-            if (cocs[job].deleted === true) res = false;
-            return res;
-          }).length < 1 ? (
+          filteredCocs.length < 1 ? (
             <div className={classNames(classes.marginTopSmall, classes.noItems)}>
               No Chains of Custody to display.
             </div>
           ) : (
             <div className={classes.marginTopSmall}>
-              {Object.keys(cocs)
-                .filter(job => {
-                  let res = true;
-                  if (this.props.search) {
-                    let terms = this.props.search.split(" ");
-                    let search =
-                      job + " " + cocs[job].client + " " + cocs[job].address;
-                    terms.forEach(term => {
-                      if (!search.toLowerCase().includes(term.toLowerCase()))
-                        res = false;
-                    });
-                  }
-                  if (this.state.searchClient !== "" && cocs[job].client !== this.state.searchClient) res = false;
-                  if (this.state.searchStartDate !== "" && moment(cocs[job].lastModified.toDate()).isBefore(new Date(this.state.searchStartDate), 'day')) res = false;
-                  if (this.state.searchEndDate !== "" && moment(cocs[job].lastModified.toDate()).isAfter(new Date(this.state.searchEndDate), 'day')) res = false;
-                  if (this.state.searchJobNumber !== "" && cocs[job].jobNumber.includes(this.state.searchJobNumber.toUpperCase()) === false) res = false;
-                  if (cocs[job].deleted === true) res = false;
-                  return res;
-                })
-                .map(job => {
+              {filteredCocs.map(job => {
                   // what is the version thing doing
                   let version = 1;
                   // //console.log(cocs[job]);
