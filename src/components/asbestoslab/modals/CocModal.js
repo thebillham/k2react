@@ -435,7 +435,7 @@ class CocModal extends React.PureComponent {
                             label="Cover Letter Address"
                             style={{ width: '100%' }}
                             defaultValue={getDefaultLetterAddress(doc)}
-                            rows={5}
+                            rowsMax={10}
                             helperText='The address to be put on the front page of the certificate cover letter.'
                             multiline
                             onChange={e => {
@@ -445,7 +445,7 @@ class CocModal extends React.PureComponent {
                           />
                         </div>}
                       </div>
-                      {doc.uid && <div className={classes.informationBoxWhiteRounded}>
+                      {false && doc.uid && <div className={classes.informationBoxWhiteRounded}>
                         <FormControlLabel
                           control={
                             <Switch

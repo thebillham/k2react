@@ -24,6 +24,7 @@ import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 import { toggleDoNotRender } from "./display";
 import { sendSlackMessage, writeDates, andList, dateOf, milliToDHM, } from "./helpers";
+import { getDefaultLetterAddress, } from "./jobs";
 import {
   asbestosSamplesRef,
   asbestosAnalysisLogRef,
@@ -2090,6 +2091,7 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
     analysisDate: writeDates(samplesFiltered, 'analysisDate'),
     contactName: job.contact && job.contact.name ? job.contact.name : '',
     contactEmail: job.contact && job.contact.email ? job.contact.email : '',
+    coverLetterAddress: getDefaultLetterAddress(job),
     personnel: writePersonnelQualFull(getPersonnel(samplesFiltered, 'sampledBy', staffQualList, true)),
     waAnalysis: job.waAnalysis ? job.waAnalysis : false,
     // assessors: job.personnel.sort().map(staff => {
@@ -3065,11 +3067,11 @@ export const getJobStatus = (samples, job) => {
   } else if (numberVerified === totalSamples) {
     if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = `All Samples Verified, WA Analysis Incomplete (${totalSamples - numberWAAnalysisIncomplete}/${totalSamples})`;
     else {
-      if (numberResult === totalSamples) status = 'Ready For Issue';
+      if (numberResult === totalSamples) status = 'Ready for Issue';
       else status = `All Samples Verified, Bulk ID Incomplete (${numberResult}/${totalSamples})`;
     }
   } else if (numberResult === 0) {
-    status = `Analysis Started By ${analysisStartedBy} (${numberAnalysisStarted})`;
+    status = `Analysis Started by ${analysisStartedBy} (${numberAnalysisStarted})`;
   } else if (numberResult === totalSamples && numberVerified === 0) {
     if (job.waAnalysis && numberWAAnalysisIncomplete > 0) status = `Bulk ID Complete, WA Analysis Incomplete (${totalSamples - numberWAAnalysisIncomplete}/${totalSamples})`;
       else if (numberWeight !== totalSamples) status = `Asbestos Result Complete, Weights Required (${numberWeight}/${totalSamples})`;
@@ -3079,9 +3081,9 @@ export const getJobStatus = (samples, job) => {
   } else if (numberResult > 0 ) {
     status = `Analysis Partially Complete (${numberResult}/${totalSamples})`;
   } else if (numberAnalysisStarted > 0) {
-    status = `Analysis Partially Started By ${analysisStartedBy} (${numberAnalysisStarted}/${totalSamples})`;
+    status = `Analysis Partially Started by ${analysisStartedBy} (${numberAnalysisStarted}/${totalSamples})`;
   } else if (numberReceived > 0) {
-    status = `Partially Received By Lab (${numberReceived}/${totalSamples})`;
+    status = `Partially Received by Lab (${numberReceived}/${totalSamples})`;
   }
 
   if (totalSamples !== 0 && job.status !== status) cocsRef.doc(jobID).update({ status });

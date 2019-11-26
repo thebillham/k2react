@@ -202,6 +202,20 @@ class AsbestosCocs extends React.Component {
       if (this.state.searchJobNumber !== "" && cocs[job].jobNumber.includes(this.state.searchJobNumber.toUpperCase()) === false) res = false;
       if (cocs[job].deleted === true) res = false;
       return res;
+    }).sort((aJob, bJob) => {
+      let a = cocs[aJob],
+        b = cocs[bJob];
+      let urgentA = (a.priority && a.priority > 0) || a.isClearance ? a.priority ? a.priority : 1 : 0,
+        urgentB = (b.priority && b.priority > 0) || b.isClearance ? b.priority ? b.priority : 1 : 0;
+
+      // Put urgent/clearance at top, normal in the middle, issued at bottom
+      if (a.versionUpToDate === b.versionUpToDate && urgentA === urgentB) {
+        if (a.versionUpToDate) return a.jobNumber.localeCompare(b.jobNumber);
+        else return 0;
+      }
+      if (a.versionUpToDate && !b.versionUpToDate) return 1;
+      if (!a.versionUpToDate && b.versionUpToDate) return -1;
+      return urgentB - urgentA;
     });
 
     return (
@@ -378,14 +392,7 @@ class AsbestosCocs extends React.Component {
             </div>
           ) : (
             <div className={classes.marginTopSmall}>
-              {filteredCocs.map(job => {
-                  // what is the version thing doing
-                  let version = 1;
-                  // //console.log(cocs[job]);
-                  if (cocs[job].reportversion)
-                    version = cocs[job].reportversion + 1;
-                  return <AsbestosBulkCocCard key={job} job={job} />;
-                })}
+              {filteredCocs.map(job => <AsbestosBulkCocCard key={job} job={job} />)}
             </div>
           )
         }

@@ -1565,8 +1565,32 @@ export const getDefaultLetterAddress = doc => {
   console.log(doc);
   if (doc) {
     if (doc.coverLetterAddress) return doc.coverLetterAddress;
-    
-    else return '';
+    if (!doc.contact && !doc.clientDetails) {
+      return `${doc.client}\n${doc.address}`;
+    }
+    let contact = doc.contact,
+      client = doc.clientDetails,
+      contactName = contact && (contact.name !== null || contact.name !== '') ? contact.name : null,
+      contactPosition = contact && (contact.position !== null || contact.position !== '') ? contact.position : null,
+      address = null,
+      city = null,
+      postcode = null;
+
+    if (client && client.postalAddress) {
+      address = client.postalAddress;
+      city = client.postalCity;
+      if (address && address.toLowerCase().includes(city.toLowerCase())) city = null;
+      postcode = client.postalPostCode;
+      address = `${address ? address : ''}${city ? '\n' + city : ''}${postcode ? ' ' + postcode : ''}`;
+    } else if (client && client.address) {
+      address = client.address;
+      city = client.city;
+      if (address && address.toLowerCase().includes(city.toLowerCase())) city = null;
+      postcode = client.postcode;
+      address = `${address ? address : ''}${city ? '\n' + city : ''}${postcode ? ' ' + postcode : ''}`;
+    }
+    let letterAddress = `${contactName ? contactName + '\n' : ''}${contactPosition ? contactPosition + '\n' : ''}${doc.client ? doc.client + '\n' : ''}${address ? address : ''}`;
+    return letterAddress.trim();
   } else {
     return '';
   }
