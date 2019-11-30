@@ -42,7 +42,10 @@ import Collapse from "@material-ui/core/Collapse";
 // Icons
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import NoticeboardIcon from "@material-ui/icons/SpeakerNotes";
-import JobsIcon from "@material-ui/icons/Assignment";
+import JobsIcon from "@material-ui/icons/Work";
+import CurrentJobsIcon from "@material-ui/icons/Assignment";
+import LeadsIcon from "@material-ui/icons/LocalPhone"
+import SitesIcon from '@material-ui/icons/Place';
 import MapIcon from "@material-ui/icons/Map";
 import LabIcon from "@material-ui/icons/Colorize";
 import StaffIcon from "@material-ui/icons/People";
@@ -61,7 +64,6 @@ import IncidentIcon from '@material-ui/icons/LocalHospital';
 import CocIcon from '@material-ui/icons/TableChart';
 import InventoryIcon from '@material-ui/icons/Category'
 import LogIcon from '@material-ui/icons/ListAlt';
-import SiteIcon from '@material-ui/icons/Place';
 import QCIcon from '@material-ui/icons/OfflinePin'
 import StatsIcon from '@material-ui/icons/InsertChart';
 import TrainingPathIcon from "@material-ui/icons/DirectionsWalk";
@@ -110,11 +112,16 @@ import {
 
 // Pages
 const Noticeboard = lazy(() => import("./noticeboard/Noticeboard"));
-const AsbestosCocs = lazy(() => import("./asbestoslab/AsbestosCocs"));
+
+const AsbestosLab = lazy(() => import("./asbestoslab/AsbestosLab"));
 const AsbestosLog = lazy(() => import("./asbestoslab/AsbestosLog"));
 const AsbestosQualityControl = lazy(() => import("./asbestoslab/AsbestosQualityControl"));
 const AsbestosStats = lazy(() => import("./asbestoslab/AsbestosStats"));
+
 const JobMap = lazy(() => import("./jobs/JobMap"));
+const CurrentJobs = lazy(() => import("./jobs/CurrentJobs"));
+const Leads = lazy(() => import("./jobs/Leads"));
+const JobStats = lazy(() => import("./jobs/JobStats"));
 const Jobs = lazy(() => import("./jobs/Jobs"));
 const Sites = lazy(() => import("./jobs/Sites"));
 
@@ -271,6 +278,13 @@ class MainScreen extends React.PureComponent {
     // });
   };
 
+  handleJobsClick = () => {
+    this.setState({
+      // openDrawer: true,
+      openJobs: !this.state.openJobs
+    });
+  };
+
   handleMyDetailsClick = () => {
     // this.setState({
     //   // openDrawer: true,
@@ -356,20 +370,85 @@ class MainScreen extends React.PureComponent {
             {/*{this.state.openMyDetails ? <ExpandLess /> : <ExpandMore /> }*/}
           </ListItem>
         <Divider /></div>}
-          {/*<ListItem button component={Link} to="/jobs/sites">
+        {menuItems.includes('Jobs') &&
+          <div>
+          <ListItem button component={Link} to="/jobs">
             <ListItemIcon>
-              <SiteIcon className={classes.colorAccent} />
-            </ListItemIcon>
-            <ListItemText primary="Sites" />
-          </ListItem>*/}
-          {menuItems.includes('Jobs') && <div><ListItem button component={Link} to="/jobs">
-            <ListItemIcon>
-              <MapIcon className={classes.colorAccent} />
+              <JobsIcon className={classes.colorAccent} />
             </ListItemIcon>
             <ListItemText primary="Jobs" />
           </ListItem>
-
-        <Divider /></div>}
+          <Divider />
+          </div>
+        }
+        {/*<div>
+          <ListItem button onClick={this.handleJobsClick}>
+          <ListItemIcon>
+            <JobsIcon className={classes.colorAccent} />
+          </ListItemIcon>
+          <ListItemText primary="Jobs" />
+            {this.state.openJobs ? <ExpandLess /> : <ExpandMore />}
+          </ListItem>
+          <Collapse in={this.state.openJobs} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <ListItem
+                button
+                component={Link}
+                to="/jobs/current"
+                className={classes.drawerNested}
+              >
+                <ListItemIcon>
+                  <CurrentJobsIcon className={classes.colorAccent} />
+                </ListItemIcon>
+                <ListItemText primary="Current Jobs" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/jobs/leads"
+                className={classes.drawerNested}
+              >
+                <ListItemIcon>
+                  <LeadsIcon className={classes.colorAccent} />
+                </ListItemIcon>
+                <ListItemText primary="Leads" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/jobs/sites"
+                className={classes.drawerNested}
+              >
+                <ListItemIcon>
+                  <SitesIcon className={classes.colorAccent} />
+                </ListItemIcon>
+                <ListItemText primary="Sites" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/jobs/map"
+                className={classes.drawerNested}
+              >
+                <ListItemIcon>
+                  <MapIcon className={classes.colorAccent} />
+                </ListItemIcon>
+                <ListItemText primary="Job Map" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/jobs/stats"
+                className={classes.drawerNested}
+              >
+                <ListItemIcon>
+                  <StatsIcon className={classes.colorAccent} />
+                </ListItemIcon>
+                <ListItemText primary="Job Stats" />
+              </ListItem>
+            </List>
+          </Collapse>
+        </div>}*/}
         {menuItems.includes('Asbestos Lab') && <div><ListItem button component={Link} to="/asbestoslab">
           <ListItemIcon>
             <LabIcon className={classes.colorAccent} />
@@ -724,16 +803,28 @@ class MainScreen extends React.PureComponent {
                           render={() => <span><JobsIcon /> Jobs</span>}
                         />
                         <Route
+                          path="/jobs/current"
+                          render={() => <span><CurrentJobsIcon /> Current Jobs</span>}
+                        />
+                        <Route
+                          path="/jobs/leads"
+                          render={() => <span><LeadsIcon /> Leads</span>}
+                        />
+                        <Route
+                          path="/jobs/stats"
+                          render={() => <span><StatsIcon /> Job Stats</span>}
+                        />
+                        <Route
                           path="/jobs/map"
                           render={() => <span><MapIcon /> Jobs Map</span>}
                         />
                         <Route
                           path="/jobs/sites"
-                          render={() => <span><SiteIcon /> Sites</span>}
+                          render={() => <span><SitesIcon /> Sites</span>}
                         />
                         <Route
                           path="/asbestoslab"
-                          render={() => <span><CocIcon /> Asbestos Lab: Jobs</span>}
+                          render={() => <span><CocIcon /> Asbestos Lab</span>}
                         />
                         <Route
                           path="/asbestossamplelog"
@@ -939,9 +1030,12 @@ class MainScreen extends React.PureComponent {
                       {/*<Route exact path="/jobs" component={Jobs} />*/}
                       <Route path="/inventory" render={props => <Inventory {...props} />} />
                       <Route exact path="/jobs" render={props => <Jobs {...props} />} />
+                      <Route exact path="/jobs/current" render={props => <CurrentJobs {...props} />} />
+                      <Route exact path="/jobs/leads" render={props => <Leads {...props} />} />
+                      <Route exact path="/jobs/stats" render={props => <JobStats {...props} />} />
                       <Route exact path="/jobs/map" render={props => <JobMap {...props} />} />
                       <Route exact path="/jobs/sites" render={props => <Sites {...props} />} />
-                      <Route path="/asbestoslab" render={props => <AsbestosCocs {...props} />} />
+                      <Route path="/asbestoslab" render={props => <AsbestosLab {...props} />} />
                       <Route path="/asbestossamplelog" render={props => <AsbestosLog {...props} />} />
                       <Route path="/asbestosqc" render={props => <AsbestosQualityControl {...props} />} />
                       <Route path="/asbestosstats" render={props => <AsbestosStats {...props} />} />

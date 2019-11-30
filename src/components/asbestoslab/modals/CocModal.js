@@ -68,6 +68,7 @@ const mapStateToProps = state => {
     userRefName: state.local.userRefName,
     staff: state.local.staff,
     samples: state.asbestosLab.samples,
+    jobList: state.jobs.jobList,
    };
 };
 
@@ -204,7 +205,7 @@ class CocModal extends React.PureComponent {
   }
 
   render() {
-    const { modalProps, modalType, doc, wfmJob, classes, me } = this.props;
+    const { modalProps, modalType, doc, wfmJob, classes, me, jobList } = this.props;
     // console.log(doc);
     if (modalType === ASBESTOS_COC_EDIT) {
       const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
@@ -220,6 +221,11 @@ class CocModal extends React.PureComponent {
 
       let blockInput = !doc.uid && (!wfmSynced || modalProps.error);
       if (blockInput !== false) blockInput = true;
+
+      let foundJob = [];
+      if (jobList) foundJob = Object.values(jobList).filter(job => job.isJob && job.jobNumber === this.state.jobNumber);
+      console.log(Object.values(jobList).filter(job => job.isJob));
+      console.log(foundJob);
 
       return(
         <Dialog
@@ -637,13 +643,13 @@ class CocModal extends React.PureComponent {
                             disabled={disabled}
                             onModify={(value) => {
                               let category = '';
-                              if (doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category) category = doc.samples[i+1].category;
-                              else {
+                              // if (doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category) category = doc.samples[i+1].category;
+                              // else {
                                 let materialObj = Object.values(this.props.materialSuggestions).filter(e => e.label === value);
                                 if (materialObj.length > 0) {
                                   category = materialObj[0].category;
                                 }
-                              }
+                              // }
                               this.setState({ modified: true, });
                               this.props.handleSampleChange(i, {material: value.trim(), category});
                             }} />
@@ -778,6 +784,9 @@ class CocModal extends React.PureComponent {
                     { modalProps.error }
                   </div>
                 }
+                <div className={classes.informationBoxRounded}>
+                  {foundJob.length > 0 ? foundJob[0].client : 'Searching...' }
+                </div>
               </div>
             </DialogContent>
           }

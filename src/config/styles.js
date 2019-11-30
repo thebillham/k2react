@@ -378,6 +378,12 @@ const styles = theme => ({
     fontSize: 12,
   },
 
+  code: {
+    fontSize: 11,
+    fontFamily: 'monospace',
+    whiteSpace: 'pre',
+  },
+
   paleLarge: {
     fontSize: 48,
     fontWeight: 100,
@@ -435,6 +441,11 @@ const styles = theme => ({
     backgroundColor: theme.palette.secondary.dark
   },
 
+  url: {
+    textDecoration: "none",
+    color: theme.palette.secondary.main,
+  },
+
   bottomDottedStyle: {
     borderBottomStyle: 'dotted',
     borderBottomWidth: 1,
@@ -477,6 +488,15 @@ const styles = theme => ({
     fontWeight: 500,
     textDecoration: 'underline',
     marginBottom: 6,
+  },
+
+  underlineRed: {
+    color: "#ff0000",
+    textDecoration: "underline"
+  },
+
+  linethrough: {
+    textDecoration: 'line-through',
   },
 
   details: {
@@ -583,6 +603,14 @@ const styles = theme => ({
   },
 
   // Button Styles
+
+  buttonStandard: {
+
+  },
+
+  buttonStandardSelected: {
+
+  },
 
   buttonGo: {
     width: 30,
@@ -825,6 +853,38 @@ const styles = theme => ({
   colorsReadyForIssue: {
     backgroundColor: theme.palette.stages.readyForIssue,
     color: theme.palette.stages.readyForIssueText,
+  },
+
+  colorsJobWorkplace: {
+    color: theme.palette.jobs.workplace,
+  },
+
+  colorsJobStack: {
+    color: theme.palette.jobs.stack,
+  },
+
+  colorsJobOther: {
+    color: theme.palette.jobs.other,
+  },
+
+  colorsJobNoise: {
+    color: theme.palette.jobs.noise,
+  },
+
+  colorsJobMeth: {
+    color: theme.palette.jobs.meth,
+  },
+
+  colorsJobBio: {
+    color: theme.palette.jobs.bio,
+  },
+
+  colorsJobAsbestos: {
+    color: theme.palette.jobs.asbestos,
+  },
+
+  colorsJobAll: {
+    color: theme.palette.jobs.all,
   },
 
   // TEXT BOXES
@@ -1102,6 +1162,13 @@ const styles = theme => ({
     margin: -8
   },
 
+  popupMap: {
+    width: '350',
+    lineHeight: 2,
+    fontSize: 14,
+    padding: theme.spacing(2),
+  },
+
   // TABLES
 
   headingRow: {
@@ -1247,6 +1314,11 @@ const styles = theme => ({
     textAlign: 'center',
   },
 
+  paddingCenterText: {
+    padding: theme.spacing(1),
+    textAlign: "center",
+  },
+
   marginLeftSmall: {
     marginLeft: theme.spacing(1),
   },
@@ -1277,6 +1349,10 @@ const styles = theme => ({
 
   marginTopSmall: {
     marginTop: theme.spacing(1),
+  },
+
+  marginBottomMedium: {
+    marginBottom: theme.spacing(2),
   },
 
   marginTopStandard: {

@@ -14,7 +14,17 @@ import {
   fetchStaff,
 } from "../../actions/local";
 import {
+  fetchWFMJobs,
+  fetchWFMLeads,
   fetchWFMClients,
+  fetchCurrentJobState,
+  saveCurrentJobState,
+  saveWFMItems,
+  saveGeocodes,
+  fetchGeocodes,
+  updateGeocodes,
+  saveStats,
+  collateJobsList,
 } from "../../actions/jobs";
 
 //Modals
@@ -83,6 +93,16 @@ const mapStateToProps = state => {
     analysisMode: state.asbestosLab.analysisMode,
     modalType: state.modal.modalType,
     modalTypeSecondary: state.modal.modalTypeSecondary,
+    wfmJobs: state.jobs.wfmJobs,
+    wfmLeads: state.jobs.wfmLeads,
+    wfmClients: state.jobs.wfmClients,
+    currentJobState: state.jobs.currentJobState,
+    geocodes: state.jobs.geocodes,
+    wfmItems: state.jobs.wfmItems,
+    wfmStats: state.jobs.wfmStats,
+    jobList: state.jobs.jobList,
+    search: state.local.search,
+    filter: state.display.filterMap,
   };
 };
 
@@ -91,15 +111,25 @@ const mapDispatchToProps = dispatch => {
     fetchCocs: () => dispatch(fetchCocs()),
     fetchCocsByJobNumber: jobNumber => dispatch(fetchCocsByJobNumber(jobNumber)),
     fetchCocsBySearch: (client, startDate, endDate) => dispatch(fetchCocsBySearch(client, startDate, endDate)),
-    fetchWFMClients: () => dispatch(fetchWFMClients()),
     fetchStaff: () => dispatch(fetchStaff()),
     showModal: modal => dispatch(showModal(modal)),
     setAnalyst: analyst => dispatch(setAnalyst(analyst)),
     setAnalysisMode: analysisMode => dispatch(setAnalysisMode(analysisMode)),
+    fetchWFMJobs: () => dispatch(fetchWFMJobs()),
+    fetchWFMLeads: () => dispatch(fetchWFMLeads()),
+    fetchWFMClients: () => dispatch(fetchWFMClients()),
+    fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
+    saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
+    saveGeocodes: g => dispatch(saveGeocodes(g)),
+    fetchGeocodes: () => dispatch(fetchGeocodes()),
+    updateGeocodes: g => dispatch(updateGeocodes(g)),
+    saveWFMItems: items => dispatch(saveWFMItems(items)),
+    saveStats: stats => dispatch(saveStats(stats)),
+    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
 
-class AsbestosCocs extends React.Component {
+class AsbestosLab extends React.Component {
   // static whyDidYouRender = true;
   state = {
     analyst: false,
@@ -126,6 +156,14 @@ class AsbestosCocs extends React.Component {
       }
     }
     if (!this.props.staff || Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
+    if (this.props.wfmJobs.length === 0) this.props.fetchWFMJobs();
+    // if (this.props.jobList && Object.keys(this.props.jobList).length === 0) {
+    //   if (this.props.wfmJobs.length === 0) this.props.fetchWFMJobs();
+    //   if (this.props.wfmLeads.length === 0) this.props.fetchWFMLeads();
+    //   if (this.props.wfmClients.length === 0) this.props.fetchWFMClients();
+    //   this.props.fetchCurrentJobState(false);
+    //   if(this.props.geocodes === undefined) this.props.fetchGeocodes();
+    // }
   };
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -151,7 +189,16 @@ class AsbestosCocs extends React.Component {
   // }
 
   render() {
-    const { cocs, classes, modalType, modalTypeSecondary } = this.props;
+    const { cocs, classes, modalType, modalTypeSecondary, wfmJobs, wfmLeads, wfmClients, currentJobState, jobList, geocodes, } = this.props;
+    // if (
+    //   wfmJobs.length > 0 &&
+    //   wfmLeads.length > 0 &&
+    //   wfmClients.length > 0 &&
+    //   currentJobState !== undefined && Object.values(currentJobState).length > 0 &&
+    //   jobList && Object.values(jobList).length === 0
+    // )
+    //   this.props.collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes, );
+
     moment.tz.setDefault("Pacific/Auckland");
     moment.updateLocale('en', {
       // workingWeekdays: [1,2,3,4,5],
@@ -405,5 +452,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(AsbestosCocs)
+  )(AsbestosLab)
 );

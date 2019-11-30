@@ -1850,35 +1850,49 @@ export const checkTestCertificateIssue = (samples, job, meUid, newVersionWithIss
 
   let issues = verifySamples(filteredSamples, job, meUid, false, false);
   // Check if any samples have not been checked off and ask the user to verify
-  let allSamplesVerified = true;
+  let samplesVerified = 0,
+    samplesNotVerified = 0;
 
   filteredSamples.forEach(sample => {
-    if (!sample.verified && sample.cocUid === job.uid) allSamplesVerified = false;
+    if (!sample.verified && sample.cocUid === job.uid) samplesNotVerified++;
+    else samplesVerified++;
   });
 
-  if (!allSamplesVerified) {
-    let uid = job.uid + 'NotAllSamplesVerified';
+  if (samplesVerified === 0) {
+    let uid = job.uid + 'NoSamplesVerified';
     issues[uid] = {
-      type: 'confirm',
-      priority: 'low',
-      description: `Not all samples have been verified. These will not appear in the test certificate.`,
+      type: 'block',
+      priority: 'high',
+      description: 'No samples have been verified. This must be done before issuing the test certificate',
       sample: null,
       uid,
-      yes: 'This is correct',
-      no: 'This needs fixing',
-    };
-  }
+      no: 'OK',
+    }
+  } else {
+    if (samplesNotVerified > 0) {
+      let uid = job.uid + 'NotAllSamplesVerified';
+      issues[uid] = {
+        type: 'confirm',
+        priority: 'low',
+        description: `Not all samples have been verified. These will not appear in the test certificate.`,
+        sample: null,
+        uid,
+        yes: 'This is correct',
+        no: 'This needs fixing',
+      };
+    }
 
-  // If new version, prompt for version change
-  if (job.currentVersion && newVersionWithIssue) {
-    let uid = 'versionChanges' + job.currentVersion;
-    issues[uid] = {
-      type: 'confirm',
-      description: 'Please provide a description of the changes made since the last version issued. This will appear on the test certifcate.',
-      sample: null,
-      uid,
-      yes: 'OK',
-      no: 'Cancel',
+    // If new version, prompt for version change
+    if (job.currentVersion && newVersionWithIssue) {
+      let uid = 'versionChanges' + job.currentVersion;
+      issues[uid] = {
+        type: 'confirm',
+        description: 'Please provide a description of the changes made since the last version issued. This will appear on the test certifcate.',
+        sample: null,
+        uid,
+        yes: 'OK',
+        no: 'Cancel',
+      }
     }
   }
   return issues;
@@ -3022,8 +3036,8 @@ export const getJobStatus = (samples, job) => {
   let numberVerified = 0;
   let numberWAAnalysisIncomplete = 0;
   let analysisStartedBy = 'Lab';
-  let timeInLab = 0;
-  let timeInAdmin = 0;
+  let timeInLab = -1;
+  let timeInAdmin = -1;
   let readyForIssue = 0;
 
   if (samples && Object.values(samples).length > 0) {
@@ -3031,7 +3045,8 @@ export const getJobStatus = (samples, job) => {
       if (sample.cocUid === jobID) {
         totalSamples++;
         if (sample.receivedByLab) {
-          timeInLab = timeInLab + (new Date() - dateOf(sample.receivedDate));
+          let sampleTimeInLab = new Date() - dateOf(sample.receivedDate);
+          if (timeInLab === -1 || sampleTimeInLab < timeInLab) timeInLab = sampleTimeInLab;
           numberReceived++;
         }
         if (sample.analysisStarted){
@@ -3042,7 +3057,8 @@ export const getJobStatus = (samples, job) => {
         if (job.waAnalysis && !sample.waAnalysisComplete) numberWAAnalysisIncomplete++;
         if (getBasicResult(sample) !== 'none') {
           if (sample.weightReceived) {
-            timeInAdmin = timeInAdmin + (new Date() - dateOf(sample.analysisDate));
+            let sampleTimeInAdmin = new Date() - dateOf(sample.analysisDate);
+            if (timeInAdmin === -1 || sampleTimeInAdmin < timeInAdmin) timeInAdmin = sampleTimeInAdmin;
             readyForIssue++;
           }
           numberResult++;
@@ -3051,9 +3067,6 @@ export const getJobStatus = (samples, job) => {
       }
     });
   }
-
-  if (numberReceived > 0) timeInLab = timeInLab / numberReceived;
-  if (readyForIssue > 0) timeInAdmin = timeInAdmin / readyForIssue;
 
   if (versionUpToDate) {
     if (job.mostRecentIssueSent) status = `Issued and Sent`;

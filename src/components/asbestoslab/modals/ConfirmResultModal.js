@@ -265,7 +265,7 @@ class ConfirmResultModal extends React.Component {
               <Button className={classes.buttonIconText} aria-label='add' onClick={this.addAnalysis}><AddIcon /> Add Analysis</Button>
             </div>}
           </DialogContent>
-          <DialogActions>
+          {editor ? <DialogActions>
             <Button onClick={() => this.resetModal()} color="secondary">
               Cancel
             </Button>
@@ -278,7 +278,13 @@ class ConfirmResultModal extends React.Component {
             >
               Submit
             </Button>
+          </DialogActions> :
+          <DialogActions>
+            <Button onClick={() => this.resetModal()} color="primary">
+              OK
+            </Button>
           </DialogActions>
+        }
         </Dialog>
       );
     } else return null;

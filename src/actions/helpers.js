@@ -40,25 +40,27 @@ export const displayTimeDifference = date => {
 };
 
 export const getDaysSinceDate = date => {
-  var timeDifference = new Date() - new Date(date);
-  var divideBy = 86400000;
-  var days = Math.floor(timeDifference / divideBy);
-
-  return days;
+  return moment().diff(dateOf(date), 'days');
 };
+
+export const getDaysSinceDateAgo = date => {
+  let days = getDaysSinceDate(date);
+  if (days === 1) return `${days} day ago`;
+  else return `${days} days ago`;
+  // return moment(dateOf(date)).fromNow();
+}
 
 export const getDaysBetweenDates = (d1, d2) => {
-  var timeDifference = new Date(d1) - new Date(d2);
-  var divideBy = 86400000;
-  var days = Math.floor(timeDifference / divideBy);
-
-  return days;
+  return moment(dateOf(d1)).diff(dateOf(d2), 'days');
 };
 
+export const convertYYYYMMDD = date => {
+  console.log(date);
+  console.log(moment(date, "YYYY-MM-DD"));
+  return moment(date, "YYYY-MM-DD");
+}
+
 export const mapsAreEqual = (res1, res2) => {
-  console.log(res1);
-  console.log(res2);
-  console.log(res1 !== res2);
   if (res1 === res2) return true;
   if ((!res1 && res2) || (res1 && !res2)) return false;
   let res = true;

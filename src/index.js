@@ -5,7 +5,7 @@ import { ConnectedRouter } from "connected-react-router";
 import App from "./App";
 import registerServiceWorker from "./registerServiceWorker";
 import "bootstrap/dist/css/bootstrap.min.css";
-import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
+import { MuiThemeProvider } from "@material-ui/core/styles";
 import theme from "./config/theme";
 import store, { history } from "./store/index";
 import whyDidYouRender from "@welldone-software/why-did-you-render";
@@ -27,15 +27,15 @@ whyDidYouRender(React, {
 });
 
 ReactDOM.render(
-  <Provider store={store}>
-    <MuiThemeProvider theme={theme}>
+  <MuiThemeProvider theme={theme}>
+    <Provider store={store}>
       <ConnectedRouter history={history}>
         <MuiPickersUtilsProvider utils={MomentUtils}>
-          <App />
+            <App />
         </MuiPickersUtilsProvider>
       </ConnectedRouter>
-    </MuiThemeProvider>
-  </Provider>,
+    </Provider>
+  </MuiThemeProvider>,
   document.getElementById("root")
 );
 

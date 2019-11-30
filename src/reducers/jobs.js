@@ -111,11 +111,12 @@ export default function jobsReducer(state = jobsInit, action) {
     case GET_JOB_LIST:
       return {
         ...state,
-        jobList: action.payload,
+        jobList: {
+          ...state.jobList,
+          ...action.payload,
+        },
       }
     case ADD_TO_JOB_LIST:
-      console.log('Adding to job list');
-      console.log(action.payload);
       return {
         ...state,
         jobList: {

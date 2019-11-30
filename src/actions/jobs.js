@@ -79,7 +79,7 @@ export const fetchWFMJobs = () => async dispatch => {
           ? wfmJob.Description
           : "No description";
         if (wfmJob.Client) {
-          console.log(wfmJob.Client);
+          // console.log(wfmJob.Client);
           job.client = wfmJob.Client.Name
             ? wfmJob.Client.Name
             : "No client name";
@@ -224,7 +224,7 @@ export const fetchWFMLeads = () => async dispatch => {
           lead.activities = ["NO PLAN!"];
         }
         if (wfmLead.History.Item) {
-          // //console.log(wfmLead.History);
+          // console.log(wfmLead.History);
           lead.history = [];
           if (Array.isArray(wfmLead.History.Item)) {
             wfmLead.History.Item.forEach(wfmHistory => {
@@ -516,7 +516,7 @@ export const updateGeocodes = geocodes => dispatch => {
 };
 
 export const saveWFMItems = items => dispatch => {
-  console.log(items);
+  // console.log(items);
   var date = moment().format("YYYY-MM-DD");
   // //console.log(items);
   Object.values(items).forEach(job => {
@@ -562,18 +562,6 @@ export const analyseJobHistory = () => {
   // sendSlackMessage(`${auth.currentUser.displayName} ran analyseJobHistory`);
   // vars
   console.log('Running job history');
-  // const buckets = [
-  //   'jobs',
-  //   'asbestos',
-  //   'asbestosbulkid',
-  //   'asbestosclearance',
-  //   'asbestosbackground',
-  //   'workplace',
-  //   'meth',
-  //   'bio',
-  //   'stack',
-  //   'noise'
-  // ];
   var jobMap = {};
   buckets.forEach((bucket) => {
     jobMap[bucket] = {};
@@ -595,15 +583,21 @@ export const analyseJobHistory = () => {
     .then(querySnapshot => {
       querySnapshot.forEach(doc => {
         // Loop through each day of the saved states
+        console.log(doc.id);
         var state = doc.data()['state'];
-        // console.log(state);
+        console.log(state);
+        // console.log(state.filter((stateJob) => stateJob.isJob).length);
         // Loop through current job map and check if any are missing from this state (e.g. they have been completed since the last state)
         if (state.length > 0) {
           buckets.forEach((bucket) => {
+            // console.log(bucket);
             if (jobMap[bucket] !== undefined) {
+              console.log(jobMap[bucket]);
               Object.values(jobMap[bucket]).forEach((job) => {
-                if (job.state !== 'Completed' && state.filter((stateJob) => stateJob.wfmID === job.wfmID).length === 0 && state.filter((stateJob) => stateJob.isJob).length > 0) {
-                  jobMap[bucket][job.wfmID]['state'] = 'Completed';
+                console.log(state.filter((stateJob) => stateJob.wfmID === job.wfmID).length);
+                if (job.wfmState !== 'Completed' && state.filter((stateJob) => stateJob.wfmID === job.wfmID).length === 0 && state.filter((stateJob) => stateJob.isJob).length > 0) {
+                  console.log('Job ' + job.wfmID + ' Completed at ' + doc.id);
+                  jobMap[bucket][job.wfmID]['wfmState'] = 'Completed';
                   jobMap[bucket][job.wfmID]['completionDate'] = doc.id;
                   jobMap[bucket][job.wfmID]['lastActionDate'] = doc.id;
                   jobMap[bucket][job.wfmID]['stateHistory'] = {
@@ -621,8 +615,9 @@ export const analyseJobHistory = () => {
                     name: jobMap[bucket][job.wfmID]['name'],
                     wfmID: jobMap[bucket][job.wfmID]['wfmID'],
                   };
+                  console.log(completionDoc);
                   if (jobMap[bucket][job.wfmID]['stateHistory'] !== undefined) completionDoc.stateHistory = jobMap[bucket][job.wfmID]['stateHistory'];
-                  if (jobMap[bucket][job.wfmID]['completedActivities'] !== undefined)
+                  if (jobMap[bucket][job.wfmID]['completedActivities'] !== undefined) completionDoc.stateHistory = jobMap[bucket][job.wfmID]['completedActivities'];
                   if (completionMap[doc.id] !== undefined) {
                     completionMap[doc.id] = [...completionMap[doc.id], completionDoc];
                   } else {
@@ -653,40 +648,55 @@ export const analyseJobHistory = () => {
             var mappedJob = jobMap[bucket][job.wfmID];
             if (mappedJob !== undefined) {
             // Update current job (Check if state has been updated)
-              if (job.state !== mappedJob.state) {
+              if (job.state !== undefined) {
+                job.wfmState = job.state;
+                delete job.state;
+              }
+              if (job.wfmState !== mappedJob.wfmState) {
                 // Create a list of all job states/change dates (not necessary)
-                if (jobTypes[job.state] !== undefined) jobTypes[job.state][bucket] = ''; else jobTypes[job.state] = {[bucket]: ''};
-                if (stateChangeDates[doc.id] !== undefined) stateChangeDates[doc.id][bucket] = ''; else stateChangeDates[doc.id] = {[bucket]: ''};
+                // if (jobTypes[job.wfmState] !== undefined) jobTypes[job.wfmState][bucket] = ''; else jobTypes[job.wfmState] = {[bucket]: ''};
+                // if (stateChangeDates[doc.id] !== undefined) stateChangeDates[doc.id][bucket] = ''; else stateChangeDates[doc.id] = {[bucket]: ''};
                 let update = true;
 
-                if (mappedJob.state === 'Completed') {
+                if (mappedJob.wfmState === 'Completed' || mappedJob.state === 'Completed') {
                   // Mapped job was incorrectly marked as completed
                   // console.log(mappedJob);
                   mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).forEach(k => {
                     if (mappedJob.stateHistory[k] === 'Completed') {
-                      // console.log(mappedJob.stateHistory);
+                      console.log(mappedJob.stateHistory);
                       delete mappedJob.stateHistory[k];
-                      if (completionMap[k]) {
-                        delete completionMap[k];
-                      }
+                      // if (completionMap[k]) {
+                      //   delete completionMap[k];
+                      // }
                       // console.log(mappedJob.stateHistory);
                     }
                   });
-                  if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] && mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.state) update = false;
+                  if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] !== undefined) {
+                    if (mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.wfmState) {
+                      console.log(mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]]);
+                      console.log(job.wfmState);
+                      console.log('States match, no update');
+                      console.log(mappedJob);
+                      console.log(mappedJob.wfmID);
+                      update = false;
+                    }
+                  }
                 }
 
-                mappedJob.state = job.state;
+                mappedJob.wfmState = job.wfmState;
 
                 if (update) {
                   // Update mapped job
                   mappedJob.lastActionDate = doc.id;
                   mappedJob.stateHistory = {
                     ...mappedJob.stateHistory,
-                    [doc.id]: job.state,
+                    [doc.id]: job.wfmState,
                   };
+                  if (job.wfmState === undefined) console.log(mappedJob.stateHistory);
                 } else {
+                  console.log(mappedJob.wfmID);
                   mappedJob.lastActionDate = Object.keys(mappedJob.stateHistory).slice(-1)[0];
-                  // console.log(Object.keys(mappedJob.stateHistory).slice(-1)[0]);
+                  console.log(Object.keys(mappedJob.stateHistory).slice(-1)[0]);
                 }
               }
               if (job.geocode !== mappedJob.geocode) {
@@ -699,13 +709,23 @@ export const analyseJobHistory = () => {
               // Add to mapped jobs
             } else {
               // Add new job to map
+              console.log('Adding New Job (' + bucket + ') ' + job.wfmID);
               job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
               job.lastActionDate = doc.id;
+
+              // Delete outdated fields
               if (job.daysOld !== undefined) delete job.daysOld;
+              if (job.state !== undefined) {
+                job.wfmState = job.state;
+                delete job.state;
+              }
+
               job.stateHistory = {
                 [job.creationDate]: 'Job Created',
-                [doc.id]: job['state'],
+                [doc.id]: job.wfmState,
               };
+
+              console.log(job);
 
               // Add to mapped jobs
               jobMap[bucket][job.wfmID] = job;
@@ -753,12 +773,42 @@ export const analyseJobHistory = () => {
         });
       });
 
+      console.log(jobMap);
+      console.log(completionMap);
+      console.log(creationMap);
+
+      let batch = firestore.batch();
+
       allBuckets = buckets.concat(Object.keys(leadBuckets));
       allBuckets.forEach((bucket) => {
-        stateRef.doc("wfmstate").collection("current").doc(bucket).set(jobMap[bucket]);
+        // console.log(bucket);
+        // Check for any jobs that have undefined state historys
+        if (jobMap[bucket]) {
+          Object.values(jobMap[bucket]).forEach(job => {
+            if (job.stateHistory) {
+              let lastKey = '';
+              Object.keys(job.stateHistory).forEach(k => {
+                if (job.stateHistory[k] === undefined) {
+                  job.stateHistory[k] = 'Data missing';
+                  // console.log(job.stateHistory);
+                }
+                if (job.stateHistory[lastKey] === job.stateHistory[k]) {
+                  // console.log(job.stateHistory);
+                  delete job.stateHistory[k];
+                  // console.log(job.stateHistory);
+                }
+                lastKey = k;
+              });
+              job.lastActionDate = lastKey;
+            }
+          })
+        }
+        batch.set(stateRef.doc("wfmstate").collection("current").doc(bucket), jobMap[bucket]);
       });
-      stateRef.doc("wfmstate").collection("timeline").doc('completion').set(completionMap);
-      stateRef.doc("wfmstate").collection("timeline").doc('creation').set(creationMap);
+      console.log(jobMap);
+      batch.set(stateRef.doc("wfmstate").collection("timeline").doc('completion'), completionMap);
+      batch.set(stateRef.doc("wfmstate").collection("timeline").doc('creation'), creationMap);
+      batch.commit();
     });
 };
 
@@ -981,8 +1031,9 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
         }
       }
     });
-    console.log(currentJobState);
+    console.log('Jobs in current state: ' + Object.values(currentJobState).filter(job => job.isJob).length);
     // //console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
+    console.log(currentJobState);
     dispatch({
       type: GET_CURRENT_JOB_STATE,
       payload: currentJobState,
@@ -1000,6 +1051,8 @@ export const saveCurrentJobState = state => dispatch => {
   buckets.forEach((bucket) => {
     sortedState[bucket] = {};
   });
+
+  // console.log(state);
 
   state && Object.values(state).forEach((job) => {
     if (job.isJob) {
@@ -1022,14 +1075,16 @@ export const saveCurrentJobState = state => dispatch => {
     }
   });
 
-  console.log(sortedState);
+  // console.log(sortedState);
   allBuckets = buckets.concat(Object.keys(leadBuckets));
 
+  let batch = firestore.batch();
   allBuckets.forEach((bucket) => {
     // console.log(sortedState[bucket]);
     // console.log(Object.keys(sortedState[bucket]).length);
-    stateRef.doc("wfmstate").collection("current").doc(bucket).set(sortedState[bucket]);
+    batch.set(stateRef.doc("wfmstate").collection("current").doc(bucket), sortedState[bucket]);
   });
+  batch.commit();
 };
 
 export const getCompletionDateFromHistory = (activity, history) => {
@@ -1065,7 +1120,7 @@ export const getAddressFromClient = (clientID, wfmClients) => {
 };
 
 export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatch => {
-  console.log('Relying on lead to state.');
+  // console.log('Relying on lead to state.');
   // return;
   lead.clientAddress = clientAddress;
   // Pick either name or clientAddress to use as the geolocation
@@ -1074,8 +1129,11 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
     add = checkAddress(clientAddress, geocodes);
   }
 
+  if (!lead.isJob) console.log(lead);
+
   if (geocodes[add] != undefined) {
-    // console.log("Already there");
+    console.log("Already there");
+    console.log(lead.wfmID);
     lead.geocode = geocodes[add];
     dispatch({type: ADD_TO_JOB_LIST, payload: lead, });
   } else {
@@ -1083,7 +1141,7 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
       let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${
         process.env.REACT_APP_GOOGLE_MAPS_KEY
       }`;
-      // console.log("Getting GEOCODE for " + add);
+      console.log("Getting GEOCODE for " + add);
       fetch(path)
         .then(response => response.json())
         .then(response => {
@@ -1100,8 +1158,9 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
             updateGeocodes(gc);
             lead.geocode = gc[add];
           }
+          console.log(lead.wfmID);
           dispatch({type: ADD_TO_JOB_LIST, payload: lead, });
-          return lead;
+          // return lead;
         });
     }
   }
@@ -1109,39 +1168,38 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
 
 export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch => {
   console.log("COLLATING LEADS AND JOBS");
+  // Add option to look up detailed information for each job
   var mappedJobs = {};
-
-  var completedJobs = Object.values(currentJobState).filter((job) => job.state === 'Completed');
-  var completedJobMap = {};
-  completedJobs.forEach(job => {
-    completedJobMap[job.wfmID] = job;
-  })
-  var currentState = {...currentJobState};
+  let currentJobStateCopy = {...currentJobState};
+  console.log(currentJobStateCopy);
+  Object.values(currentJobState).filter((job) => job.wfmState === 'Completed').forEach(job => {
+    mappedJobs[job.wfmID] = job;
+  });
   // console.log(geocodes);
   // console.log(wfmJobs);
   // console.log(wfmLeads);
   // console.log(currentJobState);
+  // console.log(currentState);
 
   // Convert jobs into a 'lead' type object
   wfmJobs.forEach(job => {
     // console.log(job);
     var today = moment().format('YYYY-MM-DD');
-    var mappedJob = currentState[job.wfmID];
-    console.log(mappedJob);
-    delete currentState[job.wfmID];
+    var mappedJob = currentJobState[job.wfmID];
+    delete currentJobStateCopy[job.wfmID];
     if (mappedJob !== undefined) {
       if (mappedJob.nextActionType !== undefined) delete mappedJob.nextActionType;
       if (mappedJob.nextActionDate !== undefined) delete mappedJob.nextActionDate;
       if (mappedJob.nextActionOverdueBy !== undefined) delete mappedJob.nextActionOverdueBy;
-
-      if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory)[0] < mappedJob.creationDate) {
-        mappedJob.creationDate = Object.keys(mappedJob.stateHistory)[0];
-        mappedJob.stateHistory[mappedJob.creationDate] = 'Job Started';
-      }
+      //
+      // if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory)[0] < mappedJob.creationDate) {
+      //   mappedJob.creationDate = Object.keys(mappedJob.stateHistory)[0];
+      //   mappedJob.stateHistory[mappedJob.creationDate] = 'Job Started';
+      // }
 
       let update = true;
 
-      if (mappedJob.state === 'Completed') {
+      if (mappedJob.wfmState === 'Completed') {
         // Mapped job was incorrectly marked as completed
         // console.log(mappedJob);
         mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).forEach(k => {
@@ -1151,17 +1209,24 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
             // console.log(mappedJob.stateHistory);
           }
         });
-        if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] && mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.state) update = false;
+        // if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] && mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.wfmState) update = false;
       }
 
-      mappedJob.state = job.wfmState;
+      // console.log(mappedJob.stateHistory);
+      // console.log(Object.keys(mappedJob.stateHistory).slice(-1)[0]);
+
+      if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] !== undefined &&
+        mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.wfmState) update = false;
+
+      mappedJob.wfmState = job.wfmState;
 
       if (update) {
         // Update mapped job
+        console.log(mappedJob.lastActionDate);
         mappedJob.lastActionDate = today;
         mappedJob.stateHistory = {
           ...mappedJob.stateHistory,
-          [today]: job.state,
+          [today]: job.wfmState,
         };
       } else {
         mappedJob.lastActionDate = Object.keys(mappedJob.stateHistory).slice(-1)[0];
@@ -1170,7 +1235,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
 
       // // Check state has changed
       // if (job.wfmState !== mappedJob.state) {
-      //   // console.log(job.address & ': ' & job.state & '(was ' & mappedJob.state & ')');
+      //   // console.log(job.address & ': ' & job.wfmState & '(was ' & mappedJob.state & ')');
       //   mappedJob.lastActionDate = today;
       //   mappedJob.state = job.wfmState;
       //   mappedJob.stateHistory[today] = job.wfmState;
@@ -1181,12 +1246,12 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       if (mappedJob.name !== job.address) {
         console.log(mappedJob.name + '->' + job.address + ' is new, get new geocode');
         mappedJob.name = job.address;
-        handleGeocode(
+        dispatch(handleGeocode(
           job.address,
           getAddressFromClient(job.clientID, wfmClients),
           mappedJob,
           geocodes,
-        );
+        ));
       } else {
         mappedJobs = {
           ...mappedJobs,
@@ -1205,80 +1270,92 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       newJob.creationDate = today;
       newJob.category = job.wfmType;
       // lead.currentStatus = job.currentStatus;
-      newJob.state = job.wfmState;
+      newJob.wfmState = job.wfmState;
       newJob.dueDate = job.dueDate;
       newJob.lastActionType = job.wfmState;
       newJob.lastActionDate = today;
       newJob.stateHistory = {
-        [today]: 'Job created',
         [today]: job.wfmState,
       };
       newJob.isJob = true;
-
-      handleGeocode(
+      console.log(newJob);
+      dispatch(handleGeocode(
         job.address,
         getAddressFromClient(job.clientID, wfmClients),
         newJob,
         geocodes,
-      );
+      ));
     }
   });
 
   wfmLeads.forEach(wfmLead => {
-    var lead = currentState[wfmLead.wfmID];
-    delete currentState[wfmLead.wfmID];
-    if (lead !== undefined) {
-      // Map actions to history to get completion date of each action
-      if (wfmLead.activities[0] === "NO PLAN!") {
-        lead.urgentAction = "Add Milestones to Lead";
-        lead.activities = [];
-      } else if (wfmLead.history[0] === "No History") {
-        lead.activities = [];
-      } else {
-        lead.activities = wfmLead.activities.map(activity =>
-          getCompletionDateFromHistory(activity, wfmLead.history)
-        );
-      }
-      var completedActivities = getCompletedActivities(lead.activities);
-      lead.lastActionDate = getLastActionDateFromActivities(
-        completedActivities,
-        lead.creationDate
-      );
-      lead.lastActionType = getLastActionTypeFromActivities(
-        completedActivities
-      );
-
-      lead.nextActionType = getNextActionType(lead.activities);
-      lead.nextActionDate = getNextActionDate(lead.activities);
-
-      // Check if address has changed
-      if (lead.name !== wfmLead.name) {
-        // //console.log(wfmLead.name + ' is new, get new geocode');
-        lead.name = wfmLead.name;
-        handleGeocode(
-          wfmLead.name,
-          getAddressFromClient(wfmLead.clientID, wfmClients),
-          lead,
-          geocodes,
-        );
-      } else {
-        mappedJobs = {
-          ...mappedJobs,
-          [wfmLead.wfmID]: lead,
-        };
-      }
-    } else {
+    var lead = currentJobState[wfmLead.wfmID];
+    delete currentJobStateCopy[wfmLead.wfmID];
+    // if (lead !== undefined) {
+    //   // Map actions to history to get completion date of each action
+    //   if (wfmLead.activities[0] === "NO PLAN!") {
+    //     lead.urgentAction = "Add Milestones to Lead";
+    //     lead.activities = [];
+    //   } else if (wfmLead.history[0] === "No History") {
+    //     lead.activities = [];
+    //   } else {
+    //     lead.activities = wfmLead.activities.map(activity =>
+    //       getCompletionDateFromHistory(activity, wfmLead.history)
+    //     );
+    //   }
+    //   var completedActivities = getCompletedActivities(lead.activities);
+    //   lead.lastActionDate = getLastActionDateFromActivities(
+    //     completedActivities,
+    //     lead.creationDate
+    //   );
+    //   lead.lastActionType = getLastActionTypeFromActivities(
+    //     completedActivities
+    //   );
+    //
+    //   lead.nextActionType = getNextActionType(lead.activities);
+    //   lead.nextActionDate = getNextActionDate(lead.activities);
+    //
+    //   // Check if address has changed
+    //   if (lead.name !== wfmLead.name) {
+    //     // //console.log(wfmLead.name + ' is new, get new geocode');
+    //     lead.name = wfmLead.name;
+    //     dispatch(handleGeocode(
+    //       wfmLead.name,
+    //       getAddressFromClient(wfmLead.clientID, wfmClients),
+    //       lead,
+    //       geocodes,
+    //     ));
+    //   } else {
+    //     mappedJobs = {
+    //       ...mappedJobs,
+    //       [wfmLead.wfmID]: lead,
+    //     };
+    //   }
+    // } else {
       // //console.log('Making new job: ' + wfmLead['wfmID']);
       lead = {};
       lead.wfmID = wfmLead.wfmID;
       lead.client = wfmLead.client;
       lead.name = wfmLead.name;
+      lead.description = wfmLead.description;
       lead.owner = wfmLead.owner;
       lead.jobNumber = "Lead";
       lead.creationDate = wfmLead.date;
       lead.category = wfmLead.category;
       lead.urgentAction = "";
       lead.value = wfmLead.value;
+      if (wfmLead.history) {
+        let historyArray = [];
+        wfmLead.history.forEach(item => {
+          historyArray.push({
+            date: item.date ? dateOf(item.date) : null,
+            detail: item.detail ? item.detail : null,
+            staff: item.staff ? item.staff : null,
+            type: item.type ? item.type : null,
+          });
+        });
+        lead.history = historyArray;
+      }
 
       // Map actions to history to get completion date of each action
       if (wfmLead.activities[0] === "NO PLAN!") {
@@ -1291,7 +1368,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
           getCompletionDateFromHistory(activity, wfmLead.history)
         );
       }
-      completedActivities = getCompletedActivities(lead.activities);
+      let completedActivities = getCompletedActivities(lead.activities);
 
       lead.lastActionDate = getLastActionDateFromActivities(
         completedActivities,
@@ -1314,40 +1391,36 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       // lead.clientAddress = this.getAddressFromClient(wfmLead.clientID);
       // lead.geoCode = this.handleGeocode(wfmLead.name);
 
-      handleGeocode(
+      dispatch(handleGeocode(
         wfmLead.name,
         getAddressFromClient(wfmLead.clientID, wfmClients),
         lead,
         geocodes,
-      );
-    }
+      ));
+    // }
   });
 
-  var recentlyCompleted = Object.values(currentState).filter((job) => job.state !== 'Completed');
-  var recentlyCompletedMap = {};
+  // Catch jobs that are not in the current WFM jobs list but have not been marked as completed.
+  // All current jobs and leads will have been deleted from the currentJobStateCopy so we only need to filter out the ones already marked as completed.
   var today = moment().format('YYYY-MM-DD');
-  recentlyCompleted.forEach((job) => {
+  Object.values(currentJobStateCopy).filter((job) => job.isJob && job.wfmState !== "Completed").forEach((job) => {
+    console.log(job.wfmState);
+    console.log(job);
     job.lastActionDate = today;
-    job.state = 'Completed';
+    job.wfmState = 'Completed';
     if (job.stateHistory !== undefined) {
       job.stateHistory[today] = 'Completed';
     } else {
       job.stateHistory = {[today]: 'Completed'};
     }
-    recentlyCompletedMap[job.wfmID] = job;
+    mappedJobs[job.wfmID] = job;
   });
 
-  let jobList = {
-    ...mappedJobs,
-    ...completedJobs,
-    ...recentlyCompletedMap,
-  }
-
-  // console.log(jobList);
+  console.log(mappedJobs);
 
   dispatch({
     type: GET_JOB_LIST,
-    payload: jobList,
+    payload: mappedJobs,
   });
 };
 
@@ -1360,6 +1433,16 @@ export const getWfmUrl = m => {
   }
   return path;
 };
+
+export const getWfmClientUrl = m => {
+  return `https://practicemanager.xero.com/Client/${m.clientID}/Detail`;
+}
+
+export const getGoogleMapsUrl = m => {
+  if (m.geocode)
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURI(m.geocode.address)}&query_place_id=${m.geocode.place}`;
+  else return `https://www.google.com/maps/search/?api=1&query=${encodeURI(m.name)}`;
+}
 
 export const gotoWFM = m => {
   // //console.log("GoTO");
@@ -1384,7 +1467,7 @@ export const getJobIcon = cat => {
 
 export const getJobColor = cat => {
   var col = "other";
-  if (!cat) return "#6fa1b6";
+  if (!cat) return "colorsJobOther";
   ["show all", "asbestos", "meth", "stack", "bio", "noise", "workplace"].map(
     i => {
       if (cat.toLowerCase().includes(i)) col = i;
@@ -1392,21 +1475,21 @@ export const getJobColor = cat => {
   );
   switch (col) {
     case "show all":
-      return "#555";
+      return "colorsJobAll";
     case "asbestos":
-      return "#7d6d26";
+      return "colorsJobAsbestos";
     case "meth":
-      return "#ff0065";
+      return "colorsJobMeth";
     case "stack":
-      return "#e33714";
+      return "colorsJobStack";
     case "bio":
-      return "#87cc14";
+      return "colorsJobBio";
     case "noise":
-      return "#995446";
+      return "colorsJobNoise";
     case "workplace":
-      return "#a2539c";
+      return "colorsJobWorkplace";
     default:
-      return "#6fa1b6";
+      return "colorsJobOther";
   }
 };
 
@@ -1506,6 +1589,7 @@ export const getLastActionDateFromActivities = (completedActivities, defaultDate
 
 export const getLastActionTypeFromActivities = completedActivities => {
   if (completedActivities.length === 0) return "Lead created";
+  // console.log(completedActivities[0]);
   return completedActivities[0].subject;
 };
 
@@ -1541,11 +1625,48 @@ export const getNextActionDate = activities => {
 export const getNextActionOverdueBy = activities => {
   var todo = getUncompletedActivities(activities);
   if (todo.length > 0) {
-    return getDaysSinceDate(todo[0].date);
+    // Take one day away for leads.
+    return getDaysSinceDate(todo[0].date) - 1;
   } else {
-    return 0;
+    return null;
   }
 };
+
+export const getStateString = m => {
+  var stateStr = '';
+  if (m.isJob) {
+    if (m.wfmState === "Completed") stateStr = 'Job completed';
+    else {
+      var days = getDaysSinceDate(m.lastActionDate);
+      if (days < 1) {
+        stateStr = 'Changed state to ' + m.wfmState + ' today';
+      } else if (days === 1) {
+        stateStr = 'Changed state to ' + m.wfmState + ' yesterday';
+      } else if (days < 7) {
+        stateStr = 'Changed state to ' + m.wfmState + ' ' + days + ' days ago';
+      } else {
+        stateStr = 'Has not changed state in ' + days + ' days';
+      }
+    }
+  } else {
+    days = getNextActionOverdueBy(m.activities);
+    if (!days) stateStr = 'All scheduled actions completed'
+    else {
+      if (days > 1) {
+        stateStr = 'Actions overdue by ' + days + ' days';
+      } else if (days === 1) {
+        stateStr = 'Actions overdue by 1 day';
+      } else if (days === 0) {
+        stateStr = 'Actions due today';
+      } else if (days === -1) {
+        stateStr = 'Actions due tomorrow';
+      } else {
+        stateStr = 'Actions due in ' + (days*-1) + ' days';
+      }
+    }
+  }
+  return stateStr;
+}
 
 export const averageStaffStat = (value, average) => {
   // Averages in form { number of items, sum, average }

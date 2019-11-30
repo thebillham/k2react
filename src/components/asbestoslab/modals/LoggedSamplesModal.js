@@ -107,7 +107,6 @@ class LoggedSamplesModal extends React.Component {
         maxWidth="xl"
         fullWidth={true}
         onEnter={this.loadLogs}
-        style={{minHeight: 600}}
       >
         {this.state.mode === "issue" ? <DialogTitle>
           SAMPLE ISSUE LOG

@@ -249,12 +249,10 @@ class UserDetails extends React.Component {
                       />
                     </ListItem>
                     <ListItem>
-                      <TextField
-                        disabled
-                        label="Time At K2"
-                        className={classes.textField}
-                        value={this.displayTimeAtK2()}
-                      />
+                      <div className={classes.informationBoxWhiteRounded}>
+                        <b>Time at K2</b><br />
+                        {this.displayTimeAtK2()}
+                      </div>
                     </ListItem>
                     <ListItem>
                       <Typography className={classes.subHeading}>

@@ -213,10 +213,8 @@ class Noticeboard extends React.PureComponent {
             return (
               <Grid item key={cat.key}>
                 <Button
+                  color={this.props.category === cat.key ? "secondary" : "primary"}
                   variant="outlined"
-                  color={
-                    this.props.category === cat.key ? "secondary" : "primary"
-                  }
                   onClick={() => this.switch(cat.key)}
                 >
                   {cat.desc}

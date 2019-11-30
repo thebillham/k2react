@@ -12,9 +12,19 @@ import Input from "@material-ui/core/Input";
 import Select from "@material-ui/core/Select";
 import Grid from "@material-ui/core/Grid";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
+import Popup from "reactjs-popup";
+import {
+  dateOf,
+} from "../../actions/helpers";
+
+import moment from 'moment';
 
 import {
   fetchWFMJobs,
@@ -28,6 +38,11 @@ import {
   updateGeocodes,
   saveStats,
   collateJobsList,
+  getJobColor,
+  getStateString,
+  getNextActionType,
+  getNextActionOverdueBy,
+  getWfmUrl,
 } from "../../actions/jobs";
 
 import {
@@ -35,7 +50,10 @@ import {
   filterMapReset,
 } from "../../actions/display";
 
+import CurrentJobs from "./CurrentJobs";
+import Leads from "./Leads";
 import JobMap from "./JobMap";
+import JobStats from "./JobStats";
 
 const mapStateToProps = state => {
   return {
@@ -67,7 +85,7 @@ const mapDispatchToProps = dispatch => {
     saveStats: stats => dispatch(saveStats(stats)),
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
-    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients)),
+    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
 
@@ -80,6 +98,7 @@ class Jobs extends React.Component {
     searchDateType: '',
     searchAnalyst: '',
     tabValue: 0,
+    jobModal: null,
   };
 
   UNSAFE_componentWillMount() {
@@ -103,10 +122,177 @@ class Jobs extends React.Component {
     // if (value === 3) this.computeStats();
   };
 
+  getJobDetails = m => {
+    const classes = this.props.classes;
+    const color = classes[getJobColor(m.category)];
+    return (
+      <div className={classes.popupMap}>
+        <div className={color}>
+          <h6>{m.category}</h6>
+        </div>
+        <div className={classes.subHeading}>
+          {m.isJob && <span>{`${m.jobNumber}`}<br />{m.client}</span>}
+          {!m.isJob && <span>{m.name}</span>}
+        </div>
+        {m.geocode && (
+          <div>
+            <i>{m.geocode.address}</i>
+          </div>
+        )}
+        {m.wfmState && (
+          <div>
+            <b>State:</b> {m.wfmState}
+          </div>
+        )}
+        <div>
+          <b>Owner:</b> {m.owner}
+        </div>
+
+        {m.isJob ? (
+          <div>
+            {m.lastActionDate && m.wfmState !== "Completed" && (
+              <div>
+                {m.wfmState && (<span><b>Last Action:</b> {getStateString(m)} </span>)}
+              </div>
+            )}
+            {m.stateHistory && (
+              <div><br /><h6 className={color}>State History</h6>
+                { Object.keys(m.stateHistory).map((key) => {
+                  return (
+                    <span key={key}>
+                      <b>{key}:</b> {m.stateHistory[key]}<br/>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+          ) : (
+          <div>
+            {/*{m.description && <div className={classes.informationBoxWhiteRounded}><i>{m.description}</i></div>}*/}
+            {m.value > 0 && (
+              <div>
+                <b>Estimated Value:</b> ${m.value}{" "}
+              </div>
+            )}
+            {m.lastActionDate && (
+              <div>
+                {m.lastActionType && (<span><b>Last Goal Completed:</b> {getStateString(m)}</span>)}
+              </div>
+            )}
+            {m.history && m.history.length > 0 && (
+              <div>
+                <b>Last Modified:</b> {moment(dateOf(m.history[0].date)).format('DD MMMM YYYY')}
+              </div>
+            )}
+
+            {m.nextActionType && (
+              <div>
+                <b>Next Goal To Do:</b> {getNextActionType(m.activities)}{" "}
+                {getNextActionOverdueBy(m.activities) > 0 ? (
+                  <span className={classes.underlineRed}>
+                    (Overdue by {getNextActionOverdueBy(m.activities)} days)
+                  </span>
+                ) : (
+                  <span>
+                    (Due in {getNextActionOverdueBy(m.activities) * -1} days)
+                  </span>
+                )}
+              </div>
+            )}
+            {m.activities && m.activities.length > 0 && (
+              <div><br /><h6 className={classes[getJobColor(m.category)]}>Goals</h6>
+              { m.activities.map((activity) => {
+                if(activity.completed === 'Yes') {
+                  return (
+                    <span key={activity.date} className={classes.linethrough}>
+                      <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
+                      <br/>
+                    </span>
+                  )
+                } else {
+                  return (
+                    <span key={activity.date}>
+                      <b>{moment(activity.date).format('YYYY-MM-DD')}:</b> {activity.subject}
+                      <br/>
+                    </span>
+                  )
+                }
+              }) }
+            </div>
+          )}
+            {m.history && m.history.length > 0 && (
+            <div><br /><h6 className={color}>Lead History</h6>
+            {
+              m.history.map((item) => {
+                return (
+                  <div key={moment(dateOf(item.date)).format('x')}>
+                    <div className={classes.underline}><b>{moment(dateOf(item.date)).format('YYYY-MM-DD')}</b> {item.type} ({item.staff})</div>
+                    <div className={classes.code}>
+                      {item.detail.length < 600 ? item.detail : `${item.detail.substring(0, 600)}...`}
+                    </div>
+                  </div>
+                )
+              })
+            }
+          </div>
+          )}
+          </div>)
+        }
+
+        <div className={classes.paddingCenterText}>
+          <Button variant="outlined" className={classes.buttonIconText}>
+            <a
+              className={classes.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              href={getWfmUrl(m)}
+            >
+              View on WorkflowMax
+            </a>
+          </Button>
+        </div>
+      </div>
+    )
+  };
+
+  openJobModal = m => {
+    this.setState({
+      jobModal: m
+    });
+  };
+
   render() {
-    const { sampleLog, classes } = this.props;
+    const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, } = this.props;
+    if (
+        wfmJobs.length > 0 &&
+        wfmLeads.length > 0 &&
+        wfmClients.length > 0 &&
+        currentJobState !== undefined && Object.values(currentJobState).length > 0 &&
+        jobList && Object.values(jobList).length === 0
+      )
+      this.props.collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes, );
+
+    const jobModal = (
+      <Dialog
+        open={this.state.jobModal !== null}
+        onClose={() => this.setState({ jobModal: null })}
+      >
+        <DialogTitle>
+        {this.state.jobModal && (
+          <h5 className={classes[getJobColor(this.state.jobModal.category)]}>
+            {this.state.jobModal.jobNumber}: {this.state.jobModal.client}
+          </h5>)}
+        </DialogTitle>
+        <DialogContent>
+          {this.state.jobModal && this.getJobDetails(this.state.jobModal)}
+        </DialogContent>
+      </Dialog>
+    );
+
     return (
       <div className={classes.marginTopStandard}>
+        {jobModal}
         <Tabs
           value={this.state.tabValue}
           onChange={this.handleTabChange}
@@ -119,207 +305,10 @@ class Jobs extends React.Component {
           <Tab label="Map" />
           <Tab label="Stats" />
         </Tabs>
-        {this.state.tabValue !== 2 && (<div className={classes.paleLarge}>Under Development</div>)}
-        {/*
-        {this.state.tabValue === 0 && (
-          <div width='100%'>
-            <ReactTable
-              data={this.props.jobHistoryAnalysis && this.props.jobHistoryAnalysis['jobs'] && Object.values(this.props.jobHistoryAnalysis['jobs'])}
-              columns={[{
-                Header: 'WFM ID',
-                accessor: 'wfmID',
-                width: 100,
-              },{
-                  Header: 'Client',
-                  accessor: 'client',
-                  width: 100,
-                },{
-                  Header: 'Address',
-                  accessor: 'address',
-                  width: 250,
-                }]}
-              defaultPageSize={10}
-            />
-          </div>
-        )}
-        {this.state.tabValue === 1 && (
-          <div></div>
-        )}*/}
-        {this.state.tabValue === 2 && <JobMap />}
-        {/*)}
-        {this.state.tabValue === 3 && (
-          <div>
-            <LineChart
-              width={1200}
-              height={350}
-              data={daysData}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="days" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="K2" stroke="#8884d8" />
-              <Line type="monotone" dataKey="Shona" stroke="#82ca9d" />
-            </LineChart>
-            <div>
-              <ListItem>
-                <Grid container style={{ fontWeight: 600 }}>
-                  <Grid item xs={2}>
-                    Name
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Total Jobs
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Total Leads
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Jobs Need Booking
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Average Days Completed Actions Overdue By
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Average Days Current Actions Overdue By
-                    </div>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      Average Lead Age
-                    </div>
-                  </Grid>
-                </Grid>
-              </ListItem>
-
-              {this.state.staffStats &&
-                Object.keys(this.state.staffStats).map(s => {
-                  var stats = this.state.staffStats[s];
-                  return (
-                    <ListItem className={classes.hoverItem} key={s}>
-                      <Grid container>
-                        <Grid item xs={2}>
-                          {s}
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["jobTotal"]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["leadTotal"]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["jobNeedsBookingTotal"]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["averageCompletedActionOverdueDays"][2]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["averageActionOverdueDays"][2]}
-                          </div>
-                        </Grid>
-                        <Grid item xs={1}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center"
-                            }}
-                          >
-                            {stats["averageLeadAge"][2]}
-                          </div>
-                        </Grid>
-                      </Grid>
-                    </ListItem>
-                  );
-                })}
-            </div>
-          </div>
-        )}*/}
+        {this.state.tabValue === 0 && <CurrentJobs that={this} />}
+        {this.state.tabValue === 1 && <Leads that={this} />}
+        {this.state.tabValue === 2 && <JobMap that={this} />}
+        {this.state.tabValue === 3 && <JobStats that={this} />}
       </div>
     );
   }

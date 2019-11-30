@@ -143,12 +143,16 @@ class AsbestosBulkCocCard extends React.Component {
     const job = this.props.cocs[this.props.job];
     // console.log(job);
     if (job === undefined || job.deleted) return null;
-    let version = 1;
-    let labFunctions = this.props.me.auth &&
+    let version = 1,
+    labFunctions = this.props.me.auth &&
       (this.props.me.auth['Asbestos Admin'] ||
-      this.props.me.auth['Admin'] ||
       this.props.me.auth['Analysis Checker'] ||
-      this.props.me.auth['Asbestos Bulk Analysis']);
+      this.props.me.auth['Asbestos Bulk Analysis']),
+    adminFunctions = this.props.me.auth &&
+      (this.props.me.auth['Asbestos Admin'] ||
+      this.props.me.auth['Analysis Checker']);
+
+
     // labFunctions = false;
     if (job.currentVersion) version = job.currentVersion + 1;
     if (job.deleted === true) return (<div />);
@@ -282,23 +286,23 @@ class AsbestosBulkCocCard extends React.Component {
                   </div>
               </Tooltip>
               }
-              {labFunctions &&
-              <Tooltip title={'Verify Results'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
-                <div>
-                  <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
-                    onClick={event => {
-                      this.props.showModal({
-                        modalType: ASBESTOS_ACTIONS,
-                        modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber} (${job.client}: ${job.address})`,
-                      }});
-                    }}>
-                    <VerifyIcon className={classes.iconRegular} />
-                  </IconButton>
-                </div>
-              </Tooltip>
+              {adminFunctions &&
+                <Tooltip title={'Verify Results'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+                  <div>
+                    <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
+                      onClick={event => {
+                        this.props.showModal({
+                          modalType: ASBESTOS_ACTIONS,
+                          modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber} (${job.client}: ${job.address})`,
+                        }});
+                      }}>
+                      <VerifyIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </div>
+                </Tooltip>
               }
-              {labFunctions && <div className={classes.spacerSmall} />}
-              {labFunctions && <Button
+              {adminFunctions && <div className={classes.spacerSmall} />}
+              {adminFunctions && <Button
                 className={classes.buttonIconText}
                 // disabled={job.versionUpToDate}
                 onClick={() => {
