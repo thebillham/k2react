@@ -140,6 +140,18 @@ class CurrentJobs extends React.Component {
             id: 'daysSinceLastAction',
             Header: 'State Changed',
             accessor: d => getDaysSinceDateAgo(d.lastActionDate),
+            sortMethod: (a, b, desc) => {
+              console.log(desc);
+              if (parseInt(a.replace(/ .*/, '')) > parseInt(b.replace(/ .*/, ''))) {
+                if (desc) return -1;
+                else return 1;
+              }
+              if (parseInt(b.replace(/ .*/, '')) > parseInt(a.replace(/ .*/, ''))) {
+                if (desc) return 1;
+                else return -1;
+              }
+              return 0;
+            }
           },{
             id: 'dueDate',
             Header: 'Due Date',
