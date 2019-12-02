@@ -1720,7 +1720,23 @@ export const getDefaultLetterAddress = doc => {
       if (address && city && address.toLowerCase().includes(city.toLowerCase())) city = null;
       postcode = client.postcode;
       address = `${address ? address : ''}${city ? '\n' + city : ''}${postcode ? ' ' + postcode : ''}`;
+    } else {
+      address = doc.address;
     }
+
+    // Don't add contact name if it is the same as the client name
+    if (contactName) {
+      let contactWords = contactName.split(' ');
+      let contactInClientName = contactWords.length;
+      contactWords.forEach(word => {
+        if (doc.client.includes(word)) contactInClientName--;
+      });
+      if (contactInClientName === 0) {
+        contactName = null;
+        contactPosition = null;
+      }
+    }
+
     let letterAddress = `${contactName ? contactName + '\n' : ''}${contactPosition ? contactPosition + '\n' : ''}${doc.client ? doc.client + '\n' : ''}${address ? address : ''}`;
     return letterAddress.trim();
   } else {
