@@ -24,7 +24,6 @@ import LeadIcon from "@material-ui/icons/Call";
 import LostIcon from "@material-ui/icons/CallEnd";
 import NoteIcon from "@material-ui/icons/ListAlt";
 
-
 import moment from "moment";
 import {
   firestore,
@@ -493,6 +492,7 @@ export const resetWfmJob = () => dispatch => {
 
 export const saveGeocodes = geocodes => dispatch => {
   console.log(geocodes);
+  console.log(Object.keys(geocodes).length);
   if (geocodes) {
     Object.values(geocodes).forEach(g => {
       Object.keys(g).forEach(k => {
@@ -526,7 +526,7 @@ export const updateGeocodes = geocodes => dispatch => {
 };
 
 export const saveWFMItems = items => dispatch => {
-  // console.log(items);
+  console.log(Object.keys(items).length);
   var date = moment().format("YYYY-MM-DD");
   // //console.log(items);
   Object.values(items).forEach(job => {
@@ -1077,7 +1077,8 @@ export const saveCurrentJobState = state => dispatch => {
       if (job.category === 'Stack Testing') bucket = 'stack';
       if (job.category === 'Noise') bucket = 'noise';
       sortedState[bucket][job.wfmID] = job;
-    } else {
+    } else if (false) {
+      // Stop saving leads to job state for now
       var bucket = 'leads' + job.wfmID.slice(-2);
       leadBuckets[bucket] = true;
       if (sortedState[bucket] === undefined) sortedState[bucket] = {};
@@ -1091,7 +1092,7 @@ export const saveCurrentJobState = state => dispatch => {
   let batch = firestore.batch();
   allBuckets.forEach((bucket) => {
     // console.log(sortedState[bucket]);
-    // console.log(Object.keys(sortedState[bucket]).length);
+    console.log(Object.keys(sortedState[bucket]).length);
     batch.set(stateRef.doc("wfmstate").collection("current").doc(bucket), sortedState[bucket]);
   });
   batch.commit();
@@ -1142,8 +1143,8 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
   if (!lead.isJob) console.log(lead);
 
   if (geocodes[add] != undefined) {
-    console.log("Already there");
-    console.log(lead.wfmID);
+    // console.log("Already there");
+    // console.log(lead.wfmID);
     lead.geocode = geocodes[add];
     dispatch({type: ADD_TO_JOB_LIST, payload: lead, });
   } else {
@@ -1232,7 +1233,8 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
 
       if (update) {
         // Update mapped job
-        console.log(mappedJob.lastActionDate);
+        console.log('Update mapped job');
+        console.log(mappedJob);
         mappedJob.lastActionDate = today;
         mappedJob.stateHistory = {
           ...mappedJob.stateHistory,
@@ -1415,8 +1417,8 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
   // All current jobs and leads will have been deleted from the currentJobStateCopy so we only need to filter out the ones already marked as completed.
   var today = moment().format('YYYY-MM-DD');
   Object.values(currentJobStateCopy).filter((job) => job.isJob && job.wfmState !== "Completed").forEach((job) => {
-    console.log(job.wfmState);
-    console.log(job);
+    // console.log(job.wfmState);
+    // console.log(job);
     job.lastActionDate = today;
     job.wfmState = 'Completed';
     if (job.stateHistory !== undefined) {
