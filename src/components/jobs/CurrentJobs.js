@@ -93,8 +93,9 @@ class CurrentJobs extends React.Component {
 
   render() {
     const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, that } = this.props;
-    const daysSinceLastJobAction = this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value ? parseInt(this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value) : 15;
-
+    const daysSinceLastJobAction = this.props.otherOptions && this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value ? parseInt(this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value) : 15;
+    let loading = jobList && Object.keys(jobList).length == 0;
+    
     let jobs = jobList ? Object.values(jobList).filter(m => {
       let res = true;
       if (!m.isJob || m.wfmState === "Completed") res = false;
@@ -119,6 +120,7 @@ class CurrentJobs extends React.Component {
     return (
       <div className={classes.marginBottomSmall}>
         <ReactTable
+          loading={loading}
           style={{
             cursor: 'alias',
           }}

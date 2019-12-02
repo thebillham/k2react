@@ -116,8 +116,24 @@ class Jobs extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.jobList && Object.keys(this.props.jobList).length > 0 && this.props.saveWFMItems(Object.values(this.props.jobList).filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
-    this.props.saveCurrentJobState(this.props.jobList);
+    // Save daily state
+    this.props.saveWFMItems(Object.values(this.props.jobList).filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
+
+    // If job list is finished loading, then save it to current
+    // console.log(this.props.jobList);
+    // console.log(this.props.currentJobState);
+    // this.props.jobList && console.log(Object.keys(this.props.jobList).length);
+    // this.props.currentJobState && console.log(Object.keys(this.props.currentJobState).length);
+    // this.props.currentJobState && console.log(Object.keys(this.props.currentJobState).filter(job => job.wfmState !== "Completed").length);
+    this.props.jobList && console.log(Object.values(this.props.jobList).filter(job => job.isJob).length);
+    this.props.currentJobState && console.log(Object.values(this.props.currentJobState).filter(job => job.isJob).length);
+    if (this.props.jobList &&
+      Object.values(this.props.jobList).filter(job => job.isJob).length >= Object.values(this.props.currentJobState).filter(job => job.isJob).length) {
+        // console.log(Object.keys(this.props.jobList).length);
+        this.props.saveCurrentJobState(this.props.jobList);
+      }
+
+    // Save new geocodes found
     this.props.saveGeocodes(this.props.geocodes);
   }
 
