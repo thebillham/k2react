@@ -381,7 +381,8 @@ const styles = theme => ({
   code: {
     fontSize: 11,
     fontFamily: 'monospace',
-    whiteSpace: 'pre',
+    whiteSpace: 'pre-wrap',
+    wordWrap: 'normal',
   },
 
   paleLarge: {
@@ -444,6 +445,14 @@ const styles = theme => ({
   url: {
     textDecoration: "none",
     color: theme.palette.secondary.main,
+  },
+
+  urlSubtle: {
+    textDecoration: "none",
+    color: theme.palette.primary.main,
+    "&:hover": {
+      color: theme.palette.primary.light,
+    },
   },
 
   bottomDottedStyle: {
@@ -769,6 +778,18 @@ const styles = theme => ({
 
   boldBlack: {
     fontWeight: 600,
+    color: 'black',
+  },
+
+  red: {
+    color: 'red',
+  },
+
+  orange: {
+    color: 'orange',
+  },
+
+  black: {
     color: 'black',
   },
 
@@ -1163,7 +1184,7 @@ const styles = theme => ({
   },
 
   popupMap: {
-    width: '350',
+    width: '450',
     lineHeight: 2,
     fontSize: 14,
     padding: theme.spacing(2),

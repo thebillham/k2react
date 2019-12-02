@@ -22,6 +22,8 @@ import Tab from "@material-ui/core/Tab";
 import Popup from "reactjs-popup";
 import {
   dateOf,
+  getDaysSinceDate,
+  getDaysSinceDateAgo,
 } from "../../actions/helpers";
 
 import moment from 'moment';
@@ -43,6 +45,7 @@ import {
   getNextActionType,
   getNextActionOverdueBy,
   getWfmUrl,
+  getLeadHistoryDescription,
 } from "../../actions/jobs";
 
 import {
@@ -68,6 +71,7 @@ const mapStateToProps = state => {
     search: state.local.search,
     me: state.local.me,
     filter: state.display.filterMap,
+    otherOptions: state.const.otherOptions,
   };
 };
 
@@ -125,6 +129,7 @@ class Jobs extends React.Component {
   getJobDetails = m => {
     const classes = this.props.classes;
     const color = classes[getJobColor(m.category)];
+    console.log(m);
     return (
       <div className={classes.popupMap}>
         <div className={color}>
@@ -189,13 +194,13 @@ class Jobs extends React.Component {
             {m.nextActionType && (
               <div>
                 <b>Next Goal To Do:</b> {getNextActionType(m.activities)}{" "}
-                {getNextActionOverdueBy(m.activities) > 0 ? (
+                {m.nextActionDate === 0 ? <span /> : getDaysSinceDate(m.nextActionDate) > 0 ? (
                   <span className={classes.underlineRed}>
-                    (Overdue by {getNextActionOverdueBy(m.activities)} days)
+                    (Due {getDaysSinceDateAgo(m.nextActionDate)})
                   </span>
                 ) : (
                   <span>
-                    (Due in {getNextActionOverdueBy(m.activities) * -1} days)
+                    (Due {getDaysSinceDate(m.nextActionDate) < -1 && 'in '}{getDaysSinceDateAgo(m.nextActionDate)})
                   </span>
                 )}
               </div>
@@ -225,12 +230,14 @@ class Jobs extends React.Component {
             <div><br /><h6 className={color}>Lead History</h6>
             {
               m.history.map((item) => {
+                let leadHistory = getLeadHistoryDescription(item, parseInt(this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength")[0].value));
                 return (
                   <div key={moment(dateOf(item.date)).format('x')}>
-                    <div className={classes.underline}><b>{moment(dateOf(item.date)).format('YYYY-MM-DD')}</b> {item.type} ({item.staff})</div>
-                    <div className={classes.code}>
-                      {item.detail.length < 600 ? item.detail : `${item.detail.substring(0, 600)}...`}
-                    </div>
+                    <div><span className={classes.marginRightSmall}>{leadHistory.icon}</span>
+                    <b>{moment(dateOf(item.date)).format('YYYY-MM-DD')}</b> {leadHistory.title}</div>
+                    {leadHistory.body && <div className={classes.code}>
+                      {leadHistory.body}
+                    </div>}
                   </div>
                 )
               })
@@ -300,15 +307,15 @@ class Jobs extends React.Component {
           textColor="secondary"
           centered
         >
-          <Tab label="Current Jobs" />
           <Tab label="Leads" />
+          <Tab label="Current Jobs" />
           <Tab label="Map" />
-          <Tab label="Stats" />
+          {/*<Tab label="Stats" />*/}
         </Tabs>
-        {this.state.tabValue === 0 && <CurrentJobs that={this} />}
-        {this.state.tabValue === 1 && <Leads that={this} />}
+        {this.state.tabValue === 0 && <Leads that={this} />}
+        {this.state.tabValue === 1 && <CurrentJobs that={this} />}
         {this.state.tabValue === 2 && <JobMap that={this} />}
-        {this.state.tabValue === 3 && <JobStats that={this} />}
+        {/*this.state.tabValue === 3 && <JobStats that={this} />*/}
       </div>
     );
   }

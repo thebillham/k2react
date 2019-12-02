@@ -174,7 +174,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const thisVersion = '1.2.14';
+const thisVersion = '1.2.15';
 
 class MainScreen extends React.PureComponent {
   // static whyDidYouRender = true;

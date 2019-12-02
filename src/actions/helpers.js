@@ -44,8 +44,12 @@ export const getDaysSinceDate = date => {
 };
 
 export const getDaysSinceDateAgo = date => {
+  // Words should probably be lowercase
   let days = getDaysSinceDate(date);
-  if (days === 1) return `${days} day ago`;
+  if (days < -1) return `${days*-1} days time`
+  if (days === -1) return `Tomorrow`;
+  if (days === 0) return `Today`;
+  else if (days === 1) return `Yesterday`;
   else return `${days} days ago`;
   // return moment(dateOf(date)).fromNow();
 }

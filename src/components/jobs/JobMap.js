@@ -92,16 +92,16 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class JobMap extends React.PureComponent {
+class JobMap extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
       leads: [],
       clientStats: {},
-      activeMarker: null,
+      activeMarker: {},
+      m: {},
       showingInfoWindow: false,
-      m: null,
       geocodeCount: 0,
     };
   }
@@ -279,6 +279,7 @@ class JobMap extends React.PureComponent {
   };
 
   onMarkerClick = (marker, m) => {
+    console.log(m);
     this.setState({
       activeMarker: marker,
       m: m,
@@ -599,7 +600,7 @@ class JobMap extends React.PureComponent {
               </div>
             </ExpansionPanelDetails>
           </ExpansionPanel>
-          <Grid container spacing={1} className={classes.marginTopSmall}>
+          {false && <Grid container spacing={1} className={classes.marginTopSmall}>
             <Grid item>
               <Button onClick={this.openLeadsModal} variant='outlined'>
                 View As List (
@@ -622,7 +623,7 @@ class JobMap extends React.PureComponent {
                 )
               </Button>
             </Grid>
-          </Grid>
+          </Grid>}
           <JobsMapContainer jobList={jobList} that={this} />
       </div>
     );

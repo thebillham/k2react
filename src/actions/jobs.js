@@ -1,3 +1,4 @@
+import React from "react";
 import {
   EDIT_MODAL_DOC,
   SET_MODAL_ERROR,
@@ -15,6 +16,15 @@ import {
   GET_CURRENT_JOB_STATE,
   RESET_JOBS,
 } from "../constants/action-types";
+
+// Lead history icons
+import ActivityIcon from "@material-ui/icons/DoneOutline";
+import EmailIcon from "@material-ui/icons/Email";
+import LeadIcon from "@material-ui/icons/Call";
+import LostIcon from "@material-ui/icons/CallEnd";
+import NoteIcon from "@material-ui/icons/ListAlt";
+
+
 import moment from "moment";
 import {
   firestore,
@@ -1336,6 +1346,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       lead = {};
       lead.wfmID = wfmLead.wfmID;
       lead.client = wfmLead.client;
+      lead.clientID = wfmLead.clientID;
       lead.name = wfmLead.name;
       lead.description = wfmLead.description;
       lead.owner = wfmLead.owner;
@@ -1626,7 +1637,7 @@ export const getNextActionOverdueBy = activities => {
   var todo = getUncompletedActivities(activities);
   if (todo.length > 0) {
     // Take one day away for leads.
-    return getDaysSinceDate(todo[0].date) - 1;
+    return getDaysSinceDate(todo[0].date);
   } else {
     return null;
   }
@@ -1700,13 +1711,13 @@ export const getDefaultLetterAddress = doc => {
     if (client && client.postalAddress) {
       address = client.postalAddress;
       city = client.postalCity;
-      if (address && address.toLowerCase().includes(city.toLowerCase())) city = null;
+      if (address && city && address.toLowerCase().includes(city.toLowerCase())) city = null;
       postcode = client.postalPostCode;
       address = `${address ? address : ''}${city ? '\n' + city : ''}${postcode ? ' ' + postcode : ''}`;
     } else if (client && client.address) {
       address = client.address;
       city = client.city;
-      if (address && address.toLowerCase().includes(city.toLowerCase())) city = null;
+      if (address && city && address.toLowerCase().includes(city.toLowerCase())) city = null;
       postcode = client.postcode;
       address = `${address ? address : ''}${city ? '\n' + city : ''}${postcode ? ' ' + postcode : ''}`;
     }
@@ -1714,5 +1725,56 @@ export const getDefaultLetterAddress = doc => {
     return letterAddress.trim();
   } else {
     return '';
+  }
+}
+
+export const getLeadHistoryDescription = (h, maxLength) => {
+  let icon = null,
+    title = '',
+    body = null;
+  if (h.type === "Lead") {
+    icon = <LeadIcon />;
+    // Can either by "Created by XXX" or "XXX marked this lead as Current"
+    if (h.detail === "Created by WorkflowMax API") title = "Created from Website Enquiry";
+    else title = h.detail;
+  } else if (h.type === "Lost") {
+    icon = <LostIcon />;
+    // Always "XXX marked this lead as Lost"
+    title = h.detail;
+  } else if (h.type === "Activity") {
+    icon = <ActivityIcon />;
+    // All in the form '<ActivityName>' completed by <First> <Last>
+    title = h.detail;
+  } else if (h.type === "Email") {
+    icon = <EmailIcon />;
+    // console.log(maxLength);
+    // Full email
+    // Form is:
+    // Date \n From \n To \n Subject \n Body
+    let from = '', to = '', subject = '', splitEmail = [];
+    splitEmail = h.detail.split(/\r\n|\n|\r/);
+    from = splitEmail[1].slice(splitEmail[1].indexOf(':') + 1, splitEmail[1].indexOf('['));
+    to = splitEmail[2].slice(splitEmail[2].indexOf(':') + 1, splitEmail[2].indexOf('['));
+    if (to.includes('dropbox')) to = 'EmailMyJob';
+    if (splitEmail[3].includes('Cc:')) {
+      subject = splitEmail[4].slice(splitEmail[4].indexOf(':') + 1);
+      body = splitEmail.slice(5).join('\n');
+    } else {
+      subject = splitEmail[3].slice(splitEmail[3].indexOf(':') + 1);
+      body = splitEmail.slice(5).join('\n');
+    }
+    title = `${from} emailed ${to}: ${subject}`;
+    if (maxLength && body.length > maxLength) body = `${body.substring(0, maxLength)}...`;
+  } else if (h.type === "Note") {
+    icon = <NoteIcon />
+    title = `Note from ${h.staff}`;
+    body = h.detail;
+    if (maxLength && body.length > maxLength) body = `${body.substring(0, maxLength)}...`;
+  }
+
+  return {
+    title,
+    body,
+    icon,
   }
 }

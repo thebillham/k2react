@@ -38,6 +38,7 @@ import {
   getWfmClientUrl,
   getGoogleMapsUrl,
   getNextActionType,
+  getLeadHistoryDescription,
 } from "../../actions/jobs";
 
 import {
@@ -67,6 +68,7 @@ const mapStateToProps = state => {
     search: state.local.search,
     me: state.local.me,
     filter: state.display.filterMap,
+    otherOptions: state.const.otherOptions,
   };
 };
 
@@ -100,29 +102,36 @@ class Leads extends React.Component {
 
   render() {
     const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, that, } = this.props;
-    let leads = jobList ? Object.values(jobList).filter(job => !job.isJob).sort((a, b) => {
-      return a.client.localeCompare(b.client);
+    const daysSinceLastLeadAction = this.props.otherOptions.filter(opt => opt.option === "daysSinceLastLeadAction")[0].value ? parseInt(this.props.otherOptions.filter(opt => opt.option === "daysSinceLastLeadAction")[0].value) : 30;
+
+    let leads = jobList ? Object.values(jobList).filter(m => {
+      let res = true;
+      if (m.isJob) res = false;
+      if (this.props.search) {
+        // console.log(this.props.search);
+        let terms = this.props.search.split(" ");
+        let search =
+          m.client + " " + m.category + " " + m.owner + " " + m.name;
+        if (m.geocode) search = search + " " + m.geocode.address;
+        terms.forEach(term => {
+          if (!search.toLowerCase().includes(term.toLowerCase())) {
+            res = false;
+          } else {
+            // console.log(term);
+            // console.log(search);
+          }
+        });
+      }
+      return res;
     }) : [];
 
     return (
       <div className={classes.marginBottomSmall}>
         <ReactTable
+          style={{
+            cursor: 'alias',
+          }}
           data={leads}
-          columns={[{
-            Header: 'WFM ID',
-            accessor: 'wfmID',
-          },{
-            Header: 'Client',
-            accessor: 'client',
-          },{
-            Header: 'Category',
-            accessor: 'category',
-          },{
-            id: 'geocodeAddress',
-            Header: 'Geocode',
-            accessor: d => d.geocode.address,
-          }
-          ]}
           getTrProps={(state, rowInfo) => ({
             onClick: () => that.setState({ jobModal: rowInfo.original})
           })}
@@ -130,62 +139,77 @@ class Leads extends React.Component {
             [{
             id: 'jobNumber',
             Header: 'WFM Link',
-            accessor: d => <span>
+            Cell: c => <span>
               <a
-                className={classes.url}
+                className={classes.urlSubtle}
                 target="_blank"
                 rel="noopener noreferrer"
-                href={getWfmUrl(d)}
+                href={getWfmUrl(c.original)}
               >
                 WFM
               </a></span>,
-            maxWidth: 100,
+            maxWidth: 80,
           },{
             id: 'client',
             Header: 'Client',
-            accessor: d => <span>
+            accessor: d => d.client,
+            Cell: c => <span>
               <a
-                className={classes.url}
+                className={classes.urlSubtle}
                 target="_blank"
                 rel="noopener noreferrer"
-                href={getWfmClientUrl(d)}
+                href={getWfmClientUrl(c.original)}
               >
-                {d.client}
+                {c.value}
               </a>
             </span>,
           },{
             Header: 'Name',
             accessor: 'name',
           },{
+            Header: 'Manager',
+            accessor: 'owner',
+          },{
             id: 'nextAction',
             Header: 'Next Goal',
-            accessor: d => getNextActionType(d.activities),
+            accessor: d => d.nextActionType,
+          },{
+            id: 'nextGoalDue',
+            Header: 'Next Goal Due',
+            accessor: d => dateOf(d.nextActionDate),
+            Cell: c => c.value ? <span className={getDaysSinceDate(c.value) > 0 ? classes.red : classes.black}>{getDaysSinceDateAgo(c.value)}</span> : <span className={classes.orange}>No Goal Set</span>,
           },{
             id: 'daysSinceLastGoal',
             Header: 'Last Goal Completed',
-            accessor: d => getDaysSinceDateAgo(d.lastActionDate),
+            accessor: d => dateOf(d.lastActionDate),
+            Cell: c => getDaysSinceDateAgo(c.value),
           },{
             id: 'daysSinceLastAction',
             Header: 'Last Action',
-            accessor: d => d.history && d.history.length > 0 ? getDaysSinceDateAgo(moment(dateOf(d.history[0].date)).format('DD MMMM YYYY')) : 'No actions',
+            accessor: d => d.history && d.history.length > 0 && d.history[0].date,
+            Cell: c => c.value ? <span className={getDaysSinceDate(c.value) > daysSinceLastLeadAction ? classes.red : classes.black}>{getDaysSinceDateAgo(c.value)}</span> : <span className={classes.orange}>No actions</span>,
+          },{
+            id: 'lastActionType',
+            Header: 'Last Action Type',
+            accessor: d => d.history && d.history.length > 0 ? getLeadHistoryDescription(d.history[0]).title : 'No actions',
           },{
             Header: 'Category',
             accessor: 'category',
           },{
             id: 'geocodeAddress',
             Header: 'Google Maps',
-            accessor: d => <span>
+            accessor: d => d.geocode.address,
+            Cell: c => <span>
               <a
-                className={classes.url}
+                className={classes.urlSubtle}
                 target="_blank"
                 rel="noopener noreferrer"
-                href={getGoogleMapsUrl(d)}
+                href={getGoogleMapsUrl(c.original)}
               >
-                {d.geocode.address}
+                {c.value}
               </a>
             </span>
-          }
-          ]}
+          }]}
           defaultPageSize={25}
           className="-striped -highlight"
         />

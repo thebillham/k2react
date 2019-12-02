@@ -64,6 +64,7 @@ const mapStateToProps = state => {
     search: state.local.search,
     me: state.local.me,
     filter: state.display.filterMap,
+    otherOptions: state.const.otherOptions,
   };
 };
 
@@ -92,13 +93,35 @@ class CurrentJobs extends React.Component {
 
   render() {
     const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, that } = this.props;
-    let jobs = jobList ? Object.values(jobList).filter(job => job.isJob && job.wfmState !== "Completed").sort((a, b) => {
-      return a.client.localeCompare(b.client);
-    }) : [];
+    const daysSinceLastJobAction = this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value ? parseInt(this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value) : 15;
 
+    let jobs = jobList ? Object.values(jobList).filter(m => {
+      let res = true;
+      if (!m.isJob || m.wfmState === "Completed") res = false;
+
+      if (this.props.search) {
+        // console.log(this.props.search);
+        let terms = this.props.search.split(" ");
+        let search =
+          m.jobNumber + " " + m.client + " " + m.category + " " + m.owner + " " + m.name;
+        if (m.geocode) search = search + " " + m.geocode.address;
+        terms.forEach(term => {
+          if (!search.toLowerCase().includes(term.toLowerCase())) {
+            res = false;
+          } else {
+            // console.log(term);
+            // console.log(search);
+          }
+        });
+      }
+      return res;
+    }) : [];
     return (
       <div className={classes.marginBottomSmall}>
         <ReactTable
+          style={{
+            cursor: 'alias',
+          }}
           data={jobs}
           getTrProps={(state, rowInfo) => ({
             onClick: () => that.setState({ jobModal: rowInfo.original})
@@ -107,69 +130,68 @@ class CurrentJobs extends React.Component {
             [{
             id: 'jobNumber',
             Header: 'Job Number',
-            accessor: d => <span>
+            accessor: d => d.jobNumber,
+            Cell: c => <span>
               <a
-                className={classes.url}
+                className={classes.urlSubtle}
                 target="_blank"
                 rel="noopener noreferrer"
-                href={getWfmUrl(d)}
+                href={getWfmUrl(c.original)}
               >
-                {d.jobNumber}
+                {c.value}
               </a></span>,
             maxWidth: 100,
           },{
             id: 'client',
             Header: 'Client',
-            accessor: d => <span>
+            accessor: d => d.client,
+            Cell: c => <span>
               <a
-                className={classes.url}
+                className={classes.urlSubtle}
                 target="_blank"
                 rel="noopener noreferrer"
-                href={getWfmClientUrl(d)}
+                href={getWfmClientUrl(c.original)}
               >
-                {d.client}
+                {c.value}
               </a>
             </span>,
           },{
             Header: 'Name',
             accessor: 'name',
           },{
+            Header: 'Manager',
+            accessor: 'owner',
+          },{
             Header: 'State',
             accessor: 'wfmState',
           },{
             id: 'daysSinceLastAction',
             Header: 'State Changed',
-            accessor: d => getDaysSinceDateAgo(d.lastActionDate),
-            sortMethod: (a, b, desc) => {
-              console.log(desc);
-              if (parseInt(a.replace(/ .*/, '')) > parseInt(b.replace(/ .*/, ''))) {
-                if (desc) return -1;
-                else return 1;
-              }
-              if (parseInt(b.replace(/ .*/, '')) > parseInt(a.replace(/ .*/, ''))) {
-                if (desc) return 1;
-                else return -1;
-              }
-              return 0;
-            }
+            accessor: d => d.lastActionDate,
+            Cell: c => <span className={getDaysSinceDate(c.value) > daysSinceLastJobAction ? classes.red : classes.black}>{getDaysSinceDateAgo(c.value)}</span>,
           },{
             id: 'dueDate',
             Header: 'Due Date',
-            accessor: d => <span>{d.dueDate !== "" ? moment(dateOf(d.dueDate)).format('D MMMM YYYY') : "Due date not set"}</span>,
+            accessor: d => d.dueDate,
+            Cell: c =>
+              <span className={dateOf(c.value) < new Date() ? classes.red : classes.black}>
+                {c.value !== "" ? moment(dateOf(c.value)).format('D MMMM YYYY') : "Due date not set"}
+              </span>
           },{
             Header: 'Category',
             accessor: 'category',
           },{
             id: 'geocodeAddress',
             Header: 'Google Maps',
-            accessor: d => <span>
+            accessor: d => d.geocode.address,
+            Cell: c => <span>
               <a
-                className={classes.url}
+                className={classes.urlSubtle}
                 target="_blank"
                 rel="noopener noreferrer"
-                href={getGoogleMapsUrl(d)}
+                href={getGoogleMapsUrl(c.original)}
               >
-                {d.geocode.address}
+                {c.value}
               </a>
             </span>
           }

@@ -2706,7 +2706,7 @@ export const writeChecks = (sample) => {
 
 export const writeConditionings = (sample) => {
   let conditioningMap = {
-    dcm: 'Sample prepared in acid solution',
+    dcm: 'Sample prepared in solvent',
     flame: 'Sample conditioned with flame',
     furnace: 'Sample conditioned at ~400­°C',
     lowHeat: 'Sample conditioned at ~105°C',
