@@ -14,6 +14,7 @@ import {
   ADD_TO_GEOCODES,
   GET_CURRENT_JOB_STATE,
   RESET_JOBS,
+  SET_LAST_TIME_SAVED,
 } from "../constants/action-types";
 
 import { stateRef } from "../config/firebase";
@@ -30,6 +31,7 @@ const jobsInit = {
   wfmStats: {},
   jobList: {},
   jobStats: {},
+  lastTimeSaved: null,
 };
 
 // Properties related to local data retrieved from firebase
@@ -123,6 +125,11 @@ export default function jobsReducer(state = jobsInit, action) {
           ...state.jobList,
           [action.payload.wfmID]: action.payload,
         },
+      }
+    case SET_LAST_TIME_SAVED:
+      return {
+        ...state,
+        lastTimeSaved: action.payload,
       }
     case RESET_JOBS:
       return jobsInit;

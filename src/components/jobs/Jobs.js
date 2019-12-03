@@ -4,6 +4,9 @@ import { styles } from "../../config/styles";
 import { connect } from "react-redux";
 
 //Modals
+import {
+  WFM_TIME,
+} from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import Button from "@material-ui/core/Button";
 import FormControl from "@material-ui/core/FormControl";
@@ -19,6 +22,10 @@ import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
+import IconButton from "@material-ui/core/IconButton";
+import TimerIcon from "@material-ui/icons/Timer";
+import WfmTimeModal from "./modals/WfmTimeModal";
+
 import Popup from "reactjs-popup";
 import {
   dateOf,
@@ -72,6 +79,7 @@ const mapStateToProps = state => {
     me: state.local.me,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
+    modalType: state.modal.modalType,
   };
 };
 
@@ -89,6 +97,7 @@ const mapDispatchToProps = dispatch => {
     saveStats: stats => dispatch(saveStats(stats)),
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
+    showModal: modal => dispatch(showModal(modal)),
     collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
@@ -117,19 +126,16 @@ class Jobs extends React.Component {
 
   componentWillUnmount() {
     // Save daily state
-    this.props.saveWFMItems(Object.values(this.props.jobList).filter((lead) => (lead.wfmState != 'Completed' && lead.state != 'Completed')));
+    console.log(Object.values(this.props.jobList).filter((lead) => (lead.wfmState !== 'Completed')).length);
+    this.props.saveWFMItems(Object.values(this.props.jobList).filter((lead) => (lead.wfmState !== 'Completed')));
 
     // If job list is finished loading, then save it to current
-    // console.log(this.props.jobList);
-    // console.log(this.props.currentJobState);
-    // this.props.jobList && console.log(Object.keys(this.props.jobList).length);
-    // this.props.currentJobState && console.log(Object.keys(this.props.currentJobState).length);
-    // this.props.currentJobState && console.log(Object.keys(this.props.currentJobState).filter(job => job.wfmState !== "Completed").length);
+    console.log(this.props.jobList);
     this.props.jobList && console.log(Object.values(this.props.jobList).filter(job => job.isJob).length);
     this.props.currentJobState && console.log(Object.values(this.props.currentJobState).filter(job => job.isJob).length);
     if (this.props.jobList &&
       Object.values(this.props.jobList).filter(job => job.isJob).length >= Object.values(this.props.currentJobState).filter(job => job.isJob).length) {
-        // console.log(Object.keys(this.props.jobList).length);
+        console.log(Object.keys(this.props.jobList).length);
         this.props.saveCurrentJobState(this.props.jobList);
       }
 
@@ -149,7 +155,18 @@ class Jobs extends React.Component {
     return (
       <div className={classes.popupMap}>
         <div className={color}>
-          <h6>{m.category}</h6>
+          {m.isJob ?
+            <div className={classes.flexRowSpread}>
+              <h6>{m.category}</h6>
+              <IconButton
+                onClick={e => {
+                  this.props.showModal({ modalType: WFM_TIME, modalProps: { job: m, }})
+                }}>
+                <TimerIcon className={classes.iconRegular} />
+              </IconButton>
+            </div>
+            :
+            <h6>{m.category}</h6>}
         </div>
         <div className={classes.subHeading}>
           {m.isJob && <span>{`${m.jobNumber}`}<br />{m.client}</span>}
@@ -303,9 +320,9 @@ class Jobs extends React.Component {
       >
         <DialogTitle>
         {this.state.jobModal && (
-          <h5 className={classes[getJobColor(this.state.jobModal.category)]}>
+          <div className={classes[getJobColor(this.state.jobModal.category)]}>
             {this.state.jobModal.jobNumber}: {this.state.jobModal.client}
-          </h5>)}
+          </div>)}
         </DialogTitle>
         <DialogContent>
           {this.state.jobModal && this.getJobDetails(this.state.jobModal)}
@@ -315,6 +332,7 @@ class Jobs extends React.Component {
 
     return (
       <div className={classes.marginTopStandard}>
+        {this.props.modalType === WFM_TIME && <WfmTimeModal />}
         {jobModal}
         <Tabs
           value={this.state.tabValue}

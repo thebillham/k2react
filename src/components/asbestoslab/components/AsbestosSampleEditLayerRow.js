@@ -30,7 +30,7 @@ class AsbestosSampleEditLayerRow extends React.Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     if (this.state !== nextState) return true;
-    if (this.props !== nextProps) return true;
+    // if (this.props !== nextProps) return true;
     if (this.props.result !== nextProps.result) return true;
     return false;
   }

@@ -83,6 +83,7 @@ export const numericAndLessThanOnly = num => {
   if (num) {
     let str = num.replace(/[^$0-9.<]/,'');
     if (num.charAt(0) === '.') return `0${str}`;
+    if (num.charAt(0) === '<' && num.charAt(1) === '.') return `<0${str.slice(1)}`;
     else return str;
   } else return '';
 }

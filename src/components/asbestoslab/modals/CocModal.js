@@ -221,11 +221,7 @@ class CocModal extends React.PureComponent {
 
       let blockInput = !doc.uid && (!wfmSynced || modalProps.error);
       if (blockInput !== false) blockInput = true;
-
-      let foundJob = [];
-      if (jobList) foundJob = Object.values(jobList).filter(job => job.isJob && job.jobNumber === this.state.jobNumber);
-      console.log(Object.values(jobList).filter(job => job.isJob));
-      console.log(foundJob);
+      console.log(names.map(e => ({ value: e.uid, label: e.name })));
 
       return(
         <Dialog
@@ -784,9 +780,6 @@ class CocModal extends React.PureComponent {
                     { modalProps.error }
                   </div>
                 }
-                <div className={classes.informationBoxRounded}>
-                  {foundJob.length > 0 ? foundJob[0].client : 'Searching...' }
-                </div>
               </div>
             </DialogContent>
           }

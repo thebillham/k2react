@@ -85,6 +85,7 @@ export const GET_JOB_STATS = "GET_JOB_STATS";
 export const GET_JOB_LIST = "GET_JOB_LIST";
 export const ADD_TO_JOB_LIST = "ADD_TO_JOB_LIST";
 export const RESET_JOBS = "RESET_JOBS";
+export const SET_LAST_TIME_SAVED = "SET_LAST_TIME_SAVED";
 
 // Display
 export const APP_HAS_LOADED = "APP_HAS_LOADED";

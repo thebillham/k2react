@@ -17,6 +17,7 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
 import {
   fetchWFMJobs,
@@ -95,7 +96,7 @@ class CurrentJobs extends React.Component {
     const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, that } = this.props;
     const daysSinceLastJobAction = this.props.otherOptions && this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value ? parseInt(this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value) : 15;
     let loading = jobList && Object.keys(jobList).length == 0;
-    
+
     let jobs = jobList ? Object.values(jobList).filter(m => {
       let res = true;
       if (!m.isJob || m.wfmState === "Completed") res = false;

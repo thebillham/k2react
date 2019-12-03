@@ -108,6 +108,7 @@ import {
   cleanLogs,
   fixSamples,
   renameAnalysisLog,
+  splitWFMStates,
 } from "../actions/temp";
 
 // Pages
@@ -202,6 +203,7 @@ class MainScreen extends React.PureComponent {
     if (this.props.menuItems === undefined) this.props.initConstants();
     this.props.fetchGeocodes();
     // this.props.fetchAssets();
+    // splitWFMStates();
     if (this.props.staff && Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
     // this.props.fixIds();
     // transferNoticeboardReads();

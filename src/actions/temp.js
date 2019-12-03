@@ -11,6 +11,7 @@ import {
   asbestosAnalysisLogRef,
   asbestosCheckLogRef,
   usersRef,
+  stateRef,
 } from "../config/firebase";
 import {
   dateOf,
@@ -27,6 +28,49 @@ export const fixIds = () => dispatch => {
     });
   });
 };
+
+export const splitWFMStates = () => {
+  console.log('Splitting WFM states...');
+  stateRef
+    .doc("wfmstate")
+    .collection("states")
+    .get().then(querySnapshot => {
+      querySnapshot.forEach(day => {
+        let batch = firestore.batch(),
+          date = day.id,
+          state = day.data().state,
+          leads1 = {},
+          leads2 = {},
+          jobs = {},
+          leadSwitch = true;
+        Object.values(state).forEach(item => {
+          if (item.isJob) jobs[item.wfmID] = item;
+          else if (leadSwitch) leads1[item.wfmID] = item;
+          else leads2[item.wfmID] = item;
+          leadSwitch = !leadSwitch;
+        });
+
+        console.log(date);
+        console.log(Object.keys(jobs).length);
+        console.log(Object.keys(leads1).length);
+        console.log(Object.keys(leads2).length);
+
+        batch.set(stateRef
+          .doc("wfmstate")
+          .collection("jobStates")
+          .doc(date), jobs);
+        batch.set(stateRef
+          .doc("wfmstate")
+          .collection("leadStates1")
+          .doc(date), leads1);
+        batch.set(stateRef
+          .doc("wfmstate")
+          .collection("leadStates2")
+          .doc(date), leads2);
+        batch.commit();
+      });
+    })
+}
 
 export const fixSamples = () => {
   asbestosSamplesRef

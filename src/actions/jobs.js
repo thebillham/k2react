@@ -15,6 +15,7 @@ import {
   ADD_TO_JOB_LIST,
   GET_CURRENT_JOB_STATE,
   RESET_JOBS,
+  SET_LAST_TIME_SAVED,
 } from "../constants/action-types";
 
 // Lead history icons
@@ -529,19 +530,40 @@ export const saveWFMItems = items => dispatch => {
   console.log(Object.keys(items).length);
   var date = moment().format("YYYY-MM-DD");
   // //console.log(items);
-  Object.values(items).forEach(job => {
-    Object.keys(job).forEach(val => {
-      if (job[val] === undefined) {
-        console.log(`Job: ${job.isJob}, Number: ${job.jobNumber}, Val: ${val}`);
-      }
-    })
-  })
-  console.log(Object.keys(items).length);
-  stateRef
+  // Object.values(items).forEach(job => {
+  //   Object.keys(job).forEach(val => {
+  //     if (job[val] === undefined) {
+  //       console.log(`Job: ${job.isJob}, Number: ${job.jobNumber}, Val: ${val}`);
+  //     }
+  //   })
+  // })
+  let leads1 = {};
+  let leads2 = {};
+  let jobs = {};
+
+  let leadSwitch = true;
+
+  Object.values(items).forEach(item => {
+    if (item.isJob) jobs[item.wfmID] = item;
+    else if (leadSwitch) leads1[item.wfmID] = item;
+    else leads2[item.wfmID] = item;
+    leadSwitch = !leadSwitch;
+  });
+
+  let batch = firestore.batch();
+  batch.set(stateRef
     .doc("wfmstate")
-    .collection("states")
-    .doc(date)
-    .set({ state: items });
+    .collection("jobStates")
+    .doc(date), jobs);
+  batch.set(stateRef
+    .doc("wfmstate")
+    .collection("leadStates1")
+    .doc(date), leads1);
+  batch.set(stateRef
+    .doc("wfmstate")
+    .collection("leadStates2")
+    .doc(date), leads2);
+  batch.commit();
   dispatch({
     type: SAVE_WFM_ITEMS,
     payload: items
@@ -1644,6 +1666,13 @@ export const getNextActionOverdueBy = activities => {
     return null;
   }
 };
+
+export const setLastTimeSaved = time => dispatch => {
+  dispatch({
+    type: SET_LAST_TIME_SAVED,
+    payload: time,
+  });
+}
 
 export const getStateString = m => {
   var stateStr = '';

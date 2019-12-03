@@ -37,3 +37,4 @@ export const VEHICLE = "VEHICLE";
 export const WA_ANALYSIS = "WA_ANALYSIS";
 export const WHOS_READ = "WHOS_READ";
 export const VERIFY_ISSUES_ASBESTOS = "VERIFY_ISSUES_ASBESTOS";
+export const WFM_TIME = "WFM_TIME";

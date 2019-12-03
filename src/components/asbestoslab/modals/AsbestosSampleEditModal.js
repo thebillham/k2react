@@ -6,7 +6,8 @@ import classNames from 'classnames';
 import { ASBESTOS_SAMPLE_EDIT, SOIL_DETAILS, } from "../../../constants/modal-types";
 import "../../../config/tags.css";
 
-import { SamplesTickyBox, SamplesTextyBox, SamplesTextyBoxAlt, SamplesRadioSelector, SampleTextyLine, SamplesTickyBoxGroup, AsbButton, } from '../../../widgets/FormWidgets';
+import { SamplesTickyBox, SamplesRadioSelector, SampleTextyLine, SamplesTickyBoxGroup, AsbButton, } from '../../../widgets/FormWidgets';
+import TextyBox from "../../../widgets/TextyBox";
 import { AsbestosClassification } from '../../../config/strings';
 
 import Button from "@material-ui/core/Button";
@@ -119,14 +120,18 @@ const initState = {
   materialSuggestions: [],
   result: {},
   override: null,
+  changes: {},
 };
 
 class AsbestosSampleEditModal extends React.Component {
   state = initState;
 
   shouldComponentUpdate(nextProps, nextState) {
-    if (this.state !== nextState) return true;
+    if ((this.state.activeSample !== nextState.activeSample) ||
+     (this.state.samples !== nextState.samples) ||
+     (this.state.result !== nextState.result)) return true;
     if (this.props.asbestosSampleDisplayAdvanced !== nextProps.asbestosSampleDisplayAdvanced) return true;
+    console.log('not updating...');
     return false;
   }
 
@@ -158,6 +163,8 @@ class AsbestosSampleEditModal extends React.Component {
         });
       });
     }
+
+    console.log(samples);
 
     this.setState({
       activeSample,
@@ -256,12 +263,20 @@ class AsbestosSampleEditModal extends React.Component {
   };
 
   previousSample = () => {
-    if (this.state.modified) this.saveSample(this.state.activeSample);
+    if (Object.keys(this.state.changes).length > 0) this.saveSample(this.state.activeSample);
     let takeThisSample = false;
     Object.values(this.state.samples).reverse().forEach(sample => {
       if (takeThisSample) {
         this.setState({
-          modified: false,
+          samples: {
+            ...this.state.samples,
+            [this.state.activeSample]: {
+              ...this.state.samples[this.state.activeSample],
+              ...this.state.changes,
+            }
+          },
+          changes: {},
+          modified: (this.state.modified || Object.keys(this.state.changes) > 0) ? true : false,
           activeSample: sample.sampleNumber,
           override: null,
         });
@@ -273,12 +288,20 @@ class AsbestosSampleEditModal extends React.Component {
   };
 
   nextSample = () => {
-    if (this.state.modified) this.saveSample(this.state.activeSample);
+    if (Object.keys(this.state.changes).length > 0) this.saveSample(this.state.activeSample);
     let takeThisSample = false;
     Object.values(this.state.samples).forEach(sample => {
       if (takeThisSample) {
         this.setState({
-          modified: false,
+          samples: {
+            ...this.state.samples,
+            [this.state.activeSample]: {
+              ...this.state.samples[this.state.activeSample],
+              ...this.state.changes,
+            }
+          },
+          modified: (this.state.modified || Object.keys(this.state.changes) > 0) ? true : false,
+          changes: {},
           activeSample: sample.sampleNumber,
           override: null,
         });
@@ -293,7 +316,10 @@ class AsbestosSampleEditModal extends React.Component {
     console.log('Save Sample');
     const { override } = this.state;
     let activeSampleNumber = activeSample ? activeSample : this.state.activeSample;
-    let sample = this.state.samples[activeSampleNumber];
+    let sample = {
+      ...this.state.samples[activeSampleNumber],
+      ...this.state.changes,
+    };
     let waTotals = await getWATotalDetails(sample);
     sample.waTotals = waTotals;
     let batch = firestore.batch();
@@ -367,7 +393,11 @@ class AsbestosSampleEditModal extends React.Component {
     const { classes, modalProps, modalType, samples } = this.props;
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
-    let sample = this.state.samples[this.state.activeSample];
+    let sample = {
+      ...this.state.samples[this.state.activeSample],
+      ...this.state.changes,
+    };
+    if (sample && Object.keys(sample).length === 0) sample = null;
     let colors = getSampleColors(this.state.samples[this.state.activeSample]);
     let waAnalysis = this.props.cocs[modalProps.activeCoc] && this.props.cocs[modalProps.activeCoc].waAnalysis;
     let sampleDimensions = null;
@@ -641,42 +671,55 @@ class AsbestosSampleEditModal extends React.Component {
               </div>}
               <div className={classes.subHeading}>Weights</div>
               <div className={classes.flexRow}>
-                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightReceived', 'Weight as Received', 'REQUIRED Record the weight as received (e.g. entire sample including tape or swab before any conditioning).', false, 0, 'g', null, true)}</div>
+                <div className={classes.formInputMediumRequired}>
+                  <TextyBox that={this} sample={sample} field={'weightReceived'} label={'Weight as Received'} helperText={'REQUIRED Record the weight as received (tape samples can be recorded as <0.1).'} end={'g'} numericOnly={true} />
+                </div>
                 <div className={classes.spacerSmall} />
-                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightSubsample', 'Weight of Subsample', 'Record the weight of the subsample if the entire sample is not analysed.', false, 0, 'g', null, true)}</div>
+                <div className={classes.formInputMedium}>
+                  <TextyBox that={this} sample={sample} field={'weightSubsample'} label={'Weight of Subsample'} helperText={'Record the weight of the subsample if the entire sample is not analysed.'} end={'g'} numericOnly={true} />
+                </div>
                 <div className={classes.spacerSmall} />
-                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightDry', 'Dry Weight', 'Record the weight after drying (~105°).', false, 0, 'g', null, true)}</div>
+                <div className={classes.formInputMedium}>
+                  <TextyBox that={this} sample={sample} field={'weightDry'} label={'Dry Weight'} helperText={'Record the weight after drying (~105°).'} end={'g'} numericOnly={true} />
+                </div>
                 <div className={classes.spacerSmall} />
-                <div className={classes.formInputMedium}>{SamplesTextyBox(this, sample, 'weightAshed', 'Ashed Weight', 'Record the weight after ashing (~400°).', false, 0, 'g', null, true)}</div>
+                <div className={classes.formInputMedium}>
+                  <TextyBox that={this} sample={sample} field={'weightAshed'} label={'Ashed Weight'} helperText={'Record the weight after ashing (~400°).'} end={'g'} numericOnly={true} />
+                </div>
               </div>
 
-              {sampleMoisture && <div className={classes.informationBox}>
+              {sampleMoisture && <div className={classes.informationBoxRounded}>
                 Moisture: {sampleMoisture}%
               </div>}
               {sample.material !== 'soil' && <div>
                 <div className={classes.subHeading}>Dimensions</div>
                 <div className={classes.flexRow}>
-                  <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'length', 'Length', null, false, 0, 'mm', null, true)}</div>
+                  <div className={classes.formInputSmall}>
+                    <TextyBox that={this} sample={sample} base={'dimensions'} field={'length'} label={'Length'} end={'mm'} numericOnly={true} />
+                  </div>
                   <span className={classes.timesSymbol}>X</span>
-                  <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'width', 'Width', null, false, 0, 'mm', null, true)}</div>
+                  <div className={classes.formInputSmall}>
+                    <TextyBox that={this} sample={sample} base={'dimensions'} field={'width'} label={'Width'} end={'mm'} numericOnly={true} />
+                  </div>
                   <span className={classes.timesSymbol}>X</span>
-                  <div className={classes.formInputSmall}>{SamplesTextyBoxAlt(this, sample, 'dimensions', 'depth', 'Depth/Thickness', null, false, 0, 'mm', null, true)}</div>
-                  {sampleDimensions && <span className={classes.informationBox}>
+                  <div className={classes.formInputSmall}>
+                    <TextyBox that={this} sample={sample} base={'dimensions'} field={'depth'} label={'Depth/Thickness'} end={'mm'} numericOnly={true} />
+                  </div>
+                  {sampleDimensions && <span className={classes.informationBoxRounded}>
                     {sampleDimensions}
                   </span>}
                 </div>
               </div>}
 
               <div className={classes.subHeading}>Lab Notes</div>
-              {SamplesTextyBox(this, sample, 'labDescription', null, 'Provide a detailed description of the material.', true, 1, null, null)}
-              {SamplesTextyBox(this, sample, 'labComments', null, 'Note any additional observations or comments.', true, 1, null, null)}
-              {SamplesTextyBox(this, sample, 'footnote', null, 'Add a footnote to be included in the issued report. This will be displayed as a footnote below the results table.', true, 1, null, null)}
+                <TextyBox that={this} sample={sample} field={'labComments'} helperText={'Note description of the material or any additional observations or comments. This will not be displayed on the certificate.'} multiline={true} />
+                <TextyBox that={this} sample={sample} field={'footnote'} helperText={'Add a footnote to be included in the issued report. This will be displayed as a footnote on the certificate.'} multiline={true} />
 
               {sample.material === 'soil' &&
-                <div style={{ padding: 48, margin: 12, justifyContent: 'center', alignItems: 'center', width: 600 }}>
+                <div className={classes.paddedBox}>
                   <Button
                     variant="outlined"
-                    style={{ marginBottom: 16, marginTop: 16, textAlign: 'center' }}
+                    className={classes.paddingTopBottomCenterText}
                     onClick={() => {
                       this.props.showModalSecondary({
                         modalType: SOIL_DETAILS,
@@ -699,7 +742,7 @@ class AsbestosSampleEditModal extends React.Component {
                   >
                     Edit Geotechnical Soil Description
                   </Button>
-                <div style={{ fontStyle: 'italic'}}>{writeSoilDetails(sample.soilDetails)}</div>
+                <div className={classes.italic}>{writeSoilDetails(sample.soilDetails)}</div>
               </div>}
             </Grid>
           </Grid>

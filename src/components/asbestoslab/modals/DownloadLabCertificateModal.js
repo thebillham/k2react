@@ -41,22 +41,6 @@ class DownloadLabCertificateModal extends React.Component {
     template: "single",
   };
 
-  // postData = async (data, url) => {
-  //   let res = await axios.post(url, data);
-  //   let newDocument = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
-  //   FileSaver.saveAs(res.data, 'test_doc.docx');
-  //   // console.log(res.data);
-  //   // this.writeToWindow(res.data);
-  // }
-
-  // writeToWindow = (data) => {
-  //   console.log(data);
-  //   let win = window.open('about:blank');
-  //   win.document.open();
-  //   win.document.write(data);
-  //   win.document.close();
-  // };
-
   render() {
     const { classes, modalProps, modalType } = this.props;
     return (modalType === DOWNLOAD_LAB_CERTIFICATE &&

@@ -504,6 +504,10 @@ const styles = theme => ({
     textDecoration: "underline"
   },
 
+  italic: {
+    fontStyle: 'italic',
+  },
+
   linethrough: {
     textDecoration: 'line-through',
   },
@@ -1286,6 +1290,16 @@ const styles = theme => ({
     marginRight: theme.spacing(1),
   },
 
+  formInputMediumRequired: {
+    width: 175,
+    padding: theme.spacing(1),
+    borderRadius: theme.spacing(1),
+    borderStyle: 'solid',
+    borderColor: theme.palette.stages.readyForIssue,
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+  },
+
   formInputLarge: {
     width: 500,
     marginBottom: 10,
@@ -1338,6 +1352,20 @@ const styles = theme => ({
   paddingCenterText: {
     padding: theme.spacing(1),
     textAlign: "center",
+  },
+
+  paddedBox: {
+    padding: theme.spacing(3),
+    margin: theme.spacing(1),
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 600,
+  },
+
+  paddingTopBottomCenterText: {
+    marginBottom: theme.spacing(1),
+    marginTop: theme.spacing(1),
+    textAlign: 'center',
   },
 
   marginLeftSmall: {
@@ -1455,6 +1483,12 @@ const styles = theme => ({
     flexDirection: 'row',
     display: 'flex',
     alignItems: 'center'
+  },
+
+  flexRowSpread: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 
   flexRowBox: {
