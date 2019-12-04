@@ -610,13 +610,13 @@ export const analyseJobHistory = () => {
   // get all wfm daily states from firebase
   stateRef
     .doc("wfmstate")
-    .collection("states")
+    .collection("jobStates")
     .get()
     .then(querySnapshot => {
       querySnapshot.forEach(doc => {
         // Loop through each day of the saved states
         console.log(doc.id);
-        var state = doc.data()['state'];
+        var state = doc.data() && Object.values(doc.data());
         console.log(state);
         // console.log(state.filter((stateJob) => stateJob.isJob).length);
         // Loop through current job map and check if any are missing from this state (e.g. they have been completed since the last state)
@@ -647,7 +647,6 @@ export const analyseJobHistory = () => {
                     name: jobMap[bucket][job.wfmID]['name'],
                     wfmID: jobMap[bucket][job.wfmID]['wfmID'],
                   };
-                  console.log(completionDoc);
                   if (jobMap[bucket][job.wfmID]['stateHistory'] !== undefined) completionDoc.stateHistory = jobMap[bucket][job.wfmID]['stateHistory'];
                   if (jobMap[bucket][job.wfmID]['completedActivities'] !== undefined) completionDoc.stateHistory = jobMap[bucket][job.wfmID]['completedActivities'];
                   if (completionMap[doc.id] !== undefined) {
@@ -745,8 +744,9 @@ export const analyseJobHistory = () => {
               job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
               job.lastActionDate = doc.id;
 
-              // Delete outdated fields
+              // Delete outdated fields and state history
               if (job.daysOld !== undefined) delete job.daysOld;
+              if (job.stateHistory !== undefined) delete job.stateHistory;
               if (job.state !== undefined) {
                 job.wfmState = job.state;
                 delete job.state;
@@ -779,28 +779,28 @@ export const analyseJobHistory = () => {
               }
             }
           } else {
-            // Leads have their state history in already (activities)
-            if (job.averageCompletedActionOverdueDays !== undefined) delete job.averageCompletedActionOverdueDays;
-            job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
-            if (job.daysOld !== undefined) delete job.daysOld;
-            if (job.daysSinceLastAction !== undefined) delete job.daysSinceLastAction;
-            if (job.urgentAction !== undefined) delete job.urgentAction;
-            if (job.completedActivities !== undefined) delete job.completedActivities;
-            var bucket = 'leads' + job.wfmID.slice(-2);
-            if (jobCategorys['leads'] !== undefined) {
-              jobCategorys['leads'] = jobCategorys['leads'] + 1;
-            } else {
-              jobCategorys['leads'] = 1;
-            }
-            // Talley how many jobs in each category (not necessary)
-            if (jobCategorys[bucket] !== undefined) {
-              jobCategorys[bucket] = jobCategorys[bucket] + 1;
-              leadBuckets[bucket] = true;
-            } else {
-              jobCategorys[bucket] = 1;
-            }
-            if (jobMap[bucket] === undefined) jobMap[bucket] = {};
-            jobMap[bucket][job.wfmID] = job;
+            // // Leads have their state history in already (activities)
+            // if (job.averageCompletedActionOverdueDays !== undefined) delete job.averageCompletedActionOverdueDays;
+            // job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
+            // if (job.daysOld !== undefined) delete job.daysOld;
+            // if (job.daysSinceLastAction !== undefined) delete job.daysSinceLastAction;
+            // if (job.urgentAction !== undefined) delete job.urgentAction;
+            // if (job.completedActivities !== undefined) delete job.completedActivities;
+            // var bucket = 'leads' + job.wfmID.slice(-2);
+            // if (jobCategorys['leads'] !== undefined) {
+            //   jobCategorys['leads'] = jobCategorys['leads'] + 1;
+            // } else {
+            //   jobCategorys['leads'] = 1;
+            // }
+            // // Talley how many jobs in each category (not necessary)
+            // if (jobCategorys[bucket] !== undefined) {
+            //   jobCategorys[bucket] = jobCategorys[bucket] + 1;
+            //   leadBuckets[bucket] = true;
+            // } else {
+            //   jobCategorys[bucket] = 1;
+            // }
+            // if (jobMap[bucket] === undefined) jobMap[bucket] = {};
+            // jobMap[bucket][job.wfmID] = job;
           }
         });
       });
@@ -1477,6 +1477,117 @@ export const getGoogleMapsUrl = m => {
   if (m.geocode)
     return `https://www.google.com/maps/search/?api=1&query=${encodeURI(m.geocode.address)}&query_place_id=${m.geocode.place}`;
   else return `https://www.google.com/maps/search/?api=1&query=${encodeURI(m.name)}`;
+}
+
+export const sendTimeSheetToWFM = (taskData, taskID, that) => {
+  console.log(taskData);
+  console.log(taskID);
+  let assignUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/assign?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
+    timeUrl = `${process.env.REACT_APP_WFM_ROOT}time.api/add?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+
+    // Convert to XML
+    let assignXML = `<Job><ID>${taskData.job}</ID><add id="${taskData.staff}" task="${taskID}" /></Job>`,
+      timeXML = `<Timesheet><Job>${taskData.job}</Job><Task>${taskID}</Task><Staff>${taskData.staff}</Staff><Date>${taskData.day}</Date><Start>${taskData.startTime}</Start><End>${taskData.endTime}</End><Note>${taskData.note}</Note></Timesheet>`;
+
+    console.log(assignXML);
+    console.log(timeXML);
+
+    fetch(assignUrl, { method: "PUT", body: assignXML})
+      .then(results => results.text())
+      .then(data => {
+        console.log(data);
+        var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
+        console.log(json);
+        if (json.Response.Status === "OK") {
+        fetch(timeUrl, { method: "POST", body: timeXML})
+          .then(results => results.text())
+          .then(data => {
+            var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
+            console.log(json.Response);
+            if (json.Response.Status === "OK") {
+              that.setState({
+                status: 'Success',
+              });
+              // Show snack bar
+            } else {
+              // Post time sheet failed
+              console.log('Post time sheet failed');
+            }
+            // Show snack bar
+          });
+        } else {
+          // Assign Failed
+          console.log('Assign Failed');
+        }
+      });
+}
+
+export const getTaskID = (taskData, that) => {
+  console.log(taskData);
+  let assignUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/assign?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
+    timeUrl = `${process.env.REACT_APP_WFM_ROOT}time.api/add?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
+    jobUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/get/${taskData.job}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
+    taskUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/task?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
+    taskXML = `<Task><Job>${taskData.job}</Job><TaskID>${taskData.task}</TaskID><EstimatedMinutes>${taskData.minutes ? taskData.minutes : 0}</EstimatedMinutes></Task>`;
+
+  console.log(taskXML);
+
+  // Get information about Job and read tasks list
+  return fetch(jobUrl)
+    .then(results => results.text())
+    .then(data => {
+      var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
+      console.log(json);
+      if (json.Response.Status === "OK") {
+        // Check if task type is in the job. If it is, we will use that ID so the task isn't duplicated.
+        let tasks = json.Response.Job.Tasks.Task;
+        let taskID = null;
+        console.log(tasks);
+        if (tasks !== undefined) {
+          if (tasks instanceof Object) {
+            if (tasks.TaskID === taskData.task) {
+              taskID = tasks.ID;
+              console.log(tasks);
+            }
+          } else {
+            tasks.forEach(task => {
+              console.log(task);
+              if (task.TaskID === taskData.task) {
+                taskID = task.ID;
+                console.log(task);
+              }
+            });
+          }
+        }
+        if (!taskID) {
+          console.log('Task ID not found');
+          // Task type was not found in job, will need to be added first
+          fetch(taskUrl, { method: "POST", body: taskXML})
+            .then(results => results.text())
+            .then(data => {
+              var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
+              if (json.Response.Status === "OK") {
+                console.log(json.Response);
+                sendTimeSheetToWFM(taskData, json.Response.ID, that);
+              } else {
+                console.log('Adding task failed.');
+                return {
+                  status: json.Response.Status,
+                  text: json.Response.ErrorDescription,
+                };
+              }
+            });
+        } else {
+          sendTimeSheetToWFM(taskData, taskID, that);
+        }
+      } else {
+        console.log('job url failed');
+        return {
+          status: json.Response.Status,
+          text: json.Response.ErrorDescription,
+        };
+      }
+    });
 }
 
 export const gotoWFM = m => {

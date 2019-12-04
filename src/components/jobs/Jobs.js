@@ -319,10 +319,10 @@ class Jobs extends React.Component {
         onClose={() => this.setState({ jobModal: null })}
       >
         <DialogTitle>
-        {this.state.jobModal && (
-          <div className={classes[getJobColor(this.state.jobModal.category)]}>
-            {this.state.jobModal.jobNumber}: {this.state.jobModal.client}
-          </div>)}
+          {this.state.jobModal ? (
+            <div className={classes[getJobColor(this.state.jobModal.category)]}>
+              {this.state.jobModal.jobNumber}: {this.state.jobModal.client}
+            </div>) : "Job Details"}
         </DialogTitle>
         <DialogContent>
           {this.state.jobModal && this.getJobDetails(this.state.jobModal)}
