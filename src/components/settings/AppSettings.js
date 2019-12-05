@@ -244,6 +244,16 @@ const settings = {
     hint: 'Put each suggestion on a new line in the form "label|value".',
   },
 
+  // ASBESTOS AIR
+
+  airLocationSuggestions: {
+    label: 'Air Test Location Suggestions',
+    value: 'airLocationSuggestions',
+    group: 'airTestingAsbestos',
+    fields: ['label','code'],
+    hint: 'Put each tag on a new line in the form "room name|room code".',
+  },
+
   // OTHER
   permissions:  {
     label: 'App Permissions',
@@ -313,6 +323,10 @@ const settingTypes = [
   {
     label: 'ACM Assessment',
     options: Object.values(settings).filter(e => e.group === 'acmAssessment').map(e => ({label: e.label, value: e.value})),
+  },
+  {
+    label: 'Asbestos Air Testing',
+    options: Object.values(settings).filter(e => e.group === 'airTestingAsbestos').map(e => ({label: e.label, value: e.value})),
   },
   {
     label: 'Other Settings',

@@ -6,6 +6,7 @@ import {
   GET_ASBESTOS_ANALYSIS_LOGS,
   GET_ASBESTOS_SAMPLE_ISSUE_LOGS,
   GET_ASBESTOS_CHECK_LOGS,
+  GET_ASBESTOS_MICROSCOPE_CALIBRATIONS,
   GET_BULK_ANALYSTS,
   GET_COCS,
   GET_SAMPLES,
@@ -102,6 +103,11 @@ export default function asbestosLabReducer(state = asbestosLabInit, action) {
       return {
         ...state,
         sampleLog: action.payload
+      };
+    case GET_ASBESTOS_MICROSCOPE_CALIBRATIONS:
+      return {
+        ...state,
+        asbestosMicroscopeCalibrations: action.payload,
       };
     case SET_VIEW_SAMPLE_DETAIL:
       return {

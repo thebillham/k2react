@@ -88,6 +88,14 @@ export const numericAndLessThanOnly = num => {
   } else return '';
 }
 
+export const numericOnly = num => {
+  if (num) {
+    let str = num.replace(/[^$0-9.]/,'');
+    if (num.charAt(0) === '.') return `0${str}`;
+    else return str;
+  } else return null;
+}
+
 export const titleCase = input => {
   let small = ['and','a','an','as','at','but','by','en','for','from','if','is','in','of','on','or','the','to'];
   let parts = input.split(' ');

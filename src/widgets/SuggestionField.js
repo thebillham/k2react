@@ -15,6 +15,7 @@ const mapStateToProps = state => {
   return {
     genericLocationSuggestions: state.const.genericLocationSuggestions,
     specificLocationSuggestions: state.const.specificLocationSuggestions,
+    airLocationSuggestions: state.const.airLocationSuggestions,
     descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
     asbestosInSoilSuggestions: state.const.asbestosInSoilSuggestions,

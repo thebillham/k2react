@@ -72,12 +72,19 @@ const initState = {
   note: '',
   startTime: null,
   endTime: null,
+  comboTravelStart: null,
+  comboSiteWorkStart: null,
+  comboSiteWorkFinish: null,
+  comboTravelFinish: null,
   status: null,
 };
 
 const defaultRows = 8;
 
 const taskIDs = [
+  {
+    label: 'Travel and Site Work',
+  },
   {
     label: 'Travel',
     value: process.env.REACT_APP_WFM_TASK_TRAVEL
@@ -127,7 +134,7 @@ const taskIDs = [
 class WfmTimeModal extends React.Component {
   state = initState;
 
-  loadProps = () => {
+  loadProps = (fresh) => {
     let job = this.props.modalProps && this.props.modalProps.job ? this.props.modalProps.job : null;
     let lastTimeSaved = this.props.lastTimeSaved ? this.props.lastTimeSaved : null;
     this.setState({
@@ -140,8 +147,12 @@ class WfmTimeModal extends React.Component {
         label: `${job.jobNumber} ${job.client}`,
       }] : [],
       date: new Date(),
-      startTime: lastTimeSaved,
-      endTime: new Date(),
+      startTime: fresh ? null : lastTimeSaved,
+      endTime: fresh ? null : new Date(),
+      comboTravelStart: fresh ? null : moment().subtract(4, 'hours'),
+      comboSiteWorkStart: fresh ? null : moment().subtract(3.5, 'hours'),
+      comboSiteWorkFinish: fresh ? null : moment().subtract(0.5, 'hours'),
+      comboTravelFinish: fresh ? null : new Date(),
       note: '',
     })
   }
@@ -158,79 +169,131 @@ class WfmTimeModal extends React.Component {
     //   let k = `${num+1}`,
     //     item = this.state[k];
     let item = this.state;
+    let tasks = [];
     if (item.staff.length > 0 &&
       item.jobs.length > 0 &&
-      item.task !== null &&
-      item.startTime !== null) {
-      // Prepare job for API
-      let task = item.task.value,
-        day = moment(item.date).format('YYYYMMDD'),
-        startTime = moment(item.startTime).format('HH:mm'),
-        originalStartTime = startTime,
-        endTime = moment(item.endTime).format('HH:mm'),
-        minutes = moment(item.endTime).diff(item.startTime, 'minutes'),
-        minutesOffset = 0,
-        note = item.note;
-
-      if (minutes === 0) {
-        endTime = moment(item.endTime).add(1, 'minutes').format('HH:mm');
-        minutes = 1;
+      item.task !== null
+    ) {
+      if (item.task.label === "Travel and Site Work" && item.comboTravelStart && item.comboSiteWorkStart && item.comboSiteWorkFinish && item.comboTravelFinish) {
+        tasks = [
+          {
+            task: process.env.REACT_APP_WFM_TASK_TRAVEL,
+            startTime: item.comboTravelStart,
+            endTime: item.comboSiteWorkStart,
+          },
+          {
+            task: process.env.REACT_APP_WFM_TASK_SITEWORK,
+            startTime: item.comboSiteWorkStart,
+            endTime: item.comboSiteWorkFinish,
+          },
+          {
+            task: process.env.REACT_APP_WFM_TASK_TRAVEL,
+            startTime: item.comboSiteWorkFinish,
+            endTime: item.comboTravelFinish,
+          },
+        ];
+      } else if (item.startTime) {
+        tasks = [
+          {
+            task: item.task.value,
+            startTime: item.startTime,
+            endTime: item.endTime,
+          }
+        ]
       }
-      let totalMinutes = minutes;
+      tasks.forEach(t => {
+        // Prepare job for API
+        let task = t.task,
+          day = moment(item.date).format('YYYYMMDD'),
+          startTime = moment(t.startTime).format('HH:mm'),
+          originalStartTime = startTime,
+          endTime = moment(t.endTime).format('HH:mm'),
+          minutes = moment(t.endTime).diff(t.startTime, 'minutes'),
+          minutesOffset = 0,
+          note = item.note;
 
-      item.jobs.forEach(job => {
-        // console.log(job);
-        let noteAddendum = '';
-        let jobNote = note;
-        if (item.jobs.length > 1) {
-          let sharedJobList = [];
-          item.jobs.forEach(sharedJob => {
-            if (sharedJob !== job) sharedJobList.push(sharedJob.label);
+        if (minutes === 0) {
+          endTime = moment(t.endTime).add(1, 'minutes').format('HH:mm');
+          minutes = 1;
+        }
+        let totalMinutes = minutes;
+
+        item.jobs.forEach(job => {
+          // console.log(job);
+          let noteAddendum = '';
+          let jobNote = note;
+          if (item.jobs.length > 1) {
+            let sharedJobList = [];
+            item.jobs.forEach(sharedJob => {
+              if (sharedJob !== job) sharedJobList.push(sharedJob.label);
+            });
+            noteAddendum = `Time shared with ${andList(sharedJobList)} (Time has already been divided up by MyK2)`;
+            if (jobNote !== '') jobNote = `${jobNote}\n${noteAddendum}`;
+              else jobNote = noteAddendum;
+            if (startTime === originalStartTime) {
+              minutes = parseInt(totalMinutes/item.jobs.length);
+              if (minutes === 0) minutes = 1;
+              minutesOffset = minutes;
+              endTime = moment(t.startTime).add(minutesOffset, 'minutes').format('HH:mm');
+            }
+          }
+          item.staff.forEach(staff => {
+            // console.log(staff);
+            let data = {
+                job: job.value,
+                task,
+                staff: staff.value,
+                day,
+                startTime,
+                endTime,
+                minutes,
+                note: jobNote,
+              };
+            this.setState({
+              status: 'Loading',
+            })
+            getTaskID(data, this);
           });
-          noteAddendum = `Time shared with ${andList(sharedJobList)} (Time has already been divided up by MyK2)`;
-          if (jobNote !== '') jobNote = `${jobNote}\n${noteAddendum}`;
-            else jobNote = noteAddendum;
-          if (startTime === originalStartTime) {
+          if (item.jobs.length > 1) {
+            // console.log(startTime);
+            // console.log(endTime);
+            startTime = endTime;
             minutes = parseInt(totalMinutes/item.jobs.length);
             if (minutes === 0) minutes = 1;
-            minutesOffset = minutes;
+            minutesOffset = minutesOffset + minutes;
             endTime = moment(item.startTime).add(minutesOffset, 'minutes').format('HH:mm');
+            // console.log(minutes);
+            // console.log(minutesOffset);
+            // console.log(startTime);
+            // console.log(endTime);
           }
-        }
-        item.staff.forEach(staff => {
-          // console.log(staff);
-          let data = {
-              job: job.value,
-              task,
-              staff: staff.value,
-              day,
-              startTime,
-              endTime,
-              minutes,
-              note: jobNote,
-            };
-          this.setState({
-            status: 'Loading',
-          })
-          getTaskID(data, this);
         });
-        if (item.jobs.length > 1) {
-          // console.log(startTime);
-          // console.log(endTime);
-          startTime = endTime;
-          minutes = parseInt(totalMinutes/item.jobs.length);
-          if (minutes === 0) minutes = 1;
-          minutesOffset = minutesOffset + minutes;
-          endTime = moment(item.startTime).add(minutesOffset, 'minutes').format('HH:mm');
-          // console.log(minutes);
-          // console.log(minutesOffset);
-          // console.log(startTime);
-          // console.log(endTime);
-        }
       });
     }
     if (close) this.props.hideModal();
-    else this.loadProps();
+    else this.loadProps(true);
+  }
+
+  bumpDates = () => {
+    if (this.state.comboTravelStart && this.state.comboSiteWorkStart && this.state.comboSiteWorkFinish && this.state.comboTravelFinish &&
+      this.state.comboTravelStart < this.state.comboSiteWorkStart && this.state.comboSiteWorkStart < this.state.comboSiteWorkFinish &&
+      this.state.comboSiteWorkFinish < this.state.comboTravelFinish) return true;
+    else return false;
+      // let comboSiteWorkStart = this.state.comboSiteWorkStart;
+      // let comboSiteWorkFinish = this.state.comboSiteWorkFinish;
+      // let comboTravelFinish = this.state.comboTravelFinish;
+      // if (comboSiteWorkStart && comboSiteWorkStart < comboTravelStart) {
+      //   let difference = 1;
+      //   // Keep the difference between the two dates the same if possible
+      //   if (this.state.comboTravelStart) difference = moment(comboSiteWorkStart).diff(this.state.comboTravelStart, 'hours', true);
+      //   comboSiteWorkStart = moment(comboTravelStart).add(difference, 'hour');
+      //   if (comboSiteWorkStart && comboSiteWorkStart < comboTravelStart) {
+      //     let difference = 1;
+      //     // Keep the difference between the two dates the same if possible
+      //     if (this.state.comboTravelStart) difference = moment(comboSiteWorkStart).diff(this.state.comboTravelStart, 'hours', true);
+      //     comboSiteWorkStart = moment(comboTravelStart).add(difference, 'hour');
+      //   }
+      // }
   }
 
   render() {
@@ -248,10 +311,20 @@ class WfmTimeModal extends React.Component {
     //     this.state[`${num+1}`].startTime !== null
     //   ) noSubmit = false;
     // });
-    if (this.state.staff.length > 0 &&
+    if (this.state.task && this.state.task.label === "Travel and Site Work" &&
+      this.state.staff.length > 0 &&
+        this.state.jobs.length > 0 &&
+        this.state.task !== null &&
+        this.state.comboTravelStart !== null &&
+        this.state.comboSiteWorkStart !== null &&
+        this.state.comboSiteWorkFinish !== null &&
+        this.state.comboTravelFinish !== null
+      ) noSubmit = false;
+    else if (this.state.staff.length > 0 &&
       this.state.jobs.length > 0 &&
       this.state.task !== null &&
-      this.state.startTime !== null
+      this.state.startTime !== null &&
+      this.state.endTime !== null
     ) noSubmit = false;
 
     // console.log(noSubmit);
@@ -264,7 +337,7 @@ class WfmTimeModal extends React.Component {
         onClose={this.props.hideModal}
         maxWidth="sm"
         fullWidth={true}
-        onEnter={this.loadProps}
+        onEnter={() => this.loadProps(false)}
         onExit={this.clearProps}
       >
         <DialogTitle>Add Time to WorkflowMax</DialogTitle>
@@ -300,6 +373,48 @@ class WfmTimeModal extends React.Component {
                 this.setState({ task: e })
               }
             />
+            {this.state.task && this.state.task.label === "Travel and Site Work" ?
+              <div className={classes.flexRowSpread}>
+                <DatePicker
+                  style={{width: '100%'}}
+                  value={this.state.date}
+                  autoOk
+                  label="Day"
+                  openTo="date"
+                  onChange={date => {
+                    this.setState({ date })
+                  }}
+                />
+                <TimePicker
+                  style={{width: '100%'}}
+                  value={this.state.comboTravelStart}
+                  autoOk
+                  label="Travel Start"
+                  onChange={comboTravelStart => this.setState({ comboTravelStart })}
+                />
+                <TimePicker
+                  style={{width: '100%'}}
+                  value={this.state.comboSiteWorkStart}
+                  autoOk
+                  label="Site Work Start"
+                  onChange={comboSiteWorkStart => this.setState({ comboSiteWorkStart })}
+                />
+                <TimePicker
+                  style={{width: '100%'}}
+                  value={this.state.comboSiteWorkFinish}
+                  autoOk
+                  label="Site Work Finish"
+                  onChange={comboSiteWorkFinish => this.setState({ comboSiteWorkFinish })}
+                />
+                <TimePicker
+                  style={{width: '100%'}}
+                  value={this.state.comboTravelFinish}
+                  autoOk
+                  label="Travel Finish"
+                  onChange={comboTravelFinish => this.setState({ comboTravelFinish })}
+                />
+              </div>
+              :
             <div className={classes.flexRowSpread}>
               <DatePicker
                 style={{width: '100%'}}
@@ -316,7 +431,6 @@ class WfmTimeModal extends React.Component {
                 value={this.state.startTime}
                 autoOk
                 label="From"
-                openTo="date"
                 onChange={startTime => {
                   let endTime = this.state.endTime;
                   if (endTime && endTime < startTime) {
@@ -333,7 +447,6 @@ class WfmTimeModal extends React.Component {
                 value={this.state.endTime}
                 autoOk
                 label="To"
-                openTo="date"
                 onChange={endTime => {
                   let startTime = this.state.startTime;
                   if (startTime && startTime > endTime) {
@@ -345,7 +458,7 @@ class WfmTimeModal extends React.Component {
                   this.setState({ startTime, endTime, })
                 }}
               />
-            </div>
+            </div>}
             <TextField
             style={{width: '100%'}}
             label={'Note'}

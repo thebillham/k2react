@@ -31,6 +31,7 @@ const asbestosAnalysisLogRef = firestore.collection("lab").doc("asbestos").colle
 const asbestosSampleIssueLogRef = firestore.collection("lab").doc("asbestos").collection("sampleIssueLog");
 const asbestosCheckLogRef = firestore.collection("lab").doc("asbestos").collection("checkLog");
 const asbestosSampleLogRef = firestore.collection("lab").doc("asbestos").collection("sampleLog");
+const asbestosMicroscopeCalibrationsRef = firestore.collection("lab").doc("asbestos").collection("microscopeCalibrations");
 const cocsRef = firestore.collection("lab").doc("asbestos").collection("cocs");
 const logsRef = firestore.collection("logs").doc("logs");
 const assetsRef = firestore.collection("inventory").doc("entities").collection("assets");
@@ -71,6 +72,7 @@ export {
   asbestosSampleIssueLogRef,
   asbestosAnalysisLogRef,
   asbestosCheckLogRef,
+  asbestosMicroscopeCalibrationsRef,
   assetsRef,
   modelsRef,
   manufacturersRef,

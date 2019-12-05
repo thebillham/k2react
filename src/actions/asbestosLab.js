@@ -5,6 +5,7 @@ import {
   GET_ASBESTOS_SAMPLE_ISSUE_LOGS,
   GET_ASBESTOS_ANALYSIS_LOGS,
   GET_ASBESTOS_CHECK_LOGS,
+  GET_ASBESTOS_MICROSCOPE_CALIBRATIONS,
   GET_COCS,
   GET_SAMPLES,
   RESET_ASBESTOS_LAB,
@@ -31,6 +32,7 @@ import {
   asbestosSampleLogRef,
   asbestosSampleIssueLogRef,
   asbestosCheckLogRef,
+  asbestosMicroscopeCalibrationsRef,
   cocsRef,
   stateRef,
   firebase,
@@ -322,6 +324,16 @@ export const fetchAsbestosCheckLogs = (limit) => async dispatch => {
     });
 
   }
+};
+
+export const fetchMicroscopeCalibrations = () => async dispatch => {
+  asbestosMicroscopeCalibrationsRef
+    .get().then(querySnapshot => {
+      dispatch({
+        type: GET_ASBESTOS_MICROSCOPE_CALIBRATIONS,
+        payload: querySnapshot.map(doc => doc.data()),
+      });
+    });
 };
 
 //
@@ -3406,3 +3418,114 @@ export const checkVerifyIssues = () => {
   let issues = [];
   return issues;
 };
+
+// Air Sample Functions
+
+export const getAverageFlowRate = sample => {
+  if (sample.initialFlowRate && sample.finalFlowRate) {
+    let averageFlowRate = (parseFloat(sample.initialFlowRate)+parseFloat(sample.finalFlowRate))/2,
+      //Less than 0.4 L/min may preclude countable fibres from being collected from the airborne dust cloud
+      sampleRateLow = averageFlowRate < 400,
+      //greater than 8 L/min may result in interference from excessively large particles and may also cause leakage problems for most available filter holders
+      sampleRateHigh = averageFlowRate > 8000,
+      //If the difference is greater than 10 per cent from the initial flowrate, the sample must be rejected, unless a valid method of estimating total volume can be applied. [Guidance Notes p.21]
+      differenceInFlowRates = (Math.abs(sample.initialFlowRate - sample.finalFlowRate)/averageFlowRate)*100,
+      differenceTooHigh = differenceInFlowRates > 10,
+      status = (sampleRateLow || sampleRateHigh || differenceTooHigh) ? 'Error' : 'OK';
+    return {
+      averageFlowRate,
+      differenceInFlowRates,
+      sampleRateLow,
+      sampleRateHigh,
+      differenceTooHigh,
+      status,
+    }
+  } else {
+    return {
+      averageFlowRate: null,
+      differenceInFlowRates: null,
+      sampleRateLow: null,
+      sampleRateHigh: null,
+      differenceTooHigh: null,
+      status: 'No Data',
+    }
+  }
+}
+
+export const getSampleRunTime = sample => {
+  console.log(sample);
+  if (sample.totalRunTime) return sample.totalRunTime;
+  else if (sample.startTime && sample.endTime) {
+    return moment(sample.endTime).diff(sample.startTime, 'minutes');
+  } else return null;
+}
+
+export const getAirSampleData = sample => {
+  let runTime = getSampleRunTime(sample),
+    flowRateData = getAverageFlowRate(sample);
+  console.log(runTime);
+  console.log(flowRateData);
+  if (flowRateData.averageFlowRate && runTime) {
+    let sampleVolume = (flowRateData.averageFlowRate*runTime)/1000,
+      sampleVolumeTooLow = sampleVolume < 360;
+    return {
+      sampleVolume,
+      sampleVolumeTooLow,
+      ...flowRateData,
+      runTime,
+    }
+  } else {
+    return null;
+  }
+}
+
+export const getAirConcentration = (sample, microscope) => {
+  if (sample && microscope && microscope.distance) {
+    let effectiveFilterArea = 385,
+      areasCounted = 100,
+      sampleData = getAirSampleData(sample),
+      graticuleArea = Math.PI * Math.pow(microscope.distance/1000/2, 2);
+
+    sample.fibreResult = parseFloat(sample.specificLocation);
+
+    console.log(sampleData);
+
+    let actualConcentration = null,
+      reportConcentration = null;
+    if (graticuleArea !== 0 && sample.fibreResult !== 0 && sampleData && sampleData.averageFlowRate && sampleData.averageFlowRate !== 0 && sampleData.runTime !== 0) {
+      actualConcentration = effectiveFilterArea/graticuleArea*sample.fibreResult/areasCounted*(1/sampleData.averageFlowRate)*(1/sampleData.runTime);
+      if (actualConcentration) {
+        if (sample.fibreResult >= 10) {
+          // less than 0.005: [<0.01]
+          // 0.005 to less than 0.100 [to 2 decimal places and 1 significant figure]
+          // 0.10 to 1.00 [to 1 decimal place and 1 significant figure]
+          // greater than 1.00 [to 2 significant figures and 0 decimal places]
+          if (actualConcentration < 0.005) reportConcentration = '<0.01';
+          else if (actualConcentration < 0.100) reportConcentration = actualConcentration.toPrecision(1).toFixed(2).toString();
+          else if (actualConcentration <= 1.00) reportConcentration = actualConcentration.toPrecision(1).toFixed(1).toString();
+          else reportConcentration = actualConcentration.toPrecision(2).toFixed(0).toString();
+          console.log(reportConcentration);
+        } else {
+          // If the actual count is less than 10 fibres/100 graticule areas, then the count is not significantly above that of background.
+          // The results should be calculated using the minimum practical lower limit of detection of 10 fibres/100 graticule areas and
+          // reported as less than the calculated value expressed to one significant figure and no more than the second decimal place,
+          // unless supported by valid technical considerations.
+          let effectiveConcentration = effectiveFilterArea/graticuleArea*10/areasCounted*(1/sampleData.averageFlowRate)*(1/sampleData.runTime);
+          console.log(effectiveConcentration);
+          reportConcentration = `<${effectiveConcentration.toPrecision(1).toFixed(2)}`;
+          console.log(reportConcentration);
+        }
+      }
+    }
+    let data = {
+      ...sampleData,
+      effectiveFilterArea,
+      areasCounted,
+      graticuleArea,
+      actualConcentration,
+      reportConcentration,
+    }
+    console.log(data);
+    return data;
+  } else return null;
+}
