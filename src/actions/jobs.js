@@ -1162,7 +1162,7 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
     add = checkAddress(clientAddress, geocodes);
   }
 
-  if (!lead.isJob) console.log(lead);
+  // if (!lead.isJob) console.log(lead);
 
   if (geocodes[add] != undefined) {
     // console.log("Already there");
@@ -1191,7 +1191,7 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
             updateGeocodes(gc);
             lead.geocode = gc[add];
           }
-          console.log(lead.wfmID);
+          // console.log(lead.wfmID);
           dispatch({type: ADD_TO_JOB_LIST, payload: lead, });
           // return lead;
         });
@@ -1480,8 +1480,8 @@ export const getGoogleMapsUrl = m => {
 }
 
 export const sendTimeSheetToWFM = (taskData, taskID, that) => {
-  console.log(taskData);
-  console.log(taskID);
+  // console.log(taskData);
+  // console.log(taskID);
   let assignUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/assign?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     timeUrl = `${process.env.REACT_APP_WFM_ROOT}time.api/add?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
 
@@ -1489,21 +1489,21 @@ export const sendTimeSheetToWFM = (taskData, taskID, that) => {
     let assignXML = `<Job><ID>${taskData.job}</ID><add id="${taskData.staff}" task="${taskID}" /></Job>`,
       timeXML = `<Timesheet><Job>${taskData.job}</Job><Task>${taskID}</Task><Staff>${taskData.staff}</Staff><Date>${taskData.day}</Date><Start>${taskData.startTime}</Start><End>${taskData.endTime}</End><Note>${taskData.note}</Note></Timesheet>`;
 
-    console.log(assignXML);
-    console.log(timeXML);
+    // console.log(assignXML);
+    // console.log(timeXML);
 
     fetch(assignUrl, { method: "PUT", body: assignXML})
       .then(results => results.text())
       .then(data => {
-        console.log(data);
+        // console.log(data);
         var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
-        console.log(json);
+        // console.log(json);
         if (json.Response.Status === "OK") {
         fetch(timeUrl, { method: "POST", body: timeXML})
           .then(results => results.text())
           .then(data => {
             var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
-            console.log(json.Response);
+            // console.log(json.Response);
             if (json.Response.Status === "OK") {
               that.setState({
                 status: 'Success',
@@ -1511,66 +1511,76 @@ export const sendTimeSheetToWFM = (taskData, taskID, that) => {
               // Show snack bar
             } else {
               // Post time sheet failed
-              console.log('Post time sheet failed');
+              // console.log('Post time sheet failed');
             }
             // Show snack bar
           });
         } else {
           // Assign Failed
-          console.log('Assign Failed');
+          // console.log('Assign Failed');
         }
       });
 }
 
 export const getTaskID = (taskData, that) => {
-  console.log(taskData);
+  // console.log(taskData);
   let assignUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/assign?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     timeUrl = `${process.env.REACT_APP_WFM_ROOT}time.api/add?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     jobUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/get/${taskData.job}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     taskUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/task?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     taskXML = `<Task><Job>${taskData.job}</Job><TaskID>${taskData.task}</TaskID><EstimatedMinutes>${taskData.minutes ? taskData.minutes : 0}</EstimatedMinutes></Task>`;
 
-  console.log(taskXML);
+  // console.log(taskXML);
 
   // Get information about Job and read tasks list
   return fetch(jobUrl)
     .then(results => results.text())
     .then(data => {
       var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
-      console.log(json);
+      // console.log(json);
       if (json.Response.Status === "OK") {
         // Check if task type is in the job. If it is, we will use that ID so the task isn't duplicated.
         let tasks = json.Response.Job.Tasks.Task;
         let taskID = null;
-        console.log(tasks);
+        // console.log(tasks);
         if (tasks !== undefined) {
-          if (tasks instanceof Object) {
+          if (tasks instanceof Array) {
+            // console.log('tasks instance of array');
+            tasks.forEach(task => {
+              // console.log(task);
+              if (task.TaskID === taskData.task) {
+                taskID = task.ID;
+                // console.log(task);
+              }
+            });
+          } else if (tasks instanceof Object) {
+            console.log('tasks instance of object')
             if (tasks.TaskID === taskData.task) {
               taskID = tasks.ID;
-              console.log(tasks);
+              // console.log(tasks);
             }
           } else {
             tasks.forEach(task => {
-              console.log(task);
+              // console.log(task);
               if (task.TaskID === taskData.task) {
                 taskID = task.ID;
-                console.log(task);
+                // console.log(task);
               }
             });
           }
         }
         if (!taskID) {
-          console.log('Task ID not found');
+          // console.log('Task ID not found');
           // Task type was not found in job, will need to be added first
           fetch(taskUrl, { method: "POST", body: taskXML})
             .then(results => results.text())
             .then(data => {
               var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
               if (json.Response.Status === "OK") {
-                console.log(json.Response);
+                // console.log(json.Response);
                 sendTimeSheetToWFM(taskData, json.Response.ID, that);
               } else {
-                console.log('Adding task failed.');
+                // console.log('Adding task failed.');
                 return {
                   status: json.Response.Status,
                   text: json.Response.ErrorDescription,
@@ -1581,7 +1591,7 @@ export const getTaskID = (taskData, that) => {
           sendTimeSheetToWFM(taskData, taskID, that);
         }
       } else {
-        console.log('job url failed');
+        // console.log('job url failed');
         return {
           status: json.Response.Status,
           text: json.Response.ErrorDescription,

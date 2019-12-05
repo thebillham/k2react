@@ -116,7 +116,7 @@ class JobsMapContainer extends React.Component {
           marker={that.state.activeMarker}
           visible={that.state.showingInfoWindow}
         >
-          {that.state.m && that.props.that.getJobDetails(that.state.m)}
+          {that.state.m && that.props.that.getJobDetails(that.state.m, true)}
         </InfoWindow>}
       </Map>
     );

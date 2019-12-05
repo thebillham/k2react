@@ -23,6 +23,7 @@ import TextField from "@material-ui/core/TextField";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import IconButton from "@material-ui/core/IconButton";
+import Tooltip from "@material-ui/core/Tooltip";
 import TimerIcon from "@material-ui/icons/Timer";
 import WfmTimeModal from "./modals/WfmTimeModal";
 
@@ -148,7 +149,7 @@ class Jobs extends React.Component {
     // if (value === 3) this.computeStats();
   };
 
-  getJobDetails = m => {
+  getJobDetails = (m, noButton) => {
     const classes = this.props.classes;
     const color = classes[getJobColor(m.category)];
     console.log(m);
@@ -158,12 +159,12 @@ class Jobs extends React.Component {
           {m.isJob ?
             <div className={classes.flexRowSpread}>
               <h6>{m.category}</h6>
-              <IconButton
+              {!noButton && <IconButton
                 onClick={e => {
                   this.props.showModal({ modalType: WFM_TIME, modalProps: { job: m, }})
                 }}>
                 <TimerIcon className={classes.iconRegular} />
-              </IconButton>
+              </IconButton>}
             </div>
             :
             <h6>{m.category}</h6>}
@@ -334,6 +335,16 @@ class Jobs extends React.Component {
       <div className={classes.marginTopStandard}>
         {this.props.modalType === WFM_TIME && <WfmTimeModal />}
         {jobModal}
+        <div className={classes.flexRowRightAlign}>
+          <Tooltip title="Log Time in WorkflowMax">
+            <IconButton
+              onClick={e => {
+                this.props.showModal({ modalType: WFM_TIME, })
+              }}>
+              <TimerIcon className={classes.iconRegular} />
+            </IconButton>
+          </Tooltip>
+        </div>
         <Tabs
           value={this.state.tabValue}
           onChange={this.handleTabChange}

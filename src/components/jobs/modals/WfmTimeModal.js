@@ -131,38 +131,19 @@ class WfmTimeModal extends React.Component {
     let job = this.props.modalProps && this.props.modalProps.job ? this.props.modalProps.job : null;
     let lastTimeSaved = this.props.lastTimeSaved ? this.props.lastTimeSaved : null;
     this.setState({
-      staff: [{
+      staff: this.state.staff.length > 0 ? this.state.staff : [{
         value: this.props.me.wfm_id,
         label: this.props.me.name,
       }],
-      jobs: job ? [{
+      jobs: this.state.jobs.length > 0 ? this.state.jobs : job ? [{
         value: job.jobNumber,
         label: `${job.jobNumber} ${job.client}`,
       }] : [],
       date: new Date(),
       startTime: lastTimeSaved,
       endTime: new Date(),
+      note: '',
     })
-    // let rowArray = {};
-    // [...Array(defaultRows).keys()].forEach(num => {
-    //   rowArray[`${num+1}`] = {
-    //     staff: [{
-    //       value: this.props.me.wfm_id,
-    //       label: this.props.me.name,
-    //     }],
-    //     jobs: job ? [{
-    //       value: job.jobNumber,
-    //       label: `${job.jobNumber} ${job.client}`,
-    //     }] : [],
-    //     date: new Date(),
-    //     startTime: lastTimeSaved,
-    //     endTime: new Date(),
-    //   };
-    // });
-    // console.log(rowArray);
-    // this.setState({
-    //   ...rowArray,
-    // });
   }
 
   clearProps = () => {
@@ -171,7 +152,7 @@ class WfmTimeModal extends React.Component {
   }
 
   addWfmTime = (close) => {
-    console.log('Getting WFM Time');
+    // console.log('Getting WFM Time');
     // [...Array(defaultRows).keys()].forEach(num => {
     //   // Check if has been filled in
     //   let k = `${num+1}`,
@@ -184,25 +165,40 @@ class WfmTimeModal extends React.Component {
       // Prepare job for API
       let task = item.task.value,
         day = moment(item.date).format('YYYYMMDD'),
-        startTime = moment(item.startTime).format('HH:MM'),
-        endTime = moment(item.endTime).format('HH:MM'),
+        startTime = moment(item.startTime).format('HH:mm'),
+        originalStartTime = startTime,
+        endTime = moment(item.endTime).format('HH:mm'),
         minutes = moment(item.endTime).diff(item.startTime, 'minutes'),
+        minutesOffset = 0,
         note = item.note;
 
+      if (minutes === 0) {
+        endTime = moment(item.endTime).add(1, 'minutes').format('HH:mm');
+        minutes = 1;
+      }
+      let totalMinutes = minutes;
+
       item.jobs.forEach(job => {
-        console.log(job);
+        // console.log(job);
         let noteAddendum = '';
+        let jobNote = note;
         if (item.jobs.length > 1) {
           let sharedJobList = [];
           item.jobs.forEach(sharedJob => {
             if (sharedJob !== job) sharedJobList.push(sharedJob.label);
           });
           noteAddendum = `Time shared with ${andList(sharedJobList)} (Time has already been divided up by MyK2)`;
-          if (note !== '') note = `${note}\n\n${noteAddendum}`;
-            else note = noteAddendum;
+          if (jobNote !== '') jobNote = `${jobNote}\n${noteAddendum}`;
+            else jobNote = noteAddendum;
+          if (startTime === originalStartTime) {
+            minutes = parseInt(totalMinutes/item.jobs.length);
+            if (minutes === 0) minutes = 1;
+            minutesOffset = minutes;
+            endTime = moment(item.startTime).add(minutesOffset, 'minutes').format('HH:mm');
+          }
         }
         item.staff.forEach(staff => {
-          console.log(staff);
+          // console.log(staff);
           let data = {
               job: job.value,
               task,
@@ -211,13 +207,26 @@ class WfmTimeModal extends React.Component {
               startTime,
               endTime,
               minutes,
-              note,
+              note: jobNote,
             };
           this.setState({
             status: 'Loading',
           })
           getTaskID(data, this);
         });
+        if (item.jobs.length > 1) {
+          // console.log(startTime);
+          // console.log(endTime);
+          startTime = endTime;
+          minutes = parseInt(totalMinutes/item.jobs.length);
+          if (minutes === 0) minutes = 1;
+          minutesOffset = minutesOffset + minutes;
+          endTime = moment(item.startTime).add(minutesOffset, 'minutes').format('HH:mm');
+          // console.log(minutes);
+          // console.log(minutesOffset);
+          // console.log(startTime);
+          // console.log(endTime);
+        }
       });
     }
     if (close) this.props.hideModal();
@@ -245,7 +254,7 @@ class WfmTimeModal extends React.Component {
       this.state.startTime !== null
     ) noSubmit = false;
 
-    console.log(noSubmit);
+    // console.log(noSubmit);
 
     return (
       <div>
