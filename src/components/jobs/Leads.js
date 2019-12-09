@@ -171,6 +171,11 @@ class Leads extends React.Component {
             Header: 'Manager',
             accessor: 'owner',
           },{
+            id: 'createdDate',
+            Header: 'Date Created',
+            accessor: d => dateOf(d.creationDate),
+            Cell: c => c.value ? getDaysSinceDateAgo(c.value) : 'N/A',
+          },{
             id: 'nextAction',
             Header: 'Next Goal',
             accessor: d => d.nextActionType,
@@ -182,8 +187,8 @@ class Leads extends React.Component {
           },{
             id: 'daysSinceLastGoal',
             Header: 'Last Goal Completed',
-            accessor: d => dateOf(d.lastActionDate),
-            Cell: c => getDaysSinceDateAgo(c.value),
+            accessor: d => d.lastActionDate ? dateOf(d.lastActionDate) : null,
+            Cell: c => c.value ? getDaysSinceDateAgo(c.value) : <span className={classes.red}>No Goals Completed</span>,
           },{
             id: 'daysSinceLastAction',
             Header: 'Last Action',

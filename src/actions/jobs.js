@@ -1407,7 +1407,8 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
 
       lead.lastActionDate = getLastActionDateFromActivities(
         completedActivities,
-        lead.creationDate
+        null
+        // lead.creationDate
       );
       lead.lastActionType = getLastActionTypeFromActivities(
         completedActivities
