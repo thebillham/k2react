@@ -21,7 +21,7 @@ import {
   getSubsampleData,
 } from "../../../actions/asbestosLab";
 import { dateOf, addLog } from "../../../actions/local";
-import { syncJobWithWFM, } from "../../../actions/jobs";
+import { getDetailedWFMJob, } from "../../../actions/jobs";
 import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
 import { showModal } from "../../../actions/modal";
 import { CSVLink, CSVDownload } from "react-csv";
@@ -87,7 +87,7 @@ const mapDispatchToProps = dispatch => {
     showModal: modal => dispatch(showModal(modal)),
     fetchSamples: (cocUid, jobNumber) =>
       dispatch(fetchSamples(cocUid, jobNumber)),
-    syncJobWithWFM: jobNumber => dispatch(syncJobWithWFM(jobNumber)),
+    getDetailedWFMJob: jobNumber => dispatch(getDetailedWFMJob(jobNumber)),
     logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
     setSessionID: session => dispatch(setSessionID(session)),
     deleteCoc: (coc, samples, me) => dispatch(deleteCoc(coc, samples, me)),
@@ -194,7 +194,7 @@ class AsbestosBulkCocCard extends React.Component {
               <Tooltip id="h-tooltip" title={'Edit Chain of Custody'}>
                 <IconButton
                   onClick={() => {
-                    this.props.syncJobWithWFM(job.jobNumber);
+                    this.props.getDetailedWFMJob(job.jobNumber);
                     this.props.showModal({
                       modalType: ASBESTOS_COC_EDIT,
                       modalProps: {

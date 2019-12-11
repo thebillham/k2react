@@ -30,6 +30,7 @@ import {
   firestore,
   auth,
   stateRef,
+  usersRef,
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 import {
@@ -74,6 +75,7 @@ export const fetchWFMJobs = () => async dispatch => {
       let jobs = [];
       // Map WFM jobs to a single level job object we can use
       json.Response.Jobs.Job.forEach(wfmJob => {
+        // console.log(wfmJob);
         let job = {};
         job.jobNumber = wfmJob.ID ? wfmJob.ID : "No job number";
         job.wfmID = wfmJob.InternalID;
@@ -231,7 +233,7 @@ export const fetchWFMLeads = () => async dispatch => {
             ];
           }
         } else {
-          lead.activities = ["NO PLAN!"];
+          lead.activities = [];
         }
         if (wfmLead.History.Item) {
           // console.log(wfmLead.History);
@@ -309,8 +311,9 @@ export const fetchWFMClients = () => async dispatch => {
     });
 };
 
-export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
-  sendSlackMessage(`${auth.currentUser.displayName} ran syncJobWithWFM`);
+export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
+  console.log(jobNumber);
+  sendSlackMessage(`${auth.currentUser.displayName} ran getDetailedWFMJob`);
   let path = `${
     process.env.REACT_APP_WFM_ROOT
   }job.api/get/${jobNumber}?apiKey=${
@@ -463,6 +466,29 @@ export const syncJobWithWFM = (jobNumber, createUid) => async dispatch => {
         job.wfmState = wfmJob.State ? wfmJob.State : "Unknown state";
         job.wfmType = wfmJob.Type ? wfmJob.Type : "Other";
         job.wfmID = wfmJob.InternalID;
+        if (wfmJob.Milestones.Milestone) {
+          console.log(wfmJob.Milestones);
+          job.milestones = [];
+          if (Array.isArray(wfmJob.Milestones.Milestone)) {
+            wfmJob.Milestones.Milestone.forEach(wfmMilestone => {
+              let milestone = {};
+              milestone.date = wfmMilestone.Date;
+              milestone.description = wfmMilestone.Description;
+              milestone.completed = wfmMilestone.Completed;
+              job.milestones.push(milestone);
+            });
+          } else {
+            job.milestones = [
+              {
+                date: wfmJob.Milestones.Milestone.Date,
+                description: wfmJob.Milestones.Milestone.Description,
+                complete: wfmJob.Milestones.Milestone.Completed,
+              }
+            ];
+          }
+        } else {
+          job.milestones = [];
+        }
         if (createUid) {
           let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${moment().format('x')}`;
           // //console.log('New uid' + uid);
@@ -1478,6 +1504,44 @@ export const getGoogleMapsUrl = m => {
   if (m.geocode)
     return `https://www.google.com/maps/search/?api=1&query=${encodeURI(m.geocode.address)}&query_place_id=${m.geocode.place}`;
   else return `https://www.google.com/maps/search/?api=1&query=${encodeURI(m.name)}`;
+}
+
+export const onWatchJob = (job, me) => {
+  if (job !== undefined && job !== null) {
+    let newArray = [];
+    if (me.watchedJobs === undefined) {
+      newArray = [job];
+    } else {
+      let watchedJobs = [...me.watchedJobs];
+      if (watchedJobs.includes(job)) {
+        newArray = watchedJobs.filter(item => item !== job);
+      } else {
+        watchedJobs.push(job);
+        newArray = watchedJobs;
+      }
+    }
+
+    usersRef.doc(me.uid).update({watchedJobs: newArray});
+  }
+}
+
+export const onWatchLead = (lead, me) => {
+  if (lead !== undefined && lead !== null) {
+    let newArray = [];
+    if (me.watchedLeads === undefined) {
+      newArray = [lead];
+    } else {
+      let watchedLeads = [...me.watchedLeads];
+      if (watchedLeads.includes(lead)) {
+        newArray = watchedLeads.filter(item => item !== lead);
+      } else {
+        watchedLeads.push(lead);
+        newArray = watchedLeads;
+      }
+    }
+
+    usersRef.doc(me.uid).update({watchedLeads: newArray});
+  }
 }
 
 export const sendTimeSheetToWFM = (taskData, taskID, that) => {

@@ -52,7 +52,7 @@ import BulkIcon from '@material-ui/icons/Colorize';
 import Go from '@material-ui/icons/ArrowForwardIos';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, resetModal, showModalSecondary, } from '../../../actions/modal';
 import { fetchStaff, addLog, } from '../../../actions/local';
-import { syncJobWithWFM, resetWfmJob, getDefaultLetterAddress, } from '../../../actions/jobs';
+import { getDetailedWFMJob, resetWfmJob, getDefaultLetterAddress, } from '../../../actions/jobs';
 import { fetchSamples, handleCocSubmit, handleSampleChange, getAirConcentration, writeDescription, } from '../../../actions/asbestosLab';
 import { titleCase, sentenceCase, dateOf, writeDates, personnelConvert, numericOnly, } from '../../../actions/helpers';
 import _ from 'lodash';
@@ -92,7 +92,7 @@ const mapDispatchToProps = dispatch => {
     handleSampleChange: (number, changes) => dispatch(handleSampleChange(number, changes)),
     setModalError: error => dispatch(setModalError(error)),
     showModalSecondary: modal => dispatch(showModalSecondary(modal)),
-    syncJobWithWFM: (jobNumber, createUid) => dispatch(syncJobWithWFM(jobNumber, createUid)),
+    getDetailedWFMJob: (jobNumber, createUid) => dispatch(getDetailedWFMJob(jobNumber, createUid)),
     resetWfmJob: () => dispatch(resetWfmJob()),
     fetchSamples: (cocUid, jobNumber, modal ) => dispatch(fetchSamples(cocUid, jobNumber, modal )),
     resetModal: () => dispatch(resetModal()),
@@ -197,7 +197,7 @@ class CocModal extends React.PureComponent {
       this.props.setModalError(null);
       this.props.handleSelectChange({id: 'modal', value: {isNew: false}});
       let isNewCoc = this.props.doc.uid === undefined;
-      this.props.syncJobWithWFM(jobNumber, isNewCoc);
+      this.props.getDetailedWFMJob(jobNumber, isNewCoc);
       let uid = this.props.doc.uid;
       // //console.log('wfmsync fetch samples');
       this.props.fetchSamples(uid, jobNumber, true);

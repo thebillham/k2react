@@ -12,6 +12,7 @@ import Input from "@material-ui/core/Input";
 import Select from "@material-ui/core/Select";
 import Grid from "@material-ui/core/Grid";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import IconButton from "@material-ui/core/IconButton";
 import TextField from "@material-ui/core/TextField";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
@@ -19,6 +20,8 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
+import NotWatchingIcon from '@material-ui/icons/BookmarkBorder';
+import WatchingIcon from '@material-ui/icons/Bookmark';
 import moment from 'moment';
 
 import {
@@ -39,6 +42,7 @@ import {
   getGoogleMapsUrl,
   getNextActionType,
   getLeadHistoryDescription,
+  onWatchLead,
 } from "../../actions/jobs";
 
 import {
@@ -101,7 +105,7 @@ class Leads extends React.Component {
   };
 
   render() {
-    const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, that, } = this.props;
+    const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, that, me } = this.props;
     const daysSinceLastLeadAction = this.props.otherOptions && this.props.otherOptions.filter(opt => opt.option === "daysSinceLastLeadAction")[0].value ? parseInt(this.props.otherOptions.filter(opt => opt.option === "daysSinceLastLeadAction")[0].value) : 30;
     let loading = jobList && Object.keys(jobList).length == 0;
     let leads = jobList ? Object.values(jobList).filter(m => {
@@ -133,11 +137,31 @@ class Leads extends React.Component {
             cursor: 'alias',
           }}
           data={leads}
-          getTrProps={(state, rowInfo) => ({
-            onClick: () => that.setState({ jobModal: rowInfo.original})
+          getTdProps={(state, rowInfo, column, instance) => ({
+            onClick: () => {
+              if (column.id !== 'watch' && column.id !== 'jobNumber' && column.id !== 'client' && column.id !== 'geocodeAddress')
+                that.setState({ jobModal: rowInfo.original})
+            }
           })}
+          defaultSorted={[
+            {
+              id: 'watch',
+              desc: true
+            }, {
+              id: 'daysSinceLastAction',
+              desc: true,
+            },
+          ]}
           columns={
-            [{
+          [{
+              id: 'watch',
+              Header: 'Follow',
+              accessor: d => me.watchedLeads && me.watchedLeads.includes(d.wfmID) ? true : false,
+              maxWidth: 50,
+              Cell: c => <IconButton onClick={() => onWatchLead(c.original.wfmID, me)} className={classes.iconTight}>
+                {c. value ? <WatchingIcon className={classes.bookmarkIconOn} /> : <NotWatchingIcon className={classes.bookmarkIconOff} />}
+                </IconButton>
+          },{
             id: 'jobNumber',
             Header: 'WFM Link',
             Cell: c => <span>
@@ -170,9 +194,11 @@ class Leads extends React.Component {
           },{
             Header: 'Manager',
             accessor: 'owner',
+            maxWidth: 120,
           },{
             id: 'createdDate',
             Header: 'Date Created',
+            maxWidth: 120,
             accessor: d => dateOf(d.creationDate),
             Cell: c => c.value ? getDaysSinceDateAgo(c.value) : 'N/A',
           },{
@@ -182,16 +208,19 @@ class Leads extends React.Component {
           },{
             id: 'nextGoalDue',
             Header: 'Next Goal Due',
+            maxWidth: 120,
             accessor: d => dateOf(d.nextActionDate),
             Cell: c => c.value ? <span className={getDaysSinceDate(c.value) > 0 ? classes.red : classes.black}>{getDaysSinceDateAgo(c.value)}</span> : <span className={classes.orange}>No Goal Set</span>,
           },{
             id: 'daysSinceLastGoal',
             Header: 'Last Goal Completed',
+            maxWidth: 120,
             accessor: d => d.lastActionDate ? dateOf(d.lastActionDate) : null,
             Cell: c => c.value ? getDaysSinceDateAgo(c.value) : <span className={classes.red}>No Goals Completed</span>,
           },{
             id: 'daysSinceLastAction',
             Header: 'Last Action',
+            maxWidth: 120,
             accessor: d => d.history && d.history.length > 0 && d.history[0].date,
             Cell: c => c.value ? <span className={getDaysSinceDate(c.value) > daysSinceLastLeadAction ? classes.red : classes.black}>{getDaysSinceDateAgo(c.value)}</span> : <span className={classes.orange}>No actions</span>,
           },{
@@ -201,6 +230,7 @@ class Leads extends React.Component {
           },{
             Header: 'Category',
             accessor: 'category',
+            maxWidth: 160,
           },{
             id: 'geocodeAddress',
             Header: 'Google Maps',

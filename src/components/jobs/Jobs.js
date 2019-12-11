@@ -69,6 +69,7 @@ import JobStats from "./JobStats";
 const mapStateToProps = state => {
   return {
     wfmJobs: state.jobs.wfmJobs,
+    wfmJob: state.jobs.wfmJob,
     wfmLeads: state.jobs.wfmLeads,
     wfmClients: state.jobs.wfmClients,
     currentJobState: state.jobs.currentJobState,
@@ -326,7 +327,7 @@ class Jobs extends React.Component {
             </div>) : "Job Details"}
         </DialogTitle>
         <DialogContent>
-          {this.state.jobModal && this.getJobDetails(this.state.jobModal)}
+          {this.state.jobModal && this.getJobDetails(this.state.jobModal.isJob && this.props.wfmJob ? this.props.wfmJob : this.state.jobModal)}
         </DialogContent>
       </Dialog>
     );

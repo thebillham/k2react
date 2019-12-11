@@ -610,9 +610,23 @@ const styles = theme => ({
   },
 
   notificationIconUrgent: {
-    color: '#ff5733',
+    color: theme.palette.secondary.main,
     fontSize: 16,
     marginRight: 10,
+  },
+
+  iconTight: {
+    margin: 0,
+    padding: theme.spacing(1),
+  },
+
+  bookmarkIconOff: {
+    fontSize: 14,
+  },
+
+  bookmarkIconOn: {
+    fontSize: 14,
+    color: theme.palette.secondary.main,
   },
 
   // Button Styles

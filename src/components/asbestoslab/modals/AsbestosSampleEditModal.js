@@ -263,7 +263,7 @@ class AsbestosSampleEditModal extends React.Component {
   };
 
   previousSample = () => {
-    if (Object.keys(this.state.changes).length > 0) this.saveSample(this.state.activeSample);
+    if (this.state.modified || Object.keys(this.state.changes).length > 0) this.saveSample(this.state.activeSample);
     let takeThisSample = false;
     Object.values(this.state.samples).reverse().forEach(sample => {
       if (takeThisSample) {
@@ -288,7 +288,7 @@ class AsbestosSampleEditModal extends React.Component {
   };
 
   nextSample = () => {
-    if (Object.keys(this.state.changes).length > 0) this.saveSample(this.state.activeSample);
+    if (this.state.modified || Object.keys(this.state.changes).length > 0) this.saveSample(this.state.activeSample);
     let takeThisSample = false;
     Object.values(this.state.samples).forEach(sample => {
       if (takeThisSample) {
