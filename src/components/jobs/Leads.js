@@ -155,7 +155,7 @@ class Leads extends React.Component {
           columns={
           [{
               id: 'watch',
-              Header: 'Follow',
+              Header: '',
               accessor: d => me.watchedLeads && me.watchedLeads.includes(d.wfmID) ? true : false,
               maxWidth: 50,
               Cell: c => <IconButton onClick={() => onWatchLead(c.original.wfmID, me)} className={classes.iconTight}>

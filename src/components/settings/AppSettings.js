@@ -254,6 +254,14 @@ const settings = {
     hint: 'Put each tag on a new line in the form "room name|room code".',
   },
 
+  airTestingPurposes: {
+    label: 'Air Testing Purposes',
+    value: 'airTestingPurposes',
+    group: 'airTestingAsbestos',
+    fields: [],
+    hint: 'Put each testing purpose on a new line.',
+  },
+
   // OTHER
   permissions:  {
     label: 'App Permissions',

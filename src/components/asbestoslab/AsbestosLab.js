@@ -45,6 +45,7 @@ import {
   ASBESTOS_SAMPLE_DETAILS,
   ASBESTOS_ACTIONS,
   ASBESTOS_LOGGED_SAMPLES,
+  ASBESTOS_ACTION_DETAILS,
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import CocModal from "./modals/CocModal";
@@ -59,6 +60,7 @@ import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
 import LoggedSamplesModal from "./modals/LoggedSamplesModal";
 import AsbestosLabStatsModal from "./modals/AsbestosLabStatsModal";
+import AsbestosActionDetailsModal from "./modals/AsbestosActionDetailsModal";
 
 import AsbestosBulkCocCard from "./components/AsbestosBulkCocCard";
 
@@ -279,6 +281,7 @@ class AsbestosLab extends React.Component {
         { modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && <AsbestosSampleCocEditModal /> }
         { modalType === ASBESTOS_LOGGED_SAMPLES && <LoggedSamplesModal />}
         { modalType === ASBESTOS_LAB_STATS && <AsbestosLabStatsModal />}
+        { modalTypeSecondary === ASBESTOS_ACTION_DETAILS && <AsbestosActionDetailsModal />}
         <span>
           <Button
             variant="outlined"

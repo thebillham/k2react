@@ -152,7 +152,7 @@ class CurrentJobs extends React.Component {
           columns={
           [{
               id: 'watch',
-              Header: 'Follow',
+              Header: '',
               accessor: d => me.watchedJobs && me.watchedJobs.includes(d.jobNumber) ? true : false,
               maxWidth: 50,
               Cell: c => <IconButton onClick={() => onWatchJob(c.original.jobNumber, me)} className={classes.iconTight}>

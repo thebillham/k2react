@@ -9,6 +9,7 @@ import {
   GET_ASSETS,
   GET_DOCUMENTS,
   GET_EDIT_STAFF,
+  CLEAR_EDIT_STAFF,
   GET_GEOCODES,
   GET_HELP,
   GET_INCIDENTS,
@@ -179,7 +180,7 @@ export const fetchStaff = update => async dispatch => {
 };
 
 export const getUserAttrs = (userPath, editStaff) => async dispatch => {
-  // //console.log("Calling update staff for " + userPath);
+  console.log("Calling get user attrs for " + userPath);
   let user = {};
   auth.currentUser &&
     usersRef
@@ -188,15 +189,17 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
       .get()
       .then(querySnapshot => {
         sendSlackMessage(`${auth.currentUser.displayName} read getUserAttrs for ${userPath} (${querySnapshot.size} documents)`);
-        user.attrs = {};
-        user.aanumber = "";
-        user.tertiary = "";
-        user.ip402 = false;
-        user.nzqa = [];
-        user.nzqatraining = "None";
-        user.firstaid = null;
-        user.maskfit = "";
-        user.docimages = [];
+        user = {
+          attrs: {},
+          aanumber: '',
+          tertiary: '',
+          ip402: '',
+          nzqa: [],
+          nzqatraining: 'None',
+          firstaid: null,
+          maskfit: '',
+          docimages: [],
+        };
         if (querySnapshot.size > 0) {
           querySnapshot.forEach(doc => {
             // //console.log("Read a doc (Attr)!");
@@ -220,9 +223,7 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
                   user.nzqa = user.nzqa.concat(attr.unit);
               }
             }
-            if (attr.type === "Tertiary") {
-              user.tertiary = attr.abbrev;
-            }
+            if (attr.type === "Tertiary") user.tertiary = attr.abbrev;
             if (attr.type === "MaskFit") {
               if (new Date(attr.expiry) > new Date()) {
                 user.maskfit = "OK";
@@ -230,12 +231,8 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
                 user.maskfit = "Expired";
               }
             }
-            if (attr.type === "IP402") {
-              user.ip402 = true;
-            }
-            if (attr.type === "AsbestosAssessor") {
-              user.aanumber = attr.number;
-            }
+            if (attr.type === "IP402") user.ip402 = true;
+            if (attr.type === "AsbestosAssessor") user.aanumber = attr.number;
             if (attr.type === "FirstAid" && attr.date) {
               user.firstaid = "Expired";
               if (attr.expiry) {
@@ -308,17 +305,26 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
 };
 
 export const getEditStaff = userPath => async dispatch => {
+  console.log('Get edit staff');
+  dispatch(getUserAttrs(userPath, true));
   auth.currentUser &&
     usersRef
       .doc(userPath)
       .onSnapshot((doc) => {
         sendSlackMessage(`${auth.currentUser.displayName} read getEditStaff for ${userPath} (1 document)`);
+        console.log(doc.data());
         dispatch({
           type: GET_EDIT_STAFF,
           payload: doc.data(),
         })
       }
     );
+}
+
+export const clearEditStaff = () => dispatch => {
+  dispatch({
+    type: CLEAR_EDIT_STAFF
+  })
 }
 
 export const fetchDocuments = update => async dispatch => {

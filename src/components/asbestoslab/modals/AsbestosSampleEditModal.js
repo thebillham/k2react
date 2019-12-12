@@ -714,7 +714,6 @@ class AsbestosSampleEditModal extends React.Component {
               <div className={classes.subHeading}>Lab Notes</div>
                 <TextyBox that={this} sample={sample} field={'labComments'} helperText={'Note description of the material or any additional observations or comments. This will not be displayed on the certificate.'} multiline={true} />
                 <TextyBox that={this} sample={sample} field={'footnote'} helperText={'Add a footnote to be included in the issued report. This will be displayed as a footnote on the certificate.'} multiline={true} />
-
               {sample.material === 'soil' &&
                 <div className={classes.paddedBox}>
                   <Button
@@ -847,8 +846,7 @@ class AsbestosSampleEditModal extends React.Component {
           <Button onClick={() => this.nextSample()} color="secondary"
             disabled={this.state.samples && Object.values(this.state.samples)[Object.keys(this.state.samples).length - 1].uid == sample.uid}>Next</Button>
           <Button onClick={() => {
-              console.log(this.state.modified);
-              if (this.state.modified) this.saveSample();
+              if (this.state.modified || Object.keys(this.state.changes).length > 0) this.saveSample();
               this.props.hideModal();
             }}
             color="primary"

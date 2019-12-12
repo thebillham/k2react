@@ -14,6 +14,7 @@ export const COC_ISSUES = "COC_ISSUES";
 export const COC_LOG = "COC_LOG";
 export const COC_STATS = "COC_STATS";
 export const ASBESTOS_ACTIONS = "ASBESTOS_ACTIONS";
+export const ASBESTOS_ACTION_DETAILS = "ASBESTOS_ACTION_DETAILS";
 export const COMMENT = "COMMENT";
 export const CONFIRM_RESULT = "CONFIRM_RESULT";
 export const DOCUMENT = "DOCUMENT";

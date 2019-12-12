@@ -7,6 +7,7 @@ export const CAT_CHANGE = "CAT_CHANGE";
 export const EDIT_USER = "EDIT_USER";
 export const GET_DOCUMENTS = "GET_DOCUMENTS";
 export const GET_EDIT_STAFF = "GET_EDIT_STAFF";
+export const CLEAR_EDIT_STAFF = "CLEAR_EDIT_STAFF";
 export const GET_ASSETS = "GET_ASSETS";
 export const GET_LOGS = "GET_LOGS";
 export const CLEAR_LOG = "CLEAR_LOG";

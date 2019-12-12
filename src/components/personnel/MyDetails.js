@@ -32,7 +32,7 @@ import AttrModal from "./modals/AttrModal";
 import AttrList from "./components/MyDetailsAttrListItem";
 import { USER_ATTR, EDITSTAFF } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
-import { getUserAttrs, getEditStaff, fetchStaff, getEmailSignature, } from "../../actions/local";
+import { getUserAttrs, getEditStaff, fetchStaff, getEmailSignature, clearEditStaff, } from "../../actions/local";
 import { displayTimeDifference, } from "../../actions/helpers";
 import { tabMyDetails, } from "../../actions/display";
 import _ from "lodash";
@@ -52,6 +52,7 @@ const mapDispatchToProps = dispatch => {
   return {
     showModal: modal => dispatch(showModal(modal)),
     getEditStaff: user => dispatch(getEditStaff(user)),
+    clearEditStaff: () => dispatch(clearEditStaff()),
     fetchStaff: update => dispatch(fetchStaff(update)),
     getUserAttrs: userPath => dispatch(getUserAttrs(userPath)),
     tabMyDetails: (tab) => dispatch(tabMyDetails(tab)),
@@ -68,7 +69,7 @@ class UserDetails extends React.Component {
       isLoading: true,
       edited: false,
     };
-    this.onEditUser = _.debounce(this.onEditUser, 300);
+    // this.onEditUser = _.debounce(this.onEditUser, 300);
   }
 
   handleTabChange = (event, value) => {
@@ -85,6 +86,7 @@ class UserDetails extends React.Component {
 
   componentWillUnmount() {
     if (this.state.edited) this.props.fetchStaff(true);
+    this.props.clearEditStaff();
   }
 
   onEditUser = (target, select) => {
@@ -205,7 +207,7 @@ class UserDetails extends React.Component {
                         id="name"
                         helperText="This is the name that will be displayed on reports and test certificates."
                         className={classes.textField}
-                        defaultValue={user.name}
+                        value={user.name ? user.name : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -219,7 +221,7 @@ class UserDetails extends React.Component {
                     <ListItem>
                       <Select
                         className={classNames(classes.select, classes.textField)}
-                        value={{label: user.jobdescription, id: user.jobdescription }}
+                        value={user.jobdescription ? {label: user.jobdescription, id: user.jobdescription } : {label: '', id: ''}}
                         options={this.props.jobDescriptions.map(e => ({ value: e, label: e }))}
                         onChange={e =>
                           this.onEditUser({ id: "jobdescription", value: e ? e.value : e }, true )
@@ -230,7 +232,7 @@ class UserDetails extends React.Component {
                     <ListItem>
                       <Select
                         className={classNames(classes.select, classes.textField)}
-                        value={{label: user.office, id: user.office }}
+                        value={user.office ? {label: user.office, id: user.office } : {label: '', id: ''}}
                         options={this.props.offices.map(e => ({ value: e, label: e }))}
                         onChange={e =>
                           this.onEditUser({ id: "office", value: e ? e.value : e }, true )
@@ -243,7 +245,7 @@ class UserDetails extends React.Component {
                         id="startdate"
                         type="date"
                         className={classes.textField}
-                        defaultValue={user.startdate}
+                        value={user.startdate ? user.startdate : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -265,7 +267,7 @@ class UserDetails extends React.Component {
                         id="workphone"
                         className={classes.textField}
                         type="tel"
-                        defaultValue={user.workphone}
+                        value={user.workphone ? user.workphone : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -277,7 +279,7 @@ class UserDetails extends React.Component {
                         type="email"
                         helperText="Enter your '@k2.co.nz' email address."
                         className={classes.textField}
-                        defaultValue={user.email}
+                        value={user.email ? user.email : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -289,7 +291,7 @@ class UserDetails extends React.Component {
                         type="email"
                         helperText="Enter your '@gmail.com' email address."
                         className={classes.textField}
-                        defaultValue={user.gmail}
+                        value={user.gmail ? user.gmail : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -305,7 +307,7 @@ class UserDetails extends React.Component {
                         id="personalphone"
                         type="tel"
                         className={classes.textField}
-                        defaultValue={user.personalphone}
+                        value={user.personalphone ? user.personalphone : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -317,7 +319,7 @@ class UserDetails extends React.Component {
                         multiline
                         rowsMax="4"
                         className={classes.textField}
-                        defaultValue={user.address}
+                        value={user.address ? user.address : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -355,6 +357,7 @@ class UserDetails extends React.Component {
                   <div>
                     <Button
                       className={classes.IconButton}
+                      variant='outlined'
                       onClick={() => {
                         if (!this.state.edited) this.setState({ edited: true });
                         this.props.showModal({
@@ -408,11 +411,11 @@ class UserDetails extends React.Component {
                     </ListItem>
                     <ListItem>
                       {user.maskfit === "OK" ? (
-                        <div style={{ color: "green", fontWeight: 500 }}>
+                        <div className={classes.boldGreen}>
                           Mask Fit Tested <CheckCircleOutline />
                         </div>
                       ) : (
-                        <div style={{ color: "red", fontWeight: 500 }}>
+                        <div className={classes.boldGreen}>
                           {user.maskfit === "Expired"
                             ? "Mask Fit Test Expired!"
                             : "Mask Fit Not Tested"}
@@ -431,7 +434,7 @@ class UserDetails extends React.Component {
                         label="Model"
                         id="maskfitmodel"
                         className={classes.textField}
-                        defaultValue={user.maskfitmodel}
+                        value={user.maskfitmodel ? user.maskfitmodel : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -441,7 +444,7 @@ class UserDetails extends React.Component {
                         <InputLabel shrink>Mask Size</InputLabel>
                         <Select
                           className={classes.select}
-                          defaultValue={{label: user.maskfitsize, id: user.maskfitsize }}
+                          value={user.maskfitsize ? {label: user.maskfitsize, id: user.maskfitsize } : {label: '', id: ''}}
                           options={["S","M","L"].map(e => ({ value: e, label: e }))}
                           onChange={e =>
                             this.onEditUser({ id: "maskfitsize", value: e ? e.value : e }, true)
@@ -455,7 +458,7 @@ class UserDetails extends React.Component {
                         label="Fit Factor"
                         id="maskfitfactor"
                         className={classes.textField}
-                        defaultValue={user.maskfitfactor}
+                        value={user.maskfitfactor ? user.maskfitfactor : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -466,7 +469,7 @@ class UserDetails extends React.Component {
                         id="maskparticulatefilters"
                         className={classes.textField}
                         type="date"
-                        defaultValue={user.maskparticulatefilters}
+                        value={user.maskparticulatefilters ? user.maskparticulatefilters : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -477,7 +480,7 @@ class UserDetails extends React.Component {
                         id="maskorganicfilters"
                         className={classes.textField}
                         type="date"
-                        defaultValue={user.maskorganicfilters}
+                        value={user.maskorganicfilters ? user.maskorganicfilters : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -485,7 +488,7 @@ class UserDetails extends React.Component {
                     {user.maskorganicfilters &&
                       new Date(user.maskorganicfilters) <= sixmonths && (
                         <ListItem>
-                          <div style={{ color: "red", fontWeight: 500 }}>
+                          <div className={classes.boldRed}>
                             Replace organic filters! <Error />
                           </div>
                         </ListItem>
@@ -499,7 +502,7 @@ class UserDetails extends React.Component {
                     </ListItem>
                     <ListItem>
                       <FormControlLabel
-                        style={{ marginLeft: 1 }}
+                        className={classes.marginLeftSmall}
                         control={
                           <Checkbox
                             checked={user.ppeHighVis}
@@ -517,7 +520,7 @@ class UserDetails extends React.Component {
                     </ListItem>
                     <ListItem>
                       <FormControlLabel
-                        style={{ marginLeft: 1 }}
+                        className={classes.marginLeftSmall}
                         control={
                           <Checkbox
                             checked={user.ppeHardHat}
@@ -535,7 +538,7 @@ class UserDetails extends React.Component {
                     </ListItem>
                     <ListItem>
                       <FormControlLabel
-                        style={{ marginLeft: 1 }}
+                        className={classes.marginLeftSmall}
                         control={
                           <Checkbox
                             checked={user.ppeBoots}
@@ -553,7 +556,7 @@ class UserDetails extends React.Component {
                     </ListItem>
                     <ListItem>
                       <FormControlLabel
-                        style={{ marginLeft: 1 }}
+                        className={classes.marginLeftSmall}
                         control={
                           <Checkbox
                             checked={user.ppeGlasses}
@@ -593,7 +596,7 @@ class UserDetails extends React.Component {
                         label="Name"
                         id="emergencyprimaryname"
                         className={classes.textField}
-                        defaultValue={user.emergencyprimaryname}
+                        value={user.emergencyprimaryname ? user.emergencyprimaryname : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -603,7 +606,7 @@ class UserDetails extends React.Component {
                         label="Relation"
                         id="emergencyprimaryrelation"
                         className={classes.textField}
-                        defaultValue={user.emergencyprimaryrelation}
+                        value={user.emergencyprimaryrelation ? user.emergencyprimaryrelation : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -613,7 +616,7 @@ class UserDetails extends React.Component {
                         label="Home Phone"
                         id="emergencyprimaryhomephone"
                         className={classes.textField}
-                        defaultValue={user.emergencyprimaryhomephone}
+                        value={user.emergencyprimaryhomephone ? user.emergencyprimaryhomephone : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -623,7 +626,7 @@ class UserDetails extends React.Component {
                         label="Work Phone"
                         id="emergencyprimaryworkphone"
                         className={classes.textField}
-                        defaultValue={user.emergencyprimaryworkphone}
+                        value={user.emergencyprimaryworkphone ? user.emergencyprimaryworkphone : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -633,7 +636,7 @@ class UserDetails extends React.Component {
                         label="Mobile"
                         id="emergencyprimarymobile"
                         className={classes.textField}
-                        defaultValue={user.emergencyprimarymobile}
+                        value={user.emergencyprimarymobile ? user.emergencyprimarymobile : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -643,7 +646,7 @@ class UserDetails extends React.Component {
                         label="Email"
                         id="emergencyprimaryemail"
                         className={classes.textField}
-                        defaultValue={user.emergencyprimaryemail}
+                        value={user.emergencyprimaryemail ? user.emergencyprimaryemail : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -653,7 +656,7 @@ class UserDetails extends React.Component {
                         label="Home Address"
                         id="emergencyprimaryhomeaddress"
                         className={classes.textField}
-                        defaultValue={user.emergencyprimaryhomeaddress}
+                        value={user.emergencyprimaryhomeaddress ? user.emergencyprimaryhomeaddress : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -670,7 +673,7 @@ class UserDetails extends React.Component {
                         label="Name"
                         id="emergencysecondaryname"
                         className={classes.textField}
-                        defaultValue={user.emergencysecondaryname}
+                        value={user.emergencysecondaryname ? user.emergencysecondaryname : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -680,7 +683,7 @@ class UserDetails extends React.Component {
                         label="Relation"
                         id="emergencysecondaryrelation"
                         className={classes.textField}
-                        defaultValue={user.emergencysecondaryrelation}
+                        value={user.emergencysecondaryrelation ? user.emergencysecondaryrelation : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -690,7 +693,7 @@ class UserDetails extends React.Component {
                         label="Home Phone"
                         id="emergencysecondaryhomephone"
                         className={classes.textField}
-                        defaultValue={user.emergencysecondaryhomephone}
+                        value={user.emergencysecondaryhomephone ? user.emergencysecondaryhomephone : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -700,7 +703,7 @@ class UserDetails extends React.Component {
                         label="Work Phone"
                         id="emergencysecondaryworkphone"
                         className={classes.textField}
-                        defaultValue={user.emergencysecondaryworkphone}
+                        value={user.emergencysecondaryworkphone ? user.emergencysecondaryworkphone : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -710,7 +713,7 @@ class UserDetails extends React.Component {
                         label="Mobile"
                         id="emergencysecondarymobile"
                         className={classes.textField}
-                        defaultValue={user.emergencysecondarymobile}
+                        value={user.emergencysecondarymobile ? user.emergencysecondarymobile : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -720,7 +723,7 @@ class UserDetails extends React.Component {
                         label="Email"
                         id="emergencysecondaryemail"
                         className={classes.textField}
-                        defaultValue={user.emergencysecondaryemail}
+                        value={user.emergencysecondaryemail ? user.emergencysecondaryemail : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -730,7 +733,7 @@ class UserDetails extends React.Component {
                         label="Home Address"
                         id="emergencysecondaryhomeaddress"
                         className={classes.textField}
-                        defaultValue={user.emergencysecondaryhomeaddress}
+                        value={user.emergencysecondaryhomeaddress ? user.emergencysecondaryhomeaddress : ''}
                         onChange={e => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -757,7 +760,7 @@ class UserDetails extends React.Component {
                     {this.props.permissions.map(permission => {
                       return (
                         <div key={permission.name}>
-                          <div style={{ marginBottom: 0, }}>
+                          <div className={classes.marginBottomSmall}>
                             <FormControlLabel
                               control={
                                 <Checkbox

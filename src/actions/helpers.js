@@ -45,7 +45,7 @@ export const getDaysSinceDate = date => {
 
 export const getDaysSinceDateAgo = date => {
   // Words should probably be lowercase
-  let days = getDaysSinceDate(date);
+  let days = moment().startOf('day').diff(moment(date).startOf('day'), 'days');
   if (days < -1) return `${days*-1} days time`
   if (days === -1) return `Tomorrow`;
   if (days === 0) return `Today`;
@@ -59,8 +59,6 @@ export const getDaysBetweenDates = (d1, d2) => {
 };
 
 export const convertYYYYMMDD = date => {
-  console.log(date);
-  console.log(moment(date, "YYYY-MM-DD"));
   return moment(date, "YYYY-MM-DD");
 }
 

@@ -53,7 +53,15 @@ import Go from '@material-ui/icons/ArrowForwardIos';
 import { hideModal, handleModalChange, handleModalSubmit, onUploadFile, setModalError, resetModal, showModalSecondary, } from '../../../actions/modal';
 import { fetchStaff, addLog, } from '../../../actions/local';
 import { getDetailedWFMJob, resetWfmJob, getDefaultLetterAddress, } from '../../../actions/jobs';
-import { fetchSamples, handleCocSubmit, handleSampleChange, getAirConcentration, writeDescription, } from '../../../actions/asbestosLab';
+import {
+  fetchSamples,
+  handleCocSubmit,
+  handleSampleChange,
+  getAirConcentration,
+  writeDescription,
+  getSampleRunTime,
+  getAverageFlowRate,
+} from '../../../actions/asbestosLab';
 import { titleCase, sentenceCase, dateOf, writeDates, personnelConvert, numericOnly, } from '../../../actions/helpers';
 import _ from 'lodash';
 
@@ -305,6 +313,37 @@ class CocModal extends React.PureComponent {
                         )
                       }
                       <div className={classes.informationBoxWhiteRounded}>
+                        {this.state.sampleType === "air" &&
+                          <div>
+                            <InputLabel>Sampling Purpose</InputLabel>
+                            <Select
+                              className={classes.selectTight}
+                              value={this.state.samplingPurpose ? this.state.samplingPurpose : null}
+                              options={names.map(e => ({ value: e.uid, label: e.name }))}
+                              onChange={e => {
+                                console.log(e);
+                                this.setState({
+                                  modified: true,
+                                  defaultSampledBy: personnelConvert(e).map(e => ({ value: e.uid, label: e.name })),
+                                });
+                              }}
+                            />
+                            <InputLabel>Sampling By</InputLabel>
+                            <Select
+                              isMulti
+                              className={classes.selectTight}
+                              value={this.state.defaultSampledBy ? this.state.defaultSampledBy : null}
+                              options={names.map(e => ({ value: e.uid, label: e.name }))}
+                              onChange={e => {
+                                console.log(e);
+                                this.setState({
+                                  modified: true,
+                                  defaultSampledBy: personnelConvert(e).map(e => ({ value: e.uid, label: e.name })),
+                                });
+                              }}
+                            />
+                          </div>
+                        }
                         <TextField
                           id="labInstructions"
                           label="Lab Instructions"
@@ -552,7 +591,9 @@ class CocModal extends React.PureComponent {
                         <div className={classes.columnMedSmall}>
                           Final Flow Rate
                         </div>
-                        <div className={classes.columnSmall} />
+                        <div className={classes.columnMedSmall}>
+                          Average Flow Rate
+                        </div>
                         <div className={classes.columnMedSmall}>
                           Start Time
                         </div>
@@ -562,8 +603,8 @@ class CocModal extends React.PureComponent {
                         <div className={classes.columnMedSmall}>
                           Total Run Time
                         </div>
-                        <div className={classes.columnMedLarge}>
-                          Set Up/Pick Up By
+                        <div className={classes.columnMedSmall}>
+                          Sample Volume
                         </div>
                         <div className={classes.columnSmall} />
                       </div>
@@ -577,15 +618,15 @@ class CocModal extends React.PureComponent {
                         <div className={classes.columnMedSmall}>
                           mL/min
                         </div>
-                        <div className={classes.columnSmall} />
+                        <div className={classes.columnMedSmall}>
+                          mL/min
+                        </div>
                         <div className={classes.columnMedSmall} />
                         <div className={classes.columnMedSmall} />
                         <div className={classes.columnMedSmall}>
                           (will override finish time if entered)
                         </div>
-                        <div className={classes.columnMedLarge}>
-                          Set Up/Pick Up By
-                        </div>
+                        <div className={classes.columnMedSmall} />
                         <div className={classes.columnSmall} />
                       </div>
                     </div>
@@ -805,6 +846,7 @@ class CocModal extends React.PureComponent {
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                     let disabled = blockInput || doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
                     let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1] ? doc.samples[i+1] : {};
+                    let averageFlow = getAverageFlowRate(sample);
                     if (!disabled) disabled = false;
                     if (sample.finalFlowRate === '3300') console.log(getAirConcentration(sample, {distance: 100.1}))
                     return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
@@ -846,7 +888,9 @@ class CocModal extends React.PureComponent {
                             }}
                           />
                         </div>
-                        <div className={classes.columnSmall} />
+                        <div className={classes.columnMedSmall}>
+                          <span className={(averageFlow.sampleRateLow || averageFlow.sampleRateHigh || averageFlow.differenceTooHigh) ? classes.boldRed : classes.boldGreen}>{averageFlow.averageFlowRate ? averageFlow.averageFlowRate : ''}</span>
+                        </div>
                         <div className={classes.columnMedSmall}>
                           <DateTimePicker
                             value={sample.startTime ? sample.startTime : null}
@@ -854,6 +898,7 @@ class CocModal extends React.PureComponent {
                             format="D/MM/YY, hh:mma"
                             disabled={disabled}
                             clearable
+                            views={['hours','minutes']}
                             onChange={date => {
                               this.setState({ modified: true, });
                               this.props.handleSampleChange(i, {startTime: dateOf(date)});
@@ -867,6 +912,7 @@ class CocModal extends React.PureComponent {
                             format="D/MM/YY, hh:mma"
                             disabled={disabled}
                             clearable
+                            views={['hours','minutes']}
                             onChange={date => {
                               this.setState({ modified: true, });
                               this.props.handleSampleChange(i, {endTime: dateOf(date)});
@@ -876,34 +922,15 @@ class CocModal extends React.PureComponent {
                         <div className={classes.columnMedSmall}>
                           <TextField
                             id="totalRunTime"
-                            value={sample.totalRunTime ? sample.totalRunTime : null}
+                            value={sample.totalRunTime ? sample.totalRunTime : sample.startTime && sample.endTime ? getSampleRunTime(sample) : null}
                             onChange={e => {
                               this.setState({ modified: true, });
                               this.props.handleSampleChange(i, {totalRunTime: numericOnly(e.target.value.trim())});
                             }}
                           />
                         </div>
-                        <div className={classes.columnMedLarge}>
-                          <Select
-                            isMulti
-                            className={classes.selectTight}
-                            value={sample.sampledBy ? sample.sampledBy.map(e => ({value: e.uid, label: e.name})) : this.state.defaultSampledBy}
-                            options={names.map(e => ({ value: e.uid, label: e.name }))}
-                            isDisabled={disabled}
-                            onChange={e => {
-                              let defaultSampledBy = this.state.defaultSampledBy;
-                              let personnelSelected = this.state.personnelSelected;
-                              let sampledBy = personnelConvert(e);
+                        <div className={classes.columnMedSmall}>
 
-                              if (personnelSelected === false) {
-                                personnelSelected = i;
-                                defaultSampledBy = sampledBy.map(e => ({value: e.uid, label: e.name}));
-                              }
-
-                              this.setState({ modified: true, personnelSelected, defaultSampledBy});
-                              this.props.handleSampleChange(i, {sampledBy});
-                            }}
-                          />
                         </div>
                         <div className={classes.columnSmall}>
                           {/*<Tooltip title={'Add Detailed Sample Information e.g. In-Situ Soil Characteristics'}>
@@ -1058,9 +1085,9 @@ class CocModal extends React.PureComponent {
           <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
             {i+1}
           </div>
-          <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-            {sample.specificLocation ? sample.specificLocation : 'Untitled'} (Air Filter Sample)
-          </div>
+        </div>
+        <div className={classNames(classes.paddingSidesSmall)}>
+          {writeDescription(sample)} (Bulk Sample)
         </div>
       </div>)
       :
@@ -1126,24 +1153,26 @@ class CocModal extends React.PureComponent {
         <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
           {sample.specificLocation ? sample.specificLocation : ''}
         </div>
+        <div className={classes.columnSmall} />
         <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
           {sample.initialFlowRate ? sample.initialFlowRate : ''}
         </div>
         <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
           {sample.finalFlowRate ? sample.finalFlowRate : ''}
         </div>
-        <div className={classes.columnSmall} />
+        <div className={classes.columnMedSmall}>
+          {sample.initialFlowRate && sample.finalFlowRate ? (parseFloat(sample.initialFlowRate)+parseFloat(sample.finalFlowRate))/2 : ''}
+        </div>
         <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
           {sample.startTime ? moment(dateOf(sample.startTime)).format('hh:mma D MMMM YYYY') : ''}
         </div>
         <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-          {sample.startTime ? moment(dateOf(sample.endTime)).format('hh:mma D MMMM YYYY') : ''}
+          {sample.endTime ? moment(dateOf(sample.endTime)).format('hh:mma D MMMM YYYY') : ''}
         </div>
         <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-          {sample.totalRunTime ? sample.totalRunTime : ''}
+          {sample.totalRunTime ? sample.totalRunTime : sample.startTime && sample.endTime ? getSampleRunTime(sample) : ''}
         </div>
-        <div className={classes.columnMedLarge}>
-          {sample.sampledBy ? sample.sampledBy.map(e => e.name).join(', ') : ''}
+        <div className={classes.columnMedSmall}>
         </div>
         <div className={classes.columnSmall}>
           {!disabled && <IconButton onClick={() =>
@@ -1169,7 +1198,7 @@ class CocModal extends React.PureComponent {
             {i+1}
           </div>
           <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-            {writeDescription(sample)} (Bulk Sample)
+            {sample.specificLocation ? sample.specificLocation : 'Untitled'} (Air Sample)
           </div>
         </div>
       </div>)

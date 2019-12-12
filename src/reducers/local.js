@@ -3,6 +3,7 @@ import {
   GET_ASSETS,
   GET_DOCUMENTS,
   GET_EDIT_STAFF,
+  CLEAR_EDIT_STAFF,
   GET_USER,
   GET_LOGS,
   CLEAR_LOG,
@@ -191,6 +192,11 @@ export default function localReducer(state = localInit, action) {
           ...state.editstaff,
           ...action.payload,
         }
+      };
+    case CLEAR_EDIT_STAFF:
+      return {
+        ...state,
+        editstaff: {},
       };
     case GET_TOOLS:
       if (action.update) stateRef.doc("tools").set({ payload: action.payload });

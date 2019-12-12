@@ -301,6 +301,26 @@ const styles = theme => ({
     justifyContent: 'center',
   },
 
+  minHeightDialog40: {
+    minHeight: '40vh',
+    maxHeight: '40vh',
+  },
+
+  minHeightDialog60: {
+    minHeight: '60vh',
+    maxHeight: '60vh',
+  },
+
+  minHeightDialog80: {
+    minHeight: '80vh',
+    maxHeight: '80vh',
+  },
+
+  minHeightDialog90: {
+    minHeight: '90vh',
+    maxHeight: '90vh',
+  },
+
   cardHeaderType: {
     color: '#fff',
     fontWeight: 500,

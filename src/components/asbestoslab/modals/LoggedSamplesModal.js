@@ -104,6 +104,7 @@ class LoggedSamplesModal extends React.Component {
       <Dialog
         open={modalType === ASBESTOS_LOGGED_SAMPLES}
         onClose={this.props.hideModal}
+        classes={{ paper: classes.minHeightDialog90 }}
         maxWidth="xl"
         fullWidth={true}
         onEnter={this.loadLogs}

@@ -1558,6 +1558,61 @@ export const verifySubsamples = (subs, job, meUid, duplicateIDs) => {
   return issues;
 };
 
+export const changeActionDetails = (job, samples, field, update, me) => {
+  let batch = firestore.batch();
+  let change = field === 'analysisStarted' ? 'Analysis Start' : 'Received'
+  samples && Object.values(samples).forEach(sample => {
+    if (update.date || update.user) {
+      let u = {};
+      let dateField = field === 'analysisStarted' ? 'analysisStartDate' : 'receivedDate';
+      let userField = field === 'analysisStarted' ? 'analysisStartedBy' : 'receivedBy';
+      if (update.date) u[dateField] = dateOf(update.date);
+      if (update.user) u[userField] = update.user;
+      batch.update(asbestosSamplesRef.doc(sample.uid), u);
+      let log = {
+        type: "Edit",
+        log: `${change} details changed.`,
+        sample: sample.uid,
+      };
+      addLog("asbestosLab", log, me, batch);
+    }
+  });
+  let log = {
+    type: "Edit",
+    log: `All sample ${change} details changed.`,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me, batch);
+  batch.commit();
+};
+
+export const undoIssues = (job, samples, me) => {
+  let batch = firestore.batch();
+  samples && Object.values(samples).forEach(sample => {
+    let update = {
+      issueDate: firebase.firestore.FieldValue.delete(),
+      issuedBy: firebase.firestore.FieldValue.delete(),
+      issueVersion: firebase.firestore.FieldValue.delete(),
+      issueDate: firebase.firestore.FieldValue.delete(),
+    };
+    batch.update(asbestosSamplesRef.doc(sample.uid), update);
+  });
+  let cocUpdate = {
+    lastModified: new Date(),
+    currentVersion: firebase.firestore.FieldValue.delete(),
+    versionHistory: firebase.firestore.FieldValue.delete(),
+    versionUpToDate: false,
+  }
+  batch.update(cocsRef.doc(job.uid), cocUpdate);
+  let log = {
+    type: "Issue",
+    log: `Lab Certificate issues reversed.`,
+    chainOfCustody: job.uid,
+  };
+  addLog("asbestosLab", log, me, batch);
+  batch.commit();
+}
+
 const fractionMap = {
   gt7: '>7mm',
   to7: '2-7mm',

@@ -4,7 +4,7 @@ import { styles } from "../../../config/styles";
 import classNames from 'classnames';
 import { connect } from "react-redux";
 import store from "../../../store";
-import { ASBESTOS_ACTIONS } from "../../../constants/modal-types";
+import { ASBESTOS_ACTIONS, ASBESTOS_ACTION_DETAILS, } from "../../../constants/modal-types";
 import { firestore, cocsRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
 
@@ -37,7 +37,7 @@ import VerifyIcon from "@material-ui/icons/CheckCircleOutline";
 import WAIcon from "@material-ui/icons/GroupWork";
 import { dateOf, writeDates, } from "../../../actions/helpers";
 import { toggleDoNotRender, } from "../../../actions/display";
-import { hideModal, } from "../../../actions/modal";
+import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import {
   writeDescription,
   receiveSample,
@@ -56,6 +56,7 @@ import {
   issueTestCertificate,
   getPersonnel,
   getWASubsampleList,
+  undoIssues,
 } from "../../../actions/asbestosLab";
 import _ from "lodash";
 import moment from "moment";
@@ -84,6 +85,7 @@ const mapDispatchToProps = dispatch => {
     doNotRenderOn: () => dispatch(toggleDoNotRender(true)),
     doNotRenderOff: () => dispatch(toggleDoNotRender(false)),
     // doNotRenderOff: _.debounce(() => dispatch(toggleDoNotRender(false)), 100),
+    showModalSecondary: modal => dispatch(showModalSecondary(modal)),
     hideModal: () => dispatch(hideModal()),
   };
 };
@@ -93,6 +95,7 @@ class AsbestosActionsModal extends React.Component {
     samples: {},
     subsamples: [],
     newVersionWithIssue: true,
+    changeDetailsModal: false,
   };
 
   handleEnter = () => {
@@ -317,10 +320,10 @@ class AsbestosActionsModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType, } = this.props;
-    let version = this.props.modalProps.job.currentVersion ?
-      this.state.newVersionWithIssue ? parseInt(this.props.modalProps.job.currentVersion)+1 : this.props.modalProps.job.currentVersion
+    let version = modalProps.job.currentVersion ?
+      this.state.newVersionWithIssue ? parseInt(modalProps.job.currentVersion)+1 : modalProps.job.currentVersion
       : 1;
-    // console.log(this.state.subsamples);
+
     return (
       modalType === ASBESTOS_ACTIONS ? <Dialog
         open={modalType === ASBESTOS_ACTIONS}
@@ -335,15 +338,32 @@ class AsbestosActionsModal extends React.Component {
         <DialogContent>
           {this.state.blockAll ? <div className={classes.warningText}>Not All Issues Have Been Resolved. The Test Certificate Will Not Be Issued.</div>
           : this.state.mode === 'actions' ? <div>
-          <Button
-            className={classes.buttonIconText}
-            onClick={this.handleClickAll}
-          >
-            {modalProps.field === 'receivedByLab' && <span><ReceiveIcon className={classes.iconRegular} /> Receive All Samples</span>}
-            {modalProps.field === 'analysisStarted' && <span><StartAnalysisIcon className={classes.iconRegular} /> Start Analysis On All Samples</span>}
-            {modalProps.field === 'verified' && <span><VerifyIcon className={classes.iconRegular} /> Verify All Samples</span>}
+          <div className={classes.flexRow}>
+            <Button
+              className={classes.buttonIconText}
+              onClick={this.handleClickAll}
+            >
+              {modalProps.field === 'receivedByLab' && <span><ReceiveIcon className={classes.iconRegular} /> Receive All Samples</span>}
+              {modalProps.field === 'analysisStarted' && <span><StartAnalysisIcon className={classes.iconRegular} /> Start Analysis On All Samples</span>}
+              {modalProps.field === 'verified' && <span><VerifyIcon className={classes.iconRegular} /> Verify All Samples</span>}
 
-          </Button>
+            </Button>
+            <div className={classes.spacerSmall} />
+            {this.props.me.auth && this.props.me.auth['Admin'] && (modalProps.field === 'receivedByLab' || modalProps.field === 'analysisStarted') &&
+            <Button className={classes.buttonIconText}
+              onClick={() => this.props.showModalSecondary({
+                modalType: ASBESTOS_ACTION_DETAILS,
+                modalProps: {
+                  title: modalProps.field === 'receivedByLab' ? 'Change Received Details for All Samples' : 'Change Analysis Start Details for All Samples',
+                  job: modalProps.job,
+                  samples: this.state.samples,
+                  field: modalProps.field,
+                }})}
+              >
+              {modalProps.field === 'receivedByLab' && <span><ReceiveIcon className={classes.iconRegular} /> Change Received Details</span>}
+              {modalProps.field === 'analysisStarted' && <span><StartAnalysisIcon className={classes.iconRegular} /> Change Start Analysis Details</span>}
+            </Button>}
+          </div>
           {modalProps.field === 'issue' &&
             <div>
               <span className={classes.headingInline}>Version Number:</span>{" "}
@@ -353,9 +373,9 @@ class AsbestosActionsModal extends React.Component {
               <br />
               <span className={classes.headingInline}>Update Number:</span>{" "}
               <span className={ classes.infoLight }>
-                {this.props.modalProps.job.versionHistory && this.props.modalProps.job.versionHistory[version] &&
-                this.props.modalProps.job.versionHistory[version].updateNumber ?
-                  this.props.modalProps.job.versionHistory[version].updateNumber + 1 : 'New version'
+                {modalProps.job.versionHistory && modalProps.job.versionHistory[version] &&
+                modalProps.job.versionHistory[version].updateNumber ?
+                  modalProps.job.versionHistory[version].updateNumber + 1 : 'New version'
                 }
               </span>
               <br />
@@ -387,7 +407,16 @@ class AsbestosActionsModal extends React.Component {
                     }
                     label="Issue Certificate as New Version"
                   />
-                </div>
+                { this.props.me.auth && this.props.me.auth['Admin'] &&
+                  <Button
+                    variant="outlined"
+                    className={classes.marginBottomSmall}
+                    onClick={() => undoIssues(modalProps.job, this.state.samples, this.props.me)}
+                  >
+                    Undo All Issued Versions
+                  </Button>
+                }
+              </div>
               }
             </div>
           }
