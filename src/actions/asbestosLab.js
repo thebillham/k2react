@@ -42,6 +42,8 @@ import {
 import React from "react";
 import Button from "@material-ui/core/Button";
 
+const defaultLimit = 19;
+
 export const resetAsbestosLab = () => dispatch => {
   dispatch({ type: RESET_ASBESTOS_LAB });
 };
@@ -222,13 +224,11 @@ export const fetchSampleView = (cocUid, sampleUid, jobNumber) => async dispatch 
 }
 
 export const fetchAsbestosSampleIssueLogs = (limit) => async dispatch => {
-  let lim = limit;
-  if (!lim) lim = 7;
+  let lim = limit ? limit : defaultLimit;
   if (true) {
-    let startDate = moment().subtract(limit, 'days').toDate();
     asbestosSampleIssueLogRef
-      .where("issueDate", ">", startDate)
       .orderBy("issueDate", "desc")
+      .limit(lim)
       .get().then(logSnapshot => {
         let logs = {};
         sendSlackMessage(`${auth.currentUser.displayName} ran fetchAsbestosSampleIssueLogs (${logSnapshot.size} documents)`);
@@ -257,13 +257,13 @@ export const fetchAsbestosSampleIssueLogs = (limit) => async dispatch => {
 };
 
 export const fetchAsbestosAnalysisLogs = (limit) => async dispatch => {
-  let lim = limit;
-  if (!lim) lim = 7;
+  let lim = limit ? limit : defaultLimit;
   if (true) {
-    let startDate = moment().subtract(limit, 'days').toDate();
+    // let startDate = moment().subtract(limit, 'days').toDate();
     asbestosAnalysisLogRef
-      .where("analysisDate", ">", startDate)
+      // .where("analysisDate", ">", startDate)
       .orderBy("analysisDate", "desc")
+      .limit(lim)
       .get().then(logSnapshot => {
         let logs = {};
         sendSlackMessage(`${auth.currentUser.displayName} ran fetchAsbestosAnalysisLogs (${logSnapshot.size} documents)`);
@@ -292,13 +292,13 @@ export const fetchAsbestosAnalysisLogs = (limit) => async dispatch => {
 };
 
 export const fetchAsbestosCheckLogs = (limit) => async dispatch => {
-  let lim = limit;
-  if (!lim) lim = 7;
+  let lim = limit ? limit : defaultLimit;
   if (true) {
-    let startDate = moment().subtract(limit, 'days').toDate();
+    // let startDate = moment().subtract(limit, 'days').toDate();
     asbestosCheckLogRef
-      .where("checkDate", ">", startDate)
+      // .where("checkDate", ">", startDate)
       .orderBy("checkDate", "desc")
+      .limit(lim)
       .get().then(logSnapshot => {
         let logs = {};
         sendSlackMessage(`${auth.currentUser.displayName} ran fetchAsbestosCheckLogs (${logSnapshot.size} documents)`);

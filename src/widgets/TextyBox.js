@@ -20,7 +20,7 @@ class TextyBox extends React.Component {
     // <TextyBox that={this} sample={sample} base={null} field={'labComments'} label={null} helperText={'Note description of the material or any additional observations or comments. This will not be displayed on the certificate.'} multiline={true} rows={null} end={null} start={null} numericOnly={false} />
 
   render() {
-    const { that, sample, base, field, label, helperText, multiline, rows, end, start, numericOnly, initState } = this.props;
+    const { that, sample, base, field, label, helperText, multiline, rows, end, start, numericOnly, dp, initState } = this.props;
 
     if (sample.sampleNumber !== this.state.sampleNumber) this.setState({
       val: false,
@@ -45,7 +45,7 @@ class TextyBox extends React.Component {
         }}
         onChange={e => {
           this.setState({
-            val: numericOnly ? numericAndLessThanOnly(e.target.value) : e.target.value,
+            val: numericOnly ? numericAndLessThanOnly(e.target.value, dp) : e.target.value,
           });
 
           if (base) {
@@ -54,7 +54,7 @@ class TextyBox extends React.Component {
                 ...that.state.changes,
                 [base]: {
                   ...that.state.changes[base],
-                  [field]: numericOnly ? numericAndLessThanOnly(e.target.value) : e.target.value,
+                  [field]: numericOnly ? numericAndLessThanOnly(e.target.value, dp) : e.target.value,
                 },
               }
             });
@@ -62,7 +62,7 @@ class TextyBox extends React.Component {
             that.setState({
               changes: {
                 ...that.state.changes,
-                [field]: numericOnly ? numericAndLessThanOnly(e.target.value) : e.target.value,
+                [field]: numericOnly ? numericAndLessThanOnly(e.target.value, dp) : e.target.value,
               }
             });
           }

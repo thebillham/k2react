@@ -99,7 +99,7 @@ class AsbestosActionDetailsModal extends React.Component {
           this.props.hideModalSecondary();
           this.props.hideModal();
         }}
-        classes={{ paper: classes.minHeightDialog }}
+        classes={{ paper: classes.minHeightDialog40 }}
         maxWidth="xs"
         fullWidth={true}
         disableBackdropClick={true}

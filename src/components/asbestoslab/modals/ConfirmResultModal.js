@@ -25,7 +25,7 @@ import RemoveIcon from "@material-ui/icons/RemoveCircle";
 import SetIcon from "@material-ui/icons/Publish";
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { addLog, } from "../../../actions/local";
-import { dateOf, } from '../../../actions/helpers';
+import { dateOf, numericAndLessThanOnly } from '../../../actions/helpers';
 import { updateResultMap, getSampleColors, setAnalyst, getBasicResult, getAllConfirmResult, compareAsbestosResult, setCheckAnalysis } from "../../../actions/asbestosLab";
 import { AsbButton, } from '../../../widgets/FormWidgets';
 import _ from "lodash";
@@ -326,7 +326,7 @@ class ConfirmResultModal extends React.Component {
               this.setState({
                 [num]: {
                   ...this.state[num],
-                  weightReceived: e.target.value,
+                  weightReceived: numericAndLessThanOnly(e.target.value, 1),
                 },
               });
             } : null}

@@ -2,6 +2,7 @@ import {
   GET_SITES,
   GET_WFM_JOBS,
   GET_WFM_JOB,
+  CLEAR_WFM_JOB,
   GET_WFM_CONTACT,
   GET_WFM_LEADS,
   GET_WFM_CLIENTS,
@@ -53,6 +54,11 @@ export default function jobsReducer(state = jobsInit, action) {
         ...state,
         wfmJob: {...state.wfmJob, ...action.payload}
       };
+    case CLEAR_WFM_JOB:
+      return {
+        ...state,
+        wfmJob: null,
+      }
     case GET_WFM_CONTACT:
       return {
         ...state,
@@ -84,9 +90,6 @@ export default function jobsReducer(state = jobsInit, action) {
         geocodes: action.payload
       };
     case ADD_TO_GEOCODES:
-      console.log('Adding to geocodes');
-      console.log(state.geocodes);
-      console.log(action.payload);
       return {
         ...state,
         geocodes: {

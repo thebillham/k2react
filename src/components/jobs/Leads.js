@@ -137,11 +137,15 @@ class Leads extends React.Component {
             cursor: 'alias',
           }}
           data={leads}
+          pageSize={14}
+          pageSizeOptions={[10, 15, 20, 25, 50, 100, 200]}
           getTdProps={(state, rowInfo, column, instance) => ({
             onClick: () => {
-              if (column.id !== 'watch' && column.id !== 'jobNumber' && column.id !== 'client' && column.id !== 'geocodeAddress')
+              if (rowInfo && rowInfo.original && column.id !== 'watch' && column.id !== 'jobNumber' && column.id !== 'client' && column.id !== 'geocodeAddress')
                 that.setState({ jobModal: rowInfo.original})
-            }
+            },
+            style: rowInfo && rowInfo.original && rowInfo.original.assigned && rowInfo.original.assigned.includes(this.props.me.wfm_id) ?
+            { background: '#FFFF99', } : {},
           })}
           defaultSorted={[
             {
@@ -158,7 +162,7 @@ class Leads extends React.Component {
               Header: '',
               accessor: d => me.watchedLeads && me.watchedLeads.includes(d.wfmID) ? true : false,
               maxWidth: 50,
-              Cell: c => <IconButton onClick={() => onWatchLead(c.original.wfmID, me)} className={classes.iconTight}>
+              Cell: c => <IconButton onClick={() => c.original ? onWatchLead(c.original.wfmID, me) : null} className={classes.iconTight}>
                 {c. value ? <WatchingIcon className={classes.bookmarkIconOn} /> : <NotWatchingIcon className={classes.bookmarkIconOff} />}
                 </IconButton>
           },{

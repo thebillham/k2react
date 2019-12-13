@@ -672,19 +672,19 @@ class AsbestosSampleEditModal extends React.Component {
               <div className={classes.subHeading}>Weights</div>
               <div className={classes.flexRow}>
                 <div className={classes.formInputMediumRequired}>
-                  <TextyBox that={this} sample={sample} field={'weightReceived'} label={'Weight as Received'} helperText={'REQUIRED Record the weight as received (tape samples can be recorded as <0.1).'} end={'g'} numericOnly={true} />
+                  <TextyBox that={this} sample={sample} field={'weightReceived'} label={'Weight as Received'} helperText={'REQUIRED Record the weight as received (tape samples can be recorded as <0.1).'} end={'g'} numericOnly={true} dp={1} />
                 </div>
                 <div className={classes.spacerSmall} />
                 <div className={classes.formInputMedium}>
-                  <TextyBox that={this} sample={sample} field={'weightSubsample'} label={'Weight of Subsample'} helperText={'Record the weight of the subsample if the entire sample is not analysed.'} end={'g'} numericOnly={true} />
+                  <TextyBox that={this} sample={sample} field={'weightSubsample'} label={'Weight of Subsample'} helperText={'Record the weight of the subsample if the entire sample is not analysed.'} end={'g'} numericOnly={true} dp={1} />
                 </div>
                 <div className={classes.spacerSmall} />
                 <div className={classes.formInputMedium}>
-                  <TextyBox that={this} sample={sample} field={'weightDry'} label={'Dry Weight'} helperText={'Record the weight after drying (~105°).'} end={'g'} numericOnly={true} />
+                  <TextyBox that={this} sample={sample} field={'weightDry'} label={'Dry Weight'} helperText={'Record the weight after drying (~105°).'} end={'g'} numericOnly={true} dp={1} />
                 </div>
                 <div className={classes.spacerSmall} />
                 <div className={classes.formInputMedium}>
-                  <TextyBox that={this} sample={sample} field={'weightAshed'} label={'Ashed Weight'} helperText={'Record the weight after ashing (~400°).'} end={'g'} numericOnly={true} />
+                  <TextyBox that={this} sample={sample} field={'weightAshed'} label={'Ashed Weight'} helperText={'Record the weight after ashing (~400°).'} end={'g'} numericOnly={true} dp={1} />
                 </div>
               </div>
 

@@ -77,9 +77,13 @@ export const mapsAreEqual = (res1, res2) => {
   return res;
 }
 
-export const numericAndLessThanOnly = num => {
+export const numericAndLessThanOnly = (num, dp) => {
   if (num) {
     let str = num.replace(/[^$0-9.<]/,'');
+    if (dp) {
+      if (num.charAt(0) === '<') str = `<${parseFloat(str.slice(1)).toFixed(dp)}`
+      else str = parseFloat(str).toFixed(dp).toString();
+    }
     if (num.charAt(0) === '.') return `0${str}`;
     if (num.charAt(0) === '<' && num.charAt(1) === '.') return `<0${str.slice(1)}`;
     else return str;

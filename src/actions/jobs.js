@@ -4,6 +4,7 @@ import {
   SET_MODAL_ERROR,
   SAVE_WFM_STATS,
   SAVE_WFM_ITEMS,
+  CLEAR_WFM_JOB,
   GET_GEOCODES,
   ADD_TO_GEOCODES,
   GET_WFM_JOBS,
@@ -77,9 +78,9 @@ export const fetchWFMJobs = () => async dispatch => {
       json.Response.Jobs.Job.forEach(wfmJob => {
         // console.log(wfmJob);
         let job = {};
-        job.jobNumber = wfmJob.ID ? wfmJob.ID : "No job number";
+        job.jobNumber = wfmJob.ID ? wfmJob.ID : null;
         job.wfmID = wfmJob.InternalID;
-        job.address = wfmJob.Name ? wfmJob.Name : "No address";
+        job.address = wfmJob.Name ? wfmJob.Name : null;
         let i = job.address.length;
         if (i < len) {
           len = i;
@@ -87,48 +88,44 @@ export const fetchWFMJobs = () => async dispatch => {
           //console.log(`${str} (${len})`);
         }
 
-        job.description = wfmJob.Description
-          ? wfmJob.Description
-          : "No description";
+        job.description = wfmJob.Description ? wfmJob.Description : null;
         if (wfmJob.Client) {
           // console.log(wfmJob.Client);
-          job.client = wfmJob.Client.Name
-            ? wfmJob.Client.Name
-            : "No client name";
-          job.clientID = wfmJob.Client.ID ? wfmJob.Client.ID : "No client ID";
-        } else {
-          job.client = "No client name";
-          job.clientID = "No client ID";
+          job.client = wfmJob.Client.Name ? wfmJob.Client.Name : null;
+          job.clientID = wfmJob.Client.ID ? wfmJob.Client.ID : null;
         }
-        job.clientOrderNumber = wfmJob.ClientOrderNumber
-          ? wfmJob.ClientOrderNumber
-          : "No client order number";
+        job.clientOrderNumber = wfmJob.ClientOrderNumber ? wfmJob.ClientOrderNumber : null;
         if (wfmJob.Contact) {
-          job.contact = wfmJob.Contact.Name
-            ? wfmJob.Contact.Name
-            : "No contact name";
-          job.contactID = wfmJob.Contact.ID
-            ? wfmJob.Contact.ID
-            : "No contact ID";
-        } else {
-          job.contact = "No contact name";
-          job.contactID = "No contact ID";
+          job.contact = wfmJob.Contact.Name ? wfmJob.Contact.Name : null
+          job.contactID = wfmJob.Contact.ID ? wfmJob.Contact.ID : null;
         }
         if (wfmJob.Manager) {
-          job.manager = wfmJob.Manager.Name
-            ? wfmJob.Manager.Name
-            : "No manager name";
-          job.managerID = wfmJob.Manager.ID
-            ? wfmJob.Manager.ID
-            : "No manager ID";
-        } else {
-          job.manager = "No manager name";
-          job.managerID = "No manager ID";
+          job.manager = wfmJob.Manager.Name ? wfmJob.Manager.Name : null;
+          job.managerID = wfmJob.Manager.ID ? wfmJob.Manager.ID : null;
         }
-        job.dueDate = wfmJob.DueDate ? wfmJob.DueDate : "";
-        job.startDate = wfmJob.StartDate ? wfmJob.StartDate : "";
-        job.wfmState = wfmJob.State ? wfmJob.State : "Unknown state";
-        job.wfmType = wfmJob.Type ? wfmJob.Type : "Other";
+        if (wfmJob.Assigned.Staff) {
+          job.assigned = [];
+          if (Array.isArray(wfmJob.Assigned.Staff)) {
+            wfmJob.Assigned.Staff.forEach(wfmAssigned => {
+              let staff = {};
+              staff.id = wfmAssigned.ID;
+              staff.name = wfmAssigned.Name;
+              job.assigned.push(staff);
+            });
+          } else {
+            job.assigned = [
+              {
+                id: wfmJob.Assigned.Staff.ID,
+                name: wfmJob.Assigned.Staff.Name,
+              }
+            ];
+          }
+          console.log(job.assigned);
+        }
+        job.dueDate = wfmJob.DueDate ? wfmJob.DueDate : null;
+        job.startDate = wfmJob.StartDate ? wfmJob.StartDate : null;
+        job.wfmState = wfmJob.State ? wfmJob.State : null;
+        job.wfmType = wfmJob.Type ? wfmJob.Type : 'Other';
         jobs.push(job);
       });
       dispatch({
@@ -157,51 +154,26 @@ export const fetchWFMLeads = () => async dispatch => {
       json.Response.Leads.Lead.forEach(wfmLead => {
         let lead = {};
         lead.wfmID = wfmLead.ID;
-        lead.name = wfmLead.Name ? wfmLead.Name : "No name";
-        lead.description = wfmLead.Description
-          ? wfmLead.Description
-          : "No description";
+        lead.name = wfmLead.Name ? wfmLead.Name : null;
+        lead.description = wfmLead.Description ? wfmLead.Description : null;
         lead.value = wfmLead.EstimatedValue ? wfmLead.EstimatedValue : 0;
         if (wfmLead.Client) {
-          lead.client = wfmLead.Client.Name
-            ? wfmLead.Client.Name
-            : "No client name";
-          lead.clientID = wfmLead.Client.ID
-            ? wfmLead.Client.ID
-            : "No client ID";
-        } else {
-          lead.client = "No client name";
-          lead.clientID = "No client ID";
+          lead.client = wfmLead.Client.Name ? wfmLead.Client.Name : null;
+          lead.clientID = wfmLead.Client.ID ? wfmLead.Client.ID : null;
         }
         if (wfmLead.Contact) {
-          lead.contact = wfmLead.Contact.Name
-            ? wfmLead.Contact.Name
-            : "No contact name";
-          lead.contactID = wfmLead.Contact.ID
-            ? wfmLead.Contact.ID
-            : "No contact ID";
-        } else {
-          lead.contact = "No contact name";
-          lead.contactID = "No contact ID";
+          lead.contact = wfmLead.Contact.Name ? wfmLead.Contact.Name : null;
+          lead.contactID = wfmLead.Contact.ID ? wfmLead.Contact.ID : null;
         }
         if (wfmLead.Owner) {
-          lead.owner = wfmLead.Owner.Name
-            ? wfmLead.Owner.Name
-            : "No owner name";
-          lead.ownerID = wfmLead.Owner.ID ? wfmLead.Owner.ID : "No owner ID";
-        } else {
-          lead.manager = "No owner name";
-          lead.managerID = "No owner ID";
+          lead.owner = wfmLead.Owner.Name ? wfmLead.Owner.Name : null;
+          lead.ownerID = wfmLead.Owner.ID ? wfmLead.Owner.ID : null;
         }
-        lead.date = wfmLead.Date ? wfmLead.Date : "";
-        lead.dateWonLost = wfmLead.DateWonLost ? wfmLead.DateWonLost : "";
-        if (typeof wfmLead.Category !== "object") {
-          lead.category = wfmLead.Category;
-        } else {
-          lead.category = "Other";
-        }
+        let assigned = { [lead.ownerID]: true };
+        lead.date = wfmLead.Date ? wfmLead.Date : null;
+        lead.dateWonLost = wfmLead.DateWonLost ? wfmLead.DateWonLost : null;
+        lead.category = (typeof wfmLead.Category !== "object") ? wfmLead.Category : 'Other';
         if (wfmLead.Activities.Activity) {
-          // //console.log(wfmLead.Activities);
           lead.activities = [];
           if (Array.isArray(wfmLead.Activities.Activity)) {
             wfmLead.Activities.Activity.forEach(wfmActivity => {
@@ -212,12 +184,15 @@ export const fetchWFMLeads = () => async dispatch => {
               if (wfmActivity.Responsible) {
                 activity.responsible = wfmActivity.Responsible.Name;
                 activity.responsibleID = wfmActivity.Responsible.ID;
+                assigned[activity.responsibleID] = true;
               } else {
-                activity.responsible = "No one assigned to this task.";
+                activity.responsible = null;
+                activity.responsibleID = null;
               }
               lead.activities.push(activity);
             });
           } else {
+            if (wfmLead.Activities.Activity.Responsible) assigned[wfmLead.Activities.Activity.Responsible.ID] = true;
             lead.activities = [
               {
                 date: wfmLead.Activities.Activity.Date,
@@ -225,13 +200,15 @@ export const fetchWFMLeads = () => async dispatch => {
                 complete: wfmLead.Activities.Activity.Completed,
                 responsible: wfmLead.Activities.Activity.Responsible
                   ? wfmLead.Activities.Activity.Responsible.Name
-                  : "No one assigned",
+                  : null,
                 responsibleID: wfmLead.Activities.Activity.Responsible
                   ? wfmLead.Activities.Activity.Responsible.ID
-                  : "No one assigned"
+                  : null,
               }
             ];
           }
+          if (Object.keys(assigned).length > 0) lead.assigned = Object.keys(assigned);
+          console.log(lead.assigned);
         } else {
           lead.activities = [];
         }
@@ -311,12 +288,18 @@ export const fetchWFMClients = () => async dispatch => {
     });
 };
 
+export const clearWfmJob = () => async dispatch => {
+  dispatch({
+    type: CLEAR_WFM_JOB,
+  })
+}
+
 export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
   console.log(jobNumber);
   sendSlackMessage(`${auth.currentUser.displayName} ran getDetailedWFMJob`);
   let path = `${
     process.env.REACT_APP_WFM_ROOT
-  }job.api/get/${jobNumber}?apiKey=${
+  }job.api/get/${jobNumber.trim()}?apiKey=${
     process.env.REACT_APP_WFM_API
   }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   // console.log(path);
@@ -332,7 +315,9 @@ export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
         });
       } else {
         let wfmJob = json.Response.Job;
-        let job = {};
+        let job = {
+          isJob: true,
+        };
         //console.log(wfmJob);
         job.jobNumber = wfmJob.ID ? wfmJob.ID : "No job number";
         job.address = wfmJob.Name ? wfmJob.Name : "No address";
@@ -378,7 +363,7 @@ export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
                     postalCountry: client.PostalCountry === Object(client.PostalCountry) ? null : titleCase(client.PostalCountry.toString().trim()),
                     phone: client.Phone === Object(client.Phone) ? null : client.Phone.toString().replace('-',' ').trim(),
                   }
-                  console.log(job.clientDetails);
+                  // console.log(job.clientDetails);
                   dispatch({
                     type: GET_WFM_JOB,
                     payload: job
@@ -417,7 +402,7 @@ export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
                 } else {
                   let contact = json.Response.Contact;
                   let wfmContact = {};
-                  console.log(contact);
+                  // console.log(contact);
                   job.contact = {
                     wfmID: contactID,
                     name: contact.Name ? contact.Name.toString().trim() : '',
@@ -467,27 +452,77 @@ export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
         job.wfmType = wfmJob.Type ? wfmJob.Type : "Other";
         job.wfmID = wfmJob.InternalID;
         if (wfmJob.Milestones.Milestone) {
-          console.log(wfmJob.Milestones);
           job.milestones = [];
           if (Array.isArray(wfmJob.Milestones.Milestone)) {
             wfmJob.Milestones.Milestone.forEach(wfmMilestone => {
               let milestone = {};
+              milestone.id = wfmMilestone.ID;
               milestone.date = wfmMilestone.Date;
               milestone.description = wfmMilestone.Description;
+              milestone.folder = wfmMilestone.Folder
               milestone.completed = wfmMilestone.Completed;
               job.milestones.push(milestone);
             });
           } else {
             job.milestones = [
               {
+                id: wfmJob.Milestones.Milestone.ID,
                 date: wfmJob.Milestones.Milestone.Date,
                 description: wfmJob.Milestones.Milestone.Description,
+                folder: wfmJob.Milestones.Milestone.Folder,
                 complete: wfmJob.Milestones.Milestone.Completed,
               }
             ];
           }
-        } else {
-          job.milestones = [];
+        }
+        if (wfmJob.Notes.Note) {
+          console.log(wfmJob.Notes);
+          job.notes = [];
+          if (Array.isArray(wfmJob.Notes.Note)) {
+            wfmJob.Notes.Note.forEach(wfmNote => {
+              let note = {};
+              note.id = wfmNote.ID;
+              note.date = wfmNote.Date;
+              note.createdBy = wfmNote.CreatedBy;
+              note.text = wfmNote.Text;
+              note.title = wfmNote.Title;
+              note.comments = wfmNote.Comments;
+              note.folder = wfmNote.Folder;
+              job.notes.push(note);
+            });
+          } else {
+            job.notes = [
+              {
+                id: wfmJob.Notes.Note.ID,
+                date: wfmJob.Notes.Note.Date,
+                createdBy: wfmJob.Notes.Note.CreatedBy,
+                text: wfmJob.Notes.Note.Text,
+                title: wfmJob.Notes.Note.Title,
+                comments: wfmJob.Notes.Note.Comments,
+                folder: wfmJob.Notes.Note.Folder,
+              }
+            ];
+          }
+        }
+        if (wfmJob.Assigned.Staff) {
+          console.log(wfmJob.Assigned);
+          job.assigned = [];
+          if (Array.isArray(wfmJob.Assigned.Staff)) {
+            wfmJob.Assigned.Staff.forEach(wfmAssigned => {
+              let staff = {};
+              console.log(wfmAssigned.ID);
+              staff.id = wfmAssigned.ID;
+              staff.name = wfmAssigned.Name;
+              job.assigned.push(staff);
+            });
+          } else {
+            job.assigned = [
+              {
+                id: wfmJob.Assigned.Staff.ID,
+                name: wfmJob.Assigned.Staff.Name,
+              }
+            ];
+          }
         }
         if (createUid) {
           let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${moment().format('x')}`;
@@ -497,7 +532,7 @@ export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
             payload: { 'uid': uid }
           });
         }
-        console.log(job);
+        // console.log(job);
         dispatch({
           type: GET_WFM_JOB,
           payload: job
@@ -1247,6 +1282,8 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
     var mappedJob = currentJobState[job.wfmID];
     delete currentJobStateCopy[job.wfmID];
     if (mappedJob !== undefined) {
+      if (job.managerID) mappedJob.ownerID = job.managerID;
+      if (job.assigned) mappedJob.assigned = job.assigned;
       if (mappedJob.nextActionType !== undefined) delete mappedJob.nextActionType;
       if (mappedJob.nextActionDate !== undefined) delete mappedJob.nextActionDate;
       if (mappedJob.nextActionOverdueBy !== undefined) delete mappedJob.nextActionOverdueBy;
@@ -1326,7 +1363,9 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       newJob.clientID = job.clientID;
       newJob.name = job.address;
       newJob.owner = job.manager;
+      newJob.ownerID = job.managerID;
       newJob.jobNumber = job.jobNumber;
+      newJob.assigned = job.assigned ? job.assigned : null;
       newJob.creationDate = today;
       newJob.category = job.wfmType;
       // lead.currentStatus = job.currentStatus;
@@ -1395,6 +1434,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       // //console.log('Making new job: ' + wfmLead['wfmID']);
       lead = {};
       lead.wfmID = wfmLead.wfmID;
+      lead.assigned = wfmLead.assigned;
       lead.client = wfmLead.client;
       lead.clientID = wfmLead.clientID;
       lead.name = wfmLead.name;
@@ -1478,7 +1518,7 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
     mappedJobs[job.wfmID] = job;
   });
 
-  console.log(mappedJobs);
+  // console.log(mappedJobs);
 
   dispatch({
     type: GET_JOB_LIST,

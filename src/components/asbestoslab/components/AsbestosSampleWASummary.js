@@ -18,6 +18,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import TextyBox from "../../../widgets/TextyBox";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 // import AsbestosSampleWASubfraction from './AsbestosSampleWASubfraction';
@@ -117,13 +118,14 @@ class AsbestosSampleWASummary extends React.Component {
           <Grid item xs={2} className={classes.firstColumn}>Received Weight</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.weightReceived ? `${sample.weightReceived}g` : `N/A` : SamplesTextyBox(that, sample, 'weightReceived', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.weightReceived ? `${sample.weightReceived}g` : `N/A` : <TextyBox that={that} sample={sample} field={'weightReceived'} end={'g'} numericOnly={true} dp={1} />}
             </div>
           </Grid>
           <Grid item xs={2} className={classes.firstColumn}>{`> 7mm`}</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractiongt7WeightAshed', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : `N/A` :
+              <TextyBox that={that} sample={sample} base='waSoilAnalysis' field='fractiongt7WeightAshed' end={'g'} numericOnly={true} dp={1} />}
             </div>
           </Grid>
         </Grid>
@@ -137,13 +139,14 @@ class AsbestosSampleWASummary extends React.Component {
           <Grid item xs={2} className={classes.firstColumn}>Dry Weight</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.weightDry ? `${sample.weightDry}g` : `N/A` : SamplesTextyBox(that, sample, 'weightDry', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.weightDry ? `${sample.weightDry}g` : `N/A` : <TextyBox that={that} sample={sample} field={'weightDry'} end={'g'} numericOnly={true} dp={1} />}
             </div>
           </Grid>
           <Grid item xs={2} className={classes.firstColumn}>{`2 - 7mm`}</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionto7WeightAshed', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : `N/A` :
+              <TextyBox that={that} sample={sample} base='waSoilAnalysis' field='fractionto7WeightAshed' end={'g'} numericOnly={true} dp={1} />}
             </div>
           </Grid>
         </Grid>
@@ -168,13 +171,14 @@ class AsbestosSampleWASummary extends React.Component {
           <Grid item xs={2} className={classes.firstColumn}>Ashed Weight</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.weightAshed ? `${sample.weightAshed}g` : `N/A` : SamplesTextyBox(that, sample, 'weightAshed', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.weightAshed ? `${sample.weightAshed}g` : `N/A` : <TextyBox that={that} sample={sample} field={'weightAshed'} end={'g'} numericOnly={true} dp={1} />}
             </div>
           </Grid>
           <Grid item xs={2} className={classes.firstColumn}>{`< 2mm`}</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : `N/A` : SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshed', null, null, false, 0, 'g', null, true)}
+              {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : `N/A` :
+              <TextyBox that={that} sample={sample} base='waSoilAnalysis' field='fractionlt2WeightAshed' end={'g'} numericOnly={true} dp={1} />}
             </div>
           </Grid>
         </Grid>
@@ -186,14 +190,15 @@ class AsbestosSampleWASummary extends React.Component {
           <Grid item xs={2} className={classes.firstColumn}>Subsample Weight</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
-              {noEdit ? sample.weightSubsample ? `${sample.weightSubsample}g` : `N/A` : SamplesTextyBox(that, sample, 'weightSubsample', null, `Record the weight of the subsample before drying (if the whole sample isn't analysed)`, false, 0, 'g', null, true)}
+              {noEdit ? sample.weightSubsample ? `${sample.weightSubsample}g` : `N/A` :
+              <TextyBox that={that} sample={sample} field='weightSubsample' helperText="Record the weight of the subsample before drying (if the whole sample isn't analysed" end={'g'} numericOnly={true} dp={1} />}
             </div>
           </Grid>
           <Grid item xs={2} className={classes.firstColumn}>{`< 2mm Subsample`}</Grid>
           <Grid item xs={2} className={classes.entryRow}>
             <div className={classes.formInputMedium}>
               {noEdit ? sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample ? `${sample.waSoilAnalysis.fractionlt2WeightAshedSubsample}g` : `N/A` :
-              SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshedSubsample', null, `Record the weight of the subsample of the <2mm fraction if applicable. This will multiply the asbestos weights in that fraction according to the proportion analysed.`, false, 0, 'g', null, true)}
+              <TextyBox that={that} sample={sample} base='waSoilAnalysis' field='fractionlt2WeightAshedSubsample' helperText="Record the weight of the subsample of the <2mm fraction if applicable. This will multiply the asbestos weights in that fraction according to the proportion analysed." end={'g'} numericOnly={true} dp={1} />}
             </div>
           </Grid>
         </Grid>

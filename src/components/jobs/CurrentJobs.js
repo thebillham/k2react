@@ -87,6 +87,7 @@ const mapDispatchToProps = dispatch => {
     saveStats: stats => dispatch(saveStats(stats)),
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
+    getDetailedWFMJob: (jobNumber) => dispatch(getDetailedWFMJob(jobNumber, false)),
     collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
@@ -97,6 +98,7 @@ class CurrentJobs extends React.Component {
   };
 
   render() {
+    console.log(this.props.me.wfm_id);
     const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, that, me } = this.props;
     const daysSinceLastJobAction = this.props.otherOptions && this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value ? parseInt(this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value) : 15;
     let loading = jobList && Object.keys(jobList).length == 0;
@@ -126,19 +128,23 @@ class CurrentJobs extends React.Component {
       <div className={classes.marginBottomSmall}>
         <ReactTable
           loading={loading}
+          pageSize={14}
+          pageSizeOptions={[10, 15, 20, 25, 50, 100, 200]}
           style={{
             cursor: 'alias',
           }}
           data={jobs}
           getTdProps={(state, rowInfo, column, instance) => ({
             onClick: () => {
-              if (column.id !== 'watch' && column.id !== 'jobNumber' && column.id !== 'client' && column.id !== 'geocodeAddress') {
-                console.log(getDetailedWFMJob);
-                getDetailedWFMJob(rowInfo.original.jobNumber);
+              if (rowInfo && rowInfo.original && column.id !== 'watch' && column.id !== 'jobNumber' && column.id !== 'client' && column.id !== 'geocodeAddress') {
+                // console.log(getDetailedWFMJob);
+                this.props.getDetailedWFMJob(rowInfo.original.jobNumber);
                 that.setState({ jobModal: rowInfo.original})
               }
-            }
-          })}
+            },
+            style: rowInfo && rowInfo.original && rowInfo.original.assigned && rowInfo.original.assigned.map(e => e.id).includes(this.props.me.wfm_id) ?
+              { background: '#FFFF99', } : {},
+            })}
           defaultSorted={[
             {
               id: 'watch',
@@ -155,7 +161,7 @@ class CurrentJobs extends React.Component {
               Header: '',
               accessor: d => me.watchedJobs && me.watchedJobs.includes(d.jobNumber) ? true : false,
               maxWidth: 50,
-              Cell: c => <IconButton onClick={() => onWatchJob(c.original.jobNumber, me)} className={classes.iconTight}>
+              Cell: c => <IconButton onClick={() => c.original ? onWatchJob(c.original.jobNumber, me) : null} className={classes.iconTight}>
                 {c. value ? <WatchingIcon className={classes.bookmarkIconOn} /> : <NotWatchingIcon className={classes.bookmarkIconOff} />}
                 </IconButton>
           },{

@@ -21,6 +21,7 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import TextyBox from "../../../widgets/TextyBox";
 import Grid from '@material-ui/core/Grid';
 import AsbestosSampleWASubfraction from './AsbestosSampleWASubfraction';
 import AddIcon from '@material-ui/icons/Add';
@@ -110,11 +111,11 @@ class AsbestosSampleWAFraction extends React.Component {
               { fraction === 'lt2' && <div className={classes.flexRow}>
               <div className={classes.spacerMedium} />
               <div className={classes.columnMedSmall}>
-                {SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshed', null, 'Total Fraction Weight', false, 0, 'g', null, true)}
+                <TextyBox that={that} sample={sample} base={'waSoilAnalysis'} field={'fractionlt2WeightAshed'} label={'Total Fraction Weight'} end={'g'} numericOnly={true} dp={1} />
               </div>
               <div className={classes.spacerMedium} />
               <div className={classes.columnMedSmall}>
-                {SamplesTextyBoxAlt(that, sample, 'waSoilAnalysis', 'fractionlt2WeightAshedSubsample', null, 'Weight of Fraction Analysed', false, 0, 'g', null, true)}
+                <TextyBox that={that} sample={sample} base={'waSoilAnalysis'} field={'fractionlt2WeightAshedSubsample'} label={'Weight of Fraction Analysed'} end={'g'} numericOnly={true} dp={1} />
               </div>
               <div className={classes.spacerMedium} />
               {sample.waSoilAnalysis && sample.waSoilAnalysis.fractionlt2WeightAshed && sample.waSoilAnalysis.fractionlt2WeightAshedSubsample &&

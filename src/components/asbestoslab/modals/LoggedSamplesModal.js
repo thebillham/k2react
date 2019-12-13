@@ -13,10 +13,17 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
+import Tooltip from "@material-ui/core/Tooltip";
+import IconButton from "@material-ui/core/IconButton";
+import Tab from "@material-ui/core/Tab";
+import Tabs from "@material-ui/core/Tabs";
 import Grid from "@material-ui/core/Grid";
 import Add from "@material-ui/icons/Add";
 import ConfirmIcon from "@material-ui/icons/ThumbUp";
 import ThumbsDown from "@material-ui/icons/ThumbDown";
+import AddIcon from "@material-ui/icons/Add";
+import ReactTable from 'react-table';
+import 'react-table/react-table.css';
 import { hideModal, showModalSecondary } from "../../../actions/modal";
 import { clearLog, } from "../../../actions/local";
 import { dateOf, milliToDHM, } from '../../../actions/helpers';
@@ -57,40 +64,47 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+const defaultPageSize = 19;
+const dateWidth = 140;
+const personWidth = 150;
+const resultWidth = 120;
+const sampleNumberWidth = 120;
+const categoryWidth = 100;
+const clientWidth = 180;
+const smallWidth = 50;
+
 class LoggedSamplesModal extends React.Component {
   state = {
-    issueLimit: 7,
-    analysisLimit: 7,
-    checkLimit: 7,
-    mode: "issue",
+    tabValue: 0,
+    issueLimit: defaultPageSize,
+    analysisLimit: defaultPageSize,
+    checkLimit: defaultPageSize,
   }
 
   increaseIssueLimit = () => {
-    this.props.fetchAsbestosSampleIssueLogs(this.state.issueLimit + 7);
+    this.props.fetchAsbestosSampleIssueLogs(this.state.issueLimit + defaultPageSize);
     this.setState({
-      issueLimit: this.state.issueLimit + 7,
+      issueLimit: this.state.issueLimit + defaultPageSize,
     })
   }
 
   increaseAnalysisLimit = () => {
-    this.props.fetchAsbestosAnalysisLogs(this.state.analysisLimit + 7);
+    this.props.fetchAsbestosAnalysisLogs(this.state.analysisLimit + defaultPageSize);
     this.setState({
-      analysisLimit: this.state.analysisLimit + 7,
+      analysisLimit: this.state.analysisLimit + defaultPageSize,
     })
   }
 
   increaseChecksLimit = () => {
-    this.props.fetchAsbestosAnalysisLogs(this.state.checkLimit + 7);
+    this.props.fetchAsbestosAnalysisLogs(this.state.checkLimit + defaultPageSize);
     this.setState({
-      checkLimit: this.state.checkLimit + 7,
+      checkLimit: this.state.checkLimit + defaultPageSize,
     })
   }
 
-  switchMode = mode => {
-    this.setState({
-      mode,
-    });
-  }
+  handleTabChange = (event, value) => {
+    this.setState({ tabValue: value });
+  };
 
   loadLogs = () => {
     this.props.fetchAsbestosSampleIssueLogs(this.state.issueLimit);
@@ -100,296 +114,318 @@ class LoggedSamplesModal extends React.Component {
 
   render() {
     const { classes, modalProps, modalType, sampleIssueLogs, asbestosAnalysisLogs, asbestosCheckLogs, } = this.props;
-    return (modalType === ASBESTOS_LOGGED_SAMPLES &&
-      <Dialog
-        open={modalType === ASBESTOS_LOGGED_SAMPLES}
-        onClose={this.props.hideModal}
-        classes={{ paper: classes.minHeightDialog90 }}
-        maxWidth="xl"
-        fullWidth={true}
-        onEnter={this.loadLogs}
-      >
-        {this.state.mode === "issue" ? <DialogTitle>
-          SAMPLE ISSUE LOG
-          <div className={classes.marginTopBottomSmall}>
-            {[
-              {key: "issue", desc: "Samples Issued"},
-              {key: "analysis", desc: "Sample Analysis"},
-              {key: "check", desc: "Quality Control Checks"},
-            ].map(cat => <Button
-              variant="outlined"
-              className={classes.marginRightSmall}
-              color={
-                this.state.mode === cat.key ? "secondary" : "primary"
-              }
-              onClick={() => this.switchMode(cat.key)}
-            >
-              {cat.desc}
-            </Button>)}
-          </div>
-          <div>Showing Logs for the Last {this.state.issueLimit} Days</div>
-          {sampleIssueLogs &&
-            Object.values(sampleIssueLogs).length > 0 && <Grid
-            container
-            style={{ fontWeight: "bold", fontSize: 12, }}
-            spacing={2}
-          >
-            <Grid item xs={1}>Date Issued</Grid>
-            <Grid item xs={1}>Date Received</Grid>
-            <Grid item xs={1}>Sample Number</Grid>
-            <Grid item xs={1}>Client</Grid>
-            <Grid item xs={1}>Address</Grid>
-            <Grid item xs={2}>Sample Description</Grid>
-            <Grid item xs={1}>Material Category</Grid>
-            <Grid item xs={1}>Result</Grid>
-            <Grid item xs={1}>Received Weight</Grid>
-            <Grid item xs={1}>Analyst</Grid>
-            <Grid item xs={1}>Turnaround Time</Grid>
-          </Grid>}
-        </DialogTitle>
-        :
-        this.state.mode === "analysis" ? <DialogTitle>
-          SAMPLE ANALYSIS LOG
-          <div className={classes.marginTopBottomSmall}>
-            {[
-              {key: "issue", desc: "Samples Issued"},
-              {key: "analysis", desc: "Sample Analysis"},
-              {key: "check", desc: "Quality Control Checks"},
-            ].map(cat => <Button
-              variant="outlined"
-              className={classes.marginRightSmall}
-              color={
-                this.state.mode === cat.key ? "secondary" : "primary"
-              }
-              onClick={() => this.switchMode(cat.key)}
-            >
-              {cat.desc}
-            </Button>)}
-          </div>
-          <div>Showing Logs for the Last {this.state.analysisLimit} Days</div>
-          {asbestosAnalysisLogs &&
-            Object.values(asbestosAnalysisLogs).length > 0 && <Grid
-            container
-            style={{ fontWeight: "bold", fontSize: 12, }}
-            spacing={2}
-          >
-            <Grid item xs={1}>Analysis Date</Grid>
-            <Grid item xs={1}>Sample Number</Grid>
-            <Grid item xs={3}>Description</Grid>
-            <Grid item xs={2}>Material Category</Grid>
-            <Grid item xs={1}>Result</Grid>
-            <Grid item xs={1}>Received Weight</Grid>
-            <Grid item xs={1}>Analyst</Grid>
-            <Grid item xs={1}>Turnaround Time</Grid>
-          </Grid>}
-        </DialogTitle> :
-        <DialogTitle>
-          QUALITY CONTROL LOG
-          <div className={classes.marginTopBottomSmall}>
-            {[
-              {key: "issue", desc: "Samples Issued"},
-              {key: "analysis", desc: "Sample Analysis"},
-              {key: "check", desc: "Quality Control Checks"},
-            ].map(cat => <Button
-              className={classes.marginRightSmall}
-              variant="outlined"
-              color={
-                this.state.mode === cat.key ? "secondary" : "primary"
-              }
-              onClick={() => this.switchMode(cat.key)}
-            >
-              {cat.desc}
-            </Button>)}
-          </div>
-          <div>Showing Checks for the Last {this.state.analysisLimit} Days</div>
-          {asbestosCheckLogs &&
-            Object.values(asbestosCheckLogs).length > 0 && <Grid
-            container
-            style={{ fontWeight: "bold", fontSize: 12, }}
-            spacing={2}
-          >
-            <Grid item xs={2}>Check Date</Grid>
-            <Grid item xs={1}>Sample Number</Grid>
-            <Grid item xs={2}>Description</Grid>
-            <Grid item xs={1}>Material Category</Grid>
-            <Grid item xs={1}>Original Result</Grid>
-            <Grid item xs={1}>Check Result</Grid>
-            <Grid item xs={1}>Check OK</Grid>
-            <Grid item xs={1}>Received Weight</Grid>
-            <Grid item xs={1}>Original Analyst</Grid>
-            <Grid item xs={1}>Checked By</Grid>
-          </Grid>}
-        </DialogTitle>
-      }
+      let loadingIssue = sampleIssueLogs && Object.keys(sampleIssueLogs).length + defaultPageSize <= this.state.issueLimit,
+        loadingAnalysis = asbestosAnalysisLogs && Object.keys(asbestosAnalysisLogs).length + defaultPageSize <= this.state.analysisLimit,
+        loadingCheck = asbestosCheckLogs && Object.keys(asbestosCheckLogs).length + defaultPageSize <= this.state.checkLimit;
+    return (
+      modalType === ASBESTOS_LOGGED_SAMPLES &&
+        <Dialog
+          open={modalType === ASBESTOS_LOGGED_SAMPLES}
+          onClose={this.props.hideModal}
+          classes={{ paper: classes.minHeightDialog90 }}
+          maxWidth="xl"
+          fullWidth={true}
+          onEnter={this.loadLogs}
+        >
+        <DialogTitle>Sample Logs</DialogTitle>
         <DialogContent>
-          {this.state.mode === "issue" ?
-            <Grid container direction="column">
-              <Grid item>
-                {sampleIssueLogs ?
-                  Object.values(sampleIssueLogs).length === 0 ?
-                    <div>No logs for this time period.</div>
-                  : Object.values(sampleIssueLogs).map(log => {
-                    return (
-                      <Grid
-                        key={log.uid}
-                        container
-                        className={classes.hoverItemPoint}
-                        spacing={2}
-                        onClick={() => {
-                          this.props.fetchSampleView(log.cocUid, log.sampleUid, log.jobNumber);
-                          this.props.showModalSecondary({
-                            modalType: ASBESTOS_SAMPLE_DETAILS,
-                            modalProps: {
-                              doc: false,
-                              job: false,
-                              cocUid: log.cocUid,
-                              sampleNumber: log.sampleNumber,
-                              noNext: true,
-                            }
-                          });
-                        }}
-                      >
-                        <Grid item xs={1}>
-                          {moment(dateOf(log.issueDate)).format('D MMM YYYY, h:mma')}
-                        </Grid>
-                        <Grid item xs={1}>
-                          {moment(dateOf(log.receivedDate)).format('D MMM YYYY, h:mma')}
-                        </Grid>
-                        <Grid item xs={1}>
-                          {`${log.jobNumber}-${log.sampleNumber}`}{log.version !== undefined && ` (v${log.version})`}
-                        </Grid>
-                        <Grid item xs={1}>
-                          {log.client}
-                        </Grid>
-                        <Grid item xs={1}>
-                          {log.address}
-                        </Grid>
-                        <Grid item xs={2}>
-                          {writeDescription(log)}
-                        </Grid>
-                        <Grid item xs={1}>
-                          {log.category}
-                        </Grid>
-                        <Grid item xs={1}>
-                          {writeShorthandResult(log.result)}
-                        </Grid>
-                        <Grid item xs={1}>
-                          {log.weightReceived && `${log.weightReceived}g`}
-                        </Grid>
-                        <Grid item xs={1}>
-                          {log.analysisBy}
-                        </Grid>
-                        <Grid item xs={1}>
-                          {log.turnaroundTime && milliToDHM(log.turnaroundTime, false, false)}
-                        </Grid>
-                      </Grid>
-                    );
-                  }) : <div>No logs for this time period.</div>}
-                  <Button
-                    className={classes.buttonViewMore}
-                    onClick={this.increaseIssueLimit}>
-                    <Add className={classes.marginRightSmall} /> View More Logs
-                  </Button>
-              </Grid>
-            </Grid>
-          : this.state.mode === "analysis" ?
-            <Grid container direction="column">
-              <Grid item>
-                {asbestosAnalysisLogs ?
-                  Object.values(asbestosAnalysisLogs).length === 0 ?
-                    <div>No logs for this time period.</div>
-                  : Object.values(asbestosAnalysisLogs).map(log => {
-                    return (
-                      <Grid
-                        key={log.uid}
-                        container
-                        className={classes.hoverItemPoint}
-                        spacing={2}
-                        onClick={() => {
-                          this.props.fetchSampleView(log.cocUid, log.sampleUid, log.jobNumber);
-                          this.props.showModalSecondary({
-                            modalType: ASBESTOS_SAMPLE_DETAILS,
-                            modalProps: {
-                              doc: false,
-                              job: false,
-                              cocUid: log.cocUid,
-                              sampleNumber: log.sampleNumber,
-                              noNext: true,
-                            }
-                          });
-                        }}
-                      >
-                        <Grid item xs={1}>{moment(dateOf(log.analysisDate)).format('D MMM YYYY, h:mma')}</Grid>
-                        <Grid item xs={1}>{log.jobNumber && log.sampleNumber && `${log.jobNumber}-${log.sampleNumber}`}</Grid>
-                        <Grid item xs={3}>{writeDescription(log)}</Grid>
-                        <Grid item xs={2}>{log.category ? log.category : ''}</Grid>
-                        <Grid item xs={1}>{writeShorthandResult(log.result)}</Grid>
-                        <Grid item xs={1}>{log.weightReceived ? `${log.weightReceived}g` : ''}</Grid>
-                        <Grid item xs={1}>{log.analyst}</Grid>
-                        <Grid item xs={1}>{log.receivedDate && log.analysisDate && milliToDHM(dateOf(log.analysisDate)-dateOf(log.receivedDate), false, false)}</Grid>
-                      </Grid>
-                    );
-                  })
-                  : <div>No logs for this time period.</div>
+          <div className={classes.flexRowRightAlign}>
+            <Tooltip title="Load More">
+              <IconButton
+                onClick={e => {
+                  this.state.tabValue === 0 && this.increaseIssueLimit();
+                  this.state.tabValue === 1 && this.increaseAnalysisLimit();
+                  this.state.tabValue === 2 && this.increaseChecksLimit();
+                }}>
+                <AddIcon />
+              </IconButton>
+            </Tooltip>
+          </div>
+          <Tabs
+            value={this.state.tabValue}
+            onChange={this.handleTabChange}
+            indicatorColor="secondary"
+            textColor="secondary"
+            centered
+          >
+            <Tab label="Samples Issued" />
+            <Tab label="Sample Analysis" />
+            <Tab label="Quality Control Checks" />
+            {/*<Tab label="Stats" />*/}
+          </Tabs>
+          {this.state.tabValue === 0 &&
+            <ReactTable
+                loading={loadingIssue}
+                pageSize={defaultPageSize}
+                showPageSizeOptions={false}
+                style={{
+                  cursor: 'pointer',
+                }}
+                data={sampleIssueLogs ? Object.values(sampleIssueLogs) : []}
+                getTdProps={(state, rowInfo, column, instance) => ({
+                  onClick: () => {
+                      this.props.fetchSampleView(rowInfo.original.cocUid, rowInfo.original.sampleUid, rowInfo.original.jobNumber);
+                      this.props.showModalSecondary({
+                        modalType: ASBESTOS_SAMPLE_DETAILS,
+                        modalProps: {
+                          doc: false,
+                          job: false,
+                          cocUid: rowInfo.original.cocUid,
+                          sampleNumber: rowInfo.original.sampleNumber,
+                          noNext: true,
+                        }
+                      });
+                    }
+                  }
+                )}
+                defaultSorted={[
+                  {
+                    id: 'dateIssued',
+                    desc: true
+                  },
+                ]}
+                columns={
+                [{
+                  id: 'dateIssued',
+                  Header: 'Date Issued',
+                  accessor: d => d.issueDate,
+                  maxWidth: dateWidth,
+                  Cell: c => c.value !== "" ? moment(dateOf(c.value)).format('D MMM YYYY, h:mma') : ""
+                },{
+                  id: 'dateReceived',
+                  Header: 'Date Received',
+                  accessor: d => d.receivedDate,
+                  maxWidth: dateWidth,
+                  Cell: c => c.value !== "" ? moment(dateOf(c.value)).format('D MMM YYYY, h:mma') : ""
+                },{
+                  id: 'sampleNumber',
+                  Header: 'Sample Number',
+                  accessor: d => `${d.jobNumber}-${d.sampleNumber}${d.version !== undefined && ` (v${d.version})`}`,
+                  maxWidth: sampleNumberWidth,
+                },{
+                  id: 'client',
+                  Header: 'Client',
+                  accessor: d => d.client,
+                  maxWidth: clientWidth,
+                },{
+                  id: 'address',
+                  Header: 'Address',
+                  accessor: d => d.address,
+                },{
+                  id: 'description',
+                  Header: 'Description',
+                  accessor: d => writeDescription(d),
+                },{
+                  id: 'category',
+                  Header: 'Category',
+                  accessor: d => d.category,
+                  maxWidth: categoryWidth,
+                },{
+                  id: 'result',
+                  Header: 'Result',
+                  accessor: d => writeShorthandResult(d.result),
+                  maxWidth: resultWidth,
+                },{
+                  id: 'weightReceived',
+                  Header: 'Weight Received',
+                  accessor: d => d.weightReceived,
+                  maxWidth: smallWidth,
+                  Cell: c => c.value !== "" ? `${c.value}g` : ""
+                },{
+                  id: 'analyst',
+                  Header: 'Analyst',
+                  accessor: d => d.analysisBy,
+                  maxWidth: personWidth,
+                },{
+                  id: 'turnaroundTime',
+                  Header: 'Turnaround Time',
+                  accessor: d => d.turnaroundTime,
+                  maxWidth: smallWidth,
+                  Cell: c => c.value !== "" ? milliToDHM(c.value, false, false) : ""
                 }
-                  <Button
-                    className={classes.buttonViewMore}
-                    onClick={this.increaseAnalysisLimit}>
-                    <Add className={classes.marginRightSmall} /> View More Logs
-                  </Button>
-              </Grid>
-            </Grid> :
-            <Grid container direction="column">
-              <Grid item>
-                {asbestosCheckLogs ?
-                  Object.values(asbestosCheckLogs).length === 0 ?
-                    <div>No logs for this time period.</div>
-                  : Object.values(asbestosCheckLogs).map(log => {
-                    let compare = compareAsbestosResult({result: log.result}, {result: log.originalResult});
-                    return (
-                      <Grid
-                        key={log.uid}
-                        container
-                        className={classes.hoverItemPoint}
-                        spacing={2}
-                        onClick={() => {
-                          if (this.props.cocs === undefined || this.props.cocs[log.cocUid] === undefined) this.props.fetchSampleView(log.cocUid, log.sampleUid, log.jobNumber);
-                          this.props.showModalSecondary({
-                            modalType: ASBESTOS_SAMPLE_DETAILS,
-                            modalProps: {
-                              doc: false,
-                              job: false,
-                              cocUid: log.cocUid,
-                              sampleNumber: log.sampleNumber,
-                              noNext: true,
-                            }
-                          });
-                        }}
-                      >
-                        <Grid item xs={2}>{moment(dateOf(log.checkDate)).format('D MMM YYYY, h:mma')}</Grid>
-                        <Grid item xs={1}>{log.jobNumber && log.sampleNumber && `${log.jobNumber}-${log.sampleNumber}`}</Grid>
-                        <Grid item xs={2}>{writeDescription(log)}</Grid>
-                        <Grid item xs={1}>{log.category ? log.category : ''}</Grid>
-                        <Grid item xs={1}>{writeShorthandResult(log.originalResult)}</Grid>
-                        <Grid item xs={1}>{writeShorthandResult(log.result)}</Grid>
-                        <Grid item xs={1}>{compare === 'no' ? <ThumbsDown className={classes.iconRegularRed} /> : compare === 'differentAsbestos' ?
-                          <ConfirmIcon className={classes.iconRegularOrange} /> : <ConfirmIcon className={classes.iconRegularGreen} />}</Grid>
-                        <Grid item xs={1}>{log.weightReceived ? `${log.weightReceived}g` : ''}</Grid>
-                        <Grid item xs={1}>{log.originalAnalysisBy}</Grid>
-                        <Grid item xs={1}>{log.checker}</Grid>
-                      </Grid>
-                    );
-                  })
-                  : <div>No logs for this time period.</div>
-                }
-                  <Button
-                    className={classes.buttonViewMore}
-                    onClick={this.increaseChecksLimit}>
-                    <Add className={classes.marginRightSmall} /> View More Logs
-                  </Button>
-              </Grid>
-            </Grid>
+                ]}
+                defaultPageSize={25}
+                className="-striped -highlight"
+              />
           }
+          {this.state.tabValue === 1 &&
+            <ReactTable
+                loading={loadingAnalysis}
+                pageSize={defaultPageSize}
+                showPageSizeOptions={false}
+                style={{
+                  cursor: 'pointer',
+                }}
+                data={asbestosAnalysisLogs ? Object.values(asbestosAnalysisLogs) : []}
+                getTdProps={(state, rowInfo, column, instance) => ({
+                  onClick: () => {
+                      this.props.fetchSampleView(rowInfo.original.cocUid, rowInfo.original.sampleUid, rowInfo.original.jobNumber);
+                      this.props.showModalSecondary({
+                        modalType: ASBESTOS_SAMPLE_DETAILS,
+                        modalProps: {
+                          doc: false,
+                          job: false,
+                          cocUid: rowInfo.original.cocUid,
+                          sampleNumber: rowInfo.original.sampleNumber,
+                          noNext: true,
+                        }
+                      });
+                    }
+                  }
+                )}
+                defaultSorted={[
+                  {
+                    id: 'analysisDate',
+                    desc: true
+                  },
+                ]}
+                columns={
+                [{
+                  id: 'analysisDate',
+                  Header: 'Analysis Date',
+                  accessor: d => d.analysisDate,
+                  maxWidth: dateWidth,
+                  Cell: c => c.value !== "" ? moment(dateOf(c.value)).format('D MMM YYYY, h:mma') : ""
+                },{
+                  id: 'sampleNumber',
+                  Header: 'Sample Number',
+                  accessor: d => `${d.jobNumber}-${d.sampleNumber}`,
+                  maxWidth: sampleNumberWidth,
+                },{
+                  id: 'description',
+                  Header: 'Description',
+                  accessor: d => writeDescription(d),
+                },{
+                  id: 'category',
+                  Header: 'Category',
+                  accessor: d => d.category,
+                  maxWidth: categoryWidth,
+                },{
+                  id: 'result',
+                  Header: 'Result',
+                  accessor: d => writeShorthandResult(d.result),
+                  maxWidth: resultWidth,
+                },{
+                  id: 'weightReceived',
+                  Header: 'Weight Received',
+                  accessor: d => d.weightReceived,
+                  maxWidth: smallWidth,
+                  Cell: c => c.value !== "" ? `${c.value}g` : ""
+                },{
+                  id: 'analyst',
+                  Header: 'Analyst',
+                  accessor: d => d.analyst,
+                  maxWidth: personWidth,
+                },{
+                  id: 'turnaroundTime',
+                  Header: 'Turnaround Time',
+                  accessor: d => d.receivedDate && d.analysisDate ? milliToDHM(dateOf(d.analysisDate)-dateOf(d.receivedDate), false, false) : '',
+                  maxWidth: smallWidth,
+                }
+                ]}
+                defaultPageSize={25}
+                className="-striped -highlight"
+              />
+          }
+          {this.state.tabValue === 2 &&
+              <ReactTable
+                  loading={loadingCheck}
+                  pageSize={defaultPageSize}
+                  showPageSizeOptions={false}
+                  style={{
+                    cursor: 'pointer',
+                  }}
+                  data={asbestosCheckLogs ? Object.values(asbestosCheckLogs) : []}
+                  getTdProps={(state, rowInfo, column, instance) => ({
+                    onClick: () => {
+                        this.props.fetchSampleView(rowInfo.original.cocUid, rowInfo.original.sampleUid, rowInfo.original.jobNumber);
+                        this.props.showModalSecondary({
+                          modalType: ASBESTOS_SAMPLE_DETAILS,
+                          modalProps: {
+                            doc: false,
+                            job: false,
+                            cocUid: rowInfo.original.cocUid,
+                            sampleNumber: rowInfo.original.sampleNumber,
+                            noNext: true,
+                          }
+                        });
+                      }
+                    }
+                  )}
+                  defaultSorted={[
+                    {
+                      id: 'checkDate',
+                      desc: true
+                    },
+                  ]}
+                  columns={
+                  [{
+                    id: 'checkDate',
+                    Header: 'Check Date',
+                    accessor: d => d.checkDate,
+                    maxWidth: dateWidth,
+                    Cell: c => {
+                      console.log(c.value);
+                      return c.value !== "" ? moment(dateOf(c.value)).format('D MMM YYYY, h:mma') : ""
+                    }
+                  },{
+                    id: 'sampleNumber',
+                    Header: 'Sample Number',
+                    accessor: d => `${d.jobNumber}-${d.sampleNumber}`,
+                    maxWidth: sampleNumberWidth,
+                  },{
+                    id: 'description',
+                    Header: 'Description',
+                    accessor: d => writeDescription(d),
+                  },{
+                    id: 'category',
+                    Header: 'Category',
+                    accessor: d => d.category,
+                    maxWidth: categoryWidth,
+                  },{
+                    id: 'originalResult',
+                    Header: 'Original Result',
+                    accessor: d => writeShorthandResult(d.originalResult),
+                    maxWidth: resultWidth,
+                  },{
+                    id: 'result',
+                    Header: 'Result',
+                    accessor: d => writeShorthandResult(d.result),
+                    maxWidth: resultWidth,
+                  },{
+                    id: 'compare',
+                    Header: '',
+                    accessor: d => {
+                      console.log(d);
+                      console.log(compareAsbestosResult({result: d.result}, {result: d.originalResult}));
+                      return compareAsbestosResult({result: d.result}, {result: d.originalResult});
+                    },
+                    maxWidth: smallWidth,
+                    Cell: c => c.value === 'no' ? <ThumbsDown className={classes.iconRegularRed} /> :
+                      c.value === 'differentAsbestos' ? <ConfirmIcon className={classes.iconRegularOrange} /> :
+                      <ConfirmIcon className={classes.iconRegularGreen} />
+                  },{
+                    id: 'weightReceived',
+                    Header: 'Weight Received',
+                    accessor: d => d.weightReceived,
+                    maxWidth: smallWidth,
+                    Cell: c => c.value !== "" ? `${c.value}g` : ""
+                  },{
+                    id: 'originalAnalysisBy',
+                    Header: 'Original Analyst',
+                    accessor: d => d.originalAnalysisBy,
+                    maxWidth: personWidth,
+                  },{
+                    id: 'checker',
+                    Header: 'Checker',
+                    accessor: d => d.checker,
+                    maxWidth: personWidth,
+                  },
+                  ]}
+                  defaultPageSize={25}
+                  className="-striped -highlight"
+                />
+            }
         </DialogContent>
         <DialogActions>
           <Button
@@ -402,7 +438,7 @@ class LoggedSamplesModal extends React.Component {
           </Button>
         </DialogActions>
       </Dialog>
-    );
+    )
   }
 }
 

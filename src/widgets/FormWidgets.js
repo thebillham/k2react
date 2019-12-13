@@ -230,7 +230,7 @@ export const SampleTextyBox = (that, sample, field, label, helperText, multiline
   />);
 };
 
-export const SamplesTextyBox = (that, sample, field, label, helperText, multiline, rows, end, start, numericOnly) => {
+export const SamplesTextyBox = (that, sample, field, label, helperText, multiline, rows, end, start, numericOnly, dp) => {
   return(<TextField
     id={field}
     value={sample[field] ? sample[field] : ''}
@@ -249,7 +249,7 @@ export const SamplesTextyBox = (that, sample, field, label, helperText, multilin
           ...that.state.samples,
           [sample.sampleNumber]: {
             ...sample,
-            [field]: numericOnly ? numericAndLessThanOnly(e.target.value) : e.target.value,
+            [field]: numericOnly ? numericAndLessThanOnly(e.target.value, dp) : e.target.value,
           },
         },
       });
@@ -257,7 +257,7 @@ export const SamplesTextyBox = (that, sample, field, label, helperText, multilin
   />);
 };
 
-export const SamplesTextyBoxAlt = (that, sample, base, field, label, helperText, multiline, rows, end, start, numericOnly) => {
+export const SamplesTextyBoxAlt = (that, sample, base, field, label, helperText, multiline, rows, end, start, numericOnly, dp) => {
   return(<TextField
     id={field}
     value={sample[base] && sample[base][field] ? sample[base][field] : ''}
@@ -278,7 +278,7 @@ export const SamplesTextyBoxAlt = (that, sample, base, field, label, helperText,
             ...sample,
             [base]: {
               ...sample[base],
-              [field]: numericOnly ? numericAndLessThanOnly(e.target.value) : e.target.value,
+              [field]: numericOnly ? numericAndLessThanOnly(e.target.value, dp) : e.target.value,
             },
           },
         },

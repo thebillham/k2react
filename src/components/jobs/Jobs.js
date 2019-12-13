@@ -32,6 +32,7 @@ import {
   dateOf,
   getDaysSinceDate,
   getDaysSinceDateAgo,
+  andList,
 } from "../../actions/helpers";
 
 import moment from 'moment';
@@ -42,6 +43,7 @@ import {
   fetchWFMClients,
   fetchCurrentJobState,
   saveCurrentJobState,
+  clearWfmJob,
   saveWFMItems,
   saveGeocodes,
   fetchGeocodes,
@@ -91,6 +93,7 @@ const mapDispatchToProps = dispatch => {
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
     fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
+    clearWfmJob: () => dispatch(clearWfmJob()),
     saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
     saveGeocodes: g => dispatch(saveGeocodes(g)),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
@@ -153,6 +156,7 @@ class Jobs extends React.Component {
   getJobDetails = (m, noButton) => {
     const classes = this.props.classes;
     const color = classes[getJobColor(m.category)];
+    let maxLength = this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength").length > 0 ? parseInt(this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength")[0].value) : 600;
     console.log(m);
     return (
       <div className={classes.popupMap}>
@@ -187,9 +191,13 @@ class Jobs extends React.Component {
         <div>
           <b>Owner:</b> {m.owner}
         </div>
-
         {m.isJob ? (
           <div>
+            {m.assigned &&
+              <div>
+                <b> Assigned: </b> {andList(m.assigned.map(e => e.name))}
+              </div>
+            }
             {m.lastActionDate && m.wfmState !== "Completed" && (
               <div>
                 {m.wfmState && (<span><b>Last Action:</b> {getStateString(m)} </span>)}
@@ -206,6 +214,43 @@ class Jobs extends React.Component {
                 })}
               </div>
             )}
+            {m.milestones && m.milestones.length > 0 && (
+            <div><br /><h6 className={color}>Milestones</h6>
+            {
+              m.milestones.map((item) => {
+                if(item.completed === 'true') {
+                  return (
+                    <span key={item.date} className={classes.linethrough}>
+                      <b>{moment(item.date).format('YYYY-MM-DD')}:</b> {item.description}
+                      <br/>
+                    </span>
+                  )
+                } else {
+                  return (
+                    <span key={item.date}>
+                      <b>{moment(item.date).format('YYYY-MM-DD')}:</b> {item.description}
+                      <br/>
+                    </span>
+                  )
+                }
+              })
+            }
+          </div>
+          )}
+
+            {m.notes && m.notes.length > 0 && (
+            <div><br /><h6 className={color}>Notes</h6>
+            {
+              m.notes.map((item) =>
+              <div key={moment(dateOf(item.date)).format('x')}>
+                <div><b>{moment(dateOf(item.date)).format('YYYY-MM-DD')}</b> {item.title} - {item.createdBy}</div>
+                {item.text && <div className={classes.code}>
+                  {item.text.length > maxLength ? `${item.text.substring(maxLength)}...` : item.text}
+                </div>}
+              </div>)
+            }
+          </div>
+          )}
           </div>
           ) : (
           <div>
@@ -318,7 +363,10 @@ class Jobs extends React.Component {
     const jobModal = (
       <Dialog
         open={this.state.jobModal !== null}
-        onClose={() => this.setState({ jobModal: null })}
+        onClose={() => {
+          if (this.props.wfmJob) this.props.clearWfmJob();
+          this.setState({ jobModal: null })
+        }}
       >
         <DialogTitle>
           {this.state.jobModal ? (
@@ -327,7 +375,7 @@ class Jobs extends React.Component {
             </div>) : "Job Details"}
         </DialogTitle>
         <DialogContent>
-          {this.state.jobModal && this.getJobDetails(this.state.jobModal.isJob && this.props.wfmJob ? this.props.wfmJob : this.state.jobModal)}
+          {this.state.jobModal && this.getJobDetails(this.state.jobModal.isJob && this.props.wfmJob ? {...this.props.wfmJob, ...this.state.jobModal} : this.state.jobModal)}
         </DialogContent>
       </Dialog>
     );
@@ -361,7 +409,6 @@ class Jobs extends React.Component {
         {this.state.tabValue === 0 && <Leads that={this} />}
         {this.state.tabValue === 1 && <CurrentJobs that={this} />}
         {this.state.tabValue === 2 && <JobMap that={this} />}
-        {/*this.state.tabValue === 3 && <JobStats that={this} />*/}
       </div>
     );
   }
