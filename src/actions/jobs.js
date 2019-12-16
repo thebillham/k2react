@@ -120,7 +120,7 @@ export const fetchWFMJobs = () => async dispatch => {
               }
             ];
           }
-          console.log(job.assigned);
+          // console.log(job.assigned);
         }
         job.dueDate = wfmJob.DueDate ? wfmJob.DueDate : null;
         job.startDate = wfmJob.StartDate ? wfmJob.StartDate : null;
@@ -1282,8 +1282,8 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
     var mappedJob = currentJobState[job.wfmID];
     delete currentJobStateCopy[job.wfmID];
     if (mappedJob !== undefined) {
-      if (job.managerID) mappedJob.ownerID = job.managerID;
-      if (job.assigned) mappedJob.assigned = job.assigned;
+      mappedJob.ownerID = job.managerID ? job.managerID : null;
+      mappedJob.assigned = job.assigned ? job.assigned : null;
       if (mappedJob.nextActionType !== undefined) delete mappedJob.nextActionType;
       if (mappedJob.nextActionDate !== undefined) delete mappedJob.nextActionDate;
       if (mappedJob.nextActionOverdueBy !== undefined) delete mappedJob.nextActionOverdueBy;
@@ -1362,8 +1362,8 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       newJob.client = job.client;
       newJob.clientID = job.clientID;
       newJob.name = job.address;
-      newJob.owner = job.manager;
-      newJob.ownerID = job.managerID;
+      newJob.owner = job.manager ? job.manager : null;
+      newJob.ownerID = job.managerID ? job.managerID : null;
       newJob.jobNumber = job.jobNumber;
       newJob.assigned = job.assigned ? job.assigned : null;
       newJob.creationDate = today;
@@ -1434,12 +1434,12 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       // //console.log('Making new job: ' + wfmLead['wfmID']);
       lead = {};
       lead.wfmID = wfmLead.wfmID;
-      lead.assigned = wfmLead.assigned;
+      lead.assigned = wfmLead.assigned ? wfmLead.assigned : null;
       lead.client = wfmLead.client;
       lead.clientID = wfmLead.clientID;
       lead.name = wfmLead.name;
       lead.description = wfmLead.description;
-      lead.owner = wfmLead.owner;
+      lead.owner = wfmLead.owner ? wfmLead.owner : null;
       lead.jobNumber = "Lead";
       lead.creationDate = wfmLead.date;
       lead.category = wfmLead.category;
@@ -1950,8 +1950,8 @@ export const averageStaffStat = (value, average) => {
   return average;
 };
 
-export const getDefaultLetterAddress = doc => {
-  console.log(doc);
+export const getDefaultLetterAddress = (doc) => {
+  // console.log(doc);
   if (doc) {
     if (doc.coverLetterAddress) return doc.coverLetterAddress;
     if (!doc.contact && !doc.clientDetails) {

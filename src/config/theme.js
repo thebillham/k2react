@@ -27,7 +27,7 @@ const palette = {
     warning: 'orange',
     warningText: 'black',
     ok: 'lightgreen',
-    okText: 'green',
+    okText: 'darkgreen',
     benign: 'lightblue',
     benignText: 'blue',
     off: 'white',

@@ -24,7 +24,7 @@ import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 import { toggleDoNotRender } from "./display";
-import { sendSlackMessage, writeDates, andList, dateOf, milliToDHM, } from "./helpers";
+import { sendSlackMessage, writeDates, andList, dateOf, milliToDHM, writeMeasurement } from "./helpers";
 import { getDefaultLetterAddress, } from "./jobs";
 import {
   asbestosSamplesRef,
@@ -461,7 +461,7 @@ export const toggleWAAnalysis = (job, me) => {
 
 
 export const handleSampleChange = (number, changes) => dispatch => {
-  console.log(changes);
+  // console.log(changes);
   dispatch({
     type: EDIT_MODAL_SAMPLE,
     payload: {
@@ -2121,7 +2121,7 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeReportDescription(sample);
         sampleMap["category"] = getSampleCategory(sample);
-        sampleMap["weightReceived"] = sample.weightReceived ? `${sample.weightReceived}g` : 'N/A';
+        sampleMap["weightReceived"] = writeMeasurement(sample.weightReceived, 1, null, 'g');
         sampleMap["result"] = writeResult(sample.result, sample.noAsbestosResultReason);
         sampleMap["checks"] = writeChecks(sample);
         sampleMap["footnote"] = sample.footnote ? sample.footnote : false;
@@ -2131,14 +2131,14 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
           sampleMap["simpleDescription"] = writeSimpleDescription(sample);
           sampleMap["simpleResult"] = writeSimpleResult(sample.result, sample.noAsbestosResultReason);
           sampleMap["formDescription"] = sample.waSoilAnalysis.formDescription ? sample.waSoilAnalysis.formDescription : 'N/A';
-          sampleMap["weightSubsample"] = sample.weightSubsample ? `${sample.weightSubsample}g` : 'N/A';
-          sampleMap["weightDry"] = sample.weightDry ? `${sample.weightDry}g` : 'N/A';
-          sampleMap["weightAshed"] = sample.weightAshed ? `${sample.weightAshed}g` : 'N/A';
+          sampleMap["weightSubsample"] = writeMeasurement(sample.weightSubsample, 1, null, 'g');
+          sampleMap["weightDry"] = writeMeasurement(sample.weightDry, 1, null, 'g');
+          sampleMap["weightAshed"] = writeMeasurement(sample.weightAshed, 1, null, 'g');
           sampleMap["moisture"] = writeSampleMoisture(sample) ? `${writeSampleMoisture(sample)}%` : 'N/A';
-          sampleMap["weightAshedGt7"] = sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : 'N/A';
-          sampleMap["weightAshedTo7"] = sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : 'N/A';
-          sampleMap["weightAshedLt2"] = sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : 'N/A';
-          sampleMap["weightAshedLt2Subsample"] = sample.waSoilAnalysis.fractionlt2WeightAshedSubsample ? `${sample.waSoilAnalysis.fractionlt2WeightAshedSubsample}g` : 'N/A';
+          sampleMap["weightAshedGt7"] = writeMeasurement(sample.waSoilAnalysis.fractiongt7WeightAshed, 1, null, 'g');
+          sampleMap["weightAshedTo7"] = writeMeasurement(sample.waSoilAnalysis.fractionto7WeightAshed, 1, null, 'g');
+          sampleMap["weightAshedLt2"] = writeMeasurement(sample.waSoilAnalysis.fractionlt2WeightAshed, 1, null, 'g');
+          sampleMap["weightAshedLt2Subsample"] = writeMeasurement(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample, 1, null, 'g');
 
           let waTotals = getWATotalDetails(sample, job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01);
           sampleMap["concentrationACM"] = waTotals.concentration.acm ? `${waTotals.concentration.acm}%` : 'N/A';

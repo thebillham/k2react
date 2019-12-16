@@ -182,17 +182,6 @@ export default function modalReducer(state = modalInit, action) {
           }
         }
       };
-    // case EDIT_MODAL_SAMPLE:
-    //   return {
-    //     ...state,
-    //     modalProps: {
-    //       ...state.modalProps,
-    //       [`sample${action.payload.number}`]: {
-    //         ...state[`sample${action.payload.number}`],
-    //         ...action.payload.changes,
-    //       }
-    //     }
-    //   };
     case EDIT_MODAL:
       return {
         ...state,

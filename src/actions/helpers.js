@@ -288,3 +288,26 @@ export const sendSlackMessage = (message, json) => {
     body: JSON.stringify(text)
   });
 };
+
+export const writeMeasurement = (value, decimal, sigfig, symbol, notFound) => {
+  if (value) {
+    let prefix = '';
+    let v = value;
+    if (isNaN(v[0])) {
+      prefix = v[0];
+      v = v.slice(1);
+    }
+    v = parseFloat(v);
+    if (isNaN(v)) {
+      if (notFound) return notFound;
+      else return 'N/A';
+    }
+    if (sigfig) v = v.toPrecision(parseInt(sigfig));
+    else if (decimal) v = v.toFixed(parseInt(decimal));
+    if (symbol) return `${prefix}${v}${symbol}`;
+    else return `${prefix}${v}`;
+  } else {
+    if (notFound) return notFound;
+    return 'N/A';
+  }
+}
