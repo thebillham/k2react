@@ -20,6 +20,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
 import MenuItem from '@material-ui/core/MenuItem';
 import Checkbox from '@material-ui/core/Checkbox';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from "@material-ui/core/Switch";
 import FormControl from '@material-ui/core/FormControl';
@@ -105,7 +106,7 @@ const mapDispatchToProps = dispatch => {
     showModalSecondary: modal => dispatch(showModalSecondary(modal)),
     getDetailedWFMJob: (jobNumber, createUid) => dispatch(getDetailedWFMJob(jobNumber, createUid)),
     resetWfmJob: () => dispatch(resetWfmJob()),
-    fetchSamples: (cocUid, jobNumber, modal ) => dispatch(fetchSamples(cocUid, jobNumber, modal )),
+    fetchSamples: (cocUid, jobNumber, modal, airSamples ) => dispatch(fetchSamples(cocUid, jobNumber, modal, airSamples )),
     resetModal: () => dispatch(resetModal()),
   };
 };
@@ -211,7 +212,7 @@ class CocModal extends React.PureComponent {
       this.props.getDetailedWFMJob(jobNumber, isNewCoc);
       let uid = this.props.doc.uid;
       // //console.log('wfmsync fetch samples');
-      this.props.fetchSamples(uid, jobNumber, true);
+      this.props.fetchSamples(uid, jobNumber, true, this.state.sampleType === "air");
       this.setState({ modified: true });
     }
   }
@@ -242,7 +243,8 @@ class CocModal extends React.PureComponent {
       if (blockInput !== false) blockInput = true;
       let noSamples = true;
       if (doc && doc.samples) Object.values(doc.samples).forEach(s => {
-        if (!s.deleted && (s.description || s.material || s.specificLocation || s.genericLocation)) noSamples = false;
+        if (this.state.sampleType === "bulk" && !s.deleted && (s.description || s.material || s.specificLocation || s.genericLocation)) noSamples = false;
+        else if (this.state.sampleType === "bulk" && !s.deleted && s.initialFlowRate && s.finalFlowRate && s.startTime && (s.endTime || s.totalRunTime)) noSamples = false;
       });
       // console.log(names.map(e => ({ value: e.uid, label: e.name })));
 
@@ -592,26 +594,32 @@ class CocModal extends React.PureComponent {
                       <div className={classNames(classes.flexRow, classes.headingInline)}>
                         <div className={classes.spacerSmall} />
                         <div className={classes.columnSmall} />
-                        <div className={classes.columnMedLarge}>
+                        <div className={classes.columnMed}>
                           Location
                         </div>
                         <div className={classes.columnSmall} />
-                        <div className={classes.columnTripleSmall}>
+                        <div className={classes.columnDoubleSmall}>
                           Flow Rates (mL/min)
                         </div>
-                        <div className={classes.columnSmall}/>
-                        <div className={classes.columnTripleMedSmall}>
+                        <div className={classes.spacerSmall} />
+                        <div className={classes.columnMedSmall}>
+                          Average Rate
+                        </div>
+                        <div className={classes.columnDoubleMedSmall}>
                           Times
                         </div>
-                        <div className={classes.columnMedSmall}>
+                        <div className={classes.spacerSmall} />
+                        <div className={classes.columnSmall}>Run Time</div>
+                        <div className={classes.spacerSmall} />
+                        <div className={classes.columnMed}>
                           Sample Volume
                         </div>
-                        <div className={classes.columnSmall} />
+                        <div className={classes.columnMedLarge}>Sampling Errors</div>
                       </div>
                       <div className={classNames(classes.flexRow, classes.infoLight)}>
                         <div className={classes.spacerSmall} />
                         <div className={classes.columnSmall} />
-                        <div className={classes.columnMedLarge} />
+                        <div className={classes.columnMed} />
                         <div className={classes.columnSmall} />
                         <div className={classes.columnSmall}>
                           Initial
@@ -621,15 +629,14 @@ class CocModal extends React.PureComponent {
                           Final
                         </div>
                         <div className={classes.spacerSmall} />
-                        <div className={classes.columnTiny}>
-                          Average
-                        </div>
-                        <div className={classes.columnSmall} />
+                        <div className={classes.columnMedSmall} />
                         <div className={classes.columnMedSmall}>Start</div>
                         <div className={classes.columnMedSmall}>Finish</div>
-                        <div className={classes.columnTiny}>Total (min)</div>
+                        <div className={classes.spacerSmall} />
                         <div className={classes.columnSmall} />
-                        <div className={classes.columnSmall} />
+                        <div className={classes.spacerSmall} />
+                        <div className={classes.columnMed} />
+                        <div className={classes.columnMedLarge} />
                       </div>
                     </div>
                   }
@@ -833,7 +840,7 @@ class CocModal extends React.PureComponent {
                     let disabled = blockInput || doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
                     let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1] ? doc.samples[i+1] : {};
                     let calcs = {};
-                    calcs = getAirSampleData(sample);
+                    if ((sample.initialFlowRate && sample.finalFlowRate) || (sample.startTime && sample.endTime)) calcs = getAirSampleData(sample, doc.labInstructions ? parseFloat(doc.labInstructions) : 9);
                     if (!disabled) disabled = false;
                     return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
                       doc.samples[i+1].sampleType === "air" ? this.getSampleListAir(i, disabled, names) : this.getSampleListBulk(i, disabled, names)
@@ -845,7 +852,7 @@ class CocModal extends React.PureComponent {
                             {i+1}
                           </div>
                         </div>
-                        <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
+                        <div className={classNames(classes.paddingSidesSmall, classes.columnMed)}>
                           <SuggestionField that={this} suggestions='airLocationSuggestions'
                             defaultValue={sample.specificLocation ? sample.specificLocation : ''}
                             disabled={disabled}
@@ -877,12 +884,11 @@ class CocModal extends React.PureComponent {
                           />
                         </div>
                         <div className={classes.spacerSmall} />
-                        <div className={classes.columnTiny}>
+                        <div className={classes.columnMedSmall}>
                           {sample.initialFlowRate && sample.finalFlowRate ? <span className={calcs.differenceTooHigh ? classes.informationBoxError : (calcs.sampleRateLow || calcs.sampleRateHigh) ? classes.informationBoxWarning : classes.informationBoxOk}>
-                            {calcs.averageFlowRate ? parseFloat(calcs.averageFlowRate).toFixed(1) : ''}
+                            {calcs.averageFlowRate ? `${parseFloat(calcs.averageFlowRate).toFixed(1)} mL/min` : ''}
                           </span> : <span />}
                         </div>
-                        <div className={classes.columnSmall} />
                         <div className={classes.columnMedSmall}>
                           <DateTimePicker
                             value={sample.startTime ? sample.startTime : null}
@@ -911,23 +917,26 @@ class CocModal extends React.PureComponent {
                             }}
                           />
                         </div>
-                        <div className={classes.columnTiny}>
+                        <div className={classes.spacerSmall} />
+                        <div className={classes.columnSmall}>
                           <TextField
                             id="totalRunTime"
                             value={sample.totalRunTime ? sample.totalRunTime : calcs.runTime}
+                            InputProps={{
+                              endAdornment: <InputAdornment position="end">mins</InputAdornment>,
+                            }}
                             onChange={e => {
                               this.setState({ modified: true, });
                               this.props.handleSampleChange(i, {totalRunTime: numericOnly(e.target.value.trim())});
                             }}
                           />
                         </div>
-                        <div className={classes.columnSmall} />
-                        <div className={classes.columnTiny}>
+                        <div className={classes.spacerSmall} />
+                        <div className={classes.columnMed}>
                           {calcs.sampleVolume ? <span className={calcs.sampleVolumeMuchTooLow ? classes.informationBoxError : calcs.sampleVolumeTooLow ? classes.informationBoxWarning : classes.informationBoxOk}>
-                            {parseFloat(calcs.sampleVolume).toFixed(1)}
+                            {`${parseFloat(calcs.sampleVolume).toFixed(1)}L`}
                           </span> : ''}
                         </div>
-                        <div className={classes.columnSmall} />
                         <div className={classes.columnMedLarge}>
                           {(calcs.differenceTooHigh || calcs.sampleVolumeMuchTooLow) ?
                             <div className={classes.boldRed}>
@@ -1048,6 +1057,7 @@ class CocModal extends React.PureComponent {
                   doc: doc,
                   me: me,
                   originalSamples,
+                  sampleType: this.state.sampleType,
                 });
                 this.props.resetModal();
                 this.props.resetWfmJob();
@@ -1138,18 +1148,40 @@ class CocModal extends React.PureComponent {
     return this.state.sampleType === "air" ?
       (<div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
         <div className={classes.spacerSmall} />
+        <div className={classes.columnSmall} />
+        <div className={classes.columnMed} />
+        <div className={classes.columnSmall} />
+        <div className={classes.columnSmall}>
+          Initial
+        </div>
+        <div className={classes.spacerSmall} />
+        <div className={classes.columnSmall}>
+          Final
+        </div>
+        <div className={classes.spacerSmall} />
+        <div className={classes.columnMedSmall} />
+        <div className={classes.columnMedSmall}>Start</div>
+        <div className={classes.columnMedSmall}>Finish</div>
+        <div className={classes.spacerSmall} />
+        <div className={classes.columnSmall} />
+        <div className={classes.spacerSmall} />
+        <div className={classes.columnMed} />
+        <div className={classes.columnMedLarge} />
+
+        <div className={classes.spacerSmall} />
         <div className={classes.columnSmall}>
           <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
             {i+1}
           </div>
         </div>
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
+        <div className={classNames(classes.paddingSidesSmall, classes.columnMed)}>
           {sample.specificLocation ? sample.specificLocation : ''}
         </div>
         <div className={classes.columnSmall} />
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
+        <div className={classNames(classes.paddingSidesSmall, classes.columnSmall)}>
           {sample.initialFlowRate ? sample.initialFlowRate : ''}
         </div>
+        <div className={classes.spacerSmall} />
         <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
           {sample.finalFlowRate ? sample.finalFlowRate : ''}
         </div>
@@ -1162,12 +1194,12 @@ class CocModal extends React.PureComponent {
         <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
           {sample.endTime ? moment(dateOf(sample.endTime)).format('hh:mma D MMMM YYYY') : ''}
         </div>
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
+        <div className={classes.spacerSmall} />
+        <div className={classNames(classes.paddingSidesSmall, classes.columnSmall)}>
           {sample.totalRunTime ? sample.totalRunTime : sample.startTime && sample.endTime ? getSampleRunTime(sample) : ''}
         </div>
-        <div className={classes.columnMedSmall}>
-        </div>
-        <div className={classes.columnSmall}>
+        <div className={classes.spacerSmall} />
+        <div className={classes.columnMedLarge}>
           {!disabled && <IconButton onClick={() =>
             this.props.showModalSecondary({
               modalType: ASBESTOS_SAMPLE_EDIT_COC,

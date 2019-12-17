@@ -1520,6 +1520,16 @@ const styles = theme => ({
     textAlign: 'center',
   },
 
+  columnDoubleSmall: {
+    width: 160 + theme.spacing(1),
+    textAlign: 'center',
+  },
+
+  columnDoubleMedSmall: {
+    width: 360,
+    textAlign: 'center',
+  },
+
   columnTiny: {
     width: 40,
     textAlign: 'center',

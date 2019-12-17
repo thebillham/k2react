@@ -208,7 +208,7 @@ export const fetchWFMLeads = () => async dispatch => {
             ];
           }
           if (Object.keys(assigned).length > 0) lead.assigned = Object.keys(assigned);
-          console.log(lead.assigned);
+          // console.log(lead.assigned);
         } else {
           lead.activities = [];
         }
@@ -1124,9 +1124,9 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
         }
       }
     });
-    console.log('Jobs in current state: ' + Object.values(currentJobState).filter(job => job.isJob).length);
+    // console.log('Jobs in current state: ' + Object.values(currentJobState).filter(job => job.isJob).length);
     // //console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
-    console.log(currentJobState);
+    // console.log(currentJobState);
     dispatch({
       type: GET_CURRENT_JOB_STATE,
       payload: currentJobState,
@@ -1318,8 +1318,8 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
 
       if (update) {
         // Update mapped job
-        console.log('Update mapped job');
-        console.log(mappedJob);
+        // console.log('Update mapped job');
+        // console.log(mappedJob);
         mappedJob.lastActionDate = today;
         mappedJob.stateHistory = {
           ...mappedJob.stateHistory,
@@ -1631,18 +1631,19 @@ export const getTaskID = (taskData, that) => {
   // console.log(taskData);
   let assignUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/assign?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     timeUrl = `${process.env.REACT_APP_WFM_ROOT}time.api/add?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
-    jobUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/get/${taskData.job}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
+    jobUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/get/${taskData.job.trim()}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     taskUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/task?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     taskXML = `<Task><Job>${taskData.job}</Job><TaskID>${taskData.task}</TaskID><EstimatedMinutes>${taskData.minutes ? taskData.minutes : 0}</EstimatedMinutes></Task>`;
 
   // console.log(taskXML);
 
   // Get information about Job and read tasks list
+  console.log(jobUrl);
   return fetch(jobUrl)
     .then(results => results.text())
     .then(data => {
       var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
-      // console.log(json);
+      console.log(json);
       if (json.Response.Status === "OK") {
         // Check if task type is in the job. If it is, we will use that ID so the task isn't duplicated.
         let tasks = json.Response.Job.Tasks.Task;

@@ -179,6 +179,7 @@ export const milliToDHM = (t, verbose, businessTime) => {
 }
 
 export const writeDates = (objects, field) => {
+  if (!objects) return null;
   let dates = [];
   let dateMap = {};
   let sortedMap = {};
