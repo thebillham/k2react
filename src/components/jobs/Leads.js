@@ -196,8 +196,9 @@ class Leads extends React.Component {
             Header: 'Name',
             accessor: 'name',
           },{
+            id: 'owner',
             Header: 'Manager',
-            accessor: 'owner',
+            accessor: d => d.owner || d.owner === 'No manager name' ? d.owner : 'Not Assigned',
             maxWidth: 120,
           },{
             id: 'createdDate',

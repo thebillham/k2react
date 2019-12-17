@@ -3516,22 +3516,47 @@ export const getSampleRunTime = sample => {
 }
 
 export const getAirSampleData = sample => {
-  let runTime = getSampleRunTime(sample),
-    flowRateData = getAverageFlowRate(sample);
-  console.log(runTime);
-  console.log(flowRateData);
-  if (flowRateData.averageFlowRate && runTime) {
-    let sampleVolume = (flowRateData.averageFlowRate*runTime)/1000,
-      sampleVolumeTooLow = sampleVolume < 360;
-    return {
-      sampleVolume,
-      sampleVolumeTooLow,
-      ...flowRateData,
-      runTime,
-    }
-  } else {
-    return null;
+  let calcs = {
+    runTime: null,
+    averageFlowRate: null,
+    sampleVolume: null,
+    differenceInFlowRates: null,
+    sampleVolumeTooLow: false,
+    sampleVolumeMuchTooLow: false,
+    sampleRateLow: false,
+    sampleRateHigh: false,
+    differenceTooHigh: false,
+    status: 'No Data',
+  };
+
+  if (sample.totalRunTime) calcs.runTime = sample.totalRunTime;
+  else if (sample.startTime && sample.endTime) {
+    calcs.runTime = moment(sample.endTime).diff(sample.startTime, 'minutes');
   }
+
+  if (sample.initialFlowRate && sample.finalFlowRate) calcs.averageFlowRate = (parseFloat(sample.initialFlowRate)+parseFloat(sample.finalFlowRate))/2;
+
+  // Catch sampling errors
+  if (calcs.averageFlowRate) {
+    //Less than 0.4 L/min may preclude countable fibres from being collected from the airborne dust cloud
+    if (calcs.averageFlowRate < 400) calcs.sampleRateLow = true;
+
+    //greater than 8 L/min may result in interference from excessively large particles and may also cause leakage problems for most available filter holders
+    else if (calcs.averageFlowRate > 8000) calcs.sampleRateHigh = true;
+
+    calcs.differenceInFlowRates = (Math.abs(sample.initialFlowRate - sample.finalFlowRate)/calcs.averageFlowRate)*100;
+
+    //If the difference is greater than 10 per cent from the initial flowrate, the sample must be rejected, unless a valid method of estimating total volume can be applied. [Guidance Notes p.21]
+    if (calcs.differenceInFlowRates > 10) calcs.differenceTooHigh = true;
+  }
+
+  if (calcs.averageFlowRate && calcs.runTime) {
+    calcs.sampleVolume = (calcs.averageFlowRate*calcs.runTime)/1000;
+    if (calcs.sampleVolume < 100) calcs.sampleVolumeMuchTooLow = true;
+    if (calcs.sampleVolume < 360) calcs.sampleVolumeTooLow = true;
+  }
+
+  return calcs;
 }
 
 export const getAirConcentration = (sample, microscope) => {

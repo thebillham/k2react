@@ -63,6 +63,7 @@ import {
   writeDescription,
   getSampleRunTime,
   getAverageFlowRate,
+  getAirSampleData,
 } from '../../../actions/asbestosLab';
 import { titleCase, sentenceCase, dateOf, writeDates, personnelConvert, numericOnly, writeMeasurement } from '../../../actions/helpers';
 import _ from 'lodash';
@@ -254,7 +255,15 @@ class CocModal extends React.PureComponent {
           disableEscapeKeyDown = { !blockInput && (doc || wfmJob) !== false }
           fullWidth = { true }
         >
-          {!blockInput && (doc || wfmJob) && <DialogTitle>{ modalProps.title ? modalProps.title : 'Create New Chain of Custody' }</DialogTitle>}
+          {!blockInput && (doc || wfmJob) && <DialogTitle>
+            <div>
+              <div>Create New Chain of Custody</div>
+              <div className={classes.subtitle}>
+                {this.state.sampleType === "air" && 'Membrane Filter Method for Estimating Airborne Asbestos Fibres (NOHSC 3003:2005)'}
+                {this.state.sampleType === "bulk" && 'Qualitative Identification of Asbestos in Bulk Samples (AS 4964-2004)'}
+              </div>
+            </div>
+          </DialogTitle>}
           {!blockInput && (doc || wfmJob) ?
             <DialogContent>
               <Grid container spacing={1}>
@@ -389,7 +398,7 @@ class CocModal extends React.PureComponent {
                       </div>
                     </Grid>
                     <Grid item xs={8} lg={12}>
-                      <div className={classes.informationBoxWhiteRounded}>
+                      {this.state.sampleType === 'bulk' && <div className={classes.informationBoxWhiteRounded}>
                         <FormControlLabel
                           control={
                             <Switch
@@ -418,7 +427,7 @@ class CocModal extends React.PureComponent {
                             <div>{doc.acmInSoilLimit ? this.props.acmInSoilLimits.filter(e => e.value === doc.acmInSoilLimit)[0].description : this.props.acmInSoilLimits.filter(e => e.value === '0.01')[0].description}</div>
                           </div>
                         </div>}
-                      </div>
+                      </div>}
                       <div className={classes.informationBoxWhiteRounded}>
                         <FormControlLabel
                           control={
@@ -823,9 +832,9 @@ class CocModal extends React.PureComponent {
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                     let disabled = blockInput || doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
                     let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1] ? doc.samples[i+1] : {};
-                    let averageFlow = getAverageFlowRate(sample);
+                    let calcs = {};
+                    calcs = getAirSampleData(sample);
                     if (!disabled) disabled = false;
-                    if (sample.finalFlowRate === '3300') console.log(getAirConcentration(sample, {distance: 100.1}))
                     return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
                       doc.samples[i+1].sampleType === "air" ? this.getSampleListAir(i, disabled, names) : this.getSampleListBulk(i, disabled, names)
                       :
@@ -869,7 +878,9 @@ class CocModal extends React.PureComponent {
                         </div>
                         <div className={classes.spacerSmall} />
                         <div className={classes.columnTiny}>
-                          {sample.initialFlowRate && sample.finalFlowRate ? <span className={(averageFlow.sampleRateLow || averageFlow.sampleRateHigh || averageFlow.differenceTooHigh) ? classes.informationBoxError : classes.informationBoxOk}>{averageFlow.averageFlowRate ? parseFloat(averageFlow.averageFlowRate).toFixed(1) : ''}</span> : <span />}
+                          {sample.initialFlowRate && sample.finalFlowRate ? <span className={calcs.differenceTooHigh ? classes.informationBoxError : (calcs.sampleRateLow || calcs.sampleRateHigh) ? classes.informationBoxWarning : classes.informationBoxOk}>
+                            {calcs.averageFlowRate ? parseFloat(calcs.averageFlowRate).toFixed(1) : ''}
+                          </span> : <span />}
                         </div>
                         <div className={classes.columnSmall} />
                         <div className={classes.columnMedSmall}>
@@ -903,7 +914,7 @@ class CocModal extends React.PureComponent {
                         <div className={classes.columnTiny}>
                           <TextField
                             id="totalRunTime"
-                            value={sample.totalRunTime ? sample.totalRunTime : sample.startTime && sample.endTime ? getSampleRunTime(sample) : null}
+                            value={sample.totalRunTime ? sample.totalRunTime : calcs.runTime}
                             onChange={e => {
                               this.setState({ modified: true, });
                               this.props.handleSampleChange(i, {totalRunTime: numericOnly(e.target.value.trim())});
@@ -912,13 +923,27 @@ class CocModal extends React.PureComponent {
                         </div>
                         <div className={classes.columnSmall} />
                         <div className={classes.columnTiny}>
-
+                          {calcs.sampleVolume ? <span className={calcs.sampleVolumeMuchTooLow ? classes.informationBoxError : calcs.sampleVolumeTooLow ? classes.informationBoxWarning : classes.informationBoxOk}>
+                            {parseFloat(calcs.sampleVolume).toFixed(1)}
+                          </span> : ''}
                         </div>
                         <div className={classes.columnSmall} />
-                        <div className={classNames(classes.columnMedLarge, classes.boldRedWarningText)}>
-                          {averageFlow.sampleRateLow && <Tooltip title={}>Flow rate lower than recommended. </Tooltip>}
-                          {averageFlow.sampleRateHigh && `Flow rate higher than recommended. `}
-                          {averageFlow.differenceTooHigh && `Difference between flow rates is too high. `}
+                        <div className={classes.columnMedLarge}>
+                          {(calcs.differenceTooHigh || calcs.sampleVolumeMuchTooLow) ?
+                            <div className={classes.boldRed}>
+                              {calcs.differenceTooHigh && (<Tooltip title='The difference between flow rates is greater than 10 per cent. The sample must be rejected.'><div>Difference between flow rates is too high.</div></Tooltip>)}
+                              {calcs.sampleVolumeMuchTooLow && (<Tooltip title='Sample volumes of less than 100L are not recommended because of the increased loss of precision in the results obtained. They may also lead to higher reporting limits than may be desired.'><div>Sample volume too low to be accurate.</div></Tooltip>)}
+                            </div>
+                            :
+                            (calcs.sampleRateLow || calcs.sampleRateHigh || calcs.sampleVolumeTooLow) ?
+                            <div className={classes.boldOrange}>
+                              {calcs.sampleRateLow && (<Tooltip title='Flow rates of less than 400 mL/min may preclude countable fibres from being collected from the airborne dust cloud.'><div>Flow rate lower than recommended.</div></Tooltip>)}
+                              {calcs.sampleRateHigh && (<Tooltip title='Flow rates greater than 8000 mL/min may result in interference from excessively large particles and may also cause leakage problems for most available filter holders.'><div>Flow rate higher than recommended.</div></Tooltip>)}
+                              {calcs.sampleVolumeTooLow && (<Tooltip title='Asbestos clearance air tests must have a sample volume of 360L or greater.'><div>Sample volume too low for clearances.</div></Tooltip>)}
+                            </div>
+                            :
+                            (calcs.runTime && calcs.averageFlowRate) ? <div className={classes.boldGreen}>No Sampling Errors or Warnings</div> : ''
+                          }
                         </div>
                       </div>
                     );
@@ -936,7 +961,7 @@ class CocModal extends React.PureComponent {
             <DialogContent className={classes.boxDark}>
               <div className={classes.informationBoxWhiteRounded}>
                 <div style={{ fontSize: 24, }}>
-                Create New Chain of Custody
+                  Create New Chain of Custody
                 </div>
                 <div>
                   <Tooltip title="Step 1: Select your sample type">

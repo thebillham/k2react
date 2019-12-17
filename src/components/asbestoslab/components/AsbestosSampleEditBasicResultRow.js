@@ -39,8 +39,8 @@ class AsbestosSampleEditBasicResultRow extends React.PureComponent {
               id={sample.uid}
               value={sample.weightReceived ? sample.weightReceived : ''}
               InputProps={{
-                endAdornment: <div className={sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded}>g</div>,
-                className: sample.weightReceived ? classes.roundButtonShadedComplete : classes.roundButtonShaded,
+                endAdornment: <div className={classes.marginRightSmall}>g</div>,
+                className: classes.marginsAllSmall,
               }}
               onChange={e => {
                 that.setState({

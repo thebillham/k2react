@@ -192,10 +192,11 @@ const styles = theme => ({
     borderWidth: 1,
     padding: theme.spacing(1),
     fontSize: 12,
+    fontWeight: 'bold',
     margin: theme.spacing(1),
   },
 
-  informationBoxError: {
+  informationBoxWarning: {
     backgroundColor: theme.palette.indicators.warning,
     color: theme.palette.indicators.warningText,
     borderRadius: theme.spacing(1),
@@ -203,6 +204,19 @@ const styles = theme => ({
     borderWidth: 1,
     padding: theme.spacing(1),
     fontSize: 12,
+    fontWeight: 'bold',
+    margin: theme.spacing(1),
+  },
+
+  informationBoxError: {
+    backgroundColor: theme.palette.indicators.bad,
+    color: theme.palette.indicators.badText,
+    borderRadius: theme.spacing(1),
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: theme.spacing(1),
+    fontSize: 12,
+    fontWeight: 'bold',
     margin: theme.spacing(1),
   },
 

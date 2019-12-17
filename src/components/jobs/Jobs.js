@@ -189,7 +189,7 @@ class Jobs extends React.Component {
           </div>
         )}
         <div>
-          <b>Owner:</b> {m.owner}
+          <b>Owner:</b> {m.owner ? m.owner : 'Not Assigned'}
         </div>
         {m.isJob ? (
           <div>
