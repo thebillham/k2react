@@ -184,6 +184,42 @@ const styles = theme => ({
     margin: theme.spacing(1),
   },
 
+  informationBoxOk: {
+    backgroundColor: theme.palette.indicators.ok,
+    color: theme.palette.indicators.okText,
+    borderRadius: theme.spacing(1),
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: theme.spacing(1),
+    fontSize: 12,
+    fontWeight: 'bold',
+    margin: theme.spacing(1),
+  },
+
+  informationBoxWarning: {
+    backgroundColor: theme.palette.indicators.warning,
+    color: theme.palette.indicators.warningText,
+    borderRadius: theme.spacing(1),
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: theme.spacing(1),
+    fontSize: 12,
+    fontWeight: 'bold',
+    margin: theme.spacing(1),
+  },
+
+  informationBoxError: {
+    backgroundColor: theme.palette.indicators.bad,
+    color: theme.palette.indicators.badText,
+    borderRadius: theme.spacing(1),
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: theme.spacing(1),
+    fontSize: 12,
+    fontWeight: 'bold',
+    margin: theme.spacing(1),
+  },
+
   informationBoxWhite: {
     borderStyle: 'solid',
     borderWidth: 1,
@@ -1402,6 +1438,11 @@ const styles = theme => ({
     textAlign: 'center',
   },
 
+  paddingTopBottomSmall: {
+    paddingBottom: theme.spacing(1),
+    paddingTop: theme.spacing(1),
+  },
+
   marginLeftSmall: {
     marginLeft: theme.spacing(1),
   },
@@ -1469,32 +1510,64 @@ const styles = theme => ({
     maxWidth: '1800px',
   },
 
+  columnTripleSmall: {
+    width: 200 + theme.spacing(2),
+    textAlign: 'center',
+  },
+
+  columnTripleMedSmall: {
+    width: 440,
+    textAlign: 'center',
+  },
+
+  columnDoubleSmall: {
+    width: 160 + theme.spacing(1),
+    textAlign: 'center',
+  },
+
+  columnDoubleMedSmall: {
+    width: 360,
+    textAlign: 'center',
+  },
+
+  columnTiny: {
+    width: 40,
+    textAlign: 'center',
+  },
+
   columnSmall: {
     width: 80,
+    textAlign: 'center',
   },
 
   columnMedSmall: {
     width: 180,
+    textAlign: 'center',
   },
 
   columnMed: {
     width: 220,
+    textAlign: 'center',
   },
 
   columnMedLarge: {
     width: 250,
+    textAlign: 'center',
   },
 
   columnLarge: {
     width: 350,
+    textAlign: 'center',
   },
 
   columnExtraLarge: {
     width: 500,
+    textAlign: 'center',
   },
 
   columnExtraExtraLarge: {
     width: 600,
+    textAlign: 'center',
   },
 
   // CONTAINERS

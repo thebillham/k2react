@@ -24,7 +24,7 @@ import momentbusinessdays from "moment-business-days";
 import momenttimezone from "moment-timezone";
 import momentbusinesstime from "moment-business-time";
 import { toggleDoNotRender } from "./display";
-import { sendSlackMessage, writeDates, andList, dateOf, milliToDHM, } from "./helpers";
+import { sendSlackMessage, writeDates, andList, dateOf, milliToDHM, writeMeasurement } from "./helpers";
 import { getDefaultLetterAddress, } from "./jobs";
 import {
   asbestosSamplesRef,
@@ -171,7 +171,7 @@ export const fetchCocsBySearch = (client, startDate, endDate) => async dispatch 
   }
 };
 
-export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
+export const fetchSamples = (cocUid, jobNumber, modal, airSamples) => async dispatch => {
   //console.log('fetching samples');
   asbestosSamplesRef
     .where("jobNumber", "==", jobNumber)
@@ -183,16 +183,42 @@ export const fetchSamples = (cocUid, jobNumber, modal) => async dispatch => {
         let sample = sampleDoc.data();
         sample.uid = sampleDoc.id;
         samples[sample.sampleNumber] = sample;
-        dispatch({
-          type: GET_SAMPLES,
-          cocUid: cocUid,
-          payload: samples
-        });
-        if (modal) {
+        if (airSamples) {
+          asbestosAnalysisLogRef
+            .where("sampleUid", "==", sample.uid)
+            .get()
+            .then(d => {
+              if (d.exists) {
+                let fibreCounts = {};
+                d.data().forEach(f => {
+                  fibreCounts[f.id] = f;
+                });
+                samples[sample.sampleNumber].fibreCounts = fibreCounts;
+              }
+              dispatch({
+                type: GET_SAMPLES,
+                cocUid: cocUid,
+                payload: samples
+              });
+              if (modal) {
+                dispatch({
+                  type: EDIT_MODAL_DOC,
+                  payload: {samples: samples},
+                });
+              }
+            })
+        } else {
           dispatch({
-            type: EDIT_MODAL_DOC,
-            payload: {samples: samples},
+            type: GET_SAMPLES,
+            cocUid: cocUid,
+            payload: samples
           });
+          if (modal) {
+            dispatch({
+              type: EDIT_MODAL_DOC,
+              payload: {samples: samples},
+            });
+          }
         }
       });
     });
@@ -365,7 +391,7 @@ export const setSessionID = session => dispatch => {
 // COC EDIT
 //
 
-export const handleCocSubmit = async ({ doc, me, originalSamples }) => {
+export const handleCocSubmit = async ({ doc, me, originalSamples, sampleType }) => {
   // toggleDoNotRender(true);
   //console.log(doc);
   // //console.log(doc.samples);
@@ -373,62 +399,114 @@ export const handleCocSubmit = async ({ doc, me, originalSamples }) => {
   let batch = firestore.batch();
   if (doc.samples) {
     // //console.log(doc.samples);
-    await Object.keys(doc.samples).forEach(sample => {
-      if (doc.samples[sample].genericLocation || doc.samples[sample].specificLocation || doc.samples[sample].description || doc.samples[sample].material) {
+    await Object.keys(doc.samples).forEach(sampleNumber => {
+      let sample = doc.samples[sampleNumber];
+      if (sampleType === "bulk" && (sample.genericLocation || sample.specificLocation || sample.description || sample.material)) {
         // //console.log(sample);
-        if (!doc.samples[sample].uid) {
+        if (!sample.uid) {
           let uid = `${
             doc.jobNumber
-          }-SAMPLE-${sample}-CREATED-${moment().format('x')}-${Math.round(
+          }-SAMPLE-${sampleNumber}-CREATED-${moment().format('x')}-${Math.round(
             Math.random() * 1000
           )}`;
           // //console.log(`UID for new sample is ${uid}`);
           let log = {
             type: 'Create',
-            log: `Sample ${sample} (${writeDescription(doc.samples[sample])}) created.`,
+            log: `Sample ${sampleNumber} (${writeDescription(sample)}) created.`,
             chainOfCustody: doc.uid,
             sample: uid,
           };
           addLog("asbestosLab", log, me, batch);
-          doc.samples[sample].uid = uid;
-          doc.samples[sample].deleted = false;
-          doc.samples[sample].createdDate = new Date();
-          doc.samples[sample].createdBy = {uid: me.uid, name: me.name};
-          if (doc.samples[sample].sampleDate === undefined && doc.defaultSampleDate !== null) doc.samples[sample].sampleDate = doc.defaultSampleDate;
-          doc.samples[sample].sampleDate = dateOf(doc.samples[sample].sampleDate);
-          if (!doc.samples[sample].sampledBy && doc.defaultSampledBy.length > 0) doc.samples[sample].sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));
+          sample.uid = uid;
+          sample.deleted = false;
+          sample.createdDate = new Date();
+          sample.createdBy = {uid: me.uid, name: me.name};
+          if (sample.sampleDate === undefined && doc.defaultSampleDate !== null) sample.sampleDate = doc.defaultSampleDate;
+          sample.sampleDate = dateOf(sample.sampleDate);
+          if (!sample.sampledBy && doc.defaultSampledBy.length > 0) sample.sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));
           sampleList.push(uid);
         } else {
-          if (doc.samples[sample].verified && doc.samples[sample] !== originalSamples[doc.samples[sample].sampleNumber]) {
+          if (sample.verified && sample !== originalSamples[sampleNumber]) {
             let log = {
               type: 'Edit',
-              log: `Sample ${sample} (${writeDescription(doc.samples[sample])}) modified.`,
+              log: `Sample ${sampleNumber} (${writeDescription(sample)}) modified.`,
               chainOfCustody: doc.uid,
-              sample: doc.samples[sample].uid,
+              sample: sample.uid,
             };
             addLog("asbestosLab", log, me, batch);
-            doc.samples[sample].verified = false;
+            sample.verified = false;
           }
-          sampleList.push(doc.samples[sample].uid);
+          sampleList.push(sample.uid);
         }
         // //console.log(`Submitting sample ${sample} to ${docid}`);
-        let sample2 = doc.samples[sample];
+        let sample2 = sample;
         if (sample2.description)
           sample2.description =
             sample2.description.charAt(0).toUpperCase() +
             sample2.description.slice(1);
         sample2.jobNumber = doc.jobNumber;
         if (sample2.cocUid === undefined) sample2.cocUid = doc.uid;
-        sample2.sampleNumber = parseInt(sample, 10);
+        sample2.sampleNumber = parseInt(sampleNumber, 10);
         sample2.sampleDate = dateOf(sample2.sampleDate);
         if ("disabled" in sample2) delete sample2.disabled;
-        batch.set(asbestosSamplesRef.doc(doc.samples[sample].uid), sample2);
+        batch.set(asbestosSamplesRef.doc(sample.uid), sample2);
+      }
+      if (sampleType === "air" && (sample.initialFlowRate && sample.finalFlowRate && sample.startTime && (sample.endTime || sample.totalRunTime))) {
+        // //console.log(sample);
+        let calc = getAirSampleData(sample);
+        if (!sample.uid) {
+          let uid = `${
+            doc.jobNumber
+          }-SAMPLE-${sampleNumber}-CREATED-${moment().format('x')}-${Math.round(
+            Math.random() * 1000
+          )}`;
+          // //console.log(`UID for new sample is ${uid}`);
+          let log = {
+            type: 'Create',
+            log: `Sample ${sampleNumber} (${sample.specificLocation ? sample.specificLocation : 'Untitled'}) created.`,
+            chainOfCustody: doc.uid,
+            sample: uid,
+          };
+          addLog("asbestosLab", log, me, batch);
+          sample.uid = uid;
+          sample.deleted = false;
+          sample.createdDate = new Date();
+          sample.createdBy = {uid: me.uid, name: me.name};
+          if (doc.defaultSampleDate) sample.sampleDate = dateOf(doc.defaultSampleDate);
+          if (doc.defaultSampledBy.length > 0) sample.sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));
+          sample = {
+            ...sample,
+            ...calc,
+          };
+          sampleList.push(uid);
+        } else {
+          if (sample.verified && sample !== originalSamples[sampleNumber]) {
+            let log = {
+              type: 'Edit',
+              log: `Sample ${sampleNumber} (${sample.specificLocation ? sample.specificLocation : 'Untitled'}) modified.`,
+              chainOfCustody: doc.uid,
+              sample: sample.uid,
+            };
+            addLog("asbestosLab", log, me, batch);
+            sample.verified = false;
+          }
+          sampleList.push(sample.uid);
+        }
+        // //console.log(`Submitting sample ${sample} to ${docid}`);
+        let sample2 = sample;
+        sample2.jobNumber = doc.jobNumber;
+        if (sample2.cocUid === undefined) sample2.cocUid = doc.uid;
+        sample2.sampleNumber = parseInt(sampleNumber, 10);
+        sample2.sampleDate = dateOf(sample2.sampleDate);
+        if ("disabled" in sample2) delete sample2.disabled;
+        batch.set(asbestosSamplesRef.doc(sample.uid), sample2);
       }
     });
   }
   let doc2 = doc;
   if ("samples" in doc2) delete doc2.samples;
   doc2.uid = doc.uid;
+  doc2.sampleType = sampleType;
   doc2.sampleList = sampleList;
   batch.set(cocsRef.doc(doc.uid), doc2);
   batch.commit();
@@ -461,7 +539,7 @@ export const toggleWAAnalysis = (job, me) => {
 
 
 export const handleSampleChange = (number, changes) => dispatch => {
-  console.log(changes);
+  // console.log(changes);
   dispatch({
     type: EDIT_MODAL_SAMPLE,
     payload: {
@@ -2121,7 +2199,7 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
         sampleMap["no"] = sample.sampleNumber;
         sampleMap["description"] = writeReportDescription(sample);
         sampleMap["category"] = getSampleCategory(sample);
-        sampleMap["weightReceived"] = sample.weightReceived ? `${sample.weightReceived}g` : 'N/A';
+        sampleMap["weightReceived"] = writeMeasurement(sample.weightReceived, 1, null, 'g');
         sampleMap["result"] = writeResult(sample.result, sample.noAsbestosResultReason);
         sampleMap["checks"] = writeChecks(sample);
         sampleMap["footnote"] = sample.footnote ? sample.footnote : false;
@@ -2131,14 +2209,14 @@ export const writeVersionJson = (job, samples, version, staffList, me, batch) =>
           sampleMap["simpleDescription"] = writeSimpleDescription(sample);
           sampleMap["simpleResult"] = writeSimpleResult(sample.result, sample.noAsbestosResultReason);
           sampleMap["formDescription"] = sample.waSoilAnalysis.formDescription ? sample.waSoilAnalysis.formDescription : 'N/A';
-          sampleMap["weightSubsample"] = sample.weightSubsample ? `${sample.weightSubsample}g` : 'N/A';
-          sampleMap["weightDry"] = sample.weightDry ? `${sample.weightDry}g` : 'N/A';
-          sampleMap["weightAshed"] = sample.weightAshed ? `${sample.weightAshed}g` : 'N/A';
+          sampleMap["weightSubsample"] = writeMeasurement(sample.weightSubsample, 1, null, 'g');
+          sampleMap["weightDry"] = writeMeasurement(sample.weightDry, 1, null, 'g');
+          sampleMap["weightAshed"] = writeMeasurement(sample.weightAshed, 1, null, 'g');
           sampleMap["moisture"] = writeSampleMoisture(sample) ? `${writeSampleMoisture(sample)}%` : 'N/A';
-          sampleMap["weightAshedGt7"] = sample.waSoilAnalysis.fractiongt7WeightAshed ? `${sample.waSoilAnalysis.fractiongt7WeightAshed}g` : 'N/A';
-          sampleMap["weightAshedTo7"] = sample.waSoilAnalysis.fractionto7WeightAshed ? `${sample.waSoilAnalysis.fractionto7WeightAshed}g` : 'N/A';
-          sampleMap["weightAshedLt2"] = sample.waSoilAnalysis.fractionlt2WeightAshed ? `${sample.waSoilAnalysis.fractionlt2WeightAshed}g` : 'N/A';
-          sampleMap["weightAshedLt2Subsample"] = sample.waSoilAnalysis.fractionlt2WeightAshedSubsample ? `${sample.waSoilAnalysis.fractionlt2WeightAshedSubsample}g` : 'N/A';
+          sampleMap["weightAshedGt7"] = writeMeasurement(sample.waSoilAnalysis.fractiongt7WeightAshed, 1, null, 'g');
+          sampleMap["weightAshedTo7"] = writeMeasurement(sample.waSoilAnalysis.fractionto7WeightAshed, 1, null, 'g');
+          sampleMap["weightAshedLt2"] = writeMeasurement(sample.waSoilAnalysis.fractionlt2WeightAshed, 1, null, 'g');
+          sampleMap["weightAshedLt2Subsample"] = writeMeasurement(sample.waSoilAnalysis.fractionlt2WeightAshedSubsample, 1, null, 'g');
 
           let waTotals = getWATotalDetails(sample, job.acmInSoilLimit ? parseFloat(job.acmInSoilLimit) : 0.01);
           sampleMap["concentrationACM"] = waTotals.concentration.acm ? `${waTotals.concentration.acm}%` : 'N/A';
@@ -3515,23 +3593,149 @@ export const getSampleRunTime = sample => {
   } else return null;
 }
 
-export const getAirSampleData = sample => {
-  let runTime = getSampleRunTime(sample),
-    flowRateData = getAverageFlowRate(sample);
-  console.log(runTime);
-  console.log(flowRateData);
-  if (flowRateData.averageFlowRate && runTime) {
-    let sampleVolume = (flowRateData.averageFlowRate*runTime)/1000,
-      sampleVolumeTooLow = sampleVolume < 360;
-    return {
-      sampleVolume,
-      sampleVolumeTooLow,
-      ...flowRateData,
-      runTime,
-    }
-  } else {
-    return null;
+export const getAirSampleData = (sample, fibreResultDefault) => {
+  let calcs = {
+    runTime: null,
+    averageFlowRate: null,
+    sampleVolume: null,
+    differenceInFlowRates: null,
+    sampleVolumeTooLow: false,
+    sampleVolumeMuchTooLow: false,
+    sampleRateLow: false,
+    sampleRateHigh: false,
+    differenceTooHigh: false,
+    status: 'No Data',
+    fibreCountAverage: null,
+    fibreCounts: {},
+    graticuleArea: null,
+    overLoaded: false,
+    marginsBad: false,
+  };
+
+  if (sample.totalRunTime) calcs.runTime = sample.totalRunTime;
+  else if (sample.startTime && sample.endTime) {
+    calcs.runTime = moment(sample.endTime).diff(sample.startTime, 'minutes');
   }
+
+  if (sample.initialFlowRate && sample.finalFlowRate) calcs.averageFlowRate = (parseFloat(sample.initialFlowRate)+parseFloat(sample.finalFlowRate))/2;
+
+  // Catch sampling errors
+  if (calcs.averageFlowRate) {
+    //Less than 0.4 L/min may preclude countable fibres from being collected from the airborne dust cloud
+    if (calcs.averageFlowRate < 400) calcs.sampleRateLow = true;
+
+    //greater than 8 L/min may result in interference from excessively large particles and may also cause leakage problems for most available filter holders
+    else if (calcs.averageFlowRate > 8000) calcs.sampleRateHigh = true;
+
+    calcs.differenceInFlowRates = (Math.abs(sample.initialFlowRate - sample.finalFlowRate)/calcs.averageFlowRate)*100;
+
+    //If the difference is greater than 10 per cent from the initial flowrate, the sample must be rejected, unless a valid method of estimating total volume can be applied. [Guidance Notes p.21]
+    if (calcs.differenceInFlowRates > 10) calcs.differenceTooHigh = true;
+  }
+
+  if (calcs.averageFlowRate && calcs.runTime) {
+    calcs.sampleVolume = (calcs.averageFlowRate*calcs.runTime)/1000;
+    if (calcs.sampleVolume < 100) calcs.sampleVolumeMuchTooLow = true;
+    if (calcs.sampleVolume < 360) calcs.sampleVolumeTooLow = true;
+  }
+
+  if (true || (sample.fibreCounts && Object.keys(sample.fibreCounts).length > 0)) {
+    // Fibre counts have been done. Get concentrations.
+    // Each fibre count has the following information:
+    //    (obj) analyst: {name, uid}
+    //    (obj) microscope: {name, distance}
+    //    (time) analysisTime
+    //    (float) fibreCount
+    //    (bool) overloaded
+    //    (bool) marginsBad
+    //    (string) notes
+
+    let overloadedNumber = 0,
+      marginsBadNumber = 0,
+      microscopeDistanceTotal = 0,
+      microscopeNumber = 0,
+      fibreCountTotal = 0,
+      filtersAnalysedNumber = 0,
+      // filtersTotalNumber = Object.keys(sample.fibreCounts).length,\
+      filtersTotalNumber = null,
+      analysisDates = {},
+      analysts = [],
+      effectiveFilterArea = 385,
+      areasCounted = 100,
+      actualConcentration = null,
+      reportConcentration = null;
+
+    analysisDates = writeDates(sample.fibreCounts, 'analysisDate');
+
+    // Object.values(sample.fibreCounts).forEach(f => {
+    //   if (f.overloaded) {
+    //     // Analyst has stated filter is overloaded, do not count results
+    //     overloadedNumber++;
+    //   } else if (f.marginsBad) {
+    //     // Analyst has stated margins are bad, do not count results
+    //     marginsBadNumber++;
+    //   } else {
+    //     // Valid sample, add data to list
+    //     analysts.push(f.analyst);
+    //     if (f.microscope && f.microscope.distance) {
+    //       microscopeDistanceTotal += parseFloat(f.microscope.distance);
+    //       microscopeNumber++;
+    //     }
+    //     fibreCountTotal += parseFloat(f.fibreCount);
+    //     filtersAnalysedNumber++;
+    //   }
+    // });
+
+    let microscopeDistanceAvg = microscopeNumber > 0 ? parseFloat(microscopeDistanceTotal/microscopeNumber) : 100.1,
+      fibreResult = filtersAnalysedNumber > 0 ? parseFloat(fibreCountTotal/filtersAnalysedNumber) : fibreResultDefault;
+
+    let graticuleArea = microscopeDistanceAvg ? Math.PI * Math.pow(microscopeDistanceAvg/1000/2, 2) : null;
+
+    if (graticuleArea && fibreResult && calcs.averageFlowRate && calcs.averageFlowRate !== 0 && calcs.runTime !== 0) {
+      actualConcentration = effectiveFilterArea/graticuleArea*fibreResult/areasCounted*(1/calcs.averageFlowRate)*(1/calcs.runTime);
+      if (actualConcentration) {
+        if (fibreResult >= 10) {
+          // less than 0.005: [<0.01]
+          // 0.005 to less than 0.100 [to 2 decimal places and 1 significant figure]
+          // 0.10 to 1.00 [to 1 decimal place and 1 significant figure]
+          // greater than 1.00 [to 2 significant figures and 0 decimal places]
+          if (actualConcentration < 0.005) reportConcentration = '<0.01';
+          else if (actualConcentration < 0.100) reportConcentration = parseFloat(actualConcentration.toPrecision(1)).toFixed(2).toString();
+          else if (actualConcentration <= 1.00) reportConcentration = parseFloat(actualConcentration.toPrecision(1)).toFixed(1).toString();
+          else reportConcentration = parseFloat(actualConcentration.toPrecision(2)).toFixed(0).toString();
+          console.log(reportConcentration);
+        } else {
+          // If the actual count is less than 10 fibres/100 graticule areas, then the count is not significantly above that of background.
+          // The results should be calculated using the minimum practical lower limit of detection of 10 fibres/100 graticule areas and
+          // reported as less than the calculated value expressed to one significant figure and no more than the second decimal place,
+          // unless supported by valid technical considerations.
+          let effectiveConcentration = effectiveFilterArea/graticuleArea*10/areasCounted*(1/calcs.averageFlowRate)*(1/calcs.runTime);
+          console.log(effectiveConcentration);
+          reportConcentration = `<${parseFloat(effectiveConcentration.toPrecision(1)).toFixed(2)}`;
+          console.log(reportConcentration);
+        }
+      }
+    }
+
+    calcs = {
+      ...calcs,
+      microscopeDistanceAvg,
+      fibreResult,
+      graticuleArea,
+      actualConcentration,
+      reportConcentration,
+      overloadedNumber,
+      marginsBadNumber,
+      filtersAnalysedNumber,
+      filtersTotalNumber,
+      analysisDates,
+      analysts,
+    };
+  }
+
+  console.log(calcs);
+
+  return calcs;
 }
 
 export const getAirConcentration = (sample, microscope) => {

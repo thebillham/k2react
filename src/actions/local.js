@@ -151,8 +151,16 @@ export const fetchStaff = update => async dispatch => {
     stateRef.doc("staff").onSnapshot(doc => {
       sendSlackMessage(`${auth.currentUser.displayName} read fetchStaff from state (1 document)`);
       if (doc.exists) {
-        // //console.log(doc.data());
+        console.log(doc.data());
         // .filter((m) => m.uid !== auth.currentUser.uid)
+        let staffRead = {};
+        Object.values(doc.data()).forEach(s => {
+          stateRef.doc("noticereads").collection("users").doc(s.uid).get().then(d => {
+            if (d.data()) staffRead[s.name] = d.data().payload.length;
+            else staffRead[s.name] = 0;
+          })
+        });
+        console.log(staffRead);
         dispatch({ type: GET_STAFF, payload: doc.data() });
       } else {
         // //console.log("Doc doesn't exist");

@@ -19,6 +19,7 @@ const mapStateToProps = state => {
     descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
     asbestosInSoilSuggestions: state.const.asbestosInSoilSuggestions,
+    airTestDescriptions: state.const.airTestDescriptions,
    };
 };
 
@@ -82,10 +83,10 @@ const getSuggestions = (value, suggestions, that, addedSuggestions) => {
   const inputLength = inputValue.length;
   let count = 0;
   let suggestionList = that.props[suggestions];
-  // console.log(suggestionList);
-  // console.log(addedSuggestions);
+  console.log(suggestionList);
+  console.log(addedSuggestions);
   if (addedSuggestions) suggestionList = suggestionList.concat(addedSuggestions);
-  // console.log(suggestionList);
+  console.log(suggestionList);
 
   return inputLength === 0
     ? []
