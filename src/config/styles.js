@@ -1532,42 +1532,54 @@ const styles = theme => ({
 
   columnTiny: {
     width: 40,
-    textAlign: 'center',
   },
 
   columnSmall: {
+    width: 80,
+  },
+
+  columnSmallCentered: {
     width: 80,
     textAlign: 'center',
   },
 
   columnMedSmall: {
     width: 180,
+  },
+
+  columnMedSmallCentered: {
+    width: 180,
     textAlign: 'center',
   },
 
   columnMed: {
+    width: 220,
+  },
+
+  columnMedCentered: {
     width: 220,
     textAlign: 'center',
   },
 
   columnMedLarge: {
     width: 250,
+  },
+
+  columnMedLargeCentered: {
+    width: 250,
     textAlign: 'center',
   },
 
   columnLarge: {
     width: 350,
-    textAlign: 'center',
   },
 
   columnExtraLarge: {
     width: 500,
-    textAlign: 'center',
   },
 
   columnExtraExtraLarge: {
     width: 600,
-    textAlign: 'center',
   },
 
   // CONTAINERS

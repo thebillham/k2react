@@ -120,6 +120,8 @@ class AsbestosBulkCocCard extends React.Component {
       return true; // List has been opened
     }
 
+    if (this.props.samples[this.props.job] !== nextProps.samples[nextProps.job]) return true;
+
     if (this.props.cocs[this.props.job] && nextProps.cocs[nextProps.job] && this.props.cocs[this.props.job].versionUpToDate !== nextProps.cocs[nextProps.job].versionUpToDate) return true;
     if (nextProps.samples[nextProps.job] && nextProps.cocs[nextProps.job] && nextProps.cocs[nextProps.job].sampleList) {
       // console.log(Object.keys(nextProps.samples[nextProps.job]).length);
@@ -199,7 +201,7 @@ class AsbestosBulkCocCard extends React.Component {
                       modalType: ASBESTOS_COC_EDIT,
                       modalProps: {
                         title: "Edit Chain of Custody",
-                        doc: { ...job, samples: samples[job.uid] }
+                        doc: { ...job, samples: samples[job.uid] ? samples[job.uid] : {} }
                       }
                     });
                   }}>

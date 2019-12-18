@@ -183,31 +183,32 @@ export const fetchSamples = (cocUid, jobNumber, modal, airSamples) => async disp
         let sample = sampleDoc.data();
         sample.uid = sampleDoc.id;
         samples[sample.sampleNumber] = sample;
-        if (airSamples) {
-          asbestosAnalysisLogRef
-            .where("sampleUid", "==", sample.uid)
-            .get()
-            .then(d => {
-              if (d.exists) {
-                let fibreCounts = {};
-                d.data().forEach(f => {
-                  fibreCounts[f.id] = f;
-                });
-                samples[sample.sampleNumber].fibreCounts = fibreCounts;
-              }
-              dispatch({
-                type: GET_SAMPLES,
-                cocUid: cocUid,
-                payload: samples
-              });
-              if (modal) {
-                dispatch({
-                  type: EDIT_MODAL_DOC,
-                  payload: {samples: samples},
-                });
-              }
-            })
-        } else {
+        console.log(sample);
+        // if (sample.sampleType === "air") {
+        //   asbestosAnalysisLogRef
+        //     .where("sampleUid", "==", sample.uid)
+        //     .get()
+        //     .then(d => {
+        //       if (d.exists) {
+        //         let fibreCounts = {};
+        //         d.data().forEach(f => {
+        //           fibreCounts[f.id] = f;
+        //         });
+        //         samples[sample.sampleNumber].fibreCounts = fibreCounts;
+        //       }
+        //       dispatch({
+        //         type: GET_SAMPLES,
+        //         cocUid: cocUid,
+        //         payload: samples
+        //       });
+        //       if (modal) {
+        //         dispatch({
+        //           type: EDIT_MODAL_DOC,
+        //           payload: {samples: samples},
+        //         });
+        //       }
+        //     })
+        // } else {
           dispatch({
             type: GET_SAMPLES,
             cocUid: cocUid,
@@ -219,7 +220,7 @@ export const fetchSamples = (cocUid, jobNumber, modal, airSamples) => async disp
               payload: {samples: samples},
             });
           }
-        }
+        // }
       });
     });
 };
@@ -421,6 +422,7 @@ export const handleCocSubmit = async ({ doc, me, originalSamples, sampleType }) 
           sample.deleted = false;
           sample.createdDate = new Date();
           sample.createdBy = {uid: me.uid, name: me.name};
+          sample.sampleType = doc.sampleType ? doc.sampleType : "bulk";
           if (sample.sampleDate === undefined && doc.defaultSampleDate !== null) sample.sampleDate = doc.defaultSampleDate;
           sample.sampleDate = dateOf(sample.sampleDate);
           if (!sample.sampledBy && doc.defaultSampledBy.length > 0) sample.sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));

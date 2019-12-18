@@ -62,7 +62,7 @@ class AsbestosCocSummary extends React.Component {
       validSamples = samples[job.uid] ? Object.values(samples[job.uid]).filter(e => e.cocUid === job.uid) : [];
     if (samples && samples[job.uid]) {
       if (job.sampleType === "air") {
-        if (job.defaultPersonnel) sampledBy = andList(job.defaultPersonnel.map(e => e.name));
+        if (job.sampledBy) sampledBy = andList(job.sampledBy.map(e => e.name));
         console.log(job.defaultPersonnel);
         sampleDate = writeDates(validSamples, 'startTime');
         validSamples.forEach(s => {

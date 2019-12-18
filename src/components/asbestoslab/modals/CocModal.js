@@ -230,7 +230,7 @@ class CocModal extends React.PureComponent {
 
   render() {
     const { modalProps, modalType, doc, wfmJob, classes, me, jobList } = this.props;
-    // console.log(doc);
+    console.log(doc);
 
     if (modalType === ASBESTOS_COC_EDIT) {
       const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
@@ -350,11 +350,11 @@ class CocModal extends React.PureComponent {
                             <Select
                               isMulti
                               className={classes.selectTight}
-                              value={doc.defaultSampledBy ? doc.defaultSampledBy.map(e => ({ value: e.uid, label: e.name })) : null}
+                              value={doc.sampledBy ? doc.sampledBy.map(e => ({ value: e.uid, label: e.name })) : null}
                               options={names.map(e => ({ value: e.uid, label: e.name }))}
                               onChange={e => {
                                 this.setState({ modified: true });
-                                this.props.handleModalChange({id: 'defaultSampledBy', value: personnelConvert(e) });
+                                this.props.handleModalChange({id: 'sampledBy', value: personnelConvert(e) });
                               }}
                             />
                           </div>
@@ -612,31 +612,31 @@ class CocModal extends React.PureComponent {
                           Times
                         </div>
                         <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall}>Run Time</div>
+                        <div className={classes.columnMedSmallCentered}>Run Time</div>
                         <div className={classes.spacerSmall} />
                         <div className={classes.columnMed}>
                           Sample Volume
                         </div>
-                        <div className={classes.columnMedLarge}>Sampling Errors</div>
+                        <div className={classes.columnMedLargeCentered}>Sampling Errors</div>
                       </div>
                       <div className={classNames(classes.flexRow, classes.infoLight)}>
                         <div className={classes.spacerSmall} />
                         <div className={classes.columnSmall} />
                         <div className={classes.columnMed} />
                         <div className={classes.columnSmall} />
-                        <div className={classes.columnSmall}>
+                        <div className={classes.columnSmallCentered}>
                           Initial
                         </div>
                         <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall}>
+                        <div className={classes.columnSmallCentered}>
                           Final
                         </div>
                         <div className={classes.spacerSmall} />
                         <div className={classes.columnMedSmall} />
-                        <div className={classes.columnMedSmall}>Start</div>
-                        <div className={classes.columnMedSmall}>Finish</div>
+                        <div className={classes.columnMedSmallCentered}>Start</div>
+                        <div className={classes.columnMedSmallCentered}>Finish</div>
                         <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall} />
+                        <div className={classes.columnMedSmall} />
                         <div className={classes.spacerSmall} />
                         <div className={classes.columnMed} />
                         <div className={classes.columnMedLarge} />
@@ -646,7 +646,7 @@ class CocModal extends React.PureComponent {
 
                   {this.state.sampleType === "bulk" ?
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
-                      let sample = doc && doc.samples && doc.samples[i+1] ? doc.samples[i+1] : {};
+                      let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted ? doc.samples[i+1] : {};
                       let disabled = blockInput || sample.cocUid && sample.cocUid !== doc.uid;
                       if (!disabled) disabled = false;
                       return(sample.uid && sample.deleted === false ?
@@ -841,126 +841,125 @@ class CocModal extends React.PureComponent {
                     })
                     :
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
-                    let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted ? doc.samples[i+1] : {};
-                    let disabled = blockInput || sample.cocUid && sample.cocUid !== doc.uid;
-                    let calcs = {};
-                    if ((sample.initialFlowRate && sample.finalFlowRate) || (sample.startTime && sample.endTime)) calcs = getAirSampleData(sample, doc.labInstructions ? parseFloat(doc.labInstructions) : 9);
-                    if (!disabled) disabled = false;
-                    return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
-                      doc.samples[i+1].sampleType === "air" ? this.getSampleListAir(i, disabled, names) : this.getSampleListBulk(i, disabled, names)
-                      :
-                      <div className={classNames(classes.paddingTopBottomSmall, classes.flexRowHover)} key={i}>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall}>
-                          <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
-                            {i+1}
+                      let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted ? doc.samples[i+1] : {};
+                      let disabled = blockInput || sample.cocUid && sample.cocUid !== doc.uid;
+                      let calcs = {};
+                      if (!sample.uid && (sample.initialFlowRate && sample.finalFlowRate) || (sample.startTime && sample.endTime)) calcs = getAirSampleData(sample, doc.labInstructions ? parseFloat(doc.labInstructions) : 9);
+                      if (!disabled) disabled = false;
+                      // console.log(doc.samples[i+1]);
+                      // console.log(doc.samples);
+                      return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
+                        doc.samples[i+1].sampleType === "air" ? this.getSampleListAir(i, disabled, names) : this.getSampleListBulk(i, disabled, names)
+                        :
+                        <div className={classNames(classes.paddingTopBottomSmall, classes.flexRowHover)} key={i}>
+                          <div className={classes.spacerSmall} />
+                          <div className={classes.columnSmall}>
+                            <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
+                              {i+1}
+                            </div>
+                          </div>
+                          <div className={classNames(classes.paddingSidesSmall, classes.columnMed)}>
+                            <SuggestionField that={this} suggestions='airLocationSuggestions'
+                              defaultValue={sample.specificLocation ? sample.specificLocation : ''}
+                              disabled={disabled}
+                              onModify={(value) => {
+                                this.setState({ modified: true, });
+                                this.props.handleSampleChange(i, {specificLocation: titleCase(value.trim())});
+                              }} />
+                          </div>
+                          <div className={classes.columnSmall} />
+                          <div className={classes.columnSmall}>
+                            <TextField
+                              value={sample.initialFlowRate ? sample.initialFlowRate : ''}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleSampleChange(i, {initialFlowRate: numericOnly(e.target.value.trim())});
+                              }}
+                            />
+                          </div>
+                          <div className={classes.spacerSmall} />
+                          <div className={classes.columnSmall}>
+                            <TextField
+                              value={sample.finalFlowRate ? sample.finalFlowRate : ''}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleSampleChange(i, {finalFlowRate: numericOnly(e.target.value.trim())});
+                              }}
+                            />
+                          </div>
+                          <div className={classes.spacerSmall} />
+                          <div className={classes.columnMedSmall}>
+                            {sample.initialFlowRate && sample.finalFlowRate ? <span className={calcs.differenceTooHigh ? classes.informationBoxError : (calcs.sampleRateLow || calcs.sampleRateHigh) ? classes.informationBoxWarning : classes.informationBoxOk}>
+                              {calcs.averageFlowRate ? `${parseFloat(calcs.averageFlowRate).toFixed(1)} mL/min` : ''}
+                            </span> : <span />}
+                          </div>
+                          <div className={classes.columnMedSmall}>
+                            <DateTimePicker
+                              value={sample.startTime ? sample.startTime : null}
+                              autoOk
+                              format="D/MM/YY, hh:mma"
+                              disabled={disabled}
+                              clearable
+                              views={['hours','minutes']}
+                              onChange={date => {
+                                this.setState({ modified: true, });
+                                this.props.handleSampleChange(i, {startTime: dateOf(date)});
+                              }}
+                            />
+                          </div>
+                          <div className={classes.columnMedSmall}>
+                            <DateTimePicker
+                              value={sample.endTime ? sample.endTime : null}
+                              autoOk
+                              format="D/MM/YY, hh:mma"
+                              disabled={disabled}
+                              clearable
+                              views={['hours','minutes']}
+                              onChange={date => {
+                                this.setState({ modified: true, });
+                                this.props.handleSampleChange(i, {endTime: dateOf(date), totalRunTime: null, });
+                              }}
+                            />
+                          </div>
+                          <div className={classes.spacerSmall} />
+                          <div className={classes.columnMedSmall}>
+                            <TextField
+                              value={sample.totalRunTime ? sample.totalRunTime : calcs.runTime}
+                              InputProps={{
+                                endAdornment: <InputAdornment position="end">mins</InputAdornment>,
+                              }}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleSampleChange(i, {totalRunTime: numericOnly(e.target.value.trim())});
+                              }}
+                            />
+                          </div>
+                          <div className={classes.spacerSmall} />
+                          <div className={classes.columnMed}>
+                            {calcs.sampleVolume ? <span className={calcs.sampleVolumeMuchTooLow ? classes.informationBoxError : calcs.sampleVolumeTooLow ? classes.informationBoxWarning : classes.informationBoxOk}>
+                              {`${parseFloat(calcs.sampleVolume).toFixed(1)}L`}
+                            </span> : ''}
+                          </div>
+                          <div className={classes.columnMedLarge}>
+                            {(calcs.differenceTooHigh || calcs.sampleVolumeMuchTooLow) ?
+                              <div className={classes.boldRed}>
+                                {calcs.differenceTooHigh && (<Tooltip title='The difference between flow rates is greater than 10 per cent. The sample must be rejected.'><div>Difference between flow rates is too high.</div></Tooltip>)}
+                                {calcs.sampleVolumeMuchTooLow && (<Tooltip title='Sample volumes of less than 100L are not recommended because of the increased loss of precision in the results obtained. They may also lead to higher reporting limits than may be desired.'><div>Sample volume too low to be accurate.</div></Tooltip>)}
+                              </div>
+                              :
+                              (calcs.sampleRateLow || calcs.sampleRateHigh || calcs.sampleVolumeTooLow) ?
+                              <div className={classes.boldOrange}>
+                                {calcs.sampleRateLow && (<Tooltip title='Flow rates of less than 400 mL/min may preclude countable fibres from being collected from the airborne dust cloud.'><div>Flow rate lower than recommended.</div></Tooltip>)}
+                                {calcs.sampleRateHigh && (<Tooltip title='Flow rates greater than 8000 mL/min may result in interference from excessively large particles and may also cause leakage problems for most available filter holders.'><div>Flow rate higher than recommended.</div></Tooltip>)}
+                                {calcs.sampleVolumeTooLow && (<Tooltip title='Asbestos clearance air tests must have a sample volume of 360L or greater.'><div>Sample volume too low for clearances.</div></Tooltip>)}
+                              </div>
+                              :
+                              (calcs.runTime && calcs.averageFlowRate) ? <div className={classes.boldGreen}>No Sampling Errors or Warnings</div> : ''
+                            }
                           </div>
                         </div>
-                        <div className={classNames(classes.paddingSidesSmall, classes.columnMed)}>
-                          <SuggestionField that={this} suggestions='airLocationSuggestions'
-                            defaultValue={sample.specificLocation ? sample.specificLocation : ''}
-                            disabled={disabled}
-                            onModify={(value) => {
-                              this.setState({ modified: true, });
-                              this.props.handleSampleChange(i, {specificLocation: titleCase(value.trim())});
-                            }} />
-                        </div>
-                        <div className={classes.columnSmall} />
-                        <div className={classes.columnSmall}>
-                          <TextField
-                            id="initialFlowRate"
-                            value={sample.initialFlowRate ? sample.initialFlowRate : ''}
-                            onChange={e => {
-                              this.setState({ modified: true, });
-                              this.props.handleSampleChange(i, {initialFlowRate: numericOnly(e.target.value.trim())});
-                            }}
-                          />
-                        </div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall}>
-                          <TextField
-                            id="finalFlowRate"
-                            value={sample.finalFlowRate ? sample.finalFlowRate : ''}
-                            onChange={e => {
-                              this.setState({ modified: true, });
-                              this.props.handleSampleChange(i, {finalFlowRate: numericOnly(e.target.value.trim())});
-                            }}
-                          />
-                        </div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnMedSmall}>
-                          {sample.initialFlowRate && sample.finalFlowRate ? <span className={calcs.differenceTooHigh ? classes.informationBoxError : (calcs.sampleRateLow || calcs.sampleRateHigh) ? classes.informationBoxWarning : classes.informationBoxOk}>
-                            {calcs.averageFlowRate ? `${parseFloat(calcs.averageFlowRate).toFixed(1)} mL/min` : ''}
-                          </span> : <span />}
-                        </div>
-                        <div className={classes.columnMedSmall}>
-                          <DateTimePicker
-                            value={sample.startTime ? sample.startTime : null}
-                            autoOk
-                            format="D/MM/YY, hh:mma"
-                            disabled={disabled}
-                            clearable
-                            views={['hours','minutes']}
-                            onChange={date => {
-                              this.setState({ modified: true, });
-                              this.props.handleSampleChange(i, {startTime: dateOf(date)});
-                            }}
-                          />
-                        </div>
-                        <div className={classes.columnMedSmall}>
-                          <DateTimePicker
-                            value={sample.endTime ? sample.endTime : null}
-                            autoOk
-                            format="D/MM/YY, hh:mma"
-                            disabled={disabled}
-                            clearable
-                            views={['hours','minutes']}
-                            onChange={date => {
-                              this.setState({ modified: true, });
-                              this.props.handleSampleChange(i, {endTime: dateOf(date), totalRunTime: null, });
-                            }}
-                          />
-                        </div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall}>
-                          <TextField
-                            id="totalRunTime"
-                            value={sample.totalRunTime ? sample.totalRunTime : calcs.runTime}
-                            InputProps={{
-                              endAdornment: <InputAdornment position="end">mins</InputAdornment>,
-                            }}
-                            onChange={e => {
-                              this.setState({ modified: true, });
-                              this.props.handleSampleChange(i, {totalRunTime: numericOnly(e.target.value.trim())});
-                            }}
-                          />
-                        </div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnMed}>
-                          {calcs.sampleVolume ? <span className={calcs.sampleVolumeMuchTooLow ? classes.informationBoxError : calcs.sampleVolumeTooLow ? classes.informationBoxWarning : classes.informationBoxOk}>
-                            {`${parseFloat(calcs.sampleVolume).toFixed(1)}L`}
-                          </span> : ''}
-                        </div>
-                        <div className={classes.columnMedLarge}>
-                          {(calcs.differenceTooHigh || calcs.sampleVolumeMuchTooLow) ?
-                            <div className={classes.boldRed}>
-                              {calcs.differenceTooHigh && (<Tooltip title='The difference between flow rates is greater than 10 per cent. The sample must be rejected.'><div>Difference between flow rates is too high.</div></Tooltip>)}
-                              {calcs.sampleVolumeMuchTooLow && (<Tooltip title='Sample volumes of less than 100L are not recommended because of the increased loss of precision in the results obtained. They may also lead to higher reporting limits than may be desired.'><div>Sample volume too low to be accurate.</div></Tooltip>)}
-                            </div>
-                            :
-                            (calcs.sampleRateLow || calcs.sampleRateHigh || calcs.sampleVolumeTooLow) ?
-                            <div className={classes.boldOrange}>
-                              {calcs.sampleRateLow && (<Tooltip title='Flow rates of less than 400 mL/min may preclude countable fibres from being collected from the airborne dust cloud.'><div>Flow rate lower than recommended.</div></Tooltip>)}
-                              {calcs.sampleRateHigh && (<Tooltip title='Flow rates greater than 8000 mL/min may result in interference from excessively large particles and may also cause leakage problems for most available filter holders.'><div>Flow rate higher than recommended.</div></Tooltip>)}
-                              {calcs.sampleVolumeTooLow && (<Tooltip title='Asbestos clearance air tests must have a sample volume of 360L or greater.'><div>Sample volume too low for clearances.</div></Tooltip>)}
-                            </div>
-                            :
-                            (calcs.runTime && calcs.averageFlowRate) ? <div className={classes.boldGreen}>No Sampling Errors or Warnings</div> : ''
-                          }
-                        </div>
-                      </div>
-                    );
-                  })
+                      );
+                    })
                   }
                   <Button
                     className={classes.buttonViewMore}
@@ -1055,10 +1054,10 @@ class CocModal extends React.PureComponent {
                 doc.lastModified = now;
                 doc.versionUpToDate = false;
                 doc.mostRecentIssueSent = false;
-                doc.defaultSampleDate = this.state.defaultSampleDate;
-                doc.defaultSampledBy = this.state.defaultSampledBy;
-                console.log(doc.defaultSampledBy);
-                console.log(this.state.defaultSampledBy);
+                if (this.state.sampleType !== "air") {
+                  doc.defaultSampleDate = this.state.defaultSampleDate;
+                  doc.defaultSampledBy = this.state.defaultSampledBy;
+                }
                 handleCocSubmit({
                   doc: doc,
                   me: me,
@@ -1154,27 +1153,6 @@ class CocModal extends React.PureComponent {
     return this.state.sampleType === "air" ?
       (<div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
         <div className={classes.spacerSmall} />
-        <div className={classes.columnSmall} />
-        <div className={classes.columnMed} />
-        <div className={classes.columnSmall} />
-        <div className={classes.columnSmall}>
-          Initial
-        </div>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnSmall}>
-          Final
-        </div>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnMedSmall} />
-        <div className={classes.columnMedSmall}>Start</div>
-        <div className={classes.columnMedSmall}>Finish</div>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnSmall} />
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnMed} />
-        <div className={classes.columnMedLarge} />
-
-        <div className={classes.spacerSmall} />
         <div className={classes.columnSmall}>
           <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
             {i+1}
@@ -1184,27 +1162,37 @@ class CocModal extends React.PureComponent {
           {sample.specificLocation ? sample.specificLocation : ''}
         </div>
         <div className={classes.columnSmall} />
-        <div className={classNames(classes.paddingSidesSmall, classes.columnSmall)}>
-          {sample.initialFlowRate ? sample.initialFlowRate : ''}
+        <div className={classes.columnSmallCentered}>
+          {sample.initialFlowRate ? `${parseFloat(sample.initialFlowRate).toFixed(1)} mL/min` : ''}
         </div>
         <div className={classes.spacerSmall} />
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-          {sample.finalFlowRate ? sample.finalFlowRate : ''}
-        </div>
-        <div className={classes.columnMedSmall}>
-          {sample.initialFlowRate && sample.finalFlowRate ? (parseFloat(sample.initialFlowRate)+parseFloat(sample.finalFlowRate))/2 : ''}
-        </div>
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-          {sample.startTime ? moment(dateOf(sample.startTime)).format('hh:mma D MMMM YYYY') : ''}
-        </div>
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-          {sample.endTime ? moment(dateOf(sample.endTime)).format('hh:mma D MMMM YYYY') : ''}
+        <div className={classes.columnSmallCentered}>
+          {sample.finalFlowRate ? `${parseFloat(sample.finalFlowRate).toFixed(1)} mL/min` : ''}
         </div>
         <div className={classes.spacerSmall} />
-        <div className={classNames(classes.paddingSidesSmall, classes.columnSmall)}>
-          {sample.totalRunTime ? sample.totalRunTime : sample.startTime && sample.endTime ? getSampleRunTime(sample) : ''}
+        <div className={classes.columnMedSmallCentered}>
+          {sample.averageFlowRate ?
+            <span className={sample.differenceTooHigh ? sample.informationBoxError : (sample.sampleRateLow || sample.sampleRateHigh) ? classes.informationBoxWarning : classes.informationBoxOk}>
+              {`${parseFloat(sample.averageFlowRate).toFixed(1)} mL/min`}
+            </span>
+          : ''}
+        </div>
+        <div className={classes.columnMedSmallCentered}>
+          {sample.startTime ? moment(dateOf(sample.startTime)).format('D/MM/YY, hh:mma') : ''}
+        </div>
+        <div className={classes.columnMedSmallCentered}>
+          {sample.endTime ? moment(dateOf(sample.endTime)).format('D/MM/YY, hh:mma') : ''}
         </div>
         <div className={classes.spacerSmall} />
+        <div className={classes.columnMedSmallCentered}>
+          {sample.runTime ? `${sample.runTime} mins` : ''}
+        </div>
+        <div className={classes.spacerSmall} />
+        <div className={classes.columnMedCentered}>
+          {sample.sampleVolume ? <span className={sample.sampleVolumeMuchTooLow ? classes.informationBoxError : sample.sampleVolumeTooLow ? classes.informationBoxWarning : classes.informationBoxOk}>
+            {`${parseFloat(sample.sampleVolume).toFixed(1)}L`}</span>
+          : ''}
+        </div>
         <div className={classes.columnMedLarge}>
           {!disabled && <IconButton onClick={() =>
             this.props.showModalSecondary({

@@ -198,7 +198,7 @@ class AsbestosAirCocCard extends React.Component {
                       modalType: ASBESTOS_COC_EDIT,
                       modalProps: {
                         title: "Edit Chain of Custody",
-                        doc: { ...job, samples: samples[job.uid] }
+                        doc: { ...job, samples: samples[job.uid] ? samples[job.uid] : {} }
                       }
                     });
                   }}>

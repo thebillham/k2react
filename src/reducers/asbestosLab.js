@@ -88,6 +88,7 @@ export default function asbestosLabReducer(state = asbestosLabInit, action) {
         asbestosCheckLogs: action.payload,
       }
     case GET_SAMPLES:
+    console.log(action.payload);
       return {
         ...state,
         samples: {
