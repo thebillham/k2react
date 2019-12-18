@@ -27,7 +27,6 @@ import { showModal } from "../../../actions/modal";
 import { CSVLink, CSVDownload } from "react-csv";
 import {
   ASBESTOS_SAMPLE_EDIT,
-  ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS,
   ASBESTOS_COC_EDIT,
   COC_STATS,
   ASBESTOS_ACTIONS,
@@ -61,7 +60,7 @@ import VerifyIcon from "@material-ui/icons/CheckCircleOutline";
 import UrgentIcon from "@material-ui/icons/Flag";
 import MoreIcon from "@material-ui/icons/MoreVert";
 import StartAnalysisIcon from "@material-ui/icons/Colorize";
-import WAIcon from "@material-ui/icons/GroupWork";
+import AirIcon from "@material-ui/icons/AcUnit";
 
 const mapStateToProps = state => {
   return {
@@ -96,7 +95,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosBulkCocCard extends React.Component {
+class AsbestosAirCocCard extends React.Component {
   // static whyDidYouRender = true;
   state = { cocAnchorEl: null, };
 
@@ -109,7 +108,6 @@ class AsbestosBulkCocCard extends React.Component {
     if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
     if (this.props.modalType === ASBESTOS_SAMPLE_EDIT) return false; // Edit modal is open
     if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
-    if (this.props.modalType === ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS) return false; // Soil subsample modal is open)
     // if (nextProps.doNotRender) return false;
     // console.log(nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job);
     if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
@@ -141,13 +139,14 @@ class AsbestosBulkCocCard extends React.Component {
   render() {
     const { samples, classes } = this.props;
     const job = this.props.cocs[this.props.job];
+    console.log(job);
     // console.log(job);
     if (job === undefined || job.deleted) return null;
     let version = 1,
     labFunctions = this.props.me.auth &&
       (this.props.me.auth['Asbestos Admin'] ||
       this.props.me.auth['Analysis Checker'] ||
-      this.props.me.auth['Asbestos Bulk Analysis']),
+      this.props.me.auth['Asbestos Air Analysis']),
     adminFunctions = this.props.me.auth &&
       (this.props.me.auth['Asbestos Admin'] ||
       this.props.me.auth['Analysis Checker']);
@@ -182,7 +181,7 @@ class AsbestosBulkCocCard extends React.Component {
           <div>
             <span className={classes.boldSmallText}>{job.jobNumber}</span>
             <span>{job.client} ({job.address})</span>
-            {job.waAnalysis && <WAIcon color='action' className={classes.marginLeftSmall} />}
+            <AirIcon color='action' className={classes.marginLeftSmall} />
             {(job.priority === 1 || job.isClearance) && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
             {job.versionUpToDate && <VerifyIcon color='primary' className={classes.marginLeftSmall} />}
             {jobStatus && <span className={classes.boldSmallText}>{jobStatus ? jobStatus : ''}</span>}
@@ -270,21 +269,6 @@ class AsbestosBulkCocCard extends React.Component {
                     </IconButton>
                   </div>
                 </Tooltip>
-              }
-              {labFunctions && job.waAnalysis &&
-                <Tooltip title={'Verify Subsample Weights'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
-                  <div>
-                    <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
-                      onClick={event => {
-                        this.props.showModal({
-                          modalType: ASBESTOS_ACTIONS,
-                          modalProps: { job: job, field: 'verifySubsample', title: `Verify Subsample Weights for ${job.jobNumber} (${job.client}: ${job.address})`,
-                        }});
-                      }}>
-                      <WAIcon className={classes.iconRegular} />
-                    </IconButton>
-                  </div>
-              </Tooltip>
               }
               {adminFunctions &&
                 <Tooltip title={'Verify Results'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
@@ -444,5 +428,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(AsbestosBulkCocCard)
+  )(AsbestosAirCocCard)
 );

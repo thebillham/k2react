@@ -3639,7 +3639,7 @@ export const getAirSampleData = (sample, fibreResultDefault) => {
     if (calcs.sampleVolume < 360) calcs.sampleVolumeTooLow = true;
   }
 
-  if (true || (sample.fibreCounts && Object.keys(sample.fibreCounts).length > 0)) {
+  if (sample.fibreCounts && Object.keys(sample.fibreCounts).length > 0) {
     // Fibre counts have been done. Get concentrations.
     // Each fibre count has the following information:
     //    (obj) analyst: {name, uid}
@@ -3656,10 +3656,10 @@ export const getAirSampleData = (sample, fibreResultDefault) => {
       microscopeNumber = 0,
       fibreCountTotal = 0,
       filtersAnalysedNumber = 0,
-      // filtersTotalNumber = Object.keys(sample.fibreCounts).length,\
-      filtersTotalNumber = null,
+      filtersTotalNumber = Object.keys(sample.fibreCounts).length,
       analysisDates = {},
       analysts = [],
+      analystMap = {},
       effectiveFilterArea = 385,
       areasCounted = 100,
       actualConcentration = null,
@@ -3667,27 +3667,29 @@ export const getAirSampleData = (sample, fibreResultDefault) => {
 
     analysisDates = writeDates(sample.fibreCounts, 'analysisDate');
 
-    // Object.values(sample.fibreCounts).forEach(f => {
-    //   if (f.overloaded) {
-    //     // Analyst has stated filter is overloaded, do not count results
-    //     overloadedNumber++;
-    //   } else if (f.marginsBad) {
-    //     // Analyst has stated margins are bad, do not count results
-    //     marginsBadNumber++;
-    //   } else {
-    //     // Valid sample, add data to list
-    //     analysts.push(f.analyst);
-    //     if (f.microscope && f.microscope.distance) {
-    //       microscopeDistanceTotal += parseFloat(f.microscope.distance);
-    //       microscopeNumber++;
-    //     }
-    //     fibreCountTotal += parseFloat(f.fibreCount);
-    //     filtersAnalysedNumber++;
-    //   }
-    // });
+    Object.values(sample.fibreCounts).forEach(f => {
+      if (f.overloaded) {
+        // Analyst has stated filter is overloaded, do not count results
+        overloadedNumber++;
+      } else if (f.marginsBad) {
+        // Analyst has stated margins are bad, do not count results
+        marginsBadNumber++;
+      } else {
+        // Valid sample, add data to list
+        analystMap[f.analyst] = true;
+        if (f.microscope && f.microscope.distance) {
+          microscopeDistanceTotal += parseFloat(f.microscope.distance);
+          microscopeNumber++;
+        }
+        fibreCountTotal += parseFloat(f.fibreCount);
+        filtersAnalysedNumber++;
+      }
+    });
 
-    let microscopeDistanceAvg = microscopeNumber > 0 ? parseFloat(microscopeDistanceTotal/microscopeNumber) : 100.1,
-      fibreResult = filtersAnalysedNumber > 0 ? parseFloat(fibreCountTotal/filtersAnalysedNumber) : fibreResultDefault;
+    analysts = Object.keys(analystMap);
+
+    let microscopeDistanceAvg = microscopeNumber > 0 ? parseFloat(microscopeDistanceTotal/microscopeNumber) : null,
+      fibreResult = filtersAnalysedNumber > 0 ? parseFloat(fibreCountTotal/filtersAnalysedNumber) : fibreResultDefault ? fibreResultDefault : null;
 
     let graticuleArea = microscopeDistanceAvg ? Math.PI * Math.pow(microscopeDistanceAvg/1000/2, 2) : null;
 

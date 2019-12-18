@@ -11,7 +11,7 @@ import {
 } from "../../../constants/modal-types";
 import moment from "moment";
 import { addLog, } from "../../../actions/local";
-import { writeDates, } from '../../../actions/helpers';
+import { writeDates, andList, } from '../../../actions/helpers';
 
 import { TickyBox, } from '../../../widgets/FormWidgets';
 import Grid from "@material-ui/core/Grid";
@@ -27,7 +27,7 @@ const mapStateToProps = state => {
   };
 };
 
-class AsbestosBulkCocSummary extends React.Component {
+class AsbestosCocSummary extends React.Component {
   // static whyDidYouRender = true;
 
   shouldComponentUpdate(nextProps) {
@@ -55,13 +55,27 @@ class AsbestosBulkCocSummary extends React.Component {
     // console.log(`rendering summary ${job.jobNumber}`);
     // console.log(job);
     // console.log(samples[job.uid]);
-    let sampledBy = 'N/A';
-    let sampleDate = 'N/A';
-    let analysts = 'N/A';
+    let sampledBy = 'N/A',
+      sampleDate = 'N/A',
+      analysts = 'N/A',
+      analystMap = {},
+      validSamples = samples[job.uid] ? Object.values(samples[job.uid]).filter(e => e.cocUid === job.uid) : [];
     if (samples && samples[job.uid]) {
-      sampledBy = getPersonnel(Object.values(samples[job.uid]).filter(e => e.cocUid === job.uid), 'sampledBy', null, false).map(e => e.name).join(', ');
-      sampleDate = writeDates(Object.values(samples[job.uid]).filter(e => e.cocUid === job.uid), 'sampleDate');
-      analysts = getPersonnel(Object.values(samples[this.props.job]).filter(s => s.cocUid === job.uid), 'analyst', null, false).map(e => e.name).join(", ");
+      if (job.sampleType === "air") {
+        if (job.defaultPersonnel) sampledBy = andList(job.defaultPersonnel.map(e => e.name));
+        console.log(job.defaultPersonnel);
+        sampleDate = writeDates(validSamples, 'startTime');
+        validSamples.forEach(s => {
+          if (s.analysts && s.analysts.length > 0) {
+            s.analysts.forEach(a => analystMap[a.name] = true);
+            analysts = andList(Object.keys(analystMap));
+          }
+        })
+      } else {
+        sampledBy = andList(getPersonnel(validSamples, 'sampledBy', null, false).map(e => e.name));
+        sampleDate = writeDates(validSamples, 'sampleDate');
+        analysts = andList(getPersonnel(validSamples, 'analyst', null, false).map(e => e.name));
+      }
     }
 
     return (
@@ -113,5 +127,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     null
-  )(AsbestosBulkCocSummary)
+  )(AsbestosCocSummary)
 );

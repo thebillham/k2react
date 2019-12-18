@@ -165,6 +165,10 @@ class CocModal extends React.PureComponent {
   UNSAFE_componentWillMount() {
     if (Object.keys(this.props.staff).length < 1)
       this.props.fetchStaff();
+    if (this.props.doc && this.props.doc.sampleType)
+      this.setState({
+        sampleType: this.props.doc.sampleType,
+      });
   }
 
   // shouldComponentUpdate(nextProps, nextState) {
@@ -227,6 +231,7 @@ class CocModal extends React.PureComponent {
   render() {
     const { modalProps, modalType, doc, wfmJob, classes, me, jobList } = this.props;
     // console.log(doc);
+
     if (modalType === ASBESTOS_COC_EDIT) {
       const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
       // console.log(this.state.recentSuggestionsGenericLocation);
@@ -244,7 +249,7 @@ class CocModal extends React.PureComponent {
       let noSamples = true;
       if (doc && doc.samples) Object.values(doc.samples).forEach(s => {
         if (this.state.sampleType === "bulk" && !s.deleted && (s.description || s.material || s.specificLocation || s.genericLocation)) noSamples = false;
-        else if (this.state.sampleType === "bulk" && !s.deleted && s.initialFlowRate && s.finalFlowRate && s.startTime && (s.endTime || s.totalRunTime)) noSamples = false;
+        else if (this.state.sampleType === "air" && !s.deleted && (s.specificLocation || s.initialFlowRate || s.finalFlowRate || s.startTime || s.endTime || s.totalRunTime)) noSamples = false;
       });
       // console.log(names.map(e => ({ value: e.uid, label: e.name })));
 
@@ -345,13 +350,11 @@ class CocModal extends React.PureComponent {
                             <Select
                               isMulti
                               className={classes.selectTight}
-                              value={this.state.defaultSampledBy ? this.state.defaultSampledBy : null}
+                              value={doc.defaultSampledBy ? doc.defaultSampledBy.map(e => ({ value: e.uid, label: e.name })) : null}
                               options={names.map(e => ({ value: e.uid, label: e.name }))}
                               onChange={e => {
-                                this.setState({
-                                  modified: true,
-                                  defaultSampledBy: personnelConvert(e).map(e => ({ value: e.uid, label: e.name })),
-                                });
+                                this.setState({ modified: true });
+                                this.props.handleModalChange({id: 'defaultSampledBy', value: personnelConvert(e) });
                               }}
                             />
                           </div>
@@ -643,9 +646,10 @@ class CocModal extends React.PureComponent {
 
                   {this.state.sampleType === "bulk" ?
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
-                      let disabled = blockInput || doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
+                      let sample = doc && doc.samples && doc.samples[i+1] ? doc.samples[i+1] : {};
+                      let disabled = blockInput || sample.cocUid && sample.cocUid !== doc.uid;
                       if (!disabled) disabled = false;
-                      return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
+                      return(sample.uid && sample.deleted === false ?
                         <div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
                           <div className={classes.spacerSmall} />
                           <div className={classes.columnSmall}>
@@ -654,26 +658,26 @@ class CocModal extends React.PureComponent {
                             </div>
                           </div>
                           <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-                            {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
+                            {sample.genericLocation ? sample.genericLocation : ''}
                           </div>
                           <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-                            {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : ''}
+                            {sample.specificLocation ? sample.specificLocation : ''}
                           </div>
                           <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-                            {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
+                            {sample.description ? sample.description : ''}
                           </div>
                           <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-                            {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].material ? doc.samples[i+1].material : ''}
+                            {sample.material ? sample.material : ''}
                           </div>
                           <div className={classes.columnMedSmall}>
-                            {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].category ? doc.samples[i+1].category : ''}
+                            {sample.category ? sample.category : ''}
                           </div>
                           <div className={classes.columnMedLarge}>
-                            {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => e.name).join(', ') : ''}
+                            {sample.sampledBy ? sample.sampledBy.map(e => e.name).join(', ') : ''}
                           </div>
                           <div className={classes.columnMedSmall}>
-                            {doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].sampleDate ?
-                              moment(dateOf(doc.samples[i+1].sampleDate)).format('ddd, D MMMM YYYY') : ''}
+                            {sample.sampleDate ?
+                              moment(dateOf(sample.sampleDate)).format('ddd, D MMMM YYYY') : ''}
                           </div>
                           <div className={classes.columnSmall}>
                             {!disabled && <IconButton onClick={() =>
@@ -681,7 +685,7 @@ class CocModal extends React.PureComponent {
                                 modalType: ASBESTOS_SAMPLE_EDIT_COC,
                                 modalProps: {
                                   doc: doc,
-                                  sample: doc.samples[i+1],
+                                  sample: sample,
                                   names: names,
                                   onExit: (modified) => this.setState({
                                     modified: modified,
@@ -702,7 +706,7 @@ class CocModal extends React.PureComponent {
                           </div>
                           <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
                             <SuggestionField that={this} suggestions='genericLocationSuggestions'
-                              value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].genericLocation ? doc.samples[i+1].genericLocation : ''}
+                              value={sample.genericLocation ? sample.genericLocation : ''}
                               disabled={disabled}
                               addedSuggestions={this.state.recentSuggestionsGenericLocation}
                               onModify={(value) => {
@@ -715,7 +719,7 @@ class CocModal extends React.PureComponent {
                           </div>
                           <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
                             <SuggestionField that={this} suggestions='specificLocationSuggestions'
-                              defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].specificLocation ? doc.samples[i+1].specificLocation : ''}
+                              defaultValue={sample.specificLocation ? sample.specificLocation : ''}
                               disabled={disabled}
                               onModify={(value) => {
                                 this.setState({ modified: true, });
@@ -724,7 +728,7 @@ class CocModal extends React.PureComponent {
                           </div>
                           <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                             <SuggestionField that={this} suggestions='descriptionSuggestions'
-                              defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].description ? doc.samples[i+1].description : ''}
+                              defaultValue={sample.description ? sample.description : ''}
                               disabled={disabled}
                               onModify={(value) => {
                                 this.setState({ modified: true, });
@@ -733,7 +737,7 @@ class CocModal extends React.PureComponent {
                           </div>
                           <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
                             <SuggestionField that={this} suggestions='materialSuggestions'
-                              defaultValue={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].material ? doc.samples[i+1].material : ''}
+                              defaultValue={sample.material ? sample.material : ''}
                               disabled={disabled}
                               onModify={(value) => {
                                 let category = '';
@@ -749,7 +753,7 @@ class CocModal extends React.PureComponent {
                           <div className={classes.columnMedSmall}>
                             <Select
                               className={classes.selectTight}
-                              value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].category ? {value: doc.samples[i+1].category, label: doc.samples[i+1].category} : {value: '', label: ''}}
+                              value={sample.category ? {value: sample.category, label: sample.category} : {value: '', label: ''}}
                               options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
                               isDisabled={disabled}
                               onChange={e => {
@@ -762,7 +766,7 @@ class CocModal extends React.PureComponent {
                             <Select
                               isMulti
                               className={classes.selectTight}
-                              value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].sampledBy ? doc.samples[i+1].sampledBy.map(e => ({value: e.uid, label: e.name})) : this.state.defaultSampledBy}
+                              value={sample.sampledBy ? sample.sampledBy.map(e => ({value: e.uid, label: e.name})) : this.state.defaultSampledBy}
                               options={names.map(e => ({ value: e.uid, label: e.name }))}
                               isDisabled={disabled}
                               onChange={e => {
@@ -790,7 +794,7 @@ class CocModal extends React.PureComponent {
                           </div>
                           <div className={classes.columnMedSmall}>
                             <DatePicker
-                              value={doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1].sampleDate !== undefined ? doc.samples[i+1].sampleDate :
+                              value={sample.sampleDate !== undefined ? sample.sampleDate :
                                 this.state.defaultSampleDate}
                               autoOk
                               format="ddd, D MMMM YYYY"
@@ -837,8 +841,8 @@ class CocModal extends React.PureComponent {
                     })
                     :
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
-                    let disabled = blockInput || doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].cocUid && doc.samples[i+1].cocUid !== doc.uid;
-                    let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted && doc.samples[i+1] ? doc.samples[i+1] : {};
+                    let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted ? doc.samples[i+1] : {};
+                    let disabled = blockInput || sample.cocUid && sample.cocUid !== doc.uid;
                     let calcs = {};
                     if ((sample.initialFlowRate && sample.finalFlowRate) || (sample.startTime && sample.endTime)) calcs = getAirSampleData(sample, doc.labInstructions ? parseFloat(doc.labInstructions) : 9);
                     if (!disabled) disabled = false;
@@ -1053,6 +1057,8 @@ class CocModal extends React.PureComponent {
                 doc.mostRecentIssueSent = false;
                 doc.defaultSampleDate = this.state.defaultSampleDate;
                 doc.defaultSampledBy = this.state.defaultSampledBy;
+                console.log(doc.defaultSampledBy);
+                console.log(this.state.defaultSampledBy);
                 handleCocSubmit({
                   doc: doc,
                   me: me,

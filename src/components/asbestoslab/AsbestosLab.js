@@ -63,6 +63,7 @@ import AsbestosLabStatsModal from "./modals/AsbestosLabStatsModal";
 import AsbestosActionDetailsModal from "./modals/AsbestosActionDetailsModal";
 
 import AsbestosBulkCocCard from "./components/AsbestosBulkCocCard";
+import AsbestosAirCocCard from "./components/AsbestosAirCocCard";
 
 import Select from "react-select";
 import Button from "@material-ui/core/Button";
@@ -442,7 +443,7 @@ class AsbestosLab extends React.Component {
             </div>
           ) : (
             <div className={classes.marginTopSmall}>
-              {filteredCocs.map(job => <AsbestosBulkCocCard key={job} job={job} />)}
+              {filteredCocs.map(job => cocs[job].sampleType === "air" ? <AsbestosAirCocCard key={job} job={job} /> : <AsbestosBulkCocCard key={job} job={job} />)}
             </div>
           )
         }
