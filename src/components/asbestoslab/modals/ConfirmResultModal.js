@@ -1,9 +1,7 @@
 import React from "react";
-import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
-import store from "../../../store";
 import { CONFIRM_RESULT } from "../../../constants/modal-types";
 import { asbestosSamplesRef, asbestosCheckLogRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
@@ -14,19 +12,15 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
-import IconButton from "@material-ui/core/IconButton";
-import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
-import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/RemoveCircle";
 import SetIcon from "@material-ui/icons/Publish";
 import { hideModal, handleModalChange } from "../../../actions/modal";
 import { addLog, } from "../../../actions/local";
 import { dateOf, numericAndLessThanOnly } from '../../../actions/helpers';
-import { updateResultMap, getSampleColors, setAnalyst, getBasicResult, getAllConfirmResult, compareAsbestosResult, setCheckAnalysis } from "../../../actions/asbestosLab";
+import { updateResultMap, getSampleColors, setAnalyst, getBasicResult, compareAsbestosResult, setCheckAnalysis } from "../../../actions/asbestosLab";
 import { AsbButton, } from '../../../widgets/FormWidgets';
 import _ from "lodash";
 import moment from 'moment';
@@ -222,11 +216,11 @@ class ConfirmResultModal extends React.Component {
       if (!this.state[num+1].deleted) {
         if (this.state[num+1].analyst === undefined) {
           window.alert('Check all analyses have an analyst set.');
-          return;
+          return null;
         }
         if (getBasicResult(this.state[num+1]) === 'none') {
           window.alert('Check all analyses have an asbestos result reported.');
-          return;
+          return null;
         }
         if (this.state[num+1].modified === true) {
           let log = {
@@ -248,7 +242,7 @@ class ConfirmResultModal extends React.Component {
     let numChecks = [...Array(this.state.totalNum ? this.state.totalNum : 1).keys()].filter(num => this.state[num+1].deleted !== true && !(this.state[num+1].date === undefined && !editor)).length;
     console.log(numChecks);
     if (modalType === CONFIRM_RESULT) {
-      return (modalType === CONFIRM_RESULT &&
+      return (
         <Dialog
           open={modalType === CONFIRM_RESULT}
           onClose={this.props.hideModal}

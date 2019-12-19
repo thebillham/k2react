@@ -228,6 +228,17 @@ const styles = theme => ({
     margin: theme.spacing(1),
   },
 
+
+  mapBoxWhite: {
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: theme.spacing(1),
+    margin: theme.spacing(1),
+    borderRadius: theme.spacing(1),
+    width: '40vw',
+    height: '25vw',
+  },
+
   informationBoxWhiteRounded: {
     backgroundColor: '#fff',
     borderRadius: theme.spacing(1),
@@ -272,6 +283,21 @@ const styles = theme => ({
     fontWeight: 500,
     fontSize: 16,
     color: '#333',
+  },
+
+  expandHeading: {
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+    fontSize: 14,
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+
+  expandBody: {
+    backgroundColor: 'white',
+    width: '50%',
+    borderRadius: theme.spacing(2),
+    padding: theme.spacing(2),
   },
 
   dialogField: {

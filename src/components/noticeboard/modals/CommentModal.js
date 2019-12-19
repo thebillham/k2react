@@ -15,15 +15,7 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
-import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
-import FormControl from "@material-ui/core/FormControl";
-import Input from "@material-ui/core/Input";
-import Chip from "@material-ui/core/Chip";
-import MenuItem from "@material-ui/core/MenuItem";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import IconButton from "@material-ui/core/IconButton";
 
 import {
   hideModal,
@@ -69,7 +61,7 @@ const mapDispatchToProps = dispatch => {
 
 class CommentModal extends React.Component {
   render() {
-    const { modalProps, doc, classes, categories, questions } = this.props;
+    const { modalProps, doc, classes, } = this.props;
 
     return (
       <Dialog

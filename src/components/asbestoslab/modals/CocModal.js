@@ -15,11 +15,7 @@ import Grid from '@material-ui/core/Grid';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import FormGroup from '@material-ui/core/FormGroup';
 import TextField from '@material-ui/core/TextField';
-import MenuItem from '@material-ui/core/MenuItem';
-import Checkbox from '@material-ui/core/Checkbox';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from "@material-ui/core/Switch";
@@ -27,29 +23,22 @@ import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import IconButton from '@material-ui/core/IconButton';
-import FormLabel from '@material-ui/core/FormLabel';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Radio from '@material-ui/core/Radio';
-import Chip from '@material-ui/core/Chip';
 import EditIcon from '@material-ui/icons/Edit';
 import Select from 'react-select';
 import SuggestionField from '../../../widgets/SuggestionField';
-import Hint from 'react-hints';
 // import { CSSTransition } from 'react-transition-group';
 // import '../../../config/styles.css';
 
 import {
   DatePicker,
-  KeyboardDatePicker,
   DateTimePicker,
-  KeyboardDateTimePicker
 } from "@material-ui/pickers";
 
 import Add from '@material-ui/icons/Add';
 import Sync from '@material-ui/icons/Sync';
 import Link from '@material-ui/icons/Link';
-import Close from '@material-ui/icons/Close';
-// import AirIcon from '@material-ui/icons/AcUnit';
 import AirIcon from '@material-ui/icons/Toys';
 import BulkIcon from '@material-ui/icons/Colorize';
 import Go from '@material-ui/icons/ArrowForwardIos';
@@ -60,22 +49,16 @@ import {
   fetchSamples,
   handleCocSubmit,
   handleSampleChange,
-  getAirConcentration,
   writeDescription,
-  getSampleRunTime,
-  getAverageFlowRate,
   getAirSampleData,
 } from '../../../actions/asbestosLab';
-import { titleCase, sentenceCase, dateOf, writeDates, personnelConvert, numericOnly, writeMeasurement } from '../../../actions/helpers';
+import { titleCase, sentenceCase, dateOf, personnelConvert, numericOnly, } from '../../../actions/helpers';
 import _ from 'lodash';
 
 
 const {whyDidYouUpdate} = require('why-did-you-update');
 const mapStateToProps = state => {
   return {
-    // genericLocationSuggestions: state.const.genericLocationSuggestions,
-    // specificLocationSuggestions: state.const.specificLocationSuggestions,
-    // descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
     asbestosMaterialCategories: state.const.asbestosMaterialCategories,
     acmInSoilLimits: state.const.acmInSoilLimits,
@@ -111,14 +94,14 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-function getStyles(name, that) {
-  return {
-    fontWeight:
-      that.state.personnel.indexOf(name) === -1
-        ? 200
-        : 600
-  };
-}
+// function getStyles(name, that) {
+//   return {
+//     fontWeight:
+//       that.state.personnel.indexOf(name) === -1
+//         ? 200
+//         : 600
+//   };
+// }
 
 const initState = {
   jobNumber: null,
@@ -234,10 +217,6 @@ class CocModal extends React.PureComponent {
 
     if (modalType === ASBESTOS_COC_EDIT) {
       const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
-      // console.log(this.state.recentSuggestionsGenericLocation);
-
-      if (!doc.dates) doc.dates = [];
-      let dates = doc.dates.map(date => dateOf(date));
 
       let sampleNumbers = [this.state.numberOfSamples];
       if (doc && doc.samples) sampleNumbers = sampleNumbers.concat(Object.keys(doc.samples).map(key => parseInt(key)));
@@ -251,7 +230,6 @@ class CocModal extends React.PureComponent {
         if (this.state.sampleType === "bulk" && !s.deleted && (s.description || s.material || s.specificLocation || s.genericLocation)) noSamples = false;
         else if (this.state.sampleType === "air" && !s.deleted && (s.specificLocation || s.initialFlowRate || s.finalFlowRate || s.startTime || s.endTime || s.totalRunTime)) noSamples = false;
       });
-      // console.log(names.map(e => ({ value: e.uid, label: e.name })));
 
       return(
         <Dialog
@@ -647,7 +625,7 @@ class CocModal extends React.PureComponent {
                   {this.state.sampleType === "bulk" ?
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                       let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted ? doc.samples[i+1] : {};
-                      let disabled = blockInput || sample.cocUid && sample.cocUid !== doc.uid;
+                      let disabled = blockInput || (sample.cocUid && sample.cocUid !== doc.uid);
                       if (!disabled) disabled = false;
                       return(sample.uid && sample.deleted === false ?
                         <div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
@@ -842,9 +820,9 @@ class CocModal extends React.PureComponent {
                     :
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                       let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted ? doc.samples[i+1] : {};
-                      let disabled = blockInput || sample.cocUid && sample.cocUid !== doc.uid;
+                      let disabled = blockInput || (sample.cocUid && sample.cocUid !== doc.uid);
                       let calcs = {};
-                      if (!sample.uid && (sample.initialFlowRate && sample.finalFlowRate) || (sample.startTime && sample.endTime)) calcs = getAirSampleData(sample, doc.labInstructions ? parseFloat(doc.labInstructions) : 9);
+                      if (!sample.uid && ((sample.initialFlowRate && sample.finalFlowRate) || (sample.startTime && sample.endTime))) calcs = getAirSampleData(sample, doc.labInstructions ? parseFloat(doc.labInstructions) : 9);
                       if (!disabled) disabled = false;
                       // console.log(doc.samples[i+1]);
                       // console.log(doc.samples);

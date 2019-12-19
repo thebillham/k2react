@@ -16,17 +16,12 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import Add from '@material-ui/icons/Add';
 
 // import IncidentModal from "../incidents/modals/IncidentModal";
-import { NOTICES, INCIDENT, COMMENT, WHOS_READ } from "../../constants/modal-types";
+import { NOTICES, COMMENT, WHOS_READ } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
-import { auth, usersRef, noticesRef } from "../../config/firebase";
-import store from "../../store";
+import { auth, usersRef, } from "../../config/firebase";
 import moment from "moment";
-import _ from "lodash";
 import classNames from "classnames";
 import {
-  onFavNotice,
-  onReadNotice,
-  onDeleteNotice,
   fetchNotices,
   fetchNoticeReads,
 } from "../../actions/local";

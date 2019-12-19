@@ -31,6 +31,7 @@ const jobsInit = {
   wfmLeads: [],
   wfmClients: [],
   wfmStats: {},
+  jobs: {},
   jobList: {},
   jobStats: {},
   lastTimeSaved: null,

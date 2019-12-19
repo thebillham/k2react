@@ -16,8 +16,6 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
-import FormControl from "@material-ui/core/FormControl";
-import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "react-select";
 
@@ -407,7 +405,7 @@ class AppSettings extends React.Component {
   }
 
   render() {
-    const { doc, classes } = this.props;
+    const { classes } = this.props;
     const { setting, text } = this.state;
 
     return (

@@ -59,7 +59,6 @@ import ConfirmResultModal from "./modals/ConfirmResultModal";
 import SampleLogModal from "./modals/SampleLogModal";
 import CocLogModal from "./modals/CocLogModal";
 import LoggedSamplesModal from "./modals/LoggedSamplesModal";
-import AsbestosLabStatsModal from "./modals/AsbestosLabStatsModal";
 import AsbestosActionDetailsModal from "./modals/AsbestosActionDetailsModal";
 
 import AsbestosBulkCocCard from "./components/AsbestosBulkCocCard";
@@ -281,7 +280,6 @@ class AsbestosLab extends React.Component {
         { modalTypeSecondary === SOIL_DETAILS && <SoilDetailsModal /> }
         { modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && <AsbestosSampleCocEditModal /> }
         { modalType === ASBESTOS_LOGGED_SAMPLES && <LoggedSamplesModal />}
-        { modalType === ASBESTOS_LAB_STATS && <AsbestosLabStatsModal />}
         { modalTypeSecondary === ASBESTOS_ACTION_DETAILS && <AsbestosActionDetailsModal />}
         <span>
           <Button

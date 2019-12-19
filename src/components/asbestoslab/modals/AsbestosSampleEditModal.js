@@ -6,28 +6,20 @@ import classNames from 'classnames';
 import { ASBESTOS_SAMPLE_EDIT, SOIL_DETAILS, } from "../../../constants/modal-types";
 import "../../../config/tags.css";
 
-import { SamplesTickyBox, SamplesRadioSelector, SampleTextyLine, SamplesTickyBoxGroup, AsbButton, } from '../../../widgets/FormWidgets';
+import { SamplesTickyBox, SamplesRadioSelector, SamplesTickyBoxGroup, AsbButton, } from '../../../widgets/FormWidgets';
 import TextyBox from "../../../widgets/TextyBox";
-import { AsbestosClassification } from '../../../config/strings';
 
 import Button from "@material-ui/core/Button";
 import InputLabel from "@material-ui/core/InputLabel";
 import IconButton from "@material-ui/core/IconButton";
-import Input from "@material-ui/core/Input";
 import Divider from "@material-ui/core/Divider";
 import Dialog from "@material-ui/core/Dialog";
 import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
-import TextField from "@material-ui/core/TextField";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
-import ConfirmIcon from "@material-ui/icons/ThumbUp";
-import ThumbsDown from "@material-ui/icons/ThumbDown";
 import Select from 'react-select';
 import AsbestosSampleEditBasicResultRow from "../components/AsbestosSampleEditBasicResultRow";
 import AsbestosSampleEditLayerRow from "../components/AsbestosSampleEditLayerRow";
@@ -43,7 +35,7 @@ import NumberSpinner from '../../../widgets/NumberSpinner';
 import { hideModal, showModalSecondary, } from "../../../actions/modal";
 import { toggleAsbestosSampleDisplayMode } from "../../../actions/display";
 import { addLog, } from "../../../actions/local";
-import { mapsAreEqual, numericAndLessThanOnly, dateOf, personnelConvert, } from "../../../actions/helpers";
+import { mapsAreEqual, dateOf, personnelConvert, } from "../../../actions/helpers";
 import {
   handleSampleChange,
   writeSoilDetails,
@@ -51,18 +43,14 @@ import {
   analyticalCriteraOK,
   traceAnalysisRequired,
   recordAnalysis,
-  recordAnalysisOverride,
   verifySample,
   updateResultMap,
   writeDescription,
   writeSampleDimensions,
   writeSampleMoisture,
-  getConfirmColor,
-  compareAsbestosResult,
   getWATotalDetails,
   overrideResult,
 } from "../../../actions/asbestosLab";
-import moment from "moment";
 import {
   asbestosSamplesRef,
   firestore,
@@ -314,7 +302,6 @@ class AsbestosSampleEditModal extends React.Component {
 
   saveSample = async (activeSample) => {
     console.log('Save Sample');
-    const { override } = this.state;
     let activeSampleNumber = activeSample ? activeSample : this.state.activeSample;
     let sample = {
       ...this.state.samples[activeSampleNumber],
@@ -332,10 +319,10 @@ class AsbestosSampleEditModal extends React.Component {
       sample: sample.uid,
       chainOfCustody: sample.cocUid,
     };
-    let resultChanged = !mapsAreEqual(this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result, sample.result);
-    let weightChanged = this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived != sample.weightReceived;
-    let originalResult = this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result;
-    let originalWeight = this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived;
+    let resultChanged = !mapsAreEqual(this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result, sample.result),
+      weightChanged = this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived != sample.weightReceived,
+      originalResult = this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].result,
+      originalWeight = this.props.samples[this.props.modalProps.activeCoc][activeSampleNumber].weightReceived;
     addLog("asbestosLab", log, this.props.me, batch);
     if (this.props.samples[this.props.modalProps.activeCoc][this.state.activeSample] &&
       (resultChanged || weightChanged)) {
@@ -390,7 +377,7 @@ class AsbestosSampleEditModal extends React.Component {
   }
 
   render() {
-    const { classes, modalProps, modalType, samples } = this.props;
+    const { classes, modalProps, modalType, } = this.props;
     const names = [{ name: 'Client', uid: 'Client', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
     let sample = {
@@ -402,8 +389,6 @@ class AsbestosSampleEditModal extends React.Component {
     let waAnalysis = this.props.cocs[modalProps.activeCoc] && this.props.cocs[modalProps.activeCoc].waAnalysis;
     let sampleDimensions = null;
     let sampleMoisture = null;
-    let fractionMap = {};
-    let waColors = {};
 
     if (sample && this.props.asbestosSampleDisplayAdvanced) {
       sampleDimensions = writeSampleDimensions(sample, true);

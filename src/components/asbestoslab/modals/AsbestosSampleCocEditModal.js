@@ -9,9 +9,7 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
-import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
-import Checkbox from "@material-ui/core/Checkbox";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 
@@ -268,9 +266,8 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
   }
 
   render() {
-    const { classes, modalProps, modalType, me, samples } = this.props;
-    const { sample, doc } = this.state;
-    const i = sample ? sample.sampleNumber - 1 : 0;
+    const { classes, modalProps, modalType, samples } = this.props;
+    const { sample, } = this.state;
     const disabled = sample.cocUid != modalProps.doc.uid;
     console.log(this.state.sampleSwap);
     if (modalType === ASBESTOS_SAMPLE_EDIT_COC) {

@@ -1,11 +1,8 @@
 import React from "react";
-import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
-import store from "../../../store";
 import { COC_LOG } from "../../../constants/modal-types";
-import { docsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
@@ -15,10 +12,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import Add from '@material-ui/icons/Add';
-import { hideModal, handleModalChange } from "../../../actions/modal";
+import { hideModal, } from "../../../actions/modal";
 import { fetchLogs, clearLog, } from "../../../actions/local";
 import {  dateOf, } from '../../../actions/helpers';
-import _ from "lodash";
 import moment from "moment";
 
 const mapStateToProps = state => {

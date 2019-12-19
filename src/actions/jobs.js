@@ -6,12 +6,10 @@ import {
   SAVE_WFM_ITEMS,
   CLEAR_WFM_JOB,
   GET_GEOCODES,
-  ADD_TO_GEOCODES,
   GET_WFM_JOBS,
   GET_WFM_JOB,
   GET_JOB,
   GET_WFM_LEADS,
-  GET_WFM_CONTACT,
   GET_WFM_CLIENTS,
   GET_JOB_LIST,
   ADD_TO_JOB_LIST,
@@ -249,34 +247,6 @@ export const fetchWFMLeads = () => async dispatch => {
     });
 };
 
-export const getJob = job => async dispatch => {
-  if (job && job.jobNumber) {
-    jobsRef.doc(job.jobNumber.trim()).get().then(doc => {
-      if (doc.exists) {
-        dispatch({
-          type: GET_JOB,
-          payload: {
-            ...doc.data(),
-            ...job,
-          }
-        });
-        jobsRef.doc(job.jobNumber.trim()).update(job);
-      } else {
-        // Initialise job
-        let newJob = {
-          ...job,
-
-        };
-        dispatch({
-          type: GET_JOB,
-          payload: newJob,
-        });
-        jobsRef.doc(job.jobNumber.trim()).set(job);
-      }
-    });
-  }
-};
-
 export const fetchWFMClients = () => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMClients`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
@@ -324,8 +294,57 @@ export const clearWfmJob = () => async dispatch => {
   })
 }
 
+export const getJob = job => async dispatch => {
+  if (job && job.jobNumber) {
+    jobsRef.doc(job.jobNumber.trim()).get().then(doc => {
+      if (doc.exists) {
+        dispatch({
+          type: GET_JOB,
+          payload: {
+            ...doc.data(),
+            ...job,
+          }
+        });
+        jobsRef.doc(job.jobNumber.trim()).update(job);
+      } else {
+        // Initialise job
+        let setupMap = {};
+        if (job.category && job.category.toLowerCase().includes('asbestos')) {
+          setupMap = {
+            isManagementPlanRequired: false,
+            isReportRequired: true,
+            surveyType: null,
+            surveyDates: null,
+            surveyors: null,
+            reportAuthor: null,
+            reportChecker: null,
+            reportKTP: null,
+            surveyGoal: null,
+            surveyScope: null,
+            siteDescription: null,
+            buildingAge: null,
+            buildingAgeReference: null,
+            surveyWeather: null,
+            photoMainSite: null,
+            reportState: null,
+            currentVersion: null,
+          };
+        }
+        let newJob = {
+          ...job,
+          ...setupMap,
+        };
+        dispatch({
+          type: GET_JOB,
+          payload: newJob,
+        });
+        jobsRef.doc(job.jobNumber.trim()).set(job);
+      }
+    });
+  }
+};
+
 export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispatch => {
-  console.log(jobNumber);
   sendSlackMessage(`${auth.currentUser.displayName} ran getDetailedWFMJob`);
   let path = `${
     process.env.REACT_APP_WFM_ROOT
@@ -402,7 +421,7 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
                     type: EDIT_MODAL_DOC,
                     payload: job
                   });
-                  if (setUpJob) getJob(job);
+                  if (setUpJob) dispatch(getJob(job));
                 }
               });
           }
@@ -450,7 +469,7 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
                     type: EDIT_MODAL_DOC,
                     payload: job
                   });
-                  if (setUpJob) getJob(job);
+                  if (setUpJob) dispatch(getJob(job));
                 }
               });
           } else {
@@ -470,13 +489,13 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
         if (wfmJob.Manager) {
           job.manager = wfmJob.Manager.Name
             ? wfmJob.Manager.Name
-            : "No manager name";
+            : null;
           job.managerID = wfmJob.Manager.ID
             ? wfmJob.Manager.ID
-            : "No manager ID";
+            : null;
         } else {
-          job.manager = "No manager name";
-          job.managerID = "No manager ID";
+          job.manager = null;
+          job.managerID = null;
         }
         job.dueDate = dateOf(wfmJob.DueDate);
         job.startDate = dateOf(wfmJob.StartDate);
@@ -508,7 +527,6 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
           }
         }
         if (wfmJob.Notes.Note) {
-          console.log(wfmJob.Notes);
           job.notes = [];
           if (Array.isArray(wfmJob.Notes.Note)) {
             wfmJob.Notes.Note.forEach(wfmNote => {
@@ -537,12 +555,10 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
           }
         }
         if (wfmJob.Assigned.Staff) {
-          console.log(wfmJob.Assigned);
           job.assigned = [];
           if (Array.isArray(wfmJob.Assigned.Staff)) {
             wfmJob.Assigned.Staff.forEach(wfmAssigned => {
               let staff = {};
-              console.log(wfmAssigned.ID);
               staff.id = wfmAssigned.ID;
               staff.name = wfmAssigned.Name;
               job.assigned.push(staff);
@@ -573,7 +589,7 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
           type: EDIT_MODAL_DOC,
           payload: job
         })
-        if (setUpJob) getJob(job);
+        if (setUpJob) dispatch(getJob(job));
       }
     });
 };
@@ -586,8 +602,6 @@ export const resetWfmJob = () => dispatch => {
 };
 
 export const saveGeocodes = geocodes => dispatch => {
-  console.log(geocodes);
-  console.log(Object.keys(geocodes).length);
   if (geocodes) {
     Object.values(geocodes).forEach(g => {
       Object.keys(g).forEach(k => {

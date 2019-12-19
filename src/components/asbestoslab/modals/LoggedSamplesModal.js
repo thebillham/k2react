@@ -1,9 +1,7 @@
 import React from "react";
-import { WithContext as ReactTags } from "react-tag-input";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
-import store from "../../../store";
 import { ASBESTOS_LOGGED_SAMPLES, ASBESTOS_SAMPLE_DETAILS } from "../../../constants/modal-types";
 import { docsRef } from "../../../config/firebase";
 import "../../../config/tags.css";
@@ -17,15 +15,12 @@ import Tooltip from "@material-ui/core/Tooltip";
 import IconButton from "@material-ui/core/IconButton";
 import Tab from "@material-ui/core/Tab";
 import Tabs from "@material-ui/core/Tabs";
-import Grid from "@material-ui/core/Grid";
-import Add from "@material-ui/icons/Add";
 import ConfirmIcon from "@material-ui/icons/ThumbUp";
 import ThumbsDown from "@material-ui/icons/ThumbDown";
 import AddIcon from "@material-ui/icons/Add";
 import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import { hideModal, showModalSecondary } from "../../../actions/modal";
-import { clearLog, } from "../../../actions/local";
 import { dateOf, milliToDHM, } from '../../../actions/helpers';
 import {
   writeShorthandResult,
@@ -37,7 +32,6 @@ import {
   fetchAsbestosCheckLogs,
   compareAsbestosResult,
 } from "../../../actions/asbestosLab";
-import _ from "lodash";
 import moment from "moment";
 import classNames from 'classnames';
 

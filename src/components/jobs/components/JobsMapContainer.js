@@ -1,20 +1,4 @@
 import React from "react";
-import { connect } from "react-redux";
-import ListItem from "@material-ui/core/ListItem";
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
-import Grid from "@material-ui/core/Grid";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Checkbox from "@material-ui/core/Checkbox";
-import Input from "@material-ui/core/Input";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import Button from "@material-ui/core/Button";
-import moment from "moment";
 import { Map, GoogleApiWrapper, Marker, InfoWindow } from "google-maps-react";
 
 import {

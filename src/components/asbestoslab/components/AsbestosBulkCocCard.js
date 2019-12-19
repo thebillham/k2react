@@ -9,31 +9,24 @@ import {
   logSample,
   setSessionID,
   deleteCoc,
-  startAnalysisAll,
-  receiveAll,
   printCocBulk,
   printLabReport,
-  issueTestCertificate,
-  getPersonnel,
   getJobStatus,
   verifySamples,
   getSampleData,
   getSubsampleData,
 } from "../../../actions/asbestosLab";
-import { dateOf, addLog } from "../../../actions/local";
+import { addLog } from "../../../actions/local";
 import { getDetailedWFMJob, } from "../../../actions/jobs";
 import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
 import { showModal } from "../../../actions/modal";
-import { CSVLink, CSVDownload } from "react-csv";
+import { CSVLink } from "react-csv";
 import {
   ASBESTOS_SAMPLE_EDIT,
   ASBESTOS_SOIL_SUBSAMPLE_WEIGHTS,
   ASBESTOS_COC_EDIT,
-  COC_STATS,
   ASBESTOS_ACTIONS,
-  UPDATE_CERTIFICATE_VERSION,
   COC_LOG,
-  COC_ISSUES,
 } from "../../../constants/modal-types";
 
 import AsbestosSampleListItem from "./AsbestosSampleListItem";
@@ -146,13 +139,13 @@ class AsbestosBulkCocCard extends React.Component {
     // console.log(job);
     if (job === undefined || job.deleted) return null;
     let version = 1,
-    labFunctions = this.props.me.auth &&
-      (this.props.me.auth['Asbestos Admin'] ||
-      this.props.me.auth['Analysis Checker'] ||
-      this.props.me.auth['Asbestos Bulk Analysis']),
-    adminFunctions = this.props.me.auth &&
-      (this.props.me.auth['Asbestos Admin'] ||
-      this.props.me.auth['Analysis Checker']);
+      labFunctions = this.props.me.auth &&
+        (this.props.me.auth['Asbestos Admin'] ||
+        this.props.me.auth['Analysis Checker'] ||
+        this.props.me.auth['Asbestos Bulk Analysis']) ? true : false,
+      adminFunctions = this.props.me.auth &&
+        (this.props.me.auth['Asbestos Admin'] ||
+        this.props.me.auth['Analysis Checker']) ? true : false;
 
 
     // labFunctions = false;

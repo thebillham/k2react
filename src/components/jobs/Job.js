@@ -25,6 +25,8 @@ import Tab from "@material-ui/core/Tab";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import TimerIcon from "@material-ui/icons/Timer";
+import SyncIcon from '@material-ui/icons/Sync';
+import LinkIcon from '@material-ui/icons/Link';
 import WfmTimeModal from "./modals/WfmTimeModal";
 
 import Popup from "reactjs-popup";
@@ -54,6 +56,7 @@ import {
   getStateString,
   getNextActionType,
   getNextActionOverdueBy,
+  getDetailedWFMJob,
   getWfmUrl,
   getLeadHistoryDescription,
   getJob,
@@ -84,7 +87,7 @@ const mapStateToProps = state => {
     wfmItems: state.jobs.wfmItems,
     wfmStats: state.jobs.wfmStats,
     jobList: state.jobs.jobList,
-    jobs: state.jobs.job,
+    jobs: state.jobs.jobs,
     search: state.local.search,
     me: state.local.me,
     filter: state.display.filterMap,
@@ -97,7 +100,7 @@ const mapDispatchToProps = dispatch => {
   return {
     clearWfmJob: () => dispatch(clearWfmJob()),
     showModal: modal => dispatch(showModal(modal)),
-    getJob: jobNumber => dispatch(getJob(jobNumber)),
+    getDetailedWFMJob: jobNumber => dispatch(getDetailedWFMJob(jobNumber, false, true)),
   };
 };
 
@@ -114,8 +117,8 @@ class Job extends React.Component {
   };
 
   UNSAFE_componentWillMount = () => {
-    this.props.getDetailedWFMJob(this.props.match.params.job, false, true);
-    this.props.handleDrawerClose();
+    if (!this.props.jobs || (this.props.jobs && !this.props.jobs[this.props.match.params.job])) this.props.getDetailedWFMJob(this.props.match.params.job);
+    // this.props.handleDrawerClose();
   };
 
   handleTabChange = (event, value) => {
@@ -125,23 +128,38 @@ class Job extends React.Component {
 
   render() {
     const { classes, geocodes, jobs } = this.props;
-    const job = this.props.match.params.job;
-    const color = classes[getJobColor(job.category)];
+    const job = jobs && jobs[this.props.match.params.job.trim()];
+    const color = job ? classes[getJobColor(job.category)] : classes[getJobColor('other')];
     let maxLength = this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength").length > 0 ? parseInt(this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength")[0].value) : 600;
 
-    return (
+    if (job) return (
       <div className={classes.marginTopSmall}>
         <div className={classes.flexRowSpread}>
-          <div>
+          <div className={color}>
             <h6>{`${job.jobNumber}: ${job.client}`}</h6>
             <div className={classes.subtitle}>{job.address}</div>
           </div>
-          <IconButton
-            onClick={e => {
-              this.props.showModal({ modalType: WFM_TIME, modalProps: { job: jobs[job], }})
-            }}>
-            <TimerIcon className={classes.iconRegular} />
-          </IconButton>
+          <div className={classes.flexRow}>
+            <Tooltip title={'Re-sync with WorkflowMax'}>
+              <IconButton
+                onClick={e => this.props.getDetailedWFMJob(job.jobNumber)}>
+                <SyncIcon className={classes.iconRegular} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={'View Job on WorkflowMax'}>
+              <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${job.wfmID}`) }>
+                <LinkIcon className={classes.iconRegular} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={'Log Time to WorkflowMax'}>
+              <IconButton
+                onClick={e => {
+                  this.props.showModal({ modalType: WFM_TIME, modalProps: { job: jobs[job], }})
+                }}>
+                <TimerIcon className={classes.iconRegular} />
+              </IconButton>
+            </Tooltip>
+          </div>
         </div>
         <Tabs
           value={this.state.tabValue}
@@ -156,12 +174,13 @@ class Job extends React.Component {
           <Tab label="Maps and Diagrams" />
         </Tabs>
         {this.props.modalType === WFM_TIME && <WfmTimeModal />}
-        {this.state.tabValue === 0 && <JobGeneralInformation that={this} jobNumber={job} />}
-        {this.state.tabValue === 1 && <JobRooms that={this} jobNumber={job} />}
-        {this.state.tabValue === 2 && <JobAsbestosRegister that={this} jobNumber={job} />}
-        {this.state.tabValue === 3 && <JobMapsAndDiagrams that={this} jobNumber={job} />}
+        {this.state.tabValue === 0 && <JobGeneralInformation that={this} jobNumber={this.props.match.params.job.trim()} />}
+        {this.state.tabValue === 1 && <JobRooms that={this} jobNumber={this.props.match.params.job.trim()} />}
+        {this.state.tabValue === 2 && <JobAsbestosRegister that={this} jobNumber={this.props.match.params.job.trim()} />}
+        {this.state.tabValue === 3 && <JobMapsAndDiagrams that={this} jobNumber={this.props.match.params.job.trim()} />}
       </div>
     );
+    else return (<div />)
   }
 }
 

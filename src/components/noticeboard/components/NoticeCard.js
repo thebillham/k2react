@@ -13,6 +13,7 @@ import Typography from "@material-ui/core/Typography";
 import Tooltip from "@material-ui/core/Tooltip";
 import Avatar from "@material-ui/core/Avatar";
 import Linkify from "react-linkify";
+import Grow from '@material-ui/core/Grow';
 
 import PinIcon from "@material-ui/icons/Star";
 import ReadIcon from "@material-ui/icons/CheckBox";
@@ -96,118 +97,122 @@ class NoticeCard extends React.Component {
 
     console.log('RE-RENDER');
     return (
-      <Card className={classes.noticeCard} >
+      <Grow in={true}
+        style={{ transformOrigin: '0 0 0' }}
+        timeout={1000}>
+        <Card className={classes.noticeCard} >
 
-        <CardContent>
-          <div className={classes.cardHeaderNotice}>
-            <div className={classes.flexRow}>
-              {avatar}
-              <div className={classes.spacerMedium} />
-              <div>
-                <Typography className={classes.title} color="textSecondary">
-                {notice.categorydesc}
-                </Typography>
-                <Typography color="textPrimary">
-                  Submitted by <span className={classes.bold}>{notice.author}</span>
-                </Typography>
-                <Typography className={classes.subtitle} color="textSecondary">
-                  {moment(notice.date).format('ddd, D MMM YYYY')}
-                </Typography>
+          <CardContent>
+            <div className={classes.cardHeaderNotice}>
+              <div className={classes.flexRow}>
+                {avatar}
+                <div className={classes.spacerMedium} />
+                <div>
+                  <Typography className={classes.title} color="textSecondary">
+                  {notice.categorydesc}
+                  </Typography>
+                  <Typography color="textPrimary">
+                    Submitted by <span className={classes.bold}>{notice.author}</span>
+                  </Typography>
+                  <Typography className={classes.subtitle} color="textSecondary">
+                    {moment(notice.date).format('ddd, D MMM YYYY')}
+                  </Typography>
+                </div>
               </div>
             </div>
-          </div>
-          <div className={classes.details} color="textSecondary">
-            {notice.category === 'has' ? <div>
-            {notice.incidentno && <div><b>Incident No.: </b>{notice.incidentno}</div>}
-            {notice.job && <div><b>Job: </b>{notice.job}</div>}
-            {notice.incidentstaff && <div><b>Staff Involved: </b>{notice.incidentstaff}</div>}
-            {notice.incidentdesc && <div><b>Incident Desc.: </b>{notice.incidentdesc}</div>}
-            {notice.text && <div><b>Learnings: </b>{notice.text}</div>}
-            </div> :
-            <Linkify>
-              <div className={classes.underline}>{notice.job}</div>
-              {notice.text}
-            </Linkify>}
-          </div><br />
-          {notice.comments && Object.values(notice.comments).length > 0 &&
-            <div>
-              <hr />
+            <div className={classes.details} color="textSecondary">
+              {notice.category === 'has' ? <div>
+              {notice.incidentno && <div><b>Incident No.: </b>{notice.incidentno}</div>}
+              {notice.job && <div><b>Job: </b>{notice.job}</div>}
+              {notice.incidentstaff && <div><b>Staff Involved: </b>{notice.incidentstaff}</div>}
+              {notice.incidentdesc && <div><b>Incident Desc.: </b>{notice.incidentdesc}</div>}
+              {notice.text && <div><b>Learnings: </b>{notice.text}</div>}
+              </div> :
+              <Linkify>
+                <div className={classes.underline}>{notice.job}</div>
+                {notice.text}
+              </Linkify>}
+            </div><br />
+            {notice.comments && Object.values(notice.comments).length > 0 &&
               <div>
-                {Object.values(notice.comments).map(comment =>
-                  <CommentListItem
-                    key={comment.text}
-                    comment={comment}
-                    edit={notice.authorUid === auth.currentUser.uid ||
-                      comment.author.uid === auth.currentUser.uid ||
-                      notice.author === me.name ||
-                      me.auth['Admin']
-                    }
-                    onEditComment={() => this.onEditComment(comment)}
-                    onDeleteComment={() => this.onDeleteComment(comment)}
-                  />
-                )}
-              </div><hr />
-            </div>
-          }
-        </CardContent>
-        <div className={classes.flexColumn}>
-          <CardActions className={classes.flexRowLeftAlignEllipsis}>
-            <Tooltip title={'Pin Notice'}>
-              <IconButton
-                aira-label="Pin notice"
-                onClick={this.onFavNotice}
-              >
-                <PinIcon color={fav ? "secondary" : "action"} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={'Mark As Read'}>
-              <IconButton
-                aira-label="Mark as read"
-                onClick={this.onReadNotice}
-              >
-                <ReadIcon color={read ? "secondary" : "action"} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={'Add Comment'}>
-              <IconButton
-                aira-label="Add comment"
-                onClick={this.onAddComment}
-              >
-                <CommentIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={'Check who has read'}>
-              <IconButton
-                aira-label="Check who has read"
-                onClick={this.onCheckRead}
-              >
-                <WhosReadIcon />
-              </IconButton>
-            </Tooltip>
-            { edit &&
-              <span>
-
-              <Tooltip title={'Edit Notice' }>
-                <IconButton
-                  aira-label="Edit notice"
-                  onClick={this.onEditNotice}
-                >
-                  <EditIcon color="action" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={'Delete Notice' }>
-                <IconButton
-                  aira-label="Discard notice"
-                  onClick={this.onDeleteNotice}
-                >
-                  <DiscardIcon color="action" />
-                </IconButton>
-              </Tooltip>
-              </span>
+                <hr />
+                <div>
+                  {Object.values(notice.comments).map(comment =>
+                    <CommentListItem
+                      key={comment.text}
+                      comment={comment}
+                      edit={notice.authorUid === auth.currentUser.uid ||
+                        comment.author.uid === auth.currentUser.uid ||
+                        notice.author === me.name ||
+                        me.auth['Admin']
+                      }
+                      onEditComment={() => this.onEditComment(comment)}
+                      onDeleteComment={() => this.onDeleteComment(comment)}
+                    />
+                  )}
+                </div><hr />
+              </div>
             }
-          </CardActions>
-        </div>
-      </Card>
+          </CardContent>
+          <div className={classes.flexColumn}>
+            <CardActions className={classes.flexRowLeftAlignEllipsis}>
+              <Tooltip title={'Pin Notice'}>
+                <IconButton
+                  aira-label="Pin notice"
+                  onClick={this.onFavNotice}
+                >
+                  <PinIcon color={fav ? "secondary" : "action"} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={'Mark As Read'}>
+                <IconButton
+                  aira-label="Mark as read"
+                  onClick={this.onReadNotice}
+                >
+                  <ReadIcon color={read ? "secondary" : "action"} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={'Add Comment'}>
+                <IconButton
+                  aira-label="Add comment"
+                  onClick={this.onAddComment}
+                >
+                  <CommentIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={'Check who has read'}>
+                <IconButton
+                  aira-label="Check who has read"
+                  onClick={this.onCheckRead}
+                >
+                  <WhosReadIcon />
+                </IconButton>
+              </Tooltip>
+              { edit &&
+                <span>
+
+                <Tooltip title={'Edit Notice' }>
+                  <IconButton
+                    aira-label="Edit notice"
+                    onClick={this.onEditNotice}
+                  >
+                    <EditIcon color="action" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={'Delete Notice' }>
+                  <IconButton
+                    aira-label="Discard notice"
+                    onClick={this.onDeleteNotice}
+                  >
+                    <DiscardIcon color="action" />
+                  </IconButton>
+                </Tooltip>
+                </span>
+              }
+            </CardActions>
+          </div>
+        </Card>
+      </Grow>
     );
   }
 

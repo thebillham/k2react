@@ -12,27 +12,17 @@ import {
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
-import Select from "@material-ui/core/Select";
-import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions";
-import TextField from "@material-ui/core/TextField";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
-import Job from "./Job";
 import TimerIcon from "@material-ui/icons/Timer";
 import JobIcon from "@material-ui/icons/Assignment";
 import WfmTimeModal from "./modals/WfmTimeModal";
 
-import Popup from "reactjs-popup";
 import {
   dateOf,
   getDaysSinceDate,
@@ -58,9 +48,9 @@ import {
   getJobColor,
   getStateString,
   getNextActionType,
-  getNextActionOverdueBy,
   getWfmUrl,
   getLeadHistoryDescription,
+  getJob,
 } from "../../actions/jobs";
 
 import {
@@ -71,7 +61,6 @@ import {
 import CurrentJobs from "./CurrentJobs";
 import Leads from "./Leads";
 import JobMap from "./JobMap";
-import JobStats from "./JobStats";
 
 const mapStateToProps = state => {
   return {
@@ -98,6 +87,7 @@ const mapDispatchToProps = dispatch => {
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
     fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
+    getJob: (job) => dispatch(getJob(job)),
     clearWfmJob: () => dispatch(clearWfmJob()),
     saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
     saveGeocodes: g => dispatch(saveGeocodes(g)),
@@ -170,7 +160,7 @@ class Jobs extends React.Component {
             <div className={classes.flexRowSpread}>
               <h6>{m.category}</h6>
               {!noButton && <span>
-                <Link to={`/job/${m.jobNumber}`}>
+                <Link to={`/job/${m.jobNumber}`} onClick={e => this.props.getJob(m)}>
                   <IconButton><JobIcon /></IconButton>
                 </Link>
                 <IconButton
