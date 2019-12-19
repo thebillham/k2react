@@ -9,6 +9,7 @@ import {
   SAVE_WFM_ITEMS,
   SAVE_WFM_STATS,
   GET_JOB_LIST,
+  GET_JOB,
   ADD_TO_JOB_LIST,
   GET_JOB_STATS,
   GET_GEOCODES,
@@ -112,6 +113,14 @@ export default function jobsReducer(state = jobsInit, action) {
       return {
         ...state,
         jobStats: action.payload,
+      }
+    case GET_JOB:
+      return {
+        ...state,
+        jobs: {
+          ...state.jobs,
+          [action.payload.jobNumber]: action.payload,
+        }
       }
     case GET_JOB_LIST:
       return {

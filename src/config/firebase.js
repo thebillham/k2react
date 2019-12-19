@@ -26,14 +26,9 @@ const auth = firebase.auth();
 const storage = firebase.storage();
 
 const appSettingsRef = firestore.collection("appsettings");
-const asbestosSamplesRef = firestore.collection("lab").doc("asbestos").collection("samples");
-const asbestosAnalysisLogRef = firestore.collection("lab").doc("asbestos").collection("analysisLog");
 const asbestosSampleIssueLogRef = firestore.collection("lab").doc("asbestos").collection("sampleIssueLog");
 const asbestosCheckLogRef = firestore.collection("lab").doc("asbestos").collection("checkLog");
-const asbestosSampleLogRef = firestore.collection("lab").doc("asbestos").collection("sampleLog");
 const asbestosMicroscopeCalibrationsRef = firestore.collection("lab").doc("asbestos").collection("microscopeCalibrations");
-const cocsRef = firestore.collection("lab").doc("asbestos").collection("cocs");
-const logsRef = firestore.collection("logs").doc("logs");
 const assetsRef = firestore.collection("inventory").doc("entities").collection("assets");
 const modelsRef = firestore.collection("inventory").doc("categories").collection("models");
 const manufacturersRef = firestore.collection("inventory").doc("categories").collection("manufacturers");
@@ -56,6 +51,13 @@ const trainingPathsRef = firestore.collection("trainingpaths");
 const updateRef = firestore.collection("updates");
 const usersRef = firestore.collection("users");
 const vehiclesRef = firestore.collection("vehicles");
+
+
+const asbestosSamplesRef = firestore.collection("lab").doc("asbestos").collection("samples");
+const asbestosAnalysisLogRef = firestore.collection("lab").doc("asbestos").collection("analysisLog");
+const asbestosSampleLogRef = firestore.collection("lab").doc("asbestos").collection("sampleLog");
+const logsRef = firestore.collection("logs").doc("logs");
+const cocsRef = firestore.collection("lab").doc("asbestos").collection("cocs");
 
 // Test collections
 // const asbestosAnalysisLogRef = firestore.collection("test_lab").doc("asbestos").collection("analysis");

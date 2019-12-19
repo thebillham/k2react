@@ -9,6 +9,7 @@ import {
   ADD_TO_GEOCODES,
   GET_WFM_JOBS,
   GET_WFM_JOB,
+  GET_JOB,
   GET_WFM_LEADS,
   GET_WFM_CONTACT,
   GET_WFM_CLIENTS,
@@ -32,6 +33,7 @@ import {
   auth,
   stateRef,
   usersRef,
+  jobsRef,
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 import {
@@ -247,6 +249,34 @@ export const fetchWFMLeads = () => async dispatch => {
     });
 };
 
+export const getJob = job => async dispatch => {
+  if (job && job.jobNumber) {
+    jobsRef.doc(job.jobNumber.trim()).get().then(doc => {
+      if (doc.exists) {
+        dispatch({
+          type: GET_JOB,
+          payload: {
+            ...doc.data(),
+            ...job,
+          }
+        });
+        jobsRef.doc(job.jobNumber.trim()).update(job);
+      } else {
+        // Initialise job
+        let newJob = {
+          ...job,
+
+        };
+        dispatch({
+          type: GET_JOB,
+          payload: newJob,
+        });
+        jobsRef.doc(job.jobNumber.trim()).set(job);
+      }
+    });
+  }
+};
+
 export const fetchWFMClients = () => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMClients`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
@@ -294,7 +324,7 @@ export const clearWfmJob = () => async dispatch => {
   })
 }
 
-export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
+export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispatch => {
   console.log(jobNumber);
   sendSlackMessage(`${auth.currentUser.displayName} ran getDetailedWFMJob`);
   let path = `${
@@ -372,12 +402,13 @@ export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
                     type: EDIT_MODAL_DOC,
                     payload: job
                   });
+                  if (setUpJob) getJob(job);
                 }
               });
           }
         } else {
-          job.client = "No client name";
-          job.clientID = "No client ID";
+          job.client = null;
+          job.clientID = null;
         }
         job.clientOrderNumber = wfmJob.ClientOrderNumber && typeof wfmJob.ClientOrderNumber !== 'object'
           ? wfmJob.ClientOrderNumber
@@ -419,6 +450,7 @@ export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
                     type: EDIT_MODAL_DOC,
                     payload: job
                   });
+                  if (setUpJob) getJob(job);
                 }
               });
           } else {
@@ -541,6 +573,7 @@ export const getDetailedWFMJob = (jobNumber, createUid) => async dispatch => {
           type: EDIT_MODAL_DOC,
           payload: job
         })
+        if (setUpJob) getJob(job);
       }
     });
 };

@@ -39,6 +39,7 @@ import InputBase from "@material-ui/core/InputBase";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Collapse from "@material-ui/core/Collapse";
 
+
 // Icons
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import NoticeboardIcon from "@material-ui/icons/SpeakerNotes";
@@ -124,6 +125,7 @@ const CurrentJobs = lazy(() => import("./jobs/CurrentJobs"));
 const Leads = lazy(() => import("./jobs/Leads"));
 const JobStats = lazy(() => import("./jobs/JobStats"));
 const Jobs = lazy(() => import("./jobs/Jobs"));
+const Job = lazy(() => import("./jobs/Job"));
 const Sites = lazy(() => import("./jobs/Sites"));
 
 const Staff = lazy(() => import("./personnel/Staff"));
@@ -732,6 +734,8 @@ class MainScreen extends React.PureComponent {
       </Drawer>
     );
 
+    console.log(this.props.location.pathname);
+
     return (
       <React.Fragment>
         {this.state.hidden ? (
@@ -745,255 +749,256 @@ class MainScreen extends React.PureComponent {
             this.props.me.key == process.env.REACT_APP_K2_STAFF_KEY ? (
               // && this.props.state.local.staff[auth.currentUser.uid].gmail == auth.currentUser.email)
               <div className={classes.root}>
-                <AppBar
-                  position="absolute"
-                  className={classNames(
-                    classes.appBar,
-                    this.state.openDrawer && classes.appBarShift
-                  )}
-                >
-                  <Toolbar
-                    variant="dense"
-                    disableGutters={!this.state.openDrawer}
-                    className={classes.toolbar}
+                { this.props.location.pathname && !this.props.location.pathname.includes("/job/") &&
+                  <AppBar
+                    position="absolute"
+                    className={classNames(
+                      classes.appBar,
+                      this.state.openDrawer && classes.appBarShift
+                    )}
                   >
-                    <IconButton
-                      color="inherit"
-                      aria-label="openDrawer drawer"
-                      onClick={this.handleDrawerOpen}
-                      className={classNames(
-                        classes.menuButton,
-                        this.state.openDrawer && classes.menuButtonHidden
-                      )}
+                    <Toolbar
+                      variant="dense"
+                      disableGutters={!this.state.openDrawer}
+                      className={classes.toolbar}
                     >
-                      <MenuIcon />
-                    </IconButton>
-                    {/*<IconButton
-                          color="inherit"
-                          onClick={ () => this.props.history.goBack() }
-                          className={classes.menuButton}
-                          >
-                          <BackIcon />
-                        </IconButton>*/}
-                    {/* Toolbar heading and breadcrumbs go here */}
-                    <Typography
-                      color="inherit"
-                      noWrap
-                      className={classes.pageTitle}
-                    >
-                      <Switch>
-                        <Route
-                          exact
-                          path="/"
-                          render={() => <span><NoticeboardIcon /> Noticeboard</span>}
-                        />
-                        <Route
-                          path="/dashboard"
-                          render={() => <span><DashboardIcon /> Dashboard</span>}
-                        />
-                        <Route
-                          path="/noticeboard"
-                          render={() => <span><NoticeboardIcon /> Noticeboard</span>}
-                        />
-                        <Route
-                          path="/incidents"
-                          render={() => <span><IncidentIcon /> Incidents</span>}
-                        />
-                        <Route
-                          exact
-                          path="/jobs"
-                          render={() => <span><JobsIcon /> Jobs</span>}
-                        />
-                        <Route
-                          path="/jobs/current"
-                          render={() => <span><CurrentJobsIcon /> Current Jobs</span>}
-                        />
-                        <Route
-                          path="/jobs/leads"
-                          render={() => <span><LeadsIcon /> Leads</span>}
-                        />
-                        <Route
-                          path="/jobs/stats"
-                          render={() => <span><StatsIcon /> Job Stats</span>}
-                        />
-                        <Route
-                          path="/jobs/map"
-                          render={() => <span><MapIcon /> Jobs Map</span>}
-                        />
-                        <Route
-                          path="/jobs/sites"
-                          render={() => <span><SitesIcon /> Sites</span>}
-                        />
-                        <Route
-                          path="/asbestoslab"
-                          render={() => <span><CocIcon /> Asbestos Lab</span>}
-                        />
-                        <Route
-                          path="/asbestossamplelog"
-                          render={() => <span><LogIcon /> Asbestos Lab: Sample Log</span>}
-                        />
-                        <Route
-                          path="/asbestosqc"
-                          render={() => <span><QCIcon /> Asbestos Lab: Quality Control</span>}
-                        />
-                        <Route
-                          path="/asbestosstats"
-                          render={() => <span><StatsIcon /> Asbestos Lab: Stats</span>}
-                        />
-                        <Route
-                          exact
-                          path="/staff"
-                          render={() => <span><StaffIcon /> Staff</span>}
-                        />
-                        <Route
-                          exact
-                          path="/inventory"
-                          render={() => <span><InventoryIcon /> Inventory</span>}
-                        />
-                        <Route
-                          exact
-                          path="/vehicles"
-                          render={() => <span><VehiclesIcon /> Vehicles</span>}
-                        />
-                        <Route
-                          path="/staff/details"
-                          render={() => <span><StaffIcon /> Staff Details</span>}
-                        />
-                        <Route
-                          exact
-                          path="/staff/jobs"
-                          render={() => <span><StaffIcon /> Staff Jobs</span>}
-                        />
-                        <Route
-                          exact
-                          path="/staff/training"
-                          render={() => <span><TrainingIcon /> Staff Training</span>}
-                        />
-                        <Route
-                          exact
-                          path="/mydetails"
-                          render={() => <span><MyDetailsIcon /> My Details</span>}
-                        />
-                        <Route
-                          exact
-                          path="/mydetails/training"
-                          render={() => <span><TrainingIcon /> My Training</span>}
-                        />
-                        <Route
-                          exact
-                          path="/mydetails/jobs"
-                          render={() => <span><JobsIcon /> My Job History</span>}
-                        />
-                        <Route
-                          exact
-                          path="/mydetails/readinglog"
-                          render={() => <span><ReadingLogIcon /> My Reading Log</span>}
-                        />
-                        <Route
-                          exact
-                          path="/mydetails/preferences"
-                          render={() => <span>App Preferences</span>}
-                        />
-                        <Route
-                          exact
-                          path="/training"
-                          render={() => <span><TrainingPathIcon /> Training Paths</span>}
-                        />
-                        <Route
-                          exact
-                          path="/training/paths"
-                          render={() => <span><TrainingPathIcon /> Training Paths</span>}
-                        />
-                        <Route
-                          exact
-                          path="/training/overview"
-                          render={() => <span><TrainingOverviewIcon /> Training Overview</span>}
-                        />
-                        <Route
-                          path="/training/path"
-                          render={() => <span><TrainingPathIcon /> Training Path</span>}
-                        />
-                        <Route
-                          path="/training/readinglog"
-                          render={() => <span><ReadingLogIcon /> Reading Log</span>}
-                        />
-                        <Route
-                          path="/method"
-                          render={() => <span>Method</span>}
-                        />
-                        <Route
-                          path="/quizzes"
-                          render={() => <span><QuizIcon /> Quizzes</span>}
-                        />
-                        <Route
-                          path="/questions"
-                          render={() => <span><QuizIcon /> Questions</span>}
-                        />
-                        <Route path="/quiz/" render={() => <span><QuizIcon /> Quiz</span>} />
-                        <Route path="/tools" render={() => <span><ToolsIcon /> Tools</span>} />
-                        <Route
-                          path="/library"
-                          render={() => <span><LibraryIcon /> Library</span>}
-                        />
-                        <Route
-                          path="/document"
-                          render={() => <span><LibraryIcon /> Library</span>}
-                        />
-                        <Route path="/help" render={() => <span><HelpIcon /> Help</span>} />
-                        <Route
-                          path="/updates"
-                          render={() => <span><UpdatesIcon /> Version Updates</span>}
-                        />
-                      </Switch>
-                    </Typography>
-                    <Route
-                      exact
-                      path="/(|library|training|modules|noticeboard|inventory|jobs|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
-                      render={() => (
-                        <div className={classes.search}>
-                          <div className={classes.searchIcon}>
-                            <SearchIcon />
-                          </div>
-                          <InputBase
-                            value={this.props.search}
-                            onChange={e => {
-                              store.dispatch(onSearchChange(e.target.value));
-                              if (e.target.value !== null) {
-                                store.dispatch(onCatChange(null));
-                              }
-                            }}
-                            placeholder="Search…"
-                            classes={{
-                              root: classes.inputRoot,
-                              input: classes.inputInput
-                            }}
+                      <IconButton
+                        color="inherit"
+                        aria-label="openDrawer drawer"
+                        onClick={this.handleDrawerOpen}
+                        className={classNames(
+                          classes.menuButton,
+                          this.state.openDrawer && classes.menuButtonHidden
+                        )}
+                      >
+                        <MenuIcon />
+                      </IconButton>
+                      {/*<IconButton
+                            color="inherit"
+                            onClick={ () => this.props.history.goBack() }
+                            className={classes.menuButton}
+                            >
+                            <BackIcon />
+                          </IconButton>*/}
+                      {/* Toolbar heading and breadcrumbs go here */}
+                      <Typography
+                        color="inherit"
+                        noWrap
+                        className={classes.pageTitle}
+                      >
+                        <Switch>
+                          <Route
+                            exact
+                            path="/"
+                            render={() => <span><NoticeboardIcon /> Noticeboard</span>}
                           />
-                        </div>
-                      )}
-                    />
-                    <Button
-                      aria-owns={anchorEl ? "google-menu" : null}
-                      aria-haspopup="true"
-                      onClick={this.handleGoogleMenuToggle}
-                    >
-                      <Avatar
-                        alt={auth.currentUser.displayName}
-                        src={auth.currentUser.photoURL}
-                        className={classes.avatar}
+                          <Route
+                            path="/dashboard"
+                            render={() => <span><DashboardIcon /> Dashboard</span>}
+                          />
+                          <Route
+                            path="/noticeboard"
+                            render={() => <span><NoticeboardIcon /> Noticeboard</span>}
+                          />
+                          <Route
+                            path="/incidents"
+                            render={() => <span><IncidentIcon /> Incidents</span>}
+                          />
+                          <Route
+                            exact
+                            path="/jobs"
+                            render={() => <span><JobsIcon /> Jobs</span>}
+                          />
+                          <Route
+                            path="/jobs/current"
+                            render={() => <span><CurrentJobsIcon /> Current Jobs</span>}
+                          />
+                          <Route
+                            path="/jobs/leads"
+                            render={() => <span><LeadsIcon /> Leads</span>}
+                          />
+                          <Route
+                            path="/jobs/stats"
+                            render={() => <span><StatsIcon /> Job Stats</span>}
+                          />
+                          <Route
+                            path="/jobs/map"
+                            render={() => <span><MapIcon /> Jobs Map</span>}
+                          />
+                          <Route
+                            path="/jobs/sites"
+                            render={() => <span><SitesIcon /> Sites</span>}
+                          />
+                          <Route
+                            path="/asbestoslab"
+                            render={() => <span><CocIcon /> Asbestos Lab</span>}
+                          />
+                          <Route
+                            path="/asbestossamplelog"
+                            render={() => <span><LogIcon /> Asbestos Lab: Sample Log</span>}
+                          />
+                          <Route
+                            path="/asbestosqc"
+                            render={() => <span><QCIcon /> Asbestos Lab: Quality Control</span>}
+                          />
+                          <Route
+                            path="/asbestosstats"
+                            render={() => <span><StatsIcon /> Asbestos Lab: Stats</span>}
+                          />
+                          <Route
+                            exact
+                            path="/staff"
+                            render={() => <span><StaffIcon /> Staff</span>}
+                          />
+                          <Route
+                            exact
+                            path="/inventory"
+                            render={() => <span><InventoryIcon /> Inventory</span>}
+                          />
+                          <Route
+                            exact
+                            path="/vehicles"
+                            render={() => <span><VehiclesIcon /> Vehicles</span>}
+                          />
+                          <Route
+                            path="/staff/details"
+                            render={() => <span><StaffIcon /> Staff Details</span>}
+                          />
+                          <Route
+                            exact
+                            path="/staff/jobs"
+                            render={() => <span><StaffIcon /> Staff Jobs</span>}
+                          />
+                          <Route
+                            exact
+                            path="/staff/training"
+                            render={() => <span><TrainingIcon /> Staff Training</span>}
+                          />
+                          <Route
+                            exact
+                            path="/mydetails"
+                            render={() => <span><MyDetailsIcon /> My Details</span>}
+                          />
+                          <Route
+                            exact
+                            path="/mydetails/training"
+                            render={() => <span><TrainingIcon /> My Training</span>}
+                          />
+                          <Route
+                            exact
+                            path="/mydetails/jobs"
+                            render={() => <span><JobsIcon /> My Job History</span>}
+                          />
+                          <Route
+                            exact
+                            path="/mydetails/readinglog"
+                            render={() => <span><ReadingLogIcon /> My Reading Log</span>}
+                          />
+                          <Route
+                            exact
+                            path="/mydetails/preferences"
+                            render={() => <span>App Preferences</span>}
+                          />
+                          <Route
+                            exact
+                            path="/training"
+                            render={() => <span><TrainingPathIcon /> Training Paths</span>}
+                          />
+                          <Route
+                            exact
+                            path="/training/paths"
+                            render={() => <span><TrainingPathIcon /> Training Paths</span>}
+                          />
+                          <Route
+                            exact
+                            path="/training/overview"
+                            render={() => <span><TrainingOverviewIcon /> Training Overview</span>}
+                          />
+                          <Route
+                            path="/training/path"
+                            render={() => <span><TrainingPathIcon /> Training Path</span>}
+                          />
+                          <Route
+                            path="/training/readinglog"
+                            render={() => <span><ReadingLogIcon /> Reading Log</span>}
+                          />
+                          <Route
+                            path="/method"
+                            render={() => <span>Method</span>}
+                          />
+                          <Route
+                            path="/quizzes"
+                            render={() => <span><QuizIcon /> Quizzes</span>}
+                          />
+                          <Route
+                            path="/questions"
+                            render={() => <span><QuizIcon /> Questions</span>}
+                          />
+                          <Route path="/quiz/" render={() => <span><QuizIcon /> Quiz</span>} />
+                          <Route path="/tools" render={() => <span><ToolsIcon /> Tools</span>} />
+                          <Route
+                            path="/library"
+                            render={() => <span><LibraryIcon /> Library</span>}
+                          />
+                          <Route
+                            path="/document"
+                            render={() => <span><LibraryIcon /> Library</span>}
+                          />
+                          <Route path="/help" render={() => <span><HelpIcon /> Help</span>} />
+                          <Route
+                            path="/updates"
+                            render={() => <span><UpdatesIcon /> Version Updates</span>}
+                          />
+                        </Switch>
+                      </Typography>
+                      <Route
+                        exact
+                        path="/(|library|training|modules|noticeboard|inventory|jobs|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
+                        render={() => (
+                          <div className={classes.search}>
+                            <div className={classes.searchIcon}>
+                              <SearchIcon />
+                            </div>
+                            <InputBase
+                              value={this.props.search}
+                              onChange={e => {
+                                store.dispatch(onSearchChange(e.target.value));
+                                if (e.target.value !== null) {
+                                  store.dispatch(onCatChange(null));
+                                }
+                              }}
+                              placeholder="Search…"
+                              classes={{
+                                root: classes.inputRoot,
+                                input: classes.inputInput
+                              }}
+                            />
+                          </div>
+                        )}
                       />
-                    </Button>
-                    <Menu
-                      id="google-menu"
-                      anchorEl={anchorEl}
-                      open={Boolean(anchorEl)}
-                      onClose={this.handleGoogleMenuClose}
-                    >
-                      <MenuItem onClick={this.handleLogOut}>
-                        Log Out {displayName}
-                      </MenuItem>
-                    </Menu>
-                  </Toolbar>
-                </AppBar>
+                      <Button
+                        aria-owns={anchorEl ? "google-menu" : null}
+                        aria-haspopup="true"
+                        onClick={this.handleGoogleMenuToggle}
+                      >
+                        <Avatar
+                          alt={auth.currentUser.displayName}
+                          src={auth.currentUser.photoURL}
+                          className={classes.avatar}
+                        />
+                      </Button>
+                      <Menu
+                        id="google-menu"
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={this.handleGoogleMenuClose}
+                      >
+                        <MenuItem onClick={this.handleLogOut}>
+                          Log Out {displayName}
+                        </MenuItem>
+                      </Menu>
+                    </Toolbar>
+                  </AppBar> }
                 {drawer}
                 <main className={classes.content}>
                   <AppSettings />
@@ -1032,10 +1037,12 @@ class MainScreen extends React.PureComponent {
                       {/*<Route exact path="/jobs" component={Jobs} />*/}
                       <Route path="/inventory" render={props => <Inventory {...props} />} />
                       <Route exact path="/jobs" render={props => <Jobs {...props} />} />
-                      <Route exact path="/jobs/current" render={props => <CurrentJobs {...props} />} />
-                      <Route exact path="/jobs/leads" render={props => <Leads {...props} />} />
-                      <Route exact path="/jobs/stats" render={props => <JobStats {...props} />} />
-                      <Route exact path="/jobs/map" render={props => <JobMap {...props} />} />
+                      <Route
+                        exact
+                        path="/job/:job"
+                        render={props => <Job {...props} handleDrawerClose={this.handleDrawerClose} />}
+                        key="job"
+                      />
                       <Route exact path="/jobs/sites" render={props => <Sites {...props} />} />
                       <Route path="/asbestoslab" render={props => <AsbestosLab {...props} />} />
                       <Route path="/asbestossamplelog" render={props => <AsbestosLog {...props} />} />

@@ -2,6 +2,9 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
 import { connect } from "react-redux";
+import {
+  Link,
+} from "react-router-dom";
 
 //Modals
 import {
@@ -24,7 +27,9 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
+import Job from "./Job";
 import TimerIcon from "@material-ui/icons/Timer";
+import JobIcon from "@material-ui/icons/Assignment";
 import WfmTimeModal from "./modals/WfmTimeModal";
 
 import Popup from "reactjs-popup";
@@ -164,12 +169,17 @@ class Jobs extends React.Component {
           {m.isJob ?
             <div className={classes.flexRowSpread}>
               <h6>{m.category}</h6>
-              {!noButton && <IconButton
-                onClick={e => {
-                  this.props.showModal({ modalType: WFM_TIME, modalProps: { job: m, }})
+              {!noButton && <span>
+                <Link to={`/job/${m.jobNumber}`}>
+                  <IconButton><JobIcon /></IconButton>
+                </Link>
+                <IconButton
+                  onClick={e => {
+                    this.props.showModal({ modalType: WFM_TIME, modalProps: { job: m, }})
                 }}>
                 <TimerIcon className={classes.iconRegular} />
-              </IconButton>}
+                </IconButton>
+              </span>}
             </div>
             :
             <h6>{m.category}</h6>}
@@ -245,7 +255,7 @@ class Jobs extends React.Component {
               <div key={moment(dateOf(item.date)).format('x')}>
                 <div><b>{moment(dateOf(item.date)).format('YYYY-MM-DD')}</b> {item.title} - {item.createdBy}</div>
                 {item.text && <div className={classes.code}>
-                  {item.text.length > maxLength ? `${item.text.substring(maxLength)}...` : item.text}
+                  {item.text.length > maxLength ? `${item.text.substring(0, maxLength)}...` : item.text}
                 </div>}
               </div>)
             }

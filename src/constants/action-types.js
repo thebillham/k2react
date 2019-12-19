@@ -85,6 +85,7 @@ export const SAVE_WFM_ITEMS = "SAVE_WFM_ITEMS";
 export const SAVE_WFM_STATS = "SAVE_WFM_STATS";
 export const GET_JOB_STATS = "GET_JOB_STATS";
 export const GET_JOB_LIST = "GET_JOB_LIST";
+export const GET_JOB = "GET_JOB";
 export const ADD_TO_JOB_LIST = "ADD_TO_JOB_LIST";
 export const CLEAR_WFM_JOB = "CLEAR_WFM_JOB";
 export const RESET_JOBS = "RESET_JOBS";
