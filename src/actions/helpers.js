@@ -1,9 +1,10 @@
 import moment from "moment";
 
 export const personnelConvert = e => {
-  if (e.filter(staff => staff.value === 'Client').length > 0) {
+  if (e.filter(staff => (staff.value === 'Client' || staff.value === '3rd Party')).length > 0) {
     if (e[e.length - 1].value === 'Client') return [{uid: 'Client', name: 'Client'}];
-      else return e.filter(staff => staff.value !== 'Client').map(staff => ({uid: staff.value, name: staff.label}));
+      else if (e[e.length - 1].value === '3rd Party') return [{uid: '3rd Party', name: '3rd Party'}];
+      else return e.filter(staff => (staff.value !== 'Client' && staff.value !== '3rd Party')).map(staff => ({uid: staff.value, name: staff.label}));
   } else return e.map(staff => ({uid: staff.value, name: staff.label}));
 }
 

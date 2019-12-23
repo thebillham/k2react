@@ -17,6 +17,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
+import TextField from "@material-ui/core/TextField";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import TimerIcon from "@material-ui/icons/Timer";
@@ -38,6 +39,7 @@ import {
   fetchWFMClients,
   fetchCurrentJobState,
   saveCurrentJobState,
+  addWfmJobByNumber,
   clearWfmJob,
   saveWFMItems,
   saveGeocodes,
@@ -50,6 +52,7 @@ import {
   getNextActionType,
   getWfmUrl,
   getLeadHistoryDescription,
+  getDetailedWFMJob,
   getJob,
 } from "../../actions/jobs";
 
@@ -58,7 +61,7 @@ import {
   filterMapReset,
 } from "../../actions/display";
 
-import CurrentJobs from "./CurrentJobs";
+import JobsTable from "./JobsTable";
 import Leads from "./Leads";
 import JobMap from "./JobMap";
 
@@ -87,6 +90,7 @@ const mapDispatchToProps = dispatch => {
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
     fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
+    // addWfmJobByNumber: n => dispatch(addWfmJobByNumber(n)),
     getJob: (job) => dispatch(getJob(job)),
     clearWfmJob: () => dispatch(clearWfmJob()),
     saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
@@ -98,6 +102,7 @@ const mapDispatchToProps = dispatch => {
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
     showModal: modal => dispatch(showModal(modal)),
+    getDetailedWFMJob: (jobNumber, wfmClients, geocodes) => dispatch(getDetailedWFMJob(jobNumber, false, false, true, wfmClients, geocodes)),
     collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
@@ -112,6 +117,7 @@ class Jobs extends React.Component {
     searchAnalyst: '',
     tabValue: 0,
     jobModal: null,
+    addJobNumber: '',
   };
 
   UNSAFE_componentWillMount() {
@@ -160,7 +166,7 @@ class Jobs extends React.Component {
             <div className={classes.flexRowSpread}>
               <h6>{m.category}</h6>
               {!noButton && <span>
-                <Link to={`/job/${m.jobNumber}`} onClick={e => this.props.getJob(m)}>
+                <Link to={`/site/${m.jobNumber}`} onClick={e => this.props.getJob(m)}>
                   <IconButton><JobIcon /></IconButton>
                 </Link>
                 <IconButton
@@ -203,6 +209,9 @@ class Jobs extends React.Component {
                 {m.wfmState && (<span><b>Last Action:</b> {getStateString(m)} </span>)}
               </div>
             )}
+            <div className={classes.code}>
+              {m.description}
+            </div>
             {m.stateHistory && (
               <div><br /><h6 className={color}>State History</h6>
                 { Object.keys(m.stateHistory).map((key) => {
@@ -265,6 +274,9 @@ class Jobs extends React.Component {
                 {m.lastActionType && (<span><b>Last Goal Completed:</b> {getStateString(m)}</span>)}
               </div>
             )}
+            <div className={classes.code}>
+              {m.description}
+            </div>
             {m.history && m.history.length > 0 && (
               <div>
                 <b>Last Modified:</b> {moment(dateOf(m.history[0].date)).format('DD MMMM YYYY')}
@@ -385,6 +397,18 @@ class Jobs extends React.Component {
         {this.props.modalType === WFM_TIME && <WfmTimeModal />}
         {jobModal}
         <div className={classes.flexRowRightAlign}>
+          <TextField
+            label="Add Job Number"
+            className={classes.columnMedLarge}
+            onChange={e => this.setState({ addJobNumber: e.target.value })}
+          />
+          <Button
+            variant="outlined"
+            className={classes.marginBottomSmall}
+            onClick={() => this.props.getDetailedWFMJob(this.state.addJobNumber, this.props.wfmClients, this.props.geocodes)}
+          >
+            Add
+          </Button>
           <Tooltip title="Log Time in WorkflowMax">
             <IconButton
               onClick={e => {
@@ -407,7 +431,7 @@ class Jobs extends React.Component {
           {/*<Tab label="Stats" />*/}
         </Tabs>
         {this.state.tabValue === 0 && <Leads that={this} />}
-        {this.state.tabValue === 1 && <CurrentJobs that={this} />}
+        {this.state.tabValue === 1 && <JobsTable that={this} />}
         {this.state.tabValue === 2 && <JobMap that={this} />}
       </div>
     );

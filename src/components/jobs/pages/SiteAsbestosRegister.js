@@ -103,7 +103,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class JobMapsAndDiagrams extends React.Component {
+class SiteAsbestosRegister extends React.Component {
   state = {
   };
 
@@ -213,5 +213,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(JobMapsAndDiagrams)
+  )(SiteAsbestosRegister)
 );

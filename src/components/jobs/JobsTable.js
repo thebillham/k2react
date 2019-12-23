@@ -92,20 +92,22 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class CurrentJobs extends React.Component {
+class JobsTable extends React.Component {
   state = {
     jobModal: null,
   };
 
   render() {
-    console.log(this.props.me.wfm_id);
     const { wfmJobs, wfmLeads, wfmClients, classes, currentJobState, jobList, geocodes, that, me } = this.props;
     const daysSinceLastJobAction = this.props.otherOptions && this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value ? parseInt(this.props.otherOptions.filter(opt => opt.option === "daysSinceLastJobAction")[0].value) : 15;
     let loading = jobList && Object.keys(jobList).length == 0;
 
+    // console.log(jobList);
+
     let jobs = jobList ? Object.values(jobList).filter(m => {
       let res = true;
-      if (!m.isJob || m.wfmState === "Completed") res = false;
+      // if (!m.isJob || m.wfmState === "Completed") res = false;
+      if (!m.isJob) res = false;
 
       if (this.props.search) {
         // console.log(this.props.search);
@@ -124,6 +126,8 @@ class CurrentJobs extends React.Component {
       }
       return res;
     }) : [];
+
+    console.log(jobs);
     return (
       <div className={classes.marginBottomSmall}>
         <ReactTable
@@ -252,5 +256,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(CurrentJobs)
+  )(JobsTable)
 );

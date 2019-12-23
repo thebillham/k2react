@@ -344,7 +344,7 @@ export const getJob = job => async dispatch => {
   }
 };
 
-export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispatch => {
+export const getDetailedWFMJob = (jobNumber, createUid, setUpJob, addToJobList, wfmClients, geocodes) => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran getDetailedWFMJob`);
   let path = `${
     process.env.REACT_APP_WFM_ROOT
@@ -368,16 +368,21 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
           isJob: true,
         };
         //console.log(wfmJob);
-        job.jobNumber = wfmJob.ID ? wfmJob.ID : "No job number";
-        job.address = wfmJob.Name ? wfmJob.Name : "No address";
-        job.description = wfmJob.Description
-          ? wfmJob.Description
-          : "No description";
+        job.jobNumber = wfmJob.ID ? wfmJob.ID : null;
+        job.address = wfmJob.Name ? wfmJob.Name : null;
+        job.wfmID = wfmJob.InternalID;
+        job.description = wfmJob.Description ? wfmJob.Description : null;
+        job.dueDate = dateOf(wfmJob.DueDate);
+        job.startDate = dateOf(wfmJob.StartDate);
+        job.wfmState = wfmJob.State ? wfmJob.State : "Unknown state";
+        job.category = wfmJob.Type ? wfmJob.Type : "Other";
+        job.wfmID = wfmJob.InternalID;
+
         if (wfmJob.Client) {
           job.client = wfmJob.Client.Name
             ? wfmJob.Client.Name
-            : "No client name";
-          job.clientID = wfmJob.Client.ID ? wfmJob.Client.ID : "No client ID";
+            : null;
+          job.clientID = wfmJob.Client.ID ? wfmJob.Client.ID : null;
           if (job.clientID) {
             let path = `${process.env.REACT_APP_WFM_ROOT}client.api/get/${job.clientID}?apiKey=${
               process.env.REACT_APP_WFM_API
@@ -413,6 +418,13 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
                     phone: client.Phone === Object(client.Phone) ? null : client.Phone.toString().replace('-',' ').trim(),
                   }
                   // console.log(job.clientDetails);
+                  if (addToJobList)
+                    dispatch(handleGeocode(
+                      job.address,
+                      getAddressFromClient(job.clientID, wfmClients),
+                      job,
+                      geocodes,
+                    ));
                   dispatch({
                     type: GET_WFM_JOB,
                     payload: job
@@ -461,6 +473,13 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
                     phone: contact.Phone === Object(contact.Phone) ? '' : contact.Phone.toString().replace('-',' ').trim(),
                     email: contact.Email === Object(contact.Email) ? '' : contact.Email.toString().toLowerCase().trim(),
                   }
+                  if (addToJobList)
+                    dispatch(handleGeocode(
+                      job.address,
+                      getAddressFromClient(job.clientID, wfmClients),
+                      job,
+                      geocodes,
+                    ));
                   dispatch({
                     type: GET_WFM_JOB,
                     payload: job
@@ -497,11 +516,6 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
           job.manager = null;
           job.managerID = null;
         }
-        job.dueDate = dateOf(wfmJob.DueDate);
-        job.startDate = dateOf(wfmJob.StartDate);
-        job.wfmState = wfmJob.State ? wfmJob.State : "Unknown state";
-        job.wfmType = wfmJob.Type ? wfmJob.Type : "Other";
-        job.wfmID = wfmJob.InternalID;
         if (wfmJob.Milestones.Milestone) {
           job.milestones = [];
           if (Array.isArray(wfmJob.Milestones.Milestone)) {
@@ -580,6 +594,13 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob) => async dispa
             payload: { 'uid': uid }
           });
         }
+        if (addToJobList)
+          dispatch(handleGeocode(
+            job.address,
+            getAddressFromClient(job.clientID, wfmClients),
+            job,
+            geocodes,
+          ));
         // console.log(job);
         dispatch({
           type: GET_WFM_JOB,
@@ -1263,6 +1284,8 @@ export const getAddressFromClient = (clientID, wfmClients) => {
 export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatch => {
   // console.log('Relying on lead to state.');
   // return;
+  console.log(address);
+  console.log(lead);
   lead.clientAddress = clientAddress;
   // Pick either name or clientAddress to use as the geolocation
   var add = checkAddress(address, geocodes);
@@ -2098,4 +2121,24 @@ export const getLeadHistoryDescription = (h, maxLength) => {
     body,
     icon,
   }
+}
+
+export const handleJobChange = (job, o1, o2, field, val) => dispatch => {
+  if (o1 && !job[o1]) job[o1] = {};
+  if (o2 && !job[o1][o2]) job[o1][o2] = {};
+  if (val === 'delete') {
+    if (o1 && o2 && field && job[o1][o2][field]) delete job[o1][o2][field];
+    else if (o1 && field && job[o1][field]) delete job[o1][field];
+    else if (field && job[field]) delete job[field];
+  } else {
+    if (o1 && o2 && field) job[o1][o2][field] = val;
+    else if (o1 && field) job[o1][field] = val;
+    else if (field) job[field] = val;
+  }
+  dispatch({
+    type: GET_JOB,
+    payload: job,
+  });
+  console.log(job);
+  jobsRef.doc(job.jobNumber.trim()).update(job);
 }

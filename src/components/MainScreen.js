@@ -121,11 +121,11 @@ const AsbestosQualityControl = lazy(() => import("./asbestoslab/AsbestosQualityC
 const AsbestosStats = lazy(() => import("./asbestoslab/AsbestosStats"));
 
 const JobMap = lazy(() => import("./jobs/JobMap"));
-const CurrentJobs = lazy(() => import("./jobs/CurrentJobs"));
+const JobsTable = lazy(() => import("./jobs/JobsTable"));
 const Leads = lazy(() => import("./jobs/Leads"));
 const JobStats = lazy(() => import("./jobs/JobStats"));
 const Jobs = lazy(() => import("./jobs/Jobs"));
-const Job = lazy(() => import("./jobs/Job"));
+const Site = lazy(() => import("./jobs/Site"));
 const Sites = lazy(() => import("./jobs/Sites"));
 
 const Staff = lazy(() => import("./personnel/Staff"));
@@ -749,7 +749,7 @@ class MainScreen extends React.PureComponent {
             this.props.me.key == process.env.REACT_APP_K2_STAFF_KEY ? (
               // && this.props.state.local.staff[auth.currentUser.uid].gmail == auth.currentUser.email)
               <div className={classes.root}>
-                { this.props.location.pathname && !this.props.location.pathname.includes("/job/") &&
+                { this.props.location.pathname && !this.props.location.pathname.includes("/site/") &&
                   <AppBar
                     position="absolute"
                     className={classNames(
@@ -1039,9 +1039,9 @@ class MainScreen extends React.PureComponent {
                       <Route exact path="/jobs" render={props => <Jobs {...props} />} />
                       <Route
                         exact
-                        path="/job/:job"
-                        render={props => <Job {...props} handleDrawerClose={this.handleDrawerClose} />}
-                        key="job"
+                        path="/site/:job"
+                        render={props => <Site {...props} handleDrawerClose={this.handleDrawerClose} />}
+                        key="site"
                       />
                       <Route exact path="/jobs/sites" render={props => <Sites {...props} />} />
                       <Route path="/asbestoslab" render={props => <AsbestosLab {...props} />} />

@@ -67,14 +67,14 @@ import {
   filterMapReset,
 } from "../../actions/display";
 
-import CurrentJobs from "./CurrentJobs";
+import JobsTable from "./JobsTable";
 import Leads from "./Leads";
 import JobMap from "./JobMap";
 import JobStats from "./JobStats";
-import JobGeneralInformation from "./pages/JobGeneralInformation";
-import JobRooms from "./pages/JobRooms";
-import JobMapsAndDiagrams from "./pages/JobMapsAndDiagrams";
-import JobAsbestosRegister from "./pages/JobAsbestosRegister";
+import SiteGeneralInformation from "./pages/SiteGeneralInformation";
+import SiteRooms from "./pages/SiteRooms";
+import SiteMapsAndDiagrams from "./pages/SiteMapsAndDiagrams";
+import SiteAsbestosRegister from "./pages/SiteAsbestosRegister";
 
 const mapStateToProps = state => {
   return {
@@ -104,7 +104,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class Job extends React.Component {
+class Site extends React.Component {
   state = {
     searchJobNumber: '',
     searchClient: '',
@@ -174,10 +174,10 @@ class Job extends React.Component {
           <Tab label="Maps and Diagrams" />
         </Tabs>
         {this.props.modalType === WFM_TIME && <WfmTimeModal />}
-        {this.state.tabValue === 0 && <JobGeneralInformation that={this} jobNumber={this.props.match.params.job.trim()} />}
-        {this.state.tabValue === 1 && <JobRooms that={this} jobNumber={this.props.match.params.job.trim()} />}
-        {this.state.tabValue === 2 && <JobAsbestosRegister that={this} jobNumber={this.props.match.params.job.trim()} />}
-        {this.state.tabValue === 3 && <JobMapsAndDiagrams that={this} jobNumber={this.props.match.params.job.trim()} />}
+        {this.state.tabValue === 0 && <SiteGeneralInformation that={this} jobNumber={this.props.match.params.job.trim()} />}
+        {this.state.tabValue === 1 && <SiteRooms that={this} jobNumber={this.props.match.params.job.trim()} />}
+        {this.state.tabValue === 2 && <SiteAsbestosRegister that={this} jobNumber={this.props.match.params.job.trim()} />}
+        {this.state.tabValue === 3 && <SiteMapsAndDiagrams that={this} jobNumber={this.props.match.params.job.trim()} />}
       </div>
     );
     else return (<div />)
@@ -188,5 +188,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(Job)
+  )(Site)
 );

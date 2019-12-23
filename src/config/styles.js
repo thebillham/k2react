@@ -295,7 +295,6 @@ const styles = theme => ({
 
   expandBody: {
     backgroundColor: 'white',
-    width: '50%',
     borderRadius: theme.spacing(2),
     padding: theme.spacing(2),
   },
@@ -1650,8 +1649,31 @@ const styles = theme => ({
     padding: theme.spacing(1),
     flexDirection: 'row',
     display: 'flex',
-    borderRadius: 12,
+    borderRadius: theme.spacing(1),
     alignItems: 'center',
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover,
+        cursor: 'pointer',
+    },
+  },
+
+  hoverNoFlex: {
+    padding: theme.spacing(1),
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    borderRadius: theme.spacing(1),
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover,
+    },
+  },
+
+  hoverColor: {
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover,
+    },
+  },
+
+  hoverColorAndButton: {
     "&:hover": {
         backgroundColor: theme.palette.app.hover,
         cursor: 'pointer',
@@ -1664,11 +1686,20 @@ const styles = theme => ({
     padding: theme.spacing(1),
     // flexDirection: 'row',
     // display: 'flex',
-    borderRadius: 12,
+    borderRadius: theme.spacing(1),
     alignItems: 'center',
     "&:hover": {
         backgroundColor: theme.palette.app.hover,
         cursor: 'pointer',
+    },
+  },
+
+  flexRowHover: {
+    flexDirection: 'row',
+    display: 'flex',
+    alignItems: 'center',
+    "&:hover": {
+        backgroundColor: theme.palette.app.hover
     },
   },
 
