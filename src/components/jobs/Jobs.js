@@ -397,7 +397,7 @@ class Jobs extends React.Component {
         {this.props.modalType === WFM_TIME && <WfmTimeModal />}
         {jobModal}
         <div className={classes.flexRowRightAlign}>
-          <TextField
+          {/*<TextField
             label="Add Job Number"
             className={classes.columnMedLarge}
             onChange={e => this.setState({ addJobNumber: e.target.value })}
@@ -408,7 +408,7 @@ class Jobs extends React.Component {
             onClick={() => this.props.getDetailedWFMJob(this.state.addJobNumber, this.props.wfmClients, this.props.geocodes)}
           >
             Add
-          </Button>
+          </Button>*/}
           <Tooltip title="Log Time in WorkflowMax">
             <IconButton
               onClick={e => {
