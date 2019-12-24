@@ -9,6 +9,7 @@ import {
   GET_WFM_JOBS,
   GET_WFM_JOB,
   GET_JOB,
+  GET_SITES,
   GET_WFM_LEADS,
   GET_WFM_CLIENTS,
   GET_JOB_LIST,
@@ -32,6 +33,7 @@ import {
   stateRef,
   usersRef,
   jobsRef,
+  sitesRef,
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 import {
@@ -717,6 +719,33 @@ export const saveStats = stats => dispatch => {
     payload: stats
   });
 };
+
+export const fetchSites = update => async dispatch => {
+  sendSlackMessage(`${auth.currentUser.displayName} ran fetchSites`);
+  if (update) {
+    sitesRef.get().then(querySnapshot => {
+      var sites = [];
+      querySnapshot.forEach(doc => {
+        let site = doc.data();
+        site.uid = doc.id;
+        sites.push(site);
+      });
+      dispatch({
+        type: GET_SITES,
+        payload: sites,
+        update: true
+      });
+    });
+  } else {
+    stateRef.doc("sites").onSnapshot(doc => {
+      if (doc.exists) {
+        dispatch({ type: GET_SITES, payload: doc.data().payload });
+      } else {
+        //console.log("Sites don't exist");
+      }
+    });
+  }
+}
 
 // This function looks through all the daily states from the states collection and creates an up-to-date picture of the job state
 export const analyseJobHistory = () => {

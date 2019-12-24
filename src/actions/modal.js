@@ -17,6 +17,7 @@ import {
 } from "../constants/action-types";
 
 import { storage, cocsRef, asbestosSamplesRef } from "../config/firebase";
+import Resizer from 'react-image-file-resizer';
 
 export const resetModal = () => dispatch => {
   dispatch({ type: RESET_MODAL });
@@ -50,7 +51,31 @@ export const showModalSecondary = ({ modalType, modalProps }) => dispatch => {
   })
 }
 
-export const onUploadFile = ({ file, storagePath }) => async dispatch => {
+export const onUploadFile = ({ file, storagePath, prefix, imageQuality, imageHeight }) => async dispatch => {
+  let urlField = 'fileUrl',
+    refField = 'fileRef';
+
+  // console.log(imageQuality);
+  // console.log(imageHeight);
+  //
+  let uploadFile = file;
+  //
+  // if (imageQuality) {
+  //   console.log('Do resize');
+  //   Resizer.imageFileResizer(
+  //     file,
+  //     null, imageHeight, 'JPEG', imageQuality,
+  //     0, uri => {
+  //       console.log(uri);
+  //       uploadFile = new File(uri, 'fileName');
+  //     }, 'base64',
+  //   );
+  // }
+
+  if (prefix) {
+    urlField = `${prefix}Url`;
+    refField = `${prefix}Ref`;
+  }
   if (!file) return;
   dispatch({
     type: EDIT_MODAL,
@@ -64,8 +89,8 @@ export const onUploadFile = ({ file, storagePath }) => async dispatch => {
     "_" +
     parseInt(Math.floor(Math.random() * Math.floor(1000))) +
     "_" +
-    file.name;
-  var uploadTask = storage.ref(path).put(file);
+    uploadFile.name;
+  var uploadTask = storage.ref(path).put(uploadFile);
   uploadTask.on(
     "state_changed",
     snapshot => {
@@ -85,8 +110,8 @@ export const onUploadFile = ({ file, storagePath }) => async dispatch => {
         dispatch({
           type: EDIT_MODAL_DOC,
           payload: {
-            fileRef: path,
-            fileUrl: url
+            [refField]: path,
+            [urlField]: url
           }
         });
         dispatch({
@@ -163,11 +188,12 @@ export const handleGlossaryChange = (number, type, value) => dispatch => {
 
 export const handleModalSubmit = ({ doc, pathRef, docid }) => dispatch => {
   let uid;
-  if (docid) {
-    pathRef.doc(docid).set({ ...doc, uid: docid });
-  } else if (doc.uid) {
-    uid = doc.uid;
+  if (doc.uid) {
     pathRef.doc(doc.uid).set(doc);
+  } else if (docid === 'random') {
+    pathRef.doc().set(doc);
+  } else if (docid) {
+    pathRef.doc(docid).set({ ...doc, uid: docid });
   } else {
     // //console.log(doc.type);
     uid = doc.type + parseInt(Math.floor(Math.random() * Math.floor(1000)));

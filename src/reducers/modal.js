@@ -53,6 +53,7 @@ export default function modalReducer(state = modalInit, action) {
         }
       }
     case SHOW_MODAL:
+      console.log(action);
       return {
         modalProps: {
           ...state.modalProps,

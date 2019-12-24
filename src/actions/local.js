@@ -15,7 +15,6 @@ import {
   GET_INCIDENTS,
   GET_LOGS,
   GET_ME,
-  GET_SITES,
   GET_METHODLOG,
   GET_METHODS,
   GET_NOTICES,
@@ -64,7 +63,6 @@ import {
   noticeReadsRef,
   questionsRef,
   quizzesRef,
-  sitesRef,
   stateRef,
   toolsRef,
   trainingPathsRef,
@@ -681,31 +679,6 @@ export const fetchVehicles = update => async dispatch => {
     });
   }
 };
-
-export const fetchSites = update => async dispatch => {
-  sendSlackMessage(`${auth.currentUser.displayName} ran fetchSites`);
-  if (update) {
-    sitesRef.get().then(querySnapshot => {
-      var sites = [];
-      querySnapshot.forEach(doc => {
-        sites.push(doc.data());
-      });
-      dispatch({
-        type: GET_SITES,
-        payload: sites,
-        update: true
-      });
-    });
-  } else {
-    stateRef.doc("sites").onSnapshot(doc => {
-      if (doc.exists) {
-        dispatch({ type: GET_SITES, payload: doc.data().payload });
-      } else {
-        //console.log("Sites don't exist");
-      }
-    });
-  }
-}
 
 export const fetchAssets = update => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchAssets`);

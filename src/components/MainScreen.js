@@ -382,6 +382,16 @@ class MainScreen extends React.PureComponent {
             </ListItemIcon>
             <ListItemText primary="Jobs" />
           </ListItem>
+          <ListItem
+            button
+            component={Link}
+            to="/sites"
+          >
+            <ListItemIcon>
+              <SitesIcon className={classes.colorAccent} />
+            </ListItemIcon>
+            <ListItemText primary="Sites" />
+          </ListItem>
           <Divider />
           </div>
         }
@@ -826,7 +836,7 @@ class MainScreen extends React.PureComponent {
                             render={() => <span><MapIcon /> Jobs Map</span>}
                           />
                           <Route
-                            path="/jobs/sites"
+                            path="/sites"
                             render={() => <span><SitesIcon /> Sites</span>}
                           />
                           <Route
@@ -953,7 +963,7 @@ class MainScreen extends React.PureComponent {
                       </Typography>
                       <Route
                         exact
-                        path="/(|library|training|modules|noticeboard|inventory|jobs|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
+                        path="/(|library|training|modules|noticeboard|inventory|jobs|sites|asbestoslab|asbestossamplelog|tools|noticeboard|help|staff|incidents|vehicles|quizzes|questions)"
                         render={() => (
                           <div className={classes.search}>
                             <div className={classes.searchIcon}>
@@ -1043,7 +1053,7 @@ class MainScreen extends React.PureComponent {
                         render={props => <Site {...props} handleDrawerClose={this.handleDrawerClose} />}
                         key="site"
                       />
-                      <Route exact path="/jobs/sites" render={props => <Sites {...props} />} />
+                      <Route exact path="/sites" render={props => <Sites {...props} />} />
                       <Route path="/asbestoslab" render={props => <AsbestosLab {...props} />} />
                       <Route path="/asbestossamplelog" render={props => <AsbestosLog {...props} />} />
                       <Route path="/asbestosqc" render={props => <AsbestosQualityControl {...props} />} />

@@ -556,6 +556,15 @@ const styles = theme => ({
     flexDirection: 'column',
   },
 
+  siteCard: {
+    minWidth: 50,
+    minHeight: 300,
+    borderRadius: 20,
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+
   title: {
     marginTop: 4,
     fontSize: 14,
@@ -1673,9 +1682,22 @@ const styles = theme => ({
     },
   },
 
+  hoverCursor: {
+    "&:hover": {
+        cursor: 'pointer',
+    },
+  },
+
   hoverColorAndButton: {
     "&:hover": {
         backgroundColor: theme.palette.app.hover,
+        cursor: 'pointer',
+    },
+  },
+
+  hoverImage: {
+    "&:hover": {
+        opacity: '0.5',
         cursor: 'pointer',
     },
   },

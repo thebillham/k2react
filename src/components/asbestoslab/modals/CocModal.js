@@ -80,8 +80,6 @@ const mapDispatchToProps = dispatch => {
     fetchStaff: () => dispatch(fetchStaff()),
     onUploadFile: (file, pathRef) => dispatch(onUploadFile(file, pathRef)),
     handleModalChange: _.debounce(target => dispatch(handleModalChange(target)), 50),
-    // handleModalChange: target => dispatch(handleModalChange(target)),
-    // handleCocSubmit: doc => dispatch(handleCocSubmit(doc)),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) => dispatch(handleModalSubmit(doc, pathRef)),
     handleSampleChange: (number, changes) => dispatch(handleSampleChange(number, changes)),
