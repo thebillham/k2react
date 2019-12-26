@@ -87,7 +87,7 @@ const mapDispatchToProps = dispatch => {
     saveStats: stats => dispatch(saveStats(stats)),
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
-    getDetailedWFMJob: (jobNumber) => dispatch(getDetailedWFMJob(jobNumber, false)),
+    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
     collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
@@ -142,7 +142,7 @@ class JobsTable extends React.Component {
             onClick: () => {
               if (rowInfo && rowInfo.original && column.id !== 'watch' && column.id !== 'jobNumber' && column.id !== 'client' && column.id !== 'geocodeAddress') {
                 // console.log(getDetailedWFMJob);
-                this.props.getDetailedWFMJob(rowInfo.original.jobNumber);
+                this.props.getDetailedWFMJob({ jobNumber: rowInfo.original.jobNumber });
                 that.setState({ jobModal: rowInfo.original})
               }
             },

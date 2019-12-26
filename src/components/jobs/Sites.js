@@ -29,17 +29,6 @@ import { SITE } from "../../constants/modal-types";
 import AddIcon from "@material-ui/icons/Add";
 import EditIcon from "@material-ui/icons/Edit";
 
-import CommercialIcon from "@material-ui/icons/Store";
-import ResidentialIcon from '@material-ui/icons/Home';
-import IndustrialIcon from "@material-ui/icons/Business";
-import PublicIcon from "@material-ui/icons/AccountBalance";
-import LandIcon from "@material-ui/icons/Landscape";
-import TrainIcon from "@material-ui/icons/Train";
-import ShipIcon from "@material-ui/icons/DirectionsBoat";
-import VehicleIcon from "@material-ui/icons/AirportShuttle";
-import SubstationIcon from "@material-ui/icons/FlashOn";
-import OtherIcon from "@material-ui/icons/LocationCity";
-
 import SiteModal from './modals/SiteModal';
 
 import {
@@ -50,6 +39,7 @@ import {
 import {
   fetchSites,
   getJobColor,
+  getSiteIcon,
 } from "../../actions/jobs";
 import { showModal } from "../../actions/modal";
 import store from "../../store";
@@ -86,37 +76,9 @@ class Sites extends React.Component {
     this.props.fetchSites();
   }
 
-  getIcon = type => {
-    switch(type) {
-      case 'residential':
-        return (<ResidentialIcon />);
-      case 'commercial':
-        return (<CommercialIcon />);
-      case 'industrial':
-        return (<IndustrialIcon />);
-      case 'public':
-        return (<PublicIcon />);
-      case 'other':
-        return (<OtherIcon />);
-      case 'land':
-        return (<LandIcon />);
-      case 'train':
-        return (<TrainIcon />);
-      case 'ship':
-        return (<ShipIcon />);
-      case 'vehicle':
-        return (<VehicleIcon />);
-      case 'substation':
-        return (<SubstationIcon />);
-      default:
-        return (<IndustrialIcon />);
-    }
-  }
-
   render() {
     const { classes, sites, } = this.props;
     const defaultImagePath = 'https://firebasestorage.googleapis.com/v0/b/k2flutter-f03a1.appspot.com/o/sites%2FSite%20Photo%20Placeholder.png?alt=media&token=eb19d430-70b5-4290-a683-08abfc6b410b';
-    console.log(this.props.modalType);
     return (
       <div className={classes.marginTopStandard}>
         {this.props.modalType === SITE && <SiteModal />}
@@ -128,7 +90,7 @@ class Sites extends React.Component {
           </Tooltip>
         </div>
         <Grid container spacing={2}>
-          { sites && sites.filter(a => {
+          { sites && Object.values(sites).filter(a => {
             if (this.props.search) {
               let search = [
                   a.siteName,
@@ -160,7 +122,7 @@ class Sites extends React.Component {
                     <CardHeader
                       avatar={
                         <Avatar className={color} style={{ backgroundColor: 'white' }}>
-                          {this.getIcon(site.type)}
+                          {getSiteIcon(site.type)}
                         </Avatar>
                       }
                       action={
@@ -183,10 +145,10 @@ class Sites extends React.Component {
                         image={site.siteImageUrl ? site.siteImageUrl : defaultImagePath}
                       />
                     </Link>
-                    <CardContent>
+                    {/*<CardContent>
                     </CardContent>
                     <CardActions>
-                    </CardActions>
+                    </CardActions>*/}
                   </Card>
                 </Grow>
               </Grid>

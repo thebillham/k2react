@@ -80,7 +80,7 @@ const mapDispatchToProps = dispatch => {
     showModal: modal => dispatch(showModal(modal)),
     fetchSamples: (cocUid, jobNumber) =>
       dispatch(fetchSamples(cocUid, jobNumber)),
-    getDetailedWFMJob: jobNumber => dispatch(getDetailedWFMJob(jobNumber)),
+    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
     logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
     setSessionID: session => dispatch(setSessionID(session)),
     deleteCoc: (coc, samples, me) => dispatch(deleteCoc(coc, samples, me)),
@@ -189,7 +189,7 @@ class AsbestosBulkCocCard extends React.Component {
               <Tooltip id="h-tooltip" title={'Edit Chain of Custody'}>
                 <IconButton
                   onClick={() => {
-                    this.props.getDetailedWFMJob(job.jobNumber);
+                    this.props.getDetailedWFMJob({jobNumber: job.jobNumber});
                     this.props.showModal({
                       modalType: ASBESTOS_COC_EDIT,
                       modalProps: {

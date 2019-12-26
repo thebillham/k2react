@@ -17,7 +17,7 @@ import {
 } from "../constants/action-types";
 
 import { storage, cocsRef, asbestosSamplesRef } from "../config/firebase";
-import Resizer from 'react-image-file-resizer';
+// import Resizer from 'react-image-file-resizer';
 
 export const resetModal = () => dispatch => {
   dispatch({ type: RESET_MODAL });

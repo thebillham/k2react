@@ -114,7 +114,27 @@ const settings = {
     hint: 'Put each tag on a new line in the form "tag name|tag id".',
   },
 
+  // SITE
+  siteTypes: {
+    label: 'Site Types',
+    value: 'siteTypes',
+    group: 'sites',
+    fields: ['label', 'value'],
+    noSort: true,
+    hint: 'Put each suggestion on a new line in the form "label|value".',
+  },
+
+  siteJobDescriptions: {
+    label: 'Job Description Suggestions',
+    value: 'siteJobDescriptions',
+    group: 'sites',
+    fields: ['label'],
+    noSort: true,
+    hint: 'Put each suggestion on a new line.',
+  },
+
   // SURVEY GENERIC
+
   genericLocationSuggestions: {
     label: 'Generic Location Suggestions',
     value: 'genericLocationSuggestions',
@@ -127,7 +147,7 @@ const settings = {
     value: 'specificLocationSuggestions',
     group: 'surveyGeneric',
     fields: ['label','code'],
-    hint: 'Put each tag on a new line in the form "room name|room code".',
+    hint: 'Put each suggestion on a new line in the form "room name|room code".',
   },
   buildingItems: {
     label: 'Building Items',
@@ -321,6 +341,10 @@ const settingTypes = [
   {
     label: 'Tag Suggestions',
     options: Object.values(settings).filter(e => e.group === 'tagSuggestions').map(e => ({label: e.label, value: e.value})),
+  },
+  {
+    label: 'Sites',
+    options: Object.values(settings).filter(e => e.group === 'sites').map(e => ({label: e.label, value: e.value}))
   },
   {
     label: 'Survey Generic',

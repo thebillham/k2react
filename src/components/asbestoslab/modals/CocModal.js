@@ -85,7 +85,7 @@ const mapDispatchToProps = dispatch => {
     handleSampleChange: (number, changes) => dispatch(handleSampleChange(number, changes)),
     setModalError: error => dispatch(setModalError(error)),
     showModalSecondary: modal => dispatch(showModalSecondary(modal)),
-    getDetailedWFMJob: (jobNumber, createUid) => dispatch(getDetailedWFMJob(jobNumber, createUid)),
+    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
     resetWfmJob: () => dispatch(resetWfmJob()),
     fetchSamples: (cocUid, jobNumber, modal, airSamples ) => dispatch(fetchSamples(cocUid, jobNumber, modal, airSamples )),
     resetModal: () => dispatch(resetModal()),
@@ -193,8 +193,8 @@ class CocModal extends React.PureComponent {
     } else {
       this.props.setModalError(null);
       this.props.handleSelectChange({id: 'modal', value: {isNew: false}});
-      let isNewCoc = this.props.doc.uid === undefined;
-      this.props.getDetailedWFMJob(jobNumber, isNewCoc);
+      let createUid = this.props.doc.uid === undefined;
+      this.props.getDetailedWFMJob({jobNumber, createUid});
       let uid = this.props.doc.uid;
       // //console.log('wfmsync fetch samples');
       this.props.fetchSamples(uid, jobNumber, true, this.state.sampleType === "air");
