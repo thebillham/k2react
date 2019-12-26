@@ -313,3 +313,10 @@ export const writeMeasurement = (value, decimal, sigfig, symbol, notFound) => {
     return 'N/A';
   }
 }
+
+export const getUserLocation = async () => {
+  return await navigator.geolocation.getCurrentPosition(
+    location => ({ status: 'OK', location: location.coords}),
+    err => ({status: 'ERROR', error: err })
+  );
+}

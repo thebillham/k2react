@@ -38,30 +38,10 @@ import {
 import moment from 'moment';
 
 import {
-  fetchWFMJobs,
-  fetchWFMLeads,
-  fetchWFMClients,
-  fetchCurrentJobState,
-  saveCurrentJobState,
-  clearWfmJob,
-  saveWFMItems,
-  saveGeocodes,
-  fetchGeocodes,
-  updateGeocodes,
-  saveStats,
-  collateJobsList,
   getJobColor,
   getStateString,
-  getNextActionType,
-  getNextActionOverdueBy,
   getWfmUrl,
-  getLeadHistoryDescription,
 } from "../../../actions/jobs";
-
-import {
-  filterMap,
-  filterMapReset,
-} from "../../../actions/display";
 
 const mapStateToProps = state => {
   return {
@@ -85,21 +65,6 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchWFMJobs: () => dispatch(fetchWFMJobs()),
-    fetchWFMLeads: () => dispatch(fetchWFMLeads()),
-    fetchWFMClients: () => dispatch(fetchWFMClients()),
-    fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
-    clearWfmJob: () => dispatch(clearWfmJob()),
-    saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
-    saveGeocodes: g => dispatch(saveGeocodes(g)),
-    fetchGeocodes: () => dispatch(fetchGeocodes()),
-    updateGeocodes: g => dispatch(updateGeocodes(g)),
-    saveWFMItems: items => dispatch(saveWFMItems(items)),
-    saveStats: stats => dispatch(saveStats(stats)),
-    filterMap: filter => dispatch(filterMap(filter)),
-    filterMapReset: () => dispatch(filterMapReset()),
-    showModal: modal => dispatch(showModal(modal)),
-    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
 

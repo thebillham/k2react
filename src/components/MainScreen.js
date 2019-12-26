@@ -1049,7 +1049,7 @@ class MainScreen extends React.PureComponent {
                       <Route exact path="/jobs" render={props => <Jobs {...props} />} />
                       <Route
                         exact
-                        path="/site/:job"
+                        path="/site/:site"
                         render={props => <Site {...props} handleDrawerClose={this.handleDrawerClose} />}
                         key="site"
                       />

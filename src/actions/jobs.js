@@ -8,11 +8,12 @@ import {
   GET_GEOCODES,
   GET_WFM_JOBS,
   GET_WFM_JOB,
-  GET_JOB,
+  GET_SITE_JOB,
   GET_SITES,
   GET_WFM_LEADS,
   GET_WFM_CLIENTS,
   GET_JOB_LIST,
+  GET_SITE_JOBS,
   ADD_TO_JOB_LIST,
   GET_CURRENT_JOB_STATE,
   RESET_JOBS,
@@ -25,6 +26,19 @@ import EmailIcon from "@material-ui/icons/Email";
 import LeadIcon from "@material-ui/icons/Call";
 import LostIcon from "@material-ui/icons/CallEnd";
 import NoteIcon from "@material-ui/icons/ListAlt";
+
+// Site icons
+import CommercialIcon from "@material-ui/icons/Store";
+import ResidentialIcon from '@material-ui/icons/Home';
+import IndustrialIcon from "@material-ui/icons/Business";
+import PublicIcon from "@material-ui/icons/AccountBalance";
+import LandIcon from "@material-ui/icons/Landscape";
+import TrainIcon from "@material-ui/icons/Train";
+import ShipIcon from "@material-ui/icons/DirectionsBoat";
+import VehicleIcon from "@material-ui/icons/AirportShuttle";
+import SubstationIcon from "@material-ui/icons/FlashOn";
+import SchoolIcon from "@material-ui/icons/ChildCare";
+import OtherIcon from "@material-ui/icons/LocationCity";
 
 import moment from "moment";
 import {
@@ -296,57 +310,45 @@ export const clearWfmJob = () => async dispatch => {
   })
 }
 
-export const getJob = job => async dispatch => {
-  if (job && job.jobNumber) {
-    jobsRef.doc(job.jobNumber.trim()).get().then(doc => {
-      if (doc.exists) {
-        dispatch({
-          type: GET_JOB,
-          payload: {
-            ...doc.data(),
-            ...job,
-          }
-        });
-        jobsRef.doc(job.jobNumber.trim()).update(job);
-      } else {
-        // Initialise job
-        let setupMap = {};
-        if (job.category && job.category.toLowerCase().includes('asbestos')) {
-          setupMap = {
-            isManagementPlanRequired: false,
-            isReportRequired: true,
-            surveyType: null,
-            surveyDates: null,
-            surveyors: null,
-            reportAuthor: null,
-            reportChecker: null,
-            reportKTP: null,
-            surveyGoal: null,
-            surveyScope: null,
-            siteDescription: null,
-            buildingAge: null,
-            buildingAgeReference: null,
-            surveyWeather: null,
-            photoMainSite: null,
-            reportState: null,
-            currentVersion: null,
-          };
-        }
-        let newJob = {
-          ...job,
-          ...setupMap,
-        };
-        dispatch({
-          type: GET_JOB,
-          payload: newJob,
-        });
-        jobsRef.doc(job.jobNumber.trim()).set(job);
-      }
+export const setupSiteJob = (job, site) => async dispatch => {
+  if (job && site && job.jobNumber) {
+    // Initialise job
+    let setupMap = {};
+    if (job.category && job.category.toLowerCase().includes('asbestos')) {
+      setupMap = {
+        isManagementPlanRequired: false,
+        isReportRequired: true,
+        surveyType: null,
+        surveyDates: null,
+        surveyors: null,
+        reportAuthor: null,
+        reportChecker: null,
+        reportKTP: null,
+        surveyGoal: null,
+        surveyScope: null,
+        siteDescription: null,
+        buildingAge: null,
+        buildingAgeReference: null,
+        surveyWeather: null,
+        photoMainSite: null,
+        reportState: null,
+        currentVersion: null,
+      };
+    }
+    let newJob = {
+      ...job,
+      ...setupMap,
+    };
+    console.log(newJob);
+    dispatch({
+      type: GET_SITE_JOB,
+      payload: { job: newJob, site: site },
     });
+    sitesRef.doc(site).collection('jobs').doc(job.uid ? job.uid : `${job.jobNumber.trim()}_${job.jobDescription.trim()}`).set(job);
   }
 };
 
-export const getDetailedWFMJob = (jobNumber, createUid, setUpJob, addToJobList, wfmClients, geocodes) => async dispatch => {
+export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList, wfmClients, geocodes, site, jobDescription }) => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran getDetailedWFMJob`);
   let path = `${
     process.env.REACT_APP_WFM_ROOT
@@ -370,6 +372,7 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob, addToJobList, 
           isJob: true,
         };
         //console.log(wfmJob);
+        job.jobDescription = jobDescription ? jobDescription : wfmJob.ID ? wfmJob.ID : 'Job';
         job.jobNumber = wfmJob.ID ? wfmJob.ID : null;
         job.address = wfmJob.Name ? wfmJob.Name : null;
         job.wfmID = wfmJob.InternalID;
@@ -435,7 +438,7 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob, addToJobList, 
                     type: EDIT_MODAL_DOC,
                     payload: job
                   });
-                  if (setUpJob) dispatch(getJob(job));
+                  if (setUpJob) dispatch(setupSiteJob(job, site));
                 }
               });
           }
@@ -490,7 +493,7 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob, addToJobList, 
                     type: EDIT_MODAL_DOC,
                     payload: job
                   });
-                  if (setUpJob) dispatch(getJob(job));
+                  if (setUpJob) dispatch(setupSiteJob(job, site));
                 }
               });
           } else {
@@ -612,7 +615,7 @@ export const getDetailedWFMJob = (jobNumber, createUid, setUpJob, addToJobList, 
           type: EDIT_MODAL_DOC,
           payload: job
         })
-        if (setUpJob) dispatch(getJob(job));
+        if (setUpJob) dispatch(setupSiteJob(job, site));
       }
     });
 };
@@ -722,14 +725,17 @@ export const saveStats = stats => dispatch => {
 
 export const fetchSites = update => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchSites`);
-  if (update) {
+  console.log('hi');
+  if (true) {
     sitesRef.get().then(querySnapshot => {
-      var sites = [];
+      var sites = {};
       querySnapshot.forEach(doc => {
         let site = doc.data();
+        site.jobs = {};
         site.uid = doc.id;
-        sites.push(site);
+        sites[doc.id] = site;
       });
+      console.log(sites);
       dispatch({
         type: GET_SITES,
         payload: sites,
@@ -745,7 +751,24 @@ export const fetchSites = update => async dispatch => {
       }
     });
   }
-}
+};
+
+export const fetchSiteJobs = site => async dispatch => {
+  sitesRef.doc(site).collection('jobs').get().then(querySnapshot => {
+    var jobs = {};
+    querySnapshot.forEach(doc => {
+      let job = doc.data();
+      job.uid = doc.id;
+      jobs[doc.id] = job;
+    });
+    console.log(jobs);
+    console.log(site);
+    dispatch({
+      type: GET_SITE_JOBS,
+      payload: {site, jobs},
+    });
+  });
+};
 
 // This function looks through all the daily states from the states collection and creates an up-to-date picture of the job state
 export const analyseJobHistory = () => {
@@ -1854,6 +1877,35 @@ export const getJobColor = cat => {
   }
 };
 
+export const getSiteIcon = type => {
+  switch(type) {
+    case 'residential':
+      return (<ResidentialIcon />);
+    case 'commercial':
+      return (<CommercialIcon />);
+    case 'industrial':
+      return (<IndustrialIcon />);
+    case 'public':
+      return (<PublicIcon />);
+    case 'other':
+      return (<OtherIcon />);
+    case 'land':
+      return (<LandIcon />);
+    case 'train':
+      return (<TrainIcon />);
+    case 'ship':
+      return (<ShipIcon />);
+    case 'vehicle':
+      return (<VehicleIcon />);
+    case 'substation':
+      return (<SubstationIcon />);
+    case 'school':
+      return (<SchoolIcon />);
+    default:
+      return (<IndustrialIcon />);
+  }
+};
+
 export const checkAddress = (address, geocodes) => {
   if (address === "") return "NULL";
   // if (address.trim().split(/\s+/).length < 2) return "NULL";
@@ -2152,7 +2204,7 @@ export const getLeadHistoryDescription = (h, maxLength) => {
   }
 }
 
-export const handleJobChange = (job, o1, o2, field, val) => dispatch => {
+export const handleJobChange = (job, o1, o2, field, val, site) => dispatch => {
   if (o1 && !job[o1]) job[o1] = {};
   if (o2 && !job[o1][o2]) job[o1][o2] = {};
   if (val === 'delete') {
@@ -2165,9 +2217,8 @@ export const handleJobChange = (job, o1, o2, field, val) => dispatch => {
     else if (field) job[field] = val;
   }
   dispatch({
-    type: GET_JOB,
-    payload: job,
+    type: GET_SITE_JOB,
+    payload: {job, site: site.uid, },
   });
-  console.log(job);
-  jobsRef.doc(job.jobNumber.trim()).update(job);
+  sitesRef.doc(site.uid).collection('jobs').doc(job.uid).update(job);
 }

@@ -27,6 +27,7 @@ export const QUIZ = "QUIZ";
 export const NOTICES = "NOTICES";
 export const SAMPLE = "SAMPLE";
 export const SITE = "SITE";
+export const SITE_JOB = "SITE_JOB";
 export const SOIL_DETAILS = "SOIL_DETAILS";
 export const TRAINING = "TRAINING";
 export const UPDATE_CERTIFICATE_VERSION = "UPDATE_CERTIFICATE_VERSION";

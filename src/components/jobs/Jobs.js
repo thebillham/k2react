@@ -53,7 +53,7 @@ import {
   getWfmUrl,
   getLeadHistoryDescription,
   getDetailedWFMJob,
-  getJob,
+  setupSiteJob,
 } from "../../actions/jobs";
 
 import {
@@ -91,7 +91,7 @@ const mapDispatchToProps = dispatch => {
     fetchWFMClients: () => dispatch(fetchWFMClients()),
     fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
     // addWfmJobByNumber: n => dispatch(addWfmJobByNumber(n)),
-    getJob: (job) => dispatch(getJob(job)),
+    setupSiteJob: (job) => dispatch(setupSiteJob(job)),
     clearWfmJob: () => dispatch(clearWfmJob()),
     saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
     saveGeocodes: g => dispatch(saveGeocodes(g)),
@@ -102,7 +102,6 @@ const mapDispatchToProps = dispatch => {
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
     showModal: modal => dispatch(showModal(modal)),
-    getDetailedWFMJob: (jobNumber, wfmClients, geocodes) => dispatch(getDetailedWFMJob(jobNumber, false, false, true, wfmClients, geocodes)),
     collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
@@ -166,9 +165,9 @@ class Jobs extends React.Component {
             <div className={classes.flexRowSpread}>
               <h6>{m.category}</h6>
               {!noButton && <span>
-                <Link to={`/site/${m.jobNumber}`} onClick={e => this.props.getJob(m)}>
+                {/*<Link to={`/site/${m.jobNumber}`} onClick={e => this.props.setupSiteJob(m)}>
                   <IconButton><JobIcon /></IconButton>
-                </Link>
+                </Link>*/}
                 <IconButton
                   onClick={e => {
                     this.props.showModal({ modalType: WFM_TIME, modalProps: { job: m, }})
@@ -405,7 +404,7 @@ class Jobs extends React.Component {
           <Button
             variant="outlined"
             className={classes.marginBottomSmall}
-            onClick={() => this.props.getDetailedWFMJob(this.state.addJobNumber, this.props.wfmClients, this.props.geocodes)}
+            onClick={() => this.props.getDetailedWFMJob({ jobNumber: this.state.addJobNumber, wfmClients: this.props.wfmClients, geocodes: this.props.geocodes })}
           >
             Add
           </Button>*/}

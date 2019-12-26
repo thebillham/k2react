@@ -22,7 +22,7 @@ import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import IconButton from "@material-ui/core/IconButton";
-import Geosuggest from 'react-geosuggest';
+// import Geosuggest from 'react-geosuggest';
 import ImageUploader from 'react-images-upload';
 
 import UploadIcon from "@material-ui/icons/CloudUpload";
@@ -47,6 +47,7 @@ const mapStateToProps = state => {
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
     userRefName: state.local.userRefName,
+    siteTypes: state.const.siteTypes,
   };
 };
 
@@ -65,49 +66,6 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const siteTypes = [
-  {
-    value: 'residential',
-    label: 'Residential',
-  },
-  {
-    value: 'industrial',
-    label: 'Industrial',
-  },
-  {
-    value: 'commercial',
-    label: 'Commercial',
-  },
-  {
-    value: 'public',
-    label: 'Public Building',
-  },
-  {
-    value: 'other',
-    label: 'Other Building',
-  },
-  {
-    value: 'land',
-    label: 'Land/Soil',
-  },
-  {
-    value: 'substation',
-    label: 'Substation',
-  },
-  {
-    value: 'train',
-    label: 'Train',
-  },
-  {
-    value: 'ship',
-    label: 'Ship',
-  },
-  {
-    value: 'vehicle',
-    label: 'Other Vehicle',
-  },
-];
-
 const jobTypes = [
   'Stack',
   'Workplace',
@@ -119,10 +77,6 @@ const jobTypes = [
 ];
 
 class SiteModal extends React.Component {
-  getDocId = () => {
-
-  }
-
   deleteImage = (file, uid) => {
     this.props.handleSelectChange({ id: "doc", value: { siteImageUrl: null, siteImageRef: null}});
     if (uid) {
@@ -138,7 +92,7 @@ class SiteModal extends React.Component {
   };
 
   render() {
-    const { modalProps, doc, classes } = this.props;
+    const { modalProps, doc, classes, siteTypes, } = this.props;
     console.log(this.props.modalType);
     console.log(doc.uid);
     return (

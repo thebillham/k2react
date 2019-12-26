@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 //Modals
 import {
   WFM_TIME,
+  SITE_JOB,
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import Button from "@material-ui/core/Button";
@@ -28,6 +29,7 @@ import TimerIcon from "@material-ui/icons/Timer";
 import SyncIcon from '@material-ui/icons/Sync';
 import LinkIcon from '@material-ui/icons/Link';
 import WfmTimeModal from "./modals/WfmTimeModal";
+import SiteJobModal from "./modals/SiteJobModal";
 
 import Popup from "reactjs-popup";
 import {
@@ -40,26 +42,11 @@ import {
 import moment from 'moment';
 
 import {
-  fetchWFMJobs,
-  fetchWFMLeads,
-  fetchWFMClients,
-  fetchCurrentJobState,
-  saveCurrentJobState,
+  fetchSites,
   clearWfmJob,
-  saveWFMItems,
-  saveGeocodes,
-  fetchGeocodes,
-  updateGeocodes,
-  saveStats,
-  collateJobsList,
-  getJobColor,
-  getStateString,
-  getNextActionType,
-  getNextActionOverdueBy,
   getDetailedWFMJob,
-  getWfmUrl,
-  getLeadHistoryDescription,
-  getJob,
+  getJobColor,
+  fetchSiteJobs,
 } from "../../actions/jobs";
 
 import {
@@ -72,7 +59,8 @@ import Leads from "./Leads";
 import JobMap from "./JobMap";
 import JobStats from "./JobStats";
 import SiteGeneralInformation from "./pages/SiteGeneralInformation";
-import SiteRooms from "./pages/SiteRooms";
+import SiteJob from "./pages/SiteJob";
+import SiteLayout from "./pages/SiteLayout";
 import SiteMapsAndDiagrams from "./pages/SiteMapsAndDiagrams";
 import SiteAsbestosRegister from "./pages/SiteAsbestosRegister";
 
@@ -100,7 +88,9 @@ const mapDispatchToProps = dispatch => {
   return {
     clearWfmJob: () => dispatch(clearWfmJob()),
     showModal: modal => dispatch(showModal(modal)),
-    getDetailedWFMJob: jobNumber => dispatch(getDetailedWFMJob(jobNumber, false, true)),
+    fetchSites: () => dispatch(fetchSites()),
+    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
+    fetchSiteJobs: site => dispatch(fetchSiteJobs(site)),
   };
 };
 
@@ -112,42 +102,46 @@ class Site extends React.Component {
     searchEndDate: '',
     searchDateType: '',
     searchAnalyst: '',
-    tabValue: 0,
+    tabValue: 'general',
     jobModal: null,
   };
 
   UNSAFE_componentWillMount = () => {
-    if (!this.props.jobs || (this.props.jobs && !this.props.jobs[this.props.match.params.job])) this.props.getDetailedWFMJob(this.props.match.params.job);
-    // this.props.handleDrawerClose();
+    if (!this.props.sites || Object.keys(this.props.sites).length === 0) {
+      this.props.fetchSites();
+      this.props.fetchSiteJobs(this.props.match.params.site.trim())
+    }
+    // console.log(this.props.sites[this.props.match.params.site.trim()]);
+    if (this.props.sites && this.props.sites[this.props.match.params.site.trim()] && this.props.sites[this.props.match.params.site.trim()].jobs &&
+    Object.keys(this.props.sites[this.props.match.params.site.trim()].jobs).length === 0) this.props.fetchSiteJobs(this.props.match.params.site.trim());
   };
 
   handleTabChange = (event, value) => {
     this.setState({ tabValue: value });
-    // if (value === 3) this.computeStats();
   };
 
   render() {
-    const { classes, geocodes, jobs } = this.props;
-    const job = jobs && jobs[this.props.match.params.job.trim()];
-    const color = job ? classes[getJobColor(job.category)] : classes[getJobColor('other')];
-    let maxLength = this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength").length > 0 ? parseInt(this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength")[0].value) : 600;
+    const { classes, geocodes, sites } = this.props;
+    const site = sites && sites[this.props.match.params.site.trim()];
+    const color = site ? classes[getJobColor(site.primaryJobType)] : classes[getJobColor('other')];
+    console.log(site);
 
-    if (job) return (
+    if (site) return (
       <div className={classes.marginTopSmall}>
         <div className={classes.flexRowSpread}>
           <div className={color}>
-            <h6>{`${job.jobNumber}: ${job.client}`}</h6>
-            <div className={classes.subtitle}>{job.address}</div>
+            <h6>{`${site.client ? `${site.client}: ` : ''}${site.siteName}`}</h6>
+            <div className={classes.subtitle}>{site.address}</div>
           </div>
           <div className={classes.flexRow}>
-            <Tooltip title={'Re-sync with WorkflowMax'}>
+            {/*<Tooltip title={'Re-sync with WorkflowMax'}>
               <IconButton
-                onClick={e => this.props.getDetailedWFMJob(job.jobNumber)}>
+                onClick={e => this.props.getDetailedWFMJob(site.jobNumber)}>
                 <SyncIcon className={classes.iconRegular} />
               </IconButton>
             </Tooltip>
             <Tooltip title={'View Job on WorkflowMax'}>
-              <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${job.wfmID}`) }>
+              <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${site.wfmID}`) }>
                 <LinkIcon className={classes.iconRegular} />
               </IconButton>
             </Tooltip>
@@ -158,7 +152,7 @@ class Site extends React.Component {
                 }}>
                 <TimerIcon className={classes.iconRegular} />
               </IconButton>
-            </Tooltip>
+            </Tooltip>*/}
           </div>
         </div>
         <Tabs
@@ -166,18 +160,27 @@ class Site extends React.Component {
           onChange={this.handleTabChange}
           indicatorColor="secondary"
           textColor="secondary"
-          centered
+          variant="scrollable"
+          scrollButtons="auto"
         >
-          <Tab label="General Information" />
-          <Tab label="Rooms" />
-          <Tab label="Asbestos Register" />
-          <Tab label="Maps and Diagrams" />
+          <Tab label="General Information" value='general' />
+          <Tab label="Site Layout" value='layout' />
+          <Tab label="Asbestos Register" value='register' />
+          <Tab label="Maps and Diagrams" value='maps' />
+          {site.jobs && Object.keys(site.jobs).length > 0 && Object.values(site.jobs).map(j => {
+            console.log(j);
+            return (<Tab label={j.jobDescription} value={j.uid} />);
+          })}
         </Tabs>
         {this.props.modalType === WFM_TIME && <WfmTimeModal />}
-        {this.state.tabValue === 0 && <SiteGeneralInformation that={this} jobNumber={this.props.match.params.job.trim()} />}
-        {this.state.tabValue === 1 && <SiteRooms that={this} jobNumber={this.props.match.params.job.trim()} />}
-        {this.state.tabValue === 2 && <SiteAsbestosRegister that={this} jobNumber={this.props.match.params.job.trim()} />}
-        {this.state.tabValue === 3 && <SiteMapsAndDiagrams that={this} jobNumber={this.props.match.params.job.trim()} />}
+        {this.props.modalType === SITE_JOB && <SiteJobModal />}
+        {this.state.tabValue === 'general' && <SiteGeneralInformation that={this} site={this.props.match.params.site.trim()} />}
+        {site.jobs && Object.keys(site.jobs).length > 0 && Object.values(site.jobs).map(j => {
+          if (this.state.tabValue === j.uid) return (<SiteJob that={this} m={j} site={site} />);
+        })}
+        {this.state.tabValue === 'layout' && <SiteLayout that={this} site={this.props.match.params.site.trim()} />}
+        {this.state.tabValue === 'register' && <SiteAsbestosRegister that={this} site={this.props.match.params.site.trim()} />}
+        {this.state.tabValue === 'maps' && <SiteMapsAndDiagrams that={this} site={this.props.match.params.site.trim()} />}
       </div>
     );
     else return (<div />)

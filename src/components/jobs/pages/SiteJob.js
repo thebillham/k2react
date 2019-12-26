@@ -3,45 +3,53 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 
-import { showModal } from "../../../actions/modal";
+//Modals
 import {
   WFM_TIME,
-  SITE_JOB,
 } from "../../../constants/modal-types";
+import { showModal } from "../../../actions/modal";
 import Button from "@material-ui/core/Button";
-
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import Input from "@material-ui/core/Input";
+import Grid from "@material-ui/core/Grid";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogActions from "@material-ui/core/DialogActions";
+import TextField from "@material-ui/core/TextField";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
+import Collapse from '@material-ui/core/Collapse';
+import IconButton from "@material-ui/core/IconButton";
+import Tooltip from "@material-ui/core/Tooltip";
+import WfmTimeModal from "../modals/WfmTimeModal";
 import ClosedArrow from "@material-ui/icons/ArrowDropDown";
 import OpenArrow from "@material-ui/icons/ArrowDropUp";
-import Zoom from '@material-ui/core/Zoom';
-import Grow from '@material-ui/core/Grow';
-import Grid from "@material-ui/core/Grid";
-import Tooltip from "@material-ui/core/Tooltip";
-import Collapse from '@material-ui/core/Collapse';
-import TextField from '@material-ui/core/TextField';
-import IconButton from "@material-ui/core/IconButton";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
-import Select from 'react-select';
 import SyncIcon from '@material-ui/icons/Sync';
 import LinkIcon from '@material-ui/icons/Link';
 import TimerIcon from "@material-ui/icons/Timer";
-
-import { Map, GoogleApiWrapper, Marker, InfoWindow, Listing } from "google-maps-react";
+import Select from 'react-select';
+import SuggestionField from '../../../widgets/SuggestionField';
 
 import {
   DatePicker,
-  DateTimePicker,
 } from "@material-ui/pickers";
 
+import classNames from 'classnames';
+import Popup from "reactjs-popup";
 import {
   dateOf,
+  getDaysSinceDate,
+  getDaysSinceDateAgo,
   andList,
   personnelConvert,
 } from "../../../actions/helpers";
 
 import moment from 'moment';
-import classNames from 'classnames';
-import _ from "lodash";
 
 import {
   fetchWFMJobs,
@@ -49,6 +57,7 @@ import {
   fetchWFMClients,
   fetchCurrentJobState,
   saveCurrentJobState,
+  getDetailedWFMJob,
   clearWfmJob,
   saveWFMItems,
   saveGeocodes,
@@ -58,9 +67,10 @@ import {
   collateJobsList,
   getJobColor,
   getStateString,
+  getNextActionType,
+  getNextActionOverdueBy,
   getWfmUrl,
-  getJobIcon,
-  getDetailedWFMJob,
+  getLeadHistoryDescription,
   handleJobChange,
 } from "../../../actions/jobs";
 
@@ -81,9 +91,9 @@ const mapStateToProps = state => {
     wfmStats: state.jobs.wfmStats,
     jobList: state.jobs.jobList,
     search: state.local.search,
-    sites: state.jobs.sites,
-    me: state.local.me,
     staff: state.local.staff,
+    jobs: state.jobs.jobs,
+    me: state.local.me,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
     modalType: state.modal.modalType,
@@ -94,13 +104,11 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchWFMJobs: () => dispatch(fetchWFMJobs()),
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
-    handleJobChange: (job, o1, o2, field, val) => dispatch(handleJobChange(job, o1, o2, field, val)),
-    handleJobChangeDebounced: _.debounce((job, o1, o2, field, val) => dispatch(handleJobChange(job, o1, o2, field, val)),
-      2000
-    ),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
+    handleJobChange: (job, o1, o2, field, val, site) => dispatch(handleJobChange(job, o1, o2, field, val, site)),
     fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
     clearWfmJob: () => dispatch(clearWfmJob()),
+    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
     saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
     saveGeocodes: g => dispatch(saveGeocodes(g)),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
@@ -110,22 +118,11 @@ const mapDispatchToProps = dispatch => {
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
     showModal: modal => dispatch(showModal(modal)),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
     collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
   };
 };
 
-const mapStyles = {
-  borderStyle: 'solid',
-  borderWidth: 1,
-  padding: 12,
-  margin: 12,
-  borderRadius: 12,
-  width: '40vw',
-  height: '25vw',
-};
-
-class SiteGeneralInformation extends React.Component {
+class SiteJob extends React.Component {
   state = {
     openInfo: true,
 
@@ -144,24 +141,6 @@ class SiteGeneralInformation extends React.Component {
 
     update: {},
   };
-
-  UNSAFE_componentWillMount() {
-    let countSiteVisits = 1,
-      countVersions = 1;
-    if (this.props.jobs && this.props.jobs[this.props.jobNumber]) {
-      if (this.props.jobs[this.props.jobNumber].siteVisits) {
-        countSiteVisits = Math.max(...Object.keys(this.props.jobs[this.props.jobNumber].siteVisits).map(key => parseInt(key)));
-      }
-      if (this.props.jobs[this.props.jobNumber].versions) {
-        countVersions = Math.max(...Object.keys(this.props.jobs[this.props.jobNumber].versions).map(key => parseInt(key)));
-      }
-    }
-    this.setState({
-      countSiteVisits,
-      countVersions,
-    });
-  }
-
 
   toggleCollapse = name => {
     this.setState({
@@ -185,92 +164,138 @@ class SiteGeneralInformation extends React.Component {
   }
 
   render() {
-    const { classes, site, google, geocodes, wfmClients, that, } = this.props;
+    const { classes, that, m, wfmClients, geocodes, site, } = this.props;
     const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
-    let m = this.props.sites && this.props.sites[site];
-    console.log(m);
-
     if (m) {
-      const color = classes[getJobColor(m.primaryJobType)];
-      let maxLength = this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength").length > 0 ? parseInt(this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength")[0].value) : 600;
+      const color = classes[getJobColor(m.category)];
       return (
         <Grid container>
           <Grid item xs={12} md={5}>
-            {m.siteImageUrl && <div className={classes.informationBoxWhiteRounded}>
-              <img src={m.siteImageUrl} style={{ width: '100%', borderRadius: 12, }}/>
-            </div>}
             <div className={classes.informationBoxWhiteRounded}>
               <div className={classes.flexRowSpread}>
-                <div className={classNames(color, classes.expandHeading)}>Jobs</div>
-                <Tooltip title={'Add Job'}>
-                  <IconButton
-                    onClick={e => {
-                      this.props.showModal({ modalType: SITE_JOB, modalProps: { doc: { site: site, deleted: false }, }})
-                    }}>
-                    <AddIcon className={classes.iconRegular} />
-                  </IconButton>
-                </Tooltip>
+                <div className={classNames(color, classes.expandHeading)}>{ m.jobNumber }</div>
+                <div className={classes.flexRow}>
+                  <Tooltip title={'Re-sync with WorkflowMax'}>
+                    <IconButton
+                      onClick={e => this.props.getDetailedWFMJob({ jobNumber: m.jobNumber, setUpJob: true, })}>
+                      <SyncIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={'View Job on WorkflowMax'}>
+                    <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${m.wfmID}`) }>
+                      <LinkIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={'Log Time to WorkflowMax'}>
+                    <IconButton
+                      onClick={e => {
+                        this.props.showModal({ modalType: WFM_TIME, modalProps: { job: m, }})
+                      }}>
+                      <TimerIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </Tooltip>
+                </div>
               </div>
-              { m.jobs && Object.keys(m.jobs).length > 0 ? Object.values(m.jobs).map(j => {
-                console.log(j);
-                let jColor = classes[getJobColor(j.category)];
-                return (<div className={classNames(classes.flexRowSpread, classes.hoverColor)} key={j.jobNumber}>
-                  <div className={classNames(jColor, classes.expandHeading)} onClick={() => that.handleTabChange(null, j.uid)}>
-                    { `${j.jobNumber} ${j.jobDescription}` }
+              <InputLabel>Job Description</InputLabel>
+              <SuggestionField that={this} suggestions='siteJobDescriptions'
+                defaultValue={m.jobDescription ? m.jobDescription : ''}
+                onModify={value => this.props.handleJobChange(m, null, null, 'jobDescription', value, site)} />
+              <div className={classNames(color, classes.expandHeading)}>Job Details</div>
+              {m.wfmState && (
+                <div>
+                  <b>State:</b> {m.wfmState}
+                </div>
+              )}
+              <div>
+                <b>Owner:</b> {m.owner ? m.owner : 'Not Assigned'}
+              </div>
+              <div>
+                {m.assigned &&
+                  <div>
+                    <b> Assigned: </b> {andList(m.assigned.map(e => e.name))}
                   </div>
-                  <div className={classes.flexRow}>
-                    <Tooltip title={'Re-sync with WorkflowMax'}>
-                      <IconButton
-                        onClick={e => this.props.getDetailedWFMJob({ jobNumber: j.jobNumber, setUpJob: true, })}>
-                        <SyncIcon className={classes.iconRegular} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={'View Job on WorkflowMax'}>
-                      <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${j.wfmID}`) }>
-                        <LinkIcon className={classes.iconRegular} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={'Log Time to WorkflowMax'}>
-                      <IconButton
-                        onClick={e => {
-                          this.props.showModal({ modalType: WFM_TIME, modalProps: { job: j, }})
-                        }}>
-                        <TimerIcon className={classes.iconRegular} />
-                      </IconButton>
-                    </Tooltip>
+                }
+                {m.lastActionDate && m.wfmState !== "Completed" && (
+                  <div>
+                    {m.wfmState && (<span><b>Last Action:</b> {getStateString(m)} </span>)}
                   </div>
-                </div>);
-              }) : <div>No jobs assigned to site.</div>}
-            </div>
-            {false && m.geocode && m.geocode.address !== "New Zealand" && (
-              <Map
-                google={google}
-                zoom={8}
-                style={mapStyles}
-                initialCenter={{
-                  lat: m.geocode.location[0],
-                  lng: m.geocode.location[1],
-                }}
-              >
-                <Marker
-                  // animation={this.props.google.maps.Animation.DROP}
-                  key={m.wfmID}
-                  // onClick={(props, marker, e) => {
-                  //   that.onMarkerClick(marker, m);
-                  // }}
-                  position={{
-                    lat: m.geocode.location[0],
-                    lng: m.geocode.location[1]
-                  }}
-                  title={`${m.jobNumber}: ${m.client}`}
-                  icon={{
-                    url: getJobIcon(m.category),
-                    scaledSize: new google.maps.Size(32, 32)
-                  }}
-                />
-              </Map>
+                )}
+              </div>
+              {m.description && (
+                <div>
+                  <div className={classNames(color, classes.expandHeading)} onClick={() => this.toggleCollapse('Description')}>Description {this.state.openDescription ? (<OpenArrow />) : (<ClosedArrow />)}</div>
+                  <Collapse in={this.state.openDescription}>
+                    <div className={classes.code}>
+                      { m.description }
+                    </div>
+                  </Collapse>
+                </div>
+              )}
+              {m.stateHistory && (
+                <div>
+                  <div className={classNames(color, classes.expandHeading)} onClick={() => this.toggleCollapse('History')}>State History {this.state.openHistory ? (<OpenArrow />) : (<ClosedArrow />)}</div>
+                  <Collapse in={this.state.openHistory}>
+                    <div className={classes.expandBody}>
+                      { Object.keys(m.stateHistory).map((key) => {
+                        return (
+                          <span key={key}>
+                            <b>{key}:</b> {m.stateHistory[key]}<br/>
+                          </span>
+                        )
+                      })}
+                    </div>
+                  </Collapse>
+                </div>
+              )}
+              {m.milestones && m.milestones.length > 0 && (
+                <div>
+                  <div className={classNames(color, classes.expandHeading)} onClick={() => this.toggleCollapse('Milestones')}>Milestones {this.state.openMilestones ? (<OpenArrow />) : (<ClosedArrow />)}</div>
+                  <Collapse in={this.state.openMilestones}>
+                    <div className={classes.expandBody}>
+                      {
+                        m.milestones.map((item) => {
+                          if(item.completed === 'true') {
+                            return (
+                              <span key={item.date} className={classes.linethrough}>
+                                <b>{moment(item.date).format('YYYY-MM-DD')}:</b> {item.description}
+                                <br/>
+                              </span>
+                            )
+                          } else {
+                            return (
+                              <span key={item.date}>
+                                <b>{moment(item.date).format('YYYY-MM-DD')}:</b> {item.description}
+                                <br/>
+                              </span>
+                            )
+                          }
+                        })
+                      }
+                    </div>
+                  </Collapse>
+                </div>
+              )}
+
+              {m.notes && m.notes.length > 0 && (
+              <div>
+                <div className={classNames(color, classes.expandHeading)} onClick={() => this.toggleCollapse('Notes')}>Notes {this.state.openNotes ? (<OpenArrow />) : (<ClosedArrow />)}</div>
+                <Collapse in={this.state.openNotes}>
+                  <div className={classes.expandBody}>
+                    {
+                      m.notes.map((item) =>
+                      <div key={moment(dateOf(item.date)).format('x')}>
+                        <div className={color}><b>{moment(dateOf(item.date)).format('YYYY-MM-DD')}</b> {item.title} - {item.createdBy}</div>
+                        {item.text && <div className={classes.code}>
+                          {item.text}
+                        </div>}
+                      </div>)
+                    }
+                  </div>
+                </Collapse>
+              </div>
             )}
+            </div>
           </Grid>
           <Grid item xs={12} md={7}>
             <div className={classes.informationBoxWhiteRounded}>
@@ -421,6 +446,82 @@ class SiteGeneralInformation extends React.Component {
                 );
               })}
             </div>
+            <div className={classes.informationBoxWhiteRounded}>
+              <div className={classNames(color, classes.expandHeading)}>Version History</div>
+              <div className={classNames(classes.subHeading, classes.flexRowCenter)}>
+                <IconButton size='small' aria-label='add' className={classes.marginLeftSmall} onClick={() => this.addList('Versions')}><AddIcon /></IconButton>
+                <IconButton size='small' aria-label='remove' className={classes.marginLeftSmall} onClick={() => this.removeList('Versions')}><RemoveIcon /></IconButton>
+              </div>
+              { [...Array(this.state.countVersions ? this.state.countVersions : 1).keys()].map(i => {
+                let num = i + 1,
+                  s = m.versions && m.versions[num] ? m.versions[num] : {};
+                return (
+                  <div className={classes.hoverNoFlex} key={`versions${num}`}>
+                    <div className={classes.flexRow}>
+                      <div className={classes.circleShaded}>
+                        {num}
+                      </div>
+                      <DatePicker
+                        value={s.date ? dateOf(s.date) : null}
+                        autoOk
+                        className={classes.columnMed}
+                        format="ddd, D MMMM YYYY"
+                        variant="inline"
+                        disableToolbar
+                        clearable
+                        label={'Date'}
+                        views={["year","month","date"]}
+                        openTo="year"
+                        onChange={date => {
+                          this.props.handleJobChange(m, 'versions', num.toString(), 'date', dateOf(date));
+                        }}
+                      />
+                      <div className={classes.spacerSmall} />
+                      <TextField
+                        label="Changes"
+                        className={classes.columnLarge}
+                        defaultValue={s.changes ? s.changes : null}
+                        onChange={e => {
+                          this.props.handleJobChangeDebounced(m, 'versions', num.toString(), 'changes', e.target.value);
+                        }}
+                      />
+                    </div>
+                    <div className={classes.flexRow}>
+                      <Select
+                        isMulti
+                        placeholder={'Writer'}
+                        className={classNames(classes.selectTight, classes.columnMedLarge)}
+                        value={s.writer ? s.writer.map(e => ({value: e.uid, label: e.name})) : null}
+                        options={names.map(e => ({ value: e.uid, label: e.name }))}
+                        onChange={e => {
+                          this.props.handleJobChange(m, 'versions', num.toString(), 'writer', personnelConvert(e));
+                        }}
+                      />
+                      <Select
+                        isMulti
+                        placeholder={'Checker'}
+                        className={classNames(classes.selectTight, classes.columnMedLarge)}
+                        value={s.checker ? s.checker.map(e => ({value: e.uid, label: e.name})) : null}
+                        options={names.map(e => ({ value: e.uid, label: e.name }))}
+                        onChange={e => {
+                          this.props.handleJobChange(m, 'versions', num.toString(), 'checker', personnelConvert(e));
+                        }}
+                      />
+                      <Select
+                        isMulti
+                        placeholder={'KTP'}
+                        className={classNames(classes.selectTight, classes.columnMedLarge)}
+                        value={s.ktp ? s.ktp.map(e => ({value: e.uid, label: e.name})) : null}
+                        options={names.map(e => ({ value: e.uid, label: e.name }))}
+                        onChange={e => {
+                          this.props.handleJobChange(m, 'versions', num.toString(), 'ktp', personnelConvert(e));
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </Grid>
         </Grid>
       );
@@ -428,9 +529,9 @@ class SiteGeneralInformation extends React.Component {
   }
 }
 
-export default GoogleApiWrapper({ apiKey: (process.env.REACT_APP_GOOGLE_MAPS_KEY) })(withStyles(styles)(
+export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(SiteGeneralInformation))
+  )(SiteJob)
 );

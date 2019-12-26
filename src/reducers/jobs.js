@@ -9,7 +9,8 @@ import {
   SAVE_WFM_ITEMS,
   SAVE_WFM_STATS,
   GET_JOB_LIST,
-  GET_JOB,
+  GET_SITE_JOB,
+  GET_SITE_JOBS,
   ADD_TO_JOB_LIST,
   GET_JOB_STATS,
   GET_GEOCODES,
@@ -24,7 +25,7 @@ import { stateRef } from "../config/firebase";
 const jobsInit = {
   currentJobState: {},
   geocodes: {},
-  sites: [],
+  sites: {},
   wfmJob: null,
   wfmItems: [],
   wfmJobs: [],
@@ -115,12 +116,32 @@ export default function jobsReducer(state = jobsInit, action) {
         ...state,
         jobStats: action.payload,
       }
-    case GET_JOB:
+    case GET_SITE_JOB:
       return {
         ...state,
-        jobs: {
-          ...state.jobs,
-          [action.payload.jobNumber]: action.payload,
+        sites: {
+          ...state.sites,
+          [action.payload.site]: {
+            ...state.sites[action.payload.site],
+            jobs: {
+              ...state.sites[action.payload.site].jobs,
+              [action.payload.job.uid]: action.payload.job,
+            }
+          },
+        }
+      }
+    case GET_SITE_JOBS:
+      return {
+        ...state,
+        sites: {
+          ...state.sites,
+          [action.payload.site]: {
+            ...state.sites[action.payload.site],
+            jobs: {
+              ...state.sites[action.payload.site].jobs,
+              ...action.payload.jobs,
+            }
+          }
         }
       }
     case GET_JOB_LIST:
