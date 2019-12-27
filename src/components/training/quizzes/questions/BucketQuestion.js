@@ -129,6 +129,8 @@ class BucketQuestion extends React.Component {
   render() {
     const { q } = this.props;
 
+    console.log(q);
+
     return (
       <div style={{ marginTop: 24 }}>
         <FormLabel component="legend"> {q.question}</FormLabel>

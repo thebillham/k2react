@@ -13,6 +13,7 @@ import deburr from 'lodash/deburr';
 
 const mapStateToProps = state => {
   return {
+    asbestosRemovalists: state.const.asbestosRemovalists,
     siteJobDescriptions: state.const.siteJobDescriptions,
     genericLocationSuggestions: state.const.genericLocationSuggestions,
     specificLocationSuggestions: state.const.specificLocationSuggestions,

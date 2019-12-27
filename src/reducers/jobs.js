@@ -1,5 +1,6 @@
 import {
   GET_SITES,
+  GET_SITE,
   GET_WFM_JOBS,
   GET_WFM_JOB,
   CLEAR_WFM_JOB,
@@ -26,6 +27,7 @@ const jobsInit = {
   currentJobState: {},
   geocodes: {},
   sites: {},
+  siteJobs: {},
   wfmJob: null,
   wfmItems: [],
   wfmJobs: [],
@@ -100,6 +102,14 @@ export default function jobsReducer(state = jobsInit, action) {
           ...action.payload,
         }
       }
+    case GET_SITE:
+      return {
+        ...state,
+        sites: {
+          ...state.sites,
+          [action.payload.uid]: action.payload,
+        }
+      }
     case GET_SITES:
       if (action.update) stateRef.doc("sites").set({ payload: action.payload });
       return {
@@ -119,28 +129,22 @@ export default function jobsReducer(state = jobsInit, action) {
     case GET_SITE_JOB:
       return {
         ...state,
-        sites: {
-          ...state.sites,
-          [action.payload.site]: {
-            ...state.sites[action.payload.site],
-            jobs: {
-              ...state.sites[action.payload.site].jobs,
-              [action.payload.job.uid]: action.payload.job,
-            }
-          },
+        siteJobs: {
+          ...state.siteJobs,
+          [action.payload.siteUid]: {
+            ...state.siteJobs[action.payload.siteUid],
+            [action.payload.job.uid]: action.payload.job,
+          }
         }
       }
     case GET_SITE_JOBS:
       return {
         ...state,
-        sites: {
-          ...state.sites,
+        siteJobs: {
+          ...state.siteJobs,
           [action.payload.site]: {
-            ...state.sites[action.payload.site],
-            jobs: {
-              ...state.sites[action.payload.site].jobs,
-              ...action.payload.jobs,
-            }
+            ...state.siteJobs[action.payload.site],
+            ...action.payload.jobs,
           }
         }
       }

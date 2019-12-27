@@ -10,6 +10,7 @@ import {
   GET_WFM_JOB,
   GET_SITE_JOB,
   GET_SITES,
+  GET_SITE,
   GET_WFM_LEADS,
   GET_WFM_CLIENTS,
   GET_JOB_LIST,
@@ -310,6 +311,12 @@ export const clearWfmJob = () => async dispatch => {
   })
 }
 
+export const deleteSiteJob = ({ site, job }) => {
+  if (site && job) {
+    sitesRef.doc(site).collection('jobs').doc(job.uid).delete();
+  }
+}
+
 export const setupSiteJob = (job, site) => async dispatch => {
   if (job && site && job.jobNumber) {
     // Initialise job
@@ -340,11 +347,12 @@ export const setupSiteJob = (job, site) => async dispatch => {
       ...setupMap,
     };
     console.log(newJob);
+    if (!newJob.uid) newJob.uid = `${job.jobNumber.trim()}_${job.jobDescription.trim()}`;
     dispatch({
       type: GET_SITE_JOB,
       payload: { job: newJob, site: site },
     });
-    sitesRef.doc(site).collection('jobs').doc(job.uid ? job.uid : `${job.jobNumber.trim()}_${job.jobDescription.trim()}`).set(job);
+    sitesRef.doc(site).collection('jobs').doc(newJob.uid).set(job);
   }
 };
 
@@ -725,13 +733,11 @@ export const saveStats = stats => dispatch => {
 
 export const fetchSites = update => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchSites`);
-  console.log('hi');
   if (true) {
     sitesRef.get().then(querySnapshot => {
       var sites = {};
       querySnapshot.forEach(doc => {
         let site = doc.data();
-        site.jobs = {};
         site.uid = doc.id;
         sites[doc.id] = site;
       });
@@ -761,11 +767,9 @@ export const fetchSiteJobs = site => async dispatch => {
       job.uid = doc.id;
       jobs[doc.id] = job;
     });
-    console.log(jobs);
-    console.log(site);
     dispatch({
       type: GET_SITE_JOBS,
-      payload: {site, jobs},
+      payload: {jobs, site},
     });
   });
 };
@@ -2204,7 +2208,29 @@ export const getLeadHistoryDescription = (h, maxLength) => {
   }
 }
 
-export const handleJobChange = (job, o1, o2, field, val, site) => dispatch => {
+export const handleSiteChange = ({ site, o1, o2, field, val }) => dispatch => { console.log(val);
+  if (val && val !== undefined) {
+    if (o1 && !site[o1]) site[o1] = {};
+    if (o2 && !site[o1][o2]) site[o1][o2] = {};
+    if (val === 'delete') {
+      if (o1 && o2 && field && site[o1][o2][field]) delete site[o1][o2][field];
+      else if (o1 && field && site[o1][field]) delete site[o1][field];
+      else if (field && site[field]) delete site[field];
+    } else {
+      if (o1 && o2 && field) site[o1][o2][field] = val;
+      else if (o1 && field) site[o1][field] = val;
+      else if (field) site[field] = val;
+    }
+    dispatch({
+      type: GET_SITE,
+      payload: site,
+    });
+    sitesRef.doc(site.uid).update(site);
+  }
+}
+
+export const handleJobChange = ({ job, o1, o2, field, val, siteUid }) => dispatch => {
+  console.log(val);
   if (o1 && !job[o1]) job[o1] = {};
   if (o2 && !job[o1][o2]) job[o1][o2] = {};
   if (val === 'delete') {
@@ -2216,9 +2242,10 @@ export const handleJobChange = (job, o1, o2, field, val, site) => dispatch => {
     else if (o1 && field) job[o1][field] = val;
     else if (field) job[field] = val;
   }
+  console.log(job);
   dispatch({
     type: GET_SITE_JOB,
-    payload: {job, site: site.uid, },
+    payload: {job, siteUid, },
   });
-  sitesRef.doc(site.uid).collection('jobs').doc(job.uid).update(job);
+  sitesRef.doc(siteUid).collection('jobs').doc(job.uid).update(job);
 }

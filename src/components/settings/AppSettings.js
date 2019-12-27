@@ -133,6 +133,15 @@ const settings = {
     hint: 'Put each suggestion on a new line.',
   },
 
+  siteVisitTypeAsbestos: {
+    label: 'Site Visit Type Suggestions (Asbestos)',
+    value: 'siteVisitTypeAsbestos',
+    group: 'sites',
+    fields: ['label','value'],
+    noSort: true,
+    hint: 'Put each visit type on a new line in the form "vist type name|visit type code".',
+  },
+
   // SURVEY GENERIC
 
   genericLocationSuggestions: {
@@ -281,6 +290,14 @@ const settings = {
   },
 
   // OTHER
+  asbestosRemovalists: {
+    label: 'Asbestos Removalists',
+    value: 'asbestosRemovalists',
+    group: 'other',
+    fields: ['label','value'],
+    hint: 'Put each suggestion on a new line in the form "name|class A licence number|class B licence number".',
+  },
+
   permissions:  {
     label: 'App Permissions',
     value: 'permissions',

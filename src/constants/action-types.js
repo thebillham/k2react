@@ -75,6 +75,7 @@ export const RESET_ASBESTOS_LAB = "RESET_ASBESTOS_LAB";
 export const GET_CURRENT_JOB_STATE = "GET_CURRENT_JOB_STATE";
 export const GET_GEOCODES = "GET_GEOCODES";
 export const ADD_TO_GEOCODES = "ADD_TO_GEOCODES";
+export const GET_SITE = "GET_SITE";
 export const GET_SITES = "GET_SITES";
 export const GET_WFM_JOBS = "GET_WFM_JOBS";
 export const GET_WFM_JOB = "GET_WFM_JOB";

@@ -12,6 +12,7 @@ import Button from "@material-ui/core/Button";
 
 import ClosedArrow from "@material-ui/icons/ArrowDropDown";
 import OpenArrow from "@material-ui/icons/ArrowDropUp";
+import InputLabel from "@material-ui/core/InputLabel";
 import Zoom from '@material-ui/core/Zoom';
 import Grow from '@material-ui/core/Grow';
 import Grid from "@material-ui/core/Grid";
@@ -25,6 +26,8 @@ import Select from 'react-select';
 import SyncIcon from '@material-ui/icons/Sync';
 import LinkIcon from '@material-ui/icons/Link';
 import TimerIcon from "@material-ui/icons/Timer";
+import DeleteIcon from "@material-ui/icons/Close";
+import SuggestionField from '../../../widgets/SuggestionField';
 
 import { Map, GoogleApiWrapper, Marker, InfoWindow, Listing } from "google-maps-react";
 
@@ -49,6 +52,7 @@ import {
   fetchWFMClients,
   fetchCurrentJobState,
   saveCurrentJobState,
+  deleteSiteJob,
   clearWfmJob,
   saveWFMItems,
   saveGeocodes,
@@ -62,6 +66,7 @@ import {
   getJobIcon,
   getDetailedWFMJob,
   handleJobChange,
+  handleSiteChange,
 } from "../../../actions/jobs";
 
 import {
@@ -71,6 +76,8 @@ import {
 
 const mapStateToProps = state => {
   return {
+    asbestosRemovalists: state.const.asbestosRemovalists,
+    siteVisitTypeAsbestos: state.const.siteVisitTypeAsbestos,
     wfmJobs: state.jobs.wfmJobs,
     wfmJob: state.jobs.wfmJob,
     wfmLeads: state.jobs.wfmLeads,
@@ -82,6 +89,7 @@ const mapStateToProps = state => {
     jobList: state.jobs.jobList,
     search: state.local.search,
     sites: state.jobs.sites,
+    siteJobs: state.jobs.siteJobs,
     me: state.local.me,
     staff: state.local.staff,
     filter: state.display.filterMap,
@@ -94,8 +102,8 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchWFMJobs: () => dispatch(fetchWFMJobs()),
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
-    handleJobChange: (job, o1, o2, field, val) => dispatch(handleJobChange(job, o1, o2, field, val)),
-    handleJobChangeDebounced: _.debounce((job, o1, o2, field, val) => dispatch(handleJobChange(job, o1, o2, field, val)),
+    handleSiteChange: info => dispatch(handleSiteChange(info)),
+    handleSiteChangeDebounced: _.debounce((info) => dispatch(handleJobChange(info)),
       2000
     ),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
@@ -127,38 +135,26 @@ const mapStyles = {
 
 class SiteGeneralInformation extends React.Component {
   state = {
-    openInfo: true,
-
-    openDescription: true,
-    openHistory: true,
-    openNotes: false,
-    openMilestones: true,
-
-    openMap: true,
-    openSiteVisits: true,
-    openVersions: true,
-
-    countSiteVisits: 1,
+    countSiteVisitsAsbestos: 1,
     countClearances: 1,
-    countVersions: 1,
-
     update: {},
   };
 
   UNSAFE_componentWillMount() {
-    let countSiteVisits = 1,
-      countVersions = 1;
-    if (this.props.jobs && this.props.jobs[this.props.jobNumber]) {
-      if (this.props.jobs[this.props.jobNumber].siteVisits) {
-        countSiteVisits = Math.max(...Object.keys(this.props.jobs[this.props.jobNumber].siteVisits).map(key => parseInt(key)));
+    let countSiteVisitsAsbestos = 1,
+      countClearances = 1;
+    if (this.props.sites && this.props.sites[this.props.site]) {
+      let site = this.props.sites[this.props.site];
+      if (site.siteVisitsAsbestos && Object.keys(site.siteVisitsAsbestos).length > 0) {
+        countSiteVisitsAsbestos = Math.max(...Object.keys(site.siteVisitsAsbestos).map(key => parseInt(key)));
       }
-      if (this.props.jobs[this.props.jobNumber].versions) {
-        countVersions = Math.max(...Object.keys(this.props.jobs[this.props.jobNumber].versions).map(key => parseInt(key)));
+      if (site.clearances && Object.keys(site.clearances).length > 0) {
+        countClearances = Math.max(...Object.keys(site.clearances).map(key => parseInt(key)));
       }
     }
     this.setState({
-      countSiteVisits,
-      countVersions,
+      countSiteVisitsAsbestos,
+      countClearances,
     });
   }
 
@@ -178,14 +174,14 @@ class SiteGeneralInformation extends React.Component {
   removeList = field => {
     let obj = field ? field.slice(0,1).toLowerCase() + field.slice(1) : null;
     let num = this.state[`count${field}`] ? this.state[`count${field}`] : 1;
-    if (obj) this.props.handleJobChange(this.props.jobs[this.props.jobNumber], [obj], null, num, 'delete');
+    if (obj) this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: [obj], field: num, val: 'delete' });
     this.setState({
       [`count${field}`]: this.state[`count${field}`] ? this.state[`count${field}`] > 1 ? this.state[`count${field}`] - 1 : 1 : 1,
     })
   }
 
   render() {
-    const { classes, site, google, geocodes, wfmClients, that, } = this.props;
+    const { classes, site, google, geocodes, wfmClients, that, siteJobs, } = this.props;
     const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
     let m = this.props.sites && this.props.sites[site];
@@ -212,12 +208,12 @@ class SiteGeneralInformation extends React.Component {
                   </IconButton>
                 </Tooltip>
               </div>
-              { m.jobs && Object.keys(m.jobs).length > 0 ? Object.values(m.jobs).map(j => {
+              { siteJobs && siteJobs[m.uid] && Object.keys(siteJobs[m.uid]).length > 0 ? Object.values(siteJobs[m.uid]).map(j => {
                 console.log(j);
                 let jColor = classes[getJobColor(j.category)];
-                return (<div className={classNames(classes.flexRowSpread, classes.hoverColor)} key={j.jobNumber}>
+                return (<div className={classNames(classes.flexRowSpread, classes.hoverColor)} key={j.jobDescription + j.jobNumber}>
                   <div className={classNames(jColor, classes.expandHeading)} onClick={() => that.handleTabChange(null, j.uid)}>
-                    { `${j.jobNumber} ${j.jobDescription}` }
+                    { `${j.jobNumber} ${j.jobDescription} (${j.address})` }
                   </div>
                   <div className={classes.flexRow}>
                     <Tooltip title={'Re-sync with WorkflowMax'}>
@@ -237,6 +233,15 @@ class SiteGeneralInformation extends React.Component {
                           this.props.showModal({ modalType: WFM_TIME, modalProps: { job: j, }})
                         }}>
                         <TimerIcon className={classes.iconRegular} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={'Delete Job'}>
+                      <IconButton
+                        onClick={e => {
+                          if (window.confirm('Are you sure you wish to delete this job?'))
+                            deleteSiteJob({ job: j, site });
+                        }}>
+                        <DeleteIcon className={classes.iconRegular} />
                       </IconButton>
                     </Tooltip>
                   </div>
@@ -276,58 +281,102 @@ class SiteGeneralInformation extends React.Component {
             <div className={classes.informationBoxWhiteRounded}>
               <div className={classNames(color, classes.expandHeading)}>Site Visits</div>
               <div className={classNames(classes.subHeading, classes.flexRowCenter)}>
-                <IconButton size='small' aria-label='add' className={classes.marginLeftSmall} onClick={() => this.addList('SiteVisits')}><AddIcon /></IconButton>
-                <IconButton size='small' aria-label='remove' className={classes.marginLeftSmall} onClick={() => this.removeList('SiteVisits')}><RemoveIcon /></IconButton>
+                <IconButton size='small' aria-label='add' className={classes.marginLeftSmall} onClick={() => this.addList('SiteVisitsAsbestos')}><AddIcon /></IconButton>
+                <IconButton size='small' aria-label='remove' className={classes.marginLeftSmall} onClick={() => this.removeList('SiteVisitsAsbestos')}><RemoveIcon /></IconButton>
               </div>
-              { [...Array(this.state.countSiteVisits ? this.state.countSiteVisits : 1).keys()].map(i => {
+              { [...Array(this.state.countSiteVisitsAsbestos ? this.state.countSiteVisitsAsbestos : 1).keys()].map(i => {
                 let num = i + 1,
-                  s = m.siteVisits && m.siteVisits[num] ? m.siteVisits[num] : {};
+                  s = m.siteVisitsAsbestos && m.siteVisitsAsbestos[num] ? m.siteVisitsAsbestos[num] : {};
+                console.log(s);
                 return (
-                  <div className={classes.flexRowHoverPretty} key={`siteVisits${num}`}>
-                    <div className={classes.circleShaded}>
-                      {num}
+                  <div className={classes.hoverNoFlex} key={`siteVisitsAsbestos${num}`}>
+                    <div className={classes.flexRow}>
+                      <div className={classes.circleShaded}>
+                        {num}
+                      </div>
+                      <DatePicker
+                        value={s.date ? dateOf(s.date) : null}
+                        autoOk
+                        className={classes.columnMed}
+                        format="ddd, D MMMM YYYY"
+                        label={'Date'}
+                        disableToolbar
+                        variant="inline"
+                        openTo="year"
+                        views={["year","month","date"]}
+                        onChange={date => {
+                          this.props.handleSiteChange({ site: m, o1: 'siteVisitsAsbestos', o2: num.toString(), field: 'date', val: dateOf(date) });
+                        }}
+                      />
+                      <div>
+                        <InputLabel>Site Personnel</InputLabel>
+                        <Select
+                          isMulti
+                          className={classNames(classes.selectTight, s.personnel && s.personnel[0].uid === '3rd Party' ? classes.columnMed : classes.columnExtraLarge)}
+                          value={s.personnel ? s.personnel.map(e => ({value: e.uid, label: e.name})) : null}
+                          options={names.map(e => ({ value: e.uid, label: e.name }))}
+                          onChange={e => {
+                            this.props.handleSiteChange({ site: m, o1: 'siteVisitsAsbestos', o2: num.toString(), field: 'personnel', val: personnelConvert(e) });
+                          }}
+                        />
+                      </div>
+                      {s.personnel && s.personnel[0].uid === '3rd Party' &&
+                      <TextField
+                        label="3rd Party Company Name"
+                        className={classes.columnMedLarge}
+                        defaultValue={s.companyName ? s.companyName : null}
+                        onChange={e => {
+                          this.props.handleSiteChangeDebounced({ site: m, o1: 'siteVisitsAsbestos', o2: num.toString(), field: 'companyName', val: e.target.value });
+                        }}
+                      />
+                    }
                     </div>
-                    <DatePicker
-                      value={s.date ? dateOf(s.date) : null}
-                      autoOk
-                      className={classes.columnMed}
-                      format="ddd, D MMMM YYYY"
-                      label={'Date'}
-                      disableToolbar
-                      variant="inline"
-                      openTo="year"
-                      views={["year","month","date"]}
-                      onChange={date => {
-                        this.props.handleJobChange(m, 'siteVisits', num.toString(), 'date', dateOf(date));
-                      }}
-                    />
-                    <Select
-                      isMulti
-                      placeholder={'Site personnel'}
-                      className={classNames(classes.selectTight, classes.columnLarge)}
-                      value={s.personnel ? s.personnel.map(e => ({value: e.uid, label: e.name})) : null}
-                      options={names.map(e => ({ value: e.uid, label: e.name }))}
-                      onChange={e => {
-                        this.props.handleJobChange(m, 'siteVisits', num.toString(), 'personnel', personnelConvert(e));
-                      }}
-                    />
-                    <Select
-                      placeholder={'Site Visit Type'}
-                      className={classNames(classes.selectTight, classes.columnMed)}
-                      value={s.type ? {value: s.type, label: s.type} : null}
-                      options={['Initial Survey','Bulk Sampling','Survey Revisit','Clearance Testing','Other'].map(e => ({ value: e, label: e }))}
-                      onChange={e => {
-                        this.props.handleJobChange(m, 'siteVisits', num.toString(), 'type', e.value);
-                      }}
-                    />
-                    <TextField
-                      label="Notes"
-                      className={classes.columnMedLarge}
-                      defaultValue={s.notes ? s.notes : null}
-                      onChange={e => {
-                        this.props.handleJobChangeDebounced(m, 'siteVisits', num.toString(), 'notes', e.target.value);
-                      }}
-                    />
+                    <div className={classes.flexRow}>
+                      <div>
+                        <InputLabel>Site Visit Type</InputLabel>
+                        <Select
+                          className={classNames(classes.selectTight, classes.columnLarge)}
+                          value={s.type ? {value: s.type, label: this.props.siteVisitTypeAsbestos.filter(e => e.value === s.type)[0].label} : null}
+                          options={this.props.siteVisitTypeAsbestos}
+                          onChange={e => {
+                            this.props.handleSiteChange({ site: m, o1: 'siteVisitsAsbestos', o2: num.toString(), field: 'type', val: e.value });
+                          }}
+                        />
+                      </div>
+                      {s.personnel && s.personnel[0].uid === '3rd Party' ?
+                        <TextField
+                          label="Reference/Job Number"
+                          className={classes.columnMed}
+                          defaultValue={s.referenceNumber ? s.referenceNumber : null}
+                          onChange={e => {
+                            this.props.handleSiteChangeDebounced({ site: m, o1: 'siteVisitsAsbestos', o2: num.toString(), field: 'referenceNumber', val: e.target.value });
+                          }}
+                        />
+                      :
+                        <div>
+                          <InputLabel>Job Number</InputLabel>
+                          <Select
+                            placeholder={'Add Job Numbers from Home Screen'}
+                            className={classNames(classes.selectTight, classes.columnMed)}
+                            value={s.referenceNumber ? { value: s.referenceNumber, label: s.referenceNumber } : null}
+                            options={this.props.siteJobs && this.props.siteJobs[m.uid] &&
+                              Object.values(this.props.siteJobs[m.uid]).map(e => ({ value: e.jobNumber, label: `${e.jobNumber}: ${e.jobDescription}`}))}
+                            onChange={e => {
+                              this.props.handleSiteChange({ site: m, o1: 'siteVisitsAsbestos', o2: num.toString(), field: 'referenceNumber', val: e.value });
+                            }}
+                          />
+                        </div>
+                      }
+                      <div className={classes.spacerSmall} />
+                      <TextField
+                        label="Notes"
+                        className={classes.columnLarge}
+                        defaultValue={s.notes ? s.notes : null}
+                        onChange={e => {
+                          this.props.handleSiteChangeDebounced({ site: m, o1: 'siteVisitsAsbestos', o2: num.toString(), field: 'notes', val: e.target.value });
+                        }}
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -347,6 +396,25 @@ class SiteGeneralInformation extends React.Component {
                       <div className={classes.circleShaded}>
                         {num}
                       </div>
+                      <div className={classes.columnMedLarge}>
+                        <InputLabel>Asbestos Removalist</InputLabel>
+                        <SuggestionField that={this} suggestions='asbestosRemovalists'
+                          defaultValue={s.asbestosRemovalist ? s.asbestosRemovalist : ''}
+                          onModify={value => {
+                            this.props.handleSiteChangeDebounced({ site: m, o1: 'clearances', o2: num.toString(), field: 'asbestosRemovalist', val: value })
+                            if (this.props.asbestosRemovalists && this.props.asbestosRemovalists.filter(e => e.label === value).length > 0)
+                              this.props.handleSiteChange({ site: m, o1: 'clearances', o2: num.toString(), field: 'asbestosRemovalistLicence', val: this.props.asbestosRemovalists.filter(e => e.label === value)[0].value })
+                          }}
+                        />
+                      </div>
+                      <TextField
+                        label="Asbestos Removalist Licence Number"
+                        className={classes.columnMed}
+                        value={s.asbestosRemovalistLicence ? s.asbestosRemovalistLicence : ''}
+                        onChange={e => {
+                          this.props.handleSiteChange({ site: m, o1: 'clearances', o2: num.toString(), field: 'asbestosRemovalistLicence', val: e.target.value });
+                        }}
+                      />
                       <DatePicker
                         value={s.removalDate ? dateOf(s.removalDate) : null}
                         autoOk
@@ -358,10 +426,20 @@ class SiteGeneralInformation extends React.Component {
                         views={["year","month","date"]}
                         openTo="year"
                         onChange={date => {
-                          this.props.handleJobChange(m, 'clearances', num.toString(), 'removalDate', dateOf(date));
+                          this.props.handleSiteChange({ site: m, o1: 'clearances', o2: num.toString(), field: 'removalDate', val: dateOf(date) });
                         }}
                       />
-                      <div className={classes.spacerSmall} />
+                      <TextField
+                        label="Description of Removal"
+                        className={classes.columnMedLarge}
+                        multiline
+                        defaultValue={s.description ? s.description : ''}
+                        onChange={e => {
+                          this.props.handleSiteChangeDebounced({ site: m, o1: 'clearances', o2: num.toString(), field: 'description', val: e.target.value });
+                        }}
+                      />
+                    </div>
+                    <div className={classes.flexRow}>
                       <DatePicker
                         value={s.clearanceDate ? dateOf(s.clearanceDate) : null}
                         autoOk
@@ -373,9 +451,57 @@ class SiteGeneralInformation extends React.Component {
                         views={["year","month","date"]}
                         openTo="year"
                         onChange={date => {
-                          this.props.handleJobChange(m, 'clearances', num.toString(), 'clearanceDate', dateOf(date));
+                          this.props.handleSiteChange({ site: m, o1: 'clearances', o2: num.toString(), field: 'clearanceDate', val: dateOf(date) });
                         }}
                       />
+                      <div className={classes.spacerSmall} />
+                      <div className={s.personnel && s.personnel[0].uid === '3rd Party' ? classes.columnMed : classes.columnLarge}>
+                        <InputLabel>Asbestos Assessor</InputLabel>
+                        <Select
+                          isMulti
+                          className={classes.selectTight}
+                          value={s.personnel ? s.personnel.map(e => ({value: e.uid, label: e.name})) : null}
+                          options={names.map(e => ({ value: e.uid, label: e.name }))}
+                          onChange={e => {
+                            this.props.handleSiteChange({ site: m, o1: 'clearances', o2: num.toString(), field: 'personnel', val: personnelConvert(e) });
+                          }}
+                        />
+                      </div>
+                      {
+                        s.personnel && s.personnel[0].uid === '3rd Party' &&
+                        <TextField
+                          label="Licence Number"
+                          className={classes.columnMed}
+                          defaultValue={s.asbestosAssessorLicence ? s.asbestosAssessorLicence : ''}
+                          onChange={e => {
+                            this.props.handleSiteChangeDebounced({ site: m, o1: 'clearances', o2: num.toString(), field: 'asbestosAssessorLicence', val: e.target.value });
+                          }}
+                        />
+                      }
+                      {s.personnel && s.personnel[0].uid === '3rd Party' ?
+                        <TextField
+                          label="Reference/Job Number"
+                          className={classes.columnMed}
+                          defaultValue={s.referenceNumber ? s.referenceNumber : null}
+                          onChange={e => {
+                            this.props.handleSiteChangeDebounced({ site: m, o1: 'clearances', o2: num.toString(), field: 'referenceNumber', val: e.target.value });
+                          }}
+                        />
+                      :
+                        <div>
+                          <InputLabel>Job Number</InputLabel>
+                          <Select
+                            placeholder={'Add Job Numbers from Home Screen'}
+                            className={classNames(classes.selectTight, classes.columnMed)}
+                            value={s.referenceNumber ? { value: s.referenceNumber, label: s.referenceNumber } : null}
+                            options={this.props.siteJobs && this.props.siteJobs[m.uid] &&
+                              Object.values(this.props.siteJobs[m.uid]).map(e => ({ value: e.jobNumber, label: `${e.jobNumber}: ${e.jobDescription}`}))}
+                            onChange={e => {
+                              this.props.handleSiteChange({ site: m, o1: 'clearances', o2: num.toString(), field: 'referenceNumber', val: e.value });
+                            }}
+                          />
+                        </div>
+                      }
                       <div className={classes.spacerSmall} />
                       <DatePicker
                         value={s.issueDate ? dateOf(s.issueDate) : null}
@@ -388,34 +514,9 @@ class SiteGeneralInformation extends React.Component {
                         views={["year","month","date"]}
                         openTo="year"
                         onChange={date => {
-                          this.props.handleJobChange(m, 'clearances', num.toString(), 'issueDate', dateOf(date));
+                          this.props.handleSiteChange({ site: m, o1: 'clearances', o2: num.toString(), field: 'issueDate', val: dateOf(date) });
                         }}
                       />
-                    </div>
-                    <div className={classes.flexRow}>
-                      <Select
-                        isMulti
-                        placeholder={'Asbestos Assessor'}
-                        className={classNames(classes.selectTight, classes.columnLarge)}
-                        value={s.personnel ? s.personnel.map(e => ({value: e.uid, label: e.name})) : null}
-                        options={names.map(e => ({ value: e.uid, label: e.name }))}
-                        onChange={e => {
-                          this.props.handleJobChange(m, 'clearances', num.toString(), 'personnel', personnelConvert(e));
-                        }}
-                      />
-                      <TextField
-                        label="Job Number"
-                        className={classes.columnMedSmall}
-                        defaultValue={s.jobNumber ? s.jobNumber : null}
-                        onChange={e => {
-                          this.props.handleJobChangeDebounced(m, 'clearances', num.toString(), 'jobNumber', e.target.value ? e.target.value.toUpperCase() : null);
-                        }}
-                      />
-                      <Tooltip title="Sync Job with WorkflowMax">
-                        <IconButton disabled={!s.jobNumber || !s.jobNumber.toLowerCase().includes('as')} onClick={() => this.props.getDetailedWFMJob({jobNumber: s.jobNumber, wfmClients, geocodes}) }>
-                          <SyncIcon className={classes.iconRegular}/>
-                        </IconButton>
-                      </Tooltip>
                     </div>
                   </div>
                 );
