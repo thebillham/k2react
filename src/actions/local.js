@@ -1,5 +1,6 @@
 import {
   APP_HAS_LOADED,
+  GET_FIRESTORE_COLLECTION,
   CAT_CHANGE,
   CLEAR_LOG,
   GET_ASBESTOS_ANALYSIS,
@@ -78,6 +79,60 @@ import { xmlToJson } from "../config/XmlToJson";
 export const resetLocal = () => dispatch => {
   dispatch({ type: RESET_LOCAL });
 };
+
+// General Function for retrieving firestore collections
+export const getFirestoreCollection = ({ pathRef, statePath, actionType, update, orderBy, order, }) => async dispatch => {
+  if (update) {
+    if (orderBy) {
+      pathRef.orderBy(orderBy, order).get().then(querySnapshot => {
+        sendSlackMessage(`${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`);
+        var docs = [];
+        querySnapshot.forEach(doc => {
+          let ref = doc.data();
+          ref.uid = doc.id;
+          docs.push(ref);
+        });
+        dispatch({
+          type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
+          payload: docs,
+          statePath,
+          update: true,
+        });
+      });
+    } else {
+      pathRef.get().then(querySnapshot => {
+        sendSlackMessage(`${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`);
+        var docs = [];
+        querySnapshot.forEach(doc => {
+          let ref = doc.data();
+          ref.uid = doc.id;
+          docs.push(ref);
+        });
+        console.log(docs);
+        dispatch({
+          type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
+          payload: docs,
+          statePath,
+          update: true,
+        });
+      });
+    }
+  } else {
+    stateRef.doc(statePath).get().then(doc => {
+      sendSlackMessage(`${auth.currentUser.displayName} read getFirestoreCollection ${statePath} from state (1 document)`);
+      if (doc.exists) {
+        console.log(doc.data());
+        dispatch({
+          type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
+          statePath,
+          payload: doc.data().payload
+        });
+      } else {
+        console.log("State document doesn't exist");
+      }
+    });
+  }
+}
 
 // Separate stream for just your information. So you don't re-read all staff for just changing your details.
 export const fetchMe = () => async dispatch => {
@@ -477,43 +532,10 @@ export const readNotice = (notice, me, reads) => {
 }
 
 export const fetchNoticeReads = (update) => async dispatch => {
-  if (update) {
-    noticeReadsRef
-      .get().then(querySnapshot => {
-        var notices = [];
-        querySnapshot.forEach(doc => {
-          let notice = doc.data();
-          notices.push(notice);
-        });
-        dispatch({
-          type: GET_NOTICE_READS,
-          payload: notices,
-          update: true
-        });
-      });
-  } else {
-    // let noticeReads = {
-    //   "users": {},
-    //   "notices": {},
-    // };
-    // console.log('Fetching notice reads');
-    stateRef.doc("noticereads").collection("users").doc(auth.currentUser.uid).onSnapshot(doc => {
-      sendSlackMessage(`${auth.currentUser.displayName} ran fetchNoticeReads (1 document)`);
-      // console.log(doc.data());
-      dispatch({ type: GET_NOTICE_READS, payload: doc.data().payload });
-    });
-    // stateRef.doc("noticereads").collection("users").onSnapshot(querySnapshot => {
-    //   querySnapshot.forEach(doc => {
-    //     noticeReads["users"][doc.id] = doc.data();
-    //   });
-    // });
-    // stateRef.doc("noticereads").collection("notices").onSnapshot(querySnapshot => {
-    //   querySnapshot.forEach(doc => {
-    //     noticeReads["notices"][doc.id] = doc.data();
-    //   });
-    // });
-    // dispatch({ type: GET_NOTICE_READS, payload: noticeReads });
-  }
+  stateRef.doc("noticereads").collection("users").doc(auth.currentUser.uid).onSnapshot(doc => {
+    sendSlackMessage(`${auth.currentUser.displayName} ran fetchNoticeReads (1 document)`);
+    dispatch({ type: GET_NOTICE_READS, payload: doc.exists ? doc.data().payload : [] });
+  });
 };
 
 export const fetchIncidents = update => async dispatch => {

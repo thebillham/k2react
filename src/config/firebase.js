@@ -48,6 +48,8 @@ const sitesRef = firestore.collection("sites");
 const stateRef = firestore.collection("state");
 const toolsRef = firestore.collection("tools");
 const trainingPathsRef = firestore.collection("trainingpaths");
+const templateAcmRef = firestore.collection("appsettings").doc("templates").collection("acm");
+const templateBmRef = firestore.collection("appsettings").doc("templates").collection("buildingMaterials");
 const updateRef = firestore.collection("updates");
 const usersRef = firestore.collection("users");
 const vehiclesRef = firestore.collection("vehicles");
@@ -93,6 +95,8 @@ export {
   quizzesRef,
   sitesRef,
   stateRef,
+  templateAcmRef,
+  templateBmRef,
   toolsRef,
   trainingPathsRef,
   updateRef,

@@ -1,5 +1,7 @@
 // ACTION TYPES are saved as constants to avoid errors with typos and make debugging simpler.
 
+export const GET_FIRESTORE_COLLECTION = "GET_FIRESTORE_COLLECTION";
+
 // Local
 export const ADD_DOCUMENT = "ADD_DOCUMENT";
 export const AUTH_USER = "AUTH_USER";

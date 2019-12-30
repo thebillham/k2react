@@ -7,6 +7,8 @@ import { connect } from "react-redux";
 import {
   WFM_TIME,
   SITE_JOB,
+  TEMPLATE_ACM,
+  TEMPLATE_BUILDING_MATERIAL,
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import Button from "@material-ui/core/Button";
@@ -64,6 +66,8 @@ import SiteJob from "./pages/SiteJob";
 import SiteLayout from "./pages/SiteLayout";
 import SiteMapsAndDiagrams from "./pages/SiteMapsAndDiagrams";
 import SiteAsbestosRegister from "./pages/SiteAsbestosRegister";
+import TemplateBmModal from "./modals/TemplateBmModal";
+import TemplateAcmModal from "./modals/TemplateAcmModal";
 
 const mapStateToProps = state => {
   return {
@@ -182,6 +186,8 @@ class Site extends React.Component {
         </Tabs>
         {this.props.modalType === WFM_TIME && <WfmTimeModal />}
         {this.props.modalType === SITE_JOB && <SiteJobModal />}
+        {this.props.modalType === TEMPLATE_ACM && <TemplateAcmModal />}
+        {this.props.modalType === TEMPLATE_BUILDING_MATERIAL && <TemplateBmModal />}
         {this.state.tabValue === 'general' && <SiteGeneralInformation that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'visithistory' && <SiteVisitHistory that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'layout' && <SiteLayout that={this} site={this.props.match.params.site.trim()} />}

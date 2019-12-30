@@ -29,6 +29,44 @@ export const fixIds = () => dispatch => {
   });
 };
 
+export const fixNoticeReads = () => {
+  stateRef.doc("noticereads").collection("users").get().then(querySnapshot => {
+    querySnapshot.forEach(doc => {
+      // console.log(doc.data().payload);
+      let newArray = Object.values(doc.data().payload).filter(e => e.value).map(e => e.value);
+      // console.log(newArray);
+
+      stateRef.doc("noticereads").collection("users").doc(doc.id).update({payload: newArray});
+    })
+  })
+}
+
+// export const iterateThroughBackup = (notices, staff) => {
+//   let batch = firestore.batch();
+//   console.log(notices);
+//   console.log(staff);
+//
+//
+// // loadEntries(blogEntries)
+// //   .then((entries) => console.log(entries));
+// //     fetch(`../noticereads/notices/${notice.uid}/${notice.uid}.json`)
+// //       .then(res => {
+// //         res.text()
+// //           .then(data => {
+// //             console.log(data);
+// //           })
+// //         });
+// //   });
+//   staff && Object.keys(staff).forEach(staff => {
+//     console.log(staff);
+//     fetch(`http://localhost:3000/noticereads/staff/${staff}/${staff}.json`)
+//       .then(res => res.text())
+//       .then(data => {
+//         console.log(data);
+//       });
+//   });
+// }
+
 export const splitWFMStates = () => {
   console.log('Splitting WFM states...');
   stateRef

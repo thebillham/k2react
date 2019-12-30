@@ -20,7 +20,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import Collapse from '@material-ui/core/Collapse';
 import TextField from '@material-ui/core/TextField';
 import IconButton from "@material-ui/core/IconButton";
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@material-ui/icons/AddCircleOutline";
 import RemoveIcon from "@material-ui/icons/Remove";
 import Select from 'react-select';
 import SyncIcon from '@material-ui/icons/Sync';
@@ -103,7 +103,7 @@ const mapDispatchToProps = dispatch => {
     fetchWFMJobs: () => dispatch(fetchWFMJobs()),
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
     handleSiteChange: info => dispatch(handleSiteChange(info)),
-    handleSiteChangeDebounced: _.debounce((info) => dispatch(handleJobChange(info)),
+    handleSiteChangeDebounced: _.debounce((info) => dispatch(handleSiteChange(info)),
       2000
     ),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
@@ -212,8 +212,13 @@ class SiteGeneralInformation extends React.Component {
                 console.log(j);
                 let jColor = classes[getJobColor(j.category)];
                 return (<div className={classNames(classes.flexRowSpread, classes.hoverColor)} key={j.jobDescription + j.jobNumber}>
-                  <div className={classNames(jColor, classes.expandHeading)} onClick={() => that.handleTabChange(null, j.uid)}>
-                    { `${j.jobNumber} ${j.jobDescription} (${j.address})` }
+                  <div>
+                    <div className={classNames(jColor, classes.expandHeading)} onClick={() => that.handleTabChange(null, j.uid)}>
+                      { `${j.jobNumber} ${j.jobDescription}` }
+                    </div>
+                    <div>
+                       { `${j.client}: ${j.address}` }
+                    </div>
                   </div>
                   <div className={classes.flexRow}>
                     <Tooltip title={'Re-sync with WorkflowMax'}>

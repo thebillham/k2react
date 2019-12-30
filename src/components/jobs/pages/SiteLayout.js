@@ -18,6 +18,8 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
@@ -32,7 +34,9 @@ import RemoveIcon from "@material-ui/icons/Remove";
 import SyncIcon from '@material-ui/icons/Sync';
 import LinkIcon from '@material-ui/icons/Link';
 import ArrowIcon from "@material-ui/icons/ArrowForwardIos";
+import SelectIcon from "@material-ui/icons/Info";
 import Select from 'react-select';
+import DeleteIcon from "@material-ui/icons/Close";
 import SuggestionField from '../../../widgets/SuggestionField';
 
 import {
@@ -146,72 +150,111 @@ const move = (source, destination, droppableSource, droppableDestination) => {
   destClone.splice(droppableDestination.index, 0, removed);
 
   const result = {};
-  result["sourceList"] = sourceClone;
-  result["destList"] = destClone;
+  result[droppableSource.droppableId] = sourceClone;
+  result[droppableDestination.droppableId] = destClone;
 
   return result;
 };
 
 const getItemStyle = (isDragging, draggableStyle) => ({
-  borderRadius: 24,
+  borderRadius: 4,
   userSelect: "none",
-  padding: 8 * 2,
-  margin: `0 8px 0 0`,
+  padding: 8,
+  margin: 2,
+  boxShadow: isDragging ? `0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)` : `0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19)`,
   background: isDragging ? "#fafafa" : "white",
   ...draggableStyle
 });
 
-const getListStyle = isDraggingOver => ({
-  borderRadius: 24,
-  background: isDraggingOver ? "#FFD5CC" : "#FFEAE5",
+const getListStyle = (isDraggingOver, isDefault) => ({
+  borderRadius: 4,
+  background: isDefault ? isDraggingOver ? "#006D44" : "#338a69" : isDraggingOver ? "#FF2D00" : "#ff5733",
+  margin: 4,
+  padding: 8,
 });
 
 class SiteLayout extends React.Component {
   state = {
     roomGroups: '',
     rooms: '',
+    selectedRoom: null,
   };
 
   onDragEnd = result => {
+    const { source, destination } = result;
     // dropped outside the list
     if (!result.destination) {
       return;
     }
 
-    const items = reorder(
-      this.props.sites[this.props.site].layout,
-      result.source.index,
-      result.destination.index
-    );
+    if (source.droppableId === destination.droppableId) {
+      const items = reorder(
+        this.props.sites[this.props.site].layout[source.droppableId].rooms,
+        source.index,
+        destination.index
+      );
 
-    this.props.handleSiteChange({ site: this.props.sites[this.props.site], field: 'layout', val: items });
+      this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', o2: source.droppableId, field: 'rooms', val: items });
+    } else {
+      const result = move(
+        this.props.sites[this.props.site].layout[source.droppableId].rooms ? this.props.sites[this.props.site].layout[source.droppableId].rooms : [],
+        this.props.sites[this.props.site].layout[destination.droppableId].rooms ? this.props.sites[this.props.site].layout[destination.droppableId].rooms : [],
+        source,
+        destination
+      );
+
+      Object.keys(result).forEach(key => {
+        this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', o2: key, field: 'rooms', val: result[key] });
+      });
+    }
   }
 
   addRoomsToList = () => {
     let rooms = this.state.rooms
       .split("\n")
       .filter(Boolean)
-      .map(e => ({ label: titleCase(e), materials: [] }));
+      .map((e, index) => ({ label: titleCase(e), uid: `${e.replace(/[.:/,\s]/g, "_")}${moment().format('x')}${index}`, materials: [] }));
     // Have a template for materials based on room name
     this.setState({ rooms: '' });
-    // Layout is an array so "Default" won't work. Figure out new solution.
-    if (this.props.sites[this.props.site].layout && this.props.sites[this.props.site].layout.default) rooms.push(...this.props.sites[this.props.site].layout.default);
 
-    this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', field: 'default', val: rooms });
+    if (this.props.sites[this.props.site].layout && this.props.sites[this.props.site].layout.default) {
+      rooms.push(...this.props.sites[this.props.site].layout.default.rooms);
+      this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', o2: 'default', field: 'rooms', val: rooms });
+    } else {
+      this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', field: 'default', val: { rooms } });
+    }
   }
 
   addRoomGroupsToList = () => {
     let rooms = this.state.roomGroups
       .split("\n")
       .filter(Boolean)
-      .map(e => ({ label: titleCase(e), rooms: [] }));
-    console.log(rooms);
+      .map((e, index) => ({ uid: `${e}${index}`, label: titleCase(e), index: index, rooms: [] }));
 
-    if (this.props.sites[this.props.site].layout) rooms.push(...this.props.sites[this.props.site].layout);
-    console.log(rooms);
+    rooms.forEach(room => {
+      this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', field: room.uid, val: room });
+    });
 
     this.setState({ roomGroups: '' });
-    this.props.handleSiteChange({ site: this.props.sites[this.props.site], field: 'layout', val: rooms });
+  }
+
+  deleteRoom = (r, key) => {
+    let rooms = this.props.sites[this.props.site].layout[key].rooms.filter(e => e.uid !== r.uid);
+    this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', o2: key, field: 'rooms', val: rooms });
+  }
+
+  deleteRoomGroup = key => {
+    if (this.props.sites[this.props.site].layout[key] && this.props.sites[this.props.site].layout[key].rooms) {
+      let rooms = this.props.sites[this.props.site].layout[key].rooms;
+
+      if (this.props.sites[this.props.site].layout && this.props.sites[this.props.site].layout.default) {
+        rooms.push(...this.props.sites[this.props.site].layout.default.rooms);
+        this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', o2: 'default', field: 'rooms', val: rooms });
+      } else {
+        this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', field: 'default', val: { rooms } });
+      }
+    }
+    this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: 'layout', field: key, val: 'delete' });
   }
 
   render() {
@@ -219,20 +262,16 @@ class SiteLayout extends React.Component {
     const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
     const m = this.props.sites && this.props.sites[site] ? this.props.sites[site] : null;
 
-    let rooms = m && m.layout ? m.layout : [{label: 'Kitchen'}, {label: 'Bathroom'}, {label: 'Bedroom 1'}, ];
-
-    console.log(rooms);
-
     if (m) {
       const color = classes[getJobColor(m.primaryJobType)];
       return (
-        <Grid container>
-          <Grid item xs={12} md={5}>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={3}>
             <div className={classNames(color, classes.expandHeading)}>Add Rooms</div>
             <TextField
               className={classes.columnMed}
               multiline
-              rows={10}
+              rows={20}
               value={this.state.rooms}
               onChange={e => {
                 this.setState({
@@ -265,19 +304,66 @@ class SiteLayout extends React.Component {
                 </IconButton>
               </Tooltip>
           </Grid>
-          <Grid item xs={12} md={7}>
+          <Grid item xs={12} md={4}>
             <DragDropContext onDragEnd={this.onDragEnd}>
-              <Droppable droppableId="droppable" direction="horizontal">
+              {m.layout && Object.keys(m.layout).filter(e => e !== 'default').map((key, index) => (
+                <Droppable key={key} droppableId={key}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      style={getListStyle(snapshot.isDraggingOver)}
+                      {...provided.droppableProps}
+                    >
+                      <div className={classes.flexRowSpread}>
+                        <div className={classes.boldWhite}>{m.layout[key].label}</div>
+                        <Tooltip title={'Delete Room Group. This will move all rooms inside to the unsorted room bucket.'}>
+                          <IconButton
+                            onClick={e => {
+                              if (window.confirm('Are you sure you wish to delete this room group?'))
+                                this.deleteRoomGroup(key);
+                            }}>
+                            <DeleteIcon className={classes.iconRegularWhite} />
+                          </IconButton>
+                        </Tooltip>
+                      </div>
+                      {m.layout[key].rooms && m.layout[key].rooms.length > 0 && m.layout[key].rooms.map((item, index) => (
+                        <Draggable
+                          key={item.uid}
+                          draggableId={item.uid}
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={getItemStyle(
+                                snapshot.isDragging,
+                                provided.draggableProps.style
+                              )}
+                            >
+                              {this.getRoomCard(item, key)}
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              ))}
+              {m.layout && m.layout.default && m.layout.default.rooms && m.layout.default.rooms.length > 0 &&
+                <Droppable droppableId="default">
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
-                    style={getListStyle(snapshot.isDraggingOver)}
+                    style={getListStyle(snapshot.isDraggingOver, true)}
                     {...provided.droppableProps}
                   >
-                    {rooms.map((item, index) => (
+                    {m.layout.default.rooms.map((item, index) => (
                       <Draggable
-                        key={item.text}
-                        draggableId={item.text}
+                        key={`draggable${item.label}${index}`}
+                        draggableId={item.uid}
                         index={index}
                       >
                         {(provided, snapshot) => (
@@ -287,10 +373,11 @@ class SiteLayout extends React.Component {
                             {...provided.dragHandleProps}
                             style={getItemStyle(
                               snapshot.isDragging,
-                              provided.draggableProps.style
+                              provided.draggableProps.style,
+                              true
                             )}
                           >
-                            {item.label}
+                            {this.getRoomCard(item, 'default')}
                           </div>
                         )}
                       </Draggable>
@@ -298,12 +385,45 @@ class SiteLayout extends React.Component {
                     {provided.placeholder}
                   </div>
                 )}
-              </Droppable>
+                </Droppable>
+              }
             </DragDropContext>
+          </Grid>
+          <Grid item xs={12} md={5}>
+            {this.state.selectedRoom &&
+              <Card>
+                <CardContent>
+                  <h6>{this.state.selectedRoom.label}</h6>
+                </CardContent>
+              </Card>
+            }
           </Grid>
         </Grid>
       );
     } else return (<div />)
+  }
+
+  getRoomCard = (r, key) => {
+    const classes = this.props.classes;
+    return (
+      <div className={classes.flexRowSpread}>
+        {r.label}
+        <div className={classes.flexRow}>
+          <IconButton onClick={() => this.setState({ selectedRoom: r })}>
+            <SelectIcon className={classes.iconRegular} />
+          </IconButton>
+          <Tooltip title={'Delete Room. All ACMs assigned to this room will become orphaned.'}>
+            <IconButton
+              onClick={e => {
+                if (window.confirm(`Are you sure you wish to delete this room (${r.label})?`))
+                  this.deleteRoom(r, key);
+              }}>
+              <DeleteIcon className={classes.iconRegular} />
+            </IconButton>
+          </Tooltip>
+        </div>
+      </div>
+    )
   }
 }
 

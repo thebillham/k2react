@@ -14,11 +14,12 @@ import CommentModal from "./modals/CommentModal";
 import WhosReadModal from "./modals/WhosReadModal";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Add from '@material-ui/icons/Add';
+import Dropzone from 'react-dropzone'
 
 // import IncidentModal from "../incidents/modals/IncidentModal";
 import { NOTICES, COMMENT, WHOS_READ } from "../../constants/modal-types";
 import { onCatChange, onSearchChange } from "../../actions/local";
-import { auth, usersRef, } from "../../config/firebase";
+import { auth, usersRef, stateRef, firestore } from "../../config/firebase";
 import moment from "moment";
 import classNames from "classnames";
 import {
@@ -93,9 +94,10 @@ class Noticeboard extends React.PureComponent {
 
   render() {
     const { classes, noticeReads, modalType } = this.props;
-    // console.log(noticeReads);
+    console.log(noticeReads);
     const unslicedNotices = this.props.notices
       .filter(notice => {
+        // console.log(notice.uid);
         if (
           this.props.me.favnotices &&
           this.props.me.favnotices.includes(notice.uid) &&
@@ -203,6 +205,30 @@ class Noticeboard extends React.PureComponent {
           }
           label="Show Read Notices"
         />
+
+        <Dropzone onDrop={acceptedFiles => {
+          acceptedFiles.forEach(f => {
+            const reader = new FileReader();
+            reader.onload = () => {
+            // Do whatever you want with the file contents
+              let noticeRead = JSON.parse(reader.result).payload;
+
+              stateRef.doc("noticereads").collection("users").doc(f.name.slice(0, -5)).set({payload: Object.values(noticeRead).filter(e => e.value !== undefined).map(e => e.value) });
+              console.log(noticeRead);
+            }
+            reader.readAsText(f);
+          });
+        }}>
+          {({getRootProps, getInputProps}) => (
+            <section>
+              <div {...getRootProps()}>
+                <input {...getInputProps()} />
+                <p>Drag 'n' drop some files here, or click to select files</p>
+              </div>
+            </section>
+          )}
+        </Dropzone>
+
         <Grid container spacing={1}>
           { this.props.categories.map(cat => {
             return (

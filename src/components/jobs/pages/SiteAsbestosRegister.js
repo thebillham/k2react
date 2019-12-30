@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 //Modals
 import {
   WFM_TIME,
+  TEMPLATE_ACM,
 } from "../../../constants/modal-types";
 import { showModal } from "../../../actions/modal";
 import Button from "@material-ui/core/Button";
@@ -27,7 +28,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import WfmTimeModal from "../modals/WfmTimeModal";
 import ClosedArrow from "@material-ui/icons/ArrowDropDown";
 import OpenArrow from "@material-ui/icons/ArrowDropUp";
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@material-ui/icons/AddCircleOutline";
 import RemoveIcon from "@material-ui/icons/Remove";
 import SyncIcon from '@material-ui/icons/Sync';
 import LinkIcon from '@material-ui/icons/Link';
@@ -128,33 +129,26 @@ const mapDispatchToProps = dispatch => {
 };
 
 class SiteAsbestosRegister extends React.Component {
-
-  addList = field => {
-    this.setState({
-      [`count${field}`]: this.state[`count${field}`] ? this.state[`count${field}`] + 1 : 2,
-    })
-  }
-
-  removeList = field => {
-    let obj = field ? field.slice(0,1).toLowerCase() + field.slice(1) : null;
-    let num = this.state[`count${field}`] ? this.state[`count${field}`] : 1;
-    if (obj) this.props.handleSiteChange({ site: this.props.sites[this.props.site], o1: [obj], field: num, val: 'delete' });
-    this.setState({
-      [`count${field}`]: this.state[`count${field}`] ? this.state[`count${field}`] > 1 ? this.state[`count${field}`] - 1 : 1 : 1,
-    })
-  }
-
   render() {
     const { classes, that, site, wfmClients, geocodes, } = this.props;
     const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
     const m = this.props.sites && this.props.sites[site] ? this.props.sites[site] : null;
 
-    console.log(m);
-
     if (m) {
       const color = classes[getJobColor(m.primaryJobType)];
       return (
         <div>
+          <div className={classes.flexRowSpread}>
+            <div className={classNames(color, classes.expandHeading)}>Jobs</div>
+            <Tooltip title={'Add Job'}>
+              <IconButton
+                onClick={e => {
+                  this.props.showModal({ modalType: TEMPLATE_ACM, modalProps: { doc: null, }})
+                }}>
+                <AddIcon className={classes.iconRegular} />
+              </IconButton>
+            </Tooltip>
+          </div>
         </div>
       );
     } else return (<div />)

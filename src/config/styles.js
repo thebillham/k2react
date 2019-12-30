@@ -640,6 +640,12 @@ const styles = theme => ({
     color: 'grey',
   },
 
+  iconRegularWhite: {
+    fontSize: 20,
+    margin: 6,
+    color: 'white',
+  },
+
   iconRegularRed: {
     fontSize: 20,
     margin: 6,
@@ -887,6 +893,11 @@ const styles = theme => ({
   boldBlack: {
     fontWeight: 600,
     color: 'black',
+  },
+
+  boldWhite: {
+    fontWeight: 600,
+    color: 'white',
   },
 
   red: {

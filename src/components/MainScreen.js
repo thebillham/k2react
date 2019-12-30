@@ -110,6 +110,7 @@ import {
   fixSamples,
   renameAnalysisLog,
   splitWFMStates,
+  fixNoticeReads,
 } from "../actions/temp";
 
 // Pages
@@ -208,6 +209,7 @@ class MainScreen extends React.PureComponent {
     // splitWFMStates();
     if (this.props.staff && Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
     // this.props.fixIds();
+    // fixNoticeReads();
     // transferNoticeboardReads();
     // restructureWAAnalysisSamples();
     // restructureSampleIssueLog();
@@ -216,6 +218,7 @@ class MainScreen extends React.PureComponent {
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // analyseJobHistory();
     // fixSamples();
+    fixNoticeReads();
     // renameAnalysisLog();
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');
     setTimeout(() => this.setState({
