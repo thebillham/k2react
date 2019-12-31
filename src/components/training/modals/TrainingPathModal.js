@@ -269,6 +269,7 @@ class TrainingModuleModal extends React.Component {
           modules={quillModules}
           theme="snow"
           onChange={(content, delta, source) => {
+            console.log(content);
             if (source === "user")
               this.props.handleModalChangeStep({
                 step: "outline",

@@ -937,6 +937,17 @@ const styles = theme => ({
     color: theme.palette.indicators.badText,
   },
 
+  colorsDivWarning: {
+    borderRadius: 5,
+    margin: 2,
+    backgroundColor: theme.palette.indicators.warning,
+  },
+
+  colorsButtonWarning: {
+    margin: 3,
+    color: theme.palette.indicators.warningText,
+  },
+
   colorsDivOk: {
     borderRadius: 5,
     margin: 2,

@@ -218,7 +218,7 @@ class MainScreen extends React.PureComponent {
     // sendSlackMessage(`${auth.currentUser.displayName} has logged in.`);
     // analyseJobHistory();
     // fixSamples();
-    fixNoticeReads();
+    // fixNoticeReads();
     // renameAnalysisLog();
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');
     setTimeout(() => this.setState({

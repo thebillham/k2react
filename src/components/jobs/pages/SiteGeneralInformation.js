@@ -185,7 +185,7 @@ class SiteGeneralInformation extends React.Component {
     const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
 
     let m = this.props.sites && this.props.sites[site];
-    console.log(m);
+    // console.log(m);
 
     if (m) {
       const color = classes[getJobColor(m.primaryJobType)];
@@ -209,7 +209,7 @@ class SiteGeneralInformation extends React.Component {
                 </Tooltip>
               </div>
               { siteJobs && siteJobs[m.uid] && Object.keys(siteJobs[m.uid]).length > 0 ? Object.values(siteJobs[m.uid]).map(j => {
-                console.log(j);
+                // console.log(j);
                 let jColor = classes[getJobColor(j.category)];
                 return (<div className={classNames(classes.flexRowSpread, classes.hoverColor)} key={j.jobDescription + j.jobNumber}>
                   <div>
@@ -292,7 +292,7 @@ class SiteGeneralInformation extends React.Component {
               { [...Array(this.state.countSiteVisitsAsbestos ? this.state.countSiteVisitsAsbestos : 1).keys()].map(i => {
                 let num = i + 1,
                   s = m.siteVisitsAsbestos && m.siteVisitsAsbestos[num] ? m.siteVisitsAsbestos[num] : {};
-                console.log(s);
+                // console.log(s);
                 return (
                   <div className={classes.hoverNoFlex} key={`siteVisitsAsbestos${num}`}>
                     <div className={classes.flexRow}>

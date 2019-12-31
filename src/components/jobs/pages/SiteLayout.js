@@ -2,6 +2,7 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
+import { appSettingsRef } from "../../../config/firebase";
 
 //Modals
 import {
@@ -83,6 +84,7 @@ import {
   handleJobChange,
 } from "../../../actions/jobs";
 
+import { getFirestoreCollection } from "../../../actions/local";
 import {
   filterMap,
   filterMapReset,
@@ -131,6 +133,7 @@ const mapDispatchToProps = dispatch => {
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
     showModal: modal => dispatch(showModal(modal)),
+    fetchBmTemplates: () => dispatch(getFirestoreCollection({ pathRef: appSettingsRef.doc("templates").collection("buildingMaterials"), statePath: 'bmTemplates', update: true, })),
   };
 };
 

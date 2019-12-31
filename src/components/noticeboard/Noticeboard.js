@@ -94,7 +94,7 @@ class Noticeboard extends React.PureComponent {
 
   render() {
     const { classes, noticeReads, modalType } = this.props;
-    console.log(noticeReads);
+    // console.log(noticeReads);
     const unslicedNotices = this.props.notices
       .filter(notice => {
         // console.log(notice.uid);
@@ -206,7 +206,7 @@ class Noticeboard extends React.PureComponent {
           label="Show Read Notices"
         />
 
-        <Dropzone onDrop={acceptedFiles => {
+        {/*<Dropzone onDrop={acceptedFiles => {
           acceptedFiles.forEach(f => {
             const reader = new FileReader();
             reader.onload = () => {
@@ -227,7 +227,7 @@ class Noticeboard extends React.PureComponent {
               </div>
             </section>
           )}
-        </Dropzone>
+        </Dropzone>*/}
 
         <Grid container spacing={1}>
           { this.props.categories.map(cat => {

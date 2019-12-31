@@ -134,8 +134,8 @@ class Site extends React.Component {
     const site = sites && sites[this.props.match.params.site.trim()];
     const jobs = siteJobs && siteJobs[this.props.match.params.site.trim()];
     const color = site ? classes[getJobColor(site.primaryJobType)] : classes[getJobColor('other')];
-    console.log(site);
-    console.log(siteJobs);
+    // console.log(site);
+    // console.log(siteJobs);
 
     if (site) return (
       <div className={classes.marginTopSmall}>
@@ -180,7 +180,7 @@ class Site extends React.Component {
           <Tab label="Asbestos Register" value='register' />
           <Tab label="Maps and Diagrams" value='maps' />
           {jobs && Object.keys(jobs).length > 0 && Object.values(jobs).map(j => {
-            console.log(j);
+            // console.log(j);
             return (<Tab label={j.jobDescription} value={j.uid} key={j.uid} />);
           })}
         </Tabs>

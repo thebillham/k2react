@@ -183,7 +183,7 @@ export const fetchSamples = (cocUid, jobNumber, modal, airSamples) => async disp
         let sample = sampleDoc.data();
         sample.uid = sampleDoc.id;
         samples[sample.sampleNumber] = sample;
-        console.log(sample);
+        // console.log(sample);
         // if (sample.sampleType === "air") {
         //   asbestosAnalysisLogRef
         //     .where("sampleUid", "==", sample.uid)
@@ -2828,7 +2828,7 @@ export const compareAsbestosResult = (confirm, result) => {
 }
 
 export const mergeAsbestosResult = (original, add) => {
-  let merge = original;
+  let merge = original ? original : {};
   ['ch','am','cr','umf','org','smf','no',].forEach(type => {
     if (add[type]) merge[type] = true;
   });

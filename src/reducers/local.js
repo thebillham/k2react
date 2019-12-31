@@ -34,7 +34,9 @@ import { stateRef } from "../config/firebase";
 
 const localInit = {
   auth: [],
+  acmTemplates: [],
   assets: [],
+  bmTemplates: [],
   category: "",
   documents: [],
   editstaff: {},
@@ -64,6 +66,13 @@ const localInit = {
 // Properties related to local data retrieved from firebase
 export default function localReducer(state = localInit, action) {
   switch (action.type) {
+    case GET_FIRESTORE_COLLECTION:
+      if (action.update)
+        stateRef.doc(action.statePath).set({ payload: action.payload });
+      return {
+        ...state,
+        [action.statePath]: action.payload,
+      }
     case GET_DOCUMENTS:
       if (action.update)
         stateRef.doc("documents").set({ payload: action.payload });
