@@ -640,6 +640,12 @@ const styles = theme => ({
     color: 'grey',
   },
 
+  iconSmall: {
+    fontSize: 16,
+    padding: 2,
+    color: 'grey',
+  },
+
   iconRegularWhite: {
     fontSize: 20,
     margin: 6,

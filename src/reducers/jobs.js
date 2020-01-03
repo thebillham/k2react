@@ -12,6 +12,7 @@ import {
   GET_JOB_LIST,
   GET_SITE_JOB,
   GET_SITE_JOBS,
+  GET_SITE_ACM,
   ADD_TO_JOB_LIST,
   GET_JOB_STATS,
   GET_GEOCODES,
@@ -28,6 +29,7 @@ const jobsInit = {
   geocodes: {},
   sites: {},
   siteJobs: {},
+  siteAcm: {},
   wfmJob: null,
   wfmItems: [],
   wfmJobs: [],
@@ -145,6 +147,17 @@ export default function jobsReducer(state = jobsInit, action) {
           [action.payload.site]: {
             ...state.siteJobs[action.payload.site],
             ...action.payload.jobs,
+          }
+        }
+      }
+    case GET_SITE_ACM:
+      return {
+        ...state,
+        siteAcm: {
+          ...state.siteAcm,
+          [action.payload.site]: {
+            ...state.siteAcm[action.payload.site],
+            ...action.payload.acms,
           }
         }
       }

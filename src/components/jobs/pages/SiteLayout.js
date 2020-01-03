@@ -285,7 +285,7 @@ class SiteLayout extends React.Component {
             />
             <Tooltip title="Add Rooms to List">
               <IconButton onClick={ this.addRoomsToList }>
-                <ArrowIcon className={classes.iconRegular}/>
+                <ArrowIcon className={classes.iconSmall}/>
               </IconButton>
             </Tooltip>
               <div className={classNames(color, classes.expandHeading)}>Add Room Groups</div>
@@ -303,7 +303,7 @@ class SiteLayout extends React.Component {
               />
               <Tooltip title="Add Room Groups to List">
                 <IconButton onClick={ this.addRoomGroupsToList }>
-                  <ArrowIcon className={classes.iconRegular}/>
+                  <ArrowIcon className={classes.iconSmall}/>
                 </IconButton>
               </Tooltip>
           </Grid>
@@ -325,7 +325,7 @@ class SiteLayout extends React.Component {
                               if (window.confirm('Are you sure you wish to delete this room group?'))
                                 this.deleteRoomGroup(key);
                             }}>
-                            <DeleteIcon className={classes.iconRegularWhite} />
+                            <DeleteIcon className={classes.iconSmallWhite} />
                           </IconButton>
                         </Tooltip>
                       </div>
@@ -393,17 +393,22 @@ class SiteLayout extends React.Component {
             </DragDropContext>
           </Grid>
           <Grid item xs={12} md={5}>
-            {this.state.selectedRoom &&
-              <Card>
-                <CardContent>
-                  <h6>{this.state.selectedRoom.label}</h6>
-                </CardContent>
-              </Card>
-            }
+            {this.state.selectedRoom && this.getRoomInfo()}
           </Grid>
         </Grid>
       );
     } else return (<div />)
+  }
+
+  getRoomInfo = () => {
+    let room = this.state.selectedRoom;
+    return (
+      <Card>
+        <CardContent>
+          <h6>{room.label}</h6>
+        </CardContent>
+      </Card>
+    );
   }
 
   getRoomCard = (r, key) => {
@@ -413,7 +418,7 @@ class SiteLayout extends React.Component {
         {r.label}
         <div className={classes.flexRow}>
           <IconButton onClick={() => this.setState({ selectedRoom: r })}>
-            <SelectIcon className={classes.iconRegular} />
+            <SelectIcon className={classes.iconSmall} />
           </IconButton>
           <Tooltip title={'Delete Room. All ACMs assigned to this room will become orphaned.'}>
             <IconButton
@@ -421,7 +426,7 @@ class SiteLayout extends React.Component {
                 if (window.confirm(`Are you sure you wish to delete this room (${r.label})?`))
                   this.deleteRoom(r, key);
               }}>
-              <DeleteIcon className={classes.iconRegular} />
+              <DeleteIcon className={classes.iconSmall} />
             </IconButton>
           </Tooltip>
         </div>

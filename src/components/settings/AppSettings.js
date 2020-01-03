@@ -329,6 +329,13 @@ const settings = {
     noSort: true,
     hint: 'Put each score on a new line in the form "label|color|tooltip".',
   },
+  asbestosManagementOptions: {
+    label: 'Asbestos Management Options',
+    value: 'asbestosManagementOptions',
+    group: 'acmAssessment',
+    fields: ['label'],
+    hint: 'Put each option on a new line.',
+  },
   asbestosWhyNotSampledSuggestions: {
     label: 'Why Not Sampled Suggestions',
     value: 'asbestosWhyNotSampledSuggestions',

@@ -49,6 +49,7 @@ import {
   getDetailedWFMJob,
   getJobColor,
   fetchSiteJobs,
+  fetchSiteAcm,
 } from "../../actions/jobs";
 
 import {
@@ -82,6 +83,7 @@ const mapStateToProps = state => {
     jobList: state.jobs.jobList,
     sites: state.jobs.sites,
     siteJobs: state.jobs.siteJobs,
+    siteAcm: state.jobs.siteAcm,
     search: state.local.search,
     me: state.local.me,
     filter: state.display.filterMap,
@@ -97,6 +99,7 @@ const mapDispatchToProps = dispatch => {
     fetchSites: () => dispatch(fetchSites()),
     getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
     fetchSiteJobs: site => dispatch(fetchSiteJobs(site)),
+    fetchSiteAcm: site => dispatch(fetchSiteAcm(site)),
   };
 };
 
@@ -123,6 +126,12 @@ class Site extends React.Component {
       console.log(this.props.siteJobs[this.props.match.params.site.trim()])
       this.props.fetchSiteJobs(this.props.match.params.site.trim());
     }
+
+    if (this.props.siteAcm && (!this.props.siteAcm[this.props.match.params.site.trim()] ||
+    Object.keys(this.props.siteAcm[this.props.match.params.site.trim()]).length === 0)) {
+      console.log(this.props.siteAcm[this.props.match.params.site.trim()])
+      this.props.fetchSiteAcm(this.props.match.params.site.trim());
+    }
   };
 
   handleTabChange = (event, value) => {
@@ -130,7 +139,7 @@ class Site extends React.Component {
   };
 
   render() {
-    const { classes, geocodes, sites, siteJobs, } = this.props;
+    const { classes, geocodes, sites, siteJobs, siteAcm, } = this.props;
     const site = sites && sites[this.props.match.params.site.trim()];
     const jobs = siteJobs && siteJobs[this.props.match.params.site.trim()];
     const color = site ? classes[getJobColor(site.primaryJobType)] : classes[getJobColor('other')];

@@ -2,7 +2,7 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
-import { appSettingsRef } from "../../../config/firebase";
+import { appSettingsRef, sitesRef, templateAcmRef, } from "../../../config/firebase";
 
 //Modals
 import {
@@ -37,8 +37,11 @@ import RemoveIcon from "@material-ui/icons/Remove";
 import SyncIcon from '@material-ui/icons/Sync';
 import LinkIcon from '@material-ui/icons/Link';
 import TimerIcon from "@material-ui/icons/Timer";
+import SelectIcon from "@material-ui/icons/Info";
+import DeleteIcon from "@material-ui/icons/Close";
 import Select from 'react-select';
 import SuggestionField from '../../../widgets/SuggestionField';
+import AcmCard from "../components/AcmCard";
 
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
@@ -81,6 +84,8 @@ import {
   getWfmUrl,
   getLeadHistoryDescription,
   handleJobChange,
+  loadAcmTemplate,
+  getRoomInLayout,
 } from "../../../actions/jobs";
 
 import { getFirestoreCollection } from "../../../actions/local";
@@ -108,6 +113,7 @@ const mapStateToProps = state => {
     staff: state.local.staff,
     sites: state.jobs.sites,
     siteJobs: state.jobs.siteJobs,
+    siteAcm: state.jobs.siteAcm,
     me: state.local.me,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
@@ -134,7 +140,8 @@ const mapDispatchToProps = dispatch => {
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
     showModal: modal => dispatch(showModal(modal)),
-    fetchAcmTemplates: () => dispatch(getFirestoreCollection({ pathRef: appSettingsRef.doc("templates").collection("acm"), statePath: 'acmTemplates', update: true, })),
+    fetchAcmTemplates: () => dispatch(getFirestoreCollection({ pathRef: appSettingsRef.doc("templates").collection("acm"), statePath: 'acmTemplates', update: true, subscribe: true, })),
+
   };
 };
 
@@ -150,12 +157,8 @@ const move = (source, destination, droppableSource, droppableDestination) => {
   const sourceClone = Array.from(source);
   const destClone = Array.from(destination);
   const [removed] = sourceClone.splice(droppableSource.index, 1);
-  console.log(sourceClone);
-  console.log(destClone);
-  console.log(removed);
 
   destClone.splice(droppableDestination.index, 0, removed);
-  console.log(destClone);
 
   const result = {};
   result[droppableSource.droppableId] = source.droppableId === 'templates' ? Array.from(source) : sourceClone;
@@ -183,44 +186,111 @@ const getListStyle = (isDraggingOver, isDefault) => ({
 
 class SiteAsbestosRegister extends React.Component {
   state = {
-
+    generic: [],
   }
 
   UNSAFE_componentWillMount() {
     if (this.props.acmTemplates && this.props.acmTemplates.length === 0) {
       this.props.fetchAcmTemplates();
     }
+    this.props.sites[this.props.site] && this.props.sites[this.props.site].layout && Object.values(this.props.sites[this.props.site].layout).forEach(roomGroup => {
+      roomGroup && roomGroup.rooms && roomGroup.rooms.forEach(room => {
+        // console.log(room);
+        this.props.siteAcm[this.props.site] && console.log(Object.values(this.props.siteAcm[this.props.site]).filter(a => a.room && a.room.uid === room.uid));
+        if (room.acm) this.setState({ [room.uid]: room.acm });
+        else this.setState({ [room.uid]: this.props.siteAcm[this.props.site] ? Object.values(this.props.siteAcm[this.props.site]).filter(a => a.room && a.room.uid === room.uid).map(e => e.uid) : [] });
+      })
+    })
+
+    // console.log(this.state);
+  }
+
+  componentWillUnmount() {
+    let layout = this.props.sites[this.props.site].layout,
+      change = false;
+    if (layout) Object.keys(layout).forEach(k => {
+      if (layout[k].rooms) {
+        layout[k].rooms.forEach((r, index) => {
+          if (this.state[r.uid] && this.state[r.uid].length > 0) {
+            layout[k].rooms[index].acm = this.state[r.uid];
+            change = true;
+          }
+        });
+      }
+    });
+    console.log(layout);
+    if (change) sitesRef.doc(this.props.site).update({ layout });
   }
 
   onDragEnd = result => {
     const { source, destination } = result;
     // dropped outside the list
-    if (!result.destination) {
+    if (!result.destination && source.droppableId === 'templates') {
       return;
-    }
-
-    if (source.droppableId === destination.droppableId) {
-      if (source.droppableId === 'templates') return;
-      const items = reorder(
-        this.state[source.droppableId],
-        source.index,
-        destination.index
-      );
-
-      this.setState({ [source.droppableId]: items });
-    } else {
-      const result = move(
-        source.droppableId === 'templates' ? this.props.acmTemplates : this.state[source.droppableId] ? this.state[source.droppableId] : [],
-        destination.droppableId === 'templates' ? this.props.acmTemplates : this.state[destination.droppableId] ? this.state[destination.droppableId] : [],
-        source,
-        destination
-      );
-
-      console.log(result);
-
+    } else if (!result.destination) {
+      // Delete ACM
+      let acmKey = this.state[source.droppableId][source.index];
+      let sourceClone = Array.from(this.state[source.droppableId]);
+      sourceClone.splice(source.index, 1);
+      console.log(sourceClone);
       this.setState({
-        ...result,
-      })
+        [source.droppableId]: sourceClone,
+      });
+      sitesRef.doc(this.props.site).collection("acm").doc(acmKey).delete();
+    } else {
+      if (source.droppableId === destination.droppableId) {
+        if (source.droppableId === 'templates') return;
+        const items = reorder(
+          this.state[source.droppableId],
+          source.index,
+          destination.index
+        );
+
+        this.setState({ [source.droppableId]: items });
+      } else {
+        if (source.droppableId === 'templates') {
+          // Create ACM item
+          let acm = this.props.acmTemplates[source.index];
+          let room = getRoomInLayout({ site: this.props.sites[this.props.site], searchRoom: destination.droppableId });
+          let uid = `${acm.description}_${acm.material}_${moment().format('x')}_${parseInt(Math.floor(Math.random() * Math.floor(10000)))}`;
+          acm.uid = uid;
+          acm.idKey = 'p'; // Presume by default
+          acm.room = { label: room.label, uid: room.uid };
+          console.log(acm);
+          sitesRef.doc(this.props.site).collection("acm").doc(uid).set(acm);
+          this.setState({
+            [destination.droppableId]: [
+              ...this.state[destination.droppableId],
+              uid,
+            ]
+          });
+        } else if (destination.droppableId === 'templates') {
+          // Delete ACM
+          let acmKey = this.state[source.droppableId][source.index];
+          let sourceClone = Array.from(this.state[source.droppableId]);
+          sourceClone.splice(source.index, 1);
+          console.log(sourceClone);
+          this.setState({
+            [source.droppableId]: sourceClone,
+          });
+          sitesRef.doc(this.props.site).collection("acm").doc(acmKey).delete();
+        } else {
+          const result = move(
+            source.droppableId === 'templates' ? this.props.acmTemplates : this.state[source.droppableId] ? this.state[source.droppableId] : [],
+            destination.droppableId === 'templates' ? this.props.acmTemplates : this.state[destination.droppableId] ? this.state[destination.droppableId] : [],
+            source,
+            destination
+          );
+
+          let acm = this.props.acmTemplates[source.index];
+          let room = getRoomInLayout({ site: this.props.sites[this.props.site], searchRoom: destination.droppableId });
+          sitesRef.doc(this.props.site).collection("acm").doc(acm.uid).update({ room: { label: room.label, uid: room.uid } });
+
+          this.setState({
+            ...result,
+          })
+        }
+      }
     }
   }
 
@@ -228,10 +298,8 @@ class SiteAsbestosRegister extends React.Component {
     const { classes, that, site, wfmClients, geocodes, } = this.props;
     const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
     const m = this.props.sites && this.props.sites[site] ? this.props.sites[site] : null;
-    console.log(this.state.acmTemplates);
-
-    if (!this.state.acmTemplates && this.props.acmTemplates) this.setState({ acmTemplates: this.props.acmTemplates, })
-
+    console.log(this.state);
+    console.log(this.props.siteAcm[this.props.site]);
     if (m) {
       const color = classes[getJobColor(m.primaryJobType)];
       return (
@@ -257,7 +325,6 @@ class SiteAsbestosRegister extends React.Component {
                     {...provided.droppableProps}
                   >
                   { this.props.acmTemplates && this.props.acmTemplates.map((item, index) => {
-                    console.log(item);
                     return (<Draggable
                       key={`${item.uid}template`}
                       draggableId={`${item.uid}template`}
@@ -283,19 +350,26 @@ class SiteAsbestosRegister extends React.Component {
             </Grid>
             <Grid item xs={12} md={5}>
               <div className={classNames(color, classes.expandHeading)}>Asbestos Register</div>
-              <Droppable key={'register'} droppableId={'register'}>
+              {m.layout && Object.keys(m.layout).map(k =>
+                (m.layout[k].rooms && m.layout[k].rooms.length > 0) ?
+                  k === 'default' ?
+                    m.layout[k].rooms.map(r => this.getDroppableRoom(r))
+                  : this.getFoldableRoomGroup({roomGroup: m.layout[k], key: k})
+                : null
+              )}
+              <Droppable key={'generic'} droppableId={'generic'}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
-                    style={getListStyle(snapshot.isDraggingOver)}
+                    style={getListStyle(snapshot.isDraggingOver, true)}
                     {...provided.droppableProps}
                   >
-                  { this.state.register && this.state.register.map((item, index) => {
-                    console.log(this.state.register);
-                    console.log(item);
+                  <div className={classes.boldWhite}>Generic Items/Materials</div>
+                  { this.state.generic.map((key, index) => {
+                    let item = this.props.siteAcm[this.props.site][key];
                     return (<Draggable
-                      key={item.uid}
-                      draggableId={item.uid}
+                      key={`${key}`}
+                      draggableId={`${key}`}
                       index={index}
                     >
                       {(provided, snapshot) => (
@@ -308,7 +382,7 @@ class SiteAsbestosRegister extends React.Component {
                             provided.draggableProps.style
                           )}
                         >
-                          {this.getAcmTemplateCard(item)}
+                          {item && this.getAcmCard(item)}
                         </div>
                       )}
                   </Draggable>)
@@ -317,6 +391,7 @@ class SiteAsbestosRegister extends React.Component {
               </Droppable>
             </Grid>
             <Grid item xs={12} md={4}>
+              {this.state.selectedAcm && <AcmCard item={this.state.selectedAcm} site={this.props.site} />}
             </Grid>
           </Grid>
         </DragDropContext>
@@ -328,15 +403,93 @@ class SiteAsbestosRegister extends React.Component {
     const { classes } = this.props;
     return (
       <div className={classes.flexRowSpread}>
-        {`${item.description} ${item.material}`}
-        <IconButton
-          onClick={e => {
-            this.props.showModal({ modalType: TEMPLATE_ACM, modalProps: { doc: item, }})
-          }}>
-          <EditIcon className={classes.iconRegular} />
-        </IconButton>
+        {item.templateName ? item.templateName : `${item.description} ${item.material}`}
+        <div className={classes.flexRow}>
+          <Tooltip title={'Edit Template. This will not affect items already created from this template.'}>
+            <IconButton
+              onClick={e => {
+                this.props.showModal({ modalType: TEMPLATE_ACM, modalProps: { doc: item, }})
+              }}>
+              <EditIcon className={classes.iconSmall} />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title={'Delete Template. This will not affect items already created from this template.'}>
+            <IconButton
+              onClick={e => {
+                if (window.confirm(`Are you sure you wish to delete this template (${item.description} ${item.material})?`))
+                  templateAcmRef.doc(item.uid).delete();
+              }}>
+              <DeleteIcon className={classes.iconSmall} />
+            </IconButton>
+          </Tooltip>
+        </div>
       </div>
     );
+  }
+
+  getAcmCard = item => {
+    const { classes } = this.props;
+    return (
+      <div className={classes.flexRowSpread}>
+        {`${item.description} ${item.material}`}
+        <div className={classes.flexRow}>
+          <IconButton onClick={() => this.setState({ selectedAcm: item })}>
+            <SelectIcon className={classes.iconSmall} />
+          </IconButton>
+        </div>
+      </div>
+    );
+  }
+
+  getDroppableRoom = room => {
+    const { classes } = this.props;
+    return (
+      <Droppable key={room.uid} droppableId={room.uid}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            style={getListStyle(snapshot.isDraggingOver)}
+            {...provided.droppableProps}
+          >
+          <div className={classes.boldWhite}>{room.label}</div>
+          { this.state[room.uid] && this.state[room.uid]
+            .map((key, index) => {
+            let item = this.props.siteAcm[this.props.site][key];
+            return (<Draggable
+              key={key}
+              draggableId={key}
+              index={index}
+            >
+              {(provided, snapshot) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.draggableProps}
+                  {...provided.dragHandleProps}
+                  style={getItemStyle(
+                    snapshot.isDragging,
+                    provided.draggableProps.style
+                  )}
+                >
+                  {item && this.getAcmCard(item)}
+                </div>
+              )}
+          </Draggable>)
+        })}
+        </div>)}
+      </Droppable>
+    );
+  }
+
+  getFoldableRoomGroup = ({ roomGroup, key }) => {
+    return (
+      <div className={this.props.classes.informationBoxWhiteRounded}>
+        <h6>{roomGroup.label}</h6>
+        {roomGroup.rooms.map(r => {
+          this.getDroppableRoom(r);
+        })}
+      </div>
+    )
   }
 }
 

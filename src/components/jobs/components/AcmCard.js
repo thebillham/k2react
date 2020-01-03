@@ -10,16 +10,14 @@ import { sitesRef, storage, templateAcmRef, } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions";
 import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
 
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -114,7 +112,7 @@ const quillModules = {
   // imageDrop: true,
 };
 
-class TemplateAcmModal extends React.Component {
+class AcmCard extends React.Component {
   state = {
     asbestosType: {
       ch: true,
@@ -129,9 +127,9 @@ class TemplateAcmModal extends React.Component {
   };
 
   loadTemplate = () => {
-    if (this.props.doc) {
+    if (this.props.item) {
       this.setState({
-        ...this.props.doc,
+        ...this.props.item,
       })
     }
   }
@@ -142,41 +140,45 @@ class TemplateAcmModal extends React.Component {
     });
   }
 
+  UNSAFE_componentWillMount() {
+    console.log('mount');
+    this.loadAcm();
+  }
+
+  componentWillUnmount() {
+    console.log('unmount');
+    this.saveAcm(this.state);
+  }
+
+  loadAcm = () => {
+    this.setState({});
+    console.log('loading');
+    if (this.props.item) {
+      this.setState(this.props.item);
+    }
+  }
+
+  saveAcm = item => {
+    console.log('saving');
+    sitesRef.doc(this.props.site).collection('acm').doc(item.uid).update(item);
+  }
+
   render() {
-    const { modalProps, doc, classes } = this.props;
+    const { modalProps, item, classes } = this.props;
     const colors = getSampleColors({ result: this.state.asbestosType });
+    if (item.uid !== this.state.uid) {
+      this.saveAcm(this.state);
+      this.loadAcm();
+    }
     console.log(this.state);
     return (
-      <Dialog
-        open={this.props.modalType === TEMPLATE_ACM}
-        onClose={this.props.hideModal}
-        onEnter={this.loadTemplate}
-        fullWidth
-        maxWidth={'sm'}
-      >
-        <DialogTitle>
-          {modalProps.title ? modalProps.title : "Add ACM Template"}
-        </DialogTitle>
-        <DialogContent>
-          <InputLabel>Template Name</InputLabel>
-          <TextField
-            value={this.state.templateName ?
-                this.state.templateName :
-                (this.state.description && this.state.material) ?
-                  `${this.state.description} ${this.state.material}` :
-                  this.state.description ?
-                    this.state.description :
-                    this.state.material ?
-                      this.state.material :
-                      ''
-                }
-            onChange={e => this.setState({ templateName: e.target.value })}
-          />
+      <Card>
+        <CardContent>
           <InputLabel>Item Description</InputLabel>
           <SuggestionField that={this} suggestions='descriptionSuggestions'
-            defaultValue={this.state.description ? this.state.description : ''}
+            controlled
+            value={this.state.description ? this.state.description : ''}
             onModify={value => this.setState({ description: value})} />
-
 
           <FormControlLabel
             className={classes.marginTopSmall}
@@ -194,7 +196,8 @@ class TemplateAcmModal extends React.Component {
           {!this.state.inaccessibleItem && <div>
             <InputLabel className={classes.marginTopSmall}>Material</InputLabel>
             <SuggestionField that={this} suggestions='materialSuggestions'
-              defaultValue={this.state.material ? this.state.material : ''}
+              controlled
+              value={this.state.material ? this.state.material : ''}
               onModify={(value) => {
                 let category = '',
                   asbestosType = this.state.asbestosType ? this.state.asbestosType : { ch: true, am: true, cr: true },
@@ -461,12 +464,8 @@ class TemplateAcmModal extends React.Component {
               value={modalProps.uploadProgress}
             />
           </label>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.resetModal} color="secondary">Cancel</Button>
-          <Button onClick={() => this.props.handleModalSubmit({ doc: this.state, pathRef: templateAcmRef, docid: 'random' })} color="primary">Submit</Button>
-        </DialogActions>
-      </Dialog>
+        </CardContent>
+      </Card>
     );
   }
 }
@@ -475,5 +474,5 @@ export default withStyles(styles)(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(TemplateAcmModal)
+  )(AcmCard)
 );

@@ -81,41 +81,78 @@ export const resetLocal = () => dispatch => {
 };
 
 // General Function for retrieving firestore collections
-export const getFirestoreCollection = ({ pathRef, statePath, actionType, update, orderBy, order, }) => async dispatch => {
+export const getFirestoreCollection = ({ pathRef, statePath, actionType, update, orderBy, order, subscribe, }) => async dispatch => {
   if (update) {
     if (orderBy) {
-      pathRef.orderBy(orderBy, order).get().then(querySnapshot => {
-        sendSlackMessage(`${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`);
-        var docs = [];
-        querySnapshot.forEach(doc => {
-          let ref = doc.data();
-          ref.uid = doc.id;
-          docs.push(ref);
+      if (subscribe) {
+        pathRef.orderBy(orderBy, order).onSnapshot(querySnapshot => {
+          sendSlackMessage(`${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`);
+          var docs = [];
+          querySnapshot.forEach(doc => {
+            let ref = doc.data();
+            ref.uid = doc.id;
+            docs.push(ref);
+          });
+          dispatch({
+            type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
+            payload: docs,
+            statePath,
+            update: true,
+          });
         });
-        dispatch({
-          type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
-          payload: docs,
-          statePath,
-          update: true,
+      } else {
+        pathRef.orderBy(orderBy, order).get().then(querySnapshot => {
+          sendSlackMessage(`${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`);
+          var docs = [];
+          querySnapshot.forEach(doc => {
+            let ref = doc.data();
+            ref.uid = doc.id;
+            docs.push(ref);
+          });
+          dispatch({
+            type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
+            payload: docs,
+            statePath,
+            update: true,
+          });
         });
-      });
+      }
     } else {
-      pathRef.get().then(querySnapshot => {
-        sendSlackMessage(`${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`);
-        var docs = [];
-        querySnapshot.forEach(doc => {
-          let ref = doc.data();
-          ref.uid = doc.id;
-          docs.push(ref);
+      if (subscribe) {
+        pathRef.onSnapshot(querySnapshot => {
+          sendSlackMessage(`${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`);
+          var docs = [];
+          querySnapshot.forEach(doc => {
+            let ref = doc.data();
+            ref.uid = doc.id;
+            docs.push(ref);
+          });
+          console.log(docs);
+          dispatch({
+            type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
+            payload: docs,
+            statePath,
+            update: true,
+          });
         });
-        console.log(docs);
-        dispatch({
-          type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
-          payload: docs,
-          statePath,
-          update: true,
+      } else {
+        pathRef.get().then(querySnapshot => {
+          sendSlackMessage(`${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`);
+          var docs = [];
+          querySnapshot.forEach(doc => {
+            let ref = doc.data();
+            ref.uid = doc.id;
+            docs.push(ref);
+          });
+          console.log(docs);
+          dispatch({
+            type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
+            payload: docs,
+            statePath,
+            update: true,
+          });
         });
-      });
+      }
     }
   } else {
     stateRef.doc(statePath).get().then(doc => {

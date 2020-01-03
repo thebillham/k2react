@@ -9,6 +9,7 @@ import {
   GET_WFM_JOBS,
   GET_WFM_JOB,
   GET_SITE_JOB,
+  GET_SITE_ACM,
   GET_SITES,
   GET_SITE,
   GET_WFM_LEADS,
@@ -734,7 +735,7 @@ export const saveStats = stats => dispatch => {
 export const fetchSites = update => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchSites`);
   if (true) {
-    sitesRef.get().then(querySnapshot => {
+    sitesRef.onSnapshot(querySnapshot => {
       var sites = {};
       querySnapshot.forEach(doc => {
         let site = doc.data();
@@ -760,7 +761,7 @@ export const fetchSites = update => async dispatch => {
 };
 
 export const fetchSiteJobs = site => async dispatch => {
-  sitesRef.doc(site).collection('jobs').get().then(querySnapshot => {
+  sitesRef.doc(site).collection('jobs').onSnapshot(querySnapshot => {
     var jobs = {};
     querySnapshot.forEach(doc => {
       let job = doc.data();
@@ -770,6 +771,23 @@ export const fetchSiteJobs = site => async dispatch => {
     dispatch({
       type: GET_SITE_JOBS,
       payload: {jobs, site},
+    });
+  });
+};
+
+export const fetchSiteAcm = site => async dispatch => {
+  console.log(site);
+  sitesRef.doc(site).collection('acm').onSnapshot(querySnapshot => {
+    var acms = {};
+    querySnapshot.forEach(doc => {
+      let acm = doc.data();
+      acm.uid = doc.id;
+      acms[doc.id] = acm;
+    });
+    console.log(acms);
+    dispatch({
+      type: GET_SITE_ACM,
+      payload: {acms, site},
     });
   });
 };
@@ -2248,4 +2266,24 @@ export const handleJobChange = ({ job, o1, o2, field, val, siteUid }) => dispatc
     payload: {job, siteUid, },
   });
   sitesRef.doc(siteUid).collection('jobs').doc(job.uid).update(job);
+}
+
+export const getRoomInLayout = ({ site, searchRoom }) => {
+  if (searchRoom === 'generic') return {
+    label: 'Generic Items/Materials',
+    uid: 'generic',
+  }
+  let result = {};
+  if (site && site.layout) {
+    Object.values(site.layout).forEach(roomGroup => {
+      if (roomGroup && roomGroup.rooms) {
+        roomGroup.rooms.forEach(room => {
+          console.log(room);
+          console.log(searchRoom);
+          if (room.uid === searchRoom) result = room;
+        })
+      }
+    })
+  }
+  return result;
 }
