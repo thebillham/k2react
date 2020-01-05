@@ -172,7 +172,7 @@ class TemplateAcmModal extends React.Component {
                 }
             onChange={e => this.setState({ templateName: e.target.value })}
           />
-          <InputLabel>Item Description</InputLabel>
+          <InputLabel className={classes.marginTopSmall}>Item Description</InputLabel>
           <SuggestionField that={this} suggestions='descriptionSuggestions'
             defaultValue={this.state.description ? this.state.description : ''}
             onModify={value => this.setState({ description: value})} />

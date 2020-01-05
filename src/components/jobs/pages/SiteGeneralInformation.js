@@ -7,6 +7,7 @@ import { showModal } from "../../../actions/modal";
 import {
   WFM_TIME,
   SITE_JOB,
+  ASBESTOS_COC_EDIT,
 } from "../../../constants/modal-types";
 import Button from "@material-ui/core/Button";
 
@@ -90,6 +91,7 @@ const mapStateToProps = state => {
     search: state.local.search,
     sites: state.jobs.sites,
     siteJobs: state.jobs.siteJobs,
+    siteCocs: state.jobs.siteCocs,
     me: state.local.me,
     staff: state.local.staff,
     filter: state.display.filterMap,
@@ -385,6 +387,34 @@ class SiteGeneralInformation extends React.Component {
                   </div>
                 );
               })}
+            </div>
+            <div className={classes.informationBoxWhiteRounded}>
+              <div className={classNames(color, classes.expandHeading)}>Chains of Custody</div>
+              <div className={classNames(classes.subHeading, classes.flexRowCenter)}>
+                <Button
+                  variant="outlined"
+                  className={classes.marginBottomSmall}
+                  onClick={() => {
+                    this.props.showModal({
+                      modalType: ASBESTOS_COC_EDIT,
+                      modalProps: {
+                        title: "Add Historical Chain of Custody",
+                        doc: { samples: {}, deleted: false, versionUpToDate: true, mostRecentIssueSent: true, historicalCoc: true, },
+                        isNew: true,
+                      }
+                    });
+                  }}
+                >
+                  Add Historical Chain of Custody
+                </Button>
+              </div>
+              { this.props.siteCocs && this.props.siteCocs[this.props.site] ? Object.values(this.props.siteCocs[this.props.site]).map(coc =>
+                <div className={classes.hoverNoFlex} key={coc.uid}>
+                  <div className={classes.flexRow}>
+                    {`${coc.jobNumber}: ${coc.client}`}
+                  </div>
+                </div>
+              ) : <div>No Chains of Custody</div>}
             </div>
             <div className={classes.informationBoxWhiteRounded}>
               <div className={classNames(color, classes.expandHeading)}>Clearances</div>

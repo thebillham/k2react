@@ -9,6 +9,7 @@ import {
   SITE_JOB,
   TEMPLATE_ACM,
   TEMPLATE_BUILDING_MATERIAL,
+  ASBESTOS_COC_EDIT,
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import Button from "@material-ui/core/Button";
@@ -32,6 +33,7 @@ import SyncIcon from '@material-ui/icons/Sync';
 import LinkIcon from '@material-ui/icons/Link';
 import WfmTimeModal from "./modals/WfmTimeModal";
 import SiteJobModal from "./modals/SiteJobModal";
+import CocModal from "../asbestoslab/modals/CocModal";
 
 import Popup from "reactjs-popup";
 import {
@@ -50,6 +52,7 @@ import {
   getJobColor,
   fetchSiteJobs,
   fetchSiteAcm,
+  fetchSiteCocs,
 } from "../../actions/jobs";
 
 import {
@@ -84,6 +87,7 @@ const mapStateToProps = state => {
     sites: state.jobs.sites,
     siteJobs: state.jobs.siteJobs,
     siteAcm: state.jobs.siteAcm,
+    siteCocs: state.jobs.siteCocs,
     search: state.local.search,
     me: state.local.me,
     filter: state.display.filterMap,
@@ -197,6 +201,7 @@ class Site extends React.Component {
         {this.props.modalType === SITE_JOB && <SiteJobModal />}
         {this.props.modalType === TEMPLATE_ACM && <TemplateAcmModal />}
         {this.props.modalType === TEMPLATE_BUILDING_MATERIAL && <TemplateBmModal />}
+        {this.props.modalType === ASBESTOS_COC_EDIT && <CocModal />}
         {this.state.tabValue === 'general' && <SiteGeneralInformation that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'visithistory' && <SiteVisitHistory that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'layout' && <SiteLayout that={this} site={this.props.match.params.site.trim()} />}

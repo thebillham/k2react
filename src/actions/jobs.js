@@ -16,6 +16,7 @@ import {
   GET_WFM_CLIENTS,
   GET_JOB_LIST,
   GET_SITE_JOBS,
+  GET_SITE_COCS,
   ADD_TO_JOB_LIST,
   GET_CURRENT_JOB_STATE,
   RESET_JOBS,
@@ -50,6 +51,7 @@ import {
   usersRef,
   jobsRef,
   sitesRef,
+  cocsRef,
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 import {
@@ -767,6 +769,18 @@ export const fetchSiteJobs = site => async dispatch => {
       let job = doc.data();
       job.uid = doc.id;
       jobs[doc.id] = job;
+      var cocs = {};
+      cocsRef.where('jobNumber','==',job.jobNumber).onSnapshot(cocSnapshot => {
+        cocSnapshot.forEach(cocDoc => {
+          let coc = cocDoc.data();
+          coc.uid = cocDoc.id;
+          cocs[cocDoc.id] = coc;
+        })
+      });
+      dispatch({
+        type: GET_SITE_COCS,
+        payload: {cocs, site},
+      });
     });
     dispatch({
       type: GET_SITE_JOBS,

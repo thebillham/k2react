@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import { ASBESTOS_COC_EDIT, ASBESTOS_SAMPLE_EDIT_COC, } from '../../../constants/modal-types';
 import moment from "moment";
 
+import { AsbButton, } from '../../../widgets/FormWidgets';
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 import Dialog from '@material-ui/core/Dialog';
@@ -51,6 +52,8 @@ import {
   handleSampleChange,
   writeDescription,
   getAirSampleData,
+  getSampleColors,
+  updateResultMap,
 } from '../../../actions/asbestosLab';
 import { titleCase, sentenceCase, dateOf, personnelConvert, numericOnly, } from '../../../actions/helpers';
 import _ from 'lodash';
@@ -208,6 +211,18 @@ class CocModal extends React.PureComponent {
     // };
     // sendSlackMessage(message, true);
   }
+
+  handleResultClick = (res, sampleNumber) => {
+    console.log(sampleNumber);
+    const { me, doc, } = this.props;
+    let sample = doc && doc.samples && doc.samples[sampleNumber+1] && !doc.samples[sampleNumber+1].deleted ? doc.samples[sampleNumber+1] : {};
+    console.log(sample.result);
+    console.log(res);
+    let newMap = updateResultMap(res, sample.result);
+    console.log(newMap);
+    this.props.handleSampleChange(sampleNumber, {result: newMap});
+    console.log(doc.samples[sampleNumber]);
+  };
 
   render() {
     const { modalProps, modalType, doc, wfmJob, classes, me, jobList } = this.props;
@@ -545,6 +560,11 @@ class CocModal extends React.PureComponent {
                         <div className={classes.columnMedSmall}>
                           Sample Date
                         </div>
+                        {doc.historicalCoc &&
+                          <div className={classes.columnLarge}>
+                            Result
+                          </div>
+                        }
                         <div className={classes.columnSmall} />
                       </div>
                       <div className={classNames(classes.flexRow, classes.infoLight)}>
@@ -566,6 +586,9 @@ class CocModal extends React.PureComponent {
                         <div className={classes.columnMedLarge} />
                         <div className={classes.columnMedSmall} />
                         <div className={classes.columnSmall} />
+                        {doc.historicalCoc &&
+                          <div className={classes.columnLarge} />
+                        }
                       </div>
                     </div>
                   :
@@ -593,6 +616,10 @@ class CocModal extends React.PureComponent {
                         <div className={classes.columnMed}>
                           Sample Volume
                         </div>
+                        <div className={classes.spacerSmall} />
+                        {doc.historicalCoc && <div className={classes.columnMed}>
+                          Fibre Result
+                        </div>}
                         <div className={classes.columnMedLargeCentered}>Sampling Errors</div>
                       </div>
                       <div className={classNames(classes.flexRow, classes.infoLight)}>
@@ -615,6 +642,8 @@ class CocModal extends React.PureComponent {
                         <div className={classes.columnMedSmall} />
                         <div className={classes.spacerSmall} />
                         <div className={classes.columnMed} />
+                        <div className={classes.spacerSmall} />
+                        {doc.historicalCoc && <div className={classes.columnMed} />}
                         <div className={classes.columnMedLarge} />
                       </div>
                     </div>
@@ -623,6 +652,7 @@ class CocModal extends React.PureComponent {
                   {this.state.sampleType === "bulk" ?
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                       let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted ? doc.samples[i+1] : {};
+                      let colors = getSampleColors(sample);
                       let disabled = blockInput || (sample.cocUid && sample.cocUid !== doc.uid);
                       if (!disabled) disabled = false;
                       return(sample.uid && sample.deleted === false ?
@@ -792,6 +822,13 @@ class CocModal extends React.PureComponent {
                               }}
                             />
                           </div>
+                          {doc.historicalCoc &&
+                            <div className={classNames(classes.flexRow, classes.columnLarge)}>
+                              {['ch','am','cr','umf','no'].map(res => {
+                                return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res, () => this.handleResultClick(res, i))
+                              })}
+                            </div>
+                          }
                           <div className={classes.columnSmall}>
                             {/*<Tooltip title={'Add Detailed Sample Information e.g. In-Situ Soil Characteristics'}>
                               <IconButton onClick={() =>

@@ -42,6 +42,7 @@ import DeleteIcon from "@material-ui/icons/Close";
 import Select from 'react-select';
 import SuggestionField from '../../../widgets/SuggestionField';
 import AcmCard from "../components/AcmCard";
+import SearchIcon from "@material-ui/icons/Search";
 
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
@@ -177,9 +178,9 @@ const getItemStyle = (isDragging, draggableStyle) => ({
   ...draggableStyle
 });
 
-const getListStyle = (isDraggingOver, isDefault) => ({
+const getListStyle = (isDraggingOver, mode) => ({
   borderRadius: 4,
-  background: isDefault ? isDraggingOver ? "#006D44" : "#338a69" : isDraggingOver ? "#FF2D00" : "#ff5733",
+  background: mode === 'blank' ? isDraggingOver ? "#ddd" : "#fff" : mode === 'green' ? isDraggingOver ? "#006D44" : "#338a69" : isDraggingOver ? "#FF2D00" : "#ff5733",
   margin: 4,
   padding: 8,
 });
@@ -187,6 +188,7 @@ const getListStyle = (isDraggingOver, isDefault) => ({
 class SiteAsbestosRegister extends React.Component {
   state = {
     generic: [],
+    templateSearch: '',
   }
 
   UNSAFE_componentWillMount() {
@@ -197,9 +199,12 @@ class SiteAsbestosRegister extends React.Component {
       roomGroup && roomGroup.rooms && roomGroup.rooms.forEach(room => {
         // console.log(room);
         this.props.siteAcm[this.props.site] && console.log(Object.values(this.props.siteAcm[this.props.site]).filter(a => a.room && a.room.uid === room.uid));
-        if (room.acm) this.setState({ [room.uid]: room.acm });
-        else this.setState({ [room.uid]: this.props.siteAcm[this.props.site] ? Object.values(this.props.siteAcm[this.props.site]).filter(a => a.room && a.room.uid === room.uid).map(e => e.uid) : [] });
+        if (room.acm) {
+          console.log(room.acm);
+          this.setState({ [room.uid]: room.acm });
+        } else this.setState({ [room.uid]: this.props.siteAcm[this.props.site] ? Object.values(this.props.siteAcm[this.props.site]).filter(a => a.room && a.room.uid === room.uid).map(e => e.uid) : [] });
       })
+      this.setState({ generic: this.props.siteAcm[this.props.site] ? Object.values(this.props.siteAcm[this.props.site]).filter(a => a.room && a.room.uid === 'generic').map(e => e.uid) : [] });
     })
 
     // console.log(this.state);
@@ -317,14 +322,29 @@ class SiteAsbestosRegister extends React.Component {
                     </IconButton>
                   </Tooltip>
               </div>
+              <div className={classes.flexRow}>
+                <SearchIcon />
+                <div className={classes.spacerSmall} />
+                <TextField
+                  value={this.state.templateSearch}
+                  style={{ width: '100%'}}
+                  onChange={e => this.setState({ templateSearch: e.target.value })}
+                />
+              </div>
               <Droppable key={'templates'} droppableId={'templates'}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
-                    style={getListStyle(snapshot.isDraggingOver)}
+                    style={getListStyle(snapshot.isDraggingOver, 'blank')}
                     {...provided.droppableProps}
                   >
-                  { this.props.acmTemplates && this.props.acmTemplates.map((item, index) => {
+                  { this.props.acmTemplates && this.props.acmTemplates
+                    .filter(e => {
+                      let res = true;
+                      if (this.state.templateSearch && !`${e.templateName}${e.description}${e.material}`.toLowerCase().includes(this.state.templateSearch.toLowerCase())) res = false;
+                      return res;
+                    })
+                    .map((item, index) => {
                     return (<Draggable
                       key={`${item.uid}template`}
                       draggableId={`${item.uid}template`}
@@ -361,7 +381,7 @@ class SiteAsbestosRegister extends React.Component {
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
-                    style={getListStyle(snapshot.isDraggingOver, true)}
+                    style={getListStyle(snapshot.isDraggingOver, 'green')}
                     {...provided.droppableProps}
                   >
                   <div className={classes.boldWhite}>Generic Items/Materials</div>

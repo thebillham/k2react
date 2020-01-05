@@ -91,6 +91,7 @@ export const GET_JOB_LIST = "GET_JOB_LIST";
 export const GET_SITE_JOB = "GET_SITE_JOB";
 export const GET_SITE_JOBS = "GET_SITE_JOBS";
 export const GET_SITE_ACM = "GET_SITE_ACM";
+export const GET_SITE_COCS = "GET_SITE_COCS";
 export const ADD_TO_JOB_LIST = "ADD_TO_JOB_LIST";
 export const CLEAR_WFM_JOB = "CLEAR_WFM_JOB";
 export const RESET_JOBS = "RESET_JOBS";

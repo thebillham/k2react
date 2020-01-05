@@ -26,6 +26,13 @@ import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import TimerIcon from "@material-ui/icons/Timer";
 import WfmTimeModal from "../modals/WfmTimeModal";
+import {SketchField, Tools} from 'react-sketch';
+import UndoIcon from '@material-ui/icons/Undo';
+import RedoIcon from '@material-ui/icons/Redo';
+import MoveIcon from '@material-ui/icons/OpenWith';
+import ClearIcon from '@material-ui/icons/Clear';
+import AddIcon from '@material-ui/icons/Add';
+import { fabric } from 'fabric';
 
 import Popup from "reactjs-popup";
 import {
@@ -105,107 +112,185 @@ const mapDispatchToProps = dispatch => {
 
 class SiteMapsAndDiagrams extends React.Component {
   state = {
+    lineColor: 'black',
+    tool: 'pencil',
+    drawings: [],
+    text: '',
+    canUndo: false,
+    canRedo: false,
   };
+
+  _toolSwitch = tool => {
+    this.setState({
+      tool: tool,
+    })
+  }
+
+  _save = () => {
+    let drawings = this.state.drawings;
+    drawings.push(this._sketch.toDataURL());
+    this.setState({ drawings: drawings });
+  }
+
+  // _download = () => {
+  //   console.save(this._sketch.toDataURL(), '')
+  // }
+
+  _undo = () => {
+    this._sketch.undo();
+    this.setState({
+      canUndo: this._sketch.canUndo(),
+      canRedo: this._sketch.canRedo(),
+    })
+  }
+
+  _redo = () => {
+    this._sketch.redo();
+    this.setState({
+      canUndo: this._sketch.canUndo(),
+      canRedo: this._sketch.canRedo(),
+    });
+  }
+
+  _clear = () => {
+    if (
+      window.confirm("Are you sure you wish to clear the image?")
+    ) {
+      this._sketch.clear();
+      this.setState({
+        controlledValue: null,
+        canUndo: this._sketch.canUndo(),
+        canRedo: this._sketch.canRedo(),
+      });
+    }
+  }
+
+  _onSketchChange = () => {
+    let prev = this.state.canUndo;
+    let now = this._sketch.canUndo();
+    if (prev !== now) {
+      this.setState({ canUndo: now });
+    }
+  }
+
+  _addText = () => {
+    this.setState({ tool: 'select' })
+    this._sketch.addText(this.state.text);
+  }
 
   render() {
     const { classes, that, jobNumber } = this.props;
+    let { controlledValue } = this.state;
 
-    let m = this.props.jobs && this.props.jobs[jobNumber];
-
-    if (m) {
-      const color = classes[getJobColor(m.category)];
-      let maxLength = this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength").length > 0 ? parseInt(this.props.otherOptions.filter(opt => opt.option === "jobLeadEmailLength")[0].value) : 600;
-      return (
-        <div className={classes.marginTopStandard}>
-          {m.geocode && (
-            <div>
-              <i>{m.geocode.address}</i>
-            </div>
-          )}
-          {m.wfmState && (
-            <div>
-              <b>State:</b> {m.wfmState}
-            </div>
-          )}
-          <div>
-            <b>Owner:</b> {m.owner ? m.owner : 'Not Assigned'}
-          </div>
-          <div>
-            {m.assigned &&
-              <div>
-                <b> Assigned: </b> {andList(m.assigned.map(e => e.name))}
-              </div>
-            }
-            {m.lastActionDate && m.wfmState !== "Completed" && (
-              <div>
-                {m.wfmState && (<span><b>Last Action:</b> {getStateString(m)} </span>)}
-              </div>
-            )}
-            {m.stateHistory && (
-              <div><br /><h6 className={color}>State History</h6>
-                { Object.keys(m.stateHistory).map((key) => {
-                  return (
-                    <span key={key}>
-                      <b>{key}:</b> {m.stateHistory[key]}<br/>
-                    </span>
-                  )
-                })}
-              </div>
-            )}
-            {m.milestones && m.milestones.length > 0 && (
-            <div><br /><h6 className={color}>Milestones</h6>
-            {
-              m.milestones.map((item) => {
-                if(item.completed === 'true') {
-                  return (
-                    <span key={item.date} className={classes.linethrough}>
-                      <b>{moment(item.date).format('YYYY-MM-DD')}:</b> {item.description}
-                      <br/>
-                    </span>
-                  )
-                } else {
-                  return (
-                    <span key={item.date}>
-                      <b>{moment(item.date).format('YYYY-MM-DD')}:</b> {item.description}
-                      <br/>
-                    </span>
-                  )
-                }
-              })
-            }
-          </div>
-          )}
-
-            {m.notes && m.notes.length > 0 && (
-            <div><br /><h6 className={color}>Notes</h6>
-            {
-              m.notes.map((item) =>
-              <div key={moment(dateOf(item.date)).format('x')}>
-                <div><b>{moment(dateOf(item.date)).format('YYYY-MM-DD')}</b> {item.title} - {item.createdBy}</div>
-                {item.text && <div className={classes.code}>
-                  {item.text.length > maxLength ? `${item.text.substring(0, maxLength)}...` : item.text}
-                </div>}
-              </div>)
-            }
-          </div>
-          )}
-          </div>
-
-          <div className={classes.paddingCenterText}>
-            <Button variant="outlined" className={classes.buttonIconText}>
-              <a
-                className={classes.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                href={getWfmUrl(m)}
-              >
-                View on WorkflowMax
-              </a>
+    return (
+      <div>
+        <InputLabel shrink>Diagram of incident</InputLabel>
+        <Grid container spacing={8}>
+          <Grid item>
+            <IconButton
+              aira-label="Undo"
+              onClick={this._undo}
+            >
+              <UndoIcon disabled={!this.state.canUndo} color={this.state.canUndo ? "secondary" : "action"} />
+            </IconButton>
+          </Grid>
+          <Grid item>
+            <IconButton
+              aira-label="Redo"
+              onClick={this._redo}
+            >
+              <RedoIcon disabled={!this.state.canRedo} color={this.state.canRedo ? "secondary" : "action"} />
+            </IconButton>
+          </Grid>
+          <Grid item>
+            <IconButton
+              aira-label="Move"
+              onClick={() => this._toolSwitch('select')}
+            >
+              <MoveIcon color={this.state.tool === 'select' ? "secondary" : "action"} />
+            </IconButton>
+          </Grid>
+          <Grid item>
+            <IconButton
+              aira-label="Clear"
+              onClick={this._clear}
+            >
+              <ClearIcon color={"secondary"} />
+            </IconButton>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="outlined"
+              color={
+                this.state.tool === 'pencil' ? "secondary" : "primary"
+              }
+              onClick={() => this._toolSwitch('pencil')}
+            >
+              Pencil
             </Button>
-          </div>
-        </div>
-      );
-    } else return (<div />)
+          </Grid>
+            <Grid item>
+              <Button
+                variant="outlined"
+                color={
+                  this.state.tool === 'line' ? "secondary" : "primary"
+                }
+                onClick={() => this._toolSwitch('line')}
+              >
+                Line
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant="outlined"
+                color={
+                  this.state.tool === 'circle' ? "secondary" : "primary"
+                }
+                onClick={() => this._toolSwitch('circle')}
+              >
+                Circle
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant="outlined"
+                color={
+                  this.state.tool === 'rectangle' ? "secondary" : "primary"
+                }
+                onClick={() => this._toolSwitch('rectangle')}
+              >
+                Rectangle
+              </Button>
+            </Grid>
+            <Grid item>
+            <TextField
+              label={'Add Text'}
+              onChange={(e) => this.setState({ text: e.target.value })}
+              value={this.state.text}/>
+            </Grid>
+            <Grid item>
+              <IconButton
+                color="primary"
+                onClick={this._addText}>
+                <AddIcon/>
+              </IconButton>
+            </Grid>
+        </Grid>
+        <SketchField
+          name='sketch'
+          ref={c => (this._sketch = c)}
+          width='1024px'
+          height='540px'
+          tool={this.state.tool}
+          lineColor={this.state.lineColor}
+          lineWidth={3}
+          defaultValue={{'background': ''}}
+          value={controlledValue}
+          forceValue
+          onChange={this._onSketchChange}
+        />
+      </div>
+    )
   }
 }
 

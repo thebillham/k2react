@@ -174,6 +174,7 @@ class AcmCard extends React.Component {
     return (
       <Card>
         <CardContent>
+          <div className={classes.heading}>{this.state.room && this.state.room.label}</div>
           <InputLabel>Item Description</InputLabel>
           <SuggestionField that={this} suggestions='descriptionSuggestions'
             controlled
@@ -218,6 +219,45 @@ class AcmCard extends React.Component {
               options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
               onChange={e => {
                 this.setState({category: e.value});
+              }}
+            />
+          </div>}
+
+          <InputLabel className={classes.marginTopSmall}>Identification</InputLabel>
+          <div className={classes.flexRow}>
+            {[{
+              label: 'Presumed',
+              value: 'p',
+              color: 'Ok',
+              tooltip: 'Default.',
+            },{
+              label: 'Strongly Presumed',
+              value: 's',
+              color: 'Warning',
+              tooltip: 'Strongly presumed.',
+            },{
+              label: 'Sampled',
+              value: 'i',
+              color: 'Bad',
+              tooltip: 'Sampled.'
+            }].map(res => {
+              return ScoreButton(
+                classes[`colorsButton${this.state.idKey === res.value ? res.color : 'Off'}`],
+                classes[`colorsDiv${this.state.idKey === res.value ? res.color : 'Off'}`],
+                res.label,
+                res.tooltip,
+                () => this.setState({ idKey: res.value, })
+              )
+            })}
+          </div>
+          { (this.state.idKey === 'i' || this.state.idKey === 's') && <div>
+            <InputLabel className={classes.marginTopSmall}>{this.state.idKey === 'i' ? 'Sample Number' : 'Presume As Sample'}</InputLabel>
+            <Select
+              className={classes.selectTight}
+              value={this.state.managementSecondary ? {value: this.state.managementSecondary, label: this.state.managementSecondary} : {value: '', label: ''}}
+              options={this.props.asbestosManagementOptions.map(e => ({ value: e.label, label: e.label }))}
+              onChange={e => {
+                this.setState({managementSecondary: e.value});
               }}
             />
           </div>}
