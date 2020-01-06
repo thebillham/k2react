@@ -22,6 +22,7 @@ const mapStateToProps = state => {
     materialSuggestions: state.const.asbestosMaterialSuggestions,
     asbestosInSoilSuggestions: state.const.asbestosInSoilSuggestions,
     airTestDescriptions: state.const.airTestDescriptions,
+    extentSuggestions: state.const.extentSuggestions,
    };
 };
 

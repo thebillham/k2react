@@ -66,6 +66,31 @@ const mapStateToProps = state => {
     asbestosMaterialCategories: state.const.asbestosMaterialCategories,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
     asbestosManagementOptions: state.const.asbestosManagementOptions,
+
+    asbestosAccessibilitySuggestions: state.const.asbestosAccessibilitySuggestions,
+
+    // Material Risk
+    asbestosProductScores: state.const.asbestosProductScores,
+    asbestosSurfaceScores: state.const.asbestosSurfaceScores,
+    asbestosDamageScores: state.const.asbestosDamageScores,
+
+    // Activity
+    asbestosPriMainActivityScores: state.const.asbestosPriMainActivityScores,
+    asbestosPriSecondaryActivityScores: state.const.asbestosPriSecondaryActivityScores,
+
+    // Disturbance
+    asbestosPriLocationScores: state.const.asbestosPriLocationScores,
+    asbestosPriAccessibilityScores: state.const.asbestosPriAccessibilityScores,
+    asbestosPriExtentScores: state.const.asbestosPriExtentScores,
+
+    // Exposure
+    asbestosPriOccupantsScores: state.const.asbestosPriOccupantsScores,
+    asbestosPriUseFreqScores: state.const.asbestosPriUseFreqScores,
+    asbestosPriAvgTimeScores: state.const.asbestosPriAvgTimeScores,
+
+    // Maintenance
+    asbestosPriMaintTypeScores: state.const.asbestosPriMaintTypeScores,
+    asbestosPriMaintFreqScores: state.const.asbestosPriMaintFreqScores,
   };
 };
 
@@ -191,6 +216,7 @@ class AcmCard extends React.Component {
   }
 
   render() {
+    console.log(this.props.const);
     const { modalProps, item, classes } = this.props;
     const colors = getSampleColors({ result: this.state.asbestosType });
     if (item.uid !== this.state.uid) {
@@ -199,14 +225,17 @@ class AcmCard extends React.Component {
     }
     let samples = {};
     this.props.siteCocs && this.props.siteCocs[this.props.site] && Object.keys(this.props.siteCocs[this.props.site]).forEach(k => {
-      if (this.props.samples && this.props.samples[k]) samples = { ...samples, ...this.props.samples[k]};
+      if (this.props.samples && this.props.samples[k])
+        Object.values(this.props.samples[k]).forEach(m => {
+          samples[m.uid] = m;
+        });
     });
     const negative = (this.state.sample && this.state.sample.result && this.state.sample.result.no);
     console.log(this.state);
     return (
       <Card>
         { item.sampleType === 'air' ?
-          <CardContent>
+          <CardContent className={classes.minHeightDialog90}>
             <div className={classes.heading}>{`${this.state.room ? this.state.room.label : ''} Air Sample`}</div>
             <InputLabel className={classes.marginTopSmall}>Sample Number</InputLabel>
             <Select
@@ -219,6 +248,10 @@ class AcmCard extends React.Component {
                 this.setState({sample: e.value});
               }}
             />
+            <InputLabel className={classes.marginTopSmall}>Concentration</InputLabel>
+            {this.state.sample.reportConcentration ? <div className={this.state.sample.reportConcentration.includes("<") ? classes.informationBoxOk : classes.informationBoxError}>
+              {this.state.sample.reportConcentration}
+            </div> : ''}
           </CardContent>
         :
           <CardContent>
@@ -311,14 +344,31 @@ class AcmCard extends React.Component {
                 }}
               />
             </div>}
+            <InputLabel className={classes.marginTopSmall}>Extent</InputLabel>
+            <SuggestionField that={this} suggestions='extentSuggestions'
+              controlled
+              value={this.state.extent || ''}
+              onModify={value => this.setState({ extent: value})} />
 
-            <TextField
-              id="extent"
-              label="Extent"
-              style={{ width: '100%' }}
-              value={this.state.extent}
-              onChange={e => this.setState({ extent: e.target.value, })}
-            />
+            <div className={classes.flexRow}>
+              <TextField
+                id="extentNum"
+                label="Extent Amount"
+                style={{ width: '30%' }}
+                value={this.state.extentNum}
+                onChange={e => this.setState({ extentNum: numericAndLessThanOnly(e.target.value), })}
+              />
+              <Select
+                className={classNames(classes.selectTight, classes.columnSmall)}
+                value={this.state.extentNumUnits ?
+                  { value: this.state.extentNumUnits,
+                  label: this.state.extentNumUnits } : { value: 'm²', label: 'm²' }}
+                options={['m²','m','lm','m³','items'].map(e => ({ value: e, label: e}))}
+                onChange={e => {
+                  this.setState({extentNumUnits: e.value});
+                }}
+              />
+            </div>
 
             <FormControlLabel
               control={
@@ -350,19 +400,7 @@ class AcmCard extends React.Component {
 
             <InputLabel className={classes.marginTopSmall}>Accessibility Score</InputLabel>
             <div className={classes.flexRow}>
-              {[{
-                label: 'Easy',
-                color: 'Ok',
-                tooltip: 'May be disturbed during normal occupancy. Does not require any equipment to access.',
-              },{
-                label: 'Medium',
-                color: 'Warning',
-                tooltip: 'Requires equipment (e.g. a ladder) to access. Within fuse boxes.',
-              },{
-                label: 'Difficult',
-                color: 'Bad',
-                tooltip: 'Requires specialist equipment, dismantling of machinery or modification of the building to access.'
-              }].map(res => {
+              {this.props.asbestosAccessibilitySuggestions && this.props.asbestosAccessibilitySuggestions.map(res => {
                 return ScoreButton(
                   classes[`colorsButton${this.state.accessibility === res.label ? res.color : 'Off'}`],
                   classes[`colorsDiv${this.state.accessibility === res.label ? res.color : 'Off'}`],
@@ -404,19 +442,7 @@ class AcmCard extends React.Component {
                 <div>
                   <InputLabel className={classes.marginTopSmall}>Product Score</InputLabel>
                   <div className={classes.flexRow}>
-                    {[{
-                      label: '1',
-                      color: 'Ok',
-                      tooltip: 'Non-friable or low friability. Asbestos-reinforced composites. (Cement, vinyl tiles, plaster, plastics, mastics, etc.)',
-                    },{
-                      label: '2',
-                      color: 'Warning',
-                      tooltip: 'Medium friability (AIB, asbestos rope and textiles, paper-backed vinyl, gaskets, etc.)',
-                    },{
-                      label: '3',
-                      color: 'Bad',
-                      tooltip: 'Highly friable (ACD, loose asbestos, boiler or pipe lagging, sprayed asbestos, etc.)'
-                    }].map(res => {
+                    {this.props.asbestosProductScores && this.props.asbestosProductScores.map(res => {
                       return ScoreButton(
                         classes[`colorsButton${this.state.productScore === res.label ? res.color : 'Off'}`],
                         classes[`colorsDiv${this.state.productScore === res.label ? res.color : 'Off'}`],
@@ -431,23 +457,7 @@ class AcmCard extends React.Component {
                 <div>
                   <InputLabel className={classes.marginTopSmall}>Surface Score</InputLabel>
                   <div className={classes.flexRow}>
-                    {[{
-                      label: '0',
-                      color: 'Benign',
-                      tooltip: 'Composite materials (Reinforced plastics, resins, vinyl tiles, Bakelite, etc.)',
-                    },{
-                      label: '1',
-                      color: 'Ok',
-                      tooltip: 'Non-friable material, sealed moderately friable product or enclosed highly friable product.',
-                    },{
-                      label: '2',
-                      color: 'Warning',
-                      tooltip: 'Encapsulated highly friable product or unsealed moderately friable product.',
-                    },{
-                      label: '3',
-                      color: 'Bad',
-                      tooltip: 'Unsealed highly friable product.'
-                    }].map(res => {
+                    {this.props.asbestosSurfaceScores && this.props.asbestosSurfaceScores.map(res => {
                       return ScoreButton(
                         classes[`colorsButton${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
                         classes[`colorsDiv${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
@@ -529,6 +539,164 @@ class AcmCard extends React.Component {
                 if (source === "user") this.setState({ recommendations: content })
               }}
             /></div>}
+
+            <InputLabel className={classes.marginTopSmall}>Priority Risk Assessment</InputLabel>
+            <InputLabel className={classes.marginTopSmall}>Activity</InputLabel>
+
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Main Activity Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriMainActivityScores && this.props.asbestosPriMainActivityScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priMainActivityScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priMainActivityScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priMainActivityScore: this.state.priMainActivityScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Secondary Activity Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriSecondaryActivityScores && this.props.asbestosPriSecondaryActivityScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priSecondaryActivityScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priSecondaryActivityScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priSecondaryActivityScore: this.state.priSecondaryActivityScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+            <InputLabel className={classes.marginTopSmall}>Disturbance</InputLabel>
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Location Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriLocationScores && this.props.asbestosPriLocationScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priLocationScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priLocationScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priLocationScore: this.state.priLocationScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Accessibility Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriAccessibilityScores && this.props.asbestosPriAccessibilityScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priAccessibilityScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priAccessibilityScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priAccessibilityScore: this.state.priAccessibilityScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Extent Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriExtentScores && this.props.asbestosPriExtentScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priExtentScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priExtentScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priExtentScore: this.state.priExtentScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+            <InputLabel className={classes.marginTopSmall}>Exposure</InputLabel>
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Occupants Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriOccupantsScores && this.props.asbestosPriOccupantsScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priOccupantScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priOccupantScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priOccupantScore: this.state.priOccupantScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Use Frequency Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriUseFreqScores && this.props.asbestosPriUseFreqScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priUseFreqScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priUseFreqScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priUseFreqScore: this.state.priUseFreqScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Average Time Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriAvgTimeScores && this.props.asbestosPriAvgTimeScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priAvgTimeScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priAvgTimeScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priAvgTimeScore: this.state.priAvgTimeScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+            <InputLabel className={classes.marginTopSmall}>Maintenance</InputLabel>
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Maintenance Type Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriMaintTypeScores && this.props.asbestosPriMaintTypeScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priMaintTypeScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priMaintTypeScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priMaintTypeScore: this.state.priMaintTypeScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+            <div>
+              <InputLabel className={classes.marginTopSmall}>Maintenance Frequency Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosPriMaintFreqScores && this.props.asbestosPriMaintFreqScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.priMaintFreqScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.priMaintFreqScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({ priMaintFreqScore: this.state.priMaintFreqScore === res.label ? null : res.label, })
+                  )
+                })}
+              </div>
+            </div>
+
+
 
             <InputLabel className={classes.marginTopSmall}>Thumbnail Image</InputLabel>
             {this.state.siteImageUrl && (

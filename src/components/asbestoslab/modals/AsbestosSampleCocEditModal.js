@@ -192,6 +192,10 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
   saveSample = (onComplete) => {
     const { sample, samples } = this.state;
     const { modalProps } = this.props;
+
+    let calcs = {};
+    if ((sample.initialFlowRate && sample.finalFlowRate) || (sample.startTime && sample.endTime)) calcs = getAirSampleData(sample);
+
     let log = {};
     if (this.state.sampleDelete && window.confirm("Are you sure you wish to delete this sample?")) {
       // Delete sample
@@ -213,7 +217,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
         window.alert("You cannot move this sample to that sample number as it is being used by a sample in a different Chain of Custody.");
       }
     } else {
-      if (sample.uid && sample !== this.props.samples[sample.cocUid][sample.sampleNumber]) {
+      if (sample.uid && {...sample, ...calcs} !== this.props.samples[sample.cocUid][sample.sampleNumber]) {
         log = {
           type: 'Edit',
           log: `Details of sample ${this.state.sample.jobNumber}-${this.state.sample.sampleNumber} (${writeDescription(this.state.sample)}) modified.`,
@@ -222,7 +226,9 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
         };
         addLog("asbestosLab", log, this.props.me);
         let i = parseInt(sample.sampleNumber) - 1;
-        this.props.handleSampleChange(i,
+        console.log(this.state.sample);
+        if (sample.sampleType === 'air') this.props.handleSampleChange(i, {...sample, ...calcs});
+        else this.props.handleSampleChange(i,
           {
             verified: false,
             genericLocation: sample.genericLocation ? sample.genericLocation : null,
@@ -236,6 +242,9 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
             sampleQuantity: sample.sampleQuantity ? sample.sampleQuantity : null,
           }
         );
+      } else {
+        console.log(this.props.samples[sample.cocUid][sample.sampleNumber]);
+        console.log(sample);
       }
       onComplete();
     }

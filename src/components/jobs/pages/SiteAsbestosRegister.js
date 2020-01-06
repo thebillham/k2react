@@ -478,6 +478,7 @@ class SiteAsbestosRegister extends React.Component {
       else idKey = 'positive';
     }
     if (item.acmRemoved) idKey = 'removed';
+    console.log(item.sample);
     return (
       <div className={classes.flexRowSpread}>
         <div className={classNames(classes.columnMed, classes.bold)}>
@@ -489,7 +490,7 @@ class SiteAsbestosRegister extends React.Component {
         <div className={classes.flexRow}>
           <IconButton>
             {item.sampleType === 'air' ?
-              <AirResultIcon className={item.sample && item.sample.reportedConcentration && item.sample.reportedConcentration.includes('<') ? classes.colorsOk : classes.colorsBad} />
+              <AirResultIcon className={(item.sample && item.sample.reportConcentration && item.sample.reportConcentration.includes("<")) ? classes.colorsOk : classes.colorsBad} />
             : idKey === 'removed' ?
             <RemovedIcon /> :
             <ResultIcon className={
