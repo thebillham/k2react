@@ -152,8 +152,8 @@ export const handleModalChange = target => dispatch => {
     })
   } else if (target.id === 'doc') {
     dispatch({
-      type: EDIT_MODAL,
-      payload: {doc: target.value},
+      type: EDIT_MODAL_DOC,
+      payload: target.value,
     });
   } else if (target.id === 'modal') {
     dispatch({

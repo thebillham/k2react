@@ -10,6 +10,7 @@ import {
   TEMPLATE_ACM,
   TEMPLATE_BUILDING_MATERIAL,
   ASBESTOS_COC_EDIT,
+  ASBESTOS_SAMPLE_EDIT_COC,
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import Button from "@material-ui/core/Button";
@@ -34,6 +35,7 @@ import LinkIcon from '@material-ui/icons/Link';
 import WfmTimeModal from "./modals/WfmTimeModal";
 import SiteJobModal from "./modals/SiteJobModal";
 import CocModal from "../asbestoslab/modals/CocModal";
+import AsbestosSampleCocEditModal from "../asbestoslab/modals/AsbestosSampleCocEditModal";
 
 import Popup from "reactjs-popup";
 import {
@@ -93,6 +95,7 @@ const mapStateToProps = state => {
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
     modalType: state.modal.modalType,
+    modalTypeSecondary: state.modal.modalTypeSecondary,
   };
 };
 
@@ -202,6 +205,7 @@ class Site extends React.Component {
         {this.props.modalType === TEMPLATE_ACM && <TemplateAcmModal />}
         {this.props.modalType === TEMPLATE_BUILDING_MATERIAL && <TemplateBmModal />}
         {this.props.modalType === ASBESTOS_COC_EDIT && <CocModal />}
+        { this.props.modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && <AsbestosSampleCocEditModal /> }
         {this.state.tabValue === 'general' && <SiteGeneralInformation that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'visithistory' && <SiteVisitHistory that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'layout' && <SiteLayout that={this} site={this.props.match.params.site.trim()} />}

@@ -45,7 +45,7 @@ import {
   setModalError,
 } from "../../../actions/modal";
 import { fetchSites, getDetailedWFMJob, } from '../../../actions/jobs';
-import { getSampleColors, updateResultMap, } from '../../../actions/asbestosLab';
+import { getSampleColors, updateResultMap, writeDescription, } from '../../../actions/asbestosLab';
 import { getUserAttrs, } from "../../../actions/local";
 import { sendSlackMessage, numericAndLessThanOnly, } from '../../../actions/helpers';
 import { AsbButton, ScoreButton, } from '../../../widgets/FormWidgets';
@@ -60,6 +60,9 @@ const mapStateToProps = state => {
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
     userRefName: state.local.userRefName,
+    siteCocs: state.jobs.siteCocs,
+    siteJobs: state.jobs.siteJobs,
+    samples: state.asbestosLab.samples,
     asbestosMaterialCategories: state.const.asbestosMaterialCategories,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
     asbestosManagementOptions: state.const.asbestosManagementOptions,
@@ -112,27 +115,42 @@ const quillModules = {
   // imageDrop: true,
 };
 
+const initState = {
+  asbestosType: {
+    ch: true,
+    am: true,
+    cr: true,
+  },
+  acmRemoved: false,
+  acmRemovalJob: "",
+  accessibility: "Easy",
+  asbestosContent: "",
+  category: "",
+  comment: "",
+  description: "",
+  genericItem: false,
+  genericItemBlurb: "",
+  idKey: "p",
+  inaccessibleItem: false,
+  managementPrimary: "",
+  managementSecondary: "",
+  material: "",
+  productScore: "1",
+  room: {label: "", uid: ""},
+  sample: null,
+  surfaceScore: "1",
+  templateName: "",
+  uid: null,
+  sampleType: 'bulk',
+}
+
 class AcmCard extends React.Component {
-  state = {
-    asbestosType: {
-      ch: true,
-      am: true,
-      cr: true,
-    }
-  };
+  state = initState;
 
   deleteImage = () => {
     storage.ref(this.state.acmImageRef).delete();
     this.setState({acmImageUrl: null, acmImageRef: null});
   };
-
-  loadTemplate = () => {
-    if (this.props.item) {
-      this.setState({
-        ...this.props.item,
-      })
-    }
-  }
 
   handleAsbestosType = res => {
     this.setState({
@@ -151,10 +169,19 @@ class AcmCard extends React.Component {
   }
 
   loadAcm = () => {
-    this.setState({});
     console.log('loading');
     if (this.props.item) {
-      this.setState(this.props.item);
+      let item = {...this.props.item};
+      if (item.sample) {
+        let cocUid = item.sample.cocUid,
+          sampleNumber = item.sample.sampleNumber;
+        if (this.props.samples && this.props.samples[cocUid] && this.props.samples[cocUid][sampleNumber]) {
+          item.sample = this.props.samples[cocUid][sampleNumber];
+          if (this.props.samples[cocUid][sampleNumber].sampleType) item.sampleType = this.props.samples[cocUid][sampleNumber].sampleType
+        }
+      }
+      console.log(item);
+      this.setState({...initState, ...item})
     }
   }
 
@@ -170,341 +197,401 @@ class AcmCard extends React.Component {
       this.saveAcm(this.state);
       this.loadAcm();
     }
+    let samples = {};
+    this.props.siteCocs && this.props.siteCocs[this.props.site] && Object.keys(this.props.siteCocs[this.props.site]).forEach(k => {
+      if (this.props.samples && this.props.samples[k]) samples = { ...samples, ...this.props.samples[k]};
+    });
+    const negative = (this.state.sample && this.state.sample.result && this.state.sample.result.no);
     console.log(this.state);
     return (
       <Card>
-        <CardContent>
-          <div className={classes.heading}>{this.state.room && this.state.room.label}</div>
-          <InputLabel>Item Description</InputLabel>
-          <SuggestionField that={this} suggestions='descriptionSuggestions'
-            controlled
-            value={this.state.description ? this.state.description : ''}
-            onModify={value => this.setState({ description: value})} />
-
-          <FormControlLabel
-            className={classes.marginTopSmall}
-            control={
-              <Switch
-                checked={this.state.inaccessibleItem || false}
-                onClick={e => { this.setState({ inaccessibleItem: e.target.checked })}}
-                value="inaccessibleItem"
-                color="secondary"
-              />
-            }
-            label="Inaccessible Item"
-          />
-
-          {!this.state.inaccessibleItem && <div>
-            <InputLabel className={classes.marginTopSmall}>Material</InputLabel>
-            <SuggestionField that={this} suggestions='materialSuggestions'
+        { item.sampleType === 'air' ?
+          <CardContent>
+            <div className={classes.heading}>{`${this.state.room ? this.state.room.label : ''} Air Sample`}</div>
+            <InputLabel className={classes.marginTopSmall}>Sample Number</InputLabel>
+            <Select
+              className={classes.selectTight}
+              value={this.state.sample ?
+                {value: this.state.sample,
+                label: `${this.state.sample.jobNumber}-${this.state.sample.sampleNumber}: ${writeDescription(this.state.sample)}`} : {value: '', label: ''}}
+              options={Object.values(samples).filter(e => e.sampleType === 'air').map(e => ({ value: e || null, label: e ? `${e.jobNumber}-${e.sampleNumber}: ${writeDescription(e)}` : null }))}
+              onChange={e => {
+                this.setState({sample: e.value});
+              }}
+            />
+          </CardContent>
+        :
+          <CardContent>
+            <div className={classes.heading}>{this.state.room && this.state.room.label}</div>
+            <InputLabel>Item Description</InputLabel>
+            <SuggestionField that={this} suggestions='descriptionSuggestions'
               controlled
-              value={this.state.material ? this.state.material : ''}
-              onModify={(value) => {
-                let category = '',
-                  asbestosType = this.state.asbestosType ? this.state.asbestosType : { ch: true, am: true, cr: true },
-                  asbestosContent = this.state.asbestosContent ? this.state.asbestosContent : '',
-                  materialObj = Object.values(this.props.materialSuggestions).filter(e => e.label === value);
-                if (materialObj.length > 0) {
-                  category = materialObj[0].category;
-                  if (materialObj[0].asbestosType) asbestosType = { ch: materialObj[0].asbestosType.includes('ch'), am: materialObj[0].asbestosType.includes('am'), cr: materialObj[0].asbestosType.includes('cr'), };
-                  if (materialObj[0].asbestosContent) asbestosContent = parseInt(materialObj[0].asbestosContent);
-                }
-                this.setState({material: value.trim(), category, asbestosType, asbestosContent, });
-              }}
-            />
-            <InputLabel className={classes.marginTopSmall}>Material Category</InputLabel>
-            <Select
-              className={classes.selectTight}
-              value={this.state.category ? {value: this.state.category, label: this.state.category} : {value: '', label: ''}}
-              options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
-              onChange={e => {
-                this.setState({category: e.value});
-              }}
-            />
-          </div>}
+              value={this.state.description ? this.state.description : ''}
+              onModify={value => this.setState({ description: value})} />
 
-          <InputLabel className={classes.marginTopSmall}>Identification</InputLabel>
-          <div className={classes.flexRow}>
-            {[{
-              label: 'Presumed',
-              value: 'p',
-              color: 'Ok',
-              tooltip: 'Default.',
-            },{
-              label: 'Strongly Presumed',
-              value: 's',
-              color: 'Warning',
-              tooltip: 'Strongly presumed.',
-            },{
-              label: 'Sampled',
-              value: 'i',
-              color: 'Bad',
-              tooltip: 'Sampled.'
-            }].map(res => {
-              return ScoreButton(
-                classes[`colorsButton${this.state.idKey === res.value ? res.color : 'Off'}`],
-                classes[`colorsDiv${this.state.idKey === res.value ? res.color : 'Off'}`],
-                res.label,
-                res.tooltip,
-                () => this.setState({ idKey: res.value, })
-              )
-            })}
-          </div>
-          { (this.state.idKey === 'i' || this.state.idKey === 's') && <div>
-            <InputLabel className={classes.marginTopSmall}>{this.state.idKey === 'i' ? 'Sample Number' : 'Presume As Sample'}</InputLabel>
-            <Select
-              className={classes.selectTight}
-              value={this.state.managementSecondary ? {value: this.state.managementSecondary, label: this.state.managementSecondary} : {value: '', label: ''}}
-              options={this.props.asbestosManagementOptions.map(e => ({ value: e.label, label: e.label }))}
-              onChange={e => {
-                this.setState({managementSecondary: e.value});
-              }}
+            <FormControlLabel
+              className={classes.marginTopSmall}
+              control={
+                <Switch
+                  checked={this.state.inaccessibleItem || false}
+                  onClick={e => { this.setState({ inaccessibleItem: e.target.checked })}}
+                  value="inaccessibleItem"
+                  color="secondary"
+                />
+              }
+              label="Inaccessible Item"
             />
-          </div>}
 
-          <InputLabel className={classes.marginTopSmall}>Default Accessibility Score</InputLabel>
-          <div className={classes.flexRow}>
-            {[{
-              label: 'Easy',
-              color: 'Ok',
-              tooltip: 'May be disturbed during normal occupancy. Does not require any equipment to access.',
-            },{
-              label: 'Medium',
-              color: 'Warning',
-              tooltip: 'Requires equipment (e.g. a ladder) to access. Within fuse boxes.',
-            },{
-              label: 'Difficult',
-              color: 'Bad',
-              tooltip: 'Requires specialist equipment, dismantling of machinery or modification of the building to access.'
-            }].map(res => {
-              return ScoreButton(
-                classes[`colorsButton${this.state.accessibility === res.label ? res.color : 'Off'}`],
-                classes[`colorsDiv${this.state.accessibility === res.label ? res.color : 'Off'}`],
-                res.label,
-                res.tooltip,
-                () => this.setState({ accessibility: res.label, })
-              )
-            })}
-          </div>
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={this.state.genericItem || false}
-                onClick={e => { this.setState({ genericItem: e.target.checked })}}
-                value="genericItem"
-                color="secondary"
+            {!this.state.inaccessibleItem && <div>
+              <InputLabel className={classes.marginTopSmall}>Material</InputLabel>
+              <SuggestionField that={this} suggestions='materialSuggestions'
+                controlled
+                value={this.state.material ? this.state.material : ''}
+                onModify={(value) => {
+                  let category = '',
+                    asbestosType = this.state.asbestosType ? this.state.asbestosType : { ch: true, am: true, cr: true },
+                    asbestosContent = this.state.asbestosContent ? this.state.asbestosContent : '',
+                    materialObj = Object.values(this.props.materialSuggestions).filter(e => e.label === value);
+                  if (materialObj.length > 0) {
+                    category = materialObj[0].category;
+                    if (materialObj[0].asbestosType) asbestosType = { ch: materialObj[0].asbestosType.includes('ch'), am: materialObj[0].asbestosType.includes('am'), cr: materialObj[0].asbestosType.includes('cr'), };
+                    if (materialObj[0].asbestosContent) asbestosContent = parseInt(materialObj[0].asbestosContent);
+                  }
+                  this.setState({material: value ? value.trim() : null, category, asbestosType, asbestosContent, });
+                }}
               />
-            }
-            label="Generic Item"
-          />
-          { this.state.genericItem &&
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Default Blurb for Report</InputLabel>
-              <ReactQuill
-                value={this.state.genericItemBlurb || ''}
-                modules={quillModules}
-                theme="snow"
-                className={classes.marginBottomMedium}
-                onChange={(content, delta, source) => {
-                  if (source === "user") this.setState({ genericItemBlurb: content })
+              <InputLabel className={classes.marginTopSmall}>Material Category</InputLabel>
+              <Select
+                className={classes.selectTight}
+                value={this.state.category ? {value: this.state.category, label: this.state.category} : {value: '', label: ''}}
+                options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
+                onChange={e => {
+                  this.setState({category: e.value});
+                }}
+              />
+            </div>}
+
+            <InputLabel className={classes.marginTopSmall}>Identification</InputLabel>
+            <div className={classes.flexRow}>
+              {[{
+                label: 'Presumed',
+                value: 'p',
+                color: 'Warning',
+                tooltip: 'Default.',
+              },{
+                label: 'Strongly Presumed',
+                value: 's',
+                color: 'StrongWarning',
+                tooltip: 'Strongly presumed.',
+              },{
+                label: 'Sampled',
+                value: 'i',
+                color: negative ? 'Ok' : 'Bad',
+                tooltip: 'Sampled.'
+              }].map(res => {
+                return ScoreButton(
+                  classes[`colorsButton${this.state.idKey === res.value ? res.color : 'Off'}`],
+                  classes[`colorsDiv${this.state.idKey === res.value ? res.color : 'Off'}`],
+                  res.label,
+                  res.tooltip,
+                  () => this.setState({ idKey: res.value, })
+                )
+              })}
+            </div>
+            { (this.state.idKey === 'i' || this.state.idKey === 's') && <div>
+              <InputLabel className={classes.marginTopSmall}>{this.state.idKey === 'i' ? 'Sample Number' : 'Presume As Sample'}</InputLabel>
+              <Select
+                className={classes.selectTight}
+                value={this.state.sample ?
+                  {value: this.state.sample,
+                  label: `${this.state.sample.jobNumber}-${this.state.sample.sampleNumber}: ${writeDescription(this.state.sample)}`} : {value: '', label: ''}}
+                options={Object.values(samples).filter(e => e.sampleType !== 'air').map(e => ({ value: e || null, label: e ? `${e.jobNumber}-${e.sampleNumber}: ${writeDescription(e)}` : null }))}
+                onChange={e => {
+                  this.setState({sample: e.value});
+                }}
+              />
+            </div>}
+
+            <TextField
+              id="extent"
+              label="Extent"
+              style={{ width: '100%' }}
+              value={this.state.extent}
+              onChange={e => this.setState({ extent: e.target.value, })}
+            />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={this.state.acmRemoved || false}
+                  onClick={e => { this.setState({ acmRemoved: e.target.checked })}}
+                  value="acmRemoved"
+                  color="secondary"
+                />
+              }
+              label="ACM Removed"
+            />
+
+            {this.state.acmRemoved && <div>
+              <InputLabel className={classes.marginTopSmall}>Clearance Job</InputLabel>
+              <Select
+                className={classes.selectTight}
+                value={this.state.acmRemovalJob ? { value: this.state.acmRemovalJob, label: this.props.siteJobs && this.props.siteJobs[this.props.site] && `${this.props.siteJobs[this.props.site][this.state.acmRemovalJob].jobNumber} ${this.props.siteJobs[this.props.site][this.state.acmRemovalJob].jobDescription}`} : { value: '', label: '' }}
+                options={this.props.siteJobs && this.props.siteJobs[this.props.site] ? Object.values(this.props.siteJobs[this.props.site]).map(e => ({ value: e.uid, label: `${e.jobNumber} ${e.jobDescription}` })) : []}
+                onChange={e => {
+                  this.setState({acmRemovalJob: e.value});
                 }}
               />
             </div>
-          }
 
-          {!this.state.inaccessibleItem && <div>
-            <div className={classes.flexRowSpread}>
-              <div>
-                <InputLabel className={classes.marginTopSmall}>Default Product Score</InputLabel>
-                <div className={classes.flexRow}>
-                  {[{
-                    label: '1',
-                    color: 'Ok',
-                    tooltip: 'Non-friable or low friability. Asbestos-reinforced composites. (Cement, vinyl tiles, plaster, plastics, mastics, etc.)',
-                  },{
-                    label: '2',
-                    color: 'Warning',
-                    tooltip: 'Medium friability (AIB, asbestos rope and textiles, paper-backed vinyl, gaskets, etc.)',
-                  },{
-                    label: '3',
-                    color: 'Bad',
-                    tooltip: 'Highly friable (ACD, loose asbestos, boiler or pipe lagging, sprayed asbestos, etc.)'
-                  }].map(res => {
-                    return ScoreButton(
-                      classes[`colorsButton${this.state.productScore === res.label ? res.color : 'Off'}`],
-                      classes[`colorsDiv${this.state.productScore === res.label ? res.color : 'Off'}`],
-                      res.label,
-                      res.tooltip,
-                      () => this.setState({ productScore: res.label, })
-                    )
-                  })}
-                </div>
-              </div>
+            }
 
-              <div>
-                <InputLabel className={classes.marginTopSmall}>Default Surface Score</InputLabel>
-                <div className={classes.flexRow}>
-                  {[{
-                    label: '0',
-                    color: 'Benign',
-                    tooltip: 'Composite materials (Reinforced plastics, resins, vinyl tiles, Bakelite, etc.)',
-                  },{
-                    label: '1',
-                    color: 'Ok',
-                    tooltip: 'Non-friable material, sealed moderately friable product or enclosed highly friable product.',
-                  },{
-                    label: '2',
-                    color: 'Warning',
-                    tooltip: 'Encapsulated highly friable product or unsealed moderately friable product.',
-                  },{
-                    label: '3',
-                    color: 'Bad',
-                    tooltip: 'Unsealed highly friable product.'
-                  }].map(res => {
-                    return ScoreButton(
-                      classes[`colorsButton${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
-                      classes[`colorsDiv${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
-                      res.label,
-                      res.tooltip,
-                      () => this.setState({ surfaceScore: res.label, })
-                    )
-                  })}
-                </div>
-              </div>
+            {!negative && !this.state.acmRemoved && <div>
+
+            <InputLabel className={classes.marginTopSmall}>Accessibility Score</InputLabel>
+            <div className={classes.flexRow}>
+              {[{
+                label: 'Easy',
+                color: 'Ok',
+                tooltip: 'May be disturbed during normal occupancy. Does not require any equipment to access.',
+              },{
+                label: 'Medium',
+                color: 'Warning',
+                tooltip: 'Requires equipment (e.g. a ladder) to access. Within fuse boxes.',
+              },{
+                label: 'Difficult',
+                color: 'Bad',
+                tooltip: 'Requires specialist equipment, dismantling of machinery or modification of the building to access.'
+              }].map(res => {
+                return ScoreButton(
+                  classes[`colorsButton${this.state.accessibility === res.label ? res.color : 'Off'}`],
+                  classes[`colorsDiv${this.state.accessibility === res.label ? res.color : 'Off'}`],
+                  res.label,
+                  res.tooltip,
+                  () => this.setState({ accessibility: res.label, })
+                )
+              })}
             </div>
 
-            <div className={classes.flexRowSpread}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={this.state.genericItem || false}
+                  onClick={e => { this.setState({ genericItem: e.target.checked })}}
+                  value="genericItem"
+                  color="secondary"
+                />
+              }
+              label="Generic Item"
+            />
+            { this.state.genericItem &&
               <div>
-                <InputLabel className={classes.marginTopSmall}>Default Asbestos Type</InputLabel>
-                <div className={classes.flexRow}>
-                  {['ch','am','cr'].map(res => {
-                    return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res, () => this.handleAsbestosType(res))
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <InputLabel className={classes.marginTopSmall}>Estimated Asbestos Concentration</InputLabel>
-                <TextField
-                  value={this.state.asbestosContent ? this.state.asbestosContent: ''}
-                  style={{ width: '100%'}}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                  }}
-                  onChange={e => {
-                    this.setState({
-                      asbestosContent: numericAndLessThanOnly(e.target.value, 1),
-                    });
+                <InputLabel className={classes.marginTopSmall}>Blurb for Report</InputLabel>
+                <ReactQuill
+                  value={this.state.genericItemBlurb || ''}
+                  modules={quillModules}
+                  theme="snow"
+                  className={classes.marginBottomMedium}
+                  onChange={(content, delta, source) => {
+                    if (source === "user") this.setState({ genericItemBlurb: content })
                   }}
                 />
               </div>
-            </div>
-          </div>}
+            }
 
-          <InputLabel className={classes.marginTopSmall}>Default Comment for Report</InputLabel>
-          <ReactQuill
-            value={this.state.comment || ''}
-            modules={quillModules}
-            className={classes.marginBottomMedium}
-            theme="snow"
-            onChange={(content, delta, source) => {
-              if (source === "user") this.setState({ comment: content })
-            }}
-          />
+            {!this.state.inaccessibleItem && <div>
+              <div className={classes.flexRowSpread}>
+                <div>
+                  <InputLabel className={classes.marginTopSmall}>Product Score</InputLabel>
+                  <div className={classes.flexRow}>
+                    {[{
+                      label: '1',
+                      color: 'Ok',
+                      tooltip: 'Non-friable or low friability. Asbestos-reinforced composites. (Cement, vinyl tiles, plaster, plastics, mastics, etc.)',
+                    },{
+                      label: '2',
+                      color: 'Warning',
+                      tooltip: 'Medium friability (AIB, asbestos rope and textiles, paper-backed vinyl, gaskets, etc.)',
+                    },{
+                      label: '3',
+                      color: 'Bad',
+                      tooltip: 'Highly friable (ACD, loose asbestos, boiler or pipe lagging, sprayed asbestos, etc.)'
+                    }].map(res => {
+                      return ScoreButton(
+                        classes[`colorsButton${this.state.productScore === res.label ? res.color : 'Off'}`],
+                        classes[`colorsDiv${this.state.productScore === res.label ? res.color : 'Off'}`],
+                        res.label,
+                        res.tooltip,
+                        () => this.setState({ productScore: res.label, })
+                      )
+                    })}
+                  </div>
+                </div>
 
-          <InputLabel className={classes.marginTopSmall}>Default Basic Primary Management</InputLabel>
-          <Select
-            className={classes.selectTight}
-            value={this.state.managementPrimary ? {value: this.state.managementPrimary, label: this.state.managementPrimary} : {value: '', label: ''}}
-            options={this.props.asbestosManagementOptions.map(e => ({ value: e.label, label: e.label }))}
-            onChange={e => {
-              this.setState({managementPrimary: e.value});
-            }}
-          />
+                <div>
+                  <InputLabel className={classes.marginTopSmall}>Surface Score</InputLabel>
+                  <div className={classes.flexRow}>
+                    {[{
+                      label: '0',
+                      color: 'Benign',
+                      tooltip: 'Composite materials (Reinforced plastics, resins, vinyl tiles, Bakelite, etc.)',
+                    },{
+                      label: '1',
+                      color: 'Ok',
+                      tooltip: 'Non-friable material, sealed moderately friable product or enclosed highly friable product.',
+                    },{
+                      label: '2',
+                      color: 'Warning',
+                      tooltip: 'Encapsulated highly friable product or unsealed moderately friable product.',
+                    },{
+                      label: '3',
+                      color: 'Bad',
+                      tooltip: 'Unsealed highly friable product.'
+                    }].map(res => {
+                      return ScoreButton(
+                        classes[`colorsButton${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
+                        classes[`colorsDiv${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
+                        res.label,
+                        res.tooltip,
+                        () => this.setState({ surfaceScore: res.label, })
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
 
-            <InputLabel className={classes.marginTopSmall}>Default Basic Secondary Management</InputLabel>
+              <div className={classes.flexRowSpread}>
+                <div>
+                  <InputLabel className={classes.marginTopSmall}>Presumed Asbestos Type</InputLabel>
+                  <div className={classes.flexRow}>
+                    {['ch','am','cr'].map(res => {
+                      return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res, () => this.handleAsbestosType(res))
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <InputLabel className={classes.marginTopSmall}>Estimated Asbestos Concentration</InputLabel>
+                  <TextField
+                    value={this.state.asbestosContent ? this.state.asbestosContent: ''}
+                    style={{ width: '100%'}}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                    }}
+                    onChange={e => {
+                      this.setState({
+                        asbestosContent: numericAndLessThanOnly(e.target.value, 1),
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+            </div>}
+
+            <InputLabel className={classes.marginTopSmall}>Comment for Report</InputLabel>
+            <ReactQuill
+              value={this.state.comment || ''}
+              modules={quillModules}
+              className={classes.marginBottomMedium}
+              theme="snow"
+              onChange={(content, delta, source) => {
+                if (source === "user") this.setState({ comment: content })
+              }}
+            />
+
+            <InputLabel className={classes.marginTopSmall}>Basic Primary Management</InputLabel>
             <Select
               className={classes.selectTight}
-              value={this.state.managementSecondary ? {value: this.state.managementSecondary, label: this.state.managementSecondary} : {value: '', label: ''}}
+              value={this.state.managementPrimary ? {value: this.state.managementPrimary, label: this.state.managementPrimary} : {value: '', label: ''}}
               options={this.props.asbestosManagementOptions.map(e => ({ value: e.label, label: e.label }))}
               onChange={e => {
-                this.setState({managementSecondary: e.value});
+                this.setState({managementPrimary: e.value});
               }}
             />
 
-          <InputLabel className={classes.marginTopSmall}>Default Management Recommendations</InputLabel>
-          <ReactQuill
-            value={this.state.recommendations || ''}
-            modules={quillModules}
-            theme="snow"
-            className={classes.marginBottomMedium}
-            onChange={(content, delta, source) => {
-              if (source === "user") this.setState({ recommendations: content })
-            }}
-          />
-
-          <InputLabel className={classes.marginTopSmall}>Thumbnail Image</InputLabel>
-          {this.state.siteImageUrl && (
-            <div className={classes.marginTopSmall}>
-              <img
-                src={this.state.acmImageUrl}
-                alt=""
-                width="200px"
-                style={{
-                  opacity: "0.5",
-                  borderStyle: "solid",
-                  borderWidth: "2px"
+              <InputLabel className={classes.marginTopSmall}>Basic Secondary Management</InputLabel>
+              <Select
+                className={classes.selectTight}
+                value={this.state.managementSecondary ? {value: this.state.managementSecondary, label: this.state.managementSecondary} : {value: '', label: ''}}
+                options={this.props.asbestosManagementOptions.map(e => ({ value: e.label, label: e.label }))}
+                onChange={e => {
+                  this.setState({managementSecondary: e.value});
                 }}
               />
-              <IconButton
-                style={{
-                  position: "relative",
-                  top: "2px",
-                  left: "-120px",
-                  borderStyle: "solid",
-                  borderWidth: "2px",
-                  fontSize: 8
-                }}
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you wish to delete the image?"
-                    )
-                  )
-                    this.deleteImage();
-                }}
-              >
-                <Close />
-              </IconButton>
-            </div>
-          )}
-          <label>
-            <UploadIcon className={classNames(classes.hoverCursor, classes.colorAccent)} />
-            <input
-              id="attr_upload_file"
-              type="file"
-              style={{ display: "none" }}
-              onChange={e => {
-                if (this.state.acmImageUrl) {
-                  storage.ref(this.state.acmImageRef).delete();
-                }
-                this.props.onUploadFile({
-                  file: e.currentTarget.files[0],
-                  storagePath: "sites/",
-                  prefix: 'siteImage',
-                  imageQuality: 30,
-                  imageHeight: 100,
-                });
+
+            <InputLabel className={classes.marginTopSmall}>Management Recommendations</InputLabel>
+            <ReactQuill
+              value={this.state.recommendations || ''}
+              modules={quillModules}
+              theme="snow"
+              className={classes.marginBottomMedium}
+              onChange={(content, delta, source) => {
+                if (source === "user") this.setState({ recommendations: content })
               }}
-            />
-            <LinearProgress
-              className={classes.formInputLarge}
-              variant="determinate"
-              value={modalProps.uploadProgress}
-            />
-          </label>
-        </CardContent>
+            /></div>}
+
+            <InputLabel className={classes.marginTopSmall}>Thumbnail Image</InputLabel>
+            {this.state.siteImageUrl && (
+              <div className={classes.marginTopSmall}>
+                <img
+                  src={this.state.acmImageUrl}
+                  alt=""
+                  width="200px"
+                  style={{
+                    opacity: "0.5",
+                    borderStyle: "solid",
+                    borderWidth: "2px"
+                  }}
+                />
+                <IconButton
+                  style={{
+                    position: "relative",
+                    top: "2px",
+                    left: "-120px",
+                    borderStyle: "solid",
+                    borderWidth: "2px",
+                    fontSize: 8
+                  }}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Are you sure you wish to delete the image?"
+                      )
+                    )
+                      this.deleteImage();
+                  }}
+                >
+                  <Close />
+                </IconButton>
+              </div>
+            )}
+            <label>
+              <UploadIcon className={classNames(classes.hoverCursor, classes.colorAccent)} />
+              <input
+                id="attr_upload_file"
+                type="file"
+                style={{ display: "none" }}
+                onChange={e => {
+                  if (this.state.acmImageUrl) {
+                    storage.ref(this.state.acmImageRef).delete();
+                  }
+                  this.props.onUploadFile({
+                    file: e.currentTarget.files[0],
+                    storagePath: "sites/",
+                    prefix: 'siteImage',
+                    imageQuality: 30,
+                    imageHeight: 100,
+                  });
+                }}
+              />
+              <LinearProgress
+                className={classes.formInputLarge}
+                variant="determinate"
+                value={modalProps.uploadProgress}
+              />
+            </label>
+          </CardContent>
+        }
       </Card>
     );
   }

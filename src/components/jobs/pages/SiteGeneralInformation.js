@@ -29,6 +29,7 @@ import LinkIcon from '@material-ui/icons/Link';
 import TimerIcon from "@material-ui/icons/Timer";
 import DeleteIcon from "@material-ui/icons/Close";
 import SuggestionField from '../../../widgets/SuggestionField';
+import EditIcon from '@material-ui/icons/Edit';
 
 import { Map, GoogleApiWrapper, Marker, InfoWindow, Listing } from "google-maps-react";
 
@@ -188,6 +189,7 @@ class SiteGeneralInformation extends React.Component {
 
     let m = this.props.sites && this.props.sites[site];
     // console.log(m);
+    console.log(this.props.siteCocs);
 
     if (m) {
       const color = classes[getJobColor(m.primaryJobType)];
@@ -297,7 +299,7 @@ class SiteGeneralInformation extends React.Component {
                 // console.log(s);
                 return (
                   <div className={classes.hoverNoFlex} key={`siteVisitsAsbestos${num}`}>
-                    <div className={classes.flexRow}>
+                    <div className={classes.flexRowBottom}>
                       <div className={classes.circleShaded}>
                         {num}
                       </div>
@@ -338,7 +340,7 @@ class SiteGeneralInformation extends React.Component {
                       />
                     }
                     </div>
-                    <div className={classes.flexRow}>
+                    <div className={classes.flexRowBottom}>
                       <div>
                         <InputLabel>Site Visit Type</InputLabel>
                         <Select
@@ -408,13 +410,7 @@ class SiteGeneralInformation extends React.Component {
                   Add Historical Chain of Custody
                 </Button>
               </div>
-              { this.props.siteCocs && this.props.siteCocs[this.props.site] ? Object.values(this.props.siteCocs[this.props.site]).map(coc =>
-                <div className={classes.hoverNoFlex} key={coc.uid}>
-                  <div className={classes.flexRow}>
-                    {`${coc.jobNumber}: ${coc.client}`}
-                  </div>
-                </div>
-              ) : <div>No Chains of Custody</div>}
+              { this.props.siteCocs && this.props.siteCocs[this.props.site] ? Object.values(this.props.siteCocs[this.props.site]).map(coc => this.getCocListItem(coc)) : <div>No Chains of Custody</div>}
             </div>
             <div className={classes.informationBoxWhiteRounded}>
               <div className={classNames(color, classes.expandHeading)}>Clearances</div>
@@ -427,7 +423,7 @@ class SiteGeneralInformation extends React.Component {
                   s = m.clearances && m.clearances[num] ? m.clearances[num] : {};
                 return (
                   <div className={classes.hoverNoFlex} key={`clearance${num}`}>
-                    <div className={classes.flexRow}>
+                    <div className={classes.flexRowBottom}>
                       <div className={classes.circleShaded}>
                         {num}
                       </div>
@@ -474,7 +470,7 @@ class SiteGeneralInformation extends React.Component {
                         }}
                       />
                     </div>
-                    <div className={classes.flexRow}>
+                    <div className={classes.flexRowBottom}>
                       <DatePicker
                         value={s.clearanceDate ? dateOf(s.clearanceDate) : null}
                         autoOk
@@ -561,6 +557,42 @@ class SiteGeneralInformation extends React.Component {
         </Grid>
       );
     } else return (<div />)
+  }
+
+  getCocListItem = coc => {
+    const {classes, samples} = this.props;
+    return (
+      <div className={classes.hoverNoFlex} key={coc.uid}>
+        <div className={classes.flexRowSpread}>
+          <div className={classNames(classes.columnMed, classes.bold)}>
+            {`${coc.jobNumber} ${coc.client}`}
+          </div>
+          <div className={classes.columnMed}>
+            {moment(dateOf(coc.issueDate)).format('ddd, D MMMM YYYY')}
+          </div>
+          <div className={classes.columnMedLarge}>
+            {coc.sampleList ? `${coc.sampleList.length} ${coc.sampleType === 'air' ? 'Air' : 'Bulk'} Sample${coc.sampleList.length > 1 ? 's' : ''}`: ''}
+          </div>
+          <div className={classes.flexRow}>
+            <Tooltip title='Edit Chain of Custody'>
+              <IconButton
+                onClick={() => {
+                  this.props.getDetailedWFMJob({jobNumber: coc.jobNumber});
+                  this.props.showModal({
+                    modalType: ASBESTOS_COC_EDIT,
+                    modalProps: {
+                      title: "Edit Chain of Custody",
+                      doc: coc
+                    }
+                  });
+                }}>
+                <EditIcon className={classes.iconRegular} />
+              </IconButton>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+    );
   }
 }
 

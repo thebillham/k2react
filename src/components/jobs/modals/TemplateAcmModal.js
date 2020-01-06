@@ -130,9 +130,7 @@ class TemplateAcmModal extends React.Component {
 
   loadTemplate = () => {
     if (this.props.doc) {
-      this.setState({
-        ...this.props.doc,
-      })
+      this.setState(this.props.doc)
     }
   }
 
@@ -174,9 +172,9 @@ class TemplateAcmModal extends React.Component {
           />
           <InputLabel className={classes.marginTopSmall}>Item Description</InputLabel>
           <SuggestionField that={this} suggestions='descriptionSuggestions'
-            defaultValue={this.state.description ? this.state.description : ''}
+            value={this.state.description || ''}
+            controlled
             onModify={value => this.setState({ description: value})} />
-
 
           <FormControlLabel
             className={classes.marginTopSmall}
@@ -194,7 +192,8 @@ class TemplateAcmModal extends React.Component {
           {!this.state.inaccessibleItem && <div>
             <InputLabel className={classes.marginTopSmall}>Material</InputLabel>
             <SuggestionField that={this} suggestions='materialSuggestions'
-              defaultValue={this.state.material ? this.state.material : ''}
+              value={this.state.material || ''}
+              controlled
               onModify={(value) => {
                 let category = '',
                   asbestosType = this.state.asbestosType ? this.state.asbestosType : { ch: true, am: true, cr: true },
@@ -269,6 +268,14 @@ class TemplateAcmModal extends React.Component {
               />
             </div>
           }
+
+          <TextField
+            id="extent"
+            label="Default Extent"
+            style={{ width: '100%' }}
+            value={this.state.extent}
+            onChange={e => this.setState({ extent: e.target.value, })}
+          />
 
           {!this.state.inaccessibleItem && <div>
             <div className={classes.flexRowSpread}>

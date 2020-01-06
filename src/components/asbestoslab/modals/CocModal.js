@@ -7,6 +7,7 @@ import classNames from 'classnames';
 // import store from '../../store';
 import { ASBESTOS_COC_EDIT, ASBESTOS_SAMPLE_EDIT_COC, } from '../../../constants/modal-types';
 import moment from "moment";
+import uuidv4 from 'uuid/v4';
 
 import { AsbButton, } from '../../../widgets/FormWidgets';
 import Button from '@material-ui/core/Button';
@@ -29,6 +30,8 @@ import Radio from '@material-ui/core/Radio';
 import EditIcon from '@material-ui/icons/Edit';
 import Select from 'react-select';
 import SuggestionField from '../../../widgets/SuggestionField';
+import AsbestosSampleListAir from '../components/AsbestosSampleListAir';
+import AsbestosSampleListBulk from '../components/AsbestosSampleListBulk';
 // import { CSSTransition } from 'react-transition-group';
 // import '../../../config/styles.css';
 
@@ -140,6 +143,8 @@ const initState = {
   recentSuggestionsDescription: [],
   recentSuggestionsMaterial: [],
   showBulkChangeSamples: false,
+
+  samples: {},
 };
 
 class CocModal extends React.PureComponent {
@@ -154,36 +159,6 @@ class CocModal extends React.PureComponent {
         sampleType: this.props.doc.sampleType,
       });
   }
-
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   if (!nextProps.cocs[nextProps.job]) return true; // COC has been deleted
-  //   if ((nextProps.samples && nextProps.samples[nextProps.job] && this.props.samples && this.props.samples[this.props.job] &&
-  //   (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length ||
-  //   Object.keys(nextProps.samples[nextProps.job]).length !== Object.keys(this.props.samples[this.props.job]).length)) ||
-  //   this.props.cocs[this.props.job] !== nextProps.cocs[nextProps.job] ||
-  //   this.state !== nextState
-  //  ) {
-  //     return true;
-  //   } else {
-  //     return false;
-  //   }
-  // }
-
-  // handlePersonnelChange = (e, type) => {
-  //   this.setState({
-  //     [type]: e.map(e => e.value),
-  //     modified: true,
-  //   });
-  //   if (this.props.doc.uid !== undefined) {
-  //     let log = {
-  //       type: 'Edit',
-  //       log: `Sampling personnel details changed.`,
-  //       chainOfCustody: this.props.doc.uid,
-  //     };
-  //     addLog("asbestosLab", log, this.props.me);
-  //   }
-  //   this.props.handleSelectChange({ id: type, value: e.map(e => e.value), })
-  // }
 
   wfmSync = () => {
     let jobNumber = this.props.doc.jobNumber;
@@ -205,23 +180,16 @@ class CocModal extends React.PureComponent {
     }
   }
 
-  sendNewAttrSlack = () => {
-    // let message = {
-    //   text: `${this.props.modalProps.staffName} has added a new Chain of Custody.\n${this.props.qualificationtypes[this.props.doc.type].name}`,
-    // };
-    // sendSlackMessage(message, true);
+  loadSamples = () => {
+    if (this.props.doc && !this.props.doc.samples)
+      this.props.handleModalChange({id: 'samples', value: this.props.samples[this.props.doc.uid] || {} });
   }
 
   handleResultClick = (res, sampleNumber) => {
-    console.log(sampleNumber);
     const { me, doc, } = this.props;
     let sample = doc && doc.samples && doc.samples[sampleNumber+1] && !doc.samples[sampleNumber+1].deleted ? doc.samples[sampleNumber+1] : {};
-    console.log(sample.result);
-    console.log(res);
     let newMap = updateResultMap(res, sample.result);
-    console.log(newMap);
     this.props.handleSampleChange(sampleNumber, {result: newMap});
-    console.log(doc.samples[sampleNumber]);
   };
 
   render() {
@@ -252,6 +220,7 @@ class CocModal extends React.PureComponent {
           maxWidth = "lg"
           disableEscapeKeyDown = { !blockInput && (doc || wfmJob) !== false }
           fullWidth = { true }
+          onEnter={this.loadSamples}
         >
           {!blockInput && (doc || wfmJob) && <DialogTitle>
             <div>
@@ -325,6 +294,214 @@ class CocModal extends React.PureComponent {
                         </div>
                         )
                       }
+                      {doc.historicalCoc ?
+                      <div className={classes.informationBoxWhiteRounded}>
+                        {this.state.sampleType === "air" &&
+                          <div>
+                            <InputLabel>Test Description</InputLabel>
+                            <SuggestionField that={this} suggestions='airTestDescriptions'
+                              defaultValue={doc.airTestDescription ? doc.airTestDescription : ''}
+                              onModify={value => {
+                                this.setState({
+                                  modified: true,
+                                });
+                                this.props.handleModalChange({id: 'airTestDescription', value: value });
+                              }} />
+                          </div>
+                        }
+                        <InputLabel className={classes.marginTopSmall}>Sampling Company</InputLabel>
+                        <FormControl>
+                          <RadioGroup row aria-label="inhouseSampling" name="inhouseSampling" value={doc.inhouseSampling || "true" } onChange={e => this.props.handleModalChange({id: 'inhouseSampling', value: e.target.value })}>
+                            <FormControlLabel value="true" control={<Radio />} label="K2 Environmental Ltd" />
+                            <FormControlLabel value="false" control={<Radio />} label="3rd Party" />
+                          </RadioGroup>
+                        </FormControl>
+                        {(doc.inhouseSampling === undefined || doc.inhouseSampling === "true") ?
+                          <div>
+                            <InputLabel className={classes.marginTopSmall}>Sampling By</InputLabel>
+                            <Select
+                              isMulti
+                              className={classes.selectTight}
+                              value={doc.sampledBy ? doc.sampledBy.map(e => ({ value: e.uid, label: e.name })) : null}
+                              options={[...names.map(e => ({ value: e.uid, label: e.name })), { value: 'Other', label: 'Other', }]}
+                              onChange={e => {
+                                this.setState({ modified: true });
+                                this.props.handleModalChange({id: 'sampledBy', value: personnelConvert(e) });
+                              }}
+                            />
+                            {doc.sampledBy && doc.sampledBy[0].value === 'Other' &&
+                            <div>
+                              <TextField
+                                id="otherSampledBy"
+                                label="Sampling Personnel"
+                                style={{ width: '100%' }}
+                                defaultValue={doc && doc.otherSampledBy}
+                                onChange={e => {
+                                  this.setState({ modified: true, });
+                                  this.props.handleModalChange({id: 'otherSampledBy', value: e.target.value});
+                                }}
+                              />
+                              {/* Asbestos Assessors Numbers in here? */}
+                            </div>}
+                          </div>
+                        :
+                          <div>
+                            <TextField
+                              id="samplingCompany"
+                              label="Name of Sampling Company"
+                              style={{ width: '100%' }}
+                              defaultValue={doc && doc.samplingCompany}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleModalChange({id: 'samplingCompany', value: e.target.value});
+                              }}
+                            />
+                            <TextField
+                              id="samplingCompanyRef"
+                              label="Sampling Company Job Reference"
+                              style={{ width: '100%' }}
+                              defaultValue={doc && doc.samplingCompanyRef}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleModalChange({id: 'samplingCompanyRef', value: e.target.value});
+                              }}
+                            />
+                            <TextField
+                              id="samplingCompanyPersonnel"
+                              label="Name of Sampler"
+                              style={{ width: '100%' }}
+                              defaultValue={doc && doc.samplingCompanyPersonnel}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleModalChange({id: 'samplingCompanyPersonnel', value: e.target.value});
+                              }}
+                            />
+                          </div>
+                        }
+                        <InputLabel className={classes.marginTopSmall}>Sample Date</InputLabel>
+                        <DatePicker
+                          value={doc.sampleDate ? dateOf(doc.sampleDate) : null}
+                          autoOk
+                          format="ddd, D MMMM YYYY"
+                          clearable
+                          openTo="year"
+                          views={["year", "month", "date"]}
+                          onChange={date => {
+                            this.setState({ modified: true });
+                            this.props.handleModalChange({id: 'sampleDate', value: dateOf(date) });
+                          }}
+                        />
+                        <InputLabel className={classes.marginTopSmall}>Testing Laboratory</InputLabel>
+                        <FormControl>
+                          <RadioGroup row aria-label="inhouseTesting" name="inhouseTesting" value={doc.inhouseTesting || "true" } onChange={e => this.props.handleModalChange({id: 'inhouseTesting', value: e.target.value })}>
+                            <FormControlLabel value="true" control={<Radio />} label="K2 Environmental Ltd" />
+                            <FormControlLabel value="false" control={<Radio />} label="3rd Party" />
+                          </RadioGroup>
+                        </FormControl>
+                        {(doc.inhouseTesting === undefined || doc.inhouseTesting === "true") ?
+                          <div>
+                            <InputLabel className={classes.marginTopSmall}>Analysis By</InputLabel>
+                            <Select
+                              isMulti
+                              className={classes.selectTight}
+                              value={doc.analysisBy ? doc.analysisBy.map(e => ({ value: e.uid, label: e.name })) : null}
+                              options={[...names.map(e => ({ value: e.uid, label: e.name })), { value: 'other', label: 'Other', }]}
+                              onChange={e => {
+                                this.setState({ modified: true });
+                                this.props.handleModalChange({id: 'analysisBy', value: personnelConvert(e) });
+                              }}
+                            />
+                          </div>
+                        :
+                          <div>
+                            <TextField
+                              id="testingLaboratory"
+                              label="Testing Laboratory"
+                              style={{ width: '100%' }}
+                              defaultValue={doc && doc.testingLaboratory}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleModalChange({id: 'testingLaboratory', value: e.target.value});
+                              }}
+                            />
+                            <TextField
+                              id="testingLaboratoryRef"
+                              label="Testing Laboratory Job Reference"
+                              style={{ width: '100%' }}
+                              defaultValue={doc && doc.testingLaboratoryRef}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleModalChange({id: 'testingLaboratoryRef', value: e.target.value});
+                              }}
+                            />
+                            <TextField
+                              id="testingLaboratoryAnalysts"
+                              label="Name of Analyst(s)"
+                              style={{ width: '100%' }}
+                              defaultValue={doc && doc.testingLaboratoryAnalysts}
+                              onChange={e => {
+                                this.setState({ modified: true, });
+                                this.props.handleModalChange({id: 'testingLaboratoryAnalysts', value: e.target.value});
+                              }}
+                            />
+                          </div>
+                        }
+
+                        <InputLabel className={classes.marginTopSmall}>Received Date</InputLabel>
+                        <DatePicker
+                          value={doc.receivedDate ? dateOf(doc.receivedDate) : null}
+                          autoOk
+                          format="ddd, D MMMM YYYY"
+                          clearable
+                          openTo="year"
+                          views={["year", "month", "date"]}
+                          onChange={date => {
+                            this.setState({ modified: true });
+                            this.props.handleModalChange({id: 'receivedDate', value: dateOf(date) });
+                          }}
+                        />
+
+                        <InputLabel className={classes.marginTopSmall}>Analysis Date</InputLabel>
+                        <DatePicker
+                          value={doc.analysisDate ? dateOf(doc.analysisDate) : null}
+                          autoOk
+                          format="ddd, D MMMM YYYY"
+                          clearable
+                          openTo="year"
+                          views={["year", "month", "date"]}
+                          onChange={date => {
+                            this.setState({ modified: true });
+                            this.props.handleModalChange({id: 'analysisDate', value: dateOf(date) });
+                          }}
+                        />
+
+                        <InputLabel className={classes.marginTopSmall}>Certificate Issue Date</InputLabel>
+                        <DatePicker
+                          value={doc.issueDate ? dateOf(doc.issueDate) : null}
+                          autoOk
+                          format="ddd, D MMMM YYYY"
+                          clearable
+                          openTo="year"
+                          views={["year", "month", "date"]}
+                          onChange={date => {
+                            this.setState({ modified: true });
+                            this.props.handleModalChange({id: 'issueDate', value: dateOf(date) });
+                          }}
+                        />
+                        <TextField
+                          id="historicalCocNotes"
+                          label="Notes"
+                          style={{ width: '100%' }}
+                          defaultValue={doc && doc.historicalCocNotes}
+                          rows={5}
+                          helperText='Include any useful background information on this sampling.'
+                          multiline
+                          onChange={e => {
+                            this.setState({ modified: true, });
+                            this.props.handleModalChange({id: 'historicalCocNotes', value: e.target.value});
+                          }}
+                        />
+                      </div> :
                       <div className={classes.informationBoxWhiteRounded}>
                         {this.state.sampleType === "air" &&
                           <div>
@@ -391,9 +568,9 @@ class CocModal extends React.PureComponent {
                           }
                           label="Clearance"
                         />
-                      </div>
+                      </div>}
                     </Grid>
-                    <Grid item xs={8} lg={12}>
+                    { !doc.historicalCoc && <Grid item xs={8} lg={12}>
                       {this.state.sampleType === 'bulk' && <div className={classes.informationBoxWhiteRounded}>
                         <FormControlLabel
                           control={
@@ -530,447 +707,75 @@ class CocModal extends React.PureComponent {
                           />
                         </div>}
                       </div>}
-                    </Grid>
-                    </Grid>
+                    </Grid> }
+                  </Grid>
                 </Grid>
                 <Grid item xs={12} lg={10}>
-                  {this.state.sampleType === "bulk" ?
-                    <div>
-                      <div className={classNames(classes.flexRow, classes.headingInline)}>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall} />
-                        <div className={classes.columnMedSmall}>
-                          Building or General Area
-                        </div>
-                        <div className={classes.columnMedSmall}>
-                          Room or Specific Area
-                        </div>
-                        <div className={classes.columnMedLarge}>
-                          Description
-                        </div>
-                        <div className={classes.columnMedLarge}>
-                          Material
-                        </div>
-                        <div className={classes.columnMedSmall}>
-                          Sample Category
-                        </div>
-                        <div className={classes.columnMedLarge}>
-                          Sampled By
-                        </div>
-                        <div className={classes.columnMedSmall}>
-                          Sample Date
-                        </div>
-                        {doc.historicalCoc &&
-                          <div className={classes.columnLarge}>
-                            Result
-                          </div>
-                        }
-                        <div className={classes.columnSmall} />
-                      </div>
-                      <div className={classNames(classes.flexRow, classes.infoLight)}>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall} />
-                        <div className={classes.columnMedSmall}>
-                          <span className={classes.note}>e.g. 1st Floor or Block A</span>
-                        </div>
-                        <div className={classes.columnMedSmall}>
-                          <span className={classes.note}>e.g. South elevation or Kitchen</span>
-                        </div>
-                        <div className={classes.columnMedLarge}>
-                          <span className={classes.note}>e.g. Soffit or Blue patterned vinyl flooring</span>
-                        </div>
-                        <div className={classes.columnMedLarge}>
-                          <span className={classes.note}>e.g. fibre cement or vinyl with paper backing</span>
-                        </div>
-                        <div className={classes.columnMedSmall} />
-                        <div className={classes.columnMedLarge} />
-                        <div className={classes.columnMedSmall} />
-                        <div className={classes.columnSmall} />
-                        {doc.historicalCoc &&
-                          <div className={classes.columnLarge} />
-                        }
-                      </div>
-                    </div>
-                  :
-                    <div>
-                      <div className={classNames(classes.flexRow, classes.headingInline)}>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall} />
-                        <div className={classes.columnMed}>
-                          Location
-                        </div>
-                        <div className={classes.columnSmall} />
-                        <div className={classes.columnDoubleSmall}>
-                          Flow Rates (mL/min)
-                        </div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnMedSmall}>
-                          Average Rate
-                        </div>
-                        <div className={classes.columnDoubleMedSmall}>
-                          Times
-                        </div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnMedSmallCentered}>Run Time</div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnMed}>
-                          Sample Volume
-                        </div>
-                        <div className={classes.spacerSmall} />
-                        {doc.historicalCoc && <div className={classes.columnMed}>
-                          Fibre Result
-                        </div>}
-                        <div className={classes.columnMedLargeCentered}>Sampling Errors</div>
-                      </div>
-                      <div className={classNames(classes.flexRow, classes.infoLight)}>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmall} />
-                        <div className={classes.columnMed} />
-                        <div className={classes.columnSmall} />
-                        <div className={classes.columnSmallCentered}>
-                          Initial
-                        </div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnSmallCentered}>
-                          Final
-                        </div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnMedSmall} />
-                        <div className={classes.columnMedSmallCentered}>Start</div>
-                        <div className={classes.columnMedSmallCentered}>Finish</div>
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnMedSmall} />
-                        <div className={classes.spacerSmall} />
-                        <div className={classes.columnMed} />
-                        <div className={classes.spacerSmall} />
-                        {doc.historicalCoc && <div className={classes.columnMed} />}
-                        <div className={classes.columnMedLarge} />
-                      </div>
-                    </div>
-                  }
-
+                  {this.state.sampleType === "bulk" ? <AsbestosSampleListBulk listType='heading' classes={classes} doc={doc} /> : <AsbestosSampleListAir listType='heading' classes={classes} doc={doc} />}
                   {this.state.sampleType === "bulk" ?
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                       let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted ? doc.samples[i+1] : {};
-                      let colors = getSampleColors(sample);
                       let disabled = blockInput || (sample.cocUid && sample.cocUid !== doc.uid);
                       if (!disabled) disabled = false;
                       return(sample.uid && sample.deleted === false ?
-                        <div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
-                          <div className={classes.spacerSmall} />
-                          <div className={classes.columnSmall}>
-                            <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
-                              {i+1}
-                            </div>
-                          </div>
-                          <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-                            {sample.genericLocation ? sample.genericLocation : ''}
-                          </div>
-                          <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-                            {sample.specificLocation ? sample.specificLocation : ''}
-                          </div>
-                          <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-                            {sample.description ? sample.description : ''}
-                          </div>
-                          <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-                            {sample.material ? sample.material : ''}
-                          </div>
-                          <div className={classes.columnMedSmall}>
-                            {sample.category ? sample.category : ''}
-                          </div>
-                          <div className={classes.columnMedLarge}>
-                            {sample.sampledBy ? sample.sampledBy.map(e => e.name).join(', ') : ''}
-                          </div>
-                          <div className={classes.columnMedSmall}>
-                            {sample.sampleDate ?
-                              moment(dateOf(sample.sampleDate)).format('ddd, D MMMM YYYY') : ''}
-                          </div>
-                          <div className={classes.columnSmall}>
-                            {!disabled && <IconButton onClick={() =>
-                              this.props.showModalSecondary({
-                                modalType: ASBESTOS_SAMPLE_EDIT_COC,
-                                modalProps: {
-                                  doc: doc,
-                                  sample: sample,
-                                  names: names,
-                                  onExit: (modified) => this.setState({
-                                    modified: modified,
-                                  })
-                                }
-                              })}>
-                              <EditIcon className={classes.iconRegular}  />
-                            </IconButton>}
-                          </div>
-                        </div>
+                        sample.sampleType === "air" ? <AsbestosSampleListAir key={i} i={i} disabled={disabled} names={names} classes={classes} sampleType="bulk" doc={doc} onEdit={() =>
+                          this.props.showModalSecondary({
+                            modalType: ASBESTOS_SAMPLE_EDIT_COC,
+                            modalProps: {
+                              doc,
+                              sample,
+                              names,
+                              onExit: (modified) => this.setState({
+                                modified: modified,
+                              })
+                            }
+                          })} /> : <AsbestosSampleListBulk key={i} i={i} disabled={disabled} names={names} classes={classes} sampleType="bulk" doc={doc} onEdit={() =>
+                            this.props.showModalSecondary({
+                              modalType: ASBESTOS_SAMPLE_EDIT_COC,
+                              modalProps: {
+                                doc,
+                                sample,
+                                names,
+                                onExit: (modified) => this.setState({
+                                  modified: modified,
+                                })
+                              }
+                            })} />
                         :
-                        <div className={classes.flexRowHover} key={i}>
-                          <div className={classes.spacerSmall} />
-                          <div className={classes.columnSmall}>
-                            <div className={classes.circleShaded}>
-                              {i+1}
-                            </div>
-                          </div>
-                          <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-                            <SuggestionField that={this} suggestions='genericLocationSuggestions'
-                              value={sample.genericLocation ? sample.genericLocation : ''}
-                              disabled={disabled}
-                              addedSuggestions={this.state.recentSuggestionsGenericLocation}
-                              onModify={(value) => {
-                                this.setState({
-                                  modified: true,
-                                  recentSuggestionsGenericLocation: this.state.recentSuggestionsGenericLocation.concat(value),
-                                });
-                                this.props.handleSampleChange(i, {genericLocation: titleCase(value.trim())});
-                              }} />
-                          </div>
-                          <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-                            <SuggestionField that={this} suggestions='specificLocationSuggestions'
-                              defaultValue={sample.specificLocation ? sample.specificLocation : ''}
-                              disabled={disabled}
-                              onModify={(value) => {
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {specificLocation: titleCase(value.trim())});
-                              }} />
-                          </div>
-                          <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-                            <SuggestionField that={this} suggestions='descriptionSuggestions'
-                              defaultValue={sample.description ? sample.description : ''}
-                              disabled={disabled}
-                              onModify={(value) => {
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {description: sentenceCase(value.trim())});
-                              }} />
-                          </div>
-                          <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-                            <SuggestionField that={this} suggestions='materialSuggestions'
-                              defaultValue={sample.material ? sample.material : ''}
-                              disabled={disabled}
-                              onModify={(value) => {
-                                let category = '';
-                                  let materialObj = Object.values(this.props.materialSuggestions).filter(e => e.label === value);
-                                  if (materialObj.length > 0) {
-                                    category = materialObj[0].category;
-                                  }
-                                // }
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {material: value.trim(), category});
-                              }} />
-                          </div>
-                          <div className={classes.columnMedSmall}>
-                            <Select
-                              className={classes.selectTight}
-                              value={sample.category ? {value: sample.category, label: sample.category} : {value: '', label: ''}}
-                              options={this.props.asbestosMaterialCategories.map(e => ({ value: e.label, label: e.label }))}
-                              isDisabled={disabled}
-                              onChange={e => {
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {category: e.value});
-                              }}
-                            />
-                          </div>
-                          <div className={classes.columnMedLarge}>
-                            <Select
-                              isMulti
-                              className={classes.selectTight}
-                              value={sample.sampledBy ? sample.sampledBy.map(e => ({value: e.uid, label: e.name})) : this.state.defaultSampledBy}
-                              options={names.map(e => ({ value: e.uid, label: e.name }))}
-                              isDisabled={disabled}
-                              onChange={e => {
-                                let defaultSampledBy = this.state.defaultSampledBy;
-                                let personnelSelected = this.state.personnelSelected;
-                                let sampledBy = personnelConvert(e);
-
-                                if (personnelSelected === false) {
-                                  personnelSelected = i;
-                                  defaultSampledBy = sampledBy.map(e => ({value: e.uid, label: e.name}));
-                                }
-                                // } else if (personnelSelected === i) {
-                                //   defaultSampledBy = sampledBy.map(e => ({value: e.uid, label: e.name}));
-                                // }
-
-                                // if (e.length === 0) {
-                                //   personnelSelected = false;
-                                //   defaultSampledBy = e;
-                                // }
-
-                                this.setState({ modified: true, personnelSelected, defaultSampledBy});
-                                this.props.handleSampleChange(i, {sampledBy});
-                              }}
-                            />
-                          </div>
-                          <div className={classes.columnMedSmall}>
-                            <DatePicker
-                              value={sample.sampleDate !== undefined ? sample.sampleDate :
-                                this.state.defaultSampleDate}
-                              autoOk
-                              format="ddd, D MMMM YYYY"
-                              disabled={disabled}
-                              clearable
-                              onChange={date => {
-                                let defaultSampleDate = this.state.defaultSampleDate;
-                                let dateSelected = this.state.dateSelected;
-
-                                if (dateSelected === false) {
-                                  dateSelected = i;
-                                  defaultSampleDate = dateOf(date);
-                                }
-                                // } else if (dateSelected === i) {
-                                //   defaultSampleDate = dateOf(date);
-                                // }
-                                this.setState({ modified: true, dateSelected, defaultSampleDate});
-                                this.props.handleSampleChange(i, {sampleDate: dateOf(date)});
-                              }}
-                            />
-                          </div>
-                          {doc.historicalCoc &&
-                            <div className={classNames(classes.flexRow, classes.columnLarge)}>
-                              {['ch','am','cr','umf','no'].map(res => {
-                                return AsbButton(this.props.classes[`colorsButton${colors[res]}`], this.props.classes[`colorsDiv${colors[res]}`], res, () => this.handleResultClick(res, i))
-                              })}
-                            </div>
-                          }
-                          <div className={classes.columnSmall}>
-                            {/*<Tooltip title={'Add Detailed Sample Information e.g. In-Situ Soil Characteristics'}>
-                              <IconButton onClick={() =>
-                                this.props.showModalSecondary({
-                                  modalType: ASBESTOS_SAMPLE_EDIT_COC,
-                                  modalProps: {
-                                    doc: doc,
-                                    sample: doc.samples[i+1] ? {...doc.samples[i+1], sampleNumber: i+1, jobNumber: doc.jobNumber} : {jobNumber: doc.jobNumber, sampleNumber: i+1},
-                                    names: names,
-                                    onExit: (modified) => {
-                                      this.setState({
-                                        modified: modified,
-                                      });
-                                      //console.log('On Exit: ' + modified);
-                                  }}
-                                })}>
-                                <EditIcon className={classes.iconRegular}  />
-                              </IconButton>
-                            </Tooltip>*/}
-                          </div>
-                        </div>
+                        <AsbestosSampleListBulk key={i} i={i} disabled={disabled} names={names} classes={classes} doc={doc} listType='editable' that={this} />
                       );
                     })
                     :
                     Array.from(Array(numberOfSamples),(x, i) => i).map(i => {
                       let sample = doc && doc.samples && doc.samples[i+1] && !doc.samples[i+1].deleted ? doc.samples[i+1] : {};
                       let disabled = blockInput || (sample.cocUid && sample.cocUid !== doc.uid);
-                      let calcs = {};
-                      if (!sample.uid && ((sample.initialFlowRate && sample.finalFlowRate) || (sample.startTime && sample.endTime))) calcs = getAirSampleData(sample, doc.labInstructions ? parseFloat(doc.labInstructions) : 9);
                       if (!disabled) disabled = false;
-                      // console.log(doc.samples[i+1]);
-                      // console.log(doc.samples);
-                      return(doc && doc.samples && doc.samples[i+1] && doc.samples[i+1].uid && doc.samples[i+1].deleted === false ?
-                        doc.samples[i+1].sampleType === "air" ? this.getSampleListAir(i, disabled, names) : this.getSampleListBulk(i, disabled, names)
-                        :
-                        <div className={classNames(classes.paddingTopBottomSmall, classes.flexRowHover)} key={i}>
-                          <div className={classes.spacerSmall} />
-                          <div className={classes.columnSmall}>
-                            <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
-                              {i+1}
-                            </div>
-                          </div>
-                          <div className={classNames(classes.paddingSidesSmall, classes.columnMed)}>
-                            <SuggestionField that={this} suggestions='airLocationSuggestions'
-                              defaultValue={sample.specificLocation ? sample.specificLocation : ''}
-                              disabled={disabled}
-                              onModify={(value) => {
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {specificLocation: titleCase(value.trim())});
-                              }} />
-                          </div>
-                          <div className={classes.columnSmall} />
-                          <div className={classes.columnSmall}>
-                            <TextField
-                              value={sample.initialFlowRate ? sample.initialFlowRate : ''}
-                              onChange={e => {
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {initialFlowRate: numericOnly(e.target.value.trim())});
-                              }}
-                            />
-                          </div>
-                          <div className={classes.spacerSmall} />
-                          <div className={classes.columnSmall}>
-                            <TextField
-                              value={sample.finalFlowRate ? sample.finalFlowRate : ''}
-                              onChange={e => {
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {finalFlowRate: numericOnly(e.target.value.trim())});
-                              }}
-                            />
-                          </div>
-                          <div className={classes.spacerSmall} />
-                          <div className={classes.columnMedSmall}>
-                            {sample.initialFlowRate && sample.finalFlowRate ? <span className={calcs.differenceTooHigh ? classes.informationBoxError : (calcs.sampleRateLow || calcs.sampleRateHigh) ? classes.informationBoxWarning : classes.informationBoxOk}>
-                              {calcs.averageFlowRate ? `${parseFloat(calcs.averageFlowRate).toFixed(1)} mL/min` : ''}
-                            </span> : <span />}
-                          </div>
-                          <div className={classes.columnMedSmall}>
-                            <DateTimePicker
-                              value={sample.startTime ? sample.startTime : null}
-                              autoOk
-                              format="D/MM/YY, hh:mma"
-                              disabled={disabled}
-                              clearable
-                              views={['hours','minutes']}
-                              onChange={date => {
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {startTime: dateOf(date)});
-                              }}
-                            />
-                          </div>
-                          <div className={classes.columnMedSmall}>
-                            <DateTimePicker
-                              value={sample.endTime ? sample.endTime : null}
-                              autoOk
-                              format="D/MM/YY, hh:mma"
-                              disabled={disabled}
-                              clearable
-                              views={['hours','minutes']}
-                              onChange={date => {
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {endTime: dateOf(date), totalRunTime: null, });
-                              }}
-                            />
-                          </div>
-                          <div className={classes.spacerSmall} />
-                          <div className={classes.columnMedSmall}>
-                            <TextField
-                              value={sample.totalRunTime ? sample.totalRunTime : calcs.runTime}
-                              InputProps={{
-                                endAdornment: <InputAdornment position="end">mins</InputAdornment>,
-                              }}
-                              onChange={e => {
-                                this.setState({ modified: true, });
-                                this.props.handleSampleChange(i, {totalRunTime: numericOnly(e.target.value.trim())});
-                              }}
-                            />
-                          </div>
-                          <div className={classes.spacerSmall} />
-                          <div className={classes.columnMed}>
-                            {calcs.sampleVolume ? <span className={calcs.sampleVolumeMuchTooLow ? classes.informationBoxError : calcs.sampleVolumeTooLow ? classes.informationBoxWarning : classes.informationBoxOk}>
-                              {`${parseFloat(calcs.sampleVolume).toFixed(1)}L`}
-                            </span> : ''}
-                          </div>
-                          <div className={classes.columnMedLarge}>
-                            {(calcs.differenceTooHigh || calcs.sampleVolumeMuchTooLow) ?
-                              <div className={classes.boldRed}>
-                                {calcs.differenceTooHigh && (<Tooltip title='The difference between flow rates is greater than 10 per cent. The sample must be rejected.'><div>Difference between flow rates is too high.</div></Tooltip>)}
-                                {calcs.sampleVolumeMuchTooLow && (<Tooltip title='Sample volumes of less than 100L are not recommended because of the increased loss of precision in the results obtained. They may also lead to higher reporting limits than may be desired.'><div>Sample volume too low to be accurate.</div></Tooltip>)}
-                              </div>
-                              :
-                              (calcs.sampleRateLow || calcs.sampleRateHigh || calcs.sampleVolumeTooLow) ?
-                              <div className={classes.boldOrange}>
-                                {calcs.sampleRateLow && (<Tooltip title='Flow rates of less than 400 mL/min may preclude countable fibres from being collected from the airborne dust cloud.'><div>Flow rate lower than recommended.</div></Tooltip>)}
-                                {calcs.sampleRateHigh && (<Tooltip title='Flow rates greater than 8000 mL/min may result in interference from excessively large particles and may also cause leakage problems for most available filter holders.'><div>Flow rate higher than recommended.</div></Tooltip>)}
-                                {calcs.sampleVolumeTooLow && (<Tooltip title='Asbestos clearance air tests must have a sample volume of 360L or greater.'><div>Sample volume too low for clearances.</div></Tooltip>)}
-                              </div>
-                              :
-                              (calcs.runTime && calcs.averageFlowRate) ? <div className={classes.boldGreen}>No Sampling Errors or Warnings</div> : ''
+                      return(sample.uid && sample.deleted === false ?
+                        sample.sampleType === "air" ? <AsbestosSampleListAir i={i} disabled={disabled} names={names} classes={classes} sampleType="air" doc={doc} onEdit={() =>
+                          this.props.showModalSecondary({
+                            modalType: ASBESTOS_SAMPLE_EDIT_COC,
+                            modalProps: {
+                              doc,
+                              sample,
+                              names,
+                              onExit: (modified) => this.setState({
+                                modified: modified,
+                              })
                             }
-                          </div>
-                        </div>
+                          })} /> : <AsbestosSampleListBulk i={i} disabled={disabled} names={names} classes={classes} sampleType="air" doc={doc} onEdit={() =>
+                            this.props.showModalSecondary({
+                              modalType: ASBESTOS_SAMPLE_EDIT_COC,
+                              modalProps: {
+                                doc,
+                                sample,
+                                names,
+                                onExit: (modified) => this.setState({
+                                  modified: modified,
+                                })
+                              }
+                            })} />
+                        :
+                        <AsbestosSampleListAir key={i} i={i} disabled={disabled} names={names} classes={classes} doc={doc} listType='editable' that={this} />
                       );
                     })
                   }
@@ -1004,7 +809,7 @@ class CocModal extends React.PureComponent {
                     <Input
                       id="jobNumber"
                       className={classes.bigInput}
-                      value={this.state.jobNumber}
+                      value={this.state.jobNumber || ''}
                       onChange={e => {
                         // this.setState({ modified: true, });
                         this.setState({
@@ -1061,12 +866,17 @@ class CocModal extends React.PureComponent {
                   doc.createdDate = now;
                   doc.createdBy = {id: me.uid, name: me.name};
                   if (Object.keys(doc.samples).length === 0) doc.status = 'No Samples';
+                    else if (doc.historicalCoc) doc.status = 'Historical'
                     else doc.status = 'In Transit';
                 } else originalSamples = this.props.samples[doc.uid];
-
+                if (doc.historicalCoc) {
+                  doc.versionUpToDate = true;
+                  doc.mostRecentIssueSent = true;
+                } else {
+                  doc.versionUpToDate = false;
+                  doc.mostRecentIssueSent = false;
+                }
                 doc.lastModified = now;
-                doc.versionUpToDate = false;
-                doc.mostRecentIssueSent = false;
                 if (this.state.sampleType !== "air") {
                   doc.defaultSampleDate = this.state.defaultSampleDate;
                   doc.defaultSampledBy = this.state.defaultSampledBy;
@@ -1093,147 +903,6 @@ class CocModal extends React.PureComponent {
         </Dialog>
       );
     } else return null;
-  }
-
-  getSampleListBulk = (i, disabled, names) => {
-    let classes = this.props.classes,
-      doc = this.props.doc,
-      sample = doc && doc.samples && doc.samples[i+1] ? doc.samples[i+1] : {};
-    return this.state.sampleType === "air" ?
-      (<div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnSmall}>
-          <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
-            {i+1}
-          </div>
-        </div>
-        <div className={classNames(classes.paddingSidesSmall)}>
-          {writeDescription(sample)} (Bulk Sample)
-        </div>
-      </div>)
-      :
-      (<div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnSmall}>
-          <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
-            {i+1}
-          </div>
-        </div>
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-          {sample.genericLocation ? sample.genericLocation : ''}
-        </div>
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-          {sample.specificLocation ? sample.specificLocation : ''}
-        </div>
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-          {sample.description ? sample.description : ''}
-        </div>
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMedLarge)}>
-          {sample.material ? sample.material : ''}
-        </div>
-        <div className={classes.columnMedSmall}>
-          {sample.category ? sample.category : ''}
-        </div>
-        <div className={classes.columnMedLarge}>
-          {sample.sampledBy ? sample.sampledBy.map(e => e.name).join(', ') : ''}
-        </div>
-        <div className={classes.columnMedSmall}>
-          {sample.sampleDate ? moment(dateOf(sample.sampleDate)).format('ddd, D MMMM YYYY') : ''}
-        </div>
-        <div className={classes.columnSmall}>
-          {!disabled && <IconButton onClick={() =>
-            this.props.showModalSecondary({
-              modalType: ASBESTOS_SAMPLE_EDIT_COC,
-              modalProps: {
-                doc,
-                sample,
-                names,
-                onExit: (modified) => this.setState({
-                  modified: modified,
-                })
-              }
-            })}>
-            <EditIcon className={classes.iconRegular}  />
-          </IconButton>}
-        </div>
-      </div>);
-  }
-
-  getSampleListAir = (i, disabled, names) => {
-    let classes = this.props.classes,
-      doc = this.props.doc,
-      sample = doc && doc.samples && doc.samples[i+1] ? doc.samples[i+1] : {};
-    return this.state.sampleType === "air" ?
-      (<div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnSmall}>
-          <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
-            {i+1}
-          </div>
-        </div>
-        <div className={classNames(classes.paddingSidesSmall, classes.columnMed)}>
-          {sample.specificLocation ? sample.specificLocation : ''}
-        </div>
-        <div className={classes.columnSmall} />
-        <div className={classes.columnSmallCentered}>
-          {sample.initialFlowRate ? `${parseFloat(sample.initialFlowRate).toFixed(1)} mL/min` : ''}
-        </div>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnSmallCentered}>
-          {sample.finalFlowRate ? `${parseFloat(sample.finalFlowRate).toFixed(1)} mL/min` : ''}
-        </div>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnMedSmallCentered}>
-          {sample.averageFlowRate ?
-            <span className={sample.differenceTooHigh ? sample.informationBoxError : (sample.sampleRateLow || sample.sampleRateHigh) ? classes.informationBoxWarning : classes.informationBoxOk}>
-              {`${parseFloat(sample.averageFlowRate).toFixed(1)} mL/min`}
-            </span>
-          : ''}
-        </div>
-        <div className={classes.columnMedSmallCentered}>
-          {sample.startTime ? moment(dateOf(sample.startTime)).format('D/MM/YY, hh:mma') : ''}
-        </div>
-        <div className={classes.columnMedSmallCentered}>
-          {sample.endTime ? moment(dateOf(sample.endTime)).format('D/MM/YY, hh:mma') : ''}
-        </div>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnMedSmallCentered}>
-          {sample.runTime ? `${sample.runTime} mins` : ''}
-        </div>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnMedCentered}>
-          {sample.sampleVolume ? <span className={sample.sampleVolumeMuchTooLow ? classes.informationBoxError : sample.sampleVolumeTooLow ? classes.informationBoxWarning : classes.informationBoxOk}>
-            {`${parseFloat(sample.sampleVolume).toFixed(1)}L`}</span>
-          : ''}
-        </div>
-        <div className={classes.columnMedLarge}>
-          {!disabled && <IconButton onClick={() =>
-            this.props.showModalSecondary({
-              modalType: ASBESTOS_SAMPLE_EDIT_COC,
-              modalProps: {
-                doc,
-                sample,
-                names,
-                onExit: (modified) => this.setState({
-                  modified: modified,
-                })
-              }
-            })}>
-            <EditIcon className={classes.iconRegular}  />
-          </IconButton>}
-        </div>
-      </div>) :
-      (<div className={disabled ? classes.flexRowHoverDisabled : classes.flexRowHover} key={i}>
-        <div className={classes.spacerSmall} />
-        <div className={classes.columnSmall}>
-          <div className={disabled ? classes.circleShadedDisabled : classes.circleShaded}>
-            {i+1}
-          </div>
-          <div className={classNames(classes.paddingSidesSmall, classes.columnMedSmall)}>
-            {sample.specificLocation ? sample.specificLocation : 'Untitled'} (Air Sample)
-          </div>
-        </div>
-      </div>)
   }
 }
 

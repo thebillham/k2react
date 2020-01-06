@@ -24,8 +24,12 @@ const palette = {
   indicators: {
     bad: 'red',
     badText: 'white',
+    unclear: 'lightred',
+    unclearText: 'black',
     warning: 'orange',
     warningText: 'black',
+    strongWarning: '#ff8c00',
+    strongWarningText: 'black',
     ok: 'lightgreen',
     okText: 'darkgreen',
     benign: 'lightblue',

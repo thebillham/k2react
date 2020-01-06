@@ -43,6 +43,9 @@ import Select from 'react-select';
 import SuggestionField from '../../../widgets/SuggestionField';
 import AcmCard from "../components/AcmCard";
 import SearchIcon from "@material-ui/icons/Search";
+import ResultIcon from "@material-ui/icons/Lens";
+import AirResultIcon from "@material-ui/icons/AcUnit";
+import RemovedIcon from "@material-ui/icons/RemoveCircle";
 
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
@@ -88,6 +91,8 @@ import {
   loadAcmTemplate,
   getRoomInLayout,
 } from "../../../actions/jobs";
+
+import { writeDescription, writeSimpleResult } from "../../../actions/asbestosLab";
 
 import { getFirestoreCollection } from "../../../actions/local";
 
@@ -180,7 +185,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
 
 const getListStyle = (isDraggingOver, mode) => ({
   borderRadius: 4,
-  background: mode === 'blank' ? isDraggingOver ? "#ddd" : "#fff" : mode === 'green' ? isDraggingOver ? "#006D44" : "#338a69" : isDraggingOver ? "#FF2D00" : "#ff5733",
+  background: mode === 'blank' ? isDraggingOver ? "#ddd" : "#fff" : isDraggingOver ? "#bbb" : "#ddd",
   margin: 4,
   padding: 8,
 });
@@ -255,7 +260,7 @@ class SiteAsbestosRegister extends React.Component {
       } else {
         if (source.droppableId === 'templates') {
           // Create ACM item
-          let acm = this.props.acmTemplates[source.index];
+          let acm = this.getAcmTemplates()[source.index];
           let room = getRoomInLayout({ site: this.props.sites[this.props.site], searchRoom: destination.droppableId });
           let uid = `${acm.description}_${acm.material}_${moment().format('x')}_${parseInt(Math.floor(Math.random() * Math.floor(10000)))}`;
           acm.uid = uid;
@@ -281,15 +286,16 @@ class SiteAsbestosRegister extends React.Component {
           sitesRef.doc(this.props.site).collection("acm").doc(acmKey).delete();
         } else {
           const result = move(
-            source.droppableId === 'templates' ? this.props.acmTemplates : this.state[source.droppableId] ? this.state[source.droppableId] : [],
-            destination.droppableId === 'templates' ? this.props.acmTemplates : this.state[destination.droppableId] ? this.state[destination.droppableId] : [],
+            source.droppableId === this.state[source.droppableId] ? this.state[source.droppableId] : [],
+            destination.droppableId === this.state[destination.droppableId] ? this.state[destination.droppableId] : [],
             source,
             destination
           );
 
-          let acm = this.props.acmTemplates[source.index];
+          let acmKey = this.state[source.droppableId][source.index];
           let room = getRoomInLayout({ site: this.props.sites[this.props.site], searchRoom: destination.droppableId });
-          sitesRef.doc(this.props.site).collection("acm").doc(acm.uid).update({ room: { label: room.label, uid: room.uid } });
+          console.log(room);
+          sitesRef.doc(this.props.site).collection("acm").doc(acmKey).update({ room: { label: room.label, uid: room.uid } });
 
           this.setState({
             ...result,
@@ -299,10 +305,30 @@ class SiteAsbestosRegister extends React.Component {
     }
   }
 
+  getAcmTemplates = () => {
+    return this.props.acmTemplates ? this.props.acmTemplates
+      .filter(e => {
+        let res = true;
+        if (this.state.templateSearch && !`${e.templateName}${e.description}${e.material}`.toLowerCase().includes(this.state.templateSearch.toLowerCase())) res = false;
+        return res;
+      }).concat({
+        uid: 'air',
+        templateName: 'Air Sample',
+        sampleType: 'air',
+        description: 'Air Sample',
+      }) : [{
+        uid: 'air',
+        templateName: 'Air Sample',
+        sampleType: 'air',
+        description: 'Air Sample',
+      }];
+  }
+
   render() {
     const { classes, that, site, wfmClients, geocodes, } = this.props;
     const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
     const m = this.props.sites && this.props.sites[site] ? this.props.sites[site] : null;
+    const acmTemplates = this.getAcmTemplates();
     console.log(this.state);
     console.log(this.props.siteAcm[this.props.site]);
     if (m) {
@@ -338,13 +364,7 @@ class SiteAsbestosRegister extends React.Component {
                     style={getListStyle(snapshot.isDraggingOver, 'blank')}
                     {...provided.droppableProps}
                   >
-                  { this.props.acmTemplates && this.props.acmTemplates
-                    .filter(e => {
-                      let res = true;
-                      if (this.state.templateSearch && !`${e.templateName}${e.description}${e.material}`.toLowerCase().includes(this.state.templateSearch.toLowerCase())) res = false;
-                      return res;
-                    })
-                    .map((item, index) => {
+                  { acmTemplates.map((item, index) => {
                     return (<Draggable
                       key={`${item.uid}template`}
                       draggableId={`${item.uid}template`}
@@ -450,12 +470,37 @@ class SiteAsbestosRegister extends React.Component {
 
   getAcmCard = item => {
     const { classes } = this.props;
+    let idKey = item.idKey || null;
+    if (idKey === 'i' && item.sample) {
+      let simpleResult = writeSimpleResult(item.sample.result);
+      if (simpleResult === 'Not Analysed') idKey = 'i';
+      else if (simpleResult === 'NO') idKey = 'negative';
+      else idKey = 'positive';
+    }
+    if (item.acmRemoved) idKey = 'removed';
     return (
       <div className={classes.flexRowSpread}>
-        {`${item.description} ${item.material}`}
+        <div className={classNames(classes.columnMed, classes.bold)}>
+          {item.sampleType === 'air' ? 'Air Sample' : `${writeDescription(item)}`}
+        </div>
+        <div className={classes.columnLarge}>
+          { item.sample && `${item.sample.jobNumber}-${item.sample.sampleNumber}`}
+        </div>
         <div className={classes.flexRow}>
+          <IconButton>
+            {item.sampleType === 'air' ?
+              <AirResultIcon className={item.sample && item.sample.reportedConcentration && item.sample.reportedConcentration.includes('<') ? classes.colorsOk : classes.colorsBad} />
+            : idKey === 'removed' ?
+            <RemovedIcon /> :
+            <ResultIcon className={
+              idKey === 'p' ? classes.colorsWarning :
+              idKey === 's' ? classes.colorsStrongWarning :
+              idKey === 'i' ? classes.colorsUnclear :
+              idKey === 'negative' ? classes.colorsOk :
+              classes.colorsBad} />}
+          </IconButton>
           <IconButton onClick={() => this.setState({ selectedAcm: item })}>
-            <SelectIcon className={classes.iconSmall} />
+            <SelectIcon />
           </IconButton>
         </div>
       </div>

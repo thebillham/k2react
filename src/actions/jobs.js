@@ -61,6 +61,7 @@ import {
   getDaysSinceDate,
   titleCase,
 } from "./helpers";
+import { fetchSamples, } from "./asbestosLab";
 // import assetData from "./assetData.json";
 
 const buckets = [
@@ -769,17 +770,19 @@ export const fetchSiteJobs = site => async dispatch => {
       let job = doc.data();
       job.uid = doc.id;
       jobs[doc.id] = job;
-      var cocs = {};
-      cocsRef.where('jobNumber','==',job.jobNumber).onSnapshot(cocSnapshot => {
+      cocsRef.where('jobNumber','==',job.jobNumber).where('deleted','==',false).onSnapshot(cocSnapshot => {
+        var cocs = {};
         cocSnapshot.forEach(cocDoc => {
           let coc = cocDoc.data();
           coc.uid = cocDoc.id;
           cocs[cocDoc.id] = coc;
-        })
-      });
-      dispatch({
-        type: GET_SITE_COCS,
-        payload: {cocs, site},
+          dispatch(fetchSamples(cocDoc.id, job.jobNumber));
+        });
+        // console.log(cocs);
+        dispatch({
+          type: GET_SITE_COCS,
+          payload: {cocs, site},
+        });
       });
     });
     dispatch({

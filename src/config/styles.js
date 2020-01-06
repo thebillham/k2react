@@ -932,6 +932,30 @@ const styles = theme => ({
     color: theme.palette.secondary.main,
   },
 
+  colorsBad: {
+    color: theme.palette.indicators.bad,
+  },
+
+  colorsUnclear: {
+    color: theme.palette.indicators.unclear,
+  },
+
+  colorsStrongWarning: {
+    color: theme.palette.indicators.strongWarning,
+  },
+
+  colorsWarning: {
+    color: theme.palette.indicators.warning,
+  },
+
+  colorsOk: {
+    color: theme.palette.indicators.ok,
+  },
+
+  colorsBenign: {
+    color: theme.palette.indicators.benign,
+  },
+
   colorsDivBad: {
     borderRadius: 5,
     margin: 2,
@@ -943,6 +967,17 @@ const styles = theme => ({
     color: theme.palette.indicators.badText,
   },
 
+  colorsDivUnclear: {
+    borderRadius: 5,
+    margin: 2,
+    backgroundColor: theme.palette.indicators.unclear,
+  },
+
+  colorsButtonUnclear: {
+    margin: 3,
+    color: theme.palette.indicators.unclearText,
+  },
+
   colorsDivWarning: {
     borderRadius: 5,
     margin: 2,
@@ -952,6 +987,17 @@ const styles = theme => ({
   colorsButtonWarning: {
     margin: 3,
     color: theme.palette.indicators.warningText,
+  },
+
+  colorsDivStrongWarning: {
+    borderRadius: 5,
+    margin: 2,
+    backgroundColor: theme.palette.indicators.strongWarning,
+  },
+
+  colorsButtonStrongWarning: {
+    margin: 3,
+    color: theme.palette.indicators.strongWarningText,
   },
 
   colorsDivOk: {
@@ -1664,6 +1710,12 @@ const styles = theme => ({
     flexDirection: 'row',
     display: 'flex',
     alignItems: 'center'
+  },
+
+  flexRowBottom: {
+    flexDirection: 'row',
+    display: 'flex',
+    alignItems: 'flex-end'
   },
 
   flexRowSpread: {

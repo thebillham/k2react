@@ -209,6 +209,7 @@ export const fetchSamples = (cocUid, jobNumber, modal, airSamples) => async disp
         //       }
         //     })
         // } else {
+          // console.log(samples);
           dispatch({
             type: GET_SAMPLES,
             cocUid: cocUid,
@@ -413,7 +414,7 @@ export const handleCocSubmit = async ({ doc, me, originalSamples, sampleType }) 
           // //console.log(`UID for new sample is ${uid}`);
           let log = {
             type: 'Create',
-            log: `Sample ${sampleNumber} (${writeDescription(sample)}) created.`,
+            log: doc.historicalCoc ? `Historical sample ${sampleNumber} (${writeDescription(sample)}) created.` : `Sample ${sampleNumber} (${writeDescription(sample)}) created.`,
             chainOfCustody: doc.uid,
             sample: uid,
           };
@@ -422,10 +423,33 @@ export const handleCocSubmit = async ({ doc, me, originalSamples, sampleType }) 
           sample.deleted = false;
           sample.createdDate = new Date();
           sample.createdBy = {uid: me.uid, name: me.name};
-          sample.sampleType = doc.sampleType ? doc.sampleType : "bulk";
-          if (sample.sampleDate === undefined && doc.defaultSampleDate !== null) sample.sampleDate = doc.defaultSampleDate;
-          sample.sampleDate = dateOf(sample.sampleDate);
-          if (!sample.sampledBy && doc.defaultSampledBy.length > 0) sample.sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));
+          sample.sampleType = doc.sampleType || "bulk";
+          if (doc.historicalCoc) {
+            sample.inhouseSampling = doc.inhouseSampling || "true";
+            sample.sampledBy = doc.sampledBy || null;
+            sample.otherSampledBy = doc.otherSampledBy || null;
+            sample.sampleDate = doc.sampleDate || null;
+            sample.samplingCompany = doc.samplingCompany || null;
+            sample.samplingCompanyRef = doc.samplingCompanyRef || null;
+            sample.samplingCompanyPersonnel = doc.samplingCompanyPersonnel || null;
+            sample.samplingCompanyRef = doc.samplingCompanyRef || null;
+
+            sample.inhouseTesting = doc.inhouseTesting || "true";
+            sample.testingLaboratory = doc.testingLaboratory || null;
+            sample.testingLaboratoryRef = doc.testingLaboratoryRef || null;
+            sample.testingLaboratoryAnalysts = doc.testingLaboratoryAnalysts || null;
+
+            sample.receivedDate = doc.receivedDate || null;
+            sample.analysisDate = doc.analysisDate || null;
+            sample.analyst = doc.analysisBy ? andList(doc.analysisBy.map(e => e.name)) : null;
+            sample.issueDate = doc.issueDate || null;
+            sample.verified = true;
+            sample.verifyDate = doc.issueDate || null;
+          } else {
+            if (sample.sampleDate === undefined && doc.defaultSampleDate !== null) sample.sampleDate = doc.defaultSampleDate;
+            sample.sampleDate = dateOf(sample.sampleDate);
+            if (!sample.sampledBy && doc.defaultSampledBy.length > 0) sample.sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));
+          }
           sampleList.push(uid);
         } else {
           if (sample.verified && sample !== originalSamples[sampleNumber]) {
@@ -436,7 +460,7 @@ export const handleCocSubmit = async ({ doc, me, originalSamples, sampleType }) 
               sample: sample.uid,
             };
             addLog("asbestosLab", log, me, batch);
-            sample.verified = false;
+            if (!doc.historicalCoc) sample.verified = false;
           }
           sampleList.push(sample.uid);
         }
@@ -465,7 +489,7 @@ export const handleCocSubmit = async ({ doc, me, originalSamples, sampleType }) 
           // //console.log(`UID for new sample is ${uid}`);
           let log = {
             type: 'Create',
-            log: `Sample ${sampleNumber} (${sample.specificLocation ? sample.specificLocation : 'Untitled'}) created.`,
+            log: doc.historicalCoc ? `Historical sample ${sampleNumber} (${sample.specificLocation || 'Untitled'}) created.` : `Sample ${sampleNumber} (${sample.specificLocation || 'Untitled'}) created.`,
             chainOfCustody: doc.uid,
             sample: uid,
           };
@@ -474,8 +498,33 @@ export const handleCocSubmit = async ({ doc, me, originalSamples, sampleType }) 
           sample.deleted = false;
           sample.createdDate = new Date();
           sample.createdBy = {uid: me.uid, name: me.name};
-          if (doc.defaultSampleDate) sample.sampleDate = dateOf(doc.defaultSampleDate);
-          if (doc.defaultSampledBy.length > 0) sample.sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));
+          sample.sampleType = doc.sampleType || "air";
+
+          if (doc.historicalCoc) {
+            sample.inhouseSampling = doc.inhouseSampling || "true";
+            sample.sampledBy = doc.sampledBy || null;
+            sample.otherSampledBy = doc.otherSampledBy || null;
+            sample.sampleDate = doc.sampleDate || null;
+            sample.samplingCompany = doc.samplingCompany || null;
+            sample.samplingCompanyRef = doc.samplingCompanyRef || null;
+            sample.samplingCompanyPersonnel = doc.samplingCompanyPersonnel || null;
+            sample.samplingCompanyRef = doc.samplingCompanyRef || null;
+
+            sample.inhouseTesting = doc.inhouseTesting || "true";
+            sample.testingLaboratory = doc.testingLaboratory || null;
+            sample.testingLaboratoryRef = doc.testingLaboratoryRef || null;
+            sample.testingLaboratoryAnalysts = doc.testingLaboratoryAnalysts || null;
+
+            sample.receivedDate = doc.receivedDate || null;
+            sample.analysisDate = doc.analysisDate || null;
+            sample.analyst = doc.analysisBy ? andList(doc.analysisBy.map(e => e.name)) : null;
+            sample.issueDate = doc.issueDate || null;
+            sample.verified = true;
+            sample.verifyDate = doc.issueDate || null;
+          } else {
+            if (doc.defaultSampleDate) sample.sampleDate = dateOf(doc.defaultSampleDate);
+            if (doc.defaultSampledBy && doc.defaultSampledBy.length > 0) sample.sampledBy = doc.defaultSampledBy.map(e => ({uid: e.value, name: e.label}));
+          }
           sample = {
             ...sample,
             ...calc,
@@ -510,6 +559,8 @@ export const handleCocSubmit = async ({ doc, me, originalSamples, sampleType }) 
   doc2.uid = doc.uid;
   doc2.sampleType = sampleType;
   doc2.sampleList = sampleList;
+  doc2.createdDate = doc2.sampleDate || new Date();
+  doc2.lastModified = doc2.issueDate || new Date();
   batch.set(cocsRef.doc(doc.uid), doc2);
   batch.commit();
 };
@@ -2437,26 +2488,30 @@ export const sortSamples = samples => {
 
 export const writeDescription = (sample) => {
   var str = '';
-  if (sample.genericLocation) str = sample.genericLocation;
-  if (sample.specificLocation) {
-    if (str === '') {
-      str = sample.specificLocation;
-    } else {
-      str = str + ', ' + sample.specificLocation;
-    }
-  }
-  if (str !== '') str = str + ': ';
-  if (sample.description && sample.material) {
-    if (sample.description.toLowerCase().includes(sample.material.toLowerCase())) str = str + sample.description;
-    else str = str + sample.description + ", " + sample.material;
-  } else if (sample.description) {
-    str = str + sample.description;
-  } else if (sample.material) {
-    str = str + sample.material;
+  if (sample.sampleType === 'air') {
+    str = `${sample.specificLocation || 'No description'} (Air Sample)`;
   } else {
-    str = str + "No description";
+    if (sample.genericLocation) str = sample.genericLocation;
+    if (sample.specificLocation) {
+      if (str === '') {
+        str = sample.specificLocation;
+      } else {
+        str = str + ', ' + sample.specificLocation;
+      }
+    }
+    if (str !== '') str = str + ': ';
+    if (sample.description && sample.material) {
+      if (sample.description.toLowerCase().includes(sample.material.toLowerCase())) str = str + sample.description;
+      else str = str + sample.description + ", " + sample.material;
+    } else if (sample.description) {
+      str = str + sample.description;
+    } else if (sample.material) {
+      str = str + sample.material;
+    } else {
+      str = str + "No description";
+    }
+    if (str.length > 1) str = str.charAt(0).toUpperCase() + str.slice(1);
   }
-  if (str.length > 1) str = str.charAt(0).toUpperCase() + str.slice(1);
   return str;
 };
 
@@ -3641,7 +3696,7 @@ export const getAirSampleData = (sample, fibreResultDefault) => {
     if (calcs.sampleVolume < 360) calcs.sampleVolumeTooLow = true;
   }
 
-  if (sample.fibreCounts && Object.keys(sample.fibreCounts).length > 0) {
+  if (sample.fibreResult || (sample.fibreCounts && Object.keys(sample.fibreCounts).length > 0)) {
     // Fibre counts have been done. Get concentrations.
     // Each fibre count has the following information:
     //    (obj) analyst: {name, uid}
@@ -3691,12 +3746,15 @@ export const getAirSampleData = (sample, fibreResultDefault) => {
     analysts = Object.keys(analystMap);
 
     let microscopeDistanceAvg = microscopeNumber > 0 ? parseFloat(microscopeDistanceTotal/microscopeNumber) : null,
-      fibreResult = filtersAnalysedNumber > 0 ? parseFloat(fibreCountTotal/filtersAnalysedNumber) : fibreResultDefault ? fibreResultDefault : null;
+      fibreResult = sample.fibreResult ? parseFloat(sample.fibreResult) : filtersAnalysedNumber > 0 ? parseFloat(fibreCountTotal/filtersAnalysedNumber) : fibreResultDefault ? fibreResultDefault : null;
 
-    let graticuleArea = microscopeDistanceAvg ? Math.PI * Math.pow(microscopeDistanceAvg/1000/2, 2) : null;
-
+    // Microscope distance average is approximated if not present to cover historic air testing
+    let graticuleArea = microscopeDistanceAvg ? Math.PI * Math.pow(microscopeDistanceAvg/1000/2, 2) : Math.PI * Math.pow(100.2/1000/2, 2);
+    // console.log(calcs);
+    // console.log(fibreResult);
     if (graticuleArea && fibreResult && calcs.averageFlowRate && calcs.averageFlowRate !== 0 && calcs.runTime !== 0) {
       actualConcentration = effectiveFilterArea/graticuleArea*fibreResult/areasCounted*(1/calcs.averageFlowRate)*(1/calcs.runTime);
+      console.log(actualConcentration);
       if (actualConcentration) {
         if (fibreResult >= 10) {
           // less than 0.005: [<0.01]
