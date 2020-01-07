@@ -241,8 +241,9 @@ const styles = theme => ({
 
   informationBoxWhiteRounded: {
     backgroundColor: '#fff',
-    borderRadius: theme.spacing(1),
+    borderRadius: 4,
     borderStyle: 'solid',
+    borderColor: '#ddd',
     borderWidth: 1,
     padding: theme.spacing(1),
     fontSize: 12,
@@ -380,6 +381,15 @@ const styles = theme => ({
   minHeightDialog90: {
     minHeight: '90vh',
     maxHeight: '90vh',
+  },
+
+  singlePaneDialog: {
+    minHeight: '85vh',
+  },
+
+  singlePaneScrollable: {
+     overflowY: 'scroll',
+     height: '85vh',
   },
 
   cardHeaderType: {
@@ -956,10 +966,57 @@ const styles = theme => ({
     color: theme.palette.indicators.benign,
   },
 
+  totalDivBad: {
+    borderRadius: theme.spacing(1),
+    padding: theme.spacing(2),
+    margin: theme.spacing(1),
+    color: theme.palette.indicators.badText,
+    backgroundColor: theme.palette.indicators.bad,
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+
+  totalDivWarning: {
+    borderRadius: theme.spacing(1),
+    padding: theme.spacing(2),
+    margin: theme.spacing(1),
+    color: theme.palette.indicators.warningText,
+    backgroundColor: theme.palette.indicators.warning,
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+
+  totalDivOk: {
+    borderRadius: theme.spacing(1),
+    padding: theme.spacing(2),
+    margin: theme.spacing(1),
+    color: theme.palette.indicators.okText,
+    backgroundColor: theme.palette.indicators.ok,
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+
+  totalDivBenign: {
+    borderRadius: theme.spacing(1),
+    padding: theme.spacing(2),
+    margin: theme.spacing(1),
+    color: theme.palette.indicators.benignText,
+    backgroundColor: theme.palette.indicators.benign,
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+
   colorsDivBad: {
     borderRadius: 5,
     margin: 2,
     backgroundColor: theme.palette.indicators.bad,
+    color: theme.palette.indicators.badText,
+  },
+
+  colorsCellBad: {
+    padding: theme.spacing(1),
+    backgroundColor: theme.palette.indicators.bad,
+    color: theme.palette.indicators.badText,
   },
 
   colorsButtonBad: {
@@ -971,6 +1028,13 @@ const styles = theme => ({
     borderRadius: 5,
     margin: 2,
     backgroundColor: theme.palette.indicators.unclear,
+    color: theme.palette.indicators.unclearText,
+  },
+
+  colorsCellUnclear: {
+    padding: theme.spacing(1),
+    backgroundColor: theme.palette.indicators.unclear,
+    color: theme.palette.indicators.unclearText,
   },
 
   colorsButtonUnclear: {
@@ -982,6 +1046,13 @@ const styles = theme => ({
     borderRadius: 5,
     margin: 2,
     backgroundColor: theme.palette.indicators.warning,
+    color: theme.palette.indicators.warningText,
+  },
+
+  colorsCellWarning: {
+    padding: theme.spacing(1),
+    backgroundColor: theme.palette.indicators.warning,
+    color: theme.palette.indicators.warningText,
   },
 
   colorsButtonWarning: {
@@ -993,6 +1064,13 @@ const styles = theme => ({
     borderRadius: 5,
     margin: 2,
     backgroundColor: theme.palette.indicators.strongWarning,
+    color: theme.palette.indicators.strongWarningText,
+  },
+
+  colorsCellStrongWarning: {
+    padding: theme.spacing(1),
+    backgroundColor: theme.palette.indicators.strongWarning,
+    color: theme.palette.indicators.strongWarningText,
   },
 
   colorsButtonStrongWarning: {
@@ -1004,6 +1082,13 @@ const styles = theme => ({
     borderRadius: 5,
     margin: 2,
     backgroundColor: theme.palette.indicators.ok,
+    color: theme.palette.indicators.okText,
+  },
+
+  colorsCellOk: {
+    padding: theme.spacing(1),
+    backgroundColor: theme.palette.indicators.ok,
+    color: theme.palette.indicators.okText,
   },
 
   colorsButtonOk: {
@@ -1015,6 +1100,13 @@ const styles = theme => ({
     borderRadius: 5,
     margin: 2,
     backgroundColor: theme.palette.indicators.benign,
+    color: theme.palette.indicators.benignText,
+  },
+
+  colorsCellBenign: {
+    padding: theme.spacing(1),
+    backgroundColor: theme.palette.indicators.benign,
+    color: theme.palette.indicators.benignText,
   },
 
   colorsButtonBenign: {

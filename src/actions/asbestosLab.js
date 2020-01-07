@@ -2956,7 +2956,7 @@ export const traceAnalysisRequired = sample => {
   return (<div className={styles.highlightBoxBlack}>{text}</div>);
 }
 
-export const writeResult = (result, noAsbestosResultReason) => {
+export const writeResult = (result, noAsbestosResultReason, short) => {
   let detected = [];
   if (result === undefined) {
     if (noAsbestosResultReason) {
@@ -3005,8 +3005,9 @@ export const writeResult = (result, noAsbestosResultReason) => {
       }
     }
   });
-  // Don't show other fibres with positives to avoid confusion
-  return str.charAt(0).toUpperCase() + str.slice(1) + " detected" + others;
+  
+  if (short) return str.charAt(0).toUpperCase() + str.slice(1);
+  else return str.charAt(0).toUpperCase() + str.slice(1) + " detected" + others;
 };
 
 export const writeSimpleResult = (result, noAsbestosResultReason) => {

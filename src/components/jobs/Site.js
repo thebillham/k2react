@@ -72,6 +72,7 @@ import SiteJob from "./pages/SiteJob";
 import SiteLayout from "./pages/SiteLayout";
 import SiteMapsAndDiagrams from "./pages/SiteMapsAndDiagrams";
 import SiteAsbestosRegister from "./pages/SiteAsbestosRegister";
+import SiteAddAcm from "./pages/SiteAddAcm";
 import TemplateBmModal from "./modals/TemplateBmModal";
 import TemplateAcmModal from "./modals/TemplateAcmModal";
 
@@ -193,6 +194,7 @@ class Site extends React.Component {
           <Tab label="General Information" value='general' />
           {/*<Tab label="Site Visit History" value='visithistory' />*/}
           <Tab label="Site Layout" value='layout' />
+          <Tab label="Add ACM" value='addAcm' />
           <Tab label="Asbestos Register" value='register' />
           <Tab label="Maps and Diagrams" value='maps' />
           {jobs && Object.keys(jobs).length > 0 && Object.values(jobs).map(j => {
@@ -209,6 +211,7 @@ class Site extends React.Component {
         {this.state.tabValue === 'general' && <SiteGeneralInformation that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'visithistory' && <SiteVisitHistory that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'layout' && <SiteLayout that={this} site={this.props.match.params.site.trim()} />}
+        {this.state.tabValue === 'addAcm' && <SiteAddAcm that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'register' && <SiteAsbestosRegister that={this} site={this.props.match.params.site.trim()} />}
         {this.state.tabValue === 'maps' && <SiteMapsAndDiagrams that={this} site={this.props.match.params.site.trim()} />}
         {jobs && Object.keys(jobs).length > 0 && Object.values(jobs).map(j => {

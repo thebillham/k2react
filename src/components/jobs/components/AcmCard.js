@@ -4,6 +4,7 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
+import moment from 'moment';
 // import store from '../../store';
 import { TEMPLATE_ACM } from "../../../constants/modal-types";
 import { sitesRef, storage, templateAcmRef, } from "../../../config/firebase";
@@ -35,6 +36,9 @@ import "react-quill/dist/quill.snow.css";
 
 import UploadIcon from "@material-ui/icons/CloudUpload";
 import Go from '@material-ui/icons/ArrowForwardIos';
+import CheckWriterIcon from '@material-ui/icons/Done';
+import CheckCheckerIcon from '@material-ui/icons/DoneAll';
+import CheckKTPIcon from '@material-ui/icons/VerifiedUser';
 import Close from "@material-ui/icons/Close";
 import {
   hideModal,
@@ -47,7 +51,8 @@ import {
 import { fetchSites, getDetailedWFMJob, } from '../../../actions/jobs';
 import { getSampleColors, updateResultMap, writeDescription, } from '../../../actions/asbestosLab';
 import { getUserAttrs, } from "../../../actions/local";
-import { sendSlackMessage, numericAndLessThanOnly, } from '../../../actions/helpers';
+import { getMaterialRisk, getPriorityRisk, getTotalRisk, } from "../../../actions/asbestosReportHelpers";
+import { sendSlackMessage, numericAndLessThanOnly, dateOf, } from '../../../actions/helpers';
 import { AsbButton, ScoreButton, } from '../../../widgets/FormWidgets';
 import _ from "lodash";
 import classNames from 'classnames';
@@ -60,6 +65,7 @@ const mapStateToProps = state => {
     modalProps: state.modal.modalProps,
     doc: state.modal.modalProps.doc,
     userRefName: state.local.userRefName,
+    sites: state.jobs.sites,
     siteCocs: state.jobs.siteCocs,
     siteJobs: state.jobs.siteJobs,
     samples: state.asbestosLab.samples,
@@ -141,29 +147,63 @@ const quillModules = {
 };
 
 const initState = {
+  description: "",
+  inaccessibleItem: false,
+  unknownItem: false,
+  material: "",
+  category: "",
+  idKey: "p",
+  sample: null,
+  extent: "",
+  extentNum: "",
+  extentNumUnits: "m²",
+  acmRemoved: false,
+  acmRemovalJob: null,
+
+  accessibility: "Easy",
+  genericItem: false,
+  genericItemBlurb: "",
+  productScore: "1",
+  damageScore: "0",
+  damageDescription: "",
+  surfaceScore: "1",
+  surfaceDescription: "",
   asbestosType: {
     ch: true,
     am: true,
     cr: true,
   },
-  acmRemoved: false,
-  acmRemovalJob: "",
-  accessibility: "Easy",
   asbestosContent: "",
-  category: "",
+
   comment: "",
-  description: "",
-  genericItem: false,
-  genericItemBlurb: "",
-  idKey: "p",
-  inaccessibleItem: false,
+  whyNotSampled: "",
   managementPrimary: "",
   managementSecondary: "",
-  material: "",
-  productScore: "1",
+  removalLicenceRequired: "",
+  recommendations: "",
+
+  priMainActivityScore: null,
+  priSecondaryActivityScore: null,
+
+  priLocationScore: null,
+  priAccessibilityScore: null,
+  priExtentScore: null,
+
+  priOccupantScore: null,
+  priUseFreqScore: null,
+  priAvgTimeScore: null,
+
+  priMaintTypeScore: null,
+  priMaintFreqScore: null,
+
+  materialRisk: null,
+  priorityRisk: null,
+
+  checkWriter: false,
+  checkChecker: false,
+  checkKTP: false,
+
   room: {label: "", uid: ""},
-  sample: null,
-  surfaceScore: "1",
   templateName: "",
   uid: null,
   sampleType: 'bulk',
@@ -218,7 +258,6 @@ class AcmCard extends React.Component {
   render() {
     console.log(this.props.const);
     const { modalProps, item, classes } = this.props;
-    const colors = getSampleColors({ result: this.state.asbestosType });
     if (item.uid !== this.state.uid) {
       this.saveAcm(this.state);
       this.loadAcm();
@@ -231,12 +270,21 @@ class AcmCard extends React.Component {
         });
     });
     const negative = (this.state.sample && this.state.sample.result && this.state.sample.result.no);
-    console.log(this.state);
+    const hasResult = (this.state.idKey === 'i' && this.state.sample && this.state.sample.result);
+    const colors = hasResult ? getSampleColors(this.state.sample) : getSampleColors({ result: this.state.asbestosType });
+    const totalRisk = (this.state.priorityRisk && this.state.materialRisk && this.state.materialRisk.color) ? getTotalRisk(this.state.materialRisk, this.state.priorityRisk) : null;
     return (
-      <Card>
+      <Card className={classes.singlePaneDialog}>
         { item.sampleType === 'air' ?
-          <CardContent className={classes.minHeightDialog90}>
-            <div className={classes.heading}>{`${this.state.room ? this.state.room.label : ''} Air Sample`}</div>
+          <CardContent>
+            <div className={classes.flexRowSpread}>
+              <div className={classes.heading}>{`${this.state.room ? this.state.room.label : ''} Air Sample`}</div>
+              <div className={classes.flexRow}>
+                <Tooltip title='All Information and Assessments Completed by Writer'><IconButton onClick={() => this.setState({ checkWriter: !this.state.checkWriter })}><CheckWriterIcon className={this.state.checkWriter ? classes.colorsOk : null} /></IconButton></Tooltip>
+                <Tooltip title='All Information and Assessments Reviewed by Checker'><IconButton onClick={() => this.setState({ checkChecker: !this.state.checkChecker })}><CheckCheckerIcon className={this.state.checkChecker ? classes.colorsOk : null} /></IconButton></Tooltip>
+                <Tooltip title='All Information and Assessments Reviewed by KTP'><IconButton onClick={() => this.setState({ checkKTP: !this.state.checkKTP })}><CheckKTPIcon className={this.state.checkKTP ? classes.colorsOk : null} /></IconButton></Tooltip>
+              </div>
+            </div>
             <InputLabel className={classes.marginTopSmall}>Sample Number</InputLabel>
             <Select
               className={classes.selectTight}
@@ -249,35 +297,56 @@ class AcmCard extends React.Component {
               }}
             />
             <InputLabel className={classes.marginTopSmall}>Concentration</InputLabel>
-            {this.state.sample.reportConcentration ? <div className={this.state.sample.reportConcentration.includes("<") ? classes.informationBoxOk : classes.informationBoxError}>
+            {this.state.sample && this.state.sample.reportConcentration ? <div className={this.state.sample.reportConcentration.includes("<") ? classes.informationBoxOk : classes.informationBoxError}>
               {this.state.sample.reportConcentration}
             </div> : ''}
           </CardContent>
         :
           <CardContent>
-            <div className={classes.heading}>{this.state.room && this.state.room.label}</div>
-            <InputLabel>Item Description</InputLabel>
+            <div className={classes.flexRowSpread}>
+              <div className={classes.heading}>{this.state.room && this.state.room.label}</div>
+              <div className={classes.flexRow}>
+                <Tooltip title='All Information and Assessments Completed by Writer'><IconButton onClick={() => this.setState({ checkWriter: !this.state.checkWriter })}><CheckWriterIcon className={this.state.checkWriter ? classes.colorsOk : null} /></IconButton></Tooltip>
+                <Tooltip title='All Information and Assessments Reviewed by Checker'><IconButton onClick={() => this.setState({ checkChecker: !this.state.checkChecker })}><CheckCheckerIcon className={this.state.checkChecker ? classes.colorsOk : null} /></IconButton></Tooltip>
+                <Tooltip title='All Information and Assessments Reviewed by KTP'><IconButton onClick={() => this.setState({ checkKTP: !this.state.checkKTP })}><CheckKTPIcon className={this.state.checkKTP ? classes.colorsOk : null} /></IconButton></Tooltip>
+              </div>
+            </div>
             <SuggestionField that={this} suggestions='descriptionSuggestions'
+              label='Item Description'
               controlled
               value={this.state.description ? this.state.description : ''}
               onModify={value => this.setState({ description: value})} />
+            <div className={classes.flexRowSpread}>
+              <FormControlLabel
+                className={classes.marginTopSmall}
+                control={
+                  <Switch
+                    checked={this.state.inaccessibleItem || false}
+                    onClick={e => { this.setState({ inaccessibleItem: e.target.checked })}}
+                    value="inaccessibleItem"
+                    color="secondary"
+                  />
+                }
+                label="Inaccessible Item"
+              />
 
-            <FormControlLabel
-              className={classes.marginTopSmall}
-              control={
-                <Switch
-                  checked={this.state.inaccessibleItem || false}
-                  onClick={e => { this.setState({ inaccessibleItem: e.target.checked })}}
-                  value="inaccessibleItem"
-                  color="secondary"
-                />
-              }
-              label="Inaccessible Item"
-            />
+              <FormControlLabel
+                className={classes.marginTopSmall}
+                control={
+                  <Switch
+                    checked={this.state.unknownItem || false}
+                    onClick={e => { this.setState({ unknownItem: e.target.checked })}}
+                    value="unknownItem"
+                    color="secondary"
+                  />
+                }
+                label="Unknown Item"
+              />
+            </div>
 
-            {!this.state.inaccessibleItem && <div>
-              <InputLabel className={classes.marginTopSmall}>Material</InputLabel>
+            {!this.state.unknownItem && <div>
               <SuggestionField that={this} suggestions='materialSuggestions'
+                label='Material'
                 controlled
                 value={this.state.material ? this.state.material : ''}
                 onModify={(value) => {
@@ -290,7 +359,7 @@ class AcmCard extends React.Component {
                     if (materialObj[0].asbestosType) asbestosType = { ch: materialObj[0].asbestosType.includes('ch'), am: materialObj[0].asbestosType.includes('am'), cr: materialObj[0].asbestosType.includes('cr'), };
                     if (materialObj[0].asbestosContent) asbestosContent = parseInt(materialObj[0].asbestosContent);
                   }
-                  this.setState({material: value ? value.trim() : null, category, asbestosType, asbestosContent, });
+                  this.setState({material: value, category, asbestosType, asbestosContent, });
                 }}
               />
               <InputLabel className={classes.marginTopSmall}>Material Category</InputLabel>
@@ -340,12 +409,15 @@ class AcmCard extends React.Component {
                   label: `${this.state.sample.jobNumber}-${this.state.sample.sampleNumber}: ${writeDescription(this.state.sample)}`} : {value: '', label: ''}}
                 options={Object.values(samples).filter(e => e.sampleType !== 'air').map(e => ({ value: e || null, label: e ? `${e.jobNumber}-${e.sampleNumber}: ${writeDescription(e)}` : null }))}
                 onChange={e => {
-                  this.setState({sample: e.value});
+                  this.setState({
+                    sample: e.value,
+                    materialRisk: getMaterialRisk({...this.state, sample: e.value}),
+                  });
                 }}
               />
             </div>}
-            <InputLabel className={classes.marginTopSmall}>Extent</InputLabel>
             <SuggestionField that={this} suggestions='extentSuggestions'
+              label='Extent Description'
               controlled
               value={this.state.extent || ''}
               onModify={value => this.setState({ extent: value})} />
@@ -354,7 +426,7 @@ class AcmCard extends React.Component {
               <TextField
                 id="extentNum"
                 label="Extent Amount"
-                style={{ width: '30%' }}
+                style={{ width: '60%' }}
                 value={this.state.extentNum}
                 onChange={e => this.setState({ extentNum: numericAndLessThanOnly(e.target.value), })}
               />
@@ -370,31 +442,31 @@ class AcmCard extends React.Component {
               />
             </div>
 
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={this.state.acmRemoved || false}
-                  onClick={e => { this.setState({ acmRemoved: e.target.checked })}}
-                  value="acmRemoved"
-                  color="secondary"
-                />
-              }
-              label="ACM Removed"
-            />
-
-            {this.state.acmRemoved && <div>
-              <InputLabel className={classes.marginTopSmall}>Clearance Job</InputLabel>
-              <Select
-                className={classes.selectTight}
-                value={this.state.acmRemovalJob ? { value: this.state.acmRemovalJob, label: this.props.siteJobs && this.props.siteJobs[this.props.site] && `${this.props.siteJobs[this.props.site][this.state.acmRemovalJob].jobNumber} ${this.props.siteJobs[this.props.site][this.state.acmRemovalJob].jobDescription}`} : { value: '', label: '' }}
-                options={this.props.siteJobs && this.props.siteJobs[this.props.site] ? Object.values(this.props.siteJobs[this.props.site]).map(e => ({ value: e.uid, label: `${e.jobNumber} ${e.jobDescription}` })) : []}
-                onChange={e => {
-                  this.setState({acmRemovalJob: e.value});
-                }}
+            {!negative && <div>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={this.state.acmRemoved || false}
+                    onClick={e => { this.setState({ acmRemoved: e.target.checked })}}
+                    value="acmRemoved"
+                    color="secondary"
+                  />
+                }
+                label="ACM Removed"
               />
-            </div>
 
-            }
+              {this.state.acmRemoved && <div>
+                <InputLabel className={classes.marginTopSmall}>Clearance Job</InputLabel>
+                <Select
+                  className={classes.selectTight}
+                  value={this.state.acmRemovalJob ? { value: this.state.acmRemovalJob, label: `${this.state.acmRemovalJob.referenceNumber} ${this.state.acmRemovalJob.asbestosRemovalist} (${moment(dateOf(this.state.acmRemovalJob.removalDate)).format('D MMM YYYY')})`} : { value: '', label: '' }}
+                  options={this.props.sites && this.props.sites[this.props.site] && this.props.sites[this.props.site].clearances ? Object.values(this.props.sites[this.props.site].clearances).map(e => ({ value: e, label: `${e.referenceNumber} ${e.asbestosRemovalist} (${moment(dateOf(e.removalDate)).format('D MMM YYYY')})` })) : []}
+                  onChange={e => {
+                    this.setState({acmRemovalJob: e.value});
+                  }}
+                />
+              </div>}
+            </div>}
 
             {!negative && !this.state.acmRemoved && <div>
 
@@ -437,54 +509,80 @@ class AcmCard extends React.Component {
               </div>
             }
 
-            {!this.state.inaccessibleItem && <div>
-              <div className={classes.flexRowSpread}>
-                <div>
-                  <InputLabel className={classes.marginTopSmall}>Product Score</InputLabel>
-                  <div className={classes.flexRow}>
-                    {this.props.asbestosProductScores && this.props.asbestosProductScores.map(res => {
-                      return ScoreButton(
-                        classes[`colorsButton${this.state.productScore === res.label ? res.color : 'Off'}`],
-                        classes[`colorsDiv${this.state.productScore === res.label ? res.color : 'Off'}`],
-                        res.label,
-                        res.tooltip,
-                        () => this.setState({ productScore: res.label, })
-                      )
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <InputLabel className={classes.marginTopSmall}>Surface Score</InputLabel>
-                  <div className={classes.flexRow}>
-                    {this.props.asbestosSurfaceScores && this.props.asbestosSurfaceScores.map(res => {
-                      return ScoreButton(
-                        classes[`colorsButton${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
-                        classes[`colorsDiv${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
-                        res.label,
-                        res.tooltip,
-                        () => this.setState({ surfaceScore: res.label, })
-                      )
-                    })}
-                  </div>
-                </div>
+            {!this.state.unknownItem && <div>
+              <InputLabel className={classes.marginTopSmall}>Product Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosProductScores && this.props.asbestosProductScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.productScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.productScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({
+                      productScore: res.label,
+                      materialRisk: getMaterialRisk({...this.state, productScore: res.label}),
+                    })
+                  )
+                })}
               </div>
 
+              <InputLabel className={classes.marginTopSmall}>Damage Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosDamageScores && this.props.asbestosDamageScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.damageScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.damageScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({
+                      damageScore: res.label,
+                      materialRisk: getMaterialRisk({...this.state, damageScore: res.label}),
+                    })
+                  )
+                })}
+              </div>
+              <SuggestionField that={this} suggestions='damageSuggestions'
+                label='Damage Description'
+                controlled
+                value={this.state.damageDescription || ''}
+                onModify={value => this.setState({ damageDescription: value})} />
+
+              <InputLabel className={classes.marginTopSmall}>Surface Score</InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosSurfaceScores && this.props.asbestosSurfaceScores.map(res => {
+                  return ScoreButton(
+                    classes[`colorsButton${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
+                    classes[`colorsDiv${this.state.surfaceScore === res.label ? res.color : 'Off'}`],
+                    res.label,
+                    res.tooltip,
+                    () => this.setState({
+                      surfaceScore: res.label,
+                      materialRisk: getMaterialRisk({...this.state, surfaceScore: res.label}),
+                    })
+                  )
+                })}
+              </div>
+              <SuggestionField that={this} suggestions='asbestosSurfaceSuggestions'
+                label='Surface Treatment Description'
+                controlled
+                value={this.state.surfaceDescription || ''}
+                onModify={value => this.setState({ surfaceDescription: value})} />
+
               <div className={classes.flexRowSpread}>
                 <div>
-                  <InputLabel className={classes.marginTopSmall}>Presumed Asbestos Type</InputLabel>
+                  <InputLabel className={classes.marginTopSmall}>{hasResult ? 'Asbestos Type' : 'Presumed Asbestos Type'}</InputLabel>
                   <div className={classes.flexRow}>
                     {['ch','am','cr'].map(res => {
-                      return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res, () => this.handleAsbestosType(res))
+                      return AsbButton(classes[`colorsButton${colors[res]}`], classes[`colorsDiv${colors[res]}`], res, hasResult ? null : () => this.handleAsbestosType(res))
                     })}
                   </div>
                 </div>
 
                 <div>
-                  <InputLabel className={classes.marginTopSmall}>Estimated Asbestos Concentration</InputLabel>
                   <TextField
+                    label='Estimated Asbestos Concentration'
                     value={this.state.asbestosContent ? this.state.asbestosContent: ''}
-                    style={{ width: '100%'}}
+                    style={{ width: '20%'}}
                     InputProps={{
                       endAdornment: <InputAdornment position="end">%</InputAdornment>,
                     }}
@@ -496,7 +594,17 @@ class AcmCard extends React.Component {
                   />
                 </div>
               </div>
+
+              { this.state.materialRisk && <div className={classes[`totalDiv${this.state.materialRisk.color}`]}>{`Material Risk: ${this.state.materialRisk.text} (${this.state.materialRisk.score})`}</div>}
             </div>}
+
+            {this.state.idKey !== 'i' && !this.state.inaccessibleItem && <SuggestionField that={this} suggestions='asbestosWhyNotSampledSuggestions'
+              controlled
+              value={this.state.whyNotSampled || ''}
+              multiline
+              rows={2}
+              label='Why Not Sampled?'
+              onModify={value => this.setState({ whyNotSampled: value})} />}
 
             <InputLabel className={classes.marginTopSmall}>Comment for Report</InputLabel>
             <ReactQuill
@@ -519,15 +627,25 @@ class AcmCard extends React.Component {
               }}
             />
 
-              <InputLabel className={classes.marginTopSmall}>Basic Secondary Management</InputLabel>
-              <Select
-                className={classes.selectTight}
-                value={this.state.managementSecondary ? {value: this.state.managementSecondary, label: this.state.managementSecondary} : {value: '', label: ''}}
-                options={this.props.asbestosManagementOptions.map(e => ({ value: e.label, label: e.label }))}
-                onChange={e => {
-                  this.setState({managementSecondary: e.value});
-                }}
-              />
+            <InputLabel className={classes.marginTopSmall}>Basic Secondary Management</InputLabel>
+            <Select
+              className={classes.selectTight}
+              value={this.state.managementSecondary ? {value: this.state.managementSecondary, label: this.state.managementSecondary} : {value: '', label: ''}}
+              options={this.props.asbestosManagementOptions.map(e => ({ value: e.label, label: e.label }))}
+              onChange={e => {
+                this.setState({managementSecondary: e.value});
+              }}
+            />
+
+            <InputLabel className={classes.marginTopSmall}>Removal Licence Required</InputLabel>
+            <Select
+              className={classes.selectTight}
+              value={this.state.removalLicenceRequired ? {value: this.state.removalLicenceRequired, label: this.state.removalLicenceRequired} : {value: '', label: ''}}
+              options={['Class A', 'Class B', 'Unlicensed'].map(e => ({ value: e, label: e }))}
+              onChange={e => {
+                this.setState({removalLicenceRequired: e.value});
+              }}
+            />
 
             <InputLabel className={classes.marginTopSmall}>Management Recommendations</InputLabel>
             <ReactQuill
@@ -538,167 +656,128 @@ class AcmCard extends React.Component {
               onChange={(content, delta, source) => {
                 if (source === "user") this.setState({ recommendations: content })
               }}
-            /></div>}
+            />
 
             <InputLabel className={classes.marginTopSmall}>Priority Risk Assessment</InputLabel>
-            <InputLabel className={classes.marginTopSmall}>Activity</InputLabel>
+            <InputLabel className={classes.marginTopSmall}>Normal Occupant Activity</InputLabel>
 
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Main Activity Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriMainActivityScores && this.props.asbestosPriMainActivityScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priMainActivityScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priMainActivityScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priMainActivityScore: this.state.priMainActivityScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
+            {[
+              { label: 'Main type of activity in area', options: 'asbestosPriMainActivityScores', stateVar: 'priMainActivityScore'},
+              { label: 'Secondary activities for area', options: 'asbestosPriSecondaryActivityScores', stateVar: 'priSecondaryActivityScore'},
+            ].map(e => {
+              return (
+                <div>
+                  <InputLabel className={classes.marginTopSmall}>{e.label}</InputLabel>
+                  <div className={classes.flexRow}>
+                    {this.props[e.options] && this.props[e.options].map(res => {
+                      return ScoreButton(
+                        classes[`colorsButton${this.state[e.stateVar] === res.label ? res.color : 'Off'}`],
+                        classes[`colorsDiv${this.state[e.stateVar] === res.label ? res.color : 'Off'}`],
+                        res.label,
+                        res.tooltip,
+                        () => this.setState({
+                          [e.stateVar]: this.state[e.stateVar] === res.label ? null : res.label,
+                          priorityRisk: getPriorityRisk({...this.state, [e.stateVar]: this.state[e.stateVar] === res.label ? null : res.label}),
+                        })
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
 
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Secondary Activity Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriSecondaryActivityScores && this.props.asbestosPriSecondaryActivityScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priSecondaryActivityScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priSecondaryActivityScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priSecondaryActivityScore: this.state.priSecondaryActivityScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
+            <InputLabel className={classes.marginTopSmall}>Likelihood of Disturbance</InputLabel>
 
-            <InputLabel className={classes.marginTopSmall}>Disturbance</InputLabel>
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Location Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriLocationScores && this.props.asbestosPriLocationScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priLocationScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priLocationScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priLocationScore: this.state.priLocationScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
+            {[
+              { label: 'Location', options: 'asbestosPriLocationScores', stateVar: 'priLocationScore'},
+              { label: 'Accessibility', options: 'asbestosPriAccessibilityScores', stateVar: 'priAccessibilityScore'},
+              { label: 'Extent/amount', options: 'asbestosPriExtentScores', stateVar: 'priExtentScore'},
+            ].map(e => {
+              return (
+                <div>
+                  <InputLabel className={classes.marginTopSmall}>{e.label}</InputLabel>
+                  <div className={classes.flexRow}>
+                    {this.props[e.options] && this.props[e.options].map(res => {
+                      return ScoreButton(
+                        classes[`colorsButton${this.state[e.stateVar] === res.label ? res.color : 'Off'}`],
+                        classes[`colorsDiv${this.state[e.stateVar] === res.label ? res.color : 'Off'}`],
+                        res.label,
+                        res.tooltip,
+                        () => this.setState({
+                          [e.stateVar]: this.state[e.stateVar] === res.label ? null : res.label,
+                          priorityRisk: getPriorityRisk({...this.state, [e.stateVar]: this.state[e.stateVar] === res.label ? null : res.label}),
+                        })
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
 
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Accessibility Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriAccessibilityScores && this.props.asbestosPriAccessibilityScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priAccessibilityScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priAccessibilityScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priAccessibilityScore: this.state.priAccessibilityScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
+            <InputLabel className={classes.marginTopSmall}>Human Exposure Potential</InputLabel>
 
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Extent Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriExtentScores && this.props.asbestosPriExtentScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priExtentScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priExtentScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priExtentScore: this.state.priExtentScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
-
-            <InputLabel className={classes.marginTopSmall}>Exposure</InputLabel>
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Occupants Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriOccupantsScores && this.props.asbestosPriOccupantsScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priOccupantScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priOccupantScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priOccupantScore: this.state.priOccupantScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
-
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Use Frequency Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriUseFreqScores && this.props.asbestosPriUseFreqScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priUseFreqScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priUseFreqScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priUseFreqScore: this.state.priUseFreqScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
-
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Average Time Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriAvgTimeScores && this.props.asbestosPriAvgTimeScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priAvgTimeScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priAvgTimeScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priAvgTimeScore: this.state.priAvgTimeScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
+            {[
+              { label: 'Number of occupants', options: 'asbestosPriOccupantsScores', stateVar: 'priOccupantScore'},
+              { label: 'Frequency of use of area', options: 'asbestosPriUseFreqScores', stateVar: 'priUseFreqScore'},
+              { label: 'Average daily time area is in use', options: 'asbestosPriAvgTimeScores', stateVar: 'priAvgTimeScore'},
+            ].map(e => {
+              return (
+                <div>
+                  <InputLabel className={classes.marginTopSmall}>{e.label}</InputLabel>
+                  <div className={classes.flexRow}>
+                    {this.props[e.options] && this.props[e.options].map(res => {
+                      return ScoreButton(
+                        classes[`colorsButton${this.state[e.stateVar] === res.label ? res.color : 'Off'}`],
+                        classes[`colorsDiv${this.state[e.stateVar] === res.label ? res.color : 'Off'}`],
+                        res.label,
+                        res.tooltip,
+                        () => this.setState({
+                          [e.stateVar]: this.state[e.stateVar] === res.label ? null : res.label,
+                          priorityRisk: getPriorityRisk({...this.state, [e.stateVar]: this.state[e.stateVar] === res.label ? null : res.label}),
+                        })
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
 
             <InputLabel className={classes.marginTopSmall}>Maintenance</InputLabel>
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Maintenance Type Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriMaintTypeScores && this.props.asbestosPriMaintTypeScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priMaintTypeScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priMaintTypeScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priMaintTypeScore: this.state.priMaintTypeScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
 
-            <div>
-              <InputLabel className={classes.marginTopSmall}>Maintenance Frequency Score</InputLabel>
-              <div className={classes.flexRow}>
-                {this.props.asbestosPriMaintFreqScores && this.props.asbestosPriMaintFreqScores.map(res => {
-                  return ScoreButton(
-                    classes[`colorsButton${this.state.priMaintFreqScore === res.label ? res.color : 'Off'}`],
-                    classes[`colorsDiv${this.state.priMaintFreqScore === res.label ? res.color : 'Off'}`],
-                    res.label,
-                    res.tooltip,
-                    () => this.setState({ priMaintFreqScore: this.state.priMaintFreqScore === res.label ? null : res.label, })
-                  )
-                })}
-              </div>
-            </div>
+            {[
+              { label: 'Type of maintenance activity', options: 'asbestosPriMaintTypeScores', stateVar: 'priMaintTypeScore'},
+              { label: 'Frequency of maintenance activity', options: 'asbestosPriMaintFreqScores', stateVar: 'priMaintFreqScore'},
+            ].map(e => {
+              return (
+                <div>
+                  <InputLabel className={classes.marginTopSmall}>{e.label}</InputLabel>
+                  <div className={classes.flexRow}>
+                    {this.props[e.options] && this.props[e.options].map(res => {
+                      return ScoreButton(
+                        classes[`colorsButton${this.state[e.stateVar] === res.label ? res.color : 'Off'}`],
+                        classes[`colorsDiv${this.state[e.stateVar] === res.label ? res.color : 'Off'}`],
+                        res.label,
+                        res.tooltip,
+                        () => this.setState({
+                          [e.stateVar]: this.state[e.stateVar] === res.label ? null : res.label,
+                          priorityRisk: getPriorityRisk({...this.state, [e.stateVar]: this.state[e.stateVar] === res.label ? null : res.label}),
+                        })
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
 
+            { this.state.materialRisk && <div className={classes[`totalDiv${this.state.materialRisk.color}`]}>{`Material Risk: ${this.state.materialRisk.text} (${this.state.materialRisk.score})`}</div>}
 
+            { this.state.priorityRisk && <div className={classes[`totalDiv${this.state.priorityRisk.color}`]}>{`Priority Risk: ${this.state.priorityRisk.text} (${this.state.priorityRisk.score})`}</div>}
 
-            <InputLabel className={classes.marginTopSmall}>Thumbnail Image</InputLabel>
+            { totalRisk && <div className={classes[`totalDiv${totalRisk.color}`]}>{`Combined Risk: ${totalRisk.text} (${totalRisk.score})`}</div>}
+
+            </div>}
+
+            {/*<InputLabel className={classes.marginTopSmall}>Thumbnail Image</InputLabel>
             {this.state.siteImageUrl && (
               <div className={classes.marginTopSmall}>
                 <img
@@ -757,7 +836,7 @@ class AcmCard extends React.Component {
                 variant="determinate"
                 value={modalProps.uploadProgress}
               />
-            </label>
+            </label>*/}
           </CardContent>
         }
       </Card>

@@ -34,6 +34,12 @@ import LinkIcon from '@material-ui/icons/Link';
 import TimerIcon from "@material-ui/icons/Timer";
 import Select from 'react-select';
 import SuggestionField from '../../../widgets/SuggestionField';
+import ReactTable from 'react-table';
+import 'react-table/react-table.css';
+import AsbestosRegisterTable from "../components/AsbestosRegisterTable";
+import AsbestosSurveyTable from "../components/AsbestosSurveyTable";
+import NonAsbestosTable from "../components/NonAsbestosTable";
+import AirMonitoringRecords from "../components/AirMonitoringRecords";
 
 import {
   DatePicker,
@@ -75,6 +81,8 @@ import {
   handleJobChange,
 } from "../../../actions/jobs";
 
+import { collateSamples } from "../../../actions/asbestosReportHelpers";
+
 import {
   filterMap,
   filterMapReset,
@@ -95,6 +103,8 @@ const mapStateToProps = state => {
     staff: state.local.staff,
     sites: state.jobs.sites,
     siteJobs: state.jobs.siteJobs,
+    siteAcm: state.jobs.siteAcm,
+    samples: state.asbestosLab.samples,
     me: state.local.me,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
@@ -169,9 +179,10 @@ class SiteJob extends React.Component {
   }
 
   render() {
-    const { classes, that, m, wfmClients, geocodes, site, } = this.props;
+    const { classes, that, m, wfmClients, geocodes, site, sites, siteJobs, siteAcm, samples} = this.props;
     const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
-    console.log(site);
+    const { registerMap, registerList, airMonitoringRecords,} = collateSamples(sites[site], siteJobs ? siteJobs[site] || {} : {} , siteAcm ? siteAcm[site] || {} : {}, samples);
+    const loading = !sites[site] || !siteJobs[site] || !siteAcm[site] || !samples;
 
     if (m) {
       const color = classes[getJobColor(m.category)];
@@ -389,10 +400,20 @@ class SiteJob extends React.Component {
               })}
             </div>
           </Grid>
+          <Grid item xs={12}>
+            {m.jobDescription.includes('Asbestos') && m.jobDescription.includes('Management Plan') &&
+              <AsbestosRegisterTable loading={loading} registerList={registerList} classes={classes} />}
+            {m.jobDescription.includes('Asbestos') && m.jobDescription.includes('Survey') &&
+              <AsbestosSurveyTable loading={loading} registerList={registerList} classes={classes} />}
+            {m.jobDescription.includes('Asbestos') && m.jobDescription.includes('Survey') &&
+              <NonAsbestosTable loading={loading} registerList={registerList} classes={classes} />}
+            {m.jobDescription.includes('Asbestos Management Plan') &&
+              <AirMonitoringRecords loading={loading} airMonitoringRecords={airMonitoringRecords} classes={classes} />}
+          </Grid>
         </Grid>
-      );
-    } else return (<div />)
-  }
+    );
+  } else return (<div />)
+}
 }
 
 export default withStyles(styles)(

@@ -20,9 +20,12 @@ const mapStateToProps = state => {
     airLocationSuggestions: state.const.airLocationSuggestions,
     descriptionSuggestions: state.const.asbestosDescriptionSuggestions,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
+    asbestosSurfaceSuggestions: state.const.asbestosSurfaceSuggestions,
+    damageSuggestions: state.const.damageSuggestions,
     asbestosInSoilSuggestions: state.const.asbestosInSoilSuggestions,
     airTestDescriptions: state.const.airTestDescriptions,
     extentSuggestions: state.const.extentSuggestions,
+    asbestosWhyNotSampledSuggestions: state.const.asbestosWhyNotSampledSuggestions,
    };
 };
 
@@ -86,10 +89,7 @@ const getSuggestions = (value, suggestions, that, addedSuggestions) => {
   const inputLength = inputValue.length;
   let count = 0;
   let suggestionList = that.props[suggestions];
-  console.log(suggestionList);
-  console.log(addedSuggestions);
   if (addedSuggestions) suggestionList = suggestionList.concat(addedSuggestions);
-  console.log(suggestionList);
 
   return inputLength === 0
     ? []
@@ -150,6 +150,8 @@ class SuggestionField extends React.PureComponent {
         value: this.props.controlled ? this.props.value ? this.props.value : '' : this.state.value ? this.state.value : '',
         onChange: e => {this.props.controlled ? this.props.onModify(e.target.value): this.setState({ value: e.target.value })},
         onBlur: e => {this.props.onModify(e.target.value)},
+        multiline: this.props.multiline,
+        rows: this.props.rows,
         label: this.props.label,
         required: this.props.required,
       }}
