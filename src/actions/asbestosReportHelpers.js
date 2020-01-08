@@ -1,5 +1,5 @@
 import moment from "moment";
-import { sentenceCase, dateOf, andList } from "./helpers";
+import { sentenceCase, dateOf, andList, lower } from "./helpers";
 import { writeResult, getBasicResult } from "./asbestosLab";
 
 export const collateSamples = (site, siteJobs, siteAcm, samples) => {
@@ -22,7 +22,7 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
           room.acm &&
             room.acm.forEach(acmUid => {
               let acm = siteAcm[acmUid];
-              if (acm.sampleType !== "air") {
+              if (acm && acm.sampleType !== "air") {
                 // Columns AMP/Survey Positive (2018)
                 //  - Room/Area
                 //  - Item
@@ -100,7 +100,7 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
                 }
                 rows.push(row);
                 registerList.push(row);
-              } else if (acm.sample) {
+              } else if (acm && acm.sample) {
                 console.log(acm);
                 let row = {
                   room: roomName || "N/A",
@@ -590,6 +590,7 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
       let immediateRisk = false;
       let bullets = [],
         acmGroups = [],
+        genericRoom = false,
         sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
         identifiedAcm =
           Object.values(siteAcm).filter(
@@ -597,7 +598,8 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
               e.idKey === "i" &&
               e.sample &&
               e.sample.result &&
-              getBasicResult(e.sample) === "positive"
+              getBasicResult(e.sample) === "positive" &&
+              e.acmRemoved !== true
           ) || [],
         presumedAcm =
           Object.values(siteAcm).filter(
@@ -608,23 +610,55 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
       });
       // No positive samples and no presumed items
       if (presumedAcm.length === 0 && identifiedAcm.length === 0) return null;
+      let presumedRooms = {},
+        acmMaterials = {},
+        acmRooms = {};
+
+      identifiedAcm.length > 0 && identifiedAcm.forEach(e => {
+        // First see what rooms each material is in
+        console.log(e);
+        if (e.material || e.description) {
+          if (e.room && e.room.label) {
+            let room = e.room.label;
+            if (e.room.uid === "generic") room = "other areas";
+            let item = `${e.description && e.material ? `${e.description} ` : e.description}${e.material && e.material}`;
+            if (acmMaterials[item]) {
+              acmMaterials[item].rooms[room] = true;
+            } else {
+              acmMaterials[item] = { rooms: {[room]: true}};
+            }
+            if (acmRooms[room]) {
+              acmRooms[room].materials[item] = true;
+            } else {
+              acmRooms[room] = { materials: {[item]: true}};
+            }
+          }
+        }
+      });
+
+      console.log(acmRooms);
+      console.log(acmMaterials);
+
+      Object.values(acmRooms) && Object.keys(acmRooms).forEach(e => {
+        console.log(acmRooms[e]);
+        acmRooms[e].materials && bullets.push(`The asbestos-containing ${lower(andList(Object.keys(acmRooms[e].materials)))} ${Object.keys(acmRooms[e].materials).length === 1 ? 'is' : 'are'} in the ${lower(e)}`)
+      });
+
+      presumedAcm.length > 0 && presumedAcm.forEach(e => {
+        // This needs to be expanded to cover rooms with the same name
+        if (e.room && e.room.label) {
+          if (e.room.uid === "generic") genericRoom = true;
+          else presumedRooms[e.room.label] = true;
+        }
+      });
+      if (genericRoom) presumedRooms["other areas"] = true;
+
       if (identifiedAcm.length > 0) {
         // Positive samples and presumed items
         if (presumedAcm.length > 0) {
-          let presumedRooms = {},
-            presumedGeneric = false;
-          presumedAcm.forEach(e => {
-            // This needs to be expanded to cover rooms with the same name
-            if (e.room && e.room.label) {
-              if (e.room.uid === "generic") presumedGeneric = true;
-              else presumedRooms[e.room.label] = true;
-            }
-          });
-          if (presumedGeneric) presumedRooms["other areas"] = true;
-          console.log(presumedRooms);
           if (Object.keys(presumedRooms).length > 0)
             bullets.push(
-              `The presumed asbestos-containing materials in the ${sentenceCase(
+              `The presumed asbestos-containing materials in the ${lower(
                 andList(Object.keys(presumedRooms))
               )} <strong style="color: red">must</strong> also be managed.`
             );
@@ -637,9 +671,15 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
         } else {
           // Only presumed items, nothing sampled
         }
+        if (Object.keys(presumedRooms).length > 0)
+          bullets.push(
+            `The presumed asbestos-containing materials in the ${lower(
+              andList(Object.keys(presumedRooms))
+            )} <strong style="color: red">must</strong> be managed.`
+          );
       }
 
-      return `<ul>${bullets.map(e => `<li>${e}</li>`)}</ul>`;
+      return `<h2>Where is the Hazard?</h2><ul>${bullets.map(e => `<li>${e}</li>`)}</ul>`;
     } else {
       return null;
     }

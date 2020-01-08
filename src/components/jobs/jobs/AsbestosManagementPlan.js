@@ -122,11 +122,11 @@ class AsbestosManagementPlan extends React.Component {
       const loading =
         !sites[site] || !siteJobs[site] || !siteAcm[site] || !samples;
       return (
-        <div>
-          <div className={classNames(classes[color], classes.heading)}>
-            Prepare Document
-          </div>
-          <div className={classes.flexRow}>
+        <Grid container spacing={4}>
+          <Grid item xs={12}>
+            <div className={classNames(classes[color], classes.heading)}>
+              Prepare Document
+            </div>
             <div>
               <InputLabel>Select Template Version</InputLabel>
               <div className={classes.flexRow}>
@@ -163,88 +163,91 @@ class AsbestosManagementPlan extends React.Component {
                     }
                   />
                 </IconButton>
-              </div>
-            </div>
-            <div className={classes.flexRow}>
-              <Button
-                className={classes.buttonIconText}
-                onClick={() => {
-                  this.props.issueDocument({
-                    template: `AMP${this.state.templateVersion}`,
-                    site: sites[site],
-                    job: m,
-                    registerMap,
-                    registerList,
-                    airMonitoringRecords,
-                    staff
-                  });
-                  // this.props.showModal({
-                  //   modalType: REPORT_ACTIONS,
-                  //   modalProps: { job: job, title: `Issue Asbestos Management Plan ${job.jobNumber} (${job.client}: ${job.address})`, }
-                  // });
-                }}
-              >
-                <IssueVersionIcon className={classes.iconRegular} />
-                Issue Document
-              </Button>
-              <div>
-                <form
-                  method="post"
-                  target="_blank"
-                  action={`https://api.k2.co.nz/v1/doc/scripts/asbestos/amp/${this.state.templateVersion}.php`}
-                >
-                  <input
-                    type="hidden"
-                    name="data"
-                    value={
-                      m.issues &&
-                      m.issues[`${m.latestIssue}-${m.latestVersion}`]
-                        ? m.issues[`${m.latestIssue}-${m.latestVersion}`]
-                        : ""
-                    }
-                  />
                   <Button
                     className={classes.buttonIconText}
-                    type="submit"
-                    disabled={!m.latestVersionIssued}
                     onClick={() => {
-                      let log = {
-                        type: "Document",
-                        log: `Asbestos Management Plan downloaded.`,
-                        job: m.uid,
-                        site: site
-                      };
-                      addLog("job", log, this.props.me);
+                      this.props.issueDocument({
+                        template: `AMP${this.state.templateVersion}`,
+                        site: sites[site],
+                        job: m,
+                        registerMap,
+                        registerList,
+                        airMonitoringRecords,
+                        staff
+                      });
+                      // this.props.showModal({
+                      //   modalType: REPORT_ACTIONS,
+                      //   modalProps: { job: job, title: `Issue Asbestos Management Plan ${job.jobNumber} (${job.client}: ${job.address})`, }
+                      // });
                     }}
                   >
-                    <PrintIcon className={classes.iconRegular} />
-                    Download Document
+                    <IssueVersionIcon className={classes.iconRegular} />
+                    Issue Document
                   </Button>
-                </form>
+                  <div>
+                    <form
+                      method="post"
+                      target="_blank"
+                      action={`https://api.k2.co.nz/v1/doc/scripts/asbestos/amp/${this.state.templateVersion}.php`}
+                    >
+                      <input
+                        type="hidden"
+                        name="data"
+                        value={
+                          m.issues &&
+                          m.issues[`${m.latestIssue}-${m.latestVersion}`]
+                            ? m.issues[`${m.latestIssue}-${m.latestVersion}`]
+                            : ""
+                        }
+                      />
+                      <Button
+                        className={classes.buttonIconText}
+                        type="submit"
+                        disabled={!m.latestVersionIssued}
+                        onClick={() => {
+                          let log = {
+                            type: "Document",
+                            log: `Asbestos Management Plan downloaded.`,
+                            job: m.uid,
+                            site: site
+                          };
+                          addLog("job", log, this.props.me);
+                        }}
+                      >
+                        <PrintIcon className={classes.iconRegular} />
+                        Download Document
+                      </Button>
+                    </form>
+                  </div>
               </div>
             </div>
-          </div>
-
-          <AsbestosRegisterTable
-            loading={loading}
-            registerList={registerList}
-            classes={classes}
-          />
-          <AirMonitoringRecords
-            loading={loading}
-            airMonitoringRecords={airMonitoringRecords}
-            classes={classes}
-          />
-          <ExecutiveSummaryAmp
-            job={m}
-            siteUid={site}
-            siteAcm={siteAcm[site]}
-            that={this}
-            onChange={this.props.handleJobChangeDebounced}
-            template={this.state.templateVersion}
-            classes={classes}
-          />
-        </div>
+          </Grid>
+          <Grid item xs={12}>
+            <AsbestosRegisterTable
+              loading={loading}
+              registerList={registerList}
+              classes={classes}
+            />
+          </Grid>
+          <Grid item xs={12} md={5}>
+            <ExecutiveSummaryAmp
+              job={m}
+              siteUid={site}
+              siteAcm={siteAcm[site]}
+              that={this}
+              onChange={this.props.handleJobChangeDebounced}
+              template={this.state.templateVersion}
+              classes={classes}
+            />
+          </Grid>
+          <Grid item xs={12} md={7}>
+            <AirMonitoringRecords
+              loading={loading}
+              airMonitoringRecords={airMonitoringRecords}
+              classes={classes}
+            />
+          </Grid>
+        </Grid>
       );
     } else return <div />;
   }
