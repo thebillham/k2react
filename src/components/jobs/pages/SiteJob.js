@@ -40,6 +40,8 @@ import AsbestosRegisterTable from "../components/AsbestosRegisterTable";
 import AsbestosSurveyTable from "../components/AsbestosSurveyTable";
 import NonAsbestosTable from "../components/NonAsbestosTable";
 import AirMonitoringRecords from "../components/AirMonitoringRecords";
+import AsbestosManagementPlan from "../jobs/AsbestosManagementPlan";
+import AsbestosSurvey from "../jobs/AsbestosSurvey";
 
 import {
   DatePicker,
@@ -181,8 +183,6 @@ class SiteJob extends React.Component {
   render() {
     const { classes, that, m, wfmClients, geocodes, site, sites, siteJobs, siteAcm, samples} = this.props;
     const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
-    const { registerMap, registerList, airMonitoringRecords,} = collateSamples(sites[site], siteJobs ? siteJobs[site] || {} : {} , siteAcm ? siteAcm[site] || {} : {}, samples);
-    const loading = !sites[site] || !siteJobs[site] || !siteAcm[site] || !samples;
 
     if (m) {
       const color = classes[getJobColor(m.category)];
@@ -401,14 +401,8 @@ class SiteJob extends React.Component {
             </div>
           </Grid>
           <Grid item xs={12}>
-            {m.jobDescription.includes('Asbestos') && m.jobDescription.includes('Management Plan') &&
-              <AsbestosRegisterTable loading={loading} registerList={registerList} classes={classes} />}
-            {m.jobDescription.includes('Asbestos') && m.jobDescription.includes('Survey') &&
-              <AsbestosSurveyTable loading={loading} registerList={registerList} classes={classes} />}
-            {m.jobDescription.includes('Asbestos') && m.jobDescription.includes('Survey') &&
-              <NonAsbestosTable loading={loading} registerList={registerList} classes={classes} />}
-            {m.jobDescription.includes('Asbestos Management Plan') &&
-              <AirMonitoringRecords loading={loading} airMonitoringRecords={airMonitoringRecords} classes={classes} />}
+            {m.jobDescription === 'Asbestos Management Plan' && <AsbestosManagementPlan m={m} site={site} />}
+            {m.jobDescription.includes('Asbestos') && m.jobDescription.includes('Survey') && <AsbestosSurvey m={m} site={site} />}
           </Grid>
         </Grid>
     );

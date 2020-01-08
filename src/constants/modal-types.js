@@ -25,6 +25,7 @@ export const QC_ANALYSIS = "QC_ANALYSIS";
 export const QUESTION = "QUESTION";
 export const QUIZ = "QUIZ";
 export const NOTICES = "NOTICES";
+export const REPORT_ACTIONS = "REPORT_ACTIONS";
 export const SAMPLE = "SAMPLE";
 export const SITE = "SITE";
 export const SITE_JOB = "SITE_JOB";

@@ -27,6 +27,10 @@ function AsbestosRegisterTable(props) {
           Header: 'Extent',
           accessor: 'extent',
         }, {
+          Header: 'Accessibility',
+          accessor: 'accessibility',
+          maxWidth: 80,
+        }, {
           Header: 'Sample',
           accessor: 'sample',
           maxWidth: 120,

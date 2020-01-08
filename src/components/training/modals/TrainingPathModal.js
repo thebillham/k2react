@@ -44,8 +44,8 @@ import {
   handleModalSubmit,
   onUploadFile
 } from "../../../actions/modal";
-import { getUserAttrs, } from "../../../actions/local";
-import { sendSlackMessage, } from '../../../actions/helpers';
+import { getUserAttrs } from "../../../actions/local";
+import { sendSlackMessage, quillModules } from "../../../actions/helpers";
 import _ from "lodash";
 
 // Quill.register('modules/imageResize', ImageResize);
@@ -88,34 +88,6 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-const quillModules = {
-  toolbar: [
-    ["bold", "italic", "underline", "strike"], // toggled buttons
-    ["blockquote", "code-block"],
-
-    [{ header: 1 }, { header: 2 }], // custom button values
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ script: "sub" }, { script: "super" }], // superscript/subscript
-    [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
-    // [{ 'direction': 'rtl' }],                         // text direction
-
-    [{ size: ["small", false, "large", "huge"] }], // custom dropdown
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-
-    [{ color: [] }, { background: [] }], // dropdown with defaults from theme
-    // [{ 'font': [] }],
-    [{ align: [] }],
-
-    ["image"],
-
-    ["clean"] // remove formatting button
-  ]
-  // imageResize: {
-  //   parchment: Quill.import('parchment'),
-  // },
-  // imageDrop: true,
-};
-
 class TrainingModuleModal extends React.Component {
   constructor(props) {
     super(props);
@@ -133,9 +105,7 @@ class TrainingModuleModal extends React.Component {
 
   sendNewAttrSlack = () => {
     let message = {
-      text: `${this.props.modalProps.staffName} has added a new module.\n${
-        this.props.qualificationtypes[this.props.doc.type].name
-      }`
+      text: `${this.props.modalProps.staffName} has added a new module.\n${this.props.qualificationtypes[this.props.doc.type].name}`
     };
     sendSlackMessage(message, true);
   };
@@ -456,17 +426,18 @@ class TrainingModuleModal extends React.Component {
                 //console.log(selected);
                 return (
                   <div style={{ display: "flex", flexWrap: "wrap" }}>
-                    {selected && selected.map(value => (
-                      <Chip
-                        key={value}
-                        label={
-                          this.props.documents.filter(
-                            doc => doc.uid === value
-                          )[0].title
-                        }
-                        style={{ margin: 5 }}
-                      />
-                    ))}
+                    {selected &&
+                      selected.map(value => (
+                        <Chip
+                          key={value}
+                          label={
+                            this.props.documents.filter(
+                              doc => doc.uid === value
+                            )[0].title
+                          }
+                          style={{ margin: 5 }}
+                        />
+                      ))}
                   </div>
                 );
               }}
