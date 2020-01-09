@@ -115,7 +115,16 @@ class AsbestosManagementPlan extends React.Component {
         a.name.localeCompare(b.name)
       )
     );
-    // console.log(m);
+    console.log(m);
+    let latestIssue = 0;
+
+    if (m.versions && Object.keys(m.versions).length > 0) {
+      latestIssue = Math.max(
+        ...Object.keys(m.versions).map(key => parseInt(key))
+      );
+    }
+    console.log(latestIssue);
+    console.log(m.issues[latestIssue]);
 
     if (m) {
       const color = classes[getJobColor(m.category)];
@@ -163,62 +172,60 @@ class AsbestosManagementPlan extends React.Component {
                     }
                   />
                 </IconButton>
-                  <Button
-                    className={classes.buttonIconText}
-                    onClick={() => {
-                      this.props.issueDocument({
-                        template: `AMP${this.state.templateVersion}`,
-                        site: sites[site],
-                        job: m,
-                        registerMap,
-                        registerList,
-                        airMonitoringRecords,
-                        staff
-                      });
-                      // this.props.showModal({
-                      //   modalType: REPORT_ACTIONS,
-                      //   modalProps: { job: job, title: `Issue Asbestos Management Plan ${job.jobNumber} (${job.client}: ${job.address})`, }
-                      // });
-                    }}
+                <Button
+                  className={classes.buttonIconText}
+                  onClick={() => {
+                    this.props.issueDocument({
+                      template: `AMP${this.state.templateVersion}`,
+                      site: sites[site],
+                      job: m,
+                      registerMap,
+                      registerList,
+                      airMonitoringRecords,
+                      staff
+                    });
+                    // this.props.showModal({
+                    //   modalType: REPORT_ACTIONS,
+                    //   modalProps: { job: job, title: `Issue Asbestos Management Plan ${job.jobNumber} (${job.client}: ${job.address})`, }
+                    // });
+                  }}
+                >
+                  <IssueVersionIcon className={classes.iconRegular} />
+                  Issue Document
+                </Button>
+                <div>
+                  <form
+                    method="post"
+                    target="_blank"
+                    action={`https://api.k2.co.nz/v1/doc/scripts/asbestos/amp/${this.state.templateVersion}.php`}
                   >
-                    <IssueVersionIcon className={classes.iconRegular} />
-                    Issue Document
-                  </Button>
-                  <div>
-                    <form
-                      method="post"
-                      target="_blank"
-                      action={`https://api.k2.co.nz/v1/doc/scripts/asbestos/amp/${this.state.templateVersion}.php`}
+                    <input
+                      type="hidden"
+                      name="data"
+                      value={
+                        m.issues && m.issues[latestIssue]
+                          ? JSON.stringify(m.issues[latestIssue])
+                          : ""
+                      }
+                    />
+                    <Button
+                      className={classes.buttonIconText}
+                      type="submit"
+                      onClick={() => {
+                        let log = {
+                          type: "Document",
+                          log: `Asbestos Management Plan downloaded.`,
+                          job: m.uid,
+                          site: site
+                        };
+                        addLog("job", log, this.props.me);
+                      }}
                     >
-                      <input
-                        type="hidden"
-                        name="data"
-                        value={
-                          m.issues &&
-                          m.issues[`${m.latestIssue}-${m.latestVersion}`]
-                            ? m.issues[`${m.latestIssue}-${m.latestVersion}`]
-                            : ""
-                        }
-                      />
-                      <Button
-                        className={classes.buttonIconText}
-                        type="submit"
-                        disabled={!m.latestVersionIssued}
-                        onClick={() => {
-                          let log = {
-                            type: "Document",
-                            log: `Asbestos Management Plan downloaded.`,
-                            job: m.uid,
-                            site: site
-                          };
-                          addLog("job", log, this.props.me);
-                        }}
-                      >
-                        <PrintIcon className={classes.iconRegular} />
-                        Download Document
-                      </Button>
-                    </form>
-                  </div>
+                      <PrintIcon className={classes.iconRegular} />
+                      Download Document
+                    </Button>
+                  </form>
+                </div>
               </div>
             </div>
           </Grid>
@@ -234,7 +241,9 @@ class AsbestosManagementPlan extends React.Component {
               job={m}
               siteUid={site}
               siteAcm={siteAcm[site]}
+              site={sites[site]}
               that={this}
+              staff={staff}
               onChange={this.props.handleJobChangeDebounced}
               template={this.state.templateVersion}
               classes={classes}

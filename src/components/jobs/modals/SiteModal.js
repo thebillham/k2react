@@ -23,7 +23,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import IconButton from "@material-ui/core/IconButton";
 // import Geosuggest from 'react-geosuggest';
-import ImageUploader from 'react-images-upload';
+import ImageUploader from "react-images-upload";
 
 import UploadIcon from "@material-ui/icons/CloudUpload";
 import Close from "@material-ui/icons/Close";
@@ -33,13 +33,13 @@ import {
   handleModalSubmit,
   onUploadFile
 } from "../../../actions/modal";
-import { fetchSites, } from '../../../actions/jobs';
-import { getUserAttrs, } from "../../../actions/local";
-import { sendSlackMessage, } from '../../../actions/helpers';
+import { fetchSites } from "../../../actions/jobs";
+import { getUserAttrs } from "../../../actions/local";
+import { sendSlackMessage, numericOnly } from "../../../actions/helpers";
 import _ from "lodash";
-import classNames from 'classnames';
+import classNames from "classnames";
 
-import '../../../config/geosuggest.css';
+import "../../../config/geosuggest.css";
 
 const mapStateToProps = state => {
   return {
@@ -48,6 +48,7 @@ const mapStateToProps = state => {
     doc: state.modal.modalProps.doc,
     userRefName: state.local.userRefName,
     siteTypes: state.const.siteTypes,
+    assetClasses: state.const.assetClassesTrain
   };
 };
 
@@ -55,44 +56,46 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchSites: update => dispatch(fetchSites(update)),
     hideModal: () => dispatch(hideModal()),
-    onUploadFile: (file, pathRef, prefix, imageQuality) => dispatch(onUploadFile(file, pathRef, prefix, imageQuality)),
+    onUploadFile: (file, pathRef, prefix, imageQuality) =>
+      dispatch(onUploadFile(file, pathRef, prefix, imageQuality)),
     handleModalChange: _.debounce(
       target => dispatch(handleModalChange(target)),
       300
     ),
     handleSelectChange: target => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) =>
-      dispatch(handleModalSubmit(doc, pathRef)),
+      dispatch(handleModalSubmit(doc, pathRef))
   };
 };
 
 const jobTypes = [
-  'Stack',
-  'Workplace',
-  'Noise',
-  'Asbestos',
-  'Methamphetamine',
-  'Biological',
-  'Other',
+  "Stack",
+  "Workplace",
+  "Noise",
+  "Asbestos",
+  "Methamphetamine",
+  "Biological",
+  "Other"
 ];
 
 class SiteModal extends React.Component {
   deleteImage = (file, uid) => {
-    this.props.handleSelectChange({ id: "doc", value: { siteImageUrl: null, siteImageRef: null}});
+    this.props.handleSelectChange({
+      id: "doc",
+      value: { siteImageUrl: null, siteImageRef: null }
+    });
     if (uid) {
       let change = {
         siteImageUrl: null,
         siteImageRef: null
       };
-      sitesRef
-        .doc(uid)
-        .update(change);
+      sitesRef.doc(uid).update(change);
     }
     storage.ref(file).delete();
   };
 
   render() {
-    const { modalProps, doc, classes, siteTypes, } = this.props;
+    const { modalProps, doc, classes, siteTypes, assetClasses } = this.props;
     console.log(this.props.modalType);
     console.log(doc.uid);
     return (
@@ -108,40 +111,99 @@ class SiteModal extends React.Component {
             className={classes.formInputLarge}
             id="siteName"
             label="Site Name"
-            defaultValue={doc.siteName ? doc.siteName : ''}
+            defaultValue={doc.siteName || ""}
             onChange={e => {
-              this.props.handleModalChange({id: 'siteName', value: e.target.value});
+              this.props.handleModalChange({
+                id: "siteName",
+                value: e.target.value
+              });
             }}
           />
           <InputLabel>Site Type</InputLabel>
           <Select
-           className={classes.formInputLarge}
+            className={classes.formInputLarge}
             native
-            value={doc.type ? doc.type : ""}
+            value={doc.type || ""}
             onChange={e => {
-                this.props.handleModalChange({ id: 'type', value: e.target.value });
+              this.props.handleModalChange({
+                id: "type",
+                value: e.target.value
+              });
             }}
             inputProps={{
-              name: 'siteType',
+              name: "type"
             }}
           >
             <option value="" />
-            { siteTypes.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+            {siteTypes.map(s => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
           </Select>
-          <InputLabel className={classes.marginTopSmall}>Primary Job Type</InputLabel>
+          {doc.type === "train" && (
+            <div>
+              <div>
+                <InputLabel>Asset Class</InputLabel>
+                <Select
+                  className={classes.formInputLarge}
+                  native
+                  value={doc.assetClass || ""}
+                  onChange={e => {
+                    this.props.handleModalChange({
+                      id: "assetClass",
+                      value: e.target.value
+                    });
+                  }}
+                  inputProps={{
+                    name: "assetClass"
+                  }}
+                >
+                  <option value="" />
+                  {assetClasses.map(s => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <TextField
+                className={classes.formInputLarge}
+                id="assetClass"
+                label="Asset Number"
+                defaultValue={doc.assetNumber || ""}
+                onChange={e => {
+                  this.props.handleModalChange({
+                    id: "assetNumber",
+                    value: numericOnly(e.target.value)
+                  });
+                }}
+              />
+            </div>
+          )}
+          <InputLabel className={classes.marginTopSmall}>
+            Primary Job Type
+          </InputLabel>
           <Select
             className={classes.formInputLarge}
             native
-            value={doc.primaryJobType ? doc.primaryJobType : ""}
+            value={doc.primaryJobType || ""}
             onChange={e => {
-                this.props.handleModalChange({ id: 'primaryJobType', value: e.target.value });
+              this.props.handleModalChange({
+                id: "primaryJobType",
+                value: e.target.value
+              });
             }}
             inputProps={{
-              name: 'primaryJobType',
+              name: "primaryJobType"
             }}
           >
             <option value="" />
-            { jobTypes.map(s => <option key ={s} value={s.toLowerCase()}>{s}</option>)}
+            {jobTypes.map(s => (
+              <option key={s} value={s.toLowerCase()}>
+                {s}
+              </option>
+            ))}
           </Select>
           {/*<InputLabel className={classes.marginTopSmall}>Site Location</InputLabel>
           <Geosuggest className={classes.formInputMedium} country={'nz'} onChange={val => this.props.handleModalChange({ id: 'location', value: val })} />*/}
@@ -168,9 +230,7 @@ class SiteModal extends React.Component {
                 }}
                 onClick={() => {
                   if (
-                    window.confirm(
-                      "Are you sure you wish to delete the image?"
-                    )
+                    window.confirm("Are you sure you wish to delete the image?")
                   )
                     this.deleteImage(doc.siteImageRef, doc.uid);
                 }}
@@ -184,7 +244,9 @@ class SiteModal extends React.Component {
             Upload Site Image
           </InputLabel>
           <label>
-            <UploadIcon className={classNames(classes.hoverCursor, classes.colorAccent)} />
+            <UploadIcon
+              className={classNames(classes.hoverCursor, classes.colorAccent)}
+            />
             <input
               id="attr_upload_file"
               type="file"
@@ -196,9 +258,9 @@ class SiteModal extends React.Component {
                 this.props.onUploadFile({
                   file: e.currentTarget.files[0],
                   storagePath: "sites/",
-                  prefix: 'siteImage',
+                  prefix: "siteImage",
                   imageQuality: 30,
-                  imageHeight: 100,
+                  imageHeight: 100
                 });
               }}
             />
@@ -223,7 +285,7 @@ class SiteModal extends React.Component {
                 this.props.handleModalSubmit({
                   doc: doc,
                   pathRef: sitesRef,
-                  docid: 'random',
+                  docid: "random"
                 });
                 this.props.fetchSites(true);
               }}

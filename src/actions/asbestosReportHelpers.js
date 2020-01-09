@@ -1,6 +1,7 @@
 import moment from "moment";
-import { sentenceCase, dateOf, andList, lower } from "./helpers";
+import { sentenceCase, dateOf, andList, lower, titleCase } from "./helpers";
 import { writeResult, getBasicResult } from "./asbestosLab";
+import { handleJobChange } from "./jobs";
 
 export const collateSamples = (site, siteJobs, siteAcm, samples) => {
   let registerList = [],
@@ -84,6 +85,7 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
                 } else {
                   // Check if sample is removed
                   if (acm.acmRemoved) {
+                    row.acmRemoved = true;
                     row.recommendation = getAcmRemoved(acm);
                   } else {
                     row.accessibility = acm.accessibility || "N/A";
@@ -424,12 +426,12 @@ export const issueDocument = ({
   airMonitoringRecords,
   staff
 }) => dispatch => {
-  console.log(template);
-  console.log(site);
-  console.log(job);
-  console.log(registerMap);
-  console.log(registerList);
-  console.log(airMonitoringRecords);
+  // console.log(template);
+  // console.log(site);
+  // console.log(job);
+  // console.log(registerMap);
+  // console.log(registerList);
+  // console.log(airMonitoringRecords);
 
   let latestIssue = 0;
 
@@ -442,7 +444,7 @@ export const issueDocument = ({
   // Basic Fields for Every Report
   let versionHistory = [];
 
-  console.log(latestIssue);
+  // console.log(latestIssue);
 
   if (latestIssue > 1) {
     Object.values(job.versions).forEach((v, index) => {
@@ -540,10 +542,29 @@ export const issueDocument = ({
       ),
       reportAuthor: andList(writer.map(e => nameTertiaryIp402(e))),
       reportChecker: andList(checker.map(e => nameTertiaryIp402(e))),
-      reportKtp: andList(ktp.map(e => nameTertiaryIp402(e)))
+      reportKtp: andList(ktp.map(e => nameTertiaryIp402(e))),
+
+      registerMap,
+      airMonitoringRecords,
+
+      executiveSummary: job.executiveSummary,
+      whereIsTheHazard: job.whereIsTheHazard,
+      riskToHealth: job.riskToHealth,
+      background: job.background,
+      immediateActionsRequired: job.immediateActionsRequired,
+      removalOrTreatmentOfAsbestos: job.removalOrTreatmentOfAsbestos
     };
   }
   console.log(json);
+  dispatch(
+    handleJobChange({
+      job,
+      o1: "issues",
+      field: `${latestIssue}`,
+      val: json,
+      siteUid: site.uid
+    })
+  );
 };
 
 export const nameTertiaryIp402 = e => {
@@ -587,8 +608,8 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
 
   if (template === 1 || true) {
     if (siteAcm) {
-      let immediateRisk = false;
-      let bullets = [],
+      let immediateRisk = [],
+        bullets = [],
         acmGroups = [],
         genericRoom = false,
         sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
@@ -606,51 +627,76 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
             e => e.idKey === "p" || e.idKey === "s"
           ) || [];
       Object.values(siteAcm).forEach(e => {
-        if (e.immediateRisk) immediateRisk = true;
+        if (e.immediateRisk) immediateRisk.push(e);
       });
+      if (immediateRisk.length > 0) {
+        bullets.push(
+          `The ${andList(
+            immediateRisk.map(e => `${e.material} ${e.description}`)
+          ).toLowerCase()} ${
+            immediateRisk.length === 1 ? "presents" : "present"
+          } an immediate risk to health and must be remediated as soon as practicable.`
+        );
+      }
       // No positive samples and no presumed items
       if (presumedAcm.length === 0 && identifiedAcm.length === 0) return null;
       let presumedRooms = {},
         acmMaterials = {},
         acmRooms = {};
 
-      identifiedAcm.length > 0 && identifiedAcm.forEach(e => {
-        // First see what rooms each material is in
-        console.log(e);
-        if (e.material || e.description) {
-          if (e.room && e.room.label) {
-            let room = e.room.label;
-            if (e.room.uid === "generic") room = "other areas";
-            let item = `${e.description && e.material ? `${e.description} ` : e.description}${e.material && e.material}`;
-            if (acmMaterials[item]) {
-              acmMaterials[item].rooms[room] = true;
-            } else {
-              acmMaterials[item] = { rooms: {[room]: true}};
-            }
-            if (acmRooms[room]) {
-              acmRooms[room].materials[item] = true;
-            } else {
-              acmRooms[room] = { materials: {[item]: true}};
+      identifiedAcm.length > 0 &&
+        identifiedAcm.forEach(e => {
+          // First see what rooms each material is in
+          if (e.material || e.description) {
+            if (e.room && e.room.label) {
+              let room = e.room.label;
+              if (e.room.uid === "generic") room = "other areas";
+              let item = e.writeItemFirst
+                ? `${
+                    e.description && e.material
+                      ? `${e.description} `
+                      : e.description
+                  }${e.material && e.material}`
+                : `${
+                    e.material && e.description ? `${e.material} ` : e.material
+                  }${e.description && e.description}`;
+              if (acmMaterials[item]) {
+                acmMaterials[item].rooms[room] = true;
+              } else {
+                acmMaterials[item] = { rooms: { [room]: true } };
+              }
+              if (acmRooms[room]) {
+                acmRooms[room].materials[item] = true;
+              } else {
+                acmRooms[room] = { materials: { [item]: true } };
+              }
             }
           }
-        }
-      });
+        });
 
-      console.log(acmRooms);
-      console.log(acmMaterials);
+      Object.values(acmRooms) &&
+        Object.keys(acmRooms).forEach(e => {
+          acmRooms[e].materials &&
+            bullets.push(
+              `The asbestos-containing ${andList(
+                Object.keys(acmRooms[e].materials)
+              ).toLowerCase()} ${
+                Object.keys(acmRooms[e].materials).length === 1 &&
+                andList(Object.keys(acmRooms[e].materials)).slice(-1) !== "s"
+                  ? "is"
+                  : "are"
+              } in the ${e}`
+            );
+        });
 
-      Object.values(acmRooms) && Object.keys(acmRooms).forEach(e => {
-        console.log(acmRooms[e]);
-        acmRooms[e].materials && bullets.push(`The asbestos-containing ${lower(andList(Object.keys(acmRooms[e].materials)))} ${Object.keys(acmRooms[e].materials).length === 1 ? 'is' : 'are'} in the ${lower(e)}`)
-      });
-
-      presumedAcm.length > 0 && presumedAcm.forEach(e => {
-        // This needs to be expanded to cover rooms with the same name
-        if (e.room && e.room.label) {
-          if (e.room.uid === "generic") genericRoom = true;
-          else presumedRooms[e.room.label] = true;
-        }
-      });
+      presumedAcm.length > 0 &&
+        presumedAcm.forEach(e => {
+          // This needs to be expanded to cover rooms with the same name
+          if (e.room && e.room.label) {
+            if (e.room.uid === "generic") genericRoom = true;
+            else presumedRooms[e.room.label] = true;
+          }
+        });
       if (genericRoom) presumedRooms["other areas"] = true;
 
       if (identifiedAcm.length > 0) {
@@ -658,8 +704,8 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
         if (presumedAcm.length > 0) {
           if (Object.keys(presumedRooms).length > 0)
             bullets.push(
-              `The presumed asbestos-containing materials in the ${lower(
-                andList(Object.keys(presumedRooms))
+              `The presumed asbestos-containing materials in the ${andList(
+                Object.keys(presumedRooms)
               )} <strong style="color: red">must</strong> also be managed.`
             );
         } else {
@@ -679,11 +725,382 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
           );
       }
 
-      return `<h2>Where is the Hazard?</h2><ul>${bullets.map(e => `<li>${e}</li>`)}</ul>`;
+      console.log(bullets);
+      console.log(bullets.map(e => `<li>${e}</li>`));
+
+      return `<h2>Where is the Hazard?</h2><ul>${bullets
+        .map(e => `<li>${e}</li>`)
+        .join("")}</ul>`;
     } else {
       return null;
     }
   } else if (template === 2) {
   } else {
+  }
+};
+
+export const writeRiskToHealth = (job, siteAcm, template) => {
+  // There is not an immediate risk to health. However, any activity that disturbs the asbestos-containing materials should be discontinued to prevent exposure to airborne asbestos.
+  if (template === 1 || true) {
+    let str = "";
+    if (siteAcm) {
+      let immediateRisk = [],
+        acmGroups = [],
+        sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
+        identifiedAcm =
+          Object.values(siteAcm).filter(
+            e =>
+              e.idKey === "i" &&
+              e.sample &&
+              e.sample.result &&
+              getBasicResult(e.sample) === "positive" &&
+              e.acmRemoved !== true
+          ) || [],
+        presumedAcm =
+          Object.values(siteAcm).filter(
+            e => e.idKey === "p" || e.idKey === "s"
+          ) || [];
+      Object.values(siteAcm).forEach(e => {
+        if (e.immediateRisk) immediateRisk.push(e);
+      });
+      // No positive samples and no presumed items
+      if (presumedAcm.length === 0 && identifiedAcm.length === 0)
+        str =
+          "No asbestos-containing materials are present or presumed to be present at this site.";
+      if (immediateRisk.length > 0) {
+        str = `There is an immediate risk to health from the ${andList(
+          immediateRisk.map(e => `${e.material} ${e.description}`)
+        ).toLowerCase()}. This must be remediated as soon as practicable.`;
+      } else {
+        str = `There is not an immediate risk to health. However any activity that disturbs the ${
+          identifiedAcm.length > 0 && presumedAcm.length > 0
+            ? "identified and presumed "
+            : identifiedAcm.length > 0
+            ? "identified "
+            : "presumed "
+        }asbestos-containing materials should be discontinued to prevent exposure to airborne asbestos.`;
+      }
+    } else {
+      str =
+        "No asbestos-containing materials are present or presumed to be present at this site.";
+    }
+    return `<h2>Risk to Health</h2>${str}`;
+  } else if (template === 2) {
+  } else {
+  }
+};
+
+export const writeBackground = (job, site, staff, template) => {
+  // •	K2 Environmental Ltd was contracted by $CLIENT$ to conduct an asbestos management survey on the DSC3208 locomotive and provide a management plan based on the results
+  // •	A site visit was conducted on $SITEDATE$ by $SITEPERSONNEL$
+  // •	Clearance works were carried out in February 2019
+  // •	This Asbestos Management Plan sets out actions to be taken to manage Asbestos and Asbestos Containing Materials (ACMs) in accordance with the Health and Safety at Work (Asbestos) Regulations 2016
+
+  if (template === 1 || true) {
+    let bullets = [];
+    bullets.push(
+      `K2 Environmental Ltd was contracted by ${
+        job.client
+      } to conduct an asbestos management survey ${
+        site.type === "train"
+          ? `on the ${
+              site.assetClass && site.assetNumber
+                ? `${site.assetClass}${site.assetNumber} locomotive`
+                : `${site.siteName} locomotive`
+            }`
+          : `at ${site.siteName}`
+      } and provide an Asbestos Management Plan based on the results`
+    );
+
+    let siteVisits = [];
+    site.siteVisitsAsbestos &&
+      Object.values(site.siteVisitsAsbestos).forEach(e => {
+        siteVisits.push(
+          `${moment(dateOf(e.date)).format("dddd, D MMMM YYYY")}${
+            e.personnel
+              ? ` by ${andList(
+                  e.personnel.map(s => {
+                    let name = s.name;
+                    if (staff[s.uid] && staff[s.uid].aanumber)
+                      name += ` (${staff[s.uid].aanumber})`;
+                    return name;
+                  })
+                )}`
+              : ""
+          }`
+        );
+      });
+
+    if (siteVisits.length > 0) {
+      bullets.push(
+        siteVisits.length === 1
+          ? `A site visit was conducted on ${siteVisits[0]}`
+          : `Site visits were conducted on ${andList(siteVisits)}`
+      );
+    }
+
+    let clearances = [];
+    site.clearances &&
+      Object.values(site.clearances).forEach(e => {
+        clearances.push(moment(dateOf(e.clearanceDate)).format("MMMM YYYY"));
+      });
+
+    if (clearances.length > 0) {
+      bullets.push(
+        `Clearance works were carried out in ${andList(clearances)}`
+      );
+    }
+
+    bullets.push(
+      `This Asbestos Management Plan sets out actions to be taken to manage Asbestos and Asbestos Containing Materials (ACMs) in accordance with the Health and Safety at Work (Asbestos) Regulations 2016`
+    );
+
+    return `<h2>Background</h2><ul>${bullets
+      .map(e => `<li>${e}</li>`)
+      .join("")}</ul>`;
+  } else if (template === 2) {
+  } else {
+  }
+};
+
+export const writeRecommendations = (job, siteAcm, template) => {
+  if (template === 1 || true) {
+    if (siteAcm) {
+      let immediateRisk = [],
+        acmGroups = [],
+        sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
+        identifiedAcm =
+          Object.values(siteAcm).filter(
+            e =>
+              e.idKey === "i" &&
+              e.sample &&
+              e.sample.result &&
+              getBasicResult(e.sample) === "positive" &&
+              e.acmRemoved !== true
+          ) || [],
+        presumedAcm =
+          Object.values(siteAcm).filter(
+            e => e.idKey === "p" || e.idKey === "s"
+          ) || [];
+      // No positive samples and no presumed items, remove section
+      if (presumedAcm.length === 0 && identifiedAcm.length === 0) return null;
+
+      let str = `<h2>Immediate Actions Required</h2>`,
+        sections = [],
+        sectionStr = "";
+
+      // Check if immediate remediation needed
+      let genericRoom = false,
+        immediateRiskRooms = {};
+      Object.values(siteAcm).forEach(e => {
+        if (e.immediateRisk) {
+          if (e.room && e.room.value === "generic") genericRoom = true;
+          else if (e.room && e.room.label)
+            immediateRiskRooms[e.room.label] = true;
+          immediateRisk.push(e);
+        }
+      });
+
+      if (immediateRisk.length > 0) {
+        let roomStr = genericRoom
+          ? andList(Object.keys(immediateRiskRooms).concat("other areas"))
+          : andList(Object.keys(immediateRiskRooms));
+
+        sectionStr = `<h3>Management of High Risk Materials</h3>`;
+        sectionStr += `<ul><li>The ${andList(
+          immediateRisk.map(e => `${e.material} ${e.description}`)
+        ).toLowerCase()} ${
+          immediateRisk.length === 1 ? "presents" : "present"
+        } an immediate risk to health and must be remediated as soon as practicable.</li><li>Access to the ${roomStr} should be restricted to persons wearing appropriate PPE and RPE until the risk is remediated.</li></ul>`;
+        sections.push(sectionStr);
+      }
+
+      // Warning Labels - Find what rooms need it
+
+      sectionStr = `<h3>Asbestos Warning Labels</h3>`;
+
+      let riskRooms = {};
+      genericRoom = false;
+      identifiedAcm.length > 0 &&
+        identifiedAcm.forEach(e => {
+          if (e.room && e.room.label) {
+            if (e.room.value === "generic") genericRoom = true;
+            else riskRooms[e.room.label] = true;
+          }
+        });
+
+      let roomStr = genericRoom
+        ? andList(Object.keys(riskRooms).concat("other areas"))
+        : andList(Object.keys(riskRooms));
+      sectionStr += `<ul><li>Warning labels must be placed on <i>all</i> access points to the ${roomStr}</li><li>Warning labels must be placed on <i>all</i> ${
+        identifiedAcm.length > 0 && presumedAcm.length > 0
+          ? "identified and presumed"
+          : identifiedAcm.length > 0
+          ? "identified"
+          : "presumed"
+      } asbestos-containing materials</li><li>A general warning needs to be placed at the door to the main cabin.</li></ul>`;
+      sections.push(sectionStr);
+
+      // Check if ACD present
+      let dustPresent = false;
+      identifiedAcm.length > 0 &&
+        identifiedAcm.forEach(e => {
+          if (e.material && e.material.toLowerCase().includes("dust"))
+            dustPresent = true;
+        });
+      sections.push(
+        `<h3>Work Activities</h3><ul><li>Do not perform any activity that will disturb the ${
+          dustPresent ? "asbestos-contaminated dust or " : ""
+        } asbestos-containing materials including:<ul><li>Drilling, sanding</li>${
+          dustPresent ? "<li>Vacuuming or sweeping</li>" : ""
+        }<li>Any other implement that causes the release of airborne asbestos</li></ul></li></ul>`
+      );
+      sections.push(
+        `<h3>Training and Inductions</h3><ul>Train and induct any employees or occupants of the risk<ul><li>An Asbestos Awareness Course is required training for all people that are on site full time</li><li>Any person coming on site to work must be inducted; they must be aware of the hazard</li></ul></li></ul>`
+      );
+      str += sections.join("\n\n");
+
+      // Removal or Treatment of Asbestos
+      let str2 = `<h2>Removal or Treatment of Asbestos</h2>`;
+      let acmMaterials = {};
+      sections = [];
+
+      identifiedAcm
+        .concat(presumedAcm)
+        .filter(e => e.sampleType !== "air")
+        .forEach(e => {
+          // First see what rooms each material is in
+          if (e.material || e.description) {
+            if (e.room && e.room.label) {
+              let room = e.room.label;
+              if (e.room.uid === "generic") room = "other areas";
+              let item = e.genericItem
+                ? e.description
+                : e.writeItemFirst
+                ? `${
+                    e.description && e.material
+                      ? `${e.description} `
+                      : e.description
+                  }${e.material && e.material}`
+                : `${
+                    e.material && e.description ? `${e.material} ` : e.material
+                  }${e.description && e.description}`;
+              item = item.toLowerCase();
+              if (acmMaterials[item]) {
+                acmMaterials[item].acm.push(e);
+                acmMaterials[item].rooms[room] = true;
+              } else {
+                acmMaterials[item] = { acm: [e], rooms: { [room]: true } };
+              }
+            }
+          }
+        });
+
+      Object.keys(acmMaterials).forEach(e => {
+        let managementPrimary = "",
+          managementSecondary = "",
+          removalLicenceRequired = "",
+          material,
+          recommendations = "",
+          inaccessibleItem = false,
+          damage = 0,
+          surface = 0,
+          accessibility = 0,
+          acmCount = 0;
+        console.log(e);
+        acmMaterials[e].acm &&
+          acmMaterials[e].acm.forEach(acm => {
+            console.log(acm);
+            if (acm.inaccessibleItem) inaccessibleItem = true;
+            if (acm.managementPrimary)
+              managementPrimary = acm.managementPrimary;
+            if (acm.managementSecondary)
+              managementSecondary = acm.managementSecondary;
+            material = acm.material;
+            if (acm.recommendations) recommendations += acm.recommendations;
+            if (acm.removalLicenceRequired)
+              removalLicenceRequired = acm.removalLicenceRequired;
+
+            if (acm.damageScore) damage += parseInt(acm.damageScore);
+            if (acm.surfaceScore) surface += parseInt(acm.surfaceScore);
+            if (acm.accessibility) {
+              if (acm.accessibility === "Medium") accessibility += 1;
+              else if (acm.accessibility === "Difficult") accessibility += 2;
+            }
+            acmCount++;
+          });
+
+        let genericArea = false;
+        let roomList = [];
+        acmMaterials[e].rooms &&
+          Object.keys(acmMaterials[e].rooms).forEach(room => {
+            if (room === "other areas") genericArea = true;
+            else roomList.push(room);
+          });
+
+        let assessments = [];
+        if (damage / acmCount > 2) assessments.push(`have extensive damage`);
+        else if (damage / acmCount > 1)
+          assessments.push(`have moderate damage`);
+        else assessments.push(`are in good condition`);
+
+        if (surface / acmCount > 2)
+          assessments.push(`highly friable in their current state`);
+        else if (surface / acmCount > 1)
+          assessments.push(`moderately friable in their current state`);
+        else assessments.push(`non-friable in their current state`);
+
+        if (accessibility / acmCount > 2)
+          assessments.push(`are difficult to access`);
+        else if (surface / acmCount > 1)
+          assessments.push(`are moderately accessible`);
+        else assessments.push(`are easily accessible`);
+
+        sectionStr = `<h3>${titleCase(e)}</h3><ul>`;
+        if (inaccessibleItem) {
+          sectionStr += `<li>The ${e} was inaccessible at the time of the survey and must be presumed to contain asbestos-containing materials</li><li>The area should be treated with caution until an inspection can be made<li>`;
+        } else {
+          sectionStr += `<li>The ${e} are present ${
+            genericArea ? `throughout the site` : `in the ${andList(roomList)}`
+          }</li>`;
+          sectionStr += `<li>They ${andList(assessments).toLowerCase()}</li>`;
+          if (recommendations && recommendations !== "") {
+            if (recommendations.substring(0, 4) === "<ul>")
+              recommendations = recommendations.slice(4, -5);
+            console.log(recommendations);
+            sectionStr += recommendations;
+          } else {
+            if (managementPrimary === "Removal") {
+              sectionStr += `<li>Removal is recommended to eliminate any potential risk.`;
+              if (removalLicenceRequired === "Class A") {
+                sectionStr += ` The removalist <strong style={color: 'red';}>must</strong> hold a Class A Asbestos Removalist licence.`;
+              } else if (removalLicenceRequired === "Class B") {
+                sectionStr += `The removalist must hold a Class B Asbestos Removalist licence.`;
+              } else if (removalLicenceRequired === "Unlicenced") {
+                sectionStr += `The item can be removed by a competent person following best practices.`;
+              }
+              sectionStr += `</li>`;
+            } else if (managementPrimary === "Seal") {
+              sections += `<li>Paint or seal any visible damage to prevent fibre release.</li>`;
+            }
+          }
+          sectionStr += `</ul>`;
+        }
+        sections.push(sectionStr);
+      });
+      str2 += sections.join("\n\n");
+
+      console.log({
+        immediateActionsRequired: str,
+        removalOrTreatmentOfAsbestos: str2
+      });
+
+      return {
+        immediateActionsRequired: str,
+        removalOrTreatmentOfAsbestos: str2
+      };
+    } else {
+      return null;
+    }
   }
 };

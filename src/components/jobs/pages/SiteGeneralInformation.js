@@ -41,7 +41,12 @@ import {
 
 import { DatePicker, DateTimePicker } from "@material-ui/pickers";
 
-import { dateOf, andList, personnelConvert } from "../../../actions/helpers";
+import {
+  dateOf,
+  andList,
+  personnelConvert,
+  numericOnly
+} from "../../../actions/helpers";
 
 import moment from "moment";
 import classNames from "classnames";
@@ -93,7 +98,9 @@ const mapStateToProps = state => {
     staff: state.local.staff,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
-    modalType: state.modal.modalType
+    modalType: state.modal.modalType,
+    siteTypes: state.const.siteTypes,
+    assetClassesTrain: state.const.assetClassesTrain
   };
 };
 
@@ -222,7 +229,9 @@ class SiteGeneralInformation extends React.Component {
       geocodes,
       wfmClients,
       that,
-      siteJobs
+      siteJobs,
+      siteTypes,
+      assetClassesTrain
     } = this.props;
     const names = [{ name: "3rd Party", uid: "3rd Party" }].concat(
       Object.values(this.props.staff).sort((a, b) =>
@@ -258,6 +267,199 @@ class SiteGeneralInformation extends React.Component {
                 />
               </div>
             )}
+            <div className={classes.informationBoxWhiteRounded}>
+              <TextField
+                className={classes.formInputLarge}
+                id="siteName"
+                label="Site Name"
+                defaultValue={m.siteName || ""}
+                onChange={e => {
+                  this.props.handleSiteChangeDebounced({
+                    site: m,
+                    field: "siteName",
+                    val: e.target.value
+                  });
+                }}
+              />
+              <InputLabel>Site Type</InputLabel>
+              <Select
+                className={classes.selectTight}
+                value={
+                  m.type
+                    ? {
+                        value: m.type,
+                        label: siteTypes.filter(e => e.value === m.type)[0]
+                          .label
+                      }
+                    : { value: "", label: "" }
+                }
+                options={siteTypes.map(e => ({
+                  value: e.value,
+                  label: e.label
+                }))}
+                onChange={e => {
+                  this.props.handleSiteChangeDebounced({
+                    site: m,
+                    field: "type",
+                    val: e.target.value
+                  });
+                }}
+              />
+              {m.type === "train" && (
+                <div>
+                  <div>
+                    <InputLabel>Asset Class</InputLabel>
+                    <Select
+                      className={classes.selectTight}
+                      value={
+                        m.assetClass
+                          ? { value: m.assetClass, label: m.assetClass }
+                          : { value: "", label: "" }
+                      }
+                      options={assetClassesTrain.map(e => ({
+                        value: e.label,
+                        label: e.label
+                      }))}
+                      onChange={e => {
+                        this.props.handleSiteChangeDebounced({
+                          site: m,
+                          field: "assetClass",
+                          val: e.target.value
+                        });
+                      }}
+                    />
+                  </div>
+                  <TextField
+                    className={classes.formInputLarge}
+                    id="assetClass"
+                    label="Asset Number"
+                    defaultValue={m.assetNumber || ""}
+                    onChange={e => {
+                      this.props.handleSiteChangeDebounced({
+                        site: m,
+                        field: "assetNumber",
+                        val: numericOnly(e.target.value)
+                      });
+                    }}
+                  />
+                  <TextField
+                    className={classes.formInputLarge}
+                    id="manufacturedBy"
+                    label="Manufactured By"
+                    defaultValue={m.manufacturedBy || ""}
+                    onChange={e => {
+                      this.props.handleSiteChangeDebounced({
+                        site: m,
+                        field: "manufacturedBy",
+                        val: e.target.value
+                      });
+                    }}
+                  />
+                  <TextField
+                    className={classes.formInputLarge}
+                    id="countryOfOrigin"
+                    label="Country of Origin"
+                    defaultValue={m.countryOfOrigin || ""}
+                    onChange={e => {
+                      this.props.handleSiteChangeDebounced({
+                        site: m,
+                        field: "countryOfOrigin",
+                        val: e.target.value
+                      });
+                    }}
+                  />
+                  <TextField
+                    className={classes.formInputLarge}
+                    id="previousClassifications"
+                    label="Previous Classifications"
+                    multiline
+                    rows={2}
+                    defaultValue={m.previousClassifications || ""}
+                    onChange={e => {
+                      this.props.handleSiteChangeDebounced({
+                        site: m,
+                        field: "previousClassifications",
+                        val: e.target.value
+                      });
+                    }}
+                  />
+                  <TextField
+                    className={classes.formInputLarge}
+                    id="notesOnService"
+                    label="Notes on Service and Use"
+                    multiline
+                    rows={5}
+                    defaultValue={m.notesOnService || ""}
+                    onChange={e => {
+                      this.props.handleSiteChangeDebounced({
+                        site: m,
+                        field: "notesOnService",
+                        val: e.target.value
+                      });
+                    }}
+                  />
+                  <TextField
+                    className={classes.formInputLarge}
+                    id="notesOnModification"
+                    label="Notes on Modification/Overhauls"
+                    multiline
+                    rows={5}
+                    defaultValue={m.notesOnModification || ""}
+                    onChange={e => {
+                      this.props.handleSiteChangeDebounced({
+                        site: m,
+                        field: "notesOnModification",
+                        val: e.target.value
+                      });
+                    }}
+                  />
+                  <TextField
+                    className={classes.formInputLarge}
+                    id="manufactureYear"
+                    label="Year(s) of Manufacture"
+                    defaultValue={m.manufactureYear || ""}
+                    onChange={e => {
+                      this.props.handleSiteChangeDebounced({
+                        site: m,
+                        field: "manufactureYear",
+                        val: e.target.value
+                      });
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {false && m.geocode && m.geocode.address !== "New Zealand" && (
+              <Map
+                google={google}
+                zoom={8}
+                style={mapStyles}
+                initialCenter={{
+                  lat: m.geocode.location[0],
+                  lng: m.geocode.location[1]
+                }}
+              >
+                <Marker
+                  // animation={this.props.google.maps.Animation.DROP}
+                  key={m.wfmID}
+                  // onClick={(props, marker, e) => {
+                  //   that.onMarkerClick(marker, m);
+                  // }}
+                  position={{
+                    lat: m.geocode.location[0],
+                    lng: m.geocode.location[1]
+                  }}
+                  title={`${m.jobNumber}: ${m.client}`}
+                  icon={{
+                    url: getJobIcon(m.category),
+                    scaledSize: new google.maps.Size(32, 32)
+                  }}
+                />
+              </Map>
+            )}
+          </Grid>
+          <Grid item xs={12} md={7}>
             <div className={classes.informationBoxWhiteRounded}>
               <div className={classes.flexRowSpread}>
                 <div className={classNames(color, classes.expandHeading)}>
@@ -357,36 +559,6 @@ class SiteGeneralInformation extends React.Component {
                 <div>No jobs assigned to site.</div>
               )}
             </div>
-            {false && m.geocode && m.geocode.address !== "New Zealand" && (
-              <Map
-                google={google}
-                zoom={8}
-                style={mapStyles}
-                initialCenter={{
-                  lat: m.geocode.location[0],
-                  lng: m.geocode.location[1]
-                }}
-              >
-                <Marker
-                  // animation={this.props.google.maps.Animation.DROP}
-                  key={m.wfmID}
-                  // onClick={(props, marker, e) => {
-                  //   that.onMarkerClick(marker, m);
-                  // }}
-                  position={{
-                    lat: m.geocode.location[0],
-                    lng: m.geocode.location[1]
-                  }}
-                  title={`${m.jobNumber}: ${m.client}`}
-                  icon={{
-                    url: getJobIcon(m.category),
-                    scaledSize: new google.maps.Size(32, 32)
-                  }}
-                />
-              </Map>
-            )}
-          </Grid>
-          <Grid item xs={12} md={7}>
             <div className={classes.informationBoxWhiteRounded}>
               <div className={classNames(color, classes.expandHeading)}>
                 Site Visits

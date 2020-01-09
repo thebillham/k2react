@@ -137,6 +137,7 @@ const mapDispatchToProps = dispatch => {
 
 const initState = {
   description: "",
+  writeItemFirst: false,
   inaccessibleItem: false,
   unknownItem: false,
   material: "",
@@ -436,6 +437,22 @@ class AcmCard extends React.Component {
               value={this.state.description ? this.state.description : ""}
               onModify={value => this.setState({ description: value })}
             />
+            <Tooltip title="Write item before material (e.g. pipework lagging), otherwise material will be written first (e.g. cement sheet soffits)">
+              <FormControlLabel
+                className={classes.marginTopSmall}
+                control={
+                  <Switch
+                    checked={this.state.writeItemFirst || false}
+                    onClick={e => {
+                      this.setState({ writeItemFirst: e.target.checked });
+                    }}
+                    value="writeItemFirst"
+                    color="secondary"
+                  />
+                }
+                label="Write Item First"
+              />
+            </Tooltip>
             <div className={classes.flexRowSpread}>
               <FormControlLabel
                 className={classes.marginTopSmall}
