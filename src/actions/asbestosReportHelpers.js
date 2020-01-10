@@ -1,5 +1,12 @@
 import moment from "moment";
-import { sentenceCase, dateOf, andList, lower, titleCase } from "./helpers";
+import {
+  sentenceCase,
+  dateOf,
+  andList,
+  lower,
+  titleCase,
+  toDataURL
+} from "./helpers";
 import { writeResult, getBasicResult } from "./asbestosLab";
 import { handleJobChange } from "./jobs";
 
@@ -471,15 +478,21 @@ export const issueDocument = ({
         }
       });
       versionHistory.push({
-        no: index,
+        no: index + 1,
         changes: v.changes,
-        date: moment(dateOf(v.date)).format("DD MM YYYY"),
+        date: moment(dateOf(v.date)).format("L"),
         writer: andList(authors.writer.map(e => e.name)),
         checker: andList(authors.checker.map(e => e.name)),
         ktp: andList(authors.ktp.map(e => e.name)),
         writerFull: authors.writer.map(e => nameFullQuals(e)).join("\n\n"),
         checkerFull: authors.checker.map(e => nameFullQuals(e)).join("\n\n"),
-        ktpFull: authors.ktp.map(e => nameFullQuals(e)).join("\n\n")
+        ktpFull: authors.ktp.map(e => nameFullQuals(e)).join("\n\n"),
+        noAsbestos:
+          registerList.filter(e => {
+            return e.acmRemoved || e.asbestosResult;
+          }).length > 0
+            ? false
+            : true
       });
     });
   }
@@ -491,6 +504,9 @@ export const issueDocument = ({
     issueNumber: latestIssue,
     issueDate: moment().format("d MMMM YYYY"),
     versionNumber: job.latestVersion + 1 || 1,
+    siteImageUrl:
+      site.siteImageUrl.substring(0, site.siteImageUrl.lastIndexOf("&token")) ||
+      null,
     versionHistory
   };
   if (template.includes("AMP")) {
@@ -514,15 +530,17 @@ export const issueDocument = ({
         }
       });
     }
-    let writer = [],
-      checker = [],
-      ktp = [];
+    let authors = {
+      writer: [],
+      checker: [],
+      ktp: []
+    };
     if (job.versions && job.versions[`${latestIssue}`]) {
       let version = job.versions[`${latestIssue}`];
       ["writer", "checker", "ktp"].forEach(field => {
         if (version[field]) {
           version[field].forEach(s => {
-            [field].push({
+            authors[field].push({
               name: s.name,
               tertiary: staff[s.uid] ? staff[s.uid].tertiary : "",
               ip402: staff[s.uid] ? staff[s.uid].ip402 : false
@@ -540,9 +558,14 @@ export const issueDocument = ({
       sitePersonnelAsbestosAssessorNumbers: andList(
         sitePersonnel.map(e => `${e.asbestosAssessorNumber}`)
       ),
-      reportAuthor: andList(writer.map(e => nameTertiaryIp402(e))),
-      reportChecker: andList(checker.map(e => nameTertiaryIp402(e))),
-      reportKtp: andList(ktp.map(e => nameTertiaryIp402(e))),
+
+      writerNameTertiaryIp402: andList(
+        authors.writer.map(e => nameTertiaryIp402(e))
+      ),
+      checkerNameTertiaryIp402: andList(
+        authors.checker.map(e => nameTertiaryIp402(e))
+      ),
+      ktpNameTertiaryIp402: andList(authors.ktp.map(e => nameTertiaryIp402(e))),
 
       registerMap,
       airMonitoringRecords,

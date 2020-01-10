@@ -115,7 +115,7 @@ class AsbestosManagementPlan extends React.Component {
         a.name.localeCompare(b.name)
       )
     );
-    console.log(m);
+    // console.log(m);
     let latestIssue = 0;
 
     if (m.versions && Object.keys(m.versions).length > 0) {
@@ -123,8 +123,8 @@ class AsbestosManagementPlan extends React.Component {
         ...Object.keys(m.versions).map(key => parseInt(key))
       );
     }
-    console.log(latestIssue);
-    console.log(m.issues[latestIssue]);
+    // console.log(latestIssue);
+    // console.log(m.issues[latestIssue]);
 
     if (m) {
       const color = classes[getJobColor(m.category)];
