@@ -324,7 +324,7 @@ class SiteGeneralInformation extends React.Component {
                         this.props.handleSiteChangeDebounced({
                           site: m,
                           field: "assetClass",
-                          val: e.target.value
+                          val: e.value
                         });
                       }}
                     />
@@ -351,6 +351,19 @@ class SiteGeneralInformation extends React.Component {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         field: "manufacturedBy",
+                        val: e.target.value
+                      });
+                    }}
+                  />
+                  <TextField
+                    className={classes.formInputLarge}
+                    id="manufactureYear"
+                    label="Year(s) of Manufacture"
+                    defaultValue={m.manufactureYear || ""}
+                    onChange={e => {
+                      this.props.handleSiteChangeDebounced({
+                        site: m,
+                        field: "manufactureYear",
                         val: e.target.value
                       });
                     }}
@@ -389,6 +402,7 @@ class SiteGeneralInformation extends React.Component {
                     label="Notes on Service and Use"
                     multiline
                     rows={5}
+                    helperText="Write as full sentence. (e.g. The locomotive was in service from 1973.)"
                     defaultValue={m.notesOnService || ""}
                     onChange={e => {
                       this.props.handleSiteChangeDebounced({
@@ -404,24 +418,12 @@ class SiteGeneralInformation extends React.Component {
                     label="Notes on Modification/Overhauls"
                     multiline
                     rows={5}
+                    helperText="Write as full sentence. (e.g. The locomotive was repainted in 1981 and 2007. The engine was overhauled in 2003.)"
                     defaultValue={m.notesOnModification || ""}
                     onChange={e => {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         field: "notesOnModification",
-                        val: e.target.value
-                      });
-                    }}
-                  />
-                  <TextField
-                    className={classes.formInputLarge}
-                    id="manufactureYear"
-                    label="Year(s) of Manufacture"
-                    defaultValue={m.manufactureYear || ""}
-                    onChange={e => {
-                      this.props.handleSiteChangeDebounced({
-                        site: m,
-                        field: "manufactureYear",
                         val: e.target.value
                       });
                     }}

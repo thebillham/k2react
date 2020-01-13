@@ -36,7 +36,7 @@ import ApiCalendar from "react-google-calendar-api";
 import StaffOverviewListItem from "./components/StaffOverviewListItem.js";
 import { connect } from "react-redux";
 import { getUserAttrs, fetchStaff } from "../../actions/local";
-import { tabStaff, filterStaff, } from "../../actions/display";
+import { tabStaff, filterStaff } from "../../actions/display";
 import { auth, usersRef } from "../../config/firebase";
 
 const mapStateToProps = state => {
@@ -49,7 +49,7 @@ const mapStateToProps = state => {
     permissions: state.const.permissions,
     qualificationtypes: state.const.qualificationtypes,
     tab: state.display.tabStaff,
-    filter: state.display.filterStaff,
+    filter: state.display.filterStaff
   };
 };
 
@@ -58,7 +58,7 @@ const mapDispatchToProps = dispatch => {
     getUserAttrs: userPath => dispatch(getUserAttrs(userPath)),
     fetchStaff: () => dispatch(fetchStaff()),
     tabStaff: tab => dispatch(tabStaff(tab)),
-    filterStaff: filter => dispatch(filterStaff(filter)),
+    filterStaff: filter => dispatch(filterStaff(filter))
   };
 };
 
@@ -70,7 +70,7 @@ class Staff extends React.Component {
       tabValue: this.props.tab,
       admin: false,
       filterStaff: this.props.filter,
-      events: {},
+      events: {}
     };
   }
 
@@ -96,8 +96,8 @@ class Staff extends React.Component {
     let newFilter = {
       ...this.props.filter,
       officeFilters: officeFilters,
-      officeFilterOn: filterOn,
-    }
+      officeFilterOn: filterOn
+    };
 
     this.props.filterStaff(newFilter);
   };
@@ -120,8 +120,8 @@ class Staff extends React.Component {
     let newFilters = {
       ...this.props.filter,
       attrFilters: attrFilters,
-      attrFilterOn: filterOn,
-    }
+      attrFilterOn: filterOn
+    };
 
     this.props.filterStaff(newFilters);
   };
@@ -159,7 +159,8 @@ class Staff extends React.Component {
       if (ApiCalendar.sign && !this.state.events[calendarid]) {
         //console.log("Api calendar is signed");
         ApiCalendar.listUpcomingEvents(7, calendarid).then(
-          ({ result }: any) => { // Possible error here
+          ({ result }: any) => {
+            // Possible error here
             //console.log("Results in");
             this.setState({
               events: {
@@ -185,7 +186,7 @@ class Staff extends React.Component {
   setDocView = type => {
     let newFilter = {
       ...this.props.filter,
-      docview: type,
+      docview: type
     };
     this.props.filterStaff(newFilter);
   };
@@ -193,7 +194,12 @@ class Staff extends React.Component {
   email = who => {
     var list = [];
     Object.values(this.props.staff).forEach(user => {
-      if (user.auth && user.auth["K2 Staff"] && user.email && user.uid !== auth.currentUser.uid) {
+      if (
+        user.auth &&
+        user.auth["K2 Staff"] &&
+        user.email &&
+        user.uid !== auth.currentUser.uid
+      ) {
         if (who === "all") {
           list.push(user.email);
         } else if (who === "Christchurch" && user.office === "Christchurch") {
@@ -225,9 +231,13 @@ class Staff extends React.Component {
         !(user.tertiary && user.tertiary.includes("Sc"))
       )
         filter = false;
-      if (this.props.filter.attrFilters["Mask Fit Tested"] && user.maskfit !== "OK")
+      if (
+        this.props.filter.attrFilters["Mask Fit Tested"] &&
+        user.maskfit !== "OK"
+      )
         filter = false;
-      if (this.props.filter.attrFilters["First Aid"] && !user.firstaid) filter = false;
+      if (this.props.filter.attrFilters["First Aid"] && !user.firstaid)
+        filter = false;
     }
     if (this.props.filter.authFilterOn) {
       this.props.permissions.forEach(permission => {
@@ -251,8 +261,9 @@ class Staff extends React.Component {
   };
 
   getDocs = () => {
-    const staff = Object.values(this.props.staff)
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const staff = Object.values(this.props.staff).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
     let docs = [];
     if (this.props.filter.docview !== "none") {
       staff.forEach(e => {
@@ -281,9 +292,9 @@ class Staff extends React.Component {
   render() {
     // const TreeTable = treeTableHOC(ReactTable);
     // const staff = Object.values(this.props.staff).concat([this.props.me]).sort((a, b) => a.name.localeCompare(b.name));
-    const staff = Object.values(this.props.staff).sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
+    const staff = Object.values(this.props.staff)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .filter(e => e.key !== "historic");
     const { classes, tab } = this.props;
     const docs = this.getDocs();
     const filter = (
@@ -301,7 +312,9 @@ class Staff extends React.Component {
                       icon={<LocationCity />}
                       variant="outlined"
                       color={
-                        this.props.filter.officeFilters[chip] ? "secondary" : "default"
+                        this.props.filter.officeFilters[chip]
+                          ? "secondary"
+                          : "default"
                       }
                       onClick={() => this.filterOffice(chip)}
                       label={chip}
@@ -325,7 +338,9 @@ class Staff extends React.Component {
                       icon={<School />}
                       variant="outlined"
                       color={
-                        this.props.filter.attrFilters[chip] ? "secondary" : "default"
+                        this.props.filter.attrFilters[chip]
+                          ? "secondary"
+                          : "default"
                       }
                       onClick={() => this.filterAttr(chip)}
                       label={chip}
@@ -505,7 +520,10 @@ class Staff extends React.Component {
                         </Grid>
                         <Grid item xs={3}>
                           {user.email ? (
-                            <a className={classes.noTextDecoration} href={"mailto:" + user.email}>
+                            <a
+                              className={classes.noTextDecoration}
+                              href={"mailto:" + user.email}
+                            >
                               {user.email}
                             </a>
                           ) : (
@@ -514,7 +532,10 @@ class Staff extends React.Component {
                         </Grid>
                         <Grid item xs={3}>
                           {user.gmail ? (
-                            <a className={classes.noTextDecoration} href={"mailto:" + user.gmail}>
+                            <a
+                              className={classes.noTextDecoration}
+                              href={"mailto:" + user.gmail}
+                            >
                               {user.gmail}
                             </a>
                           ) : (
@@ -539,9 +560,7 @@ class Staff extends React.Component {
                     Tertiary
                   </Grid>
                   <Grid item xs={1}>
-                    <div className={classes.flexRowCenter}>
-                      IP402
-                    </div>
+                    <div className={classes.flexRowCenter}>IP402</div>
                   </Grid>
                   <Grid item xs={1}>
                     <div className={classes.flexRowCenter}>
@@ -549,14 +568,10 @@ class Staff extends React.Component {
                     </div>
                   </Grid>
                   <Grid item xs={1}>
-                    <div className={classes.flexRowCenter}>
-                      Mask Fit
-                    </div>
+                    <div className={classes.flexRowCenter}>Mask Fit</div>
                   </Grid>
                   <Grid item xs={1}>
-                    <div className={classes.flexRowCenter}>
-                      First Aid
-                    </div>
+                    <div className={classes.flexRowCenter}>First Aid</div>
                   </Grid>
                   <Grid item xs={5}>
                     NZQA Unit Standards Training
@@ -578,20 +593,36 @@ class Staff extends React.Component {
                           {user.tertiary}
                         </Grid>
                         <Grid item xs={1}>
-                          {user.ip402 && <CheckCircleOutline className={classes.iconRegularGreen} />}
+                          {user.ip402 && (
+                            <CheckCircleOutline
+                              className={classes.iconRegularGreen}
+                            />
+                          )}
                         </Grid>
                         <Grid item xs={1}>
                           {user.aanumber}
                         </Grid>
                         <Grid item xs={1}>
-                          {user.maskfit &&
-                            <Face className={user.maskfit === "OK" ? classes.iconRegularGreen : classes.iconRegularRed} />
-                          }
+                          {user.maskfit && (
+                            <Face
+                              className={
+                                user.maskfit === "OK"
+                                  ? classes.iconRegularGreen
+                                  : classes.iconRegularRed
+                              }
+                            />
+                          )}
                         </Grid>
                         <Grid item xs={1}>
-                          {user.firstaid &&
-                            <LocalHospital className={user.firstaid === "OK" ? classes.iconRegularGreen : classes.iconRegularRed} />
-                          }
+                          {user.firstaid && (
+                            <LocalHospital
+                              className={
+                                user.firstaid === "OK"
+                                  ? classes.iconRegularGreen
+                                  : classes.iconRegularRed
+                              }
+                            />
+                          )}
                         </Grid>
                         <Grid item xs={5}>
                           {user.nzqatraining}
@@ -608,8 +639,16 @@ class Staff extends React.Component {
                 <InputLabel shrink>Document Type</InputLabel>
                 <Select
                   className={classes.select}
-                  defaultValue={{label: this.props.filter.docview, id: this.props.filter.docview }}
-                  options={Object.keys(this.props.qualificationtypes).map(e => ({ value: e, label: this.props.qualificationtypes[e].name }))}
+                  defaultValue={{
+                    label: this.props.filter.docview,
+                    id: this.props.filter.docview
+                  }}
+                  options={Object.keys(this.props.qualificationtypes).map(
+                    e => ({
+                      value: e,
+                      label: this.props.qualificationtypes[e].name
+                    })
+                  )}
                   onChange={e => this.setDocView(e ? e.value : e)}
                   isClearable
                 />
@@ -623,7 +662,8 @@ class Staff extends React.Component {
                     "https://api.k2.co.nz/v1/doc/scripts/staff/qualification_documents.php?images=" +
                     docs.map(doc => encodeURIComponent(doc.url)).join(";") +
                     "&doctype=" +
-                    this.props.qualificationtypes[this.props.filter.docview].name +
+                    this.props.qualificationtypes[this.props.filter.docview]
+                      .name +
                     "&format=A5";
                   window.open(url);
                 }}
@@ -640,7 +680,8 @@ class Staff extends React.Component {
                   }
                   cols={
                     this.props.filter.docview
-                      ? this.props.qualificationtypes[this.props.filter.docview].cols
+                      ? this.props.qualificationtypes[this.props.filter.docview]
+                          .cols
                       : 6
                   }
                 >

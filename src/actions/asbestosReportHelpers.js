@@ -399,29 +399,54 @@ export const getTotalRisk = (mRisk, pRisk) => {
 };
 
 export const getRecommendation = acm => {
-  let str = "N/A";
+  let str1 = "",
+    str2 = "";
   if (acm.managementPrimary) {
     if (acm.managementPrimary === "Removal") {
       if (acm.removalLicenceRequired === "Class A") {
-        str = "REM-A";
+        str1 = "REM-A";
       } else if (acm.removalLicenceRequired === "Class B") {
-        str = "REM-B";
-      } else if (acm.removalLicenceRequired === "Unlicenced") {
-        str = "REM-U";
-      } else str = "REM";
+        str1 = "REM-B";
+      } else if (acm.removalLicenceRequired === "Unlicensed") {
+        str1 = "REM-U";
+      } else str1 = "REM";
     } else if (acm.managementPrimary === "Deferral") {
-      str = "DEFER";
+      str1 = "DEFER";
     } else if (acm.managementPrimary === "Sealing") {
-      str = "SEAL";
+      str1 = "SEAL";
     } else if (acm.managementPrimary === "Encapsulate") {
-      str = "ENCAP";
+      str1 = "ENCAP";
     } else if (acm.managementPrimary === "Enclosure") {
-      str = "ENCL";
+      str1 = "ENCL";
     } else if (acm.managementPrimary === "Test") {
-      str = "TEST";
+      str1 = "TEST";
     }
   }
-  return str;
+  if (acm.managementSecondary) {
+    if (acm.managementSecondary === "Removal") {
+      if (acm.removalLicenceRequired === "Class A") {
+        str2 = "REM-A";
+      } else if (acm.removalLicenceRequired === "Class B") {
+        str2 = "REM-B";
+      } else if (acm.removalLicenceRequired === "Unlicensed") {
+        str2 = "REM-U";
+      } else str2 = "REM";
+    } else if (acm.managementSecondary === "Deferral") {
+      str2 = "DEFER";
+    } else if (acm.managementSecondary === "Sealing") {
+      str2 = "SEAL";
+    } else if (acm.managementSecondary === "Encapsulate") {
+      str2 = "ENCAP";
+    } else if (acm.managementSecondary === "Enclosure") {
+      str2 = "ENCL";
+    } else if (acm.managementSecondary === "Test") {
+      str2 = "TEST";
+    }
+  }
+  if (str1 !== "" && str2 !== "") return `${str1}/${str2}`;
+  else if (str1 !== "") return str1;
+  else if (str2 !== "") return str2;
+  else return "N/A";
 };
 
 export const issueDocument = ({
@@ -480,7 +505,7 @@ export const issueDocument = ({
       versionHistory.push({
         no: index + 1,
         changes: v.changes,
-        date: moment(dateOf(v.date)).format("L"),
+        date: moment(dateOf(v.date)).format("DD/MM/YYYY"),
         writer: andList(authors.writer.map(e => e.name)),
         checker: andList(authors.checker.map(e => e.name)),
         ktp: andList(authors.ktp.map(e => e.name)),
@@ -502,7 +527,7 @@ export const issueDocument = ({
     address: job.address,
     jobNumber: job.jobNumber,
     issueNumber: latestIssue,
-    issueDate: moment().format("d MMMM YYYY"),
+    issueDate: moment().format("D MMMM YYYY"),
     versionNumber: job.latestVersion + 1 || 1,
     siteImageUrl:
       site.siteImageUrl.substring(0, site.siteImageUrl.lastIndexOf("&token")) ||
@@ -795,7 +820,7 @@ export const writeRiskToHealth = (job, siteAcm, template) => {
           immediateRisk.map(e => `${e.material} ${e.description}`)
         ).toLowerCase()}. This must be remediated as soon as practicable.`;
       } else {
-        str = `There is not an immediate risk to health. However any activity that disturbs the ${
+        str = `There is not an immediate risk to health. However, any activity that disturbs the ${
           identifiedAcm.length > 0 && presumedAcm.length > 0
             ? "identified and presumed "
             : identifiedAcm.length > 0
@@ -875,7 +900,7 @@ export const writeBackground = (job, site, staff, template) => {
     }
 
     bullets.push(
-      `This Asbestos Management Plan sets out actions to be taken to manage Asbestos and Asbestos Containing Materials (ACMs) in accordance with the Health and Safety at Work (Asbestos) Regulations 2016`
+      `This Asbestos Management Plan sets out actions to be taken to manage Asbestos and Asbestos-Containing Materials (ACMs) in accordance with the Health and Safety at Work (Asbestos) Regulations 2016`
     );
 
     return `<h2>Background</h2><ul>${bullets
@@ -1029,11 +1054,13 @@ export const writeRecommendations = (job, siteAcm, template) => {
           damage = 0,
           surface = 0,
           accessibility = 0,
+          singular = true,
           acmCount = 0;
         console.log(e);
         acmMaterials[e].acm &&
           acmMaterials[e].acm.forEach(acm => {
             console.log(acm);
+            if (!acm.singularItem) singular = false;
             if (acm.inaccessibleItem) inaccessibleItem = true;
             if (acm.managementPrimary)
               managementPrimary = acm.managementPrimary;
@@ -1062,31 +1089,56 @@ export const writeRecommendations = (job, siteAcm, template) => {
           });
 
         let assessments = [];
-        if (damage / acmCount > 2) assessments.push(`have extensive damage`);
+        let are = singular ? "is" : "are",
+          have = singular ? "has" : "have",
+          their = singular ? "its" : "their",
+          they = singular ? "It" : "They";
+
+        if (damage / acmCount > 2) assessments.push(`${have} extensive damage`);
         else if (damage / acmCount > 1)
-          assessments.push(`have moderate damage`);
-        else assessments.push(`are in good condition`);
+          assessments.push(`${have} moderate damage`);
+        else assessments.push(`${are} in good condition`);
 
         if (surface / acmCount > 2)
-          assessments.push(`highly friable in their current state`);
+          damage / acmCount > 1
+            ? assessments.push(
+                `${are} highly friable in ${their} current state`
+              )
+            : assessments.push(`highly friable in ${their} current state`);
         else if (surface / acmCount > 1)
-          assessments.push(`moderately friable in their current state`);
-        else assessments.push(`non-friable in their current state`);
+          damage / acmCount > 1
+            ? assessments.push(
+                `${are} moderately friable in ${their} current state`
+              )
+            : assessments.push(`moderately friable in ${their} current state`);
+        else
+          damage / acmCount > 1
+            ? assessments.push(`${are} non-friable in ${their} current state`)
+            : assessments.push(`non-friable in ${their} current state`);
 
         if (accessibility / acmCount > 2)
-          assessments.push(`are difficult to access`);
+          damage / acmCount > 1
+            ? assessments.push(`${are} difficult to access`)
+            : assessments.push(`difficult to access`);
         else if (surface / acmCount > 1)
-          assessments.push(`are moderately accessible`);
-        else assessments.push(`are easily accessible`);
+          damage / acmCount > 1
+            ? assessments.push(`${are} moderately accessible`)
+            : assessments.push(`moderately accessible`);
+        else
+          damage / acmCount > 1
+            ? assessments.push(`${are} easily accessible`)
+            : assessments.push(`easily accessible`);
 
         sectionStr = `<h3>${titleCase(e)}</h3><ul>`;
         if (inaccessibleItem) {
           sectionStr += `<li>The ${e} was inaccessible at the time of the survey and must be presumed to contain asbestos-containing materials</li><li>The area should be treated with caution until an inspection can be made<li>`;
         } else {
-          sectionStr += `<li>The ${e} are present ${
+          sectionStr += `<li>The ${e} ${are} present ${
             genericArea ? `throughout the site` : `in the ${andList(roomList)}`
           }</li>`;
-          sectionStr += `<li>They ${andList(assessments).toLowerCase()}</li>`;
+          sectionStr += `<li>${they} ${andList(
+            assessments
+          ).toLowerCase()}</li>`;
           if (recommendations && recommendations !== "") {
             if (recommendations.substring(0, 4) === "<ul>")
               recommendations = recommendations.slice(4, -5);
@@ -1096,11 +1148,13 @@ export const writeRecommendations = (job, siteAcm, template) => {
             if (managementPrimary === "Removal") {
               sectionStr += `<li>Removal is recommended to eliminate any potential risk.`;
               if (removalLicenceRequired === "Class A") {
-                sectionStr += ` The removalist <strong style={color: 'red';}>must</strong> hold a Class A Asbestos Removalist licence.`;
+                sectionStr += ` The removalist <strong style="color: red">must</strong> hold a Class A Asbestos Removalist licence.`;
               } else if (removalLicenceRequired === "Class B") {
-                sectionStr += `The removalist must hold a Class B Asbestos Removalist licence.`;
-              } else if (removalLicenceRequired === "Unlicenced") {
-                sectionStr += `The item can be removed by a competent person following best practices.`;
+                sectionStr += ` The removalist must hold a Class A or B Asbestos Removalist licence.`;
+              } else if (removalLicenceRequired === "Unlicensed") {
+                sectionStr += ` The ${
+                  singular ? "item" : "material"
+                } can be removed by a competent person following best practices.`;
               }
               sectionStr += `</li>`;
             } else if (managementPrimary === "Seal") {

@@ -32,7 +32,11 @@ import {
   onUploadFile,
   setModalError
 } from "../../../actions/modal";
-import { fetchSites, getDetailedWFMJob } from "../../../actions/jobs";
+import {
+  fetchSites,
+  getDetailedWFMJob,
+  resetWfmJob
+} from "../../../actions/jobs";
 import { getUserAttrs } from "../../../actions/local";
 import _ from "lodash";
 import classNames from "classnames";
@@ -91,6 +95,25 @@ const jobTypes = [
   "Biological",
   "Other"
 ];
+
+const mapStateToProps = state => {
+  return {
+    modalType: state.modal.modalType,
+    modalProps: state.modal.modalProps,
+    doc: state.modal.modalProps.doc
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchSites: update => dispatch(fetchSites(update)),
+    hideModal: () => dispatch(hideModal()),
+    setModalError: error => dispatch(setModalError(error)),
+    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
+    resetWfmJob: () => dispatch(resetWfmJob()),
+    resetModal: () => dispatch(resetModal())
+  };
+};
 
 class SiteJobModal extends React.Component {
   state = {
@@ -168,4 +191,9 @@ class SiteJobModal extends React.Component {
   }
 }
 
-export default withStyles(styles)(SiteJobModal);
+export default withStyles(styles)(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(SiteJobModal)
+);

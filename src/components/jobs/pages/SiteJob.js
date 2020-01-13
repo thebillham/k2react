@@ -4,9 +4,7 @@ import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 
 //Modals
-import {
-  WFM_TIME,
-} from "../../../constants/modal-types";
+import { WFM_TIME } from "../../../constants/modal-types";
 import { showModal } from "../../../actions/modal";
 import Button from "@material-ui/core/Button";
 import FormControl from "@material-ui/core/FormControl";
@@ -21,7 +19,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
-import Collapse from '@material-ui/core/Collapse';
+import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import WfmTimeModal from "../modals/WfmTimeModal";
@@ -29,13 +27,13 @@ import ClosedArrow from "@material-ui/icons/ArrowDropDown";
 import OpenArrow from "@material-ui/icons/ArrowDropUp";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
-import SyncIcon from '@material-ui/icons/Sync';
-import LinkIcon from '@material-ui/icons/Link';
+import SyncIcon from "@material-ui/icons/Sync";
+import LinkIcon from "@material-ui/icons/Link";
 import TimerIcon from "@material-ui/icons/Timer";
-import Select from 'react-select';
-import SuggestionField from '../../../widgets/SuggestionField';
-import ReactTable from 'react-table';
-import 'react-table/react-table.css';
+import Select from "react-select";
+import SuggestionField from "../../../widgets/SuggestionField";
+import ReactTable from "react-table";
+import "react-table/react-table.css";
 import AsbestosRegisterTable from "../components/AsbestosRegisterTable";
 import AsbestosSurveyTable from "../components/AsbestosSurveyTable";
 import NonAsbestosTable from "../components/NonAsbestosTable";
@@ -43,21 +41,19 @@ import AirMonitoringRecords from "../components/AirMonitoringRecords";
 import AsbestosManagementPlan from "../jobs/AsbestosManagementPlan";
 import AsbestosSurvey from "../jobs/AsbestosSurvey";
 
-import {
-  DatePicker,
-} from "@material-ui/pickers";
+import { DatePicker } from "@material-ui/pickers";
 
-import classNames from 'classnames';
+import classNames from "classnames";
 import Popup from "reactjs-popup";
 import {
   dateOf,
   getDaysSinceDate,
   getDaysSinceDateAgo,
   andList,
-  personnelConvert,
+  personnelConvert
 } from "../../../actions/helpers";
 
-import moment from 'moment';
+import moment from "moment";
 import _ from "lodash";
 
 import {
@@ -80,15 +76,12 @@ import {
   getNextActionOverdueBy,
   getWfmUrl,
   getLeadHistoryDescription,
-  handleJobChange,
+  handleJobChange
 } from "../../../actions/jobs";
 
 import { collateSamples } from "../../../actions/asbestosReportHelpers";
 
-import {
-  filterMap,
-  filterMapReset,
-} from "../../../actions/display";
+import { filterMap, filterMapReset } from "../../../actions/display";
 
 const mapStateToProps = state => {
   return {
@@ -110,7 +103,7 @@ const mapStateToProps = state => {
     me: state.local.me,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
-    modalType: state.modal.modalType,
+    modalType: state.modal.modalType
   };
 };
 
@@ -120,10 +113,12 @@ const mapDispatchToProps = dispatch => {
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
     handleJobChange: info => dispatch(handleJobChange(info)),
-    handleJobChangeDebounced: _.debounce((info) => dispatch(handleJobChange(info)),
+    handleJobChangeDebounced: _.debounce(
+      info => dispatch(handleJobChange(info)),
       2000
     ),
-    fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
+    fetchCurrentJobState: ignoreCompleted =>
+      dispatch(fetchCurrentJobState(ignoreCompleted)),
     clearWfmJob: () => dispatch(clearWfmJob()),
     getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
     saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
@@ -135,7 +130,22 @@ const mapDispatchToProps = dispatch => {
     filterMap: filter => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
     showModal: modal => dispatch(showModal(modal)),
-    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
+    collateJobsList: (
+      wfmJobs,
+      wfmLeads,
+      currentJobState,
+      wfmClients,
+      geocodes
+    ) =>
+      dispatch(
+        collateJobsList(
+          wfmJobs,
+          wfmLeads,
+          currentJobState,
+          wfmClients,
+          geocodes
+        )
+      )
   };
 };
 
@@ -143,19 +153,25 @@ class SiteJob extends React.Component {
   state = {
     countVersions: 1,
 
-    update: {},
+    update: {}
   };
 
   UNSAFE_componentWillMount() {
     let countVersions = 1;
-    if (this.props.siteJobs && this.props.siteJobs[this.props.site] && this.props.siteJobs[this.props.site][this.props.m.uid]) {
+    if (
+      this.props.siteJobs &&
+      this.props.siteJobs[this.props.site] &&
+      this.props.siteJobs[this.props.site][this.props.m.uid]
+    ) {
       let job = this.props.siteJobs[this.props.site][this.props.m.uid];
       if (job.versions && Object.keys(job.versions).length > 0) {
-        countVersions = Math.max(...Object.keys(job.versions).map(key => parseInt(key)));
+        countVersions = Math.max(
+          ...Object.keys(job.versions).map(key => parseInt(key))
+        );
       }
     }
     this.setState({
-      countVersions,
+      countVersions
     });
   }
 
@@ -163,67 +179,126 @@ class SiteJob extends React.Component {
     this.setState({
       [`open${name}`]: !this.state[`open${name}`]
     });
-  }
+  };
 
   addList = field => {
     this.setState({
-      [`count${field}`]: this.state[`count${field}`] ? this.state[`count${field}`] + 1 : 2,
-    })
-  }
+      [`count${field}`]: this.state[`count${field}`]
+        ? this.state[`count${field}`] + 1
+        : 2
+    });
+  };
 
   removeList = field => {
-    let obj = field ? field.slice(0,1).toLowerCase() + field.slice(1) : null;
+    let obj = field ? field.slice(0, 1).toLowerCase() + field.slice(1) : null;
     let num = this.state[`count${field}`] ? this.state[`count${field}`] : 1;
-    if (obj) this.props.handleJobChange({ job: this.props.siteJobs[this.props.site][this.props.m.uid], o1: [obj], field: num, val: 'delete' });
+    if (obj)
+      this.props.handleJobChange({
+        job: this.props.siteJobs[this.props.site][this.props.m.uid],
+        o1: [obj],
+        field: num,
+        val: "delete"
+      });
     this.setState({
-      [`count${field}`]: this.state[`count${field}`] ? this.state[`count${field}`] > 1 ? this.state[`count${field}`] - 1 : 1 : 1,
-    })
-  }
+      [`count${field}`]: this.state[`count${field}`]
+        ? this.state[`count${field}`] > 1
+          ? this.state[`count${field}`] - 1
+          : 1
+        : 1
+    });
+  };
 
   render() {
-    const { classes, that, m, wfmClients, geocodes, site, sites, siteJobs, siteAcm, samples} = this.props;
-    const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
+    const {
+      classes,
+      that,
+      m,
+      wfmClients,
+      geocodes,
+      site,
+      sites,
+      siteJobs,
+      siteAcm,
+      samples
+    } = this.props;
+    const names = [{ name: "3rd Party", uid: "3rd Party" }].concat(
+      Object.values(this.props.staff).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      )
+    );
 
     if (m) {
+      // console.log(m);
       const color = classes[getJobColor(m.category)];
       return (
         <Grid container>
           <Grid item xs={12} md={5}>
             <div className={classes.informationBoxWhiteRounded}>
               <div className={classes.flexRowSpread}>
-                <div className={classNames(color, classes.expandHeading)}>{ m.jobNumber }</div>
+                <div className={classNames(color, classes.expandHeading)}>
+                  {m.jobNumber}
+                </div>
                 <div className={classes.flexRow}>
-                  <Tooltip title={'Re-sync with WorkflowMax'}>
+                  <Tooltip title={"Re-sync with WorkflowMax"}>
                     <IconButton
-                      onClick={e => this.props.getDetailedWFMJob({ jobNumber: m.jobNumber, setUpJob: true, })}>
+                      onClick={e =>
+                        this.props.getDetailedWFMJob({
+                          jobNumber: m.jobNumber,
+                          setUpJob: true
+                        })
+                      }
+                    >
                       <SyncIcon className={classes.iconRegular} />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title={'View Job on WorkflowMax'}>
-                    <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${m.wfmID}`) }>
+                  <Tooltip title={"View Job on WorkflowMax"}>
+                    <IconButton
+                      onClick={() =>
+                        window.open(
+                          `https://my.workflowmax.com/job/jobview.aspx?id=${m.wfmID}`
+                        )
+                      }
+                    >
                       <LinkIcon className={classes.iconRegular} />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title={'Log Time to WorkflowMax'}>
+                  <Tooltip title={"Log Time to WorkflowMax"}>
                     <IconButton
                       onClick={e => {
-                        this.props.showModal({ modalType: WFM_TIME, modalProps: { job: m, }})
-                      }}>
+                        this.props.showModal({
+                          modalType: WFM_TIME,
+                          modalProps: { job: m }
+                        });
+                      }}
+                    >
                       <TimerIcon className={classes.iconRegular} />
                     </IconButton>
                   </Tooltip>
                 </div>
               </div>
               <InputLabel>Job Description</InputLabel>
-              <SuggestionField that={this} suggestions='siteJobDescriptions'
-                defaultValue={m.jobDescription ? m.jobDescription : ''}
-                onModify={value => this.props.handleJobChange({job: m, field: 'jobDescription', val: value, siteUid: site })} />
-              <div className={classNames(color, classes.expandHeading)}>Job Details</div>
-              <div>
-                <b>Client:</b> {m.client ? m.client : 'Not Available'}
+              <SuggestionField
+                that={this}
+                suggestions="siteJobDescriptions"
+                defaultValue={m.jobDescription ? m.jobDescription : ""}
+                onModify={value =>
+                  this.props.handleJobChange({
+                    job: m,
+                    field: "jobDescription",
+                    val: value,
+                    siteUid: site
+                  })
+                }
+              />
+              <div className={classNames(color, classes.expandHeading)}>
+                Job Details
               </div>
               <div>
-                <b>Job Name/Address:</b> {m.address ? m.address : 'Not Available'}
+                <b>Client:</b> {m.client ? m.client : "Not Available"}
+              </div>
+              <div>
+                <b>Job Name/Address:</b>{" "}
+                {m.address ? m.address : "Not Available"}
               </div>
               {m.wfmState && (
                 <div>
@@ -231,41 +306,60 @@ class SiteJob extends React.Component {
                 </div>
               )}
               <div>
-                <b>Owner:</b> {m.owner ? m.owner : 'Not Assigned'}
+                <b>Owner:</b> {m.owner ? m.owner : "Not Assigned"}
               </div>
               <div>
-                {m.assigned &&
+                {m.assigned && (
                   <div>
                     <b> Assigned: </b> {andList(m.assigned.map(e => e.name))}
                   </div>
-                }
+                )}
                 {m.lastActionDate && m.wfmState !== "Completed" && (
                   <div>
-                    {m.wfmState && (<span><b>Last Action:</b> {getStateString(m)} </span>)}
+                    {m.wfmState && (
+                      <span>
+                        <b>Last Action:</b> {getStateString(m)}{" "}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
-              {m.description && (
+              {m.description && typeof m.description !== "object" && (
                 <div>
-                  <div className={classNames(color, classes.expandHeading)} onClick={() => this.toggleCollapse('Description')}>Description {this.state.openDescription ? (<OpenArrow />) : (<ClosedArrow />)}</div>
+                  <div
+                    className={classNames(color, classes.expandHeading)}
+                    onClick={() => this.toggleCollapse("Description")}
+                  >
+                    Description{" "}
+                    {this.state.openDescription ? (
+                      <OpenArrow />
+                    ) : (
+                      <ClosedArrow />
+                    )}
+                  </div>
                   <Collapse in={this.state.openDescription}>
-                    <div className={classes.code}>
-                      { m.description }
-                    </div>
+                    <div className={classes.code}>{m.description}</div>
                   </Collapse>
                 </div>
               )}
               {m.stateHistory && (
                 <div>
-                  <div className={classNames(color, classes.expandHeading)} onClick={() => this.toggleCollapse('History')}>State History {this.state.openHistory ? (<OpenArrow />) : (<ClosedArrow />)}</div>
+                  <div
+                    className={classNames(color, classes.expandHeading)}
+                    onClick={() => this.toggleCollapse("History")}
+                  >
+                    State History{" "}
+                    {this.state.openHistory ? <OpenArrow /> : <ClosedArrow />}
+                  </div>
                   <Collapse in={this.state.openHistory}>
                     <div className={classes.expandBody}>
-                      { Object.keys(m.stateHistory).map((key) => {
+                      {Object.keys(m.stateHistory).map(key => {
                         return (
                           <span key={key}>
-                            <b>{key}:</b> {m.stateHistory[key]}<br/>
+                            <b>{key}:</b> {m.stateHistory[key]}
+                            <br />
                           </span>
-                        )
+                        );
                       })}
                     </div>
                   </Collapse>
@@ -273,69 +367,115 @@ class SiteJob extends React.Component {
               )}
               {m.milestones && m.milestones.length > 0 && (
                 <div>
-                  <div className={classNames(color, classes.expandHeading)} onClick={() => this.toggleCollapse('Milestones')}>Milestones {this.state.openMilestones ? (<OpenArrow />) : (<ClosedArrow />)}</div>
+                  <div
+                    className={classNames(color, classes.expandHeading)}
+                    onClick={() => this.toggleCollapse("Milestones")}
+                  >
+                    Milestones{" "}
+                    {this.state.openMilestones ? (
+                      <OpenArrow />
+                    ) : (
+                      <ClosedArrow />
+                    )}
+                  </div>
                   <Collapse in={this.state.openMilestones}>
                     <div className={classes.expandBody}>
-                      {
-                        m.milestones.map((item) => {
-                          if(item.completed === 'true') {
-                            return (
-                              <span key={item.date} className={classes.linethrough}>
-                                <b>{moment(item.date).format('YYYY-MM-DD')}:</b> {item.description}
-                                <br/>
-                              </span>
-                            )
-                          } else {
-                            return (
-                              <span key={item.date}>
-                                <b>{moment(item.date).format('YYYY-MM-DD')}:</b> {item.description}
-                                <br/>
-                              </span>
-                            )
-                          }
-                        })
-                      }
+                      {m.milestones.map(item => {
+                        if (item.completed === "true") {
+                          return (
+                            <span
+                              key={item.date}
+                              className={classes.linethrough}
+                            >
+                              <b>{moment(item.date).format("YYYY-MM-DD")}:</b>{" "}
+                              {item.description}
+                              <br />
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span key={item.date}>
+                              <b>{moment(item.date).format("YYYY-MM-DD")}:</b>{" "}
+                              {item.description}
+                              <br />
+                            </span>
+                          );
+                        }
+                      })}
                     </div>
                   </Collapse>
                 </div>
               )}
 
               {m.notes && m.notes.length > 0 && (
-              <div>
-                <div className={classNames(color, classes.expandHeading)} onClick={() => this.toggleCollapse('Notes')}>Notes {this.state.openNotes ? (<OpenArrow />) : (<ClosedArrow />)}</div>
-                <Collapse in={this.state.openNotes}>
-                  <div className={classes.expandBody}>
-                    {
-                      m.notes.map((item) =>
-                      <div key={moment(dateOf(item.date)).format('x')}>
-                        <div className={color}><b>{moment(dateOf(item.date)).format('YYYY-MM-DD')}</b> {item.title} - {item.createdBy}</div>
-                        {item.text && <div className={classes.code}>
-                          {item.text}
-                        </div>}
-                      </div>)
-                    }
+                <div>
+                  <div
+                    className={classNames(color, classes.expandHeading)}
+                    onClick={() => this.toggleCollapse("Notes")}
+                  >
+                    Notes{" "}
+                    {this.state.openNotes ? <OpenArrow /> : <ClosedArrow />}
                   </div>
-                </Collapse>
-              </div>
-            )}
+                  <Collapse in={this.state.openNotes}>
+                    <div className={classes.expandBody}>
+                      {m.notes.map(item => (
+                        <div key={moment(dateOf(item.date)).format("x")}>
+                          <div className={color}>
+                            <b>
+                              {moment(dateOf(item.date)).format("YYYY-MM-DD")}
+                            </b>{" "}
+                            {item.title} - {item.createdBy}
+                          </div>
+                          {item.text && (
+                            <div className={classes.code}>{item.text}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Collapse>
+                </div>
+              )}
             </div>
           </Grid>
           <Grid item xs={12} md={7}>
             <div className={classes.informationBoxWhiteRounded}>
-              <div className={classNames(color, classes.expandHeading)}>Version History</div>
-              <div className={classNames(classes.subHeading, classes.flexRowCenter)}>
-                <IconButton size='small' aria-label='add' className={classes.marginLeftSmall} onClick={() => this.addList('Versions')}><AddIcon /></IconButton>
-                <IconButton size='small' aria-label='remove' className={classes.marginLeftSmall} onClick={() => this.removeList('Versions')}><RemoveIcon /></IconButton>
+              <div className={classNames(color, classes.expandHeading)}>
+                Version History
               </div>
-              { [...Array(this.state.countVersions ? this.state.countVersions : 1).keys()].map(i => {
+              <div
+                className={classNames(
+                  classes.subHeading,
+                  classes.flexRowCenter
+                )}
+              >
+                <IconButton
+                  size="small"
+                  aria-label="add"
+                  className={classes.marginLeftSmall}
+                  onClick={() => this.addList("Versions")}
+                >
+                  <AddIcon />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  aria-label="remove"
+                  className={classes.marginLeftSmall}
+                  onClick={() => this.removeList("Versions")}
+                >
+                  <RemoveIcon />
+                </IconButton>
+              </div>
+              {[
+                ...Array(
+                  this.state.countVersions ? this.state.countVersions : 1
+                ).keys()
+              ].map(i => {
                 let num = i + 1,
                   s = m.versions && m.versions[num] ? m.versions[num] : {};
                 return (
                   <div className={classes.hoverNoFlex} key={`versions${num}`}>
                     <div className={classes.flexRow}>
-                      <div className={classes.circleShaded}>
-                        {num}
-                      </div>
+                      <div className={classes.circleShaded}>{num}</div>
                       <DatePicker
                         value={s.date ? dateOf(s.date) : null}
                         autoOk
@@ -344,11 +484,18 @@ class SiteJob extends React.Component {
                         variant="inline"
                         disableToolbar
                         clearable
-                        label={'Date'}
-                        views={["year","month","date"]}
+                        label={"Date"}
+                        views={["year", "month", "date"]}
                         openTo="year"
                         onChange={date => {
-                          this.props.handleJobChange({ job: m, o1: 'versions', o2: num.toString(), field: 'date', val: dateOf(date), siteUid: site, });
+                          this.props.handleJobChangeDebounced({
+                            job: m,
+                            o1: "versions",
+                            o2: num.toString(),
+                            field: "date",
+                            val: dateOf(date),
+                            siteUid: site
+                          });
                         }}
                       />
                       <div className={classes.spacerSmall} />
@@ -357,41 +504,103 @@ class SiteJob extends React.Component {
                         className={classes.columnLarge}
                         defaultValue={s.changes ? s.changes : null}
                         onChange={e => {
-                          this.props.handleJobChangeDebounced({ job: m, o1: 'versions', o2: num.toString(), field: 'changes', val: e.target.value, siteUid: site, });
+                          this.props.handleJobChangeDebounced({
+                            job: m,
+                            o1: "versions",
+                            o2: num.toString(),
+                            field: "changes",
+                            val: e.target.value,
+                            siteUid: site
+                          });
                         }}
                       />
                     </div>
                     <div className={classes.flexRow}>
                       <Select
                         isMulti
-                        placeholder={'Writer'}
-                        className={classNames(classes.selectTight, classes.columnMedLarge)}
-                        value={s.writer ? s.writer.map(e => ({value: e.uid, label: e.name})) : null}
-                        options={names.map(e => ({ value: e.uid, label: e.name }))}
+                        placeholder={"Writer"}
+                        className={classNames(
+                          classes.selectTight,
+                          classes.columnMedLarge
+                        )}
+                        value={
+                          s.writer
+                            ? s.writer.map(e => ({
+                                value: e.uid,
+                                label: e.name
+                              }))
+                            : null
+                        }
+                        options={names.map(e => ({
+                          value: e.uid,
+                          label: e.name
+                        }))}
                         onChange={e => {
-                          console.log(e);
-                          console.log(personnelConvert(e))
-                          this.props.handleJobChange({ job: m, o1: 'versions', o2: num.toString(), field: 'writer', val: personnelConvert(e), siteUid: site, });
+                          this.props.handleJobChangeDebounced({
+                            job: m,
+                            o1: "versions",
+                            o2: num.toString(),
+                            field: "writer",
+                            val: personnelConvert(e),
+                            siteUid: site
+                          });
                         }}
                       />
                       <Select
                         isMulti
-                        placeholder={'Checker'}
-                        className={classNames(classes.selectTight, classes.columnMedLarge)}
-                        value={s.checker ? s.checker.map(e => ({value: e.uid, label: e.name})) : null}
-                        options={names.map(e => ({ value: e.uid, label: e.name }))}
+                        placeholder={"Checker"}
+                        className={classNames(
+                          classes.selectTight,
+                          classes.columnMedLarge
+                        )}
+                        value={
+                          s.checker
+                            ? s.checker.map(e => ({
+                                value: e.uid,
+                                label: e.name
+                              }))
+                            : null
+                        }
+                        options={names.map(e => ({
+                          value: e.uid,
+                          label: e.name
+                        }))}
                         onChange={e => {
-                          this.props.handleJobChange({ job: m, o1: 'versions', o2: num.toString(), field: 'checker', val: personnelConvert(e), siteUid: site, });
+                          this.props.handleJobChangeDebounced({
+                            job: m,
+                            o1: "versions",
+                            o2: num.toString(),
+                            field: "checker",
+                            val: personnelConvert(e),
+                            siteUid: site
+                          });
                         }}
                       />
                       <Select
                         isMulti
-                        placeholder={'KTP'}
-                        className={classNames(classes.selectTight, classes.columnMedLarge)}
-                        value={s.ktp ? s.ktp.map(e => ({value: e.uid, label: e.name})) : null}
-                        options={names.map(e => ({ value: e.uid, label: e.name }))}
+                        placeholder={"KTP"}
+                        className={classNames(
+                          classes.selectTight,
+                          classes.columnMedLarge
+                        )}
+                        value={
+                          s.ktp
+                            ? s.ktp.map(e => ({ value: e.uid, label: e.name }))
+                            : null
+                        }
+                        options={names.map(e => ({
+                          value: e.uid,
+                          label: e.name
+                        }))}
                         onChange={e => {
-                          this.props.handleJobChange({ job: m, o1: 'versions', o2: num.toString(), field: 'ktp', val: personnelConvert(e), siteUid: site, });
+                          this.props.handleJobChangeDebounced({
+                            job: m,
+                            o1: "versions",
+                            o2: num.toString(),
+                            field: "ktp",
+                            val: personnelConvert(e),
+                            siteUid: site
+                          });
                         }}
                       />
                     </div>
@@ -401,13 +610,18 @@ class SiteJob extends React.Component {
             </div>
           </Grid>
           <Grid item xs={12}>
-            {m.jobDescription === 'Asbestos Management Plan' && <AsbestosManagementPlan m={m} site={site} />}
-            {m.jobDescription.includes('Asbestos') && m.jobDescription.includes('Survey') && <AsbestosSurvey m={m} site={site} />}
+            {m.jobDescription === "Asbestos Management Plan" && (
+              <AsbestosManagementPlan m={m} site={site} />
+            )}
+            {m.jobDescription.includes("Asbestos") &&
+              m.jobDescription.includes("Survey") && (
+                <AsbestosSurvey m={m} site={site} />
+              )}
           </Grid>
         </Grid>
-    );
-  } else return (<div />)
-}
+      );
+    } else return <div />;
+  }
 }
 
 export default withStyles(styles)(

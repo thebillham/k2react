@@ -138,6 +138,7 @@ const mapDispatchToProps = dispatch => {
 const initState = {
   description: "",
   writeItemFirst: false,
+  singularItem: false,
   inaccessibleItem: false,
   unknownItem: false,
   material: "",
@@ -453,7 +454,23 @@ class AcmCard extends React.Component {
                 label="Write Item First"
               />
             </Tooltip>
-            <div className={classes.flexRowSpread}>
+            <Tooltip title="Write item as singular (e.g. It Is instead of They Are)">
+              <FormControlLabel
+                className={classes.marginTopSmall}
+                control={
+                  <Switch
+                    checked={this.state.singularItem || false}
+                    onClick={e => {
+                      this.setState({ singularItem: e.target.checked });
+                    }}
+                    value="singularItem"
+                    color="secondary"
+                  />
+                }
+                label="Write as Singular Item"
+              />
+            </Tooltip>
+            <div className={classes.flexRow}>
               <FormControlLabel
                 className={classes.marginTopSmall}
                 control={
@@ -1405,6 +1422,71 @@ class AcmCard extends React.Component {
                 )}
               </div>
             )}
+
+            <InputLabel className={classes.marginTopSmall}>
+              Thumbnail Image
+            </InputLabel>
+            {this.state.acmImageUrl && (
+              <div className={classes.marginTopSmall}>
+                <img
+                  src={this.state.acmImageUrl}
+                  alt=""
+                  width="200px"
+                  style={{
+                    opacity: "0.5",
+                    borderStyle: "solid",
+                    borderWidth: "2px"
+                  }}
+                />
+                <IconButton
+                  style={{
+                    position: "relative",
+                    top: "2px",
+                    left: "-120px",
+                    borderStyle: "solid",
+                    borderWidth: "2px",
+                    fontSize: 8
+                  }}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Are you sure you wish to delete the image?"
+                      )
+                    )
+                      this.deleteImage();
+                  }}
+                >
+                  <Close />
+                </IconButton>
+              </div>
+            )}
+            <label>
+              <UploadIcon
+                className={classNames(classes.hoverCursor, classes.colorAccent)}
+              />
+              <input
+                id="attr_upload_file"
+                type="file"
+                style={{ display: "none" }}
+                onChange={e => {
+                  if (this.state.acmImageUrl) {
+                    storage.ref(this.state.acmImageRef).delete();
+                  }
+                  this.props.onUploadFile({
+                    file: e.currentTarget.files[0],
+                    storagePath: "sites/",
+                    prefix: "siteImage",
+                    imageQuality: 30,
+                    imageHeight: 100
+                  });
+                }}
+              />
+              <LinearProgress
+                className={classes.formInputLarge}
+                variant="determinate"
+                value={modalProps.uploadProgress}
+              />
+            </label>
 
             {/*<InputLabel className={classes.marginTopSmall}>Thumbnail Image</InputLabel>
             {this.state.siteImageUrl && (

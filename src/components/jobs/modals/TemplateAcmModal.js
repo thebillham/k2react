@@ -4,6 +4,7 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
+import moment from "moment";
 // import store from '../../store';
 import { TEMPLATE_ACM } from "../../../constants/modal-types";
 import { sitesRef, storage, templateAcmRef } from "../../../config/firebase";
@@ -26,6 +27,7 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "react-select";
 import IconButton from "@material-ui/core/IconButton";
+import Checkbox from "@material-ui/core/Checkbox";
 import Tooltip from "@material-ui/core/Tooltip";
 // import Geosuggest from 'react-geosuggest';
 import ImageUploader from "react-images-upload";
@@ -47,12 +49,22 @@ import {
   setModalError
 } from "../../../actions/modal";
 import { fetchSites, getDetailedWFMJob } from "../../../actions/jobs";
-import { getSampleColors, updateResultMap } from "../../../actions/asbestosLab";
+import {
+  getSampleColors,
+  updateResultMap,
+  writeDescription
+} from "../../../actions/asbestosLab";
+import {
+  getMaterialRisk,
+  getPriorityRisk,
+  getTotalRisk
+} from "../../../actions/asbestosReportHelpers";
 import { getUserAttrs } from "../../../actions/local";
 import {
   sendSlackMessage,
   numericAndLessThanOnly,
-  quillModules
+  quillModules,
+  dateOf
 } from "../../../actions/helpers";
 import { AsbButton, ScoreButton } from "../../../widgets/FormWidgets";
 import _ from "lodash";
@@ -68,7 +80,34 @@ const mapStateToProps = state => {
     userRefName: state.local.userRefName,
     asbestosMaterialCategories: state.const.asbestosMaterialCategories,
     materialSuggestions: state.const.asbestosMaterialSuggestions,
-    asbestosManagementOptions: state.const.asbestosManagementOptions
+    asbestosManagementOptions: state.const.asbestosManagementOptions,
+
+    asbestosAccessibilitySuggestions:
+      state.const.asbestosAccessibilitySuggestions,
+
+    // Material Risk
+    asbestosProductScores: state.const.asbestosProductScores,
+    asbestosSurfaceScores: state.const.asbestosSurfaceScores,
+    asbestosDamageScores: state.const.asbestosDamageScores,
+
+    // Activity
+    asbestosPriMainActivityScores: state.const.asbestosPriMainActivityScores,
+    asbestosPriSecondaryActivityScores:
+      state.const.asbestosPriSecondaryActivityScores,
+
+    // Disturbance
+    asbestosPriLocationScores: state.const.asbestosPriLocationScores,
+    asbestosPriAccessibilityScores: state.const.asbestosPriAccessibilityScores,
+    asbestosPriExtentScores: state.const.asbestosPriExtentScores,
+
+    // Exposure
+    asbestosPriOccupantsScores: state.const.asbestosPriOccupantsScores,
+    asbestosPriUseFreqScores: state.const.asbestosPriUseFreqScores,
+    asbestosPriAvgTimeScores: state.const.asbestosPriAvgTimeScores,
+
+    // Maintenance
+    asbestosPriMaintTypeScores: state.const.asbestosPriMaintTypeScores,
+    asbestosPriMaintFreqScores: state.const.asbestosPriMaintFreqScores
   };
 };
 
@@ -120,7 +159,12 @@ class TemplateAcmModal extends React.Component {
   render() {
     const { modalProps, doc, classes } = this.props;
     const colors = getSampleColors({ result: this.state.asbestosType });
-    console.log(this.state);
+    const totalRisk =
+      this.state.priorityRisk &&
+      this.state.materialRisk &&
+      this.state.materialRisk.color
+        ? getTotalRisk(this.state.materialRisk, this.state.priorityRisk)
+        : null;
     return (
       <Dialog
         open={this.props.modalType === TEMPLATE_ACM}
@@ -158,32 +202,78 @@ class TemplateAcmModal extends React.Component {
             controlled
             onModify={value => this.setState({ description: value })}
           />
+          <Tooltip title="Write item before material (e.g. pipework lagging), otherwise material will be written first (e.g. cement sheet soffits)">
+            <FormControlLabel
+              className={classes.marginTopSmall}
+              control={
+                <Switch
+                  checked={this.state.writeItemFirst || false}
+                  onClick={e => {
+                    this.setState({ writeItemFirst: e.target.checked });
+                  }}
+                  value="writeItemFirst"
+                  color="secondary"
+                />
+              }
+              label="Write Item First"
+            />
+          </Tooltip>
+          <Tooltip title="Write item as singular (e.g. It Is instead of They Are)">
+            <FormControlLabel
+              className={classes.marginTopSmall}
+              control={
+                <Switch
+                  checked={this.state.singularItem || false}
+                  onClick={e => {
+                    this.setState({ singularItem: e.target.checked });
+                  }}
+                  value="singularItem"
+                  color="secondary"
+                />
+              }
+              label="Write as Singular Item"
+            />
+          </Tooltip>
+          <div className={classes.flexRow}>
+            <FormControlLabel
+              className={classes.marginTopSmall}
+              control={
+                <Switch
+                  checked={this.state.inaccessibleItem || false}
+                  onClick={e => {
+                    this.setState({ inaccessibleItem: e.target.checked });
+                  }}
+                  value="inaccessibleItem"
+                  color="secondary"
+                />
+              }
+              label="Inaccessible Item"
+            />
 
-          <FormControlLabel
-            className={classes.marginTopSmall}
-            control={
-              <Switch
-                checked={this.state.inaccessibleItem || false}
-                onClick={e => {
-                  this.setState({ inaccessibleItem: e.target.checked });
-                }}
-                value="inaccessibleItem"
-                color="secondary"
-              />
-            }
-            label="Inaccessible Item"
-          />
+            <FormControlLabel
+              className={classes.marginTopSmall}
+              control={
+                <Switch
+                  checked={this.state.unknownItem || false}
+                  onClick={e => {
+                    this.setState({ unknownItem: e.target.checked });
+                  }}
+                  value="unknownItem"
+                  color="secondary"
+                />
+              }
+              label="Unknown Item"
+            />
+          </div>
 
-          {!this.state.inaccessibleItem && (
+          {!this.state.unknownItem && (
             <div>
-              <InputLabel className={classes.marginTopSmall}>
-                Material
-              </InputLabel>
               <SuggestionField
                 that={this}
                 suggestions="materialSuggestions"
-                value={this.state.material || ""}
+                label="Material"
                 controlled
+                value={this.state.material ? this.state.material : ""}
                 onModify={value => {
                   let category = "",
                     asbestosType = this.state.asbestosType
@@ -209,7 +299,7 @@ class TemplateAcmModal extends React.Component {
                       );
                   }
                   this.setState({
-                    material: value.trim(),
+                    material: value,
                     category,
                     asbestosType,
                     asbestosContent
@@ -223,7 +313,10 @@ class TemplateAcmModal extends React.Component {
                 className={classes.selectTight}
                 value={
                   this.state.category
-                    ? { value: this.state.category, label: this.state.category }
+                    ? {
+                        value: this.state.category,
+                        label: this.state.category
+                      }
                     : { value: "", label: "" }
                 }
                 options={this.props.asbestosMaterialCategories.map(e => ({
@@ -238,45 +331,166 @@ class TemplateAcmModal extends React.Component {
           )}
 
           <InputLabel className={classes.marginTopSmall}>
-            Default Accessibility Score
+            Identification
           </InputLabel>
           <div className={classes.flexRow}>
             {[
               {
-                label: "Easy",
-                color: "Ok",
-                tooltip:
-                  "May be disturbed during normal occupancy. Does not require any equipment to access."
-              },
-              {
-                label: "Medium",
+                label: "Presumed",
+                value: "p",
                 color: "Warning",
-                tooltip:
-                  "Requires equipment (e.g. a ladder) to access. Within fuse boxes."
+                tooltip: "Default."
               },
               {
-                label: "Difficult",
+                label: "Strongly Presumed",
+                value: "s",
+                color: "StrongWarning",
+                tooltip: "Strongly presumed."
+              },
+              {
+                label: "Sampled",
+                value: "i",
                 color: "Bad",
-                tooltip:
-                  "Requires specialist equipment, dismantling of machinery or modification of the building to access."
+                tooltip: "Sampled."
               }
             ].map(res => {
               return ScoreButton(
                 classes[
                   `colorsButton${
-                    this.state.accessibility === res.label ? res.color : "Off"
+                    this.state.idKey === res.value ? res.color : "Off"
                   }`
                 ],
                 classes[
                   `colorsDiv${
-                    this.state.accessibility === res.label ? res.color : "Off"
+                    this.state.idKey === res.value ? res.color : "Off"
                   }`
                 ],
                 res.label,
                 res.tooltip,
-                () => this.setState({ accessibility: res.label })
+                () => this.setState({ idKey: res.value })
               );
             })}
+          </div>
+
+          <SuggestionField
+            that={this}
+            suggestions="extentSuggestions"
+            label="Extent Description"
+            controlled
+            value={this.state.extent || ""}
+            onModify={value => this.setState({ extent: value })}
+          />
+
+          <div className={classes.flexRow}>
+            <TextField
+              id="extentNum"
+              label="Extent Amount"
+              style={{ width: "60%" }}
+              value={this.state.extentNum}
+              onChange={e =>
+                this.setState({
+                  extentNum: numericAndLessThanOnly(e.target.value)
+                })
+              }
+            />
+            <Select
+              className={classNames(classes.selectTight, classes.columnSmall)}
+              value={
+                this.state.extentNumUnits
+                  ? {
+                      value: this.state.extentNumUnits,
+                      label: this.state.extentNumUnits
+                    }
+                  : { value: "m²", label: "m²" }
+              }
+              options={["m²", "m", "lm", "m³", "items"].map(e => ({
+                value: e,
+                label: e
+              }))}
+              onChange={e => {
+                this.setState({ extentNumUnits: e.value });
+              }}
+            />
+          </div>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={this.state.acmRemoved || false}
+                onClick={e => {
+                  this.setState({ acmRemoved: e.target.checked });
+                }}
+                value="acmRemoved"
+                color="secondary"
+              />
+            }
+            label="ACM Removed"
+          />
+
+          {this.state.acmRemoved && (
+            <div>
+              <InputLabel className={classes.marginTopSmall}>
+                Clearance Job
+              </InputLabel>
+              <Select
+                className={classes.selectTight}
+                value={
+                  this.state.acmRemovalJob
+                    ? {
+                        value: this.state.acmRemovalJob,
+                        label: `${this.state.acmRemovalJob.referenceNumber} ${
+                          this.state.acmRemovalJob.asbestosRemovalist
+                        } (${moment(
+                          dateOf(this.state.acmRemovalJob.removalDate)
+                        ).format("D MMM YYYY")})`
+                      }
+                    : { value: "", label: "" }
+                }
+                options={
+                  this.props.sites &&
+                  this.props.sites[this.props.site] &&
+                  this.props.sites[this.props.site].clearances
+                    ? Object.values(
+                        this.props.sites[this.props.site].clearances
+                      ).map(e => ({
+                        value: e,
+                        label: `${e.referenceNumber} ${
+                          e.asbestosRemovalist
+                        } (${moment(dateOf(e.removalDate)).format(
+                          "D MMM YYYY"
+                        )})`
+                      }))
+                    : []
+                }
+                onChange={e => {
+                  this.setState({ acmRemovalJob: e.value });
+                }}
+              />
+            </div>
+          )}
+
+          <InputLabel className={classes.marginTopSmall}>
+            Accessibility Score
+          </InputLabel>
+          <div className={classes.flexRow}>
+            {this.props.asbestosAccessibilitySuggestions &&
+              this.props.asbestosAccessibilitySuggestions.map(res => {
+                return ScoreButton(
+                  classes[
+                    `colorsButton${
+                      this.state.accessibility === res.label ? res.color : "Off"
+                    }`
+                  ],
+                  classes[
+                    `colorsDiv${
+                      this.state.accessibility === res.label ? res.color : "Off"
+                    }`
+                  ],
+                  res.label,
+                  res.tooltip,
+                  () => this.setState({ accessibility: res.label })
+                );
+              })}
           </div>
 
           <FormControlLabel
@@ -295,7 +509,7 @@ class TemplateAcmModal extends React.Component {
           {this.state.genericItem && (
             <div>
               <InputLabel className={classes.marginTopSmall}>
-                Default Blurb for Report
+                Blurb for Report
               </InputLabel>
               <ReactQuill
                 value={this.state.genericItemBlurb || ""}
@@ -310,123 +524,133 @@ class TemplateAcmModal extends React.Component {
             </div>
           )}
 
-          <TextField
-            id="extent"
-            label="Default Extent"
-            style={{ width: "100%" }}
-            value={this.state.extent}
-            onChange={e => this.setState({ extent: e.target.value })}
-          />
-
-          {!this.state.inaccessibleItem && (
+          {!this.state.unknownItem && (
             <div>
-              <div className={classes.flexRowSpread}>
-                <div>
-                  <InputLabel className={classes.marginTopSmall}>
-                    Default Product Score
-                  </InputLabel>
-                  <div className={classes.flexRow}>
-                    {[
-                      {
-                        label: "1",
-                        color: "Ok",
-                        tooltip:
-                          "Non-friable or low friability. Asbestos-reinforced composites. (Cement, vinyl tiles, plaster, plastics, mastics, etc.)"
-                      },
-                      {
-                        label: "2",
-                        color: "Warning",
-                        tooltip:
-                          "Medium friability (AIB, asbestos rope and textiles, paper-backed vinyl, gaskets, etc.)"
-                      },
-                      {
-                        label: "3",
-                        color: "Bad",
-                        tooltip:
-                          "Highly friable (ACD, loose asbestos, boiler or pipe lagging, sprayed asbestos, etc.)"
-                      }
-                    ].map(res => {
-                      return ScoreButton(
-                        classes[
-                          `colorsButton${
-                            this.state.productScore === res.label
-                              ? res.color
-                              : "Off"
-                          }`
-                        ],
-                        classes[
-                          `colorsDiv${
-                            this.state.productScore === res.label
-                              ? res.color
-                              : "Off"
-                          }`
-                        ],
-                        res.label,
-                        res.tooltip,
-                        () => this.setState({ productScore: res.label })
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <InputLabel className={classes.marginTopSmall}>
-                    Default Surface Score
-                  </InputLabel>
-                  <div className={classes.flexRow}>
-                    {[
-                      {
-                        label: "0",
-                        color: "Benign",
-                        tooltip:
-                          "Composite materials (Reinforced plastics, resins, vinyl tiles, Bakelite, etc.)"
-                      },
-                      {
-                        label: "1",
-                        color: "Ok",
-                        tooltip:
-                          "Non-friable material, sealed moderately friable product or enclosed highly friable product."
-                      },
-                      {
-                        label: "2",
-                        color: "Warning",
-                        tooltip:
-                          "Encapsulated highly friable product or unsealed moderately friable product."
-                      },
-                      {
-                        label: "3",
-                        color: "Bad",
-                        tooltip: "Unsealed highly friable product."
-                      }
-                    ].map(res => {
-                      return ScoreButton(
-                        classes[
-                          `colorsButton${
-                            this.state.surfaceScore === res.label
-                              ? res.color
-                              : "Off"
-                          }`
-                        ],
-                        classes[
-                          `colorsDiv${
-                            this.state.surfaceScore === res.label
-                              ? res.color
-                              : "Off"
-                          }`
-                        ],
-                        res.label,
-                        res.tooltip,
-                        () => this.setState({ surfaceScore: res.label })
-                      );
-                    })}
-                  </div>
-                </div>
+              <InputLabel className={classes.marginTopSmall}>
+                Product Score
+              </InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosProductScores &&
+                  this.props.asbestosProductScores.map(res => {
+                    return ScoreButton(
+                      classes[
+                        `colorsButton${
+                          this.state.productScore === res.label
+                            ? res.color
+                            : "Off"
+                        }`
+                      ],
+                      classes[
+                        `colorsDiv${
+                          this.state.productScore === res.label
+                            ? res.color
+                            : "Off"
+                        }`
+                      ],
+                      res.label,
+                      res.tooltip,
+                      () =>
+                        this.setState({
+                          productScore: res.label,
+                          materialRisk: getMaterialRisk({
+                            ...this.state,
+                            productScore: res.label
+                          })
+                        })
+                    );
+                  })}
               </div>
 
+              <InputLabel className={classes.marginTopSmall}>
+                Damage Score
+              </InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosDamageScores &&
+                  this.props.asbestosDamageScores.map(res => {
+                    return ScoreButton(
+                      classes[
+                        `colorsButton${
+                          this.state.damageScore === res.label
+                            ? res.color
+                            : "Off"
+                        }`
+                      ],
+                      classes[
+                        `colorsDiv${
+                          this.state.damageScore === res.label
+                            ? res.color
+                            : "Off"
+                        }`
+                      ],
+                      res.label,
+                      res.tooltip,
+                      () =>
+                        this.setState({
+                          damageScore: res.label,
+                          materialRisk: getMaterialRisk({
+                            ...this.state,
+                            damageScore: res.label
+                          })
+                        })
+                    );
+                  })}
+              </div>
+              <SuggestionField
+                that={this}
+                suggestions="damageSuggestions"
+                label="Damage Description"
+                controlled
+                value={this.state.damageDescription || ""}
+                onModify={value => this.setState({ damageDescription: value })}
+              />
+
+              <InputLabel className={classes.marginTopSmall}>
+                Surface Score
+              </InputLabel>
+              <div className={classes.flexRow}>
+                {this.props.asbestosSurfaceScores &&
+                  this.props.asbestosSurfaceScores.map(res => {
+                    return ScoreButton(
+                      classes[
+                        `colorsButton${
+                          this.state.surfaceScore === res.label
+                            ? res.color
+                            : "Off"
+                        }`
+                      ],
+                      classes[
+                        `colorsDiv${
+                          this.state.surfaceScore === res.label
+                            ? res.color
+                            : "Off"
+                        }`
+                      ],
+                      res.label,
+                      res.tooltip,
+                      () =>
+                        this.setState({
+                          surfaceScore: res.label,
+                          materialRisk: getMaterialRisk({
+                            ...this.state,
+                            surfaceScore: res.label
+                          })
+                        })
+                    );
+                  })}
+              </div>
+              <SuggestionField
+                that={this}
+                suggestions="asbestosSurfaceSuggestions"
+                label="Surface Treatment Description"
+                controlled
+                value={this.state.surfaceDescription || ""}
+                onModify={value => this.setState({ surfaceDescription: value })}
+              />
+
               <div className={classes.flexRowSpread}>
                 <div>
                   <InputLabel className={classes.marginTopSmall}>
-                    Default Asbestos Type
+                    Presumed Asbestos Type
                   </InputLabel>
                   <div className={classes.flexRow}>
                     {["ch", "am", "cr"].map(res => {
@@ -441,16 +665,14 @@ class TemplateAcmModal extends React.Component {
                 </div>
 
                 <div>
-                  <InputLabel className={classes.marginTopSmall}>
-                    Estimated Asbestos Concentration
-                  </InputLabel>
                   <TextField
+                    label="Estimated Asbestos Concentration"
                     value={
                       this.state.asbestosContent
                         ? this.state.asbestosContent
                         : ""
                     }
-                    style={{ width: "100%" }}
+                    style={{ width: "20%" }}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">%</InputAdornment>
@@ -467,11 +689,32 @@ class TemplateAcmModal extends React.Component {
                   />
                 </div>
               </div>
+
+              {this.state.materialRisk && (
+                <div
+                  className={
+                    classes[`totalDiv${this.state.materialRisk.color}`]
+                  }
+                >{`Material Risk: ${this.state.materialRisk.text} (${this.state.materialRisk.score})`}</div>
+              )}
             </div>
           )}
 
+          {this.state.idKey !== "i" && !this.state.inaccessibleItem && (
+            <SuggestionField
+              that={this}
+              suggestions="asbestosWhyNotSampledSuggestions"
+              controlled
+              value={this.state.whyNotSampled || ""}
+              multiline
+              rows={2}
+              label="Why Not Sampled?"
+              onModify={value => this.setState({ whyNotSampled: value })}
+            />
+          )}
+
           <InputLabel className={classes.marginTopSmall}>
-            Default Comment for Report
+            Comment for Report
           </InputLabel>
           <ReactQuill
             value={this.state.comment || ""}
@@ -484,7 +727,7 @@ class TemplateAcmModal extends React.Component {
           />
 
           <InputLabel className={classes.marginTopSmall}>
-            Default Basic Primary Management
+            Basic Primary Management
           </InputLabel>
           <Select
             className={classes.selectTight}
@@ -506,7 +749,7 @@ class TemplateAcmModal extends React.Component {
           />
 
           <InputLabel className={classes.marginTopSmall}>
-            Default Basic Secondary Management
+            Basic Secondary Management
           </InputLabel>
           <Select
             className={classes.selectTight}
@@ -528,7 +771,29 @@ class TemplateAcmModal extends React.Component {
           />
 
           <InputLabel className={classes.marginTopSmall}>
-            Default Management Recommendations
+            Removal Licence Required
+          </InputLabel>
+          <Select
+            className={classes.selectTight}
+            value={
+              this.state.removalLicenceRequired
+                ? {
+                    value: this.state.removalLicenceRequired,
+                    label: this.state.removalLicenceRequired
+                  }
+                : { value: "", label: "" }
+            }
+            options={["Class A", "Class B", "Unlicensed"].map(e => ({
+              value: e,
+              label: e
+            }))}
+            onChange={e => {
+              this.setState({ removalLicenceRequired: e.value });
+            }}
+          />
+
+          <InputLabel className={classes.marginTopSmall}>
+            Management Recommendations
           </InputLabel>
           <ReactQuill
             value={this.state.recommendations || ""}
@@ -542,9 +807,324 @@ class TemplateAcmModal extends React.Component {
           />
 
           <InputLabel className={classes.marginTopSmall}>
+            Priority Risk Assessment
+          </InputLabel>
+          <InputLabel className={classes.marginTopSmall}>
+            Normal Occupant Activity
+          </InputLabel>
+
+          {[
+            {
+              label: "Main type of activity in area",
+              options: "asbestosPriMainActivityScores",
+              stateVar: "priMainActivityScore"
+            },
+            {
+              label: "Secondary activities for area",
+              options: "asbestosPriSecondaryActivityScores",
+              stateVar: "priSecondaryActivityScore"
+            }
+          ].map(e => {
+            return (
+              <div>
+                <InputLabel className={classes.marginTopSmall}>
+                  {e.label}
+                </InputLabel>
+                <div className={classes.flexRow}>
+                  {this.props[e.options] &&
+                    this.props[e.options].map(res => {
+                      return ScoreButton(
+                        classes[
+                          `colorsButton${
+                            this.state[e.stateVar] === res.label
+                              ? res.color
+                              : "Off"
+                          }`
+                        ],
+                        classes[
+                          `colorsDiv${
+                            this.state[e.stateVar] === res.label
+                              ? res.color
+                              : "Off"
+                          }`
+                        ],
+                        res.label,
+                        res.tooltip,
+                        () =>
+                          this.setState({
+                            [e.stateVar]:
+                              this.state[e.stateVar] === res.label
+                                ? null
+                                : res.label,
+                            priorityRisk: getPriorityRisk({
+                              ...this.state,
+                              [e.stateVar]:
+                                this.state[e.stateVar] === res.label
+                                  ? null
+                                  : res.label
+                            })
+                          })
+                      );
+                    })}
+                </div>
+              </div>
+            );
+          })}
+
+          <InputLabel className={classes.marginTopSmall}>
+            Likelihood of Disturbance
+          </InputLabel>
+
+          {[
+            {
+              label: "Location",
+              options: "asbestosPriLocationScores",
+              stateVar: "priLocationScore"
+            },
+            {
+              label: "Accessibility",
+              options: "asbestosPriAccessibilityScores",
+              stateVar: "priAccessibilityScore"
+            },
+            {
+              label: "Extent/amount",
+              options: "asbestosPriExtentScores",
+              stateVar: "priExtentScore"
+            }
+          ].map(e => {
+            return (
+              <div>
+                <InputLabel className={classes.marginTopSmall}>
+                  {e.label}
+                </InputLabel>
+                <div className={classes.flexRow}>
+                  {this.props[e.options] &&
+                    this.props[e.options].map(res => {
+                      return ScoreButton(
+                        classes[
+                          `colorsButton${
+                            this.state[e.stateVar] === res.label
+                              ? res.color
+                              : "Off"
+                          }`
+                        ],
+                        classes[
+                          `colorsDiv${
+                            this.state[e.stateVar] === res.label
+                              ? res.color
+                              : "Off"
+                          }`
+                        ],
+                        res.label,
+                        res.tooltip,
+                        () =>
+                          this.setState({
+                            [e.stateVar]:
+                              this.state[e.stateVar] === res.label
+                                ? null
+                                : res.label,
+                            priorityRisk: getPriorityRisk({
+                              ...this.state,
+                              [e.stateVar]:
+                                this.state[e.stateVar] === res.label
+                                  ? null
+                                  : res.label
+                            })
+                          })
+                      );
+                    })}
+                </div>
+              </div>
+            );
+          })}
+
+          <InputLabel className={classes.marginTopSmall}>
+            Human Exposure Potential
+          </InputLabel>
+
+          {[
+            {
+              label: "Number of occupants",
+              options: "asbestosPriOccupantsScores",
+              stateVar: "priOccupantScore"
+            },
+            {
+              label: "Frequency of use of area",
+              options: "asbestosPriUseFreqScores",
+              stateVar: "priUseFreqScore"
+            },
+            {
+              label: "Average daily time area is in use",
+              options: "asbestosPriAvgTimeScores",
+              stateVar: "priAvgTimeScore"
+            }
+          ].map(e => {
+            return (
+              <div>
+                <InputLabel className={classes.marginTopSmall}>
+                  {e.label}
+                </InputLabel>
+                <div className={classes.flexRow}>
+                  {this.props[e.options] &&
+                    this.props[e.options].map(res => {
+                      return ScoreButton(
+                        classes[
+                          `colorsButton${
+                            this.state[e.stateVar] === res.label
+                              ? res.color
+                              : "Off"
+                          }`
+                        ],
+                        classes[
+                          `colorsDiv${
+                            this.state[e.stateVar] === res.label
+                              ? res.color
+                              : "Off"
+                          }`
+                        ],
+                        res.label,
+                        res.tooltip,
+                        () =>
+                          this.setState({
+                            [e.stateVar]:
+                              this.state[e.stateVar] === res.label
+                                ? null
+                                : res.label,
+                            priorityRisk: getPriorityRisk({
+                              ...this.state,
+                              [e.stateVar]:
+                                this.state[e.stateVar] === res.label
+                                  ? null
+                                  : res.label
+                            })
+                          })
+                      );
+                    })}
+                </div>
+              </div>
+            );
+          })}
+
+          <InputLabel className={classes.marginTopSmall}>
+            Maintenance
+          </InputLabel>
+
+          {[
+            {
+              label: "Type of maintenance activity",
+              options: "asbestosPriMaintTypeScores",
+              stateVar: "priMaintTypeScore"
+            },
+            {
+              label: "Frequency of maintenance activity",
+              options: "asbestosPriMaintFreqScores",
+              stateVar: "priMaintFreqScore"
+            }
+          ].map(e => {
+            return (
+              <div>
+                <InputLabel className={classes.marginTopSmall}>
+                  {e.label}
+                </InputLabel>
+                <div className={classes.flexRow}>
+                  {this.props[e.options] &&
+                    this.props[e.options].map(res => {
+                      return ScoreButton(
+                        classes[
+                          `colorsButton${
+                            this.state[e.stateVar] === res.label
+                              ? res.color
+                              : "Off"
+                          }`
+                        ],
+                        classes[
+                          `colorsDiv${
+                            this.state[e.stateVar] === res.label
+                              ? res.color
+                              : "Off"
+                          }`
+                        ],
+                        res.label,
+                        res.tooltip,
+                        () =>
+                          this.setState({
+                            [e.stateVar]:
+                              this.state[e.stateVar] === res.label
+                                ? null
+                                : res.label,
+                            priorityRisk: getPriorityRisk({
+                              ...this.state,
+                              [e.stateVar]:
+                                this.state[e.stateVar] === res.label
+                                  ? null
+                                  : res.label
+                            })
+                          })
+                      );
+                    })}
+                </div>
+              </div>
+            );
+          })}
+
+          <div className={classes.flexRowSpread}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={this.state.immediateRisk || false}
+                  onChange={e =>
+                    this.setState({ immediateRisk: e.target.checked })
+                  }
+                />
+              }
+              label="Material is immediate health risk"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={this.state.labelImmediately || false}
+                  onChange={e =>
+                    this.setState({ labelImmediately: e.target.checked })
+                  }
+                />
+              }
+              label="Material must be labelled"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={this.state.sealImmediately || false}
+                  onChange={e =>
+                    this.setState({ sealImmediately: e.target.checked })
+                  }
+                />
+              }
+              label="Material must be sealed/encapsulated immediately"
+            />
+          </div>
+
+          {this.state.materialRisk && (
+            <div
+              className={classes[`totalDiv${this.state.materialRisk.color}`]}
+            >{`Material Risk: ${this.state.materialRisk.text} (${this.state.materialRisk.score})`}</div>
+          )}
+
+          {this.state.priorityRisk && (
+            <div
+              className={classes[`totalDiv${this.state.priorityRisk.color}`]}
+            >{`Priority Risk: ${this.state.priorityRisk.text} (${this.state.priorityRisk.score})`}</div>
+          )}
+
+          {totalRisk && (
+            <div
+              className={classes[`totalDiv${totalRisk.color}`]}
+            >{`Combined Risk: ${totalRisk.text} (${totalRisk.score})`}</div>
+          )}
+
+          <InputLabel className={classes.marginTopSmall}>
             Thumbnail Image
           </InputLabel>
-          {this.state.siteImageUrl && (
+          {this.state.acmImageUrl && (
             <div className={classes.marginTopSmall}>
               <img
                 src={this.state.acmImageUrl}

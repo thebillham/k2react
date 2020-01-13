@@ -35,7 +35,7 @@ import {
 
 import moment from "moment";
 
-import { getJobColor } from "../../../actions/jobs";
+import { getJobColor, handleSiteChange } from "../../../actions/jobs";
 
 import { getFirestoreCollection } from "../../../actions/local";
 import { filterMap, filterMapReset } from "../../../actions/display";
@@ -55,6 +55,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
+    handleSiteChange: info => dispatch(handleSiteChange(info)),
     fetchBmTemplates: () =>
       dispatch(
         getFirestoreCollection({

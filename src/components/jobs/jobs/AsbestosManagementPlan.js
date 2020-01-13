@@ -81,7 +81,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-class AsbestosManagementPlan extends React.Component {
+class AsbestosManagementPlan extends React.PureComponent {
   state = {
     templateVersion: 3
   };

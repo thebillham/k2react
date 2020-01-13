@@ -297,7 +297,9 @@ class SiteAddAcm extends React.Component {
           });
           let uid = `${acm.description}_${acm.material}_${moment().format(
             "x"
-          )}_${parseInt(Math.floor(Math.random() * Math.floor(10000)))}`;
+          )}_${parseInt(
+            Math.floor(Math.random() * Math.floor(10000))
+          )}`.replace(/[.:/,\s]/g, "_");
           acm.uid = uid;
           acm.idKey = "p"; // Presume by default
           acm.room = { label: room.label, uid: room.uid };
@@ -338,6 +340,7 @@ class SiteAddAcm extends React.Component {
             site: this.props.sites[this.props.site],
             searchRoom: destination.droppableId
           });
+          console.log(room);
           sitesRef
             .doc(this.props.site)
             .collection("acm")
@@ -354,24 +357,48 @@ class SiteAddAcm extends React.Component {
 
   getAcmTemplates = () => {
     return this.props.acmTemplates
-      ? this.props.acmTemplates
-          .filter(e => {
-            let res = true;
-            if (
-              this.state.templateSearch &&
-              !`${e.templateName}${e.description}${e.material}`
-                .toLowerCase()
-                .includes(this.state.templateSearch.toLowerCase())
-            )
-              res = false;
-            return res;
-          })
-          .concat({
+      ? [
+          {
             uid: "air",
             templateName: "Air Sample",
             sampleType: "air",
             description: "Air Sample"
-          })
+          }
+        ].concat(
+          this.props.acmTemplates
+            .filter(e => {
+              let res = true;
+              if (
+                this.state.templateSearch &&
+                !`${e.templateName}${e.description}${e.material}`
+                  .toLowerCase()
+                  .includes(this.state.templateSearch.toLowerCase())
+              )
+                res = false;
+              return res;
+            })
+            .sort((a, b) => {
+              let aName = a.templateName
+                ? a.templateName
+                : a.description && a.material
+                ? `${a.description} ${a.material}`
+                : a.description
+                ? a.description
+                : a.material
+                ? a.material
+                : "";
+              let bName = b.templateName
+                ? b.templateName
+                : b.description && b.material
+                ? `${b.description} ${b.material}`
+                : b.description
+                ? b.description
+                : b.material
+                ? b.material
+                : "";
+              return aName.localeCompare(bName);
+            })
+        )
       : [
           {
             uid: "air",
@@ -397,97 +424,114 @@ class SiteAddAcm extends React.Component {
     if (m) {
       const color = classes[getJobColor(m.primaryJobType)];
       return (
-        <DragDropContext
-          onDragEnd={this.onDragEnd}
-          className={classes.marginTopStandard}
-        >
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={3} className={classes.singlePaneScrollable}>
-              <div className={classes.flexRowSpread}>
-                <div className={classNames(color, classes.expandHeading)}>
-                  ACM Templates
-                </div>
-                <Tooltip title={"Add ACM Template"}>
-                  <IconButton
-                    onClick={e => {
-                      this.props.showModal({
-                        modalType: TEMPLATE_ACM,
-                        modalProps: { doc: null }
-                      });
-                    }}
-                  >
-                    <AddIcon className={classes.iconRegular} />
-                  </IconButton>
-                </Tooltip>
-              </div>
-              <div className={classes.flexRow}>
-                <SearchIcon />
-                <div className={classes.spacerSmall} />
-                <TextField
-                  value={this.state.templateSearch}
-                  style={{ width: "100%" }}
-                  onChange={e =>
-                    this.setState({ templateSearch: e.target.value })
-                  }
-                />
-              </div>
-              <Droppable key={"templates"} droppableId={"templates"}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    style={getListStyle(snapshot.isDraggingOver, "blank")}
-                    {...provided.droppableProps}
-                  >
-                    {acmTemplates.map((item, index) => {
-                      return (
-                        <Draggable
-                          key={`${item.uid}template`}
-                          draggableId={`${item.uid}template`}
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              style={getItemStyle(
-                                snapshot.isDragging,
-                                provided.draggableProps.style
-                              )}
-                            >
-                              {this.getAcmTemplateCard(item)}
-                            </div>
-                          )}
-                        </Draggable>
-                      );
-                    })}
+        <div className={classes.marginTopSmall}>
+          <DragDropContext onDragEnd={this.onDragEnd}>
+            <Grid container spacing={3}>
+              <Grid
+                item
+                xs={12}
+                md={3}
+                className={classes.singlePaneScrollable}
+              >
+                <div className={classes.flexRowSpread}>
+                  <div className={classNames(color, classes.expandHeading)}>
+                    ACM Templates
                   </div>
+                  <Tooltip title={"Add ACM Template"}>
+                    <IconButton
+                      onClick={e => {
+                        this.props.showModal({
+                          modalType: TEMPLATE_ACM,
+                          modalProps: { doc: null }
+                        });
+                      }}
+                    >
+                      <AddIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+                <div className={classes.flexRow}>
+                  <SearchIcon />
+                  <div className={classes.spacerSmall} />
+                  <TextField
+                    value={this.state.templateSearch}
+                    style={{ width: "100%" }}
+                    onChange={e =>
+                      this.setState({ templateSearch: e.target.value })
+                    }
+                  />
+                </div>
+                <Droppable key={"templates"} droppableId={"templates"}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      style={getListStyle(snapshot.isDraggingOver, "blank")}
+                      {...provided.droppableProps}
+                    >
+                      {acmTemplates.map((item, index) => {
+                        return (
+                          <Draggable
+                            key={`${item.uid}template`}
+                            draggableId={`${item.uid}template`}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                style={getItemStyle(
+                                  snapshot.isDragging,
+                                  provided.draggableProps.style
+                                )}
+                              >
+                                {this.getAcmTemplateCard(item)}
+                              </div>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                    </div>
+                  )}
+                </Droppable>
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                md={5}
+                className={classes.singlePaneScrollable}
+              >
+                <div className={classNames(color, classes.expandHeading)}>
+                  Asbestos Register
+                </div>
+                {m.layout &&
+                  Object.keys(m.layout).map(k =>
+                    m.layout[k].rooms && m.layout[k].rooms.length > 0
+                      ? k === "default"
+                        ? m.layout[k].rooms.map(r => this.getDroppableRoom(r))
+                        : this.getFoldableRoomGroup({
+                            roomGroup: m.layout[k],
+                            key: k
+                          })
+                      : null
+                  )}
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                md={4}
+                className={classes.singlePaneScrollable}
+              >
+                {this.state.selectedAcm && (
+                  <AcmCard
+                    item={this.state.selectedAcm}
+                    site={this.props.site}
+                  />
                 )}
-              </Droppable>
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={5} className={classes.singlePaneScrollable}>
-              <div className={classNames(color, classes.expandHeading)}>
-                Asbestos Register
-              </div>
-              {m.layout &&
-                Object.keys(m.layout).map(k =>
-                  m.layout[k].rooms && m.layout[k].rooms.length > 0
-                    ? k === "default"
-                      ? m.layout[k].rooms.map(r => this.getDroppableRoom(r))
-                      : this.getFoldableRoomGroup({
-                          roomGroup: m.layout[k],
-                          key: k
-                        })
-                    : null
-                )}
-            </Grid>
-            <Grid item xs={12} md={4} className={classes.singlePaneScrollable}>
-              {this.state.selectedAcm && (
-                <AcmCard item={this.state.selectedAcm} site={this.props.site} />
-              )}
-            </Grid>
-          </Grid>
-        </DragDropContext>
+          </DragDropContext>
+        </div>
       );
     } else return <div />;
   }

@@ -10,7 +10,7 @@ import {
   TEMPLATE_ACM,
   TEMPLATE_BUILDING_MATERIAL,
   ASBESTOS_COC_EDIT,
-  ASBESTOS_SAMPLE_EDIT_COC,
+  ASBESTOS_SAMPLE_EDIT_COC
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import Button from "@material-ui/core/Button";
@@ -30,8 +30,8 @@ import Tab from "@material-ui/core/Tab";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import TimerIcon from "@material-ui/icons/Timer";
-import SyncIcon from '@material-ui/icons/Sync';
-import LinkIcon from '@material-ui/icons/Link';
+import SyncIcon from "@material-ui/icons/Sync";
+import LinkIcon from "@material-ui/icons/Link";
 import WfmTimeModal from "./modals/WfmTimeModal";
 import SiteJobModal from "./modals/SiteJobModal";
 import CocModal from "../asbestoslab/modals/CocModal";
@@ -42,10 +42,10 @@ import {
   dateOf,
   getDaysSinceDate,
   getDaysSinceDateAgo,
-  andList,
+  andList
 } from "../../actions/helpers";
 
-import moment from 'moment';
+import moment from "moment";
 
 import {
   fetchSites,
@@ -54,13 +54,10 @@ import {
   getJobColor,
   fetchSiteJobs,
   fetchSiteAcm,
-  fetchSiteCocs,
+  fetchSiteCocs
 } from "../../actions/jobs";
 
-import {
-  filterMap,
-  filterMapReset,
-} from "../../actions/display";
+import { filterMap, filterMapReset } from "../../actions/display";
 
 import JobsTable from "./JobsTable";
 import Leads from "./Leads";
@@ -96,7 +93,7 @@ const mapStateToProps = state => {
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
     modalType: state.modal.modalType,
-    modalTypeSecondary: state.modal.modalTypeSecondary,
+    modalTypeSecondary: state.modal.modalTypeSecondary
   };
 };
 
@@ -107,37 +104,45 @@ const mapDispatchToProps = dispatch => {
     fetchSites: () => dispatch(fetchSites()),
     getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
     fetchSiteJobs: site => dispatch(fetchSiteJobs(site)),
-    fetchSiteAcm: site => dispatch(fetchSiteAcm(site)),
+    fetchSiteAcm: site => dispatch(fetchSiteAcm(site))
   };
 };
 
 class Site extends React.Component {
   state = {
-    searchJobNumber: '',
-    searchClient: '',
-    searchStartDate: '',
-    searchEndDate: '',
-    searchDateType: '',
-    searchAnalyst: '',
-    tabValue: 'general',
-    jobModal: null,
+    searchJobNumber: "",
+    searchClient: "",
+    searchStartDate: "",
+    searchEndDate: "",
+    searchDateType: "",
+    searchAnalyst: "",
+    tabValue: "general",
+    jobModal: null
   };
 
   UNSAFE_componentWillMount = () => {
     if (!this.props.sites || Object.keys(this.props.sites).length === 0) {
       this.props.fetchSites();
-      this.props.fetchSiteJobs(this.props.match.params.site.trim())
+      this.props.fetchSiteJobs(this.props.match.params.site.trim());
     }
     // console.log(this.props.sites[this.props.match.params.site.trim()]);
-    if (this.props.siteJobs && (!this.props.siteJobs[this.props.match.params.site.trim()] ||
-    Object.keys(this.props.siteJobs[this.props.match.params.site.trim()]).length === 0)) {
-      console.log(this.props.siteJobs[this.props.match.params.site.trim()])
+    if (
+      this.props.siteJobs &&
+      (!this.props.siteJobs[this.props.match.params.site.trim()] ||
+        Object.keys(this.props.siteJobs[this.props.match.params.site.trim()])
+          .length === 0)
+    ) {
+      console.log(this.props.siteJobs[this.props.match.params.site.trim()]);
       this.props.fetchSiteJobs(this.props.match.params.site.trim());
     }
 
-    if (this.props.siteAcm && (!this.props.siteAcm[this.props.match.params.site.trim()] ||
-    Object.keys(this.props.siteAcm[this.props.match.params.site.trim()]).length === 0)) {
-      console.log(this.props.siteAcm[this.props.match.params.site.trim()])
+    if (
+      this.props.siteAcm &&
+      (!this.props.siteAcm[this.props.match.params.site.trim()] ||
+        Object.keys(this.props.siteAcm[this.props.match.params.site.trim()])
+          .length === 0)
+    ) {
+      console.log(this.props.siteAcm[this.props.match.params.site.trim()]);
       this.props.fetchSiteAcm(this.props.match.params.site.trim());
     }
   };
@@ -147,22 +152,27 @@ class Site extends React.Component {
   };
 
   render() {
-    const { classes, geocodes, sites, siteJobs, siteAcm, } = this.props;
+    const { classes, geocodes, sites, siteJobs, siteAcm } = this.props;
     const site = sites && sites[this.props.match.params.site.trim()];
     const jobs = siteJobs && siteJobs[this.props.match.params.site.trim()];
-    const color = site ? classes[getJobColor(site.primaryJobType)] : classes[getJobColor('other')];
+    const color = site
+      ? classes[getJobColor(site.primaryJobType)]
+      : classes[getJobColor("other")];
     // console.log(site);
     // console.log(siteJobs);
 
-    if (site) return (
-      <div className={classes.marginTopSmall}>
-        <div className={classes.flexRowSpread}>
-          <div className={color}>
-            <h6>{`${site.client ? `${site.client}: ` : ''}${site.siteName}`}</h6>
-            <div className={classes.subtitle}>{site.address}</div>
-          </div>
-          <div className={classes.flexRow}>
-            {/*<Tooltip title={'Re-sync with WorkflowMax'}>
+    if (site)
+      return (
+        <div className={classes.marginTopSmall}>
+          <div className={classes.flexRowSpread}>
+            <div className={color}>
+              <h6>{`${site.client ? `${site.client}: ` : ""}${
+                site.siteName
+              }`}</h6>
+              <div className={classes.subtitle}>{site.address}</div>
+            </div>
+            <div className={classes.flexRow}>
+              {/*<Tooltip title={'Re-sync with WorkflowMax'}>
               <IconButton
                 onClick={e => this.props.getDetailedWFMJob(site.jobNumber)}>
                 <SyncIcon className={classes.iconRegular} />
@@ -181,45 +191,93 @@ class Site extends React.Component {
                 <TimerIcon className={classes.iconRegular} />
               </IconButton>
             </Tooltip>*/}
+            </div>
           </div>
+          <Tabs
+            value={this.state.tabValue}
+            onChange={this.handleTabChange}
+            indicatorColor="secondary"
+            textColor="secondary"
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            <Tab label="General Information" value="general" />
+            {/*<Tab label="Site Visit History" value='visithistory' />*/}
+            <Tab label="Site Layout" value="layout" />
+            <Tab label="Add/Edit ACM" value="addAcm" />
+            <Tab label="ACM Tables" value="register" />
+            <Tab label="Maps and Diagrams" value="maps" />
+            {jobs &&
+              Object.keys(jobs).length > 0 &&
+              Object.values(jobs).map(j => {
+                // console.log(j);
+                return (
+                  <Tab label={j.jobDescription} value={j.uid} key={j.uid} />
+                );
+              })}
+          </Tabs>
+          {this.props.modalType === WFM_TIME && <WfmTimeModal />}
+          {this.props.modalType === SITE_JOB && <SiteJobModal />}
+          {this.props.modalType === TEMPLATE_ACM && <TemplateAcmModal />}
+          {this.props.modalType === TEMPLATE_BUILDING_MATERIAL && (
+            <TemplateBmModal />
+          )}
+          {this.props.modalType === ASBESTOS_COC_EDIT && <CocModal />}
+          {this.props.modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && (
+            <AsbestosSampleCocEditModal />
+          )}
+          {this.state.tabValue === "general" && (
+            <SiteGeneralInformation
+              that={this}
+              site={this.props.match.params.site.trim()}
+            />
+          )}
+          {this.state.tabValue === "visithistory" && (
+            <SiteVisitHistory
+              that={this}
+              site={this.props.match.params.site.trim()}
+            />
+          )}
+          {this.state.tabValue === "layout" && (
+            <SiteLayout
+              that={this}
+              site={this.props.match.params.site.trim()}
+            />
+          )}
+          {this.state.tabValue === "addAcm" && (
+            <SiteAddAcm
+              that={this}
+              site={this.props.match.params.site.trim()}
+            />
+          )}
+          {this.state.tabValue === "register" && (
+            <SiteAsbestosRegister
+              that={this}
+              site={this.props.match.params.site.trim()}
+            />
+          )}
+          {this.state.tabValue === "maps" && (
+            <SiteMapsAndDiagrams
+              that={this}
+              site={this.props.match.params.site.trim()}
+            />
+          )}
+          {jobs &&
+            Object.keys(jobs).length > 0 &&
+            Object.values(jobs).map(j => {
+              if (this.state.tabValue === j.uid)
+                return (
+                  <SiteJob
+                    that={this}
+                    m={j}
+                    site={this.props.match.params.site.trim()}
+                    key={j.uid}
+                  />
+                );
+            })}
         </div>
-        <Tabs
-          value={this.state.tabValue}
-          onChange={this.handleTabChange}
-          indicatorColor="secondary"
-          textColor="secondary"
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab label="General Information" value='general' />
-          {/*<Tab label="Site Visit History" value='visithistory' />*/}
-          <Tab label="Site Layout" value='layout' />
-          <Tab label="Add ACM" value='addAcm' />
-          <Tab label="Asbestos Register" value='register' />
-          <Tab label="Maps and Diagrams" value='maps' />
-          {jobs && Object.keys(jobs).length > 0 && Object.values(jobs).map(j => {
-            // console.log(j);
-            return (<Tab label={j.jobDescription} value={j.uid} key={j.uid} />);
-          })}
-        </Tabs>
-        {this.props.modalType === WFM_TIME && <WfmTimeModal />}
-        {this.props.modalType === SITE_JOB && <SiteJobModal />}
-        {this.props.modalType === TEMPLATE_ACM && <TemplateAcmModal />}
-        {this.props.modalType === TEMPLATE_BUILDING_MATERIAL && <TemplateBmModal />}
-        {this.props.modalType === ASBESTOS_COC_EDIT && <CocModal />}
-        { this.props.modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && <AsbestosSampleCocEditModal /> }
-        {this.state.tabValue === 'general' && <SiteGeneralInformation that={this} site={this.props.match.params.site.trim()} />}
-        {this.state.tabValue === 'visithistory' && <SiteVisitHistory that={this} site={this.props.match.params.site.trim()} />}
-        {this.state.tabValue === 'layout' && <SiteLayout that={this} site={this.props.match.params.site.trim()} />}
-        {this.state.tabValue === 'addAcm' && <SiteAddAcm that={this} site={this.props.match.params.site.trim()} />}
-        {this.state.tabValue === 'register' && <SiteAsbestosRegister that={this} site={this.props.match.params.site.trim()} />}
-        {this.state.tabValue === 'maps' && <SiteMapsAndDiagrams that={this} site={this.props.match.params.site.trim()} />}
-        {jobs && Object.keys(jobs).length > 0 && Object.values(jobs).map(j => {
-          if (this.state.tabValue === j.uid) return (<SiteJob that={this} m={j} site={this.props.match.params.site.trim()} key={j.uid} />);
-        })}
-      </div>
-    );
-    else return (<div />)
+      );
+    else return <div />;
   }
 }
 
