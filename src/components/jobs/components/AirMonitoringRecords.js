@@ -5,7 +5,7 @@ import ReactTable from "react-table";
 
 function AsbestosRegisterTable(props) {
   const { loading, airMonitoringRecords, classes } = props;
-
+  console.log(airMonitoringRecords);
   return (
     <div>
       <div className={classes.heading}>Air Monitoring Records</div>
@@ -44,8 +44,9 @@ function AsbestosRegisterTable(props) {
             maxWidth: 120
           },
           {
+            id: "fibreResult",
             Header: "Fibre Count",
-            accessor: "fibreResult",
+            accessor: d => d.fibreResult,
             maxWidth: 120
           },
           {

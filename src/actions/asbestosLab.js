@@ -464,15 +464,14 @@ export const handleCocSubmit = async ({
   originalSamples,
   sampleType
 }) => {
-  // toggleDoNotRender(true);
-  console.log(doc);
-  console.log(doc.samples);
-  let sampleList = [];
-  let batch = firestore.batch();
+  let sampleList = [],
+    sampleCount = 0,
+    batch = firestore.batch();
   if (doc.samples) {
     // //console.log(doc.samples);
     await Object.keys(doc.samples).forEach(sampleNumber => {
       let sample = doc.samples[sampleNumber];
+      if (sample.cocUid === doc.uid) sampleCount++;
       if (
         sampleType === "bulk" &&
         (sample.genericLocation ||
@@ -672,6 +671,7 @@ export const handleCocSubmit = async ({
   let doc2 = doc;
   if ("samples" in doc2) delete doc2.samples;
   doc2.uid = doc.uid;
+  doc2.sampleCount = sampleCount;
   doc2.sampleType = sampleType;
   doc2.sampleList = sampleList;
   doc2.createdDate = doc2.sampleDate || new Date();
@@ -710,7 +710,7 @@ export const toggleWAAnalysis = (job, me) => {
 //
 
 export const handleSampleChange = (number, changes) => dispatch => {
-  // console.log(changes);
+  console.log(changes);
   dispatch({
     type: EDIT_MODAL_SAMPLE,
     payload: {
@@ -4571,6 +4571,7 @@ export const getAirSampleData = (sample, fibreResultDefault) => {
 
   if (
     sample.fibreResult ||
+    sample.fibreResult === 0 ||
     (sample.fibreCounts && Object.keys(sample.fibreCounts).length > 0)
   ) {
     // Fibre counts have been done. Get concentrations.
@@ -4628,14 +4629,15 @@ export const getAirSampleData = (sample, fibreResultDefault) => {
         microscopeNumber > 0
           ? parseFloat(microscopeDistanceTotal / microscopeNumber)
           : null,
-      fibreResult = sample.fibreResult
-        ? parseFloat(sample.fibreResult)
-        : filtersAnalysedNumber > 0
-        ? parseFloat(fibreCountTotal / filtersAnalysedNumber)
-        : fibreResultDefault
-        ? fibreResultDefault
-        : null;
-
+      fibreResult =
+        sample.fibreResult || sample.fibreResult === 0
+          ? parseFloat(sample.fibreResult)
+          : filtersAnalysedNumber > 0
+          ? parseFloat(fibreCountTotal / filtersAnalysedNumber)
+          : fibreResultDefault
+          ? fibreResultDefault
+          : null;
+    console.log(fibreResult);
     // Microscope distance average is approximated if not present to cover historic air testing
     let graticuleArea = microscopeDistanceAvg
       ? Math.PI * Math.pow(microscopeDistanceAvg / 1000 / 2, 2)
@@ -4644,7 +4646,7 @@ export const getAirSampleData = (sample, fibreResultDefault) => {
     // console.log(fibreResult);
     if (
       graticuleArea &&
-      fibreResult &&
+      (fibreResult || fibreResult === 0) &&
       calcs.averageFlowRate &&
       calcs.averageFlowRate !== 0 &&
       calcs.runTime !== 0
@@ -4654,7 +4656,7 @@ export const getAirSampleData = (sample, fibreResultDefault) => {
         (1 / calcs.averageFlowRate) *
         (1 / calcs.runTime);
       console.log(actualConcentration);
-      if (actualConcentration) {
+      if (actualConcentration || actualConcentration === 0) {
         if (fibreResult >= 10) {
           // less than 0.005: [<0.01]
           // 0.005 to less than 0.100 [to 2 decimal places and 1 significant figure]

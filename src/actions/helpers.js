@@ -114,8 +114,10 @@ export const numericAndLessThanOnly = (num, dp) => {
 };
 
 export const numericOnly = num => {
+  console.log(num);
   if (num) {
     let str = num.replace(/[^$0-9.]/, "");
+    console.log(str);
     if (num.charAt(0) === ".") return `0${str}`;
     else return str;
   } else return null;

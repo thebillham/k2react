@@ -10,7 +10,9 @@ import {
   TEMPLATE_ACM,
   TEMPLATE_BUILDING_MATERIAL,
   ASBESTOS_COC_EDIT,
-  ASBESTOS_SAMPLE_EDIT_COC
+  ASBESTOS_SAMPLE_EDIT_COC,
+  SITE_VISIT,
+  ASBESTOS_CLEARANCE
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
 import Button from "@material-ui/core/Button";
@@ -36,6 +38,8 @@ import WfmTimeModal from "./modals/WfmTimeModal";
 import SiteJobModal from "./modals/SiteJobModal";
 import CocModal from "../asbestoslab/modals/CocModal";
 import AsbestosSampleCocEditModal from "../asbestoslab/modals/AsbestosSampleCocEditModal";
+import ClearanceModal from "./modals/ClearanceModal";
+import SiteVisitModal from "./modals/SiteVisitModal";
 
 import Popup from "reactjs-popup";
 import {
@@ -226,6 +230,8 @@ class Site extends React.Component {
           {this.props.modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && (
             <AsbestosSampleCocEditModal />
           )}
+          {this.props.modalType === SITE_VISIT && <SiteVisitModal />}
+          {this.props.modalType === ASBESTOS_CLEARANCE && <ClearanceModal />}
           {this.state.tabValue === "general" && (
             <SiteGeneralInformation
               that={this}

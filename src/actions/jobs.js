@@ -20,7 +20,7 @@ import {
   ADD_TO_JOB_LIST,
   GET_CURRENT_JOB_STATE,
   RESET_JOBS,
-  SET_LAST_TIME_SAVED,
+  SET_LAST_TIME_SAVED
 } from "../constants/action-types";
 
 // Lead history icons
@@ -32,7 +32,7 @@ import NoteIcon from "@material-ui/icons/ListAlt";
 
 // Site icons
 import CommercialIcon from "@material-ui/icons/Store";
-import ResidentialIcon from '@material-ui/icons/Home';
+import ResidentialIcon from "@material-ui/icons/Home";
 import IndustrialIcon from "@material-ui/icons/Business";
 import PublicIcon from "@material-ui/icons/AccountBalance";
 import LandIcon from "@material-ui/icons/Landscape";
@@ -51,7 +51,7 @@ import {
   usersRef,
   jobsRef,
   sitesRef,
-  cocsRef,
+  cocsRef
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 import {
@@ -59,22 +59,22 @@ import {
   dateOf,
   getDaysBetweenDates,
   getDaysSinceDate,
-  titleCase,
+  titleCase
 } from "./helpers";
-import { fetchSamples, } from "./asbestosLab";
+import { fetchSamples } from "./asbestosLab";
 // import assetData from "./assetData.json";
 
 const buckets = [
-  'jobs',
-  'asbestos',
-  'asbestosbulkid',
-  'asbestosclearance',
-  'asbestosbackground',
-  'workplace',
-  'meth',
-  'bio',
-  'stack',
-  'noise'
+  "jobs",
+  "asbestos",
+  "asbestosbulkid",
+  "asbestosclearance",
+  "asbestosbackground",
+  "workplace",
+  "meth",
+  "bio",
+  "stack",
+  "noise"
 ];
 
 export const resetJobs = () => dispatch => {
@@ -84,11 +84,9 @@ export const resetJobs = () => dispatch => {
 export const fetchWFMJobs = () => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMJobs`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
-  let path = `${process.env.REACT_APP_WFM_ROOT}job.api/current?apiKey=${
-    process.env.REACT_APP_WFM_API
-  }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+  let path = `${process.env.REACT_APP_WFM_ROOT}job.api/current?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   let len = 100;
-  let str = '';
+  let str = "";
   fetch(path)
     .then(results => results.text())
     .then(data => {
@@ -115,9 +113,11 @@ export const fetchWFMJobs = () => async dispatch => {
           job.client = wfmJob.Client.Name ? wfmJob.Client.Name : null;
           job.clientID = wfmJob.Client.ID ? wfmJob.Client.ID : null;
         }
-        job.clientOrderNumber = wfmJob.ClientOrderNumber ? wfmJob.ClientOrderNumber : null;
+        job.clientOrderNumber = wfmJob.ClientOrderNumber
+          ? wfmJob.ClientOrderNumber
+          : null;
         if (wfmJob.Contact) {
-          job.contact = wfmJob.Contact.Name ? wfmJob.Contact.Name : null
+          job.contact = wfmJob.Contact.Name ? wfmJob.Contact.Name : null;
           job.contactID = wfmJob.Contact.ID ? wfmJob.Contact.ID : null;
         }
         if (wfmJob.Manager) {
@@ -137,7 +137,7 @@ export const fetchWFMJobs = () => async dispatch => {
             job.assigned = [
               {
                 id: wfmJob.Assigned.Staff.ID,
-                name: wfmJob.Assigned.Staff.Name,
+                name: wfmJob.Assigned.Staff.Name
               }
             ];
           }
@@ -146,7 +146,7 @@ export const fetchWFMJobs = () => async dispatch => {
         job.dueDate = wfmJob.DueDate ? wfmJob.DueDate : null;
         job.startDate = wfmJob.StartDate ? wfmJob.StartDate : null;
         job.wfmState = wfmJob.State ? wfmJob.State : null;
-        job.wfmType = wfmJob.Type ? wfmJob.Type : 'Other';
+        job.wfmType = wfmJob.Type ? wfmJob.Type : "Other";
         jobs.push(job);
       });
       dispatch({
@@ -159,11 +159,7 @@ export const fetchWFMJobs = () => async dispatch => {
 export const fetchWFMLeads = () => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMLeads`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
-  let path = `${
-    process.env.REACT_APP_WFM_ROOT
-  }lead.api/current?detailed=true&apiKey=${
-    process.env.REACT_APP_WFM_API
-  }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+  let path = `${process.env.REACT_APP_WFM_ROOT}lead.api/current?detailed=true&apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   fetch(path)
     .then(results => results.text())
     .then(data => {
@@ -193,7 +189,8 @@ export const fetchWFMLeads = () => async dispatch => {
         let assigned = { [lead.ownerID]: true };
         lead.date = wfmLead.Date ? wfmLead.Date : null;
         lead.dateWonLost = wfmLead.DateWonLost ? wfmLead.DateWonLost : null;
-        lead.category = (typeof wfmLead.Category !== "object") ? wfmLead.Category : 'Other';
+        lead.category =
+          typeof wfmLead.Category !== "object" ? wfmLead.Category : "Other";
         if (wfmLead.Activities.Activity) {
           lead.activities = [];
           if (Array.isArray(wfmLead.Activities.Activity)) {
@@ -213,7 +210,8 @@ export const fetchWFMLeads = () => async dispatch => {
               lead.activities.push(activity);
             });
           } else {
-            if (wfmLead.Activities.Activity.Responsible) assigned[wfmLead.Activities.Activity.Responsible.ID] = true;
+            if (wfmLead.Activities.Activity.Responsible)
+              assigned[wfmLead.Activities.Activity.Responsible.ID] = true;
             lead.activities = [
               {
                 date: wfmLead.Activities.Activity.Date,
@@ -224,11 +222,12 @@ export const fetchWFMLeads = () => async dispatch => {
                   : null,
                 responsibleID: wfmLead.Activities.Activity.Responsible
                   ? wfmLead.Activities.Activity.Responsible.ID
-                  : null,
+                  : null
               }
             ];
           }
-          if (Object.keys(assigned).length > 0) lead.assigned = Object.keys(assigned);
+          if (Object.keys(assigned).length > 0)
+            lead.assigned = Object.keys(assigned);
           // console.log(lead.assigned);
         } else {
           lead.activities = [];
@@ -271,11 +270,9 @@ export const fetchWFMLeads = () => async dispatch => {
 export const fetchWFMClients = () => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMClients`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
-  let path = `${process.env.REACT_APP_WFM_ROOT}client.api/list?apiKey=${
-    process.env.REACT_APP_WFM_API
-  }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+  let path = `${process.env.REACT_APP_WFM_ROOT}client.api/list?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   let len = 100;
-  let str = '';
+  let str = "";
   fetch(path)
     .then(results => results.text())
     .then(data => {
@@ -311,21 +308,25 @@ export const fetchWFMClients = () => async dispatch => {
 
 export const clearWfmJob = () => async dispatch => {
   dispatch({
-    type: CLEAR_WFM_JOB,
-  })
-}
+    type: CLEAR_WFM_JOB
+  });
+};
 
 export const deleteSiteJob = ({ site, job }) => {
   if (site && job) {
-    sitesRef.doc(site).collection('jobs').doc(job.uid).delete();
+    sitesRef
+      .doc(site)
+      .collection("jobs")
+      .doc(job.uid)
+      .delete();
   }
-}
+};
 
 export const setupSiteJob = (job, site) => async dispatch => {
   if (job && site && job.jobNumber) {
     // Initialise job
     let setupMap = {};
-    if (job.category && job.category.toLowerCase().includes('asbestos')) {
+    if (job.category && job.category.toLowerCase().includes("asbestos")) {
       setupMap = {
         isManagementPlanRequired: false,
         isReportRequired: true,
@@ -343,24 +344,38 @@ export const setupSiteJob = (job, site) => async dispatch => {
         surveyWeather: null,
         photoMainSite: null,
         reportState: null,
-        currentVersion: null,
+        currentVersion: null
       };
     }
     let newJob = {
       ...job,
-      ...setupMap,
+      ...setupMap
     };
     console.log(newJob);
-    if (!newJob.uid) newJob.uid = `${job.jobNumber.trim()}_${job.jobDescription.trim()}`;
+    if (!newJob.uid)
+      newJob.uid = `${job.jobNumber.trim()}_${job.jobDescription.trim()}`;
     dispatch({
       type: GET_SITE_JOB,
-      payload: { job: newJob, site: site },
+      payload: { job: newJob, site: site }
     });
-    sitesRef.doc(site).collection('jobs').doc(newJob.uid).set(job);
+    sitesRef
+      .doc(site)
+      .collection("jobs")
+      .doc(newJob.uid)
+      .set(job);
   }
 };
 
-export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList, wfmClients, geocodes, site, jobDescription }) => async dispatch => {
+export const getDetailedWFMJob = ({
+  jobNumber,
+  createUid,
+  setUpJob,
+  addToJobList,
+  wfmClients,
+  geocodes,
+  site,
+  jobDescription
+}) => async dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran getDetailedWFMJob`);
   let path = `${
     process.env.REACT_APP_WFM_ROOT
@@ -381,10 +396,14 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
       } else {
         let wfmJob = json.Response.Job;
         let job = {
-          isJob: true,
+          isJob: true
         };
         //console.log(wfmJob);
-        job.jobDescription = jobDescription ? jobDescription : wfmJob.ID ? wfmJob.ID : 'Job';
+        job.jobDescription = jobDescription
+          ? jobDescription
+          : wfmJob.ID
+          ? wfmJob.ID
+          : "Job";
         job.jobNumber = wfmJob.ID ? wfmJob.ID : null;
         job.address = wfmJob.Name ? wfmJob.Name : null;
         job.wfmID = wfmJob.InternalID;
@@ -396,15 +415,11 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
         job.wfmID = wfmJob.InternalID;
 
         if (wfmJob.Client) {
-          job.client = wfmJob.Client.Name
-            ? wfmJob.Client.Name
-            : null;
+          job.client = wfmJob.Client.Name ? wfmJob.Client.Name : null;
           job.clientID = wfmJob.Client.ID ? wfmJob.Client.ID : null;
           if (job.clientID) {
-            let path = `${process.env.REACT_APP_WFM_ROOT}client.api/get/${job.clientID}?apiKey=${
-              process.env.REACT_APP_WFM_API
-            }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
-            fetch(path)
+            let path = `${process.env.REACT_APP_WFM_ROOT}client.api/get/${job.clientID}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+            fetch(path);
             fetch(path)
               .then(results => results.text())
               .then(data => {
@@ -420,28 +435,75 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
                   let wfmClient = {};
                   job.clientDetails = {
                     wfmID: job.clientID,
-                    name: client.Name === Object(client.Phone) ? null : titleCase(client.Name.toString().trim()),
-                    email: client.Email === Object(client.Email) ? null : client.Email ? client.Email.toString().trim().toLowerCase() : null,
-                    address: client.Address === Object(client.Address) ? null : titleCase(client.Address.toString().trim()),
-                    city: client.City === Object(client.City) ? null : titleCase(client.City.toString().trim()),
-                    region: client.Region === Object(client.Region) ? null : titleCase(client.Region.toString().trim()),
-                    postcode: client.PostCode === Object(client.PostCode) ? null : client.PostCode.toString().trim(),
-                    country: client.Country === Object(client.Country) ? null : titleCase(client.Country.toString().trim()),
-                    postalAddress: client.PostalAddress === Object(client.PostalAddress) ? null : titleCase(client.PostalAddress.toString().trim()),
-                    postalCity: client.PostalCity === Object(client.PostalCity) ? null : titleCase(client.PostalCity.toString().trim()),
-                    postalRegion: client.PostalRegion === Object(client.PostalRegion) ? null : titleCase(client.PostalRegion.toString().trim()),
-                    postalPostCode: client.PostalPostCode === Object(client.PostalPostCode) ? null : client.PostalPostCode.toString().trim(),
-                    postalCountry: client.PostalCountry === Object(client.PostalCountry) ? null : titleCase(client.PostalCountry.toString().trim()),
-                    phone: client.Phone === Object(client.Phone) ? null : client.Phone.toString().replace('-',' ').trim(),
-                  }
+                    name:
+                      client.Name === Object(client.Phone)
+                        ? null
+                        : titleCase(client.Name.toString().trim()),
+                    email:
+                      client.Email === Object(client.Email)
+                        ? null
+                        : client.Email
+                        ? client.Email.toString()
+                            .trim()
+                            .toLowerCase()
+                        : null,
+                    address:
+                      client.Address === Object(client.Address)
+                        ? null
+                        : titleCase(client.Address.toString().trim()),
+                    city:
+                      client.City === Object(client.City)
+                        ? null
+                        : titleCase(client.City.toString().trim()),
+                    region:
+                      client.Region === Object(client.Region)
+                        ? null
+                        : titleCase(client.Region.toString().trim()),
+                    postcode:
+                      client.PostCode === Object(client.PostCode)
+                        ? null
+                        : client.PostCode.toString().trim(),
+                    country:
+                      client.Country === Object(client.Country)
+                        ? null
+                        : titleCase(client.Country.toString().trim()),
+                    postalAddress:
+                      client.PostalAddress === Object(client.PostalAddress)
+                        ? null
+                        : titleCase(client.PostalAddress.toString().trim()),
+                    postalCity:
+                      client.PostalCity === Object(client.PostalCity)
+                        ? null
+                        : titleCase(client.PostalCity.toString().trim()),
+                    postalRegion:
+                      client.PostalRegion === Object(client.PostalRegion)
+                        ? null
+                        : titleCase(client.PostalRegion.toString().trim()),
+                    postalPostCode:
+                      client.PostalPostCode === Object(client.PostalPostCode)
+                        ? null
+                        : client.PostalPostCode.toString().trim(),
+                    postalCountry:
+                      client.PostalCountry === Object(client.PostalCountry)
+                        ? null
+                        : titleCase(client.PostalCountry.toString().trim()),
+                    phone:
+                      client.Phone === Object(client.Phone)
+                        ? null
+                        : client.Phone.toString()
+                            .replace("-", " ")
+                            .trim()
+                  };
                   // console.log(job.clientDetails);
                   if (addToJobList)
-                    dispatch(handleGeocode(
-                      job.address,
-                      getAddressFromClient(job.clientID, wfmClients),
-                      job,
-                      geocodes,
-                    ));
+                    dispatch(
+                      handleGeocode(
+                        job.address,
+                        getAddressFromClient(job.clientID, wfmClients),
+                        job,
+                        geocodes
+                      )
+                    );
                   dispatch({
                     type: GET_WFM_JOB,
                     payload: job
@@ -458,15 +520,15 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
           job.client = null;
           job.clientID = null;
         }
-        job.clientOrderNumber = wfmJob.ClientOrderNumber && typeof wfmJob.ClientOrderNumber !== 'object'
-          ? wfmJob.ClientOrderNumber
-          : "";
+        job.clientOrderNumber =
+          wfmJob.ClientOrderNumber &&
+          typeof wfmJob.ClientOrderNumber !== "object"
+            ? wfmJob.ClientOrderNumber
+            : "";
         if (wfmJob.Contact) {
           if (wfmJob.Contact.ID) {
             let contactID = wfmJob.Contact.ID;
-            let path = `${process.env.REACT_APP_WFM_ROOT}client.api/contact/${contactID}?apiKey=${
-              process.env.REACT_APP_WFM_API
-            }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
+            let path = `${process.env.REACT_APP_WFM_ROOT}client.api/contact/${contactID}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
             //console.log(path);
             fetch(path)
               .then(results => results.text())
@@ -484,19 +546,39 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
                   // console.log(contact);
                   job.contact = {
                     wfmID: contactID,
-                    name: contact.Name ? contact.Name.toString().trim() : '',
-                    position: contact.Position === Object(contact.Position) ? '' : contact.Position.toString().trim(),
-                    mobile: contact.Mobile === Object(contact.Mobile) ? '' : contact.Mobile.toString().replace('-',' ').trim(),
-                    phone: contact.Phone === Object(contact.Phone) ? '' : contact.Phone.toString().replace('-',' ').trim(),
-                    email: contact.Email === Object(contact.Email) ? '' : contact.Email.toString().toLowerCase().trim(),
-                  }
+                    name: contact.Name ? contact.Name.toString().trim() : "",
+                    position:
+                      contact.Position === Object(contact.Position)
+                        ? ""
+                        : contact.Position.toString().trim(),
+                    mobile:
+                      contact.Mobile === Object(contact.Mobile)
+                        ? ""
+                        : contact.Mobile.toString()
+                            .replace("-", " ")
+                            .trim(),
+                    phone:
+                      contact.Phone === Object(contact.Phone)
+                        ? ""
+                        : contact.Phone.toString()
+                            .replace("-", " ")
+                            .trim(),
+                    email:
+                      contact.Email === Object(contact.Email)
+                        ? ""
+                        : contact.Email.toString()
+                            .toLowerCase()
+                            .trim()
+                  };
                   if (addToJobList)
-                    dispatch(handleGeocode(
-                      job.address,
-                      getAddressFromClient(job.clientID, wfmClients),
-                      job,
-                      geocodes,
-                    ));
+                    dispatch(
+                      handleGeocode(
+                        job.address,
+                        getAddressFromClient(job.clientID, wfmClients),
+                        job,
+                        geocodes
+                      )
+                    );
                   dispatch({
                     type: GET_WFM_JOB,
                     payload: job
@@ -512,23 +594,19 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
             job.contact = {
               wfmID: null,
               name: null,
-              email: null,
+              email: null
             };
           }
         } else {
           job.contact = {
             wfmID: null,
             name: null,
-            email: null,
+            email: null
           };
         }
         if (wfmJob.Manager) {
-          job.manager = wfmJob.Manager.Name
-            ? wfmJob.Manager.Name
-            : null;
-          job.managerID = wfmJob.Manager.ID
-            ? wfmJob.Manager.ID
-            : null;
+          job.manager = wfmJob.Manager.Name ? wfmJob.Manager.Name : null;
+          job.managerID = wfmJob.Manager.ID ? wfmJob.Manager.ID : null;
         } else {
           job.manager = null;
           job.managerID = null;
@@ -541,7 +619,7 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
               milestone.id = wfmMilestone.ID;
               milestone.date = wfmMilestone.Date;
               milestone.description = wfmMilestone.Description;
-              milestone.folder = wfmMilestone.Folder
+              milestone.folder = wfmMilestone.Folder;
               milestone.completed = wfmMilestone.Completed;
               job.milestones.push(milestone);
             });
@@ -552,7 +630,7 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
                 date: wfmJob.Milestones.Milestone.Date,
                 description: wfmJob.Milestones.Milestone.Description,
                 folder: wfmJob.Milestones.Milestone.Folder,
-                complete: wfmJob.Milestones.Milestone.Completed,
+                complete: wfmJob.Milestones.Milestone.Completed
               }
             ];
           }
@@ -580,7 +658,7 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
                 text: wfmJob.Notes.Note.Text,
                 title: wfmJob.Notes.Note.Title,
                 comments: wfmJob.Notes.Note.Comments,
-                folder: wfmJob.Notes.Note.Folder,
+                folder: wfmJob.Notes.Note.Folder
               }
             ];
           }
@@ -598,26 +676,30 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
             job.assigned = [
               {
                 id: wfmJob.Assigned.Staff.ID,
-                name: wfmJob.Assigned.Staff.Name,
+                name: wfmJob.Assigned.Staff.Name
               }
             ];
           }
         }
         if (createUid) {
-          let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${moment().format('x')}`;
+          let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${moment().format(
+            "x"
+          )}`;
           // //console.log('New uid' + uid);
           dispatch({
             type: EDIT_MODAL_DOC,
-            payload: { 'uid': uid }
+            payload: { uid: uid }
           });
         }
         if (addToJobList)
-          dispatch(handleGeocode(
-            job.address,
-            getAddressFromClient(job.clientID, wfmClients),
-            job,
-            geocodes,
-          ));
+          dispatch(
+            handleGeocode(
+              job.address,
+              getAddressFromClient(job.clientID, wfmClients),
+              job,
+              geocodes
+            )
+          );
         // console.log(job);
         dispatch({
           type: GET_WFM_JOB,
@@ -626,7 +708,7 @@ export const getDetailedWFMJob = ({ jobNumber, createUid, setUpJob, addToJobList
         dispatch({
           type: EDIT_MODAL_DOC,
           payload: job
-        })
+        });
         if (setUpJob) dispatch(setupSiteJob(job, site));
       }
     });
@@ -643,9 +725,9 @@ export const saveGeocodes = geocodes => dispatch => {
   if (geocodes) {
     Object.values(geocodes).forEach(g => {
       Object.keys(g).forEach(k => {
-        if (g[k] === undefined) console.log(k)
+        if (g[k] === undefined) console.log(k);
       });
-    })
+    });
     stateRef.doc("geocodes").set({ payload: geocodes });
   }
 };
@@ -697,18 +779,27 @@ export const saveWFMItems = items => dispatch => {
   });
 
   let batch = firestore.batch();
-  batch.set(stateRef
-    .doc("wfmstate")
-    .collection("jobStates")
-    .doc(date), jobs);
-  batch.set(stateRef
-    .doc("wfmstate")
-    .collection("leadStates1")
-    .doc(date), leads1);
-  batch.set(stateRef
-    .doc("wfmstate")
-    .collection("leadStates2")
-    .doc(date), leads2);
+  batch.set(
+    stateRef
+      .doc("wfmstate")
+      .collection("jobStates")
+      .doc(date),
+    jobs
+  );
+  batch.set(
+    stateRef
+      .doc("wfmstate")
+      .collection("leadStates1")
+      .doc(date),
+    leads1
+  );
+  batch.set(
+    stateRef
+      .doc("wfmstate")
+      .collection("leadStates2")
+      .doc(date),
+    leads2
+  );
   batch.commit();
   dispatch({
     type: SAVE_WFM_ITEMS,
@@ -764,58 +855,67 @@ export const fetchSites = update => async dispatch => {
 };
 
 export const fetchSiteJobs = site => async dispatch => {
-  sitesRef.doc(site).collection('jobs').onSnapshot(querySnapshot => {
-    var jobs = {};
-    querySnapshot.forEach(doc => {
-      let job = doc.data();
-      job.uid = doc.id;
-      jobs[doc.id] = job;
-      cocsRef.where('jobNumber','==',job.jobNumber).where('deleted','==',false).onSnapshot(cocSnapshot => {
-        var cocs = {};
-        cocSnapshot.forEach(cocDoc => {
-          let coc = cocDoc.data();
-          coc.uid = cocDoc.id;
-          cocs[cocDoc.id] = coc;
-          dispatch(fetchSamples(cocDoc.id, job.jobNumber));
-        });
-        // console.log(cocs);
-        dispatch({
-          type: GET_SITE_COCS,
-          payload: {cocs, site},
-        });
+  sitesRef
+    .doc(site)
+    .collection("jobs")
+    .onSnapshot(querySnapshot => {
+      var jobs = {};
+      querySnapshot.forEach(doc => {
+        let job = doc.data();
+        job.uid = doc.id;
+        jobs[doc.id] = job;
+        cocsRef
+          .where("jobNumber", "==", job.jobNumber)
+          .where("deleted", "==", false)
+          .onSnapshot(cocSnapshot => {
+            var cocs = {};
+            cocSnapshot.forEach(cocDoc => {
+              let coc = cocDoc.data();
+              coc.uid = cocDoc.id;
+              cocs[cocDoc.id] = coc;
+              dispatch(fetchSamples(cocDoc.id, job.jobNumber));
+            });
+            // console.log(cocs);
+            dispatch({
+              type: GET_SITE_COCS,
+              payload: { cocs, site }
+            });
+          });
+      });
+      dispatch({
+        type: GET_SITE_JOBS,
+        payload: { jobs, site }
       });
     });
-    dispatch({
-      type: GET_SITE_JOBS,
-      payload: {jobs, site},
-    });
-  });
 };
 
 export const fetchSiteAcm = site => async dispatch => {
   console.log(site);
-  sitesRef.doc(site).collection('acm').onSnapshot(querySnapshot => {
-    var acms = {};
-    querySnapshot.forEach(doc => {
-      let acm = doc.data();
-      acm.uid = doc.id;
-      acms[doc.id] = acm;
+  sitesRef
+    .doc(site)
+    .collection("acm")
+    .onSnapshot(querySnapshot => {
+      var acms = {};
+      querySnapshot.forEach(doc => {
+        let acm = doc.data();
+        acm.uid = doc.id;
+        acms[doc.id] = acm;
+      });
+      console.log(acms);
+      dispatch({
+        type: GET_SITE_ACM,
+        payload: { acms, site }
+      });
     });
-    console.log(acms);
-    dispatch({
-      type: GET_SITE_ACM,
-      payload: {acms, site},
-    });
-  });
 };
 
 // This function looks through all the daily states from the states collection and creates an up-to-date picture of the job state
 export const analyseJobHistory = () => {
   // sendSlackMessage(`${auth.currentUser.displayName} ran analyseJobHistory`);
   // vars
-  console.log('Running job history');
+  console.log("Running job history");
   var jobMap = {};
-  buckets.forEach((bucket) => {
+  buckets.forEach(bucket => {
     jobMap[bucket] = {};
   });
   var jobTypes = {};
@@ -841,36 +941,53 @@ export const analyseJobHistory = () => {
         // console.log(state.filter((stateJob) => stateJob.isJob).length);
         // Loop through current job map and check if any are missing from this state (e.g. they have been completed since the last state)
         if (state.length > 0) {
-          buckets.forEach((bucket) => {
+          buckets.forEach(bucket => {
             // console.log(bucket);
             if (jobMap[bucket] !== undefined) {
               console.log(jobMap[bucket]);
-              Object.values(jobMap[bucket]).forEach((job) => {
-                console.log(state.filter((stateJob) => stateJob.wfmID === job.wfmID).length);
-                if (job.wfmState !== 'Completed' && state.filter((stateJob) => stateJob.wfmID === job.wfmID).length === 0 && state.filter((stateJob) => stateJob.isJob).length > 0) {
-                  console.log('Job ' + job.wfmID + ' Completed at ' + doc.id);
-                  jobMap[bucket][job.wfmID]['wfmState'] = 'Completed';
-                  jobMap[bucket][job.wfmID]['completionDate'] = doc.id;
-                  jobMap[bucket][job.wfmID]['lastActionDate'] = doc.id;
-                  jobMap[bucket][job.wfmID]['stateHistory'] = {
-                    ...jobMap[bucket][job.wfmID]['stateHistory'],
-                    [doc.id]: 'Completed',
+              Object.values(jobMap[bucket]).forEach(job => {
+                console.log(
+                  state.filter(stateJob => stateJob.wfmID === job.wfmID).length
+                );
+                if (
+                  job.wfmState !== "Completed" &&
+                  state.filter(stateJob => stateJob.wfmID === job.wfmID)
+                    .length === 0 &&
+                  state.filter(stateJob => stateJob.isJob).length > 0
+                ) {
+                  console.log("Job " + job.wfmID + " Completed at " + doc.id);
+                  jobMap[bucket][job.wfmID]["wfmState"] = "Completed";
+                  jobMap[bucket][job.wfmID]["completionDate"] = doc.id;
+                  jobMap[bucket][job.wfmID]["lastActionDate"] = doc.id;
+                  jobMap[bucket][job.wfmID]["stateHistory"] = {
+                    ...jobMap[bucket][job.wfmID]["stateHistory"],
+                    [doc.id]: "Completed"
                   };
 
                   // Add to calendar of when jobs were completed
                   var completionDoc = {
-                    category: jobMap[bucket][job.wfmID]['category'],
-                    client: jobMap[bucket][job.wfmID]['client'],
-                    geocode: jobMap[bucket][job.wfmID]['geocode'],
-                    isJob: jobMap[bucket][job.wfmID]['isJob'],
-                    jobNumber: jobMap[bucket][job.wfmID]['jobNumber'],
-                    name: jobMap[bucket][job.wfmID]['name'],
-                    wfmID: jobMap[bucket][job.wfmID]['wfmID'],
+                    category: jobMap[bucket][job.wfmID]["category"],
+                    client: jobMap[bucket][job.wfmID]["client"],
+                    geocode: jobMap[bucket][job.wfmID]["geocode"],
+                    isJob: jobMap[bucket][job.wfmID]["isJob"],
+                    jobNumber: jobMap[bucket][job.wfmID]["jobNumber"],
+                    name: jobMap[bucket][job.wfmID]["name"],
+                    wfmID: jobMap[bucket][job.wfmID]["wfmID"]
                   };
-                  if (jobMap[bucket][job.wfmID]['stateHistory'] !== undefined) completionDoc.stateHistory = jobMap[bucket][job.wfmID]['stateHistory'];
-                  if (jobMap[bucket][job.wfmID]['completedActivities'] !== undefined) completionDoc.stateHistory = jobMap[bucket][job.wfmID]['completedActivities'];
+                  if (jobMap[bucket][job.wfmID]["stateHistory"] !== undefined)
+                    completionDoc.stateHistory =
+                      jobMap[bucket][job.wfmID]["stateHistory"];
+                  if (
+                    jobMap[bucket][job.wfmID]["completedActivities"] !==
+                    undefined
+                  )
+                    completionDoc.stateHistory =
+                      jobMap[bucket][job.wfmID]["completedActivities"];
                   if (completionMap[doc.id] !== undefined) {
-                    completionMap[doc.id] = [...completionMap[doc.id], completionDoc];
+                    completionMap[doc.id] = [
+                      ...completionMap[doc.id],
+                      completionDoc
+                    ];
                   } else {
                     completionMap[doc.id] = [completionDoc];
                   }
@@ -885,20 +1002,24 @@ export const analyseJobHistory = () => {
         state.forEach(job => {
           if (job.isJob) {
             // Split job Maps into Workplace, Asbestos and Other to prevent firebase documents being too large
-            var bucket = 'jobs';
-            if (job.category.toLowerCase().includes('asbestos')) bucket = 'asbestos';
-            if (job.category === 'Asbestos - Bulk ID') bucket = 'asbestosbulkid';
-            if (job.category === 'Asbestos - Clearance') bucket = 'asbestosclearance';
-            if (job.category === 'Asbestos - Background') bucket = 'asbestosbackground';
-            if (job.category.toLowerCase().includes('meth')) bucket = 'meth';
-            if (job.category === 'Workplace') bucket = 'workplace';
-            if (job.category === 'Biological') bucket = 'bio';
-            if (job.category === 'Stack Testing') bucket = 'stack';
-            if (job.category === 'Noise') bucket = 'noise';
+            var bucket = "jobs";
+            if (job.category.toLowerCase().includes("asbestos"))
+              bucket = "asbestos";
+            if (job.category === "Asbestos - Bulk ID")
+              bucket = "asbestosbulkid";
+            if (job.category === "Asbestos - Clearance")
+              bucket = "asbestosclearance";
+            if (job.category === "Asbestos - Background")
+              bucket = "asbestosbackground";
+            if (job.category.toLowerCase().includes("meth")) bucket = "meth";
+            if (job.category === "Workplace") bucket = "workplace";
+            if (job.category === "Biological") bucket = "bio";
+            if (job.category === "Stack Testing") bucket = "stack";
+            if (job.category === "Noise") bucket = "noise";
 
             var mappedJob = jobMap[bucket][job.wfmID];
             if (mappedJob !== undefined) {
-            // Update current job (Check if state has been updated)
+              // Update current job (Check if state has been updated)
               if (job.state !== undefined) {
                 job.wfmState = job.state;
                 delete job.state;
@@ -909,24 +1030,40 @@ export const analyseJobHistory = () => {
                 // if (stateChangeDates[doc.id] !== undefined) stateChangeDates[doc.id][bucket] = ''; else stateChangeDates[doc.id] = {[bucket]: ''};
                 let update = true;
 
-                if (mappedJob.wfmState === 'Completed' || mappedJob.state === 'Completed') {
+                if (
+                  mappedJob.wfmState === "Completed" ||
+                  mappedJob.state === "Completed"
+                ) {
                   // Mapped job was incorrectly marked as completed
                   // console.log(mappedJob);
-                  mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).forEach(k => {
-                    if (mappedJob.stateHistory[k] === 'Completed') {
-                      console.log(mappedJob.stateHistory);
-                      delete mappedJob.stateHistory[k];
-                      // if (completionMap[k]) {
-                      //   delete completionMap[k];
-                      // }
-                      // console.log(mappedJob.stateHistory);
-                    }
-                  });
-                  if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] !== undefined) {
-                    if (mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.wfmState) {
-                      console.log(mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]]);
+                  mappedJob.stateHistory &&
+                    Object.keys(mappedJob.stateHistory).forEach(k => {
+                      if (mappedJob.stateHistory[k] === "Completed") {
+                        console.log(mappedJob.stateHistory);
+                        delete mappedJob.stateHistory[k];
+                        // if (completionMap[k]) {
+                        //   delete completionMap[k];
+                        // }
+                        // console.log(mappedJob.stateHistory);
+                      }
+                    });
+                  if (
+                    mappedJob.stateHistory &&
+                    Object.keys(mappedJob.stateHistory).slice(-1)[0] !==
+                      undefined
+                  ) {
+                    if (
+                      mappedJob.stateHistory[
+                        Object.keys(mappedJob.stateHistory).slice(-1)[0]
+                      ] === job.wfmState
+                    ) {
+                      console.log(
+                        mappedJob.stateHistory[
+                          Object.keys(mappedJob.stateHistory).slice(-1)[0]
+                        ]
+                      );
                       console.log(job.wfmState);
-                      console.log('States match, no update');
+                      console.log("States match, no update");
                       console.log(mappedJob);
                       console.log(mappedJob.wfmID);
                       update = false;
@@ -941,18 +1078,28 @@ export const analyseJobHistory = () => {
                   mappedJob.lastActionDate = doc.id;
                   mappedJob.stateHistory = {
                     ...mappedJob.stateHistory,
-                    [doc.id]: job.wfmState,
+                    [doc.id]: job.wfmState
                   };
-                  if (job.wfmState === undefined) console.log(mappedJob.stateHistory);
+                  if (job.wfmState === undefined)
+                    console.log(mappedJob.stateHistory);
                 } else {
                   console.log(mappedJob.wfmID);
-                  mappedJob.lastActionDate = Object.keys(mappedJob.stateHistory).slice(-1)[0];
+                  mappedJob.lastActionDate = Object.keys(
+                    mappedJob.stateHistory
+                  ).slice(-1)[0];
                   console.log(Object.keys(mappedJob.stateHistory).slice(-1)[0]);
                 }
               }
               if (job.geocode !== mappedJob.geocode) {
-                if ((job.geocode && job.geocode.address === "New Zealand") || (mappedJob.geocode && mappedJob.geocode.address === "New Zealand")) {
-                  if (mappedJob.geocode.address === "New Zealand" && job.geocode.address !== "New Zealand") {
+                if (
+                  (job.geocode && job.geocode.address === "New Zealand") ||
+                  (mappedJob.geocode &&
+                    mappedJob.geocode.address === "New Zealand")
+                ) {
+                  if (
+                    mappedJob.geocode.address === "New Zealand" &&
+                    job.geocode.address !== "New Zealand"
+                  ) {
                     mappedJob.geocode = job.geocode;
                   }
                 }
@@ -960,8 +1107,8 @@ export const analyseJobHistory = () => {
               // Add to mapped jobs
             } else {
               // Add new job to map
-              console.log('Adding New Job (' + bucket + ') ' + job.wfmID);
-              job.creationDate = moment(job.creationDate).format('YYYY-MM-DD');
+              console.log("Adding New Job (" + bucket + ") " + job.wfmID);
+              job.creationDate = moment(job.creationDate).format("YYYY-MM-DD");
               job.lastActionDate = doc.id;
 
               // Delete outdated fields and state history
@@ -973,8 +1120,8 @@ export const analyseJobHistory = () => {
               }
 
               job.stateHistory = {
-                [job.creationDate]: 'Job Created',
-                [doc.id]: job.wfmState,
+                [job.creationDate]: "Job Created",
+                [doc.id]: job.wfmState
               };
 
               console.log(job);
@@ -990,7 +1137,7 @@ export const analyseJobHistory = () => {
                 isJob: job.isJob,
                 jobNumber: job.jobNumber,
                 name: job.name,
-                wfmID: job.wfmID,
+                wfmID: job.wfmID
               };
               if (creationMap[doc.id] !== undefined) {
                 creationMap[doc.id] = [...creationMap[doc.id], creationDoc];
@@ -1032,16 +1179,16 @@ export const analyseJobHistory = () => {
       let batch = firestore.batch();
 
       allBuckets = buckets.concat(Object.keys(leadBuckets));
-      allBuckets.forEach((bucket) => {
+      allBuckets.forEach(bucket => {
         // console.log(bucket);
         // Check for any jobs that have undefined state historys
         if (jobMap[bucket]) {
           Object.values(jobMap[bucket]).forEach(job => {
             if (job.stateHistory) {
-              let lastKey = '';
+              let lastKey = "";
               Object.keys(job.stateHistory).forEach(k => {
                 if (job.stateHistory[k] === undefined) {
-                  job.stateHistory[k] = 'Data missing';
+                  job.stateHistory[k] = "Data missing";
                   // console.log(job.stateHistory);
                 }
                 if (job.stateHistory[lastKey] === job.stateHistory[k]) {
@@ -1053,13 +1200,31 @@ export const analyseJobHistory = () => {
               });
               job.lastActionDate = lastKey;
             }
-          })
+          });
         }
-        batch.set(stateRef.doc("wfmstate").collection("current").doc(bucket), jobMap[bucket]);
+        batch.set(
+          stateRef
+            .doc("wfmstate")
+            .collection("current")
+            .doc(bucket),
+          jobMap[bucket]
+        );
       });
       console.log(jobMap);
-      batch.set(stateRef.doc("wfmstate").collection("timeline").doc('completion'), completionMap);
-      batch.set(stateRef.doc("wfmstate").collection("timeline").doc('creation'), creationMap);
+      batch.set(
+        stateRef
+          .doc("wfmstate")
+          .collection("timeline")
+          .doc("completion"),
+        completionMap
+      );
+      batch.set(
+        stateRef
+          .doc("wfmstate")
+          .collection("timeline")
+          .doc("creation"),
+        creationMap
+      );
       batch.commit();
     });
 };
@@ -1096,169 +1261,170 @@ export const calculateJobStats = jobList => dispatch => {
   var staff = {};
   staff["K2"] = { ...this.state.statSheet };
 
-  jobList && Object.values(jobList).forEach(m => {
-    var age = this.getDaysSinceDate(m.creationDate);
-    if (staff[m.owner] === undefined)
-      staff[m.owner] = { ...this.state.statSheet };
-    if (client[m.client] === undefined)
-      client[m.client] = { ...this.state.statSheet };
-    if (m.state === "Needs Booking") {
-      staff["K2"]["jobNeedsBookingTotal"] += 1;
-      staff["K2"]["jobNeedsBookingTotal"] =
-        staff["K2"]["jobNeedsBookingTotal"] + 1;
-      staff[m.owner]["jobNeedsBookingTotal"] += 1;
-      client[m.client]["jobNeedsBookingTotal"] += 1;
-      staff["K2"]["averageJobNeedsBookingAge"] = this.averageStaffStat(
-        age,
-        staff["K2"]["averageJobNeedsBookingAge"]
-      );
-      staff[m.owner]["averageJobNeedsBookingAge"] = this.averageStaffStat(
-        age,
-        staff[m.owner]["averageJobNeedsBookingAge"]
-      );
-      client[m.client]["averageJobNeedsBookingAge"] = this.averageStaffStat(
-        age,
-        client[m.client]["averageJobNeedsBookingAge"]
-      );
-      staff["K2"]["jobNeedsBookingAges"] = [
-        ...staff["K2"]["jobNeedsBookingAges"],
-        age
-      ];
-      staff[m.owner]["jobNeedsBookingAges"] = [
-        ...staff[m.owner]["jobNeedsBookingAges"],
-        age
-      ];
-      client[m.client]["jobNeedsBookingAges"] = [
-        ...client[m.client]["jobNeedsBookingAges"],
-        age
-      ];
-    }
+  jobList &&
+    Object.values(jobList).forEach(m => {
+      var age = this.getDaysSinceDate(m.creationDate);
+      if (staff[m.owner] === undefined)
+        staff[m.owner] = { ...this.state.statSheet };
+      if (client[m.client] === undefined)
+        client[m.client] = { ...this.state.statSheet };
+      if (m.state === "Needs Booking") {
+        staff["K2"]["jobNeedsBookingTotal"] += 1;
+        staff["K2"]["jobNeedsBookingTotal"] =
+          staff["K2"]["jobNeedsBookingTotal"] + 1;
+        staff[m.owner]["jobNeedsBookingTotal"] += 1;
+        client[m.client]["jobNeedsBookingTotal"] += 1;
+        staff["K2"]["averageJobNeedsBookingAge"] = this.averageStaffStat(
+          age,
+          staff["K2"]["averageJobNeedsBookingAge"]
+        );
+        staff[m.owner]["averageJobNeedsBookingAge"] = this.averageStaffStat(
+          age,
+          staff[m.owner]["averageJobNeedsBookingAge"]
+        );
+        client[m.client]["averageJobNeedsBookingAge"] = this.averageStaffStat(
+          age,
+          client[m.client]["averageJobNeedsBookingAge"]
+        );
+        staff["K2"]["jobNeedsBookingAges"] = [
+          ...staff["K2"]["jobNeedsBookingAges"],
+          age
+        ];
+        staff[m.owner]["jobNeedsBookingAges"] = [
+          ...staff[m.owner]["jobNeedsBookingAges"],
+          age
+        ];
+        client[m.client]["jobNeedsBookingAges"] = [
+          ...client[m.client]["jobNeedsBookingAges"],
+          age
+        ];
+      }
 
-    if (m.isJob) {
-      staff["K2"]["jobTotal"] += 1;
-      staff[m.owner]["jobTotal"] += 1;
-      client[m.client]["jobTotal"] += 1;
-      staff["K2"]["averageJobAge"] = this.averageStaffStat(
-        age,
-        staff["K2"]["averageJobAge"]
-      );
-      staff[m.owner]["averageJobAge"] = this.averageStaffStat(
-        age,
-        staff[m.owner]["averageJobAge"]
-      );
-      client[m.client]["averageJobAge"] = this.averageStaffStat(
-        age,
-        client[m.client]["averageJobAge"]
-      );
-      staff["K2"]["jobAges"] = [...staff["K2"]["jobAges"], age];
-      staff[m.owner]["jobAges"] = [...staff[m.owner]["jobAges"], age];
-      client[m.client]["jobAges"] = [...client[m.client]["jobAges"], age];
-    }
+      if (m.isJob) {
+        staff["K2"]["jobTotal"] += 1;
+        staff[m.owner]["jobTotal"] += 1;
+        client[m.client]["jobTotal"] += 1;
+        staff["K2"]["averageJobAge"] = this.averageStaffStat(
+          age,
+          staff["K2"]["averageJobAge"]
+        );
+        staff[m.owner]["averageJobAge"] = this.averageStaffStat(
+          age,
+          staff[m.owner]["averageJobAge"]
+        );
+        client[m.client]["averageJobAge"] = this.averageStaffStat(
+          age,
+          client[m.client]["averageJobAge"]
+        );
+        staff["K2"]["jobAges"] = [...staff["K2"]["jobAges"], age];
+        staff[m.owner]["jobAges"] = [...staff[m.owner]["jobAges"], age];
+        client[m.client]["jobAges"] = [...client[m.client]["jobAges"], age];
+      }
 
-    if (!m.isJob) {
-      staff["K2"]["leadTotal"] += 1;
-      staff[m.owner]["leadTotal"] += 1;
-      client[m.client]["leadTotal"] += 1;
-      staff["K2"]["averageLeadAge"] = this.averageStaffStat(
-        age,
-        staff["K2"]["averageLeadAge"]
-      );
-      staff[m.owner]["averageLeadAge"] = this.averageStaffStat(
-        age,
-        staff[m.owner]["averageLeadAge"]
-      );
-      client[m.client]["averageLeadAge"] = this.averageStaffStat(
-        age,
-        client[m.client]["averageLeadAge"]
-      );
-      staff["K2"]["leadAges"] = [...staff["K2"]["leadAges"], age];
-      staff[m.owner]["leadAges"] = [...staff[m.owner]["leadAges"], age];
-      client[m.client]["leadAges"] = [...client[m.client]["leadAges"], age];
-    }
+      if (!m.isJob) {
+        staff["K2"]["leadTotal"] += 1;
+        staff[m.owner]["leadTotal"] += 1;
+        client[m.client]["leadTotal"] += 1;
+        staff["K2"]["averageLeadAge"] = this.averageStaffStat(
+          age,
+          staff["K2"]["averageLeadAge"]
+        );
+        staff[m.owner]["averageLeadAge"] = this.averageStaffStat(
+          age,
+          staff[m.owner]["averageLeadAge"]
+        );
+        client[m.client]["averageLeadAge"] = this.averageStaffStat(
+          age,
+          client[m.client]["averageLeadAge"]
+        );
+        staff["K2"]["leadAges"] = [...staff["K2"]["leadAges"], age];
+        staff[m.owner]["leadAges"] = [...staff[m.owner]["leadAges"], age];
+        client[m.client]["leadAges"] = [...client[m.client]["leadAges"], age];
+      }
 
-    m.activities &&
-      m.activities.forEach(a => {
-        if (staff[a.responsible] === undefined)
-          staff[a.responsible] = this.state.statSheet;
-        // Check if activity is completed
-        if (a.completed === "Yes") {
-          staff["K2"]["completedActions"] += 1;
-          staff[a.responsible]["completedActions"] += 1;
-          client[m.client]["completedActions"] += 1;
-          staff["K2"][
-            "averageCompletedActionOverdueDays"
-          ] = this.averageStaffStat(
-            a.completedOverdueBy,
-            staff["K2"]["averageCompletedActionOverdueDays"]
-          );
-          staff[a.responsible][
-            "averageCompletedActionOverdueDays"
-          ] = this.averageStaffStat(
-            a.completedOverdueBy,
-            staff[a.responsible]["averageCompletedActionOverdueDays"]
-          );
-          client[m.client][
-            "averageCompletedActionOverdueDays"
-          ] = this.averageStaffStat(
-            a.completedOverdueBy,
-            client[m.client]["averageCompletedActionOverdueDays"]
-          );
-          staff["K2"]["completedActionOverdueDays"] = [
-            ...staff["K2"]["completedActionOverdueDays"],
-            a.completedOverdueBy
-          ];
-          staff[a.responsible]["completedActionOverdueDays"] = [
-            ...staff[a.responsible]["completedActionOverdueDays"],
-            a.completedOverdueBy
-          ];
-          client[m.client]["completedActionOverdueDays"] = [
-            ...client[m.client]["completedActionOverdueDays"],
-            a.completedOverdueBy
-          ];
-        } else {
-          var overdueDays = this.getDaysSinceDate(a.date);
-          if (overdueDays > 0) {
-            // Overdue Action
-            staff["K2"]["overdueActions"] += 1;
-            staff[a.responsible]["overdueActions"] += 1;
-            client[m.client]["overdueActions"] += 1;
-            staff["K2"]["averageActionOverdueDays"] = this.averageStaffStat(
-              overdueDays,
-              staff["K2"]["averageActionOverdueDays"]
+      m.activities &&
+        m.activities.forEach(a => {
+          if (staff[a.responsible] === undefined)
+            staff[a.responsible] = this.state.statSheet;
+          // Check if activity is completed
+          if (a.completed === "Yes") {
+            staff["K2"]["completedActions"] += 1;
+            staff[a.responsible]["completedActions"] += 1;
+            client[m.client]["completedActions"] += 1;
+            staff["K2"][
+              "averageCompletedActionOverdueDays"
+            ] = this.averageStaffStat(
+              a.completedOverdueBy,
+              staff["K2"]["averageCompletedActionOverdueDays"]
             );
             staff[a.responsible][
-              "averageActionOverdueDays"
+              "averageCompletedActionOverdueDays"
             ] = this.averageStaffStat(
-              overdueDays,
-              staff[a.responsible]["averageActionOverdueDays"]
+              a.completedOverdueBy,
+              staff[a.responsible]["averageCompletedActionOverdueDays"]
             );
             client[m.client][
-              "averageActionOverdueDays"
+              "averageCompletedActionOverdueDays"
             ] = this.averageStaffStat(
-              overdueDays,
-              client[m.client]["averageActionOverdueDays"]
+              a.completedOverdueBy,
+              client[m.client]["averageCompletedActionOverdueDays"]
             );
-            staff["K2"]["actionOverdueDays"] = [
-              ...staff["K2"]["actionOverdueDays"],
-              overdueDays
+            staff["K2"]["completedActionOverdueDays"] = [
+              ...staff["K2"]["completedActionOverdueDays"],
+              a.completedOverdueBy
             ];
-            staff[m.owner]["actionOverdueDays"] = [
-              ...staff[m.owner]["actionOverdueDays"],
-              overdueDays
+            staff[a.responsible]["completedActionOverdueDays"] = [
+              ...staff[a.responsible]["completedActionOverdueDays"],
+              a.completedOverdueBy
             ];
-            client[m.client]["actionOverdueDays"] = [
-              ...client[m.client]["actionOverdueDays"],
-              overdueDays
+            client[m.client]["completedActionOverdueDays"] = [
+              ...client[m.client]["completedActionOverdueDays"],
+              a.completedOverdueBy
             ];
           } else {
-            // Action on target
-            staff["K2"]["upcomingActions"] += 1;
-            staff[a.responsible]["upcomingActions"] += 1;
-            client[m.client]["upcomingActions"] += 1;
+            var overdueDays = this.getDaysSinceDate(a.date);
+            if (overdueDays > 0) {
+              // Overdue Action
+              staff["K2"]["overdueActions"] += 1;
+              staff[a.responsible]["overdueActions"] += 1;
+              client[m.client]["overdueActions"] += 1;
+              staff["K2"]["averageActionOverdueDays"] = this.averageStaffStat(
+                overdueDays,
+                staff["K2"]["averageActionOverdueDays"]
+              );
+              staff[a.responsible][
+                "averageActionOverdueDays"
+              ] = this.averageStaffStat(
+                overdueDays,
+                staff[a.responsible]["averageActionOverdueDays"]
+              );
+              client[m.client][
+                "averageActionOverdueDays"
+              ] = this.averageStaffStat(
+                overdueDays,
+                client[m.client]["averageActionOverdueDays"]
+              );
+              staff["K2"]["actionOverdueDays"] = [
+                ...staff["K2"]["actionOverdueDays"],
+                overdueDays
+              ];
+              staff[m.owner]["actionOverdueDays"] = [
+                ...staff[m.owner]["actionOverdueDays"],
+                overdueDays
+              ];
+              client[m.client]["actionOverdueDays"] = [
+                ...client[m.client]["actionOverdueDays"],
+                overdueDays
+              ];
+            } else {
+              // Action on target
+              staff["K2"]["upcomingActions"] += 1;
+              staff[a.responsible]["upcomingActions"] += 1;
+              client[m.client]["upcomingActions"] += 1;
+            }
           }
-        }
-      });
-  });
+        });
+    });
 
   this.setState({
     clientStats: client,
@@ -1270,72 +1436,87 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchCurrentJobState`);
   var currentJobState = {};
   // Put all the buckets back together in one map
-  stateRef.doc("wfmstate").collection("current").get().then((querySnapshot) => {
-    querySnapshot.forEach((doc) => {
-      if(ignoreCompleted) {
-        Object.values(doc.data()).forEach((job) => {
-          if (job['state'] !== "Completed") currentJobState[job['wfmID']] = job;
-        });
-      } else {
-        currentJobState = {
-          ...currentJobState,
-          ...doc.data(),
+  stateRef
+    .doc("wfmstate")
+    .collection("current")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        if (ignoreCompleted) {
+          Object.values(doc.data()).forEach(job => {
+            if (job["state"] !== "Completed")
+              currentJobState[job["wfmID"]] = job;
+          });
+        } else {
+          currentJobState = {
+            ...currentJobState,
+            ...doc.data()
+          };
         }
-      }
+      });
+      // console.log('Jobs in current state: ' + Object.values(currentJobState).filter(job => job.isJob).length);
+      // //console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
+      // console.log(currentJobState);
+      dispatch({
+        type: GET_CURRENT_JOB_STATE,
+        payload: currentJobState
+      });
     });
-    // console.log('Jobs in current state: ' + Object.values(currentJobState).filter(job => job.isJob).length);
-    // //console.log('Fetched Current Job State, ignoreCompleted: ' + ignoreCompleted);
-    // console.log(currentJobState);
-    dispatch({
-      type: GET_CURRENT_JOB_STATE,
-      payload: currentJobState,
-    });
-  });
 };
 
 export const saveCurrentJobState = state => dispatch => {
-  console.log('Running save current state');
+  console.log("Running save current state");
   sendSlackMessage(`${auth.currentUser.displayName} ran saveCurrentJobState`);
   // Sort into buckets to prevent firestore rejecting objects that are too large
   var sortedState = {};
   var allBuckets = [];
   var leadBuckets = {};
-  buckets.forEach((bucket) => {
+  buckets.forEach(bucket => {
     sortedState[bucket] = {};
   });
 
   // console.log(state);
 
-  state && Object.values(state).forEach((job) => {
-    if (job.isJob) {
-      var bucket = 'jobs';
-      if (job.category.toLowerCase().includes('asbestos')) bucket = 'asbestos';
-      if (job.category === 'Asbestos - Bulk ID') bucket = 'asbestosbulkid';
-      if (job.category === 'Asbestos - Clearance') bucket = 'asbestosclearance';
-      if (job.category === 'Asbestos - Background') bucket = 'asbestosbackground';
-      if (job.category.toLowerCase().includes('meth')) bucket = 'meth';
-      if (job.category === 'Workplace') bucket = 'workplace';
-      if (job.category === 'Biological') bucket = 'bio';
-      if (job.category === 'Stack Testing') bucket = 'stack';
-      if (job.category === 'Noise') bucket = 'noise';
-      sortedState[bucket][job.wfmID] = job;
-    } else if (false) {
-      // Stop saving leads to job state for now
-      var bucket = 'leads' + job.wfmID.slice(-2);
-      leadBuckets[bucket] = true;
-      if (sortedState[bucket] === undefined) sortedState[bucket] = {};
-      sortedState[bucket][job.wfmID] = job;
-    }
-  });
+  state &&
+    Object.values(state).forEach(job => {
+      if (job.isJob) {
+        var bucket = "jobs";
+        if (job.category.toLowerCase().includes("asbestos"))
+          bucket = "asbestos";
+        if (job.category === "Asbestos - Bulk ID") bucket = "asbestosbulkid";
+        if (job.category === "Asbestos - Clearance")
+          bucket = "asbestosclearance";
+        if (job.category === "Asbestos - Background")
+          bucket = "asbestosbackground";
+        if (job.category.toLowerCase().includes("meth")) bucket = "meth";
+        if (job.category === "Workplace") bucket = "workplace";
+        if (job.category === "Biological") bucket = "bio";
+        if (job.category === "Stack Testing") bucket = "stack";
+        if (job.category === "Noise") bucket = "noise";
+        sortedState[bucket][job.wfmID] = job;
+      } else if (false) {
+        // Stop saving leads to job state for now
+        var bucket = "leads" + job.wfmID.slice(-2);
+        leadBuckets[bucket] = true;
+        if (sortedState[bucket] === undefined) sortedState[bucket] = {};
+        sortedState[bucket][job.wfmID] = job;
+      }
+    });
 
   // console.log(sortedState);
   allBuckets = buckets.concat(Object.keys(leadBuckets));
 
   let batch = firestore.batch();
-  allBuckets.forEach((bucket) => {
+  allBuckets.forEach(bucket => {
     // console.log(sortedState[bucket]);
     console.log(Object.keys(sortedState[bucket]).length);
-    batch.set(stateRef.doc("wfmstate").collection("current").doc(bucket), sortedState[bucket]);
+    batch.set(
+      stateRef
+        .doc("wfmstate")
+        .collection("current")
+        .doc(bucket),
+      sortedState[bucket]
+    );
   });
   batch.commit();
 };
@@ -1358,9 +1539,7 @@ export const getCompletionDateFromHistory = (activity, history) => {
 };
 
 export const getAddressFromClient = (clientID, wfmClients) => {
-  var client = wfmClients.filter(
-    client => client.wfmID === clientID
-  );
+  var client = wfmClients.filter(client => client.wfmID === clientID);
   if (client.length > 0) {
     var address =
       client[0].city === ""
@@ -1372,7 +1551,12 @@ export const getAddressFromClient = (clientID, wfmClients) => {
   }
 };
 
-export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatch => {
+export const handleGeocode = (
+  address,
+  clientAddress,
+  lead,
+  geocodes
+) => dispatch => {
   // console.log('Relying on lead to state.');
   // return;
   console.log(address);
@@ -1390,12 +1574,10 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
     // console.log("Already there");
     // console.log(lead.wfmID);
     lead.geocode = geocodes[add];
-    dispatch({type: ADD_TO_JOB_LIST, payload: lead, });
+    dispatch({ type: ADD_TO_JOB_LIST, payload: lead });
   } else {
     if (add !== "NULL") {
-      let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${
-        process.env.REACT_APP_GOOGLE_MAPS_KEY
-      }`;
+      let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY}`;
       console.log("Getting GEOCODE for " + add);
       fetch(path)
         .then(response => response.json())
@@ -1414,22 +1596,30 @@ export const handleGeocode = (address, clientAddress, lead, geocodes) => dispatc
             lead.geocode = gc[add];
           }
           // console.log(lead.wfmID);
-          dispatch({type: ADD_TO_JOB_LIST, payload: lead, });
+          dispatch({ type: ADD_TO_JOB_LIST, payload: lead });
           // return lead;
         });
     }
   }
 };
 
-export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch => {
+export const collateJobsList = (
+  wfmJobs,
+  wfmLeads,
+  currentJobState,
+  wfmClients,
+  geocodes
+) => dispatch => {
   console.log("COLLATING LEADS AND JOBS");
   // Add option to look up detailed information for each job
   var mappedJobs = {};
-  let currentJobStateCopy = {...currentJobState};
+  let currentJobStateCopy = { ...currentJobState };
   console.log(currentJobStateCopy);
-  Object.values(currentJobState).filter((job) => job.wfmState === 'Completed').forEach(job => {
-    mappedJobs[job.wfmID] = job;
-  });
+  Object.values(currentJobState)
+    .filter(job => job.wfmState === "Completed")
+    .forEach(job => {
+      mappedJobs[job.wfmID] = job;
+    });
   // console.log(geocodes);
   // console.log(wfmJobs);
   // console.log(wfmLeads);
@@ -1439,15 +1629,18 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
   // Convert jobs into a 'lead' type object
   wfmJobs.forEach(job => {
     // console.log(job);
-    var today = moment().format('YYYY-MM-DD');
+    var today = moment().format("YYYY-MM-DD");
     var mappedJob = currentJobState[job.wfmID];
     delete currentJobStateCopy[job.wfmID];
     if (mappedJob !== undefined) {
       mappedJob.ownerID = job.managerID ? job.managerID : null;
       mappedJob.assigned = job.assigned ? job.assigned : null;
-      if (mappedJob.nextActionType !== undefined) delete mappedJob.nextActionType;
-      if (mappedJob.nextActionDate !== undefined) delete mappedJob.nextActionDate;
-      if (mappedJob.nextActionOverdueBy !== undefined) delete mappedJob.nextActionOverdueBy;
+      if (mappedJob.nextActionType !== undefined)
+        delete mappedJob.nextActionType;
+      if (mappedJob.nextActionDate !== undefined)
+        delete mappedJob.nextActionDate;
+      if (mappedJob.nextActionOverdueBy !== undefined)
+        delete mappedJob.nextActionOverdueBy;
       //
       // if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory)[0] < mappedJob.creationDate) {
       //   mappedJob.creationDate = Object.keys(mappedJob.stateHistory)[0];
@@ -1456,24 +1649,31 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
 
       let update = true;
 
-      if (mappedJob.wfmState === 'Completed') {
+      if (mappedJob.wfmState === "Completed") {
         // Mapped job was incorrectly marked as completed
         // console.log(mappedJob);
-        mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).forEach(k => {
-          if (mappedJob.stateHistory[k] === 'Completed') {
-            // console.log(mappedJob.stateHistory);
-            delete mappedJob.stateHistory[k];
-            // console.log(mappedJob.stateHistory);
-          }
-        });
+        mappedJob.stateHistory &&
+          Object.keys(mappedJob.stateHistory).forEach(k => {
+            if (mappedJob.stateHistory[k] === "Completed") {
+              // console.log(mappedJob.stateHistory);
+              delete mappedJob.stateHistory[k];
+              // console.log(mappedJob.stateHistory);
+            }
+          });
         // if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] && mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.wfmState) update = false;
       }
 
       // console.log(mappedJob.stateHistory);
       // console.log(Object.keys(mappedJob.stateHistory).slice(-1)[0]);
 
-      if (mappedJob.stateHistory && Object.keys(mappedJob.stateHistory).slice(-1)[0] !== undefined &&
-        mappedJob.stateHistory[Object.keys(mappedJob.stateHistory).slice(-1)[0]] === job.wfmState) update = false;
+      if (
+        mappedJob.stateHistory &&
+        Object.keys(mappedJob.stateHistory).slice(-1)[0] !== undefined &&
+        mappedJob.stateHistory[
+          Object.keys(mappedJob.stateHistory).slice(-1)[0]
+        ] === job.wfmState
+      )
+        update = false;
 
       mappedJob.wfmState = job.wfmState;
 
@@ -1484,10 +1684,12 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
         mappedJob.lastActionDate = today;
         mappedJob.stateHistory = {
           ...mappedJob.stateHistory,
-          [today]: job.wfmState,
+          [today]: job.wfmState
         };
       } else {
-        mappedJob.lastActionDate = Object.keys(mappedJob.stateHistory).slice(-1)[0];
+        mappedJob.lastActionDate = Object.keys(mappedJob.stateHistory).slice(
+          -1
+        )[0];
         // console.log(Object.keys(mappedJob.stateHistory).slice(-1)[0]);
       }
 
@@ -1502,22 +1704,26 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       // Check if address has changed
       // if (mappedJob.name !== job.address || mappedJob.geocode.address === "New Zealand") {
       if (mappedJob.name !== job.address) {
-        console.log(mappedJob.name + '->' + job.address + ' is new, get new geocode');
+        console.log(
+          mappedJob.name + "->" + job.address + " is new, get new geocode"
+        );
         mappedJob.name = job.address;
-        dispatch(handleGeocode(
-          job.address,
-          getAddressFromClient(job.clientID, wfmClients),
-          mappedJob,
-          geocodes,
-        ));
+        dispatch(
+          handleGeocode(
+            job.address,
+            getAddressFromClient(job.clientID, wfmClients),
+            mappedJob,
+            geocodes
+          )
+        );
       } else {
         mappedJobs = {
           ...mappedJobs,
-          [job.wfmID]: mappedJob,
+          [job.wfmID]: mappedJob
         };
       }
     } else {
-      console.log('Making new job: ' + job['wfmID']);
+      console.log("Making new job: " + job["wfmID"]);
       var newJob = {};
       newJob.wfmID = job.wfmID;
       newJob.client = job.client;
@@ -1535,16 +1741,18 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
       newJob.lastActionType = job.wfmState;
       newJob.lastActionDate = today;
       newJob.stateHistory = {
-        [today]: job.wfmState,
+        [today]: job.wfmState
       };
       newJob.isJob = true;
       console.log(newJob);
-      dispatch(handleGeocode(
-        job.address,
-        getAddressFromClient(job.clientID, wfmClients),
-        newJob,
-        geocodes,
-      ));
+      dispatch(
+        handleGeocode(
+          job.address,
+          getAddressFromClient(job.clientID, wfmClients),
+          newJob,
+          geocodes
+        )
+      );
     }
   });
 
@@ -1592,98 +1800,100 @@ export const collateJobsList = (wfmJobs, wfmLeads, currentJobState, wfmClients, 
     //     };
     //   }
     // } else {
-      // //console.log('Making new job: ' + wfmLead['wfmID']);
-      lead = {};
-      lead.wfmID = wfmLead.wfmID;
-      lead.assigned = wfmLead.assigned ? wfmLead.assigned : null;
-      lead.client = wfmLead.client;
-      lead.clientID = wfmLead.clientID;
-      lead.name = wfmLead.name;
-      lead.description = wfmLead.description;
-      lead.owner = wfmLead.owner ? wfmLead.owner : null;
-      lead.jobNumber = "Lead";
-      lead.creationDate = wfmLead.date;
-      lead.category = wfmLead.category;
-      lead.urgentAction = "";
-      lead.value = wfmLead.value;
-      if (wfmLead.history) {
-        let historyArray = [];
-        wfmLead.history.forEach(item => {
-          historyArray.push({
-            date: item.date ? dateOf(item.date) : null,
-            detail: item.detail ? item.detail : null,
-            staff: item.staff ? item.staff : null,
-            type: item.type ? item.type : null,
-          });
+    // //console.log('Making new job: ' + wfmLead['wfmID']);
+    lead = {};
+    lead.wfmID = wfmLead.wfmID;
+    lead.assigned = wfmLead.assigned ? wfmLead.assigned : null;
+    lead.client = wfmLead.client;
+    lead.clientID = wfmLead.clientID;
+    lead.name = wfmLead.name;
+    lead.description = wfmLead.description;
+    lead.owner = wfmLead.owner ? wfmLead.owner : null;
+    lead.jobNumber = "Lead";
+    lead.creationDate = wfmLead.date;
+    lead.category = wfmLead.category;
+    lead.urgentAction = "";
+    lead.value = wfmLead.value;
+    if (wfmLead.history) {
+      let historyArray = [];
+      wfmLead.history.forEach(item => {
+        historyArray.push({
+          date: item.date ? dateOf(item.date) : null,
+          detail: item.detail ? item.detail : null,
+          staff: item.staff ? item.staff : null,
+          type: item.type ? item.type : null
         });
-        lead.history = historyArray;
-      }
+      });
+      lead.history = historyArray;
+    }
 
-      // Map actions to history to get completion date of each action
-      if (wfmLead.activities[0] === "NO PLAN!") {
-        lead.urgentAction = "Add Milestones to Lead";
-        lead.activities = [];
-      } else if (wfmLead.history[0] === "No History") {
-        lead.activities = [];
-      } else {
-        lead.activities = wfmLead.activities.map(activity =>
-          getCompletionDateFromHistory(activity, wfmLead.history)
-        );
-      }
-      let completedActivities = getCompletedActivities(lead.activities);
-
-      lead.lastActionDate = getLastActionDateFromActivities(
-        completedActivities,
-        null
-        // lead.creationDate
+    // Map actions to history to get completion date of each action
+    if (wfmLead.activities[0] === "NO PLAN!") {
+      lead.urgentAction = "Add Milestones to Lead";
+      lead.activities = [];
+    } else if (wfmLead.history[0] === "No History") {
+      lead.activities = [];
+    } else {
+      lead.activities = wfmLead.activities.map(activity =>
+        getCompletionDateFromHistory(activity, wfmLead.history)
       );
-      lead.lastActionType = getLastActionTypeFromActivities(
-        completedActivities
-      );
+    }
+    let completedActivities = getCompletedActivities(lead.activities);
 
-      // lead.averageCompletedActionOverdueDays = this.getAverageCompletedActionOverdueDays(
-      //   lead.completedActivities
-      // );
-      lead.nextActionType = getNextActionType(lead.activities);
-      lead.nextActionDate = getNextActionDate(lead.activities);
-      // lead.nextActionOverdueBy = this.getNextActionOverdueBy(lead.activities);
+    lead.lastActionDate = getLastActionDateFromActivities(
+      completedActivities,
+      null
+      // lead.creationDate
+    );
+    lead.lastActionType = getLastActionTypeFromActivities(completedActivities);
 
-      lead.isJob = false;
+    // lead.averageCompletedActionOverdueDays = this.getAverageCompletedActionOverdueDays(
+    //   lead.completedActivities
+    // );
+    lead.nextActionType = getNextActionType(lead.activities);
+    lead.nextActionDate = getNextActionDate(lead.activities);
+    // lead.nextActionOverdueBy = this.getNextActionOverdueBy(lead.activities);
 
-      // Get extra client information
-      // lead.clientAddress = this.getAddressFromClient(wfmLead.clientID);
-      // lead.geoCode = this.handleGeocode(wfmLead.name);
+    lead.isJob = false;
 
-      dispatch(handleGeocode(
+    // Get extra client information
+    // lead.clientAddress = this.getAddressFromClient(wfmLead.clientID);
+    // lead.geoCode = this.handleGeocode(wfmLead.name);
+
+    dispatch(
+      handleGeocode(
         wfmLead.name,
         getAddressFromClient(wfmLead.clientID, wfmClients),
         lead,
-        geocodes,
-      ));
+        geocodes
+      )
+    );
     // }
   });
 
   // Catch jobs that are not in the current WFM jobs list but have not been marked as completed.
   // All current jobs and leads will have been deleted from the currentJobStateCopy so we only need to filter out the ones already marked as completed.
-  var today = moment().format('YYYY-MM-DD');
-  Object.values(currentJobStateCopy).filter((job) => job.isJob && job.wfmState !== "Completed").forEach((job) => {
-    // console.log(job.wfmState);
-    // console.log(job);
-    job.lastActionDate = today;
-    job.wfmState = 'Completed';
-    if (job.stateHistory !== undefined) {
-      job.stateHistory[today] = 'Completed';
-    } else {
-      job.stateHistory = {[today]: 'Completed'};
-    }
-    mappedJobs[job.wfmID] = job;
-  });
+  var today = moment().format("YYYY-MM-DD");
+  Object.values(currentJobStateCopy)
+    .filter(job => job.isJob && job.wfmState !== "Completed")
+    .forEach(job => {
+      // console.log(job.wfmState);
+      // console.log(job);
+      job.lastActionDate = today;
+      job.wfmState = "Completed";
+      if (job.stateHistory !== undefined) {
+        job.stateHistory[today] = "Completed";
+      } else {
+        job.stateHistory = { [today]: "Completed" };
+      }
+      mappedJobs[job.wfmID] = job;
+    });
 
   // console.log(mappedJobs);
 
   dispatch({
     type: GET_JOB_LIST,
-    payload: mappedJobs,
+    payload: mappedJobs
   });
 };
 
@@ -1699,13 +1909,18 @@ export const getWfmUrl = m => {
 
 export const getWfmClientUrl = m => {
   return `https://practicemanager.xero.com/Client/${m.clientID}/Detail`;
-}
+};
 
 export const getGoogleMapsUrl = m => {
   if (m.geocode)
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURI(m.geocode.address)}&query_place_id=${m.geocode.place}`;
-  else return `https://www.google.com/maps/search/?api=1&query=${encodeURI(m.name)}`;
-}
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURI(
+      m.geocode.address
+    )}&query_place_id=${m.geocode.place}`;
+  else
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURI(
+      m.name
+    )}`;
+};
 
 export const onWatchJob = (job, me) => {
   if (job !== undefined && job !== null) {
@@ -1722,9 +1937,9 @@ export const onWatchJob = (job, me) => {
       }
     }
 
-    usersRef.doc(me.uid).update({watchedJobs: newArray});
+    usersRef.doc(me.uid).update({ watchedJobs: newArray });
   }
-}
+};
 
 export const onWatchLead = (lead, me) => {
   if (lead !== undefined && lead !== null) {
@@ -1741,9 +1956,9 @@ export const onWatchLead = (lead, me) => {
       }
     }
 
-    usersRef.doc(me.uid).update({watchedLeads: newArray});
+    usersRef.doc(me.uid).update({ watchedLeads: newArray });
   }
-}
+};
 
 export const sendTimeSheetToWFM = (taskData, taskID, that) => {
   // console.log(taskData);
@@ -1751,28 +1966,30 @@ export const sendTimeSheetToWFM = (taskData, taskID, that) => {
   let assignUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/assign?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     timeUrl = `${process.env.REACT_APP_WFM_ROOT}time.api/add?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
 
-    // Convert to XML
-    let assignXML = `<Job><ID>${taskData.job}</ID><add id="${taskData.staff}" task="${taskID}" /></Job>`,
-      timeXML = `<Timesheet><Job>${taskData.job}</Job><Task>${taskID}</Task><Staff>${taskData.staff}</Staff><Date>${taskData.day}</Date><Start>${taskData.startTime}</Start><End>${taskData.endTime}</End><Note>${taskData.note}</Note></Timesheet>`;
+  // Convert to XML
+  let assignXML = `<Job><ID>${taskData.job}</ID><add id="${taskData.staff}" task="${taskID}" /></Job>`,
+    timeXML = `<Timesheet><Job>${taskData.job}</Job><Task>${taskID}</Task><Staff>${taskData.staff}</Staff><Date>${taskData.day}</Date><Start>${taskData.startTime}</Start><End>${taskData.endTime}</End><Note>${taskData.note}</Note></Timesheet>`;
 
-    // console.log(assignXML);
-    // console.log(timeXML);
+  // console.log(assignXML);
+  // console.log(timeXML);
 
-    fetch(assignUrl, { method: "PUT", body: assignXML})
-      .then(results => results.text())
-      .then(data => {
-        // console.log(data);
-        var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
-        // console.log(json);
-        if (json.Response.Status === "OK") {
-        fetch(timeUrl, { method: "POST", body: timeXML})
+  fetch(assignUrl, { method: "PUT", body: assignXML })
+    .then(results => results.text())
+    .then(data => {
+      // console.log(data);
+      var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
+      // console.log(json);
+      if (json.Response.Status === "OK") {
+        fetch(timeUrl, { method: "POST", body: timeXML })
           .then(results => results.text())
           .then(data => {
-            var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
+            var json = xmlToJson(
+              new DOMParser().parseFromString(data, "text/xml")
+            );
             // console.log(json.Response);
             if (json.Response.Status === "OK") {
               that.setState({
-                status: 'Success',
+                status: "Success"
               });
               // Show snack bar
             } else {
@@ -1781,20 +1998,28 @@ export const sendTimeSheetToWFM = (taskData, taskID, that) => {
             }
             // Show snack bar
           });
-        } else {
-          // Assign Failed
-          // console.log('Assign Failed');
-        }
-      });
-}
+      } else {
+        // Assign Failed
+        // console.log('Assign Failed');
+      }
+    });
+};
 
 export const getTaskID = (taskData, that) => {
   // console.log(taskData);
   let assignUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/assign?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     timeUrl = `${process.env.REACT_APP_WFM_ROOT}time.api/add?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
-    jobUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/get/${taskData.job.trim()}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
+    jobUrl = `${
+      process.env.REACT_APP_WFM_ROOT
+    }job.api/get/${taskData.job.trim()}?apiKey=${
+      process.env.REACT_APP_WFM_API
+    }&accountKey=${process.env.REACT_APP_WFM_ACC}`,
     taskUrl = `${process.env.REACT_APP_WFM_ROOT}job.api/task?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`,
-    taskXML = `<Task><Job>${taskData.job}</Job><TaskID>${taskData.task}</TaskID><EstimatedMinutes>${taskData.minutes ? taskData.minutes : 0}</EstimatedMinutes></Task>`;
+    taskXML = `<Task><Job>${taskData.job}</Job><TaskID>${
+      taskData.task
+    }</TaskID><EstimatedMinutes>${
+      taskData.minutes ? taskData.minutes : 0
+    }</EstimatedMinutes></Task>`;
 
   // console.log(taskXML);
 
@@ -1821,7 +2046,7 @@ export const getTaskID = (taskData, that) => {
               }
             });
           } else if (tasks instanceof Object) {
-            console.log('tasks instance of object')
+            console.log("tasks instance of object");
             if (tasks.TaskID === taskData.task) {
               taskID = tasks.ID;
               // console.log(tasks);
@@ -1839,10 +2064,12 @@ export const getTaskID = (taskData, that) => {
         if (!taskID) {
           // console.log('Task ID not found');
           // Task type was not found in job, will need to be added first
-          fetch(taskUrl, { method: "POST", body: taskXML})
+          fetch(taskUrl, { method: "POST", body: taskXML })
             .then(results => results.text())
             .then(data => {
-              var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
+              var json = xmlToJson(
+                new DOMParser().parseFromString(data, "text/xml")
+              );
               if (json.Response.Status === "OK") {
                 // console.log(json.Response);
                 sendTimeSheetToWFM(taskData, json.Response.ID, that);
@@ -1850,7 +2077,7 @@ export const getTaskID = (taskData, that) => {
                 // console.log('Adding task failed.');
                 return {
                   status: json.Response.Status,
-                  text: json.Response.ErrorDescription,
+                  text: json.Response.ErrorDescription
                 };
               }
             });
@@ -1861,11 +2088,11 @@ export const getTaskID = (taskData, that) => {
         // console.log('job url failed');
         return {
           status: json.Response.Status,
-          text: json.Response.ErrorDescription,
+          text: json.Response.ErrorDescription
         };
       }
     });
-}
+};
 
 export const gotoWFM = m => {
   // //console.log("GoTO");
@@ -1917,31 +2144,31 @@ export const getJobColor = cat => {
 };
 
 export const getSiteIcon = type => {
-  switch(type) {
-    case 'residential':
-      return (<ResidentialIcon />);
-    case 'commercial':
-      return (<CommercialIcon />);
-    case 'industrial':
-      return (<IndustrialIcon />);
-    case 'public':
-      return (<PublicIcon />);
-    case 'other':
-      return (<OtherIcon />);
-    case 'land':
-      return (<LandIcon />);
-    case 'train':
-      return (<TrainIcon />);
-    case 'ship':
-      return (<ShipIcon />);
-    case 'vehicle':
-      return (<VehicleIcon />);
-    case 'substation':
-      return (<SubstationIcon />);
-    case 'school':
-      return (<SchoolIcon />);
+  switch (type) {
+    case "residential":
+      return <ResidentialIcon />;
+    case "commercial":
+      return <CommercialIcon />;
+    case "industrial":
+      return <IndustrialIcon />;
+    case "public":
+      return <PublicIcon />;
+    case "other":
+      return <OtherIcon />;
+    case "land":
+      return <LandIcon />;
+    case "train":
+      return <TrainIcon />;
+    case "ship":
+      return <ShipIcon />;
+    case "vehicle":
+      return <VehicleIcon />;
+    case "substation":
+      return <SubstationIcon />;
+    case "school":
+      return <SchoolIcon />;
     default:
-      return (<IndustrialIcon />);
+      return <IndustrialIcon />;
   }
 };
 
@@ -2012,8 +2239,7 @@ export const getCompletedActivities = activities => {
   return completedActivities
     .sort((a, b) => {
       return (
-        new Date(a.completeDate).getTime() -
-        new Date(b.completeDate).getTime()
+        new Date(a.completeDate).getTime() - new Date(b.completeDate).getTime()
       );
     })
     .reverse();
@@ -2024,17 +2250,19 @@ export const getUncompletedActivities = activities => {
     var uncompletedActivities = activities.filter(
       activity => activity.completed === "No"
     );
-    return uncompletedActivities
-      .sort((a, b) => {
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      });
-      // .reverse();
+    return uncompletedActivities.sort((a, b) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+    // .reverse();
   } else {
     return [];
   }
 };
 
-export const getLastActionDateFromActivities = (completedActivities, defaultDate) => {
+export const getLastActionDateFromActivities = (
+  completedActivities,
+  defaultDate
+) => {
   if (completedActivities.length === 0) return defaultDate;
   return completedActivities[0].completeDate;
 };
@@ -2087,45 +2315,45 @@ export const getNextActionOverdueBy = activities => {
 export const setLastTimeSaved = time => dispatch => {
   dispatch({
     type: SET_LAST_TIME_SAVED,
-    payload: time,
+    payload: time
   });
-}
+};
 
 export const getStateString = m => {
-  var stateStr = '';
+  var stateStr = "";
   if (m.isJob) {
-    if (m.wfmState === "Completed") stateStr = 'Job completed';
+    if (m.wfmState === "Completed") stateStr = "Job completed";
     else {
       var days = getDaysSinceDate(m.lastActionDate);
       if (days < 1) {
-        stateStr = 'Changed state to ' + m.wfmState + ' today';
+        stateStr = "Changed state to " + m.wfmState + " today";
       } else if (days === 1) {
-        stateStr = 'Changed state to ' + m.wfmState + ' yesterday';
+        stateStr = "Changed state to " + m.wfmState + " yesterday";
       } else if (days < 7) {
-        stateStr = 'Changed state to ' + m.wfmState + ' ' + days + ' days ago';
+        stateStr = "Changed state to " + m.wfmState + " " + days + " days ago";
       } else {
-        stateStr = 'Has not changed state in ' + days + ' days';
+        stateStr = "Has not changed state in " + days + " days";
       }
     }
   } else {
     days = getNextActionOverdueBy(m.activities);
-    if (!days) stateStr = 'All scheduled actions completed'
+    if (!days) stateStr = "All scheduled actions completed";
     else {
       if (days > 1) {
-        stateStr = 'Actions overdue by ' + days + ' days';
+        stateStr = "Actions overdue by " + days + " days";
       } else if (days === 1) {
-        stateStr = 'Actions overdue by 1 day';
+        stateStr = "Actions overdue by 1 day";
       } else if (days === 0) {
-        stateStr = 'Actions due today';
+        stateStr = "Actions due today";
       } else if (days === -1) {
-        stateStr = 'Actions due tomorrow';
+        stateStr = "Actions due tomorrow";
       } else {
-        stateStr = 'Actions due in ' + (days*-1) + ' days';
+        stateStr = "Actions due in " + days * -1 + " days";
       }
     }
   }
   return stateStr;
-}
+};
 
 export const averageStaffStat = (value, average) => {
   // Averages in form { number of items, sum, average }
@@ -2141,7 +2369,7 @@ export const averageStaffStat = (value, average) => {
   return average;
 };
 
-export const getDefaultLetterAddress = (doc) => {
+export const getDefaultLetterAddress = doc => {
   // console.log(doc);
   if (doc) {
     if (doc.coverLetterAddress) return doc.coverLetterAddress;
@@ -2150,8 +2378,14 @@ export const getDefaultLetterAddress = (doc) => {
     }
     let contact = doc.contact,
       client = doc.clientDetails,
-      contactName = contact && (contact.name !== null || contact.name !== '') ? contact.name : null,
-      contactPosition = contact && (contact.position !== null || contact.position !== '') ? contact.position : null,
+      contactName =
+        contact && (contact.name !== null || contact.name !== "")
+          ? contact.name
+          : null,
+      contactPosition =
+        contact && (contact.position !== null || contact.position !== "")
+          ? contact.position
+          : null,
       address = null,
       city = null,
       postcode = null;
@@ -2159,22 +2393,28 @@ export const getDefaultLetterAddress = (doc) => {
     if (client && client.postalAddress) {
       address = client.postalAddress;
       city = client.postalCity;
-      if (address && city && address.toLowerCase().includes(city.toLowerCase())) city = null;
+      if (address && city && address.toLowerCase().includes(city.toLowerCase()))
+        city = null;
       postcode = client.postalPostCode;
-      address = `${address ? address : ''}${city ? '\n' + city : ''}${postcode ? ' ' + postcode : ''}`;
+      address = `${address ? address : ""}${city ? "\n" + city : ""}${
+        postcode ? " " + postcode : ""
+      }`;
     } else if (client && client.address) {
       address = client.address;
       city = client.city;
-      if (address && city && address.toLowerCase().includes(city.toLowerCase())) city = null;
+      if (address && city && address.toLowerCase().includes(city.toLowerCase()))
+        city = null;
       postcode = client.postcode;
-      address = `${address ? address : ''}${city ? '\n' + city : ''}${postcode ? ' ' + postcode : ''}`;
+      address = `${address ? address : ""}${city ? "\n" + city : ""}${
+        postcode ? " " + postcode : ""
+      }`;
     } else {
       address = doc.address;
     }
 
     // Don't add contact name if it is the same as the client name
     if (contactName) {
-      let contactWords = contactName.split(' ');
+      let contactWords = contactName.split(" ");
       let contactInClientName = contactWords.length;
       contactWords.forEach(word => {
         if (doc.client.includes(word)) contactInClientName--;
@@ -2185,21 +2425,24 @@ export const getDefaultLetterAddress = (doc) => {
       }
     }
 
-    let letterAddress = `${contactName ? contactName + '\n' : ''}${contactPosition ? contactPosition + '\n' : ''}${doc.client ? doc.client + '\n' : ''}${address ? address : ''}`;
+    let letterAddress = `${contactName ? contactName + "\n" : ""}${
+      contactPosition ? contactPosition + "\n" : ""
+    }${doc.client ? doc.client + "\n" : ""}${address ? address : ""}`;
     return letterAddress.trim();
   } else {
-    return '';
+    return "";
   }
-}
+};
 
 export const getLeadHistoryDescription = (h, maxLength) => {
   let icon = null,
-    title = '',
+    title = "",
     body = null;
   if (h.type === "Lead") {
     icon = <LeadIcon />;
     // Can either by "Created by XXX" or "XXX marked this lead as Current"
-    if (h.detail === "Created by WorkflowMax API") title = "Created from Website Enquiry";
+    if (h.detail === "Created by WorkflowMax API")
+      title = "Created from Website Enquiry";
     else title = h.detail;
   } else if (h.type === "Lost") {
     icon = <LostIcon />;
@@ -2215,39 +2458,51 @@ export const getLeadHistoryDescription = (h, maxLength) => {
     // Full email
     // Form is:
     // Date \n From \n To \n Subject \n Body
-    let from = '', to = '', subject = '', splitEmail = [];
+    let from = "",
+      to = "",
+      subject = "",
+      splitEmail = [];
     splitEmail = h.detail.split(/\r\n|\n|\r/);
-    from = splitEmail[1].slice(splitEmail[1].indexOf(':') + 1, splitEmail[1].indexOf('['));
-    to = splitEmail[2].slice(splitEmail[2].indexOf(':') + 1, splitEmail[2].indexOf('['));
-    if (to.includes('dropbox')) to = 'EmailMyJob';
-    if (splitEmail[3].includes('Cc:')) {
-      subject = splitEmail[4].slice(splitEmail[4].indexOf(':') + 1);
-      body = splitEmail.slice(5).join('\n');
+    from = splitEmail[1].slice(
+      splitEmail[1].indexOf(":") + 1,
+      splitEmail[1].indexOf("[")
+    );
+    to = splitEmail[2].slice(
+      splitEmail[2].indexOf(":") + 1,
+      splitEmail[2].indexOf("[")
+    );
+    if (to.includes("dropbox")) to = "EmailMyJob";
+    if (splitEmail[3].includes("Cc:")) {
+      subject = splitEmail[4].slice(splitEmail[4].indexOf(":") + 1);
+      body = splitEmail.slice(5).join("\n");
     } else {
-      subject = splitEmail[3].slice(splitEmail[3].indexOf(':') + 1);
-      body = splitEmail.slice(5).join('\n');
+      subject = splitEmail[3].slice(splitEmail[3].indexOf(":") + 1);
+      body = splitEmail.slice(5).join("\n");
     }
     title = `${from} emailed ${to}: ${subject}`;
-    if (maxLength && body.length > maxLength) body = `${body.substring(0, maxLength)}...`;
+    if (maxLength && body.length > maxLength)
+      body = `${body.substring(0, maxLength)}...`;
   } else if (h.type === "Note") {
-    icon = <NoteIcon />
+    icon = <NoteIcon />;
     title = `Note from ${h.staff}`;
     body = h.detail;
-    if (maxLength && body.length > maxLength) body = `${body.substring(0, maxLength)}...`;
+    if (maxLength && body.length > maxLength)
+      body = `${body.substring(0, maxLength)}...`;
   }
 
   return {
     title,
     body,
-    icon,
-  }
-}
+    icon
+  };
+};
 
-export const handleSiteChange = ({ site, o1, o2, field, val }) => dispatch => { console.log(val);
-  if (val && val !== undefined) {
+export const handleSiteChange = ({ site, o1, o2, field, val }) => dispatch => {
+  console.log(val);
+  if (val !== null && val !== undefined) {
     if (o1 && !site[o1]) site[o1] = {};
     if (o2 && !site[o1][o2]) site[o1][o2] = {};
-    if (val === 'delete') {
+    if (val === "delete") {
       if (o1 && o2 && field && site[o1][o2][field]) delete site[o1][o2][field];
       else if (o1 && field && site[o1][field]) delete site[o1][field];
       else if (field && site[field]) delete site[field];
@@ -2258,17 +2513,24 @@ export const handleSiteChange = ({ site, o1, o2, field, val }) => dispatch => { 
     }
     dispatch({
       type: GET_SITE,
-      payload: site,
+      payload: site
     });
     sitesRef.doc(site.uid).update(site);
   }
-}
+};
 
-export const handleJobChange = ({ job, o1, o2, field, val, siteUid }) => dispatch => {
+export const handleJobChange = ({
+  job,
+  o1,
+  o2,
+  field,
+  val,
+  siteUid
+}) => dispatch => {
   console.log(val);
   if (o1 && !job[o1]) job[o1] = {};
   if (o2 && !job[o1][o2]) job[o1][o2] = {};
-  if (val === 'delete') {
+  if (val === "delete") {
     if (o1 && o2 && field && job[o1][o2][field]) delete job[o1][o2][field];
     else if (o1 && field && job[o1][field]) delete job[o1][field];
     else if (field && job[field]) delete job[field];
@@ -2280,16 +2542,21 @@ export const handleJobChange = ({ job, o1, o2, field, val, siteUid }) => dispatc
   console.log(job);
   dispatch({
     type: GET_SITE_JOB,
-    payload: {job, siteUid, },
+    payload: { job, siteUid }
   });
-  sitesRef.doc(siteUid).collection('jobs').doc(job.uid).update(job);
-}
+  sitesRef
+    .doc(siteUid)
+    .collection("jobs")
+    .doc(job.uid)
+    .update(job);
+};
 
 export const getRoomInLayout = ({ site, searchRoom }) => {
-  if (searchRoom === 'generic') return {
-    label: 'Generic Items/Materials',
-    uid: 'generic',
-  }
+  if (searchRoom === "generic")
+    return {
+      label: "Generic Items/Materials",
+      uid: "generic"
+    };
   let result = {};
   if (site && site.layout) {
     Object.values(site.layout).forEach(roomGroup => {
@@ -2298,9 +2565,9 @@ export const getRoomInLayout = ({ site, searchRoom }) => {
           console.log(room);
           console.log(searchRoom);
           if (room.uid === searchRoom) result = room;
-        })
+        });
       }
-    })
+    });
   }
   return result;
-}
+};

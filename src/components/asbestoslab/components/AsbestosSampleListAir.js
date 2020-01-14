@@ -232,7 +232,11 @@ function AsbestoSampleListAir(props) {
       {doc.historicalCoc && (
         <div className={classes.columnSmall}>
           <TextField
-            value={sample.fibreResult || ""}
+            value={
+              sample.fibreResult || sample.fibreResult === 0
+                ? sample.fibreResult
+                : ""
+            }
             onChange={e => {
               that.setState({ modified: true });
               that.props.handleSampleChange(i, {
@@ -367,7 +371,11 @@ function AsbestoSampleListAir(props) {
         )}
       </div>
       {doc.historicalCoc && (
-        <div className={classes.columnSmall}>{sample.fibreResult || ""}</div>
+        <div className={classes.columnSmall}>
+          {sample.fibreResult || sample.fibreResult === 0
+            ? sample.fibreResult
+            : ""}
+        </div>
       )}
       {doc.historicalCoc && (
         <div className={classes.columnSmall}>

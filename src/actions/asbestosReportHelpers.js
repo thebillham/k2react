@@ -126,7 +126,10 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
                     ? moment(dateOf(acm.sample.startTime)).format("h:mma")
                     : "N/A",
                   totalTime: acm.sample.totalRunTime || "N/A",
-                  fibreResult: acm.sample.fibreResult || "N/A",
+                  fibreResult:
+                    acm.sample.fibreResult || acm.sample.fibreResult === 0
+                      ? acm.sample.fibreResult
+                      : "N/A",
                   reportConcentration: acm.sample.reportConcentration || "N/A"
                 };
                 rows.push(row);

@@ -729,10 +729,10 @@ class AcmCard extends React.Component {
                       options={
                         this.props.sites &&
                         this.props.sites[this.props.site] &&
-                        this.props.sites[this.props.site].clearances
-                          ? Object.values(
-                              this.props.sites[this.props.site].clearances
-                            ).map(e => ({
+                        this.props.sites[this.props.site].asbestosRemovals
+                          ? this.props.sites[
+                              this.props.site
+                            ].asbestosRemovals.map(e => ({
                               value: e,
                               label: `${e.referenceNumber} ${
                                 e.asbestosRemovalist

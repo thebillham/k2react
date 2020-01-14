@@ -7,7 +7,9 @@ import { showModal } from "../../../actions/modal";
 import {
   WFM_TIME,
   SITE_JOB,
-  ASBESTOS_COC_EDIT
+  ASBESTOS_COC_EDIT,
+  SITE_VISIT,
+  ASBESTOS_CLEARANCE
 } from "../../../constants/modal-types";
 import Button from "@material-ui/core/Button";
 
@@ -28,7 +30,6 @@ import SyncIcon from "@material-ui/icons/Sync";
 import LinkIcon from "@material-ui/icons/Link";
 import TimerIcon from "@material-ui/icons/Timer";
 import DeleteIcon from "@material-ui/icons/Close";
-import SuggestionField from "../../../widgets/SuggestionField";
 import EditIcon from "@material-ui/icons/Edit";
 
 import {
@@ -111,7 +112,7 @@ const mapDispatchToProps = dispatch => {
     handleSiteChange: info => dispatch(handleSiteChange(info)),
     handleSiteChangeDebounced: _.debounce(
       info => dispatch(handleSiteChange(info)),
-      2000
+      500
     ),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
     fetchCurrentJobState: ignoreCompleted =>
@@ -158,35 +159,8 @@ const mapStyles = {
 
 class SiteGeneralInformation extends React.Component {
   state = {
-    countSiteVisitsAsbestos: 1,
-    countClearances: 1,
     update: {}
   };
-
-  UNSAFE_componentWillMount() {
-    let countSiteVisitsAsbestos = 1,
-      countClearances = 1;
-    if (this.props.sites && this.props.sites[this.props.site]) {
-      let site = this.props.sites[this.props.site];
-      if (
-        site.siteVisitsAsbestos &&
-        Object.keys(site.siteVisitsAsbestos).length > 0
-      ) {
-        countSiteVisitsAsbestos = Math.max(
-          ...Object.keys(site.siteVisitsAsbestos).map(key => parseInt(key))
-        );
-      }
-      if (site.clearances && Object.keys(site.clearances).length > 0) {
-        countClearances = Math.max(
-          ...Object.keys(site.clearances).map(key => parseInt(key))
-        );
-      }
-    }
-    this.setState({
-      countSiteVisitsAsbestos,
-      countClearances
-    });
-  }
 
   toggleCollapse = name => {
     this.setState({
@@ -194,31 +168,10 @@ class SiteGeneralInformation extends React.Component {
     });
   };
 
-  addList = field => {
-    this.setState({
-      [`count${field}`]: this.state[`count${field}`]
-        ? this.state[`count${field}`] + 1
-        : 2
-    });
-  };
-
-  removeList = field => {
-    let obj = field ? field.slice(0, 1).toLowerCase() + field.slice(1) : null;
-    let num = this.state[`count${field}`] ? this.state[`count${field}`] : 1;
-    if (obj)
-      this.props.handleSiteChange({
-        site: this.props.sites[this.props.site],
-        o1: [obj],
-        field: num,
-        val: "delete"
-      });
-    this.setState({
-      [`count${field}`]: this.state[`count${field}`]
-        ? this.state[`count${field}`] > 1
-          ? this.state[`count${field}`] - 1
-          : 1
-        : 1
-    });
+  updateArray = (obj, arr, index) => {
+    if (obj === "delete") arr.splice(index, 1);
+    else arr[index] = obj;
+    return arr;
   };
 
   render() {
@@ -230,6 +183,7 @@ class SiteGeneralInformation extends React.Component {
       wfmClients,
       that,
       siteJobs,
+      siteCocs,
       siteTypes,
       assetClassesTrain
     } = this.props;
@@ -240,8 +194,45 @@ class SiteGeneralInformation extends React.Component {
     );
 
     let m = this.props.sites && this.props.sites[site];
-    // console.log(m);
-    console.log(this.props.siteCocs);
+    if (m && !m.siteVisits && m.siteVisitsAsbestos) {
+      let siteVisits = [];
+      Object.values(m.siteVisitsAsbestos).forEach(v => {
+        siteVisits.push(v);
+      });
+      this.props.handleSiteChangeDebounced({
+        site: m,
+        field: "siteVisits",
+        val: siteVisits
+      });
+    }
+
+    if (m && !m.asbestosRemovals && m.clearances) {
+      let asbestosRemovals = [];
+      Object.values(m.clearances).forEach(v => {
+        asbestosRemovals.push(v);
+      });
+      this.props.handleSiteChangeDebounced({
+        site: m,
+        field: "asbestosRemovals",
+        val: asbestosRemovals
+      });
+    }
+
+    if (m && !m.jobList && siteJobs && siteJobs[site]) {
+      let jobList = [];
+      Object.values(siteJobs[site]).forEach(v => {
+        let jobSummary = {
+          jobNumber: v.jobNumber,
+          jobDescription: v.jobDescription
+        };
+        jobList.push(jobSummary);
+      });
+      this.props.handleSiteChangeDebounced({
+        site: m,
+        field: "jobList",
+        val: jobList
+      });
+    }
 
     if (m) {
       const color = classes[getJobColor(m.primaryJobType)];
@@ -321,7 +312,7 @@ class SiteGeneralInformation extends React.Component {
                         label: e.label
                       }))}
                       onChange={e => {
-                        this.props.handleSiteChangeDebounced({
+                        this.props.handleSiteChange({
                           site: m,
                           field: "assetClass",
                           val: e.value
@@ -357,19 +348,6 @@ class SiteGeneralInformation extends React.Component {
                   />
                   <TextField
                     className={classes.formInputLarge}
-                    id="manufactureYear"
-                    label="Year(s) of Manufacture"
-                    defaultValue={m.manufactureYear || ""}
-                    onChange={e => {
-                      this.props.handleSiteChangeDebounced({
-                        site: m,
-                        field: "manufactureYear",
-                        val: e.target.value
-                      });
-                    }}
-                  />
-                  <TextField
-                    className={classes.formInputLarge}
                     id="countryOfOrigin"
                     label="Country of Origin"
                     defaultValue={m.countryOfOrigin || ""}
@@ -383,13 +361,26 @@ class SiteGeneralInformation extends React.Component {
                   />
                   <TextField
                     className={classes.formInputLarge}
+                    id="manufactureYear"
+                    label="Year(s) of Manufacture"
+                    defaultValue={m.manufactureYear || ""}
+                    onChange={e => {
+                      this.props.handleSiteChangeDebounced({
+                        site: m,
+                        field: "manufactureYear",
+                        val: e.target.value
+                      });
+                    }}
+                  />
+                  <TextField
+                    className={classes.formInputLarge}
                     id="previousClassifications"
                     label="Previous Classifications"
                     multiline
-                    rows={2}
+                    maxRows={5}
                     defaultValue={m.previousClassifications || ""}
                     onChange={e => {
-                      this.props.handleSiteChangeDebounced({
+                      this.props.handleSiteChange({
                         site: m,
                         field: "previousClassifications",
                         val: e.target.value
@@ -561,601 +552,355 @@ class SiteGeneralInformation extends React.Component {
                 <div>No jobs assigned to site.</div>
               )}
             </div>
+
             <div className={classes.informationBoxWhiteRounded}>
-              <div className={classNames(color, classes.expandHeading)}>
-                Site Visits
-              </div>
-              <div
-                className={classNames(
-                  classes.subHeading,
-                  classes.flexRowCenter
-                )}
-              >
-                <IconButton
-                  size="small"
-                  aria-label="add"
-                  className={classes.marginLeftSmall}
-                  onClick={() => this.addList("SiteVisitsAsbestos")}
-                >
-                  <AddIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  aria-label="remove"
-                  className={classes.marginLeftSmall}
-                  onClick={() => this.removeList("SiteVisitsAsbestos")}
-                >
-                  <RemoveIcon />
-                </IconButton>
-              </div>
-              {[
-                ...Array(
-                  this.state.countSiteVisitsAsbestos
-                    ? this.state.countSiteVisitsAsbestos
-                    : 1
-                ).keys()
-              ].map(i => {
-                let num = i + 1,
-                  s =
-                    m.siteVisitsAsbestos && m.siteVisitsAsbestos[num]
-                      ? m.siteVisitsAsbestos[num]
-                      : {};
-                // console.log(s);
-                return (
-                  <div
-                    className={classes.hoverNoFlex}
-                    key={`siteVisitsAsbestos${num}`}
+              <div className={classes.flexRowSpread}>
+                <div className={classNames(color, classes.expandHeading)}>
+                  Site Visits
+                </div>
+                <Tooltip title={"Add Site Visit"}>
+                  <IconButton
+                    onClick={e => {
+                      this.props.showModal({
+                        modalType: SITE_VISIT,
+                        modalProps: {
+                          doc: {},
+                          siteUid: site,
+                          callBack: state => {
+                            console.log(state);
+                            this.props.handleSiteChange({
+                              site: m,
+                              field: "siteVisits",
+                              val: m.siteVisits
+                                ? m.siteVisits.concat([state])
+                                : [state]
+                            });
+                          }
+                        }
+                      });
+                    }}
                   >
-                    <div className={classes.flexRowBottom}>
-                      <div className={classes.circleShaded}>{num}</div>
-                      <DatePicker
-                        value={s.date ? dateOf(s.date) : null}
-                        autoOk
-                        className={classes.columnMed}
-                        format="ddd, D MMMM YYYY"
-                        label={"Date"}
-                        disableToolbar
-                        variant="inline"
-                        openTo="year"
-                        views={["year", "month", "date"]}
-                        onChange={date => {
-                          this.props.handleSiteChange({
-                            site: m,
-                            o1: "siteVisitsAsbestos",
-                            o2: num.toString(),
-                            field: "date",
-                            val: dateOf(date)
-                          });
-                        }}
-                      />
-                      <div>
-                        <InputLabel>Site Personnel</InputLabel>
-                        <Select
-                          isMulti
-                          className={classNames(
-                            classes.selectTight,
-                            s.personnel && s.personnel[0].uid === "3rd Party"
-                              ? classes.columnMed
-                              : classes.columnExtraLarge
-                          )}
-                          value={
-                            s.personnel
-                              ? s.personnel.map(e => ({
-                                  value: e.uid,
-                                  label: e.name
-                                }))
-                              : null
-                          }
-                          options={names.map(e => ({
-                            value: e.uid,
-                            label: e.name
-                          }))}
-                          onChange={e => {
-                            this.props.handleSiteChange({
-                              site: m,
-                              o1: "siteVisitsAsbestos",
-                              o2: num.toString(),
-                              field: "personnel",
-                              val: personnelConvert(e)
-                            });
-                          }}
-                        />
-                      </div>
-                      {s.personnel && s.personnel[0].uid === "3rd Party" && (
-                        <TextField
-                          label="3rd Party Company Name"
-                          className={classes.columnMedLarge}
-                          defaultValue={s.companyName ? s.companyName : null}
-                          onChange={e => {
-                            this.props.handleSiteChangeDebounced({
-                              site: m,
-                              o1: "siteVisitsAsbestos",
-                              o2: num.toString(),
-                              field: "companyName",
-                              val: e.target.value
-                            });
-                          }}
-                        />
-                      )}
-                    </div>
-                    <div className={classes.flexRowBottom}>
-                      <div>
-                        <InputLabel>Site Visit Type</InputLabel>
-                        <Select
-                          className={classNames(
-                            classes.selectTight,
-                            classes.columnLarge
-                          )}
-                          value={
-                            s.type
-                              ? {
-                                  value: s.type,
-                                  label: this.props.siteVisitTypeAsbestos.filter(
-                                    e => e.value === s.type
-                                  )[0].label
-                                }
-                              : null
-                          }
-                          options={this.props.siteVisitTypeAsbestos}
-                          onChange={e => {
-                            this.props.handleSiteChange({
-                              site: m,
-                              o1: "siteVisitsAsbestos",
-                              o2: num.toString(),
-                              field: "type",
-                              val: e.value
-                            });
-                          }}
-                        />
-                      </div>
-                      {s.personnel && s.personnel[0].uid === "3rd Party" ? (
-                        <TextField
-                          label="Reference/Job Number"
-                          className={classes.columnMed}
-                          defaultValue={
-                            s.referenceNumber ? s.referenceNumber : null
-                          }
-                          onChange={e => {
-                            this.props.handleSiteChangeDebounced({
-                              site: m,
-                              o1: "siteVisitsAsbestos",
-                              o2: num.toString(),
-                              field: "referenceNumber",
-                              val: e.target.value
-                            });
-                          }}
-                        />
-                      ) : (
+                    <AddIcon className={classes.iconRegular} />
+                  </IconButton>
+                </Tooltip>
+              </div>
+              {m.siteVisits && m.siteVisits.length > 0 ? (
+                m.siteVisits
+                  .sort(
+                    (a, b) =>
+                      moment(dateOf(a.date)).format("YYYYMMDD") -
+                      moment(dateOf(b.date)).format("YYYYMMDD")
+                  )
+                  .map((v, index) => {
+                    // console.log(v);
+                    // let vColor = classes[this.getSiteVisitColor(v)];
+                    return (
+                      <div
+                        className={classNames(
+                          classes.flexRowSpread,
+                          classes.hoverColor
+                        )}
+                        key={index}
+                      >
                         <div>
-                          <InputLabel>Job Number</InputLabel>
-                          <Select
-                            placeholder={"Add Job Numbers from Home Screen"}
-                            className={classNames(
-                              classes.selectTight,
-                              classes.columnMed
-                            )}
-                            value={
-                              s.referenceNumber
-                                ? {
-                                    value: s.referenceNumber,
-                                    label: s.referenceNumber
-                                  }
-                                : null
-                            }
-                            options={
-                              this.props.siteJobs &&
-                              this.props.siteJobs[m.uid] &&
-                              Object.values(this.props.siteJobs[m.uid]).map(
-                                e => ({
-                                  value: e.jobNumber,
-                                  label: `${e.jobNumber}: ${e.jobDescription}`
-                                })
-                              )
-                            }
-                            onChange={e => {
-                              this.props.handleSiteChange({
-                                site: m,
-                                o1: "siteVisitsAsbestos",
-                                o2: num.toString(),
-                                field: "referenceNumber",
-                                val: e.value
-                              });
-                            }}
-                          />
+                          <div className={classes.bold}>
+                            {`${v.referenceNumber} ${
+                              this.props.siteVisitTypeAsbestos.filter(
+                                e => e.value === v.type
+                              )[0].label
+                            }`}
+                          </div>
+                          <div>
+                            {`${moment(dateOf(v.date)).format(
+                              "ddd, D MMMM YYYY"
+                            )} `}
+                            <span className={classes.italic}>
+                              {andList(v.personnel.map(e => e.name))}
+                            </span>
+                          </div>
                         </div>
-                      )}
-                      <div className={classes.spacerSmall} />
-                      <TextField
-                        label="Notes"
-                        className={classes.columnLarge}
-                        defaultValue={s.notes ? s.notes : null}
-                        onChange={e => {
-                          this.props.handleSiteChangeDebounced({
-                            site: m,
-                            o1: "siteVisitsAsbestos",
-                            o2: num.toString(),
-                            field: "notes",
-                            val: e.target.value
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className={classes.informationBoxWhiteRounded}>
-              <div className={classNames(color, classes.expandHeading)}>
-                Chains of Custody
-              </div>
-              <div
-                className={classNames(
-                  classes.subHeading,
-                  classes.flexRowCenter
-                )}
-              >
-                <Button
-                  variant="outlined"
-                  className={classes.marginBottomSmall}
-                  onClick={() => {
-                    this.props.showModal({
-                      modalType: ASBESTOS_COC_EDIT,
-                      modalProps: {
-                        title: "Add Historical Chain of Custody",
-                        doc: {
-                          samples: {},
-                          deleted: false,
-                          versionUpToDate: true,
-                          mostRecentIssueSent: true,
-                          historicalCoc: true
-                        },
-                        isNew: true
-                      }
-                    });
-                  }}
-                >
-                  Add Historical Chain of Custody
-                </Button>
-              </div>
-              {this.props.siteCocs && this.props.siteCocs[this.props.site] ? (
-                Object.values(this.props.siteCocs[this.props.site]).map(coc =>
-                  this.getCocListItem(coc)
-                )
+                        <div className={classes.flexRow}>
+                          <Tooltip title={"Edit"}>
+                            <IconButton
+                              onClick={e => {
+                                this.props.showModal({
+                                  modalType: SITE_VISIT,
+                                  modalProps: {
+                                    doc: v,
+                                    siteUid: site,
+                                    callBack: state => {
+                                      console.log(state);
+                                      this.props.handleSiteChange({
+                                        site: m,
+                                        field: "siteVisits",
+                                        val: this.updateArray(
+                                          state,
+                                          m.siteVisits,
+                                          index
+                                        )
+                                      });
+                                    }
+                                  }
+                                });
+                              }}
+                            >
+                              <EditIcon className={classes.iconRegular} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={"Delete Site Visit"}>
+                            <IconButton
+                              onClick={e => {
+                                if (
+                                  window.confirm(
+                                    "Are you sure you wish to delete this Site Visit?"
+                                  )
+                                )
+                                  this.updateArray(
+                                    "delete",
+                                    m.siteVisits,
+                                    index
+                                  );
+                              }}
+                            >
+                              <DeleteIcon className={classes.iconRegular} />
+                            </IconButton>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    );
+                  })
               ) : (
-                <div>No Chains of Custody</div>
+                <div>No site visits logged.</div>
               )}
             </div>
+
             <div className={classes.informationBoxWhiteRounded}>
-              <div className={classNames(color, classes.expandHeading)}>
-                Clearances
-              </div>
-              <div
-                className={classNames(
-                  classes.subHeading,
-                  classes.flexRowCenter
-                )}
-              >
-                <IconButton
-                  size="small"
-                  aria-label="add"
-                  className={classes.marginLeftSmall}
-                  onClick={() => this.addList("Clearances")}
-                >
-                  <AddIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  aria-label="remove"
-                  className={classes.marginLeftSmall}
-                  onClick={() => this.removeList("Clearances")}
-                >
-                  <RemoveIcon />
-                </IconButton>
-              </div>
-              {[
-                ...Array(
-                  this.state.countClearances ? this.state.countClearances : 1
-                ).keys()
-              ].map(i => {
-                let num = i + 1,
-                  s =
-                    m.clearances && m.clearances[num] ? m.clearances[num] : {};
-                return (
-                  <div className={classes.hoverNoFlex} key={`clearance${num}`}>
-                    <div className={classes.flexRowBottom}>
-                      <div className={classes.circleShaded}>{num}</div>
-                      <div className={classes.columnMedLarge}>
-                        <InputLabel>Asbestos Removalist</InputLabel>
-                        <SuggestionField
-                          that={this}
-                          suggestions="asbestosRemovalists"
-                          defaultValue={
-                            s.asbestosRemovalist ? s.asbestosRemovalist : ""
-                          }
-                          onModify={value => {
-                            this.props.handleSiteChangeDebounced({
-                              site: m,
-                              o1: "clearances",
-                              o2: num.toString(),
-                              field: "asbestosRemovalist",
-                              val: value
-                            });
-                            if (
-                              this.props.asbestosRemovalists &&
-                              this.props.asbestosRemovalists.filter(
-                                e => e.label === value
-                              ).length > 0
-                            )
-                              this.props.handleSiteChange({
-                                site: m,
-                                o1: "clearances",
-                                o2: num.toString(),
-                                field: "asbestosRemovalistLicence",
-                                val: this.props.asbestosRemovalists.filter(
-                                  e => e.label === value
-                                )[0].value
-                              });
-                          }}
-                        />
-                      </div>
-                      <TextField
-                        label="Asbestos Removalist Licence Number"
-                        className={classes.columnMed}
-                        value={
-                          s.asbestosRemovalistLicence
-                            ? s.asbestosRemovalistLicence
-                            : ""
+              <div className={classes.flexRowSpread}>
+                <div className={classNames(color, classes.expandHeading)}>
+                  Chains of Custody
+                </div>
+                <Tooltip title={"Add Chain of Custody"}>
+                  <IconButton
+                    onClick={() => {
+                      this.props.showModal({
+                        modalType: ASBESTOS_COC_EDIT,
+                        modalProps: {
+                          title: "Add Historical Chain of Custody",
+                          doc: {
+                            samples: {},
+                            deleted: false,
+                            versionUpToDate: true,
+                            mostRecentIssueSent: true,
+                            historicalCoc: true
+                          },
+                          isNew: true
                         }
-                        onChange={e => {
-                          this.props.handleSiteChange({
-                            site: m,
-                            o1: "clearances",
-                            o2: num.toString(),
-                            field: "asbestosRemovalistLicence",
-                            val: e.target.value
-                          });
-                        }}
-                      />
-                      <DatePicker
-                        value={s.removalDate ? dateOf(s.removalDate) : null}
-                        autoOk
-                        className={classes.columnMed}
-                        format="ddd, D MMMM YYYY"
-                        variant="inline"
-                        disableToolbar
-                        label={"Removal Completion Date"}
-                        views={["year", "month", "date"]}
-                        openTo="year"
-                        onChange={date => {
-                          this.props.handleSiteChange({
-                            site: m,
-                            o1: "clearances",
-                            o2: num.toString(),
-                            field: "removalDate",
-                            val: dateOf(date)
-                          });
-                        }}
-                      />
-                      <TextField
-                        label="Description of Removal"
-                        className={classes.columnMedLarge}
-                        multiline
-                        defaultValue={s.description ? s.description : ""}
-                        onChange={e => {
-                          this.props.handleSiteChangeDebounced({
-                            site: m,
-                            o1: "clearances",
-                            o2: num.toString(),
-                            field: "description",
-                            val: e.target.value
-                          });
-                        }}
-                      />
-                    </div>
-                    <div className={classes.flexRowBottom}>
-                      <DatePicker
-                        value={s.clearanceDate ? dateOf(s.clearanceDate) : null}
-                        autoOk
-                        className={classes.columnMed}
-                        format="ddd, D MMMM YYYY"
-                        variant="inline"
-                        disableToolbar
-                        label={"Clearance Inspection Date"}
-                        views={["year", "month", "date"]}
-                        openTo="year"
-                        onChange={date => {
-                          this.props.handleSiteChange({
-                            site: m,
-                            o1: "clearances",
-                            o2: num.toString(),
-                            field: "clearanceDate",
-                            val: dateOf(date)
-                          });
-                        }}
-                      />
-                      <div className={classes.spacerSmall} />
+                      });
+                    }}
+                  >
+                    <AddIcon className={classes.iconRegular} />
+                  </IconButton>
+                </Tooltip>
+              </div>
+              {siteCocs &&
+              siteCocs[m.uid] &&
+              Object.values(siteCocs[m.uid]) &&
+              Object.values(siteCocs[m.uid]).length > 0 ? (
+                Object.values(siteCocs[m.uid])
+                  .sort(
+                    (a, b) =>
+                      moment(dateOf(a.issueDate || new Date())).format(
+                        "YYYYMMDD"
+                      ) -
+                      moment(dateOf(b.issueDate || new Date())).format(
+                        "YYYYMMDD"
+                      )
+                  )
+                  .map((coc, index) => {
+                    return (
                       <div
-                        className={
-                          s.personnel && s.personnel[0].uid === "3rd Party"
-                            ? classes.columnMed
-                            : classes.columnLarge
-                        }
+                        className={classNames(
+                          classes.flexRowSpread,
+                          classes.hoverColor
+                        )}
+                        key={coc.uid}
                       >
-                        <InputLabel>Asbestos Assessor</InputLabel>
-                        <Select
-                          isMulti
-                          className={classes.selectTight}
-                          value={
-                            s.personnel
-                              ? s.personnel.map(e => ({
-                                  value: e.uid,
-                                  label: e.name
-                                }))
-                              : null
-                          }
-                          options={names.map(e => ({
-                            value: e.uid,
-                            label: e.name
-                          }))}
-                          onChange={e => {
+                        <div>
+                          <div className={classes.bold}>
+                            {`${coc.jobNumber} ${coc.client}`}
+                          </div>
+                          <div>
+                            {`${moment(dateOf(coc.issueDate)).format(
+                              "ddd, D MMMM YYYY"
+                            )} `}
+                            <span className={classes.italic}>
+                              {coc.sampleCount
+                                ? `${coc.sampleCount} ${
+                                    coc.sampleType === "air" ? "Air" : "Bulk"
+                                  } Sample${coc.sampleCount > 1 ? "s" : ""}`
+                                : coc.sampleList
+                                ? `${coc.sampleList.length} ${
+                                    coc.sampleType === "air" ? "Air" : "Bulk"
+                                  } Sample${
+                                    coc.sampleList.length > 1 ? "s" : ""
+                                  }`
+                                : ""}
+                            </span>
+                          </div>
+                        </div>
+                        <div className={classes.flexRow}>
+                          <Tooltip title="Edit Chain of Custody">
+                            <IconButton
+                              onClick={() => {
+                                this.props.getDetailedWFMJob({
+                                  jobNumber: coc.jobNumber
+                                });
+                                this.props.showModal({
+                                  modalType: ASBESTOS_COC_EDIT,
+                                  modalProps: {
+                                    title: "Edit Chain of Custody",
+                                    doc: coc
+                                  }
+                                });
+                              }}
+                            >
+                              <EditIcon className={classes.iconRegular} />
+                            </IconButton>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    );
+                  })
+              ) : (
+                <div>No Chains of Custody.</div>
+              )}
+            </div>
+
+            <div className={classes.informationBoxWhiteRounded}>
+              <div className={classes.flexRowSpread}>
+                <div className={classNames(color, classes.expandHeading)}>
+                  Asbestos Removals
+                </div>
+                <Tooltip title={"Add Asbestos Removal"}>
+                  <IconButton
+                    onClick={e => {
+                      this.props.showModal({
+                        modalType: ASBESTOS_CLEARANCE,
+                        modalProps: {
+                          doc: {},
+                          siteUid: site,
+                          callBack: state => {
                             this.props.handleSiteChange({
                               site: m,
-                              o1: "clearances",
-                              o2: num.toString(),
-                              field: "personnel",
-                              val: personnelConvert(e)
+                              field: "asbestosRemovals",
+                              val: m.asbestosRemovals
+                                ? m.asbestosRemovals.concat([state])
+                                : [state]
                             });
-                          }}
-                        />
-                      </div>
-                      {s.personnel && s.personnel[0].uid === "3rd Party" && (
-                        <TextField
-                          label="Licence Number"
-                          className={classes.columnMed}
-                          defaultValue={
-                            s.asbestosAssessorLicence
-                              ? s.asbestosAssessorLicence
-                              : ""
                           }
-                          onChange={e => {
-                            this.props.handleSiteChangeDebounced({
-                              site: m,
-                              o1: "clearances",
-                              o2: num.toString(),
-                              field: "asbestosAssessorLicence",
-                              val: e.target.value
-                            });
-                          }}
-                        />
-                      )}
-                      {s.personnel && s.personnel[0].uid === "3rd Party" ? (
-                        <TextField
-                          label="Reference/Job Number"
-                          className={classes.columnMed}
-                          defaultValue={
-                            s.referenceNumber ? s.referenceNumber : null
-                          }
-                          onChange={e => {
-                            this.props.handleSiteChangeDebounced({
-                              site: m,
-                              o1: "clearances",
-                              o2: num.toString(),
-                              field: "referenceNumber",
-                              val: e.target.value
-                            });
-                          }}
-                        />
-                      ) : (
+                        }
+                      });
+                    }}
+                  >
+                    <AddIcon className={classes.iconRegular} />
+                  </IconButton>
+                </Tooltip>
+              </div>
+              {m.asbestosRemovals && m.asbestosRemovals.length > 0 ? (
+                m.asbestosRemovals
+                  .sort(
+                    (a, b) =>
+                      moment(dateOf(a.date)).format("YYYYMMDD") -
+                      moment(dateOf(b.date)).format("YYYYMMDD")
+                  )
+                  .map((v, index) => {
+                    // console.log(v);
+                    // let vColor = classes[this.getSiteVisitColor(v)];
+                    return (
+                      <div
+                        className={classNames(
+                          classes.flexRowSpread,
+                          classes.hoverColor
+                        )}
+                        key={index}
+                      >
                         <div>
-                          <InputLabel>Job Number</InputLabel>
-                          <Select
-                            placeholder={"Add Job Numbers from Home Screen"}
-                            className={classNames(
-                              classes.selectTight,
-                              classes.columnMed
-                            )}
-                            value={
-                              s.referenceNumber
-                                ? {
-                                    value: s.referenceNumber,
-                                    label: s.referenceNumber
-                                  }
-                                : null
-                            }
-                            options={
-                              this.props.siteJobs &&
-                              this.props.siteJobs[m.uid] &&
-                              Object.values(this.props.siteJobs[m.uid]).map(
-                                e => ({
-                                  value: e.jobNumber,
-                                  label: `${e.jobNumber}: ${e.jobDescription}`
-                                })
-                              )
-                            }
-                            onChange={e => {
-                              this.props.handleSiteChange({
-                                site: m,
-                                o1: "clearances",
-                                o2: num.toString(),
-                                field: "referenceNumber",
-                                val: e.value
-                              });
-                            }}
-                          />
+                          <div className={classes.bold}>
+                            {`${v.referenceNumber} ${
+                              v.asbestosRemovalist ? v.asbestosRemovalist : ""
+                            }${
+                              v.asbestosRemovalistLicence
+                                ? ` (${v.asbestosRemovalistLicence})`
+                                : ""
+                            }`}
+                          </div>
+                          <div>
+                            {`${moment(dateOf(v.issueDate)).format(
+                              "ddd, D MMMM YYYY"
+                            )} `}
+                            <span className={classes.italic}>
+                              {v.description}
+                            </span>
+                          </div>
                         </div>
-                      )}
-                      <div className={classes.spacerSmall} />
-                      <DatePicker
-                        value={s.issueDate ? dateOf(s.issueDate) : null}
-                        autoOk
-                        className={classes.columnMed}
-                        format="ddd, D MMMM YYYY"
-                        variant="inline"
-                        disableToolbar
-                        label={"Certificate Issue Date"}
-                        views={["year", "month", "date"]}
-                        openTo="year"
-                        onChange={date => {
-                          this.props.handleSiteChange({
-                            site: m,
-                            o1: "clearances",
-                            o2: num.toString(),
-                            field: "issueDate",
-                            val: dateOf(date)
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                        <div className={classes.flexRow}>
+                          <Tooltip title={"Edit"}>
+                            <IconButton
+                              onClick={e => {
+                                this.props.showModal({
+                                  modalType: ASBESTOS_CLEARANCE,
+                                  modalProps: {
+                                    doc: v,
+                                    siteUid: site,
+                                    callBack: state => {
+                                      this.props.handleSiteChange({
+                                        site: m,
+                                        field: "asbestosRemovals",
+                                        val: this.updateArray(
+                                          state,
+                                          m.asbestosRemovals,
+                                          index
+                                        )
+                                      });
+                                    }
+                                  }
+                                });
+                              }}
+                            >
+                              <EditIcon className={classes.iconRegular} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={"Delete Asbestos Removal"}>
+                            <IconButton
+                              onClick={e => {
+                                if (
+                                  window.confirm(
+                                    "Are you sure you wish to delete this Asbestos Removal?"
+                                  )
+                                )
+                                  this.updateArray(
+                                    "delete",
+                                    m.asbestosRemovals,
+                                    index
+                                  );
+                              }}
+                            >
+                              <DeleteIcon className={classes.iconRegular} />
+                            </IconButton>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    );
+                  })
+              ) : (
+                <div>No Asbestos Removals logged.</div>
+              )}
             </div>
           </Grid>
         </Grid>
       );
     } else return <div />;
   }
-
-  getCocListItem = coc => {
-    const { classes, samples } = this.props;
-    return (
-      <div className={classes.hoverNoFlex} key={coc.uid}>
-        <div className={classes.flexRowSpread}>
-          <div className={classNames(classes.columnMed, classes.bold)}>
-            {`${coc.jobNumber} ${coc.client}`}
-          </div>
-          <div className={classes.columnMed}>
-            {moment(dateOf(coc.issueDate)).format("ddd, D MMMM YYYY")}
-          </div>
-          <div className={classes.columnMedLarge}>
-            {coc.sampleList
-              ? `${coc.sampleList.length} ${
-                  coc.sampleType === "air" ? "Air" : "Bulk"
-                } Sample${coc.sampleList.length > 1 ? "s" : ""}`
-              : ""}
-          </div>
-          <div className={classes.flexRow}>
-            <Tooltip title="Edit Chain of Custody">
-              <IconButton
-                onClick={() => {
-                  this.props.getDetailedWFMJob({ jobNumber: coc.jobNumber });
-                  this.props.showModal({
-                    modalType: ASBESTOS_COC_EDIT,
-                    modalProps: {
-                      title: "Edit Chain of Custody",
-                      doc: coc
-                    }
-                  });
-                }}
-              >
-                <EditIcon className={classes.iconRegular} />
-              </IconButton>
-            </Tooltip>
-          </div>
-        </div>
-      </div>
-    );
-  };
 }
 
 export default GoogleApiWrapper({

@@ -238,8 +238,6 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
   saveSample = onComplete => {
     const { sample, samples } = this.state;
     const { modalProps } = this.props;
-    console.log(sample);
-    console.log(this.props.samples[sample.cocUid][sample.sampleNumber]);
     if (sample) {
       let calcs = {};
       if (
@@ -403,6 +401,7 @@ class AsbestosSampleCocEditModal extends React.PureComponent {
     const { classes, modalProps, modalType, samples } = this.props;
     const { sample } = this.state;
     const disabled = sample.cocUid != modalProps.doc.uid;
+    console.log(sample);
 
     let calcs = {};
     if (

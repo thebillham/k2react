@@ -425,11 +425,7 @@ class CocModal extends React.PureComponent {
                               <SuggestionField
                                 that={this}
                                 suggestions="airTestDescriptions"
-                                defaultValue={
-                                  doc.airTestDescription
-                                    ? doc.airTestDescription
-                                    : ""
-                                }
+                                defaultValue={doc.airTestDescription || ""}
                                 onModify={value => {
                                   this.setState({
                                     modified: true
