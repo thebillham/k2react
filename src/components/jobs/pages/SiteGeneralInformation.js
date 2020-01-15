@@ -194,31 +194,8 @@ class SiteGeneralInformation extends React.Component {
     );
 
     let m = this.props.sites && this.props.sites[site];
-    if (m && !m.siteVisits && m.siteVisitsAsbestos) {
-      let siteVisits = [];
-      Object.values(m.siteVisitsAsbestos).forEach(v => {
-        siteVisits.push(v);
-      });
-      this.props.handleSiteChangeDebounced({
-        site: m,
-        field: "siteVisits",
-        val: siteVisits
-      });
-    }
 
-    if (m && !m.asbestosRemovals && m.clearances) {
-      let asbestosRemovals = [];
-      Object.values(m.clearances).forEach(v => {
-        asbestosRemovals.push(v);
-      });
-      this.props.handleSiteChangeDebounced({
-        site: m,
-        field: "asbestosRemovals",
-        val: asbestosRemovals
-      });
-    }
-
-    if (m && !m.jobList && siteJobs && siteJobs[site]) {
+    if (m && siteJobs && siteJobs[site]) {
       let jobList = [];
       Object.values(siteJobs[site]).forEach(v => {
         let jobSummary = {
