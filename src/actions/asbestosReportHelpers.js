@@ -540,8 +540,8 @@ export const issueDocument = ({
   if (template.includes("AMP")) {
     let sitePersonnel = [],
       siteVisits = [];
-    if (site.siteVisitsAsbestos) {
-      Object.values(site.siteVisitsAsbestos).forEach(v => {
+    if (site.siteVisits) {
+      Object.values(site.siteVisits).forEach(v => {
         if (v.referenceNumber === job.jobNumber) {
           v.date && siteVisits.push(v.date);
           v.personnel &&
@@ -675,7 +675,12 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
           ) || [],
         presumedAcm =
           Object.values(siteAcm).filter(
-            e => e.idKey === "p" || e.idKey === "s"
+            e =>
+              (e.idKey === "p" || e.idKey === "s") &&
+              e.acmRemoved !== true &&
+              (!e.sample ||
+                !e.sample.result ||
+                getBasicResult(e.sample) === "positive")
           ) || [];
       Object.values(siteAcm).forEach(e => {
         if (e.immediateRisk) immediateRisk.push(e);
@@ -701,7 +706,11 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
           if (e.material || e.description) {
             if (e.room && e.room.label) {
               let room = e.room.label;
-              if (e.room.uid === "generic") room = "other areas";
+              if (
+                e.room.label.toLowerCase() === "generic items/materials" ||
+                e.room.label.toLowerCase() === "general items/materials"
+              )
+                room = "other areas";
               let item = e.writeItemFirst
                 ? `${
                     e.description && e.material
@@ -809,7 +818,12 @@ export const writeRiskToHealth = (job, siteAcm, template) => {
           ) || [],
         presumedAcm =
           Object.values(siteAcm).filter(
-            e => e.idKey === "p" || e.idKey === "s"
+            e =>
+              (e.idKey === "p" || e.idKey === "s") &&
+              e.acmRemoved !== true &&
+              (!e.sample ||
+                !e.sample.result ||
+                getBasicResult(e.sample) === "positive")
           ) || [];
       Object.values(siteAcm).forEach(e => {
         if (e.immediateRisk) immediateRisk.push(e);
@@ -864,43 +878,68 @@ export const writeBackground = (job, site, staff, template) => {
     );
 
     let siteVisits = [];
-    site.siteVisitsAsbestos &&
-      Object.values(site.siteVisitsAsbestos).forEach(e => {
-        siteVisits.push(
-          `${moment(dateOf(e.date)).format("dddd, D MMMM YYYY")}${
-            e.personnel
-              ? ` by ${andList(
-                  e.personnel.map(s => {
-                    let name = s.name;
-                    if (staff[s.uid] && staff[s.uid].aanumber)
-                      name += ` (${staff[s.uid].aanumber})`;
-                    return name;
-                  })
-                )}`
-              : ""
-          }`
-        );
-      });
+    site.siteVisits &&
+      Object.values(site.siteVisits)
+        .filter(e => e.type === "mgmt")
+        .forEach(e => {
+          siteVisits.push(
+            `${moment(dateOf(e.date)).format("dddd, D MMMM YYYY")}${
+              e.personnel
+                ? ` by ${andList(
+                    e.personnel.map(s => {
+                      let name = s.name;
+                      if (staff[s.uid] && staff[s.uid].aanumber)
+                        name += ` (${staff[s.uid].aanumber})`;
+                      return name;
+                    })
+                  )}`
+                : ""
+            }`
+          );
+        });
 
     if (siteVisits.length > 0) {
       bullets.push(
         siteVisits.length === 1
-          ? `A site visit was conducted on ${siteVisits[0]}`
-          : `Site visits were conducted on ${andList(siteVisits)}`
+          ? `An asbestos management survey was conducted on ${siteVisits[0]}`
+          : `Asbestos management surveys were conducted on ${andList(
+              siteVisits
+            )}`
       );
     }
 
-    let clearances = [];
-    site.clearances &&
-      Object.values(site.clearances).forEach(e => {
-        clearances.push(moment(dateOf(e.clearanceDate)).format("MMMM YYYY"));
+    // let clearances = [];
+    // site.asbestosRemovals &&
+    //   Object.values(site.asbestosRemovals).forEach(e => {
+    //     clearances.push(moment(dateOf(e.clearanceDate)).format("MMMM YYYY"));
+    //   });
+    //
+    // if (clearances.length > 0) {
+    //   bullets.push(
+    //     `Clearance works were carried out in ${andList(clearances)}`
+    //   );
+    // }
+
+    site.asbestosRemovals &&
+      site.asbestosRemovals.forEach(rem => {
+        bullets.push(
+          `${rem.description} was carried out by ${rem.asbestosRemovalist}${
+            rem.asbestosRemovalistLicence
+              ? ` (${rem.asbestosRemovalistLicence})`
+              : ""
+          }${
+            rem.removalDate
+              ? ` on ${moment(dateOf(rem.removalDate)).format("D MMMM YYYY")}`
+              : ""
+          }${
+            rem.issueDate
+              ? ` (Clearance issued on ${moment(dateOf(rem.issueDate)).format(
+                  "D MMMM YYYY"
+                )})`
+              : ""
+          }`
+        );
       });
-
-    if (clearances.length > 0) {
-      bullets.push(
-        `Clearance works were carried out in ${andList(clearances)}`
-      );
-    }
 
     bullets.push(
       `This Asbestos Management Plan sets out actions to be taken to manage Asbestos and Asbestos-Containing Materials (ACMs) in accordance with the Health and Safety at Work (Asbestos) Regulations 2016`
@@ -931,7 +970,12 @@ export const writeRecommendations = (job, siteAcm, template) => {
           ) || [],
         presumedAcm =
           Object.values(siteAcm).filter(
-            e => e.idKey === "p" || e.idKey === "s"
+            e =>
+              (e.idKey === "p" || e.idKey === "s") &&
+              e.acmRemoved !== true &&
+              (!e.sample ||
+                !e.sample.result ||
+                getBasicResult(e.sample) === "positive")
           ) || [];
       // No positive samples and no presumed items, remove section
       if (presumedAcm.length === 0 && identifiedAcm.length === 0) return null;

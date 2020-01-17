@@ -488,7 +488,7 @@ class SiteJob extends React.Component {
                         views={["year", "month", "date"]}
                         openTo="year"
                         onChange={date => {
-                          this.props.handleJobChangeDebounced({
+                          this.props.handleJobChange({
                             job: m,
                             o1: "versions",
                             o2: num.toString(),
@@ -536,7 +536,7 @@ class SiteJob extends React.Component {
                           label: e.name
                         }))}
                         onChange={e => {
-                          this.props.handleJobChangeDebounced({
+                          this.props.handleJobChange({
                             job: m,
                             o1: "versions",
                             o2: num.toString(),
@@ -566,7 +566,7 @@ class SiteJob extends React.Component {
                           label: e.name
                         }))}
                         onChange={e => {
-                          this.props.handleJobChangeDebounced({
+                          this.props.handleJobChange({
                             job: m,
                             o1: "versions",
                             o2: num.toString(),
@@ -593,7 +593,7 @@ class SiteJob extends React.Component {
                           label: e.name
                         }))}
                         onChange={e => {
-                          this.props.handleJobChangeDebounced({
+                          this.props.handleJobChange({
                             job: m,
                             o1: "versions",
                             o2: num.toString(),
