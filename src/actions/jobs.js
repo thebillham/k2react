@@ -684,8 +684,8 @@ export const getDetailedWFMJob = ({
         if (createUid) {
           let uid = `${job.jobNumber.toUpperCase()}_${job.client.toUpperCase()}_${moment().format(
             "x"
-          )}`;
-          // //console.log('New uid' + uid);
+          )}`.replace(/[.:/,\s]/g, "_");
+          console.log("New uid" + uid);
           dispatch({
             type: EDIT_MODAL_DOC,
             payload: { uid: uid }
@@ -2498,7 +2498,7 @@ export const getLeadHistoryDescription = (h, maxLength) => {
 };
 
 export const handleSiteChange = ({ site, o1, o2, field, val }) => dispatch => {
-  console.log(val);
+  // console.log(val);
   if (val !== null && val !== undefined) {
     if (o1 && !site[o1]) site[o1] = {};
     if (o2 && !site[o1][o2]) site[o1][o2] = {};

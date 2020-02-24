@@ -354,7 +354,7 @@ class SiteGeneralInformation extends React.Component {
                     id="previousClassifications"
                     label="Previous Classifications"
                     multiline
-                    maxRows={5}
+                    rows={5}
                     defaultValue={m.previousClassifications || ""}
                     onChange={e => {
                       this.props.handleSiteChange({

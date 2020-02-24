@@ -5,7 +5,7 @@ import ReactTable from "react-table";
 
 function AsbestosRegisterTable(props) {
   const { loading, airMonitoringRecords, classes } = props;
-  console.log(airMonitoringRecords);
+  // console.log(airMonitoringRecords);
   return (
     <div>
       <div className={classes.heading}>Air Monitoring Records</div>

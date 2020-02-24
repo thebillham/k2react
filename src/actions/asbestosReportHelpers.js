@@ -5,7 +5,8 @@ import {
   andList,
   lower,
   titleCase,
-  toDataURL
+  toDataURL,
+  writeDates
 } from "./helpers";
 import { writeResult, getBasicResult } from "./asbestosLab";
 import { handleJobChange } from "./jobs";
@@ -94,8 +95,12 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
                   if (acm.acmRemoved) {
                     row.acmRemoved = true;
                     row.recommendation = getAcmRemoved(acm);
+                    row.accessibility = "N/A";
+                    row.damageSurfaceNotes = "N/A";
                   } else {
+                    row.idKey = acm.idKey;
                     row.accessibility = acm.accessibility || "N/A";
+                    row.damageSurfaceNotes = getDamageSurfaceNotes(acm);
                     row.asbestosResult = getAsbestosResult(acm);
                     row.materialRisk = getMaterialRisk(acm);
                     row.priorityRisk = getPriorityRisk(acm);
@@ -401,6 +406,11 @@ export const getTotalRisk = (mRisk, pRisk) => {
   return riskMap;
 };
 
+export const getDamageSurfaceNotes = acm => {
+  if (acm.damageAndSurfaceNotes) return acm.damageAndSurfaceNotes;
+  else return `${acm.damageDescription}, ${acm.surfaceDescription}`;
+};
+
 export const getRecommendation = acm => {
   let str1 = "",
     str2 = "";
@@ -446,7 +456,7 @@ export const getRecommendation = acm => {
       str2 = "TEST";
     }
   }
-  if (str1 !== "" && str2 !== "") return `${str1}/${str2}`;
+  if (str1 !== "" && str2 !== "") return `${str1}\n${str2}`;
   else if (str1 !== "") return str1;
   else if (str2 !== "") return str2;
   else return "N/A";
@@ -630,6 +640,15 @@ export const nameFullQuals = e => {
   if (e.asbestosAssessorNumber)
     quals.push(`Asbestos Assessor No. ${e.asbestosAssessorNumber}`);
   return `${e.name}\n${quals.join(", ")}`;
+};
+
+export const nameFullQualsOneLine = e => {
+  let quals = [];
+  if (e.tertiary) quals.push(e.tertiary);
+  if (e.ip402) quals.push("BOHS IP402");
+  if (e.asbestosAssessorNumber)
+    quals.push(`Asbestos Assessor No. ${e.asbestosAssessorNumber}`);
+  return `${e.name} (${quals.join(", ")})`;
 };
 
 export const writeExecutiveSummary = (job, siteAcm, template) => {
@@ -1227,4 +1246,351 @@ export const writeRecommendations = (job, siteAcm, template) => {
       return null;
     }
   }
+};
+
+export const writeAssetOverview = ({ site, job, classDescriptions }) => {
+  // DC4260 is a DC Class Diesel Locomotive managed by KiwiRail
+  // It was manufactured by General Motors (EMD), Canada in 1967
+  // The locomotive was overhauled and modified with Low Cab at Clyde Engineering, South Australia in May 1979 and repainted at KiwiRail Worburn Railway Workshops in 2008
+  let assetDescription = "";
+  classDescriptions.forEach(c => {
+    if (c.label === site.assetClass) assetDescription = c.description;
+  });
+  if ("aeiou".includes(site.assetClass[0]))
+    assetDescription = `an ${site.assetClass} Class ${assetDescription}`;
+  else assetDescription = `a ${site.assetClass} Class ${assetDescription}`;
+  let bullets = [];
+  bullets.push(
+    `${site.assetClass}${site.assetNumber} is ${assetDescription} managed by ${job.client}`
+  );
+  bullets.push(
+    `It was manufactured by ${site.manufacturedBy}, ${site.countryOfOrigin} in ${site.manufactureYear}`
+  );
+  bullets.push(site.notesOnModification);
+  return `<ul>${bullets.map(e => `<li>${e}</li>`).join("")}</ul>`;
+};
+
+export const writeRiskOverview = (job, siteAcm) => {
+  // There is not an immediate risk to health. However, any activity that disturbs the asbestos-containing materials should be discontinued to prevent exposure to airborne asbestos.
+  let riskToHealthStr = "",
+    immediateActionsRequiredStr = "",
+    shortTermActionsStr = "";
+  if (siteAcm) {
+    let immediateRisk = [],
+      immediateActionsRequired = [],
+      shortTermActions = [],
+      acmGroups = [],
+      sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
+      identifiedAcm =
+        Object.values(siteAcm).filter(
+          e =>
+            e.idKey === "i" &&
+            e.sample &&
+            e.sample.result &&
+            getBasicResult(e.sample) === "positive" &&
+            e.acmRemoved !== true
+        ) || [],
+      presumedAcm =
+        Object.values(siteAcm).filter(
+          e =>
+            (e.idKey === "p" || e.idKey === "s") &&
+            e.acmRemoved !== true &&
+            (!e.sample ||
+              !e.sample.result ||
+              getBasicResult(e.sample) === "positive")
+        ) || [];
+    Object.values(siteAcm).forEach(e => {
+      if (e.immediateRisk) immediateRisk.push(e);
+      if (e.immediateRisk)
+        immediateActionsRequired.push(
+          `Removal of the ${e.material} ${e.description}`
+        );
+      if (e.shortTermAction) shortTermActions.push(e.shortTermAction);
+    });
+    // No positive samples and no presumed items
+    if (presumedAcm.length === 0 && identifiedAcm.length === 0)
+      riskToHealthStr =
+        "No asbestos-containing materials are present or presumed to be present at this site.";
+    if (immediateRisk.length > 0) {
+      riskToHealthStr = `There is an immediate risk to health from the ${andList(
+        immediateRisk.map(e => `${e.material} ${e.description}`)
+      ).toLowerCase()}. This must be remediated as soon as practicable.`;
+    } else {
+      riskToHealthStr = `There is not an immediate risk to health. However, if any ${
+        identifiedAcm.length > 0 && presumedAcm.length > 0
+          ? "identified and presumed "
+          : identifiedAcm.length > 0
+          ? "identified "
+          : "presumed "
+      }asbestos-containing materials are damaged or disturbed during maintenance or otherwise, this is likely to release respirable asbestos fibres.`;
+    }
+    if (immediateActionsRequired.length > 0)
+      immediateActionsRequiredStr = `<ul>${immediateActionsRequired.map(
+        a => `<li>${a}</li>`
+      )}</ul>`;
+    else immediateActionsRequiredStr = "No immediate actions are required.";
+    if (shortTermActions.length > 0)
+      shortTermActionsStr = `<ul>${shortTermActions.map(
+        a => `<li>${a}</li>`
+      )}</ul>`;
+    else shortTermActionsStr = "No short-term actions are required.";
+  } else {
+    riskToHealthStr =
+      "No asbestos-containing materials are present or presumed to be present at this site.";
+    immediateActionsRequiredStr = "No immediate actions are required.";
+    shortTermActionsStr = "No short term actions are required.";
+  }
+  return { riskToHealthStr, immediateActionsRequiredStr, shortTermActionsStr };
+};
+
+export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
+  let dates = [];
+  site.siteVisits.forEach(c => {
+    if (c.type === "mgmt")
+      dates.push({
+        date: dateOf(c.date),
+        dateFormatted: moment(dateOf(c.date)).format("DD/MM/YYYY"),
+        desc: `An asbestos management survey was conducted by ${andList(
+          c.personnel.map(
+            s =>
+              `${s.name}${
+                staff[s.uid].tertiary || staff[s.uid].ip402
+                  ? ` (${staff[s.uid].tertiary}${
+                      staff[s.uid].ip402 ? `, BOHS IP402` : ""
+                    })`
+                  : ""
+              }`
+          )
+        )} of K2 Environmental Ltd`
+      });
+    else
+      dates.push({
+        date: dateOf(c.date),
+        dateFormatted: moment(dateOf(c.date)).format("DD/MM/YYYY"),
+        desc: `A site visit was conducted by ${andList(
+          c.personnel.map(
+            s =>
+              `${s.name}${
+                staff[s.uid].tertiary ||
+                staff[s.uid].ip402 ||
+                staff[s.uid].aanumber
+                  ? ` (${staff[s.uid].tertiary}${
+                      staff[s.uid].ip402 ? `, BOHS IP402` : ""
+                    }${
+                      staff[s.uid].aanumber ? `, ${staff[s.uid].aanumber}` : ""
+                    })`
+                  : ""
+              }`
+          )
+        )} of K2 Environmental Ltd`
+      });
+  });
+  site.clearances &&
+    Object.values(site.clearances).forEach(c => {
+      dates.push({
+        date: dateOf(c.removalDate),
+        dateFormatted: moment(dateOf(c.removalDate)).format("DD/MM/YYYY"),
+        desc: `${c.description} by ${c.asbestosRemovalist} (${c.asbestosRemovalistLicence})`
+      });
+      dates.push({
+        date: dateOf(c.clearanceDate),
+        dateFormatted: moment(dateOf(c.clearanceDate)).format("DD/MM/YYYY"),
+        desc: `An asbestos removal clearance was given by ${andList(
+          c.personnel.map(
+            s =>
+              `${s.name}${
+                staff[s.uid].tertiary || staff[s.uid].aanumber
+                  ? ` (${staff[s.uid].tertiary}, ${staff[s.uid].aanumber})`
+                  : ""
+              }`
+          )
+        )}`
+      });
+    });
+  return dates.sort((a, b) => a.date - b.date);
+};
+
+export const writeAcmSummary = registerMap => {
+  console.log(registerMap);
+  let acmSummary = [];
+  registerMap.forEach(roomGroup => {
+    roomGroup.rows.forEach(room => {
+      let roomAcm = [];
+      room.rows.forEach(row => {
+        if (!row.acmRemoved && row.asbestosResult) {
+          roomAcm.push(`${row.item} ${row.material} (${row.idKey})`);
+        }
+      });
+      if (roomAcm.length > 0)
+        acmSummary.push({ label: room.label, summary: roomAcm.join("\n") });
+    });
+  });
+  console.log(acmSummary);
+  return acmSummary;
+};
+
+export const issueTrainAmp = ({
+  site,
+  job,
+  registerMap,
+  registerList,
+  airMonitoringRecords,
+  staff,
+  siteAcm,
+  classDescriptions
+}) => dispatch => {
+  console.log(site);
+  console.log(job);
+  console.log(registerMap);
+  console.log(registerList);
+  console.log(airMonitoringRecords);
+  let latestIssue = 0;
+
+  if (job.versions && Object.keys(job.versions).length > 0) {
+    latestIssue = Math.max(
+      ...Object.keys(job.versions).map(key => parseInt(key))
+    );
+  }
+
+  // Basic Fields for Every Report
+  let versionHistory = [];
+  if (latestIssue > 1) {
+    Object.values(job.versions).forEach((v, index) => {
+      let authors = {
+        writer: [],
+        checker: [],
+        ktp: []
+      };
+      ["writer", "checker", "ktp"].forEach(field => {
+        console.log(v[field]);
+        if (v[field]) {
+          v[field].forEach(s => {
+            authors[field].push(s.name);
+          });
+        }
+      });
+      versionHistory.push({
+        issueNumber: index + 1,
+        changes: v.changes,
+        date: moment(dateOf(v.date)).format("DD/MM/YYYY"),
+        writer: authors.writer.join("\n"),
+        checker: authors.checker.join("\n"),
+        ktp: authors.ktp.join("\n")
+      });
+    });
+  }
+
+  let authors = {
+    writer: [],
+    checker: [],
+    ktp: []
+  };
+  if (job.versions && job.versions[`${latestIssue}`]) {
+    let version = job.versions[`${latestIssue}`];
+    ["writer", "checker", "ktp"].forEach(field => {
+      if (version[field]) {
+        version[field].forEach(s => {
+          authors[field].push({
+            name: s.name,
+            asbestosAssessorNumber: staff[s.uid] ? staff[s.uid].aanumber : "",
+            tertiary: staff[s.uid] ? staff[s.uid].tertiary : "",
+            ip402: staff[s.uid] ? staff[s.uid].ip402 : false
+          });
+        });
+      }
+    });
+  }
+
+  let surveyPersonnel = [],
+    surveyDates = [];
+  if (site.siteVisits) {
+    Object.values(site.siteVisits).forEach(v => {
+      if (v.referenceNumber === job.jobNumber) {
+        v.date && surveyDates.push(v.date);
+        v.personnel &&
+          v.personnel.forEach(s => {
+            surveyPersonnel.push({
+              name: s.name,
+              asbestosAssessorNumber: staff[s.uid] ? staff[s.uid].aanumber : "",
+              tertiary: staff[s.uid] ? staff[s.uid].tertiary : "",
+              ip402: staff[s.uid] ? staff[s.uid].ip402 : false
+            });
+          });
+      }
+    });
+  }
+
+  let riskOverview = writeRiskOverview(job, siteAcm);
+
+  let json = {
+    client: job.client,
+    assetName: `${site.assetClass}${site.assetNumber}`,
+    assetClass: site.assetClass,
+    assetNumber: site.assetNumber,
+    jobNumber: job.jobNumber,
+    issueNumber: latestIssue,
+    assetOverview: writeAssetOverview({ site, job, classDescriptions }),
+    immediateActionsRequired: riskOverview.immediateActionsRequiredStr,
+    shortTermActions: riskOverview.shortTermActionsStr,
+    riskToHealth: riskOverview.riskToHealthStr,
+    acmSummary: writeAcmSummary(registerMap),
+    siteVisits: writeSiteVisitAndRemovalHistory({ site, staff }),
+    writer:
+      authors["writer"].length > 0
+        ? authors["writer"].map(e => nameFullQuals(e)).join("\n\n")
+        : "",
+    checker:
+      authors["checker"].length > 0
+        ? authors["checker"].map(e => nameFullQuals(e)).join("\n\n")
+        : "",
+    ktp:
+      authors["ktp"].length > 0
+        ? authors["ktp"].map(e => nameFullQuals(e)).join("\n\n")
+        : "",
+    surveyPersonnel: surveyPersonnel
+      .map(e => nameFullQualsOneLine(e))
+      .join("\n"),
+    surveyDates: writeDates(surveyDates.map(date => ({ date })), "date"),
+    siteImageUrl:
+      site.siteImageUrl.substring(0, site.siteImageUrl.lastIndexOf("&token")) ||
+      null,
+    asbestosRemovalRecords: site.clearances
+      ? Object.values(site.clearances).map(c => ({
+          asbestosRemovalist: c.asbestosRemovalist,
+          asbestosRemovalistLicence: c.asbestosRemovalistLicence,
+          removalDate: c.removalDate
+            ? moment(dateOf(c.removalDate)).format("DD MMMM YYYY")
+            : "",
+          description: c.description,
+          clearanceDate: c.clearanceDate
+            ? moment(dateOf(c.clearanceDate)).format("DD MMMM YYYY")
+            : "",
+          asbestosAssessorName: c.personnel
+            ? c.personnel
+                .map(p => `${p.name} (K2 Environmental Ltd)`)
+                .join("\n")
+            : "",
+          asbestosAssessorLicence: c.personnel
+            ? c.personnel.map(p => staff[p.uid].aanumber).join("\n")
+            : "",
+          issueDate: c.issueDate
+            ? moment(dateOf(c.issueDate)).format("DD MMMM YYYY")
+            : ""
+        }))
+      : "",
+    versionHistory,
+    airMonitoringRecords,
+    registerMap
+  };
+
+  console.log(json);
+  dispatch(
+    handleJobChange({
+      job,
+      o1: "issues",
+      field: `${latestIssue}`,
+      val: json,
+      siteUid: site.uid
+    })
+  );
 };

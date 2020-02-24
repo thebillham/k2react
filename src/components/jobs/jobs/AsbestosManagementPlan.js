@@ -52,7 +52,8 @@ import { getJobColor, handleJobChange } from "../../../actions/jobs";
 
 import {
   collateSamples,
-  issueDocument
+  issueDocument,
+  issueTrainAmp
 } from "../../../actions/asbestosReportHelpers";
 
 import moment from "moment";
@@ -66,13 +67,15 @@ const mapStateToProps = state => {
     siteJobs: state.jobs.siteJobs,
     siteAcm: state.jobs.siteAcm,
     samples: state.asbestosLab.samples,
-    staff: state.local.staff
+    staff: state.local.staff,
+    classDescriptions: state.const.assetClassesTrain
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    issueDocument: issue => dispatch(issueDocument(issue)),
+    // issueDocument: issue => dispatch(issueDocument(issue)),
+    issueTrainAmp: issue => dispatch(issueTrainAmp(issue)),
     handleJobChange: info => dispatch(handleJobChange(info)),
     handleJobChangeDebounced: _.debounce(
       info => dispatch(handleJobChange(info)),
@@ -107,7 +110,8 @@ class AsbestosManagementPlan extends React.PureComponent {
       siteJobs,
       siteAcm,
       samples,
-      staff
+      staff,
+      classDescriptions
     } = this.props;
     const { registerMap, registerList, airMonitoringRecords } = this.state;
     const names = [{ name: "3rd Party", uid: "3rd Party" }].concat(
@@ -175,15 +179,25 @@ class AsbestosManagementPlan extends React.PureComponent {
                 <Button
                   className={classes.buttonIconText}
                   onClick={() => {
-                    this.props.issueDocument({
-                      template: `AMP${this.state.templateVersion}`,
+                    this.props.issueTrainAmp({
                       site: sites[site],
                       job: m,
                       registerMap,
                       registerList,
+                      classDescriptions,
                       airMonitoringRecords,
+                      siteAcm: siteAcm[site],
                       staff
                     });
+                    // this.props.issueDocument({
+                    //   template: `AMP${this.state.templateVersion}`,
+                    //   site: sites[site],
+                    //   job: m,
+                    //   registerMap,
+                    //   registerList,
+                    //   airMonitoringRecords,
+                    //   staff
+                    // });
                     // this.props.showModal({
                     //   modalType: REPORT_ACTIONS,
                     //   modalProps: { job: job, title: `Issue Asbestos Management Plan ${job.jobNumber} (${job.client}: ${job.address})`, }
@@ -197,7 +211,7 @@ class AsbestosManagementPlan extends React.PureComponent {
                   <form
                     method="post"
                     target="_blank"
-                    action={`https://api.k2.co.nz/v1/doc/scripts/asbestos/amp/${this.state.templateVersion}.php`}
+                    action={`https://api.k2.co.nz/v1/doc/scripts/asbestos/amp/train.php`}
                   >
                     <input
                       type="hidden"
@@ -236,7 +250,7 @@ class AsbestosManagementPlan extends React.PureComponent {
               classes={classes}
             />
           </Grid>
-          <Grid item xs={12} md={5}>
+          {/*<Grid item xs={12} md={5}>
             <ExecutiveSummaryAmp
               job={m}
               siteUid={site}
@@ -248,13 +262,13 @@ class AsbestosManagementPlan extends React.PureComponent {
               template={this.state.templateVersion}
               classes={classes}
             />
-          </Grid>
+          </Grid>*/}
           <Grid item xs={12} md={7}>
-            <AirMonitoringRecords
+            {/*<AirMonitoringRecords
               loading={loading}
               airMonitoringRecords={airMonitoringRecords}
               classes={classes}
-            />
+            />*/}
           </Grid>
         </Grid>
       );
