@@ -210,7 +210,7 @@ class Site extends React.Component {
             <Tab label="Site Layout" value="layout" />
             <Tab label="Add/Edit ACM" value="addAcm" />
             <Tab label="ACM Tables" value="register" />
-            <Tab label="Maps and Diagrams" value="maps" />
+            {/*<Tab label="Maps and Diagrams" value="maps" />*/}
             {jobs &&
               Object.keys(jobs).length > 0 &&
               Object.values(jobs).map(j => {

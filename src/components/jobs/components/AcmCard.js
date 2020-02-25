@@ -159,6 +159,7 @@ const initState = {
   damageDescription: "",
   surfaceScore: "1",
   surfaceDescription: "",
+  damageSurfaceNotes: "",
   asbestosType: {
     ch: true,
     am: true,
@@ -171,6 +172,8 @@ const initState = {
   managementPrimary: "",
   managementSecondary: "",
   removalLicenceRequired: "",
+  immediateActionRequired: "",
+  shortTermAction: "",
   recommendations: "",
 
   priMainActivityScore: null,
@@ -345,6 +348,7 @@ class AcmCard extends React.Component {
             </InputLabel>
             <Select
               className={classes.selectTight}
+              isClearable
               value={
                 this.state.sample
                   ? {
@@ -364,7 +368,7 @@ class AcmCard extends React.Component {
                     : null
                 }))}
               onChange={e => {
-                this.setState({ sample: e.value });
+                this.setState({ sample: e ? e.value : null });
               }}
             />
             <InputLabel className={classes.marginTopSmall}>
@@ -546,6 +550,7 @@ class AcmCard extends React.Component {
                   Material Category
                 </InputLabel>
                 <Select
+                  isClearable
                   className={classes.selectTight}
                   value={
                     this.state.category
@@ -560,7 +565,7 @@ class AcmCard extends React.Component {
                     label: e.label
                   }))}
                   onChange={e => {
-                    this.setState({ category: e.value });
+                    this.setState({ category: e ? e.value : null });
                   }}
                 />
               </div>
@@ -616,6 +621,7 @@ class AcmCard extends React.Component {
                 </InputLabel>
                 <Select
                   className={classes.selectTight}
+                  isClearable
                   value={
                     this.state.sample
                       ? {
@@ -641,7 +647,7 @@ class AcmCard extends React.Component {
                       sample: e.value,
                       materialRisk: getMaterialRisk({
                         ...this.state,
-                        sample: e.value
+                        sample: e ? e.value : null
                       })
                     });
                   }}
@@ -712,6 +718,7 @@ class AcmCard extends React.Component {
                     </InputLabel>
                     <Select
                       className={classes.selectTight}
+                      isClearable
                       value={
                         this.state.acmRemovalJob
                           ? {
@@ -743,7 +750,7 @@ class AcmCard extends React.Component {
                           : []
                       }
                       onChange={e => {
-                        this.setState({ acmRemovalJob: e.value });
+                        this.setState({ acmRemovalJob: e ? e.value : null });
                       }}
                     />
                   </div>
@@ -1009,7 +1016,22 @@ class AcmCard extends React.Component {
                   />
                 )}
 
-                <InputLabel className={classes.marginTopSmall}>
+                <TextField
+                  style={{ width: "100%" }}
+                  label="Damage/Surface Notes"
+                  value={
+                    this.state.damageSurfaceNotes
+                      ? this.state.damageSurfaceNotes
+                      : ""
+                  }
+                  onChange={e => {
+                    this.setState({
+                      damageSurfaceNotes: e.target.value
+                    });
+                  }}
+                />
+
+                {/*<InputLabel className={classes.marginTopSmall}>
                   Comment for Report
                 </InputLabel>
                 <ReactQuill
@@ -1020,13 +1042,14 @@ class AcmCard extends React.Component {
                   onChange={(content, delta, source) => {
                     if (source === "user") this.setState({ comment: content });
                   }}
-                />
+                />*/}
 
                 <InputLabel className={classes.marginTopSmall}>
                   Basic Primary Management
                 </InputLabel>
                 <Select
                   className={classes.selectTight}
+                  isClearable
                   value={
                     this.state.managementPrimary
                       ? {
@@ -1040,7 +1063,7 @@ class AcmCard extends React.Component {
                     label: e.label
                   }))}
                   onChange={e => {
-                    this.setState({ managementPrimary: e.value });
+                    this.setState({ managementPrimary: e ? e.value : null });
                   }}
                 />
 
@@ -1049,6 +1072,7 @@ class AcmCard extends React.Component {
                 </InputLabel>
                 <Select
                   className={classes.selectTight}
+                  isClearable
                   value={
                     this.state.managementSecondary
                       ? {
@@ -1062,7 +1086,7 @@ class AcmCard extends React.Component {
                     label: e.label
                   }))}
                   onChange={e => {
-                    this.setState({ managementSecondary: e.value });
+                    this.setState({ managementSecondary: e ? e.value : null });
                   }}
                 />
 
@@ -1071,6 +1095,7 @@ class AcmCard extends React.Component {
                 </InputLabel>
                 <Select
                   className={classes.selectTight}
+                  isClearable
                   value={
                     this.state.removalLicenceRequired
                       ? {
@@ -1084,11 +1109,61 @@ class AcmCard extends React.Component {
                     label: e
                   }))}
                   onChange={e => {
-                    this.setState({ removalLicenceRequired: e.value });
+                    this.setState({
+                      removalLicenceRequired: e ? e.value : null
+                    });
                   }}
                 />
 
                 <InputLabel className={classes.marginTopSmall}>
+                  Immediate Action Required
+                </InputLabel>
+                <Select
+                  className={classes.selectTight}
+                  isClearable
+                  value={
+                    this.state.immediateActionRequired
+                      ? {
+                          value: this.state.immediateActionRequired,
+                          label: this.state.immediateActionRequired
+                        }
+                      : { value: "", label: "" }
+                  }
+                  options={this.props.asbestosManagementOptions.map(e => ({
+                    value: e.label,
+                    label: e.label
+                  }))}
+                  onChange={e => {
+                    this.setState({
+                      immediateActionRequired: e ? e.value : null
+                    });
+                  }}
+                />
+
+                <InputLabel className={classes.marginTopSmall}>
+                  Short Term Action
+                </InputLabel>
+                <Select
+                  className={classes.selectTight}
+                  isClearable
+                  value={
+                    this.state.shortTermAction
+                      ? {
+                          value: this.state.shortTermAction,
+                          label: this.state.shortTermAction
+                        }
+                      : { value: "", label: "" }
+                  }
+                  options={this.props.asbestosManagementOptions.map(e => ({
+                    value: e.label,
+                    label: e.label
+                  }))}
+                  onChange={e => {
+                    this.setState({ shortTermAction: e.value });
+                  }}
+                />
+
+                {/*<InputLabel className={classes.marginTopSmall}>
                   Management Recommendations
                 </InputLabel>
                 <ReactQuill
@@ -1100,7 +1175,7 @@ class AcmCard extends React.Component {
                     if (source === "user")
                       this.setState({ recommendations: content });
                   }}
-                />
+                />*/}
 
                 <InputLabel className={classes.marginTopSmall}>
                   Priority Risk Assessment

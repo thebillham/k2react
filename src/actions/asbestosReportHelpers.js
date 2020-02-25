@@ -24,10 +24,11 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
         roomGroupName = roomGroup.label || null;
       roomGroup.rooms &&
         roomGroup.rooms.forEach(room => {
-          let roomTable = { label: room.label || "", rows: [] },
-            rows = [],
-            roomName = room.label;
-          console.log(room);
+          let roomName = room.label;
+          if (roomName.includes("General") || roomName.includes("Generic"))
+            roomName = "General Items";
+          let roomTable = { label: roomName || "", rows: [] },
+            rows = [];
           room.acm &&
             room.acm.forEach(acmUid => {
               let acm = siteAcm[acmUid];
@@ -67,6 +68,20 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
                   roomGroup: roomGroupName || "N/A",
                   item: acm.description || "N/A",
                   material: acm.material || "N/A",
+                  label:
+                    acm.description && acm.material
+                      ? acm.description
+                          .toLowerCase()
+                          .includes(acm.material.toLowerCase())
+                        ? acm.description
+                        : acm.writeItemFirst
+                        ? `${acm.description || ""} ${acm.material || ""}`
+                        : `${acm.material || ""} ${acm.description || ""}`
+                      : acm.description
+                      ? acm.description
+                      : acm.material
+                      ? acm.material
+                      : "no description",
                   extent: writeAcmExtent(acm),
                   sample: acm.sample
                     ? acm.idKey === "i"
@@ -115,7 +130,6 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
                 rows.push(row);
                 registerList.push(row);
               } else if (acm && acm.sample) {
-                console.log(acm);
                 let row = {
                   room: roomName || "N/A",
                   roomGroup: roomGroupName || "N/A",
@@ -431,8 +445,10 @@ export const getRecommendation = acm => {
       str1 = "ENCAP";
     } else if (acm.managementPrimary === "Enclosure") {
       str1 = "ENCL";
+    } else if (acm.managementPrimary === "Further Inspection") {
+      str1 = "INSP";
     } else if (acm.managementPrimary === "Test") {
-      str1 = "TEST";
+      str1 = "INSP";
     }
   }
   if (acm.managementSecondary) {
@@ -452,11 +468,13 @@ export const getRecommendation = acm => {
       str2 = "ENCAP";
     } else if (acm.managementSecondary === "Enclosure") {
       str2 = "ENCL";
+    } else if (acm.managementSecondary === "Further Inspection") {
+      str1 = "INSP";
     } else if (acm.managementSecondary === "Test") {
-      str2 = "TEST";
+      str2 = "INSP";
     }
   }
-  if (str1 !== "" && str2 !== "") return `${str1}\n${str2}`;
+  if (str1 !== "" && str2 !== "") return `${str1}/${str2}`;
   else if (str1 !== "") return str1;
   else if (str2 !== "") return str2;
   else return "N/A";
@@ -1300,12 +1318,81 @@ export const writeRiskOverview = (job, siteAcm) => {
               getBasicResult(e.sample) === "positive")
         ) || [];
     Object.values(siteAcm).forEach(e => {
+      let label =
+        e.description && e.material
+          ? e.description.toLowerCase().includes(e.material.toLowerCase())
+            ? e.description
+            : e.writeItemFirst
+            ? `${e.description || ""} ${e.material || ""}`
+            : `${e.material || ""} ${e.description || ""}`
+          : e.description
+          ? e.description
+          : e.material || "no description";
+      label = label.toLowerCase();
       if (e.immediateRisk) immediateRisk.push(e);
-      if (e.immediateRisk)
-        immediateActionsRequired.push(
-          `Removal of the ${e.material} ${e.description}`
-        );
-      if (e.shortTermAction) shortTermActions.push(e.shortTermAction);
+      if (e.immediateActionRequired) {
+        if (e.immediateActionRequired === "Removal") {
+          if (e.removalLicenceRequired === "Class A") {
+            immediateActionsRequired.push(
+              `Removal of the ${label} (Class A removal)`
+            );
+          } else if (e.removalLicenceRequired === "Class B") {
+            immediateActionsRequired.push(
+              `Removal of the ${label} (Class B removal)`
+            );
+          } else if (e.removalLicenceRequired === "Unlicensed") {
+            immediateActionsRequired.push(
+              `Removal of the ${label} (Unlicensed removal)`
+            );
+          } else immediateActionsRequired.push(`Removal of the ${label}`);
+
+          // } else if (e.immediateActionRequired === "Deferral") {
+          //   immediateActionsRequired.push(`Deferral of the ${label}`);
+        } else if (e.immediateActionRequired === "Sealing") {
+          immediateActionsRequired.push(`Sealing of the ${label}`);
+        } else if (e.immediateActionRequired === "Encapsulate") {
+          immediateActionsRequired.push(`Encapsulation of the ${label}`);
+        } else if (e.immediateActionRequired === "Enclosure") {
+          immediateActionsRequired.push(`Enclosure of the ${label}`);
+        } else if (e.immediateActionRequired === "Further Inspection") {
+          immediateActionsRequired.push(
+            `Arrange further inspection of the ${label}`
+          );
+        } else if (e.immediateActionRequired === "Test") {
+          immediateActionsRequired.push(
+            `Arrange further inspection of the ${label}`
+          );
+        }
+      } else if (e.immediateRisk)
+        immediateActionsRequired.push(`Removal of the ${label}`);
+      if (e.shortTermActionText) shortTermActions.push(e.shortTermActionText);
+      else if (e.shortTermAction) {
+        if (e.shortTermAction === "Removal") {
+          if (e.removalLicenceRequired === "Class A") {
+            shortTermActions.push(`Removal of the ${label} (Class A removal)`);
+          } else if (e.removalLicenceRequired === "Class B") {
+            shortTermActions.push(`Removal of the ${label} (Class B removal)`);
+          } else if (e.removalLicenceRequired === "Unlicensed") {
+            shortTermActions.push(
+              `Removal of the ${label} (Unlicensed removal)`
+            );
+          } else shortTermActions.push(`Removal of the ${label}`);
+
+          // } else if (e.shortTermAction === "Deferral") {
+          //   shortTermActions.push(`Deferral of the ${label
+          //   }`);
+        } else if (e.shortTermAction === "Sealing") {
+          shortTermActions.push(`Sealing of the ${label}`);
+        } else if (e.shortTermAction === "Encapsulate") {
+          shortTermActions.push(`Encapsulation of the ${label}`);
+        } else if (e.shortTermAction === "Enclosure") {
+          shortTermActions.push(`Enclosure of the ${label}`);
+        } else if (e.shortTermAction === "Further Inspection") {
+          shortTermActions.push(`Arrange further inspection of the ${label}`);
+        } else if (e.shortTermAction === "Test") {
+          shortTermActions.push(`Arrange further inspection of the ${label}`);
+        }
+      }
     });
     // No positive samples and no presumed items
     if (presumedAcm.length === 0 && identifiedAcm.length === 0)
@@ -1325,14 +1412,14 @@ export const writeRiskOverview = (job, siteAcm) => {
       }asbestos-containing materials are damaged or disturbed during maintenance or otherwise, this is likely to release respirable asbestos fibres.`;
     }
     if (immediateActionsRequired.length > 0)
-      immediateActionsRequiredStr = `<ul>${immediateActionsRequired.map(
-        a => `<li>${a}</li>`
-      )}</ul>`;
+      immediateActionsRequiredStr = `<ul>${immediateActionsRequired
+        .map(a => `<li>${a}</li>`)
+        .join("")}</ul>`;
     else immediateActionsRequiredStr = "No immediate actions are required.";
     if (shortTermActions.length > 0)
-      shortTermActionsStr = `<ul>${shortTermActions.map(
-        a => `<li>${a}</li>`
-      )}</ul>`;
+      shortTermActionsStr = `<ol>${shortTermActions
+        .map(a => `<li>${a}</li>`)
+        .join("")}</ol>`;
     else shortTermActionsStr = "No short-term actions are required.";
   } else {
     riskToHealthStr =
@@ -1363,7 +1450,7 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
           )
         )} of K2 Environmental Ltd`
       });
-    else
+    else if (c.type !== "stg4")
       dates.push({
         date: dateOf(c.date),
         dateFormatted: moment(dateOf(c.date)).format("DD/MM/YYYY"),
@@ -1385,8 +1472,8 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
         )} of K2 Environmental Ltd`
       });
   });
-  site.clearances &&
-    Object.values(site.clearances).forEach(c => {
+  site.asbestosRemovals &&
+    Object.values(site.asbestosRemovals).forEach(c => {
       dates.push({
         date: dateOf(c.removalDate),
         dateFormatted: moment(dateOf(c.removalDate)).format("DD/MM/YYYY"),
@@ -1417,12 +1504,37 @@ export const writeAcmSummary = registerMap => {
     roomGroup.rows.forEach(room => {
       let roomAcm = [];
       room.rows.forEach(row => {
+        console.log(row);
         if (!row.acmRemoved && row.asbestosResult) {
-          roomAcm.push(`${row.item} ${row.material} (${row.idKey})`);
+          roomAcm.push(
+            `${row.label[0].toUpperCase()}${row.label
+              .slice(1)
+              .toLowerCase()} (${
+              row.idKey === "i"
+                ? "identified"
+                : row.idKey === "s"
+                ? "strongly presumed"
+                : "presumed"
+            })`.toLowerCase()
+          );
         }
       });
-      if (roomAcm.length > 0)
-        acmSummary.push({ label: room.label, summary: roomAcm.join("\n") });
+      if (roomAcm.length > 0) {
+        if (room.label.includes("General") || room.label.includes("Generic")) {
+          acmSummary.push({
+            label: "General Items",
+            summary: `${roomAcm.join(
+              "@~"
+            )}@~Gaskets and electrical components such as switches, fuse insulation, etc. (presumed)`
+          });
+        } else
+          acmSummary.push({
+            label: room.label,
+            summary: roomAcm
+              .map(e => `${e[0].toUpperCase()}${e.slice(1)}`)
+              .join("@~")
+          });
+      }
     });
   });
   console.log(acmSummary);

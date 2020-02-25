@@ -1299,33 +1299,35 @@ class CocModal extends React.PureComponent {
             <DialogContent className={classes.boxDark}>
               <div className={classes.informationBoxWhiteRounded}>
                 <div style={{ fontSize: 24 }}>Create New Chain of Custody</div>
-                <div>
-                  <Tooltip title="Step 1: Select your sample type">
-                    <FormControl>
-                      <RadioGroup
-                        row
-                        aria-label="sampleType"
-                        name="sampleType"
-                        value={this.state.sampleType}
-                        onChange={e =>
-                          this.setState({ sampleType: e.target.value })
-                        }
-                      >
-                        <FormControlLabel
-                          value="bulk"
-                          control={<Radio />}
-                          label="Bulk"
-                        />
-                        <FormControlLabel
-                          value="air"
-                          control={<Radio />}
-                          label="Air Filter"
-                        />
-                      </RadioGroup>
-                    </FormControl>
-                  </Tooltip>
-                </div>
-                <Tooltip title="Step 2: Enter the job number to get details from WorkflowMax">
+                {this.props.me.name === "Ben Dodd" && (
+                  <div>
+                    <Tooltip title="Step 1: Select your sample type">
+                      <FormControl>
+                        <RadioGroup
+                          row
+                          aria-label="sampleType"
+                          name="sampleType"
+                          value={this.state.sampleType}
+                          onChange={e =>
+                            this.setState({ sampleType: e.target.value })
+                          }
+                        >
+                          <FormControlLabel
+                            value="bulk"
+                            control={<Radio />}
+                            label="Bulk"
+                          />
+                          <FormControlLabel
+                            value="air"
+                            control={<Radio />}
+                            label="Air Filter"
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </Tooltip>
+                  </div>
+                )}
+                <Tooltip title="Enter the job number to get details from WorkflowMax">
                   <FormControl>
                     <InputLabel shrink>Job Number</InputLabel>
                     <Input
