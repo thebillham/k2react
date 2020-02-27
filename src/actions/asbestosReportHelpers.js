@@ -161,6 +161,7 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
       roomGroupTable.rows = roomGroupRows;
       registerMap.push(roomGroupTable);
     });
+  airMonitoringRecords.sort((a, b) => dateOf(a.date) - dateOf(b.date));
 
   return {
     registerList,
@@ -189,6 +190,7 @@ export const writeAcmExtent = acm => {
 export const getAcmRemoved = acm => {
   // Removed, see clearance report AS190209
   if (acm.acmRemovalJob) {
+    console.log(acm.acmRemovalJob);
     let str = "Removed";
     if (acm.acmRemovalJob.removalDate)
       str =
@@ -204,8 +206,10 @@ export const getAcmRemoved = acm => {
             ? ` (${acm.acmRemovalJob.asbestosRemovalistLicence})`
             : ""
         }`;
-    if (acm.referenceNumber)
-      str = str + ` Job Number ${acm.acmRemovalJob.referenceNumber}`;
+    if (acm.acmRemovalJob.referenceNumber)
+      str =
+        str +
+        ` Clearance Certificate ${acm.acmRemovalJob.referenceNumber} (see APPENDIX I)`;
     return str;
   } else {
     return `Removed`;
@@ -1433,11 +1437,14 @@ export const writeRiskOverview = (job, siteAcm) => {
 export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
   let dates = [];
   site.siteVisits.forEach(c => {
+    console.log(c);
     if (c.type === "mgmt")
       dates.push({
         date: dateOf(c.date),
         dateFormatted: moment(dateOf(c.date)).format("DD/MM/YYYY"),
-        desc: `An asbestos management survey was conducted by ${andList(
+        desc: `An asbestos management survey (${
+          c.referenceNumber
+        }) was conducted by ${andList(
           c.personnel.map(
             s =>
               `${s.name}${
@@ -1454,7 +1461,7 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
       dates.push({
         date: dateOf(c.date),
         dateFormatted: moment(dateOf(c.date)).format("DD/MM/YYYY"),
-        desc: `A site visit was conducted by ${andList(
+        desc: `A site visit (${c.referenceNumber}) was conducted by ${andList(
           c.personnel.map(
             s =>
               `${s.name}${
@@ -1474,6 +1481,7 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
   });
   site.asbestosRemovals &&
     Object.values(site.asbestosRemovals).forEach(c => {
+      console.log(c);
       dates.push({
         date: dateOf(c.removalDate),
         dateFormatted: moment(dateOf(c.removalDate)).format("DD/MM/YYYY"),
@@ -1482,14 +1490,17 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
       dates.push({
         date: dateOf(c.clearanceDate),
         dateFormatted: moment(dateOf(c.clearanceDate)).format("DD/MM/YYYY"),
-        desc: `An asbestos removal clearance was given by ${andList(
-          c.personnel.map(
-            s =>
-              `${s.name}${
-                staff[s.uid].tertiary || staff[s.uid].aanumber
-                  ? ` (${staff[s.uid].tertiary}, ${staff[s.uid].aanumber})`
-                  : ""
-              }`
+        desc: `An asbestos removal clearance (${
+          c.referenceNumber
+        }) was given by ${andList(
+          c.personnel.map(s =>
+            s.name === "3rd Party"
+              ? `a 3rd party company (${c.asbestosAssessorNumber})`
+              : `${s.name}${
+                  staff[s.uid].tertiary || staff[s.uid].aanumber
+                    ? ` (${staff[s.uid].tertiary}, ${staff[s.uid].aanumber}) of K2 Environmental Ltd`
+                    : ""
+                }`
           )
         )}`
       });
@@ -1498,13 +1509,11 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
 };
 
 export const writeAcmSummary = registerMap => {
-  console.log(registerMap);
   let acmSummary = [];
   registerMap.forEach(roomGroup => {
     roomGroup.rows.forEach(room => {
       let roomAcm = [];
       room.rows.forEach(row => {
-        console.log(row);
         if (!row.acmRemoved && row.asbestosResult) {
           roomAcm.push(
             `${row.label[0].toUpperCase()}${row.label
@@ -1525,7 +1534,7 @@ export const writeAcmSummary = registerMap => {
             label: "General Items",
             summary: `${roomAcm.join(
               "@~"
-            )}@~Gaskets and electrical components such as switches, fuse insulation, etc. (presumed)`
+            )}@~Gaskets, inaccessible pipe lagging and electrical components such as switches, fuse insulation, etc. (presumed)`
           });
         } else
           acmSummary.push({
@@ -1666,8 +1675,8 @@ export const issueTrainAmp = ({
     siteImageUrl:
       site.siteImageUrl.substring(0, site.siteImageUrl.lastIndexOf("&token")) ||
       null,
-    asbestosRemovalRecords: site.clearances
-      ? Object.values(site.clearances).map(c => ({
+    asbestosRemovalRecords: site.asbestosRemovals
+      ? Object.values(site.asbestosRemovals).map(c => ({
           asbestosRemovalist: c.asbestosRemovalist,
           asbestosRemovalistLicence: c.asbestosRemovalistLicence,
           removalDate: c.removalDate
@@ -1679,12 +1688,23 @@ export const issueTrainAmp = ({
             : "",
           asbestosAssessorName: c.personnel
             ? c.personnel
-                .map(p => `${p.name} (K2 Environmental Ltd)`)
+                .map(p =>
+                  p.name === "3rd Party"
+                    ? "3rd Party"
+                    : `${p.name} (K2 Environmental Ltd)`
+                )
                 .join("\n")
             : "",
           asbestosAssessorLicence: c.personnel
-            ? c.personnel.map(p => staff[p.uid].aanumber).join("\n")
+            ? c.personnel
+                .map(p =>
+                  p.name === "3rd Party"
+                    ? c.asbestosAssessorLicence || "N/A"
+                    : staff[p.uid].aanumber
+                )
+                .join("\n")
             : "",
+          clearanceCertificateRef: c.referenceNumber,
           issueDate: c.issueDate
             ? moment(dateOf(c.issueDate)).format("DD MMMM YYYY")
             : ""
