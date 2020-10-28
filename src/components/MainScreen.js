@@ -5,11 +5,12 @@ import {
   Route,
   Link,
   Switch,
-  withRouter
+  withRouter,
 } from "react-router-dom";
 import { auth, constRef, noticesRef } from "../config/firebase";
 import { connect } from "react-redux";
 import { APP_SETTINGS, UPDATE_DATA } from "../constants/modal-types";
+import qs from "qs";
 
 import PropTypes from "prop-types";
 import classNames from "classnames";
@@ -88,12 +89,13 @@ import {
   fetchStaff,
   fetchAssets,
   onSearchChange,
-  onCatChange
+  onCatChange,
 } from "../actions/local";
 import {
   fetchGeocodes,
   analyseJobHistory,
-  fetchWFMClients
+  fetchWFMClients,
+  authoriseWFM,
 } from "../actions/jobs";
 import { sendSlackMessage } from "../actions/helpers";
 import { resetModal, showModal } from "../actions/modal";
@@ -109,7 +111,7 @@ import {
   fixSamples,
   renameAnalysisLog,
   splitWFMStates,
-  fixNoticeReads
+  fixNoticeReads,
 } from "../actions/temp";
 
 // Pages
@@ -151,18 +153,19 @@ const DocumentViewer = lazy(() => import("./library/DocumentViewer"));
 const K2SignInScreen = lazy(() => import("./K2SignInScreen"));
 
 const { whyDidYouUpdate } = require("why-did-you-update");
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     staff: state.local.staff,
     clients: state.local.wfmClients,
     me: state.local.me,
     initialLoading: state.display.initialLoading,
     latestVersion: state.const.appVersion,
-    menuItems: state.const.menuItems
+    menuItems: state.const.menuItems,
+    wfmToken: state.local.wfmToken,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     fetchMe: () => dispatch(fetchMe()),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
@@ -172,9 +175,10 @@ const mapDispatchToProps = dispatch => {
     copyStaff: (oldId, newId) => dispatch(copyStaff(oldId, newId)),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
     initConstants: () => dispatch(initConstants()),
-    showModal: modal => dispatch(showModal(modal)),
+    showModal: (modal) => dispatch(showModal(modal)),
     fetchStaff: () => dispatch(fetchStaff()),
-    fetchAssets: update => dispatch(fetchAssets(update))
+    fetchAssets: (update) => dispatch(fetchAssets(update)),
+    authoriseWFM: (code) => dispatch(authoriseWFM(code)),
     // fixIds: () => dispatch(fixIds())
   };
 };
@@ -195,7 +199,7 @@ class MainScreen extends React.PureComponent {
       // openRef: false,
       // openStaff: false,
       // openMyDetails: false,
-      openTraining: false
+      openTraining: false,
       // openHelp: false,
     };
   }
@@ -206,6 +210,7 @@ class MainScreen extends React.PureComponent {
     sendSlackMessage(
       `${auth.currentUser.displayName} is triggering MainScreen componentWillMount`
     );
+    // if (!this.props.wfmToken) this.props.authoriseWFM();
     if (this.props.me && this.props.me.uid === undefined) this.props.fetchMe();
     if (this.props.menuItems === undefined) this.props.initConstants();
     this.props.fetchGeocodes();
@@ -213,6 +218,19 @@ class MainScreen extends React.PureComponent {
     // splitWFMStates();
     if (this.props.staff && Object.keys(this.props.staff).length === 0)
       this.props.fetchStaff();
+
+    if (!this.props.wfmToken) {
+      let code = qs.parse(this.props.location.search, {
+        ignoreQueryPrefix: true,
+      }).code;
+      console.log(code);
+      if (!code) {
+        let path = `${process.env.REACT_APP_WFM_AUTH_ROOT}${process.env.REACT_APP_WFM_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_WFM_REDIRECT_URI}&scope=workflowmax offline_access&state=${process.env.REACT_APP_WFM_STATE_KEY}`;
+        window.location.assign(path);
+      } else {
+        this.props.authoriseWFM(code);
+      }
+    }
     // this.props.fixIds();
     // fixNoticeReads();
     // transferNoticeboardReads();
@@ -229,7 +247,7 @@ class MainScreen extends React.PureComponent {
     setTimeout(
       () =>
         this.setState({
-          hidden: false
+          hidden: false,
         }),
       2000
     );
@@ -245,11 +263,11 @@ class MainScreen extends React.PureComponent {
     });
   };
 
-  handleGoogleMenuToggle = event => {
+  handleGoogleMenuToggle = (event) => {
     this.setState({ anchorEl: event.currentTarget });
   };
 
-  handleGoogleMenuClose = event => {
+  handleGoogleMenuClose = (event) => {
     this.setState({ anchorEl: null });
   };
 
@@ -262,7 +280,7 @@ class MainScreen extends React.PureComponent {
       openDrawer: false,
       openRef: false,
       openStaff: false,
-      openMyDetails: false
+      openMyDetails: false,
     });
   };
 
@@ -276,14 +294,14 @@ class MainScreen extends React.PureComponent {
   handleAsbestosClick = () => {
     this.setState({
       // openDrawer: true,
-      openAsbestos: !this.state.openAsbestos
+      openAsbestos: !this.state.openAsbestos,
     });
   };
 
   handleDevClick = () => {
     this.setState({
       openDrawer: true,
-      openDev: !this.state.openDev
+      openDev: !this.state.openDev,
     });
   };
 
@@ -297,7 +315,7 @@ class MainScreen extends React.PureComponent {
   handleJobsClick = () => {
     this.setState({
       // openDrawer: true,
-      openJobs: !this.state.openJobs
+      openJobs: !this.state.openJobs,
     });
   };
 
@@ -311,12 +329,12 @@ class MainScreen extends React.PureComponent {
   handleTrainingClick = () => {
     this.setState({
       openDrawer: true,
-      openTraining: !this.state.openTraining
+      openTraining: !this.state.openTraining,
     });
   };
 
   render() {
-    const { classes, latestVersion } = this.props;
+    const { classes, latestVersion, location } = this.props;
     const { anchorEl } = this.state;
 
     let displayName;
@@ -336,7 +354,7 @@ class MainScreen extends React.PureComponent {
             classes.drawerPaper,
             classes.colorAccent,
             !this.state.openDrawer && classes.drawerPaperClose
-          )
+          ),
         }}
         open={this.state.openDrawer}
       >
@@ -631,7 +649,7 @@ class MainScreen extends React.PureComponent {
                 button
                 onClick={() => {
                   this.props.showModal({
-                    modalType: APP_SETTINGS
+                    modalType: APP_SETTINGS,
                   });
                 }}
               >
@@ -763,8 +781,6 @@ class MainScreen extends React.PureComponent {
         </List>
       </Drawer>
     );
-
-    console.log(this.props.location.pathname);
 
     return (
       <React.Fragment>
@@ -1151,7 +1167,7 @@ class MainScreen extends React.PureComponent {
                               </div>
                               <InputBase
                                 value={this.props.search}
-                                onChange={e => {
+                                onChange={(e) => {
                                   store.dispatch(
                                     onSearchChange(e.target.value)
                                   );
@@ -1162,7 +1178,7 @@ class MainScreen extends React.PureComponent {
                                 placeholder="Search…"
                                 classes={{
                                   root: classes.inputRoot,
-                                  input: classes.inputInput
+                                  input: classes.inputInput,
                                 }}
                               />
                             </div>
@@ -1208,24 +1224,24 @@ class MainScreen extends React.PureComponent {
                       <Route
                         exact
                         path="/staff"
-                        render={props => <Staff {...props} />}
+                        render={(props) => <Staff {...props} />}
                       />
                       <Route
                         exact
                         path="/mydetails"
-                        render={props => <MyDetails {...props} />}
+                        render={(props) => <MyDetails {...props} />}
                         key="mydetails"
                       />
                       <Route
                         exact
                         path="/"
-                        render={props => <Noticeboard {...props} />}
+                        render={(props) => <Noticeboard {...props} />}
                         key="noticeboard"
                       />
                       <Route
                         exact
                         path="/staff/details/:user"
-                        render={props => <MyDetails {...props} />}
+                        render={(props) => <MyDetails {...props} />}
                         key="staffdetails"
                       />
                       {/*<Route exact path="/vehicles" component={Vehicles} />*/}
@@ -1234,23 +1250,23 @@ class MainScreen extends React.PureComponent {
                       {/*<Route path="/dashboard" component={Dashboard} />*/}
                       <Route
                         path="/noticeboard"
-                        render={props => <Noticeboard {...props} />}
+                        render={(props) => <Noticeboard {...props} />}
                       />
                       {/*<Route path="/incidents" component={Incidents} />*/}
                       {/*<Route exact path="/jobs" component={Jobs} />*/}
                       <Route
                         path="/inventory"
-                        render={props => <Inventory {...props} />}
+                        render={(props) => <Inventory {...props} />}
                       />
                       <Route
                         exact
                         path="/jobs"
-                        render={props => <Jobs {...props} />}
+                        render={(props) => <Jobs {...props} />}
                       />
                       <Route
                         exact
                         path="/site/:site"
-                        render={props => (
+                        render={(props) => (
                           <Site
                             {...props}
                             handleDrawerClose={this.handleDrawerClose}
@@ -1261,23 +1277,25 @@ class MainScreen extends React.PureComponent {
                       <Route
                         exact
                         path="/sites"
-                        render={props => <Sites {...props} />}
+                        render={(props) => <Sites {...props} />}
                       />
                       <Route
                         path="/asbestoslab"
-                        render={props => <AsbestosLab {...props} />}
+                        render={(props) => <AsbestosLab {...props} />}
                       />
                       <Route
                         path="/asbestossamplelog"
-                        render={props => <AsbestosLog {...props} />}
+                        render={(props) => <AsbestosLog {...props} />}
                       />
                       <Route
                         path="/asbestosqc"
-                        render={props => <AsbestosQualityControl {...props} />}
+                        render={(props) => (
+                          <AsbestosQualityControl {...props} />
+                        )}
                       />
                       <Route
                         path="/asbestosstats"
-                        render={props => <AsbestosStats {...props} />}
+                        render={(props) => <AsbestosStats {...props} />}
                       />
                       {/*<Route
                         exact
@@ -1300,57 +1318,57 @@ class MainScreen extends React.PureComponent {
                       <Route
                         exact
                         path="/training"
-                        render={props => <TrainingPaths {...props} />}
+                        render={(props) => <TrainingPaths {...props} />}
                       />
                       <Route
                         exact
                         path="/training/overview"
-                        render={props => <TrainingOverview {...props} />}
+                        render={(props) => <TrainingOverview {...props} />}
                       />
                       <Route
                         exact
                         path="/training/paths"
-                        render={props => <TrainingPaths {...props} />}
+                        render={(props) => <TrainingPaths {...props} />}
                       />
                       <Route
                         path="/training/path/:uid"
-                        render={props => <TrainingPath {...props} />}
+                        render={(props) => <TrainingPath {...props} />}
                       />
                       {/*<Route path="/method/:uid" component={Method} />*/}
                       <Route
                         exact
                         path="/quizzes"
-                        render={props => <Quizzes {...props} />}
+                        render={(props) => <Quizzes {...props} />}
                       />
                       <Route
                         exact
                         path="/training/readinglog"
-                        render={props => <TrainingReadingLog {...props} />}
+                        render={(props) => <TrainingReadingLog {...props} />}
                         key="myreadinglog"
                       />
                       <Route
                         exact
                         path="/training/readinglog/:user"
-                        render={props => <TrainingReadingLog {...props} />}
+                        render={(props) => <TrainingReadingLog {...props} />}
                         key="staffreadinglog"
                       />
                       <Route
                         exact
                         path="/questions"
-                        render={props => <Questions {...props} />}
+                        render={(props) => <Questions {...props} />}
                       />
                       <Route
                         path="/quiz/:quiz"
-                        render={props => <Quiz {...props} />}
+                        render={(props) => <Quiz {...props} />}
                       />
                       {/*<Route path="/tools" component={Tools} />*/}
                       <Route
                         path="/library"
-                        render={props => <Library {...props} />}
+                        render={(props) => <Library {...props} />}
                       />
                       <Route
                         path="/document/:uid"
-                        render={props => <DocumentViewer {...props} />}
+                        render={(props) => <DocumentViewer {...props} />}
                       />
                     </Switch>
                   </Suspense>
@@ -1374,14 +1392,9 @@ class MainScreen extends React.PureComponent {
 }
 
 MainScreen.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
 };
 
 export default withRouter(
-  withStyles(styles)(
-    connect(
-      mapStateToProps,
-      mapDispatchToProps
-    )(MainScreen)
-  )
+  withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(MainScreen))
 );

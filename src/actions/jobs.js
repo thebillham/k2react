@@ -20,7 +20,8 @@ import {
   ADD_TO_JOB_LIST,
   GET_CURRENT_JOB_STATE,
   RESET_JOBS,
-  SET_LAST_TIME_SAVED
+  SET_LAST_TIME_SAVED,
+  AUTHORISE_WFM,
 } from "../constants/action-types";
 
 // Lead history icons
@@ -51,7 +52,7 @@ import {
   usersRef,
   jobsRef,
   sitesRef,
-  cocsRef
+  cocsRef,
 } from "../config/firebase";
 import { xmlToJson } from "../config/XmlToJson";
 import {
@@ -59,7 +60,7 @@ import {
   dateOf,
   getDaysBetweenDates,
   getDaysSinceDate,
-  titleCase
+  titleCase,
 } from "./helpers";
 import { fetchSamples } from "./asbestosLab";
 // import assetData from "./assetData.json";
@@ -74,27 +75,58 @@ const buckets = [
   "meth",
   "bio",
   "stack",
-  "noise"
+  "noise",
 ];
 
-export const resetJobs = () => dispatch => {
+export const resetJobs = () => (dispatch) => {
   dispatch({ type: RESET_JOBS });
 };
 
-export const fetchWFMJobs = () => async dispatch => {
+export const authoriseWFM = (code) => async (dispatch) => {
+  // const POPUP_WIDTH = 400;
+  // const POPUP_HEIGHT = 600;
+  console.log(code);
+  let path = `${process.env.REACT_APP_WFM_TOKEN_ENDPOINT}`;
+  let params = {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${Buffer.from(
+        `${process.env.REACT_APP_WFM_CLIENT_ID}:${process.env.REACT_APP_WFM_CLIENT_SECRET}`
+      ).toString("base64")}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: `grant_type=authorization_code&code=${code}&redirect_uri=${process.env.REACT_APP_WFM_REDIRECT_URI}`,
+  };
+  console.log(params);
+  fetch(path, params)
+    .then((results) => {
+      console.log(results);
+      return results.text();
+    })
+    .then((data) => {
+      console.log(data);
+      dispatch({
+        type: AUTHORISE_WFM,
+        payload: data,
+      });
+    });
+};
+
+export const fetchWFMJobs = () => async (dispatch) => {
+  // dispatch(authoriseWFM());
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMJobs`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
   let path = `${process.env.REACT_APP_WFM_ROOT}job.api/current?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   let len = 100;
   let str = "";
   fetch(path)
-    .then(results => results.text())
-    .then(data => {
+    .then((results) => results.text())
+    .then((data) => {
       var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
       var json = xmlToJson(xmlDOM);
       let jobs = [];
       // Map WFM jobs to a single level job object we can use
-      json.Response.Jobs.Job.forEach(wfmJob => {
+      json.Response.Jobs.Job.forEach((wfmJob) => {
         // console.log(wfmJob);
         let job = {};
         job.jobNumber = wfmJob.ID ? wfmJob.ID : null;
@@ -127,7 +159,7 @@ export const fetchWFMJobs = () => async dispatch => {
         if (wfmJob.Assigned.Staff) {
           job.assigned = [];
           if (Array.isArray(wfmJob.Assigned.Staff)) {
-            wfmJob.Assigned.Staff.forEach(wfmAssigned => {
+            wfmJob.Assigned.Staff.forEach((wfmAssigned) => {
               let staff = {};
               staff.id = wfmAssigned.ID;
               staff.name = wfmAssigned.Name;
@@ -137,8 +169,8 @@ export const fetchWFMJobs = () => async dispatch => {
             job.assigned = [
               {
                 id: wfmJob.Assigned.Staff.ID,
-                name: wfmJob.Assigned.Staff.Name
-              }
+                name: wfmJob.Assigned.Staff.Name,
+              },
             ];
           }
           // console.log(job.assigned);
@@ -151,24 +183,24 @@ export const fetchWFMJobs = () => async dispatch => {
       });
       dispatch({
         type: GET_WFM_JOBS,
-        payload: jobs
+        payload: jobs,
       });
     });
 };
 
-export const fetchWFMLeads = () => async dispatch => {
+export const fetchWFMLeads = () => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMLeads`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
   let path = `${process.env.REACT_APP_WFM_ROOT}lead.api/current?detailed=true&apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   fetch(path)
-    .then(results => results.text())
-    .then(data => {
+    .then((results) => results.text())
+    .then((data) => {
       // //console.log(data);
       var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
       var json = xmlToJson(xmlDOM);
       let leads = [];
       // Map WFM jobs to a single level job object we can use
-      json.Response.Leads.Lead.forEach(wfmLead => {
+      json.Response.Leads.Lead.forEach((wfmLead) => {
         let lead = {};
         lead.wfmID = wfmLead.ID;
         lead.name = wfmLead.Name ? wfmLead.Name : null;
@@ -194,7 +226,7 @@ export const fetchWFMLeads = () => async dispatch => {
         if (wfmLead.Activities.Activity) {
           lead.activities = [];
           if (Array.isArray(wfmLead.Activities.Activity)) {
-            wfmLead.Activities.Activity.forEach(wfmActivity => {
+            wfmLead.Activities.Activity.forEach((wfmActivity) => {
               let activity = {};
               activity.date = wfmActivity.Date;
               activity.subject = wfmActivity.Subject;
@@ -222,8 +254,8 @@ export const fetchWFMLeads = () => async dispatch => {
                   : null,
                 responsibleID: wfmLead.Activities.Activity.Responsible
                   ? wfmLead.Activities.Activity.Responsible.ID
-                  : null
-              }
+                  : null,
+              },
             ];
           }
           if (Object.keys(assigned).length > 0)
@@ -236,7 +268,7 @@ export const fetchWFMLeads = () => async dispatch => {
           // console.log(wfmLead.History);
           lead.history = [];
           if (Array.isArray(wfmLead.History.Item)) {
-            wfmLead.History.Item.forEach(wfmHistory => {
+            wfmLead.History.Item.forEach((wfmHistory) => {
               let item = [];
               item.detail = wfmHistory.Detail;
               item.date = wfmHistory.Date;
@@ -250,8 +282,8 @@ export const fetchWFMLeads = () => async dispatch => {
                 detail: wfmLead.History.Item.Detail,
                 date: wfmLead.History.Item.Date,
                 staff: wfmLead.History.Item.Staff,
-                type: wfmLead.History.Item.Type
-              }
+                type: wfmLead.History.Item.Type,
+              },
             ];
           }
         } else {
@@ -262,25 +294,25 @@ export const fetchWFMLeads = () => async dispatch => {
       // //console.log(leads);
       dispatch({
         type: GET_WFM_LEADS,
-        payload: leads
+        payload: leads,
       });
     });
 };
 
-export const fetchWFMClients = () => async dispatch => {
+export const fetchWFMClients = () => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchWFMClients`);
   // let path = apiRoot + 'wfm/job.php?apiKey=' + apiKey;
   let path = `${process.env.REACT_APP_WFM_ROOT}client.api/list?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   let len = 100;
   let str = "";
   fetch(path)
-    .then(results => results.text())
-    .then(data => {
+    .then((results) => results.text())
+    .then((data) => {
       var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
       var json = xmlToJson(xmlDOM);
       let clients = [];
       // Map WFM jobs to a single level job object we can use
-      json.Response.Clients.Client.forEach(wfmClient => {
+      json.Response.Clients.Client.forEach((wfmClient) => {
         // //console.log(wfmClient);
         let i = wfmClient.Name.length;
         if (i < len) {
@@ -301,28 +333,24 @@ export const fetchWFMClients = () => async dispatch => {
       // //console.log(clients);
       dispatch({
         type: GET_WFM_CLIENTS,
-        payload: clients
+        payload: clients,
       });
     });
 };
 
-export const clearWfmJob = () => async dispatch => {
+export const clearWfmJob = () => async (dispatch) => {
   dispatch({
-    type: CLEAR_WFM_JOB
+    type: CLEAR_WFM_JOB,
   });
 };
 
 export const deleteSiteJob = ({ site, job }) => {
   if (site && job) {
-    sitesRef
-      .doc(site)
-      .collection("jobs")
-      .doc(job.uid)
-      .delete();
+    sitesRef.doc(site).collection("jobs").doc(job.uid).delete();
   }
 };
 
-export const setupSiteJob = (job, site) => async dispatch => {
+export const setupSiteJob = (job, site) => async (dispatch) => {
   if (job && site && job.jobNumber) {
     // Initialise job
     let setupMap = {};
@@ -344,25 +372,21 @@ export const setupSiteJob = (job, site) => async dispatch => {
         surveyWeather: null,
         photoMainSite: null,
         reportState: null,
-        currentVersion: null
+        currentVersion: null,
       };
     }
     let newJob = {
       ...job,
-      ...setupMap
+      ...setupMap,
     };
     console.log(newJob);
     if (!newJob.uid)
       newJob.uid = `${job.jobNumber.trim()}_${job.jobDescription.trim()}`;
     dispatch({
       type: GET_SITE_JOB,
-      payload: { job: newJob, site: site }
+      payload: { job: newJob, site: site },
     });
-    sitesRef
-      .doc(site)
-      .collection("jobs")
-      .doc(newJob.uid)
-      .set(job);
+    sitesRef.doc(site).collection("jobs").doc(newJob.uid).set(job);
   }
 };
 
@@ -374,8 +398,8 @@ export const getDetailedWFMJob = ({
   wfmClients,
   geocodes,
   site,
-  jobDescription
-}) => async dispatch => {
+  jobDescription,
+}) => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran getDetailedWFMJob`);
   let path = `${
     process.env.REACT_APP_WFM_ROOT
@@ -384,19 +408,19 @@ export const getDetailedWFMJob = ({
   }&accountKey=${process.env.REACT_APP_WFM_ACC}`;
   // console.log(path);
   fetch(path)
-    .then(results => results.text())
-    .then(data => {
+    .then((results) => results.text())
+    .then((data) => {
       var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
       var json = xmlToJson(xmlDOM);
       if (json.Response.Status === "ERROR") {
         dispatch({
           type: SET_MODAL_ERROR,
-          payload: json.Response.ErrorDescription
+          payload: json.Response.ErrorDescription,
         });
       } else {
         let wfmJob = json.Response.Job;
         let job = {
-          isJob: true
+          isJob: true,
         };
         //console.log(wfmJob);
         job.jobDescription = jobDescription
@@ -421,14 +445,14 @@ export const getDetailedWFMJob = ({
             let path = `${process.env.REACT_APP_WFM_ROOT}client.api/get/${job.clientID}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
             fetch(path);
             fetch(path)
-              .then(results => results.text())
-              .then(data => {
+              .then((results) => results.text())
+              .then((data) => {
                 var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
                 var json = xmlToJson(xmlDOM);
                 if (json.Response.Status === "ERROR") {
                   dispatch({
                     type: SET_MODAL_ERROR,
-                    payload: json.Response.ErrorDescription
+                    payload: json.Response.ErrorDescription,
                   });
                 } else {
                   let client = json.Response.Client;
@@ -443,9 +467,7 @@ export const getDetailedWFMJob = ({
                       client.Email === Object(client.Email)
                         ? null
                         : client.Email
-                        ? client.Email.toString()
-                            .trim()
-                            .toLowerCase()
+                        ? client.Email.toString().trim().toLowerCase()
                         : null,
                     address:
                       client.Address === Object(client.Address)
@@ -490,9 +512,7 @@ export const getDetailedWFMJob = ({
                     phone:
                       client.Phone === Object(client.Phone)
                         ? null
-                        : client.Phone.toString()
-                            .replace("-", " ")
-                            .trim()
+                        : client.Phone.toString().replace("-", " ").trim(),
                   };
                   // console.log(job.clientDetails);
                   if (addToJobList)
@@ -506,11 +526,11 @@ export const getDetailedWFMJob = ({
                     );
                   dispatch({
                     type: GET_WFM_JOB,
-                    payload: job
+                    payload: job,
                   });
                   dispatch({
                     type: EDIT_MODAL_DOC,
-                    payload: job
+                    payload: job,
                   });
                   if (setUpJob) dispatch(setupSiteJob(job, site));
                 }
@@ -531,14 +551,14 @@ export const getDetailedWFMJob = ({
             let path = `${process.env.REACT_APP_WFM_ROOT}client.api/contact/${contactID}?apiKey=${process.env.REACT_APP_WFM_API}&accountKey=${process.env.REACT_APP_WFM_ACC}`;
             //console.log(path);
             fetch(path)
-              .then(results => results.text())
-              .then(data => {
+              .then((results) => results.text())
+              .then((data) => {
                 var xmlDOM = new DOMParser().parseFromString(data, "text/xml");
                 var json = xmlToJson(xmlDOM);
                 if (json.Response.Status === "ERROR") {
                   dispatch({
                     type: SET_MODAL_ERROR,
-                    payload: json.Response.ErrorDescription
+                    payload: json.Response.ErrorDescription,
                   });
                 } else {
                   let contact = json.Response.Contact;
@@ -554,21 +574,15 @@ export const getDetailedWFMJob = ({
                     mobile:
                       contact.Mobile === Object(contact.Mobile)
                         ? ""
-                        : contact.Mobile.toString()
-                            .replace("-", " ")
-                            .trim(),
+                        : contact.Mobile.toString().replace("-", " ").trim(),
                     phone:
                       contact.Phone === Object(contact.Phone)
                         ? ""
-                        : contact.Phone.toString()
-                            .replace("-", " ")
-                            .trim(),
+                        : contact.Phone.toString().replace("-", " ").trim(),
                     email:
                       contact.Email === Object(contact.Email)
                         ? ""
-                        : contact.Email.toString()
-                            .toLowerCase()
-                            .trim()
+                        : contact.Email.toString().toLowerCase().trim(),
                   };
                   if (addToJobList)
                     dispatch(
@@ -581,11 +595,11 @@ export const getDetailedWFMJob = ({
                     );
                   dispatch({
                     type: GET_WFM_JOB,
-                    payload: job
+                    payload: job,
                   });
                   dispatch({
                     type: EDIT_MODAL_DOC,
-                    payload: job
+                    payload: job,
                   });
                   if (setUpJob) dispatch(setupSiteJob(job, site));
                 }
@@ -594,14 +608,14 @@ export const getDetailedWFMJob = ({
             job.contact = {
               wfmID: null,
               name: null,
-              email: null
+              email: null,
             };
           }
         } else {
           job.contact = {
             wfmID: null,
             name: null,
-            email: null
+            email: null,
           };
         }
         if (wfmJob.Manager) {
@@ -614,7 +628,7 @@ export const getDetailedWFMJob = ({
         if (wfmJob.Milestones.Milestone) {
           job.milestones = [];
           if (Array.isArray(wfmJob.Milestones.Milestone)) {
-            wfmJob.Milestones.Milestone.forEach(wfmMilestone => {
+            wfmJob.Milestones.Milestone.forEach((wfmMilestone) => {
               let milestone = {};
               milestone.id = wfmMilestone.ID;
               milestone.date = wfmMilestone.Date;
@@ -630,15 +644,15 @@ export const getDetailedWFMJob = ({
                 date: wfmJob.Milestones.Milestone.Date,
                 description: wfmJob.Milestones.Milestone.Description,
                 folder: wfmJob.Milestones.Milestone.Folder,
-                complete: wfmJob.Milestones.Milestone.Completed
-              }
+                complete: wfmJob.Milestones.Milestone.Completed,
+              },
             ];
           }
         }
         if (wfmJob.Notes.Note) {
           job.notes = [];
           if (Array.isArray(wfmJob.Notes.Note)) {
-            wfmJob.Notes.Note.forEach(wfmNote => {
+            wfmJob.Notes.Note.forEach((wfmNote) => {
               let note = {};
               note.id = wfmNote.ID;
               note.date = wfmNote.Date;
@@ -658,15 +672,15 @@ export const getDetailedWFMJob = ({
                 text: wfmJob.Notes.Note.Text,
                 title: wfmJob.Notes.Note.Title,
                 comments: wfmJob.Notes.Note.Comments,
-                folder: wfmJob.Notes.Note.Folder
-              }
+                folder: wfmJob.Notes.Note.Folder,
+              },
             ];
           }
         }
         if (wfmJob.Assigned.Staff) {
           job.assigned = [];
           if (Array.isArray(wfmJob.Assigned.Staff)) {
-            wfmJob.Assigned.Staff.forEach(wfmAssigned => {
+            wfmJob.Assigned.Staff.forEach((wfmAssigned) => {
               let staff = {};
               staff.id = wfmAssigned.ID;
               staff.name = wfmAssigned.Name;
@@ -676,8 +690,8 @@ export const getDetailedWFMJob = ({
             job.assigned = [
               {
                 id: wfmJob.Assigned.Staff.ID,
-                name: wfmJob.Assigned.Staff.Name
-              }
+                name: wfmJob.Assigned.Staff.Name,
+              },
             ];
           }
         }
@@ -688,7 +702,7 @@ export const getDetailedWFMJob = ({
           console.log("New uid" + uid);
           dispatch({
             type: EDIT_MODAL_DOC,
-            payload: { uid: uid }
+            payload: { uid: uid },
           });
         }
         if (addToJobList)
@@ -703,28 +717,28 @@ export const getDetailedWFMJob = ({
         // console.log(job);
         dispatch({
           type: GET_WFM_JOB,
-          payload: job
+          payload: job,
         });
         dispatch({
           type: EDIT_MODAL_DOC,
-          payload: job
+          payload: job,
         });
         if (setUpJob) dispatch(setupSiteJob(job, site));
       }
     });
 };
 
-export const resetWfmJob = () => dispatch => {
+export const resetWfmJob = () => (dispatch) => {
   dispatch({
     type: GET_WFM_JOB,
-    payload: {}
+    payload: {},
   });
 };
 
-export const saveGeocodes = geocodes => dispatch => {
+export const saveGeocodes = (geocodes) => (dispatch) => {
   if (geocodes) {
-    Object.values(geocodes).forEach(g => {
-      Object.keys(g).forEach(k => {
+    Object.values(geocodes).forEach((g) => {
+      Object.keys(g).forEach((k) => {
         if (g[k] === undefined) console.log(k);
       });
     });
@@ -732,29 +746,29 @@ export const saveGeocodes = geocodes => dispatch => {
   }
 };
 
-export const fetchGeocodes = () => dispatch => {
+export const fetchGeocodes = () => (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchGeocodes`);
   stateRef
     .doc("geocodes")
     .get()
-    .then(doc => {
+    .then((doc) => {
       if (doc.data()) {
         dispatch({
           type: GET_GEOCODES,
-          payload: doc.data().payload
+          payload: doc.data().payload,
         });
       }
     });
 };
 
-export const updateGeocodes = geocodes => dispatch => {
+export const updateGeocodes = (geocodes) => (dispatch) => {
   dispatch({
     type: GET_GEOCODES,
-    payload: geocodes
+    payload: geocodes,
   });
 };
 
-export const saveWFMItems = items => dispatch => {
+export const saveWFMItems = (items) => (dispatch) => {
   console.log(Object.keys(items).length);
   var date = moment().format("YYYY-MM-DD");
   // //console.log(items);
@@ -771,7 +785,7 @@ export const saveWFMItems = items => dispatch => {
 
   let leadSwitch = true;
 
-  Object.values(items).forEach(item => {
+  Object.values(items).forEach((item) => {
     if (item.isJob) jobs[item.wfmID] = item;
     else if (leadSwitch) leads1[item.wfmID] = item;
     else leads2[item.wfmID] = item;
@@ -779,35 +793,23 @@ export const saveWFMItems = items => dispatch => {
   });
 
   let batch = firestore.batch();
+  batch.set(stateRef.doc("wfmstate").collection("jobStates").doc(date), jobs);
   batch.set(
-    stateRef
-      .doc("wfmstate")
-      .collection("jobStates")
-      .doc(date),
-    jobs
-  );
-  batch.set(
-    stateRef
-      .doc("wfmstate")
-      .collection("leadStates1")
-      .doc(date),
+    stateRef.doc("wfmstate").collection("leadStates1").doc(date),
     leads1
   );
   batch.set(
-    stateRef
-      .doc("wfmstate")
-      .collection("leadStates2")
-      .doc(date),
+    stateRef.doc("wfmstate").collection("leadStates2").doc(date),
     leads2
   );
   batch.commit();
   dispatch({
     type: SAVE_WFM_ITEMS,
-    payload: items
+    payload: items,
   });
 };
 
-export const saveStats = stats => dispatch => {
+export const saveStats = (stats) => (dispatch) => {
   var date = moment().format("YYYY-MM-DD");
   // //console.log(stats);
   // stateRef
@@ -822,16 +824,16 @@ export const saveStats = stats => dispatch => {
     .set({ state: stats["staff"] });
   dispatch({
     type: SAVE_WFM_STATS,
-    payload: stats
+    payload: stats,
   });
 };
 
-export const fetchSites = update => async dispatch => {
+export const fetchSites = (update) => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchSites`);
   if (true) {
-    sitesRef.onSnapshot(querySnapshot => {
+    sitesRef.onSnapshot((querySnapshot) => {
       var sites = {};
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         let site = doc.data();
         site.uid = doc.id;
         sites[doc.id] = site;
@@ -840,11 +842,11 @@ export const fetchSites = update => async dispatch => {
       dispatch({
         type: GET_SITES,
         payload: sites,
-        update: true
+        update: true,
       });
     });
   } else {
-    stateRef.doc("sites").onSnapshot(doc => {
+    stateRef.doc("sites").onSnapshot((doc) => {
       if (doc.exists) {
         dispatch({ type: GET_SITES, payload: doc.data().payload });
       } else {
@@ -854,22 +856,22 @@ export const fetchSites = update => async dispatch => {
   }
 };
 
-export const fetchSiteJobs = site => async dispatch => {
+export const fetchSiteJobs = (site) => async (dispatch) => {
   sitesRef
     .doc(site)
     .collection("jobs")
-    .onSnapshot(querySnapshot => {
+    .onSnapshot((querySnapshot) => {
       var jobs = {};
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         let job = doc.data();
         job.uid = doc.id;
         jobs[doc.id] = job;
         cocsRef
           .where("jobNumber", "==", job.jobNumber)
           .where("deleted", "==", false)
-          .onSnapshot(cocSnapshot => {
+          .onSnapshot((cocSnapshot) => {
             var cocs = {};
-            cocSnapshot.forEach(cocDoc => {
+            cocSnapshot.forEach((cocDoc) => {
               let coc = cocDoc.data();
               coc.uid = cocDoc.id;
               cocs[cocDoc.id] = coc;
@@ -878,25 +880,25 @@ export const fetchSiteJobs = site => async dispatch => {
             // console.log(cocs);
             dispatch({
               type: GET_SITE_COCS,
-              payload: { cocs, site }
+              payload: { cocs, site },
             });
           });
       });
       dispatch({
         type: GET_SITE_JOBS,
-        payload: { jobs, site }
+        payload: { jobs, site },
       });
     });
 };
 
-export const fetchSiteAcm = site => async dispatch => {
+export const fetchSiteAcm = (site) => async (dispatch) => {
   console.log(site);
   sitesRef
     .doc(site)
     .collection("acm")
-    .onSnapshot(querySnapshot => {
+    .onSnapshot((querySnapshot) => {
       var acms = {};
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         let acm = doc.data();
         acm.uid = doc.id;
         acms[doc.id] = acm;
@@ -904,7 +906,7 @@ export const fetchSiteAcm = site => async dispatch => {
       console.log(acms);
       dispatch({
         type: GET_SITE_ACM,
-        payload: { acms, site }
+        payload: { acms, site },
       });
     });
 };
@@ -915,7 +917,7 @@ export const analyseJobHistory = () => {
   // vars
   console.log("Running job history");
   var jobMap = {};
-  buckets.forEach(bucket => {
+  buckets.forEach((bucket) => {
     jobMap[bucket] = {};
   });
   var jobTypes = {};
@@ -932,8 +934,8 @@ export const analyseJobHistory = () => {
     .doc("wfmstate")
     .collection("jobStates")
     .get()
-    .then(querySnapshot => {
-      querySnapshot.forEach(doc => {
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
         // Loop through each day of the saved states
         console.log(doc.id);
         var state = doc.data() && Object.values(doc.data());
@@ -941,19 +943,20 @@ export const analyseJobHistory = () => {
         // console.log(state.filter((stateJob) => stateJob.isJob).length);
         // Loop through current job map and check if any are missing from this state (e.g. they have been completed since the last state)
         if (state.length > 0) {
-          buckets.forEach(bucket => {
+          buckets.forEach((bucket) => {
             // console.log(bucket);
             if (jobMap[bucket] !== undefined) {
               console.log(jobMap[bucket]);
-              Object.values(jobMap[bucket]).forEach(job => {
+              Object.values(jobMap[bucket]).forEach((job) => {
                 console.log(
-                  state.filter(stateJob => stateJob.wfmID === job.wfmID).length
+                  state.filter((stateJob) => stateJob.wfmID === job.wfmID)
+                    .length
                 );
                 if (
                   job.wfmState !== "Completed" &&
-                  state.filter(stateJob => stateJob.wfmID === job.wfmID)
+                  state.filter((stateJob) => stateJob.wfmID === job.wfmID)
                     .length === 0 &&
-                  state.filter(stateJob => stateJob.isJob).length > 0
+                  state.filter((stateJob) => stateJob.isJob).length > 0
                 ) {
                   console.log("Job " + job.wfmID + " Completed at " + doc.id);
                   jobMap[bucket][job.wfmID]["wfmState"] = "Completed";
@@ -961,7 +964,7 @@ export const analyseJobHistory = () => {
                   jobMap[bucket][job.wfmID]["lastActionDate"] = doc.id;
                   jobMap[bucket][job.wfmID]["stateHistory"] = {
                     ...jobMap[bucket][job.wfmID]["stateHistory"],
-                    [doc.id]: "Completed"
+                    [doc.id]: "Completed",
                   };
 
                   // Add to calendar of when jobs were completed
@@ -972,7 +975,7 @@ export const analyseJobHistory = () => {
                     isJob: jobMap[bucket][job.wfmID]["isJob"],
                     jobNumber: jobMap[bucket][job.wfmID]["jobNumber"],
                     name: jobMap[bucket][job.wfmID]["name"],
-                    wfmID: jobMap[bucket][job.wfmID]["wfmID"]
+                    wfmID: jobMap[bucket][job.wfmID]["wfmID"],
                   };
                   if (jobMap[bucket][job.wfmID]["stateHistory"] !== undefined)
                     completionDoc.stateHistory =
@@ -986,7 +989,7 @@ export const analyseJobHistory = () => {
                   if (completionMap[doc.id] !== undefined) {
                     completionMap[doc.id] = [
                       ...completionMap[doc.id],
-                      completionDoc
+                      completionDoc,
                     ];
                   } else {
                     completionMap[doc.id] = [completionDoc];
@@ -999,7 +1002,7 @@ export const analyseJobHistory = () => {
 
         // Loop through each job/lead in the state
         // This will not loop through any completed jobs
-        state.forEach(job => {
+        state.forEach((job) => {
           if (job.isJob) {
             // Split job Maps into Workplace, Asbestos and Other to prevent firebase documents being too large
             var bucket = "jobs";
@@ -1037,7 +1040,7 @@ export const analyseJobHistory = () => {
                   // Mapped job was incorrectly marked as completed
                   // console.log(mappedJob);
                   mappedJob.stateHistory &&
-                    Object.keys(mappedJob.stateHistory).forEach(k => {
+                    Object.keys(mappedJob.stateHistory).forEach((k) => {
                       if (mappedJob.stateHistory[k] === "Completed") {
                         console.log(mappedJob.stateHistory);
                         delete mappedJob.stateHistory[k];
@@ -1078,7 +1081,7 @@ export const analyseJobHistory = () => {
                   mappedJob.lastActionDate = doc.id;
                   mappedJob.stateHistory = {
                     ...mappedJob.stateHistory,
-                    [doc.id]: job.wfmState
+                    [doc.id]: job.wfmState,
                   };
                   if (job.wfmState === undefined)
                     console.log(mappedJob.stateHistory);
@@ -1121,7 +1124,7 @@ export const analyseJobHistory = () => {
 
               job.stateHistory = {
                 [job.creationDate]: "Job Created",
-                [doc.id]: job.wfmState
+                [doc.id]: job.wfmState,
               };
 
               console.log(job);
@@ -1137,7 +1140,7 @@ export const analyseJobHistory = () => {
                 isJob: job.isJob,
                 jobNumber: job.jobNumber,
                 name: job.name,
-                wfmID: job.wfmID
+                wfmID: job.wfmID,
               };
               if (creationMap[doc.id] !== undefined) {
                 creationMap[doc.id] = [...creationMap[doc.id], creationDoc];
@@ -1179,14 +1182,14 @@ export const analyseJobHistory = () => {
       let batch = firestore.batch();
 
       allBuckets = buckets.concat(Object.keys(leadBuckets));
-      allBuckets.forEach(bucket => {
+      allBuckets.forEach((bucket) => {
         // console.log(bucket);
         // Check for any jobs that have undefined state historys
         if (jobMap[bucket]) {
-          Object.values(jobMap[bucket]).forEach(job => {
+          Object.values(jobMap[bucket]).forEach((job) => {
             if (job.stateHistory) {
               let lastKey = "";
-              Object.keys(job.stateHistory).forEach(k => {
+              Object.keys(job.stateHistory).forEach((k) => {
                 if (job.stateHistory[k] === undefined) {
                   job.stateHistory[k] = "Data missing";
                   // console.log(job.stateHistory);
@@ -1203,33 +1206,24 @@ export const analyseJobHistory = () => {
           });
         }
         batch.set(
-          stateRef
-            .doc("wfmstate")
-            .collection("current")
-            .doc(bucket),
+          stateRef.doc("wfmstate").collection("current").doc(bucket),
           jobMap[bucket]
         );
       });
       console.log(jobMap);
       batch.set(
-        stateRef
-          .doc("wfmstate")
-          .collection("timeline")
-          .doc("completion"),
+        stateRef.doc("wfmstate").collection("timeline").doc("completion"),
         completionMap
       );
       batch.set(
-        stateRef
-          .doc("wfmstate")
-          .collection("timeline")
-          .doc("creation"),
+        stateRef.doc("wfmstate").collection("timeline").doc("creation"),
         creationMap
       );
       batch.commit();
     });
 };
 
-export const calculateJobStats = jobList => dispatch => {
+export const calculateJobStats = (jobList) => (dispatch) => {
   // Set up stat sheet for new names
   // Averages in form { number of items, sum, average }
   const statSheet = {
@@ -1255,14 +1249,14 @@ export const calculateJobStats = jobList => dispatch => {
     jobAges: [],
     jobNeedsBookingAges: [],
     actionOverdueDays: [],
-    completedActionOverdueDays: []
+    completedActionOverdueDays: [],
   };
   var client = {};
   var staff = {};
   staff["K2"] = { ...this.state.statSheet };
 
   jobList &&
-    Object.values(jobList).forEach(m => {
+    Object.values(jobList).forEach((m) => {
       var age = this.getDaysSinceDate(m.creationDate);
       if (staff[m.owner] === undefined)
         staff[m.owner] = { ...this.state.statSheet };
@@ -1288,15 +1282,15 @@ export const calculateJobStats = jobList => dispatch => {
         );
         staff["K2"]["jobNeedsBookingAges"] = [
           ...staff["K2"]["jobNeedsBookingAges"],
-          age
+          age,
         ];
         staff[m.owner]["jobNeedsBookingAges"] = [
           ...staff[m.owner]["jobNeedsBookingAges"],
-          age
+          age,
         ];
         client[m.client]["jobNeedsBookingAges"] = [
           ...client[m.client]["jobNeedsBookingAges"],
-          age
+          age,
         ];
       }
 
@@ -1343,7 +1337,7 @@ export const calculateJobStats = jobList => dispatch => {
       }
 
       m.activities &&
-        m.activities.forEach(a => {
+        m.activities.forEach((a) => {
           if (staff[a.responsible] === undefined)
             staff[a.responsible] = this.state.statSheet;
           // Check if activity is completed
@@ -1371,15 +1365,15 @@ export const calculateJobStats = jobList => dispatch => {
             );
             staff["K2"]["completedActionOverdueDays"] = [
               ...staff["K2"]["completedActionOverdueDays"],
-              a.completedOverdueBy
+              a.completedOverdueBy,
             ];
             staff[a.responsible]["completedActionOverdueDays"] = [
               ...staff[a.responsible]["completedActionOverdueDays"],
-              a.completedOverdueBy
+              a.completedOverdueBy,
             ];
             client[m.client]["completedActionOverdueDays"] = [
               ...client[m.client]["completedActionOverdueDays"],
-              a.completedOverdueBy
+              a.completedOverdueBy,
             ];
           } else {
             var overdueDays = this.getDaysSinceDate(a.date);
@@ -1406,15 +1400,15 @@ export const calculateJobStats = jobList => dispatch => {
               );
               staff["K2"]["actionOverdueDays"] = [
                 ...staff["K2"]["actionOverdueDays"],
-                overdueDays
+                overdueDays,
               ];
               staff[m.owner]["actionOverdueDays"] = [
                 ...staff[m.owner]["actionOverdueDays"],
-                overdueDays
+                overdueDays,
               ];
               client[m.client]["actionOverdueDays"] = [
                 ...client[m.client]["actionOverdueDays"],
-                overdueDays
+                overdueDays,
               ];
             } else {
               // Action on target
@@ -1428,11 +1422,11 @@ export const calculateJobStats = jobList => dispatch => {
 
   this.setState({
     clientStats: client,
-    staffStats: staff
+    staffStats: staff,
   });
 };
 
-export const fetchCurrentJobState = ignoreCompleted => dispatch => {
+export const fetchCurrentJobState = (ignoreCompleted) => (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchCurrentJobState`);
   var currentJobState = {};
   // Put all the buckets back together in one map
@@ -1440,17 +1434,17 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
     .doc("wfmstate")
     .collection("current")
     .get()
-    .then(querySnapshot => {
-      querySnapshot.forEach(doc => {
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
         if (ignoreCompleted) {
-          Object.values(doc.data()).forEach(job => {
+          Object.values(doc.data()).forEach((job) => {
             if (job["state"] !== "Completed")
               currentJobState[job["wfmID"]] = job;
           });
         } else {
           currentJobState = {
             ...currentJobState,
-            ...doc.data()
+            ...doc.data(),
           };
         }
       });
@@ -1459,26 +1453,26 @@ export const fetchCurrentJobState = ignoreCompleted => dispatch => {
       // console.log(currentJobState);
       dispatch({
         type: GET_CURRENT_JOB_STATE,
-        payload: currentJobState
+        payload: currentJobState,
       });
     });
 };
 
-export const saveCurrentJobState = state => dispatch => {
+export const saveCurrentJobState = (state) => (dispatch) => {
   console.log("Running save current state");
   sendSlackMessage(`${auth.currentUser.displayName} ran saveCurrentJobState`);
   // Sort into buckets to prevent firestore rejecting objects that are too large
   var sortedState = {};
   var allBuckets = [];
   var leadBuckets = {};
-  buckets.forEach(bucket => {
+  buckets.forEach((bucket) => {
     sortedState[bucket] = {};
   });
 
   // console.log(state);
 
   state &&
-    Object.values(state).forEach(job => {
+    Object.values(state).forEach((job) => {
       if (job.isJob) {
         var bucket = "jobs";
         if (job.category.toLowerCase().includes("asbestos"))
@@ -1507,14 +1501,11 @@ export const saveCurrentJobState = state => dispatch => {
   allBuckets = buckets.concat(Object.keys(leadBuckets));
 
   let batch = firestore.batch();
-  allBuckets.forEach(bucket => {
+  allBuckets.forEach((bucket) => {
     // console.log(sortedState[bucket]);
     console.log(Object.keys(sortedState[bucket]).length);
     batch.set(
-      stateRef
-        .doc("wfmstate")
-        .collection("current")
-        .doc(bucket),
+      stateRef.doc("wfmstate").collection("current").doc(bucket),
       sortedState[bucket]
     );
   });
@@ -1525,7 +1516,7 @@ export const getCompletionDateFromHistory = (activity, history) => {
   if (activity.completed === "No") return activity;
   // Get only actions that are of activities being completed
   var actions = history.filter(
-    item => item.type === "Activity" && item.detail.includes(activity.subject)
+    (item) => item.type === "Activity" && item.detail.includes(activity.subject)
   );
 
   if (actions.length > 0) {
@@ -1539,7 +1530,7 @@ export const getCompletionDateFromHistory = (activity, history) => {
 };
 
 export const getAddressFromClient = (clientID, wfmClients) => {
-  var client = wfmClients.filter(client => client.wfmID === clientID);
+  var client = wfmClients.filter((client) => client.wfmID === clientID);
   if (client.length > 0) {
     var address =
       client[0].city === ""
@@ -1551,16 +1542,13 @@ export const getAddressFromClient = (clientID, wfmClients) => {
   }
 };
 
-export const handleGeocode = (
-  address,
-  clientAddress,
-  lead,
-  geocodes
-) => dispatch => {
+export const handleGeocode = (address, clientAddress, lead, geocodes) => (
+  dispatch
+) => {
   // console.log('Relying on lead to state.');
   // return;
-  console.log(address);
-  console.log(lead);
+  // console.log(address);
+  // console.log(lead);
   lead.clientAddress = clientAddress;
   // Pick either name or clientAddress to use as the geolocation
   var add = checkAddress(address, geocodes);
@@ -1578,10 +1566,10 @@ export const handleGeocode = (
   } else {
     if (add !== "NULL") {
       let path = `https://maps.googleapis.com/maps/api/geocode/json?address=${add}&components=country:NZ&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY}`;
-      console.log("Getting GEOCODE for " + add);
+      // console.log("Getting GEOCODE for " + add);
       fetch(path)
-        .then(response => response.json())
-        .then(response => {
+        .then((response) => response.json())
+        .then((response) => {
           var gc = geocodes;
           // if (response.status = "ZERO_RESULTS") {
           //   lead.geocode = { address: "New Zealand" };
@@ -1609,15 +1597,15 @@ export const collateJobsList = (
   currentJobState,
   wfmClients,
   geocodes
-) => dispatch => {
+) => (dispatch) => {
   console.log("COLLATING LEADS AND JOBS");
   // Add option to look up detailed information for each job
   var mappedJobs = {};
   let currentJobStateCopy = { ...currentJobState };
   console.log(currentJobStateCopy);
   Object.values(currentJobState)
-    .filter(job => job.wfmState === "Completed")
-    .forEach(job => {
+    .filter((job) => job.wfmState === "Completed")
+    .forEach((job) => {
       mappedJobs[job.wfmID] = job;
     });
   // console.log(geocodes);
@@ -1627,7 +1615,7 @@ export const collateJobsList = (
   // console.log(currentState);
 
   // Convert jobs into a 'lead' type object
-  wfmJobs.forEach(job => {
+  wfmJobs.forEach((job) => {
     // console.log(job);
     var today = moment().format("YYYY-MM-DD");
     var mappedJob = currentJobState[job.wfmID];
@@ -1653,7 +1641,7 @@ export const collateJobsList = (
         // Mapped job was incorrectly marked as completed
         // console.log(mappedJob);
         mappedJob.stateHistory &&
-          Object.keys(mappedJob.stateHistory).forEach(k => {
+          Object.keys(mappedJob.stateHistory).forEach((k) => {
             if (mappedJob.stateHistory[k] === "Completed") {
               // console.log(mappedJob.stateHistory);
               delete mappedJob.stateHistory[k];
@@ -1684,7 +1672,7 @@ export const collateJobsList = (
         mappedJob.lastActionDate = today;
         mappedJob.stateHistory = {
           ...mappedJob.stateHistory,
-          [today]: job.wfmState
+          [today]: job.wfmState,
         };
       } else {
         mappedJob.lastActionDate = Object.keys(mappedJob.stateHistory).slice(
@@ -1719,7 +1707,7 @@ export const collateJobsList = (
       } else {
         mappedJobs = {
           ...mappedJobs,
-          [job.wfmID]: mappedJob
+          [job.wfmID]: mappedJob,
         };
       }
     } else {
@@ -1741,7 +1729,7 @@ export const collateJobsList = (
       newJob.lastActionType = job.wfmState;
       newJob.lastActionDate = today;
       newJob.stateHistory = {
-        [today]: job.wfmState
+        [today]: job.wfmState,
       };
       newJob.isJob = true;
       console.log(newJob);
@@ -1756,7 +1744,7 @@ export const collateJobsList = (
     }
   });
 
-  wfmLeads.forEach(wfmLead => {
+  wfmLeads.forEach((wfmLead) => {
     var lead = currentJobState[wfmLead.wfmID];
     delete currentJobStateCopy[wfmLead.wfmID];
     // if (lead !== undefined) {
@@ -1816,12 +1804,12 @@ export const collateJobsList = (
     lead.value = wfmLead.value;
     if (wfmLead.history) {
       let historyArray = [];
-      wfmLead.history.forEach(item => {
+      wfmLead.history.forEach((item) => {
         historyArray.push({
           date: item.date ? dateOf(item.date) : null,
           detail: item.detail ? item.detail : null,
           staff: item.staff ? item.staff : null,
-          type: item.type ? item.type : null
+          type: item.type ? item.type : null,
         });
       });
       lead.history = historyArray;
@@ -1834,7 +1822,7 @@ export const collateJobsList = (
     } else if (wfmLead.history[0] === "No History") {
       lead.activities = [];
     } else {
-      lead.activities = wfmLead.activities.map(activity =>
+      lead.activities = wfmLead.activities.map((activity) =>
         getCompletionDateFromHistory(activity, wfmLead.history)
       );
     }
@@ -1875,8 +1863,8 @@ export const collateJobsList = (
   // All current jobs and leads will have been deleted from the currentJobStateCopy so we only need to filter out the ones already marked as completed.
   var today = moment().format("YYYY-MM-DD");
   Object.values(currentJobStateCopy)
-    .filter(job => job.isJob && job.wfmState !== "Completed")
-    .forEach(job => {
+    .filter((job) => job.isJob && job.wfmState !== "Completed")
+    .forEach((job) => {
       // console.log(job.wfmState);
       // console.log(job);
       job.lastActionDate = today;
@@ -1893,11 +1881,11 @@ export const collateJobsList = (
 
   dispatch({
     type: GET_JOB_LIST,
-    payload: mappedJobs
+    payload: mappedJobs,
   });
 };
 
-export const getWfmUrl = m => {
+export const getWfmUrl = (m) => {
   var path;
   if (m.isJob) {
     path = `https://my.workflowmax.com/job/jobview.aspx?id=${m.wfmID}`;
@@ -1907,11 +1895,11 @@ export const getWfmUrl = m => {
   return path;
 };
 
-export const getWfmClientUrl = m => {
+export const getWfmClientUrl = (m) => {
   return `https://practicemanager.xero.com/Client/${m.clientID}/Detail`;
 };
 
-export const getGoogleMapsUrl = m => {
+export const getGoogleMapsUrl = (m) => {
   if (m.geocode)
     return `https://www.google.com/maps/search/?api=1&query=${encodeURI(
       m.geocode.address
@@ -1930,7 +1918,7 @@ export const onWatchJob = (job, me) => {
     } else {
       let watchedJobs = [...me.watchedJobs];
       if (watchedJobs.includes(job)) {
-        newArray = watchedJobs.filter(item => item !== job);
+        newArray = watchedJobs.filter((item) => item !== job);
       } else {
         watchedJobs.push(job);
         newArray = watchedJobs;
@@ -1949,7 +1937,7 @@ export const onWatchLead = (lead, me) => {
     } else {
       let watchedLeads = [...me.watchedLeads];
       if (watchedLeads.includes(lead)) {
-        newArray = watchedLeads.filter(item => item !== lead);
+        newArray = watchedLeads.filter((item) => item !== lead);
       } else {
         watchedLeads.push(lead);
         newArray = watchedLeads;
@@ -1974,22 +1962,22 @@ export const sendTimeSheetToWFM = (taskData, taskID, that) => {
   // console.log(timeXML);
 
   fetch(assignUrl, { method: "PUT", body: assignXML })
-    .then(results => results.text())
-    .then(data => {
+    .then((results) => results.text())
+    .then((data) => {
       // console.log(data);
       var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
       // console.log(json);
       if (json.Response.Status === "OK") {
         fetch(timeUrl, { method: "POST", body: timeXML })
-          .then(results => results.text())
-          .then(data => {
+          .then((results) => results.text())
+          .then((data) => {
             var json = xmlToJson(
               new DOMParser().parseFromString(data, "text/xml")
             );
             // console.log(json.Response);
             if (json.Response.Status === "OK") {
               that.setState({
-                status: "Success"
+                status: "Success",
               });
               // Show snack bar
             } else {
@@ -2026,8 +2014,8 @@ export const getTaskID = (taskData, that) => {
   // Get information about Job and read tasks list
   console.log(jobUrl);
   return fetch(jobUrl)
-    .then(results => results.text())
-    .then(data => {
+    .then((results) => results.text())
+    .then((data) => {
       var json = xmlToJson(new DOMParser().parseFromString(data, "text/xml"));
       console.log(json);
       if (json.Response.Status === "OK") {
@@ -2038,7 +2026,7 @@ export const getTaskID = (taskData, that) => {
         if (tasks !== undefined) {
           if (tasks instanceof Array) {
             // console.log('tasks instance of array');
-            tasks.forEach(task => {
+            tasks.forEach((task) => {
               // console.log(task);
               if (task.TaskID === taskData.task) {
                 taskID = task.ID;
@@ -2052,7 +2040,7 @@ export const getTaskID = (taskData, that) => {
               // console.log(tasks);
             }
           } else {
-            tasks.forEach(task => {
+            tasks.forEach((task) => {
               // console.log(task);
               if (task.TaskID === taskData.task) {
                 taskID = task.ID;
@@ -2065,8 +2053,8 @@ export const getTaskID = (taskData, that) => {
           // console.log('Task ID not found');
           // Task type was not found in job, will need to be added first
           fetch(taskUrl, { method: "POST", body: taskXML })
-            .then(results => results.text())
-            .then(data => {
+            .then((results) => results.text())
+            .then((data) => {
               var json = xmlToJson(
                 new DOMParser().parseFromString(data, "text/xml")
               );
@@ -2077,7 +2065,7 @@ export const getTaskID = (taskData, that) => {
                 // console.log('Adding task failed.');
                 return {
                   status: json.Response.Status,
-                  text: json.Response.ErrorDescription
+                  text: json.Response.ErrorDescription,
                 };
               }
             });
@@ -2088,13 +2076,13 @@ export const getTaskID = (taskData, that) => {
         // console.log('job url failed');
         return {
           status: json.Response.Status,
-          text: json.Response.ErrorDescription
+          text: json.Response.ErrorDescription,
         };
       }
     });
 };
 
-export const gotoWFM = m => {
+export const gotoWFM = (m) => {
   // //console.log("GoTO");
   var path;
   if (m.isJob) {
@@ -2106,20 +2094,20 @@ export const gotoWFM = m => {
   win.focus();
 };
 
-export const getJobIcon = cat => {
+export const getJobIcon = (cat) => {
   var img = "other";
-  ["asbestos", "meth", "stack", "bio", "noise", "workplace"].map(i => {
+  ["asbestos", "meth", "stack", "bio", "noise", "workplace"].map((i) => {
     if (cat.toLowerCase().includes(i)) img = i;
   });
   var url = "http://my.k2.co.nz/icons/" + img + ".png";
   return url;
 };
 
-export const getJobColor = cat => {
+export const getJobColor = (cat) => {
   var col = "other";
   if (!cat) return "colorsJobOther";
   ["show all", "asbestos", "meth", "stack", "bio", "noise", "workplace"].map(
-    i => {
+    (i) => {
       if (cat.toLowerCase().includes(i)) col = i;
     }
   );
@@ -2143,7 +2131,7 @@ export const getJobColor = cat => {
   }
 };
 
-export const getSiteIcon = type => {
+export const getSiteIcon = (type) => {
   switch (type) {
     case "residential":
       return <ResidentialIcon />;
@@ -2209,12 +2197,12 @@ export const checkAddress = (address, geocodes) => {
     "mould",
     "noise",
     "stack",
-    "welding"
+    "welding",
   ];
 
   var blackListed = false;
 
-  blacklist.forEach(w => {
+  blacklist.forEach((w) => {
     if (address.toLowerCase().includes(w)) blackListed = true;
   });
 
@@ -2223,18 +2211,18 @@ export const checkAddress = (address, geocodes) => {
   return encodeURI(address);
 };
 
-export const simplifiedGeocode = g => {
+export const simplifiedGeocode = (g) => {
   return {
     address: g.formatted_address,
     location: [g.geometry.location.lat, g.geometry.location.lng],
     locationType: g.geometry.location_type,
-    place: g.place_id
+    place: g.place_id,
   };
 };
 
-export const getCompletedActivities = activities => {
+export const getCompletedActivities = (activities) => {
   var completedActivities = activities.filter(
-    activity => activity.completed === "Yes"
+    (activity) => activity.completed === "Yes"
   );
   return completedActivities
     .sort((a, b) => {
@@ -2245,10 +2233,10 @@ export const getCompletedActivities = activities => {
     .reverse();
 };
 
-export const getUncompletedActivities = activities => {
+export const getUncompletedActivities = (activities) => {
   if (activities !== undefined) {
     var uncompletedActivities = activities.filter(
-      activity => activity.completed === "No"
+      (activity) => activity.completed === "No"
     );
     return uncompletedActivities.sort((a, b) => {
       return new Date(a.date).getTime() - new Date(b.date).getTime();
@@ -2267,24 +2255,24 @@ export const getLastActionDateFromActivities = (
   return completedActivities[0].completeDate;
 };
 
-export const getLastActionTypeFromActivities = completedActivities => {
+export const getLastActionTypeFromActivities = (completedActivities) => {
   if (completedActivities.length === 0) return "Lead created";
   // console.log(completedActivities[0]);
   return completedActivities[0].subject;
 };
 
-export const getAverageCompletedActionOverdueDays = completedActivities => {
+export const getAverageCompletedActionOverdueDays = (completedActivities) => {
   if (completedActivities.length === 0) return 0;
   var sum = 0;
   var total = 0;
-  completedActivities.forEach(a => {
+  completedActivities.forEach((a) => {
     total = total + 1;
     sum = sum + a.completedOverdueBy;
   });
   return Math.floor(sum / total);
 };
 
-export const getNextActionType = activities => {
+export const getNextActionType = (activities) => {
   var todo = getUncompletedActivities(activities);
   if (todo.length > 0) {
     return todo[0].subject;
@@ -2293,7 +2281,7 @@ export const getNextActionType = activities => {
   }
 };
 
-export const getNextActionDate = activities => {
+export const getNextActionDate = (activities) => {
   var todo = getUncompletedActivities(activities);
   if (todo.length > 0) {
     return todo[0].date;
@@ -2302,7 +2290,7 @@ export const getNextActionDate = activities => {
   }
 };
 
-export const getNextActionOverdueBy = activities => {
+export const getNextActionOverdueBy = (activities) => {
   var todo = getUncompletedActivities(activities);
   if (todo.length > 0) {
     // Take one day away for leads.
@@ -2312,14 +2300,14 @@ export const getNextActionOverdueBy = activities => {
   }
 };
 
-export const setLastTimeSaved = time => dispatch => {
+export const setLastTimeSaved = (time) => (dispatch) => {
   dispatch({
     type: SET_LAST_TIME_SAVED,
-    payload: time
+    payload: time,
   });
 };
 
-export const getStateString = m => {
+export const getStateString = (m) => {
   var stateStr = "";
   if (m.isJob) {
     if (m.wfmState === "Completed") stateStr = "Job completed";
@@ -2369,7 +2357,7 @@ export const averageStaffStat = (value, average) => {
   return average;
 };
 
-export const getDefaultLetterAddress = doc => {
+export const getDefaultLetterAddress = (doc) => {
   // console.log(doc);
   if (doc) {
     if (doc.coverLetterAddress) return doc.coverLetterAddress;
@@ -2416,7 +2404,7 @@ export const getDefaultLetterAddress = doc => {
     if (contactName) {
       let contactWords = contactName.split(" ");
       let contactInClientName = contactWords.length;
-      contactWords.forEach(word => {
+      contactWords.forEach((word) => {
         if (doc.client.includes(word)) contactInClientName--;
       });
       if (contactInClientName === 0) {
@@ -2493,11 +2481,13 @@ export const getLeadHistoryDescription = (h, maxLength) => {
   return {
     title,
     body,
-    icon
+    icon,
   };
 };
 
-export const handleSiteChange = ({ site, o1, o2, field, val }) => dispatch => {
+export const handleSiteChange = ({ site, o1, o2, field, val }) => (
+  dispatch
+) => {
   // console.log(val);
   if (val !== null && val !== undefined) {
     if (o1 && !site[o1]) site[o1] = {};
@@ -2513,20 +2503,15 @@ export const handleSiteChange = ({ site, o1, o2, field, val }) => dispatch => {
     }
     dispatch({
       type: GET_SITE,
-      payload: site
+      payload: site,
     });
     sitesRef.doc(site.uid).update(site);
   }
 };
 
-export const handleJobChange = ({
-  job,
-  o1,
-  o2,
-  field,
-  val,
-  siteUid
-}) => dispatch => {
+export const handleJobChange = ({ job, o1, o2, field, val, siteUid }) => (
+  dispatch
+) => {
   console.log(val);
   if (o1 && !job[o1]) job[o1] = {};
   if (o2 && !job[o1][o2]) job[o1][o2] = {};
@@ -2542,26 +2527,22 @@ export const handleJobChange = ({
   console.log(job);
   dispatch({
     type: GET_SITE_JOB,
-    payload: { job, siteUid }
+    payload: { job, siteUid },
   });
-  sitesRef
-    .doc(siteUid)
-    .collection("jobs")
-    .doc(job.uid)
-    .update(job);
+  sitesRef.doc(siteUid).collection("jobs").doc(job.uid).update(job);
 };
 
 export const getRoomInLayout = ({ site, searchRoom }) => {
   if (searchRoom === "generic")
     return {
       label: "Generic Items/Materials",
-      uid: "generic"
+      uid: "generic",
     };
   let result = {};
   if (site && site.layout) {
-    Object.values(site.layout).forEach(roomGroup => {
+    Object.values(site.layout).forEach((roomGroup) => {
       if (roomGroup && roomGroup.rooms) {
-        roomGroup.rooms.forEach(room => {
+        roomGroup.rooms.forEach((room) => {
           console.log(room);
           console.log(searchRoom);
           if (room.uid === searchRoom) result = room;
