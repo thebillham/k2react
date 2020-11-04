@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { connect } from "react-redux";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
-import classNames from 'classnames';
+import classNames from "classnames";
 
 import Grid from "@material-ui/core/Grid";
 import ListItem from "@material-ui/core/ListItem";
@@ -20,7 +20,7 @@ import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Checkbox from "@material-ui/core/Checkbox";
-import Parser from 'html-react-parser';
+import Parser from "html-react-parser";
 // import IconButton from '@material-ui/core/IconButton';
 
 import { auth, usersRef } from "../../config/firebase";
@@ -32,12 +32,18 @@ import AttrModal from "./modals/AttrModal";
 import AttrList from "./components/MyDetailsAttrListItem";
 import { USER_ATTR, EDITSTAFF } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
-import { getUserAttrs, getEditStaff, fetchStaff, getEmailSignature, clearEditStaff, } from "../../actions/local";
-import { displayTimeDifference, } from "../../actions/helpers";
-import { tabMyDetails, } from "../../actions/display";
+import {
+  getUserAttrs,
+  getEditStaff,
+  fetchStaff,
+  getEmailSignature,
+  clearEditStaff,
+} from "../../actions/local";
+import { displayTimeDifference } from "../../actions/helpers";
+import { tabMyDetails } from "../../actions/display";
 import _ from "lodash";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     editstaff: state.local.editstaff,
     me: state.local.me,
@@ -48,13 +54,13 @@ const mapStateToProps = state => {
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    showModal: modal => dispatch(showModal(modal)),
-    getEditStaff: user => dispatch(getEditStaff(user)),
+    showModal: (modal) => dispatch(showModal(modal)),
+    getEditStaff: (user) => dispatch(getEditStaff(user)),
     clearEditStaff: () => dispatch(clearEditStaff()),
-    fetchStaff: update => dispatch(fetchStaff(update)),
-    getUserAttrs: userPath => dispatch(getUserAttrs(userPath)),
+    fetchStaff: (update) => dispatch(fetchStaff(update)),
+    getUserAttrs: (userPath) => dispatch(getUserAttrs(userPath)),
     tabMyDetails: (tab) => dispatch(tabMyDetails(tab)),
   };
 };
@@ -77,12 +83,16 @@ class UserDetails extends React.Component {
   };
 
   UNSAFE_componentWillMount() {
-    if (this.props.match.params.user && this.props.me.auth && this.props.me.auth["Admin"]) {
+    if (
+      this.props.match.params.user &&
+      this.props.me.auth &&
+      this.props.me.auth["Admin"]
+    ) {
       this.props.getEditStaff(this.props.match.params.user);
     } else if (!this.props.match.params.user && !this.props.me.attrs) {
       this.props.getUserAttrs(auth.currentUser.uid);
     }
-  };
+  }
 
   componentWillUnmount() {
     if (this.state.edited) this.props.fetchStaff(true);
@@ -96,8 +106,8 @@ class UserDetails extends React.Component {
       this.setState({
         user: {
           ...this.state.user,
-          ...change
-        }
+          ...change,
+        },
       });
     }
     usersRef.doc(this.state.userPath).update(change);
@@ -112,8 +122,8 @@ class UserDetails extends React.Component {
       this.setState({
         user: {
           ...this.state.user,
-          auth: change
-        }
+          auth: change,
+        },
       });
       usersRef.doc(this.state.userPath).update({ auth: change });
       if (!this.state.edited) this.setState({ edited: true });
@@ -155,7 +165,12 @@ class UserDetails extends React.Component {
   render() {
     const { classes, tab } = this.props;
 
-    if (this.state.isLoading && ((this.props.match.params.user && this.props.editstaff != undefined) || (!this.props.match.params.user && this.props.me != undefined))) this.setState({ isLoading: false, });
+    if (
+      this.state.isLoading &&
+      ((this.props.match.params.user && this.props.editstaff != undefined) ||
+        (!this.props.match.params.user && this.props.me != undefined))
+    )
+      this.setState({ isLoading: false });
 
     // User variable is assigned at this stage so that attributes are immediately updated when changed.
     var user = {};
@@ -207,35 +222,59 @@ class UserDetails extends React.Component {
                         id="name"
                         helperText="This is the name that will be displayed on reports and test certificates."
                         className={classes.textField}
-                        value={user.name ? user.name : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={user.name ? user.name : ""}
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
-                    </ListItem>
-                    <ListItem>
-                      <Typography className={classes.note}>
-                        <b>Workflow Max ID:</b> {user.wfm_id}
-                      </Typography>
                     </ListItem>
                     <div className={classes.textLabel}>Job Description</div>
                     <ListItem>
                       <Select
-                        className={classNames(classes.select, classes.textField)}
-                        value={user.jobdescription ? {label: user.jobdescription, id: user.jobdescription } : {label: '', id: ''}}
-                        options={this.props.jobDescriptions.map(e => ({ value: e, label: e }))}
-                        onChange={e =>
-                          this.onEditUser({ id: "jobdescription", value: e ? e.value : e }, true )
+                        className={classNames(
+                          classes.select,
+                          classes.textField
+                        )}
+                        value={
+                          user.jobdescription
+                            ? {
+                                label: user.jobdescription,
+                                id: user.jobdescription,
+                              }
+                            : { label: "", id: "" }
+                        }
+                        options={this.props.jobDescriptions.map((e) => ({
+                          value: e,
+                          label: e,
+                        }))}
+                        onChange={(e) =>
+                          this.onEditUser(
+                            { id: "jobdescription", value: e ? e.value : e },
+                            true
+                          )
                         }
                       />
                     </ListItem>
                     <div className={classes.textLabel}>Office</div>
                     <ListItem>
                       <Select
-                        className={classNames(classes.select, classes.textField)}
-                        value={user.office ? {label: user.office, id: user.office } : {label: '', id: ''}}
-                        options={this.props.offices.map(e => ({ value: e, label: e }))}
-                        onChange={e =>
-                          this.onEditUser({ id: "office", value: e ? e.value : e }, true )
+                        className={classNames(
+                          classes.select,
+                          classes.textField
+                        )}
+                        value={
+                          user.office
+                            ? { label: user.office, id: user.office }
+                            : { label: "", id: "" }
+                        }
+                        options={this.props.offices.map((e) => ({
+                          value: e,
+                          label: e,
+                        }))}
+                        onChange={(e) =>
+                          this.onEditUser(
+                            { id: "office", value: e ? e.value : e },
+                            true
+                          )
                         }
                       />
                     </ListItem>
@@ -245,14 +284,15 @@ class UserDetails extends React.Component {
                         id="startdate"
                         type="date"
                         className={classes.textField}
-                        value={user.startdate ? user.startdate : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={user.startdate ? user.startdate : ""}
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
                     <ListItem>
                       <div className={classes.informationBoxWhiteRounded}>
-                        <b>Time at K2</b><br />
+                        <b>Time at K2</b>
+                        <br />
                         {this.displayTimeAtK2()}
                       </div>
                     </ListItem>
@@ -267,8 +307,8 @@ class UserDetails extends React.Component {
                         id="workphone"
                         className={classes.textField}
                         type="tel"
-                        value={user.workphone ? user.workphone : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={user.workphone ? user.workphone : ""}
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -279,8 +319,8 @@ class UserDetails extends React.Component {
                         type="email"
                         helperText="Enter your '@k2.co.nz' email address."
                         className={classes.textField}
-                        value={user.email ? user.email : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={user.email ? user.email : ""}
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -291,8 +331,8 @@ class UserDetails extends React.Component {
                         type="email"
                         helperText="Enter your '@gmail.com' email address."
                         className={classes.textField}
-                        value={user.gmail ? user.gmail : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={user.gmail ? user.gmail : ""}
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -307,8 +347,8 @@ class UserDetails extends React.Component {
                         id="personalphone"
                         type="tel"
                         className={classes.textField}
-                        value={user.personalphone ? user.personalphone : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={user.personalphone ? user.personalphone : ""}
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </div>
@@ -319,17 +359,13 @@ class UserDetails extends React.Component {
                         multiline
                         rowsMax="4"
                         className={classes.textField}
-                        value={user.address ? user.address : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={user.address ? user.address : ""}
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </div>
-                    <div className={classes.subHeading}>
-                      Email Signature
-                    </div>
-                    <div>
-                      {Parser(getEmailSignature(user))}
-                    </div>
+                    <div className={classes.subHeading}>Email Signature</div>
+                    <div>{Parser(getEmailSignature(user))}</div>
                     {/*<div>
                       <Button
                         variant="outlined"
@@ -357,7 +393,7 @@ class UserDetails extends React.Component {
                   <div>
                     <Button
                       className={classes.IconButton}
-                      variant='outlined'
+                      variant="outlined"
                       onClick={() => {
                         if (!this.state.edited) this.setState({ edited: true });
                         this.props.showModal({
@@ -366,8 +402,8 @@ class UserDetails extends React.Component {
                             userPath: this.state.userPath,
                             title: "Add New Item",
                             staffName: user.name,
-                            doc: { type: "Tertiary" }
-                          }
+                            doc: { type: "Tertiary" },
+                          },
                         });
                       }}
                     >
@@ -376,7 +412,7 @@ class UserDetails extends React.Component {
                   </div>
                   {user.attrs && Object.keys(user.attrs).length > 0 ? (
                     <div>
-                      {Object.keys(user.attrs).map(key => {
+                      {Object.keys(user.attrs).map((key) => {
                         return (
                           <AttrList
                             key={key}
@@ -407,7 +443,9 @@ class UserDetails extends React.Component {
                 <Grid container justify="center" direction="row">
                   <Grid item xs={12} sm={9} md={8} lg={7} xl={6}>
                     <ListItem>
-                      <Typography className={classes.subHeading}>Mask</Typography>
+                      <Typography className={classes.subHeading}>
+                        Mask
+                      </Typography>
                     </ListItem>
                     <ListItem>
                       {user.maskfit === "OK" ? (
@@ -434,8 +472,8 @@ class UserDetails extends React.Component {
                         label="Model"
                         id="maskfitmodel"
                         className={classes.textField}
-                        value={user.maskfitmodel ? user.maskfitmodel : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={user.maskfitmodel ? user.maskfitmodel : ""}
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -444,10 +482,23 @@ class UserDetails extends React.Component {
                         <InputLabel shrink>Mask Size</InputLabel>
                         <Select
                           className={classes.select}
-                          value={user.maskfitsize ? {label: user.maskfitsize, id: user.maskfitsize } : {label: '', id: ''}}
-                          options={["S","M","L"].map(e => ({ value: e, label: e }))}
-                          onChange={e =>
-                            this.onEditUser({ id: "maskfitsize", value: e ? e.value : e }, true)
+                          value={
+                            user.maskfitsize
+                              ? {
+                                  label: user.maskfitsize,
+                                  id: user.maskfitsize,
+                                }
+                              : { label: "", id: "" }
+                          }
+                          options={["S", "M", "L"].map((e) => ({
+                            value: e,
+                            label: e,
+                          }))}
+                          onChange={(e) =>
+                            this.onEditUser(
+                              { id: "maskfitsize", value: e ? e.value : e },
+                              true
+                            )
                           }
                           isClearable
                         />
@@ -458,8 +509,8 @@ class UserDetails extends React.Component {
                         label="Fit Factor"
                         id="maskfitfactor"
                         className={classes.textField}
-                        value={user.maskfitfactor ? user.maskfitfactor : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={user.maskfitfactor ? user.maskfitfactor : ""}
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -469,8 +520,12 @@ class UserDetails extends React.Component {
                         id="maskparticulatefilters"
                         className={classes.textField}
                         type="date"
-                        value={user.maskparticulatefilters ? user.maskparticulatefilters : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.maskparticulatefilters
+                            ? user.maskparticulatefilters
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -480,8 +535,10 @@ class UserDetails extends React.Component {
                         id="maskorganicfilters"
                         className={classes.textField}
                         type="date"
-                        value={user.maskorganicfilters ? user.maskorganicfilters : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.maskorganicfilters ? user.maskorganicfilters : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -506,7 +563,7 @@ class UserDetails extends React.Component {
                         control={
                           <Checkbox
                             checked={user.ppeHighVis}
-                            onChange={e =>
+                            onChange={(e) =>
                               this.onEditUser(
                                 { id: "ppeHighVis", value: e.target.checked },
                                 true
@@ -524,7 +581,7 @@ class UserDetails extends React.Component {
                         control={
                           <Checkbox
                             checked={user.ppeHardHat}
-                            onChange={e =>
+                            onChange={(e) =>
                               this.onEditUser(
                                 { id: "ppeHardHat", value: e.target.checked },
                                 true
@@ -542,7 +599,7 @@ class UserDetails extends React.Component {
                         control={
                           <Checkbox
                             checked={user.ppeBoots}
-                            onChange={e =>
+                            onChange={(e) =>
                               this.onEditUser(
                                 { id: "ppeBoots", value: e.target.checked },
                                 true
@@ -560,7 +617,7 @@ class UserDetails extends React.Component {
                         control={
                           <Checkbox
                             checked={user.ppeGlasses}
-                            onChange={e =>
+                            onChange={(e) =>
                               this.onEditUser(
                                 { id: "ppeGlasses", value: e.target.checked },
                                 true
@@ -596,8 +653,12 @@ class UserDetails extends React.Component {
                         label="Name"
                         id="emergencyprimaryname"
                         className={classes.textField}
-                        value={user.emergencyprimaryname ? user.emergencyprimaryname : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencyprimaryname
+                            ? user.emergencyprimaryname
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -606,8 +667,12 @@ class UserDetails extends React.Component {
                         label="Relation"
                         id="emergencyprimaryrelation"
                         className={classes.textField}
-                        value={user.emergencyprimaryrelation ? user.emergencyprimaryrelation : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencyprimaryrelation
+                            ? user.emergencyprimaryrelation
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -616,8 +681,12 @@ class UserDetails extends React.Component {
                         label="Home Phone"
                         id="emergencyprimaryhomephone"
                         className={classes.textField}
-                        value={user.emergencyprimaryhomephone ? user.emergencyprimaryhomephone : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencyprimaryhomephone
+                            ? user.emergencyprimaryhomephone
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -626,8 +695,12 @@ class UserDetails extends React.Component {
                         label="Work Phone"
                         id="emergencyprimaryworkphone"
                         className={classes.textField}
-                        value={user.emergencyprimaryworkphone ? user.emergencyprimaryworkphone : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencyprimaryworkphone
+                            ? user.emergencyprimaryworkphone
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -636,8 +709,12 @@ class UserDetails extends React.Component {
                         label="Mobile"
                         id="emergencyprimarymobile"
                         className={classes.textField}
-                        value={user.emergencyprimarymobile ? user.emergencyprimarymobile : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencyprimarymobile
+                            ? user.emergencyprimarymobile
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -646,8 +723,12 @@ class UserDetails extends React.Component {
                         label="Email"
                         id="emergencyprimaryemail"
                         className={classes.textField}
-                        value={user.emergencyprimaryemail ? user.emergencyprimaryemail : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencyprimaryemail
+                            ? user.emergencyprimaryemail
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -656,8 +737,12 @@ class UserDetails extends React.Component {
                         label="Home Address"
                         id="emergencyprimaryhomeaddress"
                         className={classes.textField}
-                        value={user.emergencyprimaryhomeaddress ? user.emergencyprimaryhomeaddress : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencyprimaryhomeaddress
+                            ? user.emergencyprimaryhomeaddress
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -673,8 +758,12 @@ class UserDetails extends React.Component {
                         label="Name"
                         id="emergencysecondaryname"
                         className={classes.textField}
-                        value={user.emergencysecondaryname ? user.emergencysecondaryname : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencysecondaryname
+                            ? user.emergencysecondaryname
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -683,8 +772,12 @@ class UserDetails extends React.Component {
                         label="Relation"
                         id="emergencysecondaryrelation"
                         className={classes.textField}
-                        value={user.emergencysecondaryrelation ? user.emergencysecondaryrelation : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencysecondaryrelation
+                            ? user.emergencysecondaryrelation
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -693,8 +786,12 @@ class UserDetails extends React.Component {
                         label="Home Phone"
                         id="emergencysecondaryhomephone"
                         className={classes.textField}
-                        value={user.emergencysecondaryhomephone ? user.emergencysecondaryhomephone : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencysecondaryhomephone
+                            ? user.emergencysecondaryhomephone
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -703,8 +800,12 @@ class UserDetails extends React.Component {
                         label="Work Phone"
                         id="emergencysecondaryworkphone"
                         className={classes.textField}
-                        value={user.emergencysecondaryworkphone ? user.emergencysecondaryworkphone : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencysecondaryworkphone
+                            ? user.emergencysecondaryworkphone
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -713,8 +814,12 @@ class UserDetails extends React.Component {
                         label="Mobile"
                         id="emergencysecondarymobile"
                         className={classes.textField}
-                        value={user.emergencysecondarymobile ? user.emergencysecondarymobile : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencysecondarymobile
+                            ? user.emergencysecondarymobile
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -723,8 +828,12 @@ class UserDetails extends React.Component {
                         label="Email"
                         id="emergencysecondaryemail"
                         className={classes.textField}
-                        value={user.emergencysecondaryemail ? user.emergencysecondaryemail : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencysecondaryemail
+                            ? user.emergencysecondaryemail
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -733,8 +842,12 @@ class UserDetails extends React.Component {
                         label="Home Address"
                         id="emergencysecondaryhomeaddress"
                         className={classes.textField}
-                        value={user.emergencysecondaryhomeaddress ? user.emergencysecondaryhomeaddress : ''}
-                        onChange={e => this.onEditUser(e.target)}
+                        value={
+                          user.emergencysecondaryhomeaddress
+                            ? user.emergencysecondaryhomeaddress
+                            : ""
+                        }
+                        onChange={(e) => this.onEditUser(e.target)}
                         InputLabelProps={{ shrink: true }}
                       />
                     </ListItem>
@@ -757,7 +870,7 @@ class UserDetails extends React.Component {
                   style={{ width: 800 }}
                 >
                   <Grid item>
-                    {this.props.permissions.map(permission => {
+                    {this.props.permissions.map((permission) => {
                       return (
                         <div key={permission.name}>
                           <div className={classes.marginBottomSmall}>
@@ -770,11 +883,11 @@ class UserDetails extends React.Component {
                                       ? user.auth[permission.name]
                                       : false
                                   }
-                                  onChange={e =>
+                                  onChange={(e) =>
                                     this.onEditAuth(
                                       {
                                         id: permission.name,
-                                        value: e.target.checked
+                                        value: e.target.checked,
                                       },
                                       user.auth
                                     )
@@ -785,7 +898,7 @@ class UserDetails extends React.Component {
                               label={permission.name}
                             />
                           </div>
-                          <div style={{ marginBottom: 12,}}>
+                          <div style={{ marginBottom: 12 }}>
                             <FormHelperText>{permission.desc}</FormHelperText>
                           </div>
                         </div>
@@ -804,8 +917,5 @@ class UserDetails extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(UserDetails)
+  connect(mapStateToProps, mapDispatchToProps)(UserDetails)
 );

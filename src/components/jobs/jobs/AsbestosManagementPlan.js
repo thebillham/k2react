@@ -3,90 +3,59 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import { REPORT_ACTIONS } from "../../../constants/modal-types";
-import { showModal } from "../../../actions/modal";
+
 import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
 import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions";
-import TextField from "@material-ui/core/TextField";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
-import WfmTimeModal from "../modals/WfmTimeModal";
-import ClosedArrow from "@material-ui/icons/ArrowDropDown";
-import OpenArrow from "@material-ui/icons/ArrowDropUp";
-import AddIcon from "@material-ui/icons/Add";
-import RemoveIcon from "@material-ui/icons/Remove";
-import SyncIcon from "@material-ui/icons/Sync";
-import LinkIcon from "@material-ui/icons/Link";
-import TimerIcon from "@material-ui/icons/Timer";
 import PrintIcon from "@material-ui/icons/Print";
 import IssueVersionIcon from "@material-ui/icons/Send";
-import Select from "react-select";
-import SuggestionField from "../../../widgets/SuggestionField";
 import AsbestosRegisterTable from "../components/AsbestosRegisterTable";
-import AsbestosSurveyTable from "../components/AsbestosSurveyTable";
-import NonAsbestosTable from "../components/NonAsbestosTable";
-import AirMonitoringRecords from "../components/AirMonitoringRecords";
-import ExecutiveSummaryAmp from "./components/ExecutiveSummaryAmp";
 
 import Template1Icon from "@material-ui/icons/Filter1";
 import Template2Icon from "@material-ui/icons/Filter2";
 import Template3Icon from "@material-ui/icons/Filter3";
 
-import { DatePicker } from "@material-ui/pickers";
-
 import classNames from "classnames";
-import Popup from "reactjs-popup";
 import { addLog } from "../../../actions/local";
 
 import { getJobColor, handleJobChange } from "../../../actions/jobs";
 
 import {
   collateSamples,
-  issueDocument,
-  issueTrainAmp
+  issueTrainAmp,
 } from "../../../actions/asbestosReportHelpers";
 
-import moment from "moment";
 import _ from "lodash";
 
 import { filterMap, filterMapReset } from "../../../actions/display";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     sites: state.jobs.sites,
     siteJobs: state.jobs.siteJobs,
     siteAcm: state.jobs.siteAcm,
     samples: state.asbestosLab.samples,
     staff: state.local.staff,
-    classDescriptions: state.const.assetClassesTrain
+    classDescriptions: state.const.assetClassesTrain,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     // issueDocument: issue => dispatch(issueDocument(issue)),
-    issueTrainAmp: issue => dispatch(issueTrainAmp(issue)),
-    handleJobChange: info => dispatch(handleJobChange(info)),
+    issueTrainAmp: (issue) => dispatch(issueTrainAmp(issue)),
+    handleJobChange: (info) => dispatch(handleJobChange(info)),
     handleJobChangeDebounced: _.debounce(
-      info => dispatch(handleJobChange(info)),
+      (info) => dispatch(handleJobChange(info)),
       2000
-    )
+    ),
   };
 };
 
 class AsbestosManagementPlan extends React.PureComponent {
   state = {
-    templateVersion: 3
+    templateVersion: 3,
   };
 
   UNSAFE_componentWillMount() {
@@ -104,27 +73,20 @@ class AsbestosManagementPlan extends React.PureComponent {
     const {
       classes,
       m,
-      wfmClients,
       site,
       sites,
       siteJobs,
       siteAcm,
       samples,
       staff,
-      classDescriptions
+      classDescriptions,
     } = this.props;
     const { registerMap, registerList, airMonitoringRecords } = this.state;
-    const names = [{ name: "3rd Party", uid: "3rd Party" }].concat(
-      Object.values(this.props.staff).sort((a, b) =>
-        a.name.localeCompare(b.name)
-      )
-    );
-    // console.log(m);
     let latestIssue = 0;
 
     if (m.versions && Object.keys(m.versions).length > 0) {
       latestIssue = Math.max(
-        ...Object.keys(m.versions).map(key => parseInt(key))
+        ...Object.keys(m.versions).map((key) => parseInt(key))
       );
     }
     // console.log(latestIssue);
@@ -187,7 +149,7 @@ class AsbestosManagementPlan extends React.PureComponent {
                       classDescriptions,
                       airMonitoringRecords,
                       siteAcm: siteAcm[site],
-                      staff
+                      staff,
                     });
                     // this.props.issueDocument({
                     //   template: `AMP${this.state.templateVersion}`,
@@ -230,7 +192,7 @@ class AsbestosManagementPlan extends React.PureComponent {
                           type: "Document",
                           log: `Asbestos Management Plan downloaded.`,
                           job: m.uid,
-                          site: site
+                          site: site,
                         };
                         addLog("job", log, this.props.me);
                       }}
@@ -277,8 +239,5 @@ class AsbestosManagementPlan extends React.PureComponent {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(AsbestosManagementPlan)
+  connect(mapStateToProps, mapDispatchToProps)(AsbestosManagementPlan)
 );

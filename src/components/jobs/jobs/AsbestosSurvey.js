@@ -4,52 +4,17 @@ import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 
 //Modals
-import {
-  WFM_TIME,
-} from "../../../constants/modal-types";
 import { showModal } from "../../../actions/modal";
-import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
-import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions";
-import TextField from "@material-ui/core/TextField";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Collapse from '@material-ui/core/Collapse';
 import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
-import WfmTimeModal from "../modals/WfmTimeModal";
-import ClosedArrow from "@material-ui/icons/ArrowDropDown";
-import OpenArrow from "@material-ui/icons/ArrowDropUp";
-import AddIcon from "@material-ui/icons/Add";
-import RemoveIcon from "@material-ui/icons/Remove";
-import SyncIcon from '@material-ui/icons/Sync';
-import LinkIcon from '@material-ui/icons/Link';
-import TimerIcon from "@material-ui/icons/Timer";
-import Select from 'react-select';
-import SuggestionField from '../../../widgets/SuggestionField';
-import ReactTable from 'react-table';
-import 'react-table/react-table.css';
 import AsbestosRegisterTable from "../components/AsbestosRegisterTable";
-import AsbestosSurveyTable from "../components/AsbestosSurveyTable";
-import NonAsbestosTable from "../components/NonAsbestosTable";
 import AirMonitoringRecords from "../components/AirMonitoringRecords";
 
 import Template1Icon from "@material-ui/icons/Filter1";
 import Template2Icon from "@material-ui/icons/Filter2";
 import Template3Icon from "@material-ui/icons/Filter3";
 
-import {
-  DatePicker,
-} from "@material-ui/pickers";
-
-import classNames from 'classnames';
+import classNames from "classnames";
 import Popup from "reactjs-popup";
 import {
   dateOf,
@@ -59,7 +24,7 @@ import {
   personnelConvert,
 } from "../../../actions/helpers";
 
-import moment from 'moment';
+import moment from "moment";
 import _ from "lodash";
 
 import {
@@ -68,7 +33,6 @@ import {
   fetchWFMClients,
   fetchCurrentJobState,
   saveCurrentJobState,
-  getDetailedWFMJob,
   clearWfmJob,
   saveWFMItems,
   saveGeocodes,
@@ -87,12 +51,9 @@ import {
 
 import { collateSamples } from "../../../actions/asbestosReportHelpers";
 
-import {
-  filterMap,
-  filterMapReset,
-} from "../../../actions/display";
+import { filterMap, filterMapReset } from "../../../actions/display";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     wfmJobs: state.jobs.wfmJobs,
     wfmJob: state.jobs.wfmJob,
@@ -116,28 +77,44 @@ const mapStateToProps = state => {
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     fetchWFMJobs: () => dispatch(fetchWFMJobs()),
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
-    handleJobChange: info => dispatch(handleJobChange(info)),
-    handleJobChangeDebounced: _.debounce((info) => dispatch(handleJobChange(info)),
+    handleJobChange: (info) => dispatch(handleJobChange(info)),
+    handleJobChangeDebounced: _.debounce(
+      (info) => dispatch(handleJobChange(info)),
       2000
     ),
-    fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
+    fetchCurrentJobState: (ignoreCompleted) =>
+      dispatch(fetchCurrentJobState(ignoreCompleted)),
     clearWfmJob: () => dispatch(clearWfmJob()),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
-    saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
-    saveGeocodes: g => dispatch(saveGeocodes(g)),
+    saveCurrentJobState: (state) => dispatch(saveCurrentJobState(state)),
+    saveGeocodes: (g) => dispatch(saveGeocodes(g)),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
-    updateGeocodes: g => dispatch(updateGeocodes(g)),
-    saveWFMItems: items => dispatch(saveWFMItems(items)),
-    saveStats: stats => dispatch(saveStats(stats)),
-    filterMap: filter => dispatch(filterMap(filter)),
+    updateGeocodes: (g) => dispatch(updateGeocodes(g)),
+    saveWFMItems: (items) => dispatch(saveWFMItems(items)),
+    saveStats: (stats) => dispatch(saveStats(stats)),
+    filterMap: (filter) => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
-    showModal: modal => dispatch(showModal(modal)),
-    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
+    showModal: (modal) => dispatch(showModal(modal)),
+    collateJobsList: (
+      wfmJobs,
+      wfmLeads,
+      currentJobState,
+      wfmClients,
+      geocodes
+    ) =>
+      dispatch(
+        collateJobsList(
+          wfmJobs,
+          wfmLeads,
+          currentJobState,
+          wfmClients,
+          geocodes
+        )
+      ),
   };
 };
 
@@ -147,38 +124,71 @@ class AsbestosSurvey extends React.Component {
   };
 
   UNSAFE_componentWillMount() {
-    const { site, sites, siteJobs, siteAcm, samples} = this.props;
-    const { registerMap, registerList, airMonitoringRecords,} = collateSamples(sites[site], siteJobs ? siteJobs[site] || {} : {} , siteAcm ? siteAcm[site] || {} : {}, samples);
+    const { site, sites, siteJobs, siteAcm, samples } = this.props;
+    const { registerMap, registerList, airMonitoringRecords } = collateSamples(
+      sites[site],
+      siteJobs ? siteJobs[site] || {} : {},
+      siteAcm ? siteAcm[site] || {} : {},
+      samples
+    );
     this.setState({ registerMap, registerList, airMonitoringRecords });
   }
 
   render() {
-    const { classes, m, wfmClients, site, sites, siteJobs, siteAcm, samples} = this.props;
-    const names = [{ name: '3rd Party', uid: '3rd Party', }].concat(Object.values(this.props.staff).sort((a, b) => a.name.localeCompare(b.name)));
-    const { registerMap, registerList, airMonitoringRecords } = this.state;
+    const { classes, m, site, sites, siteJobs, siteAcm, samples } = this.props;
+    const { registerList, airMonitoringRecords } = this.state;
 
     if (m) {
-      const color = classes[getJobColor(m.category)];
-      const loading = !sites[site] || !siteJobs[site] || !siteAcm[site] || !samples;
+      const loading =
+        !sites[site] || !siteJobs[site] || !siteAcm[site] || !samples;
       return (
         <div>
           <InputLabel>Select Template Version</InputLabel>
           <div className={classes.flexRow}>
-            <IconButton onClick={() => this.setState({templateVersion: 1})}><Template1Icon className={this.state.templateVersion === 1 ? classes.iconRegularGreen : classes.iconRegular} /></IconButton>
-            <IconButton onClick={() => this.setState({templateVersion: 2})}><Template2Icon className={this.state.templateVersion === 2 ? classes.iconRegularGreen : classes.iconRegular} /></IconButton>
-            <IconButton onClick={() => this.setState({templateVersion: 3})}><Template3Icon className={this.state.templateVersion === 3 ? classes.iconRegularGreen : classes.iconRegular} /></IconButton>
+            <IconButton onClick={() => this.setState({ templateVersion: 1 })}>
+              <Template1Icon
+                className={
+                  this.state.templateVersion === 1
+                    ? classes.iconRegularGreen
+                    : classes.iconRegular
+                }
+              />
+            </IconButton>
+            <IconButton onClick={() => this.setState({ templateVersion: 2 })}>
+              <Template2Icon
+                className={
+                  this.state.templateVersion === 2
+                    ? classes.iconRegularGreen
+                    : classes.iconRegular
+                }
+              />
+            </IconButton>
+            <IconButton onClick={() => this.setState({ templateVersion: 3 })}>
+              <Template3Icon
+                className={
+                  this.state.templateVersion === 3
+                    ? classes.iconRegularGreen
+                    : classes.iconRegular
+                }
+              />
+            </IconButton>
           </div>
-          <AsbestosRegisterTable loading={loading} registerList={registerList} classes={classes} />
-          <AirMonitoringRecords loading={loading} airMonitoringRecords={airMonitoringRecords} classes={classes} />
+          <AsbestosRegisterTable
+            loading={loading}
+            registerList={registerList}
+            classes={classes}
+          />
+          <AirMonitoringRecords
+            loading={loading}
+            airMonitoringRecords={airMonitoringRecords}
+            classes={classes}
+          />
         </div>
-    );
-  } else return (<div />)
-}
+      );
+    } else return <div />;
+  }
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(AsbestosSurvey)
+  connect(mapStateToProps, mapDispatchToProps)(AsbestosSurvey)
 );

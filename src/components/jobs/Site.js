@@ -12,28 +12,11 @@ import {
   ASBESTOS_COC_EDIT,
   ASBESTOS_SAMPLE_EDIT_COC,
   SITE_VISIT,
-  ASBESTOS_CLEARANCE
+  ASBESTOS_CLEARANCE,
 } from "../../constants/modal-types";
 import { showModal } from "../../actions/modal";
-import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
-import Select from "@material-ui/core/Select";
-import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions";
-import TextField from "@material-ui/core/TextField";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
-import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
-import TimerIcon from "@material-ui/icons/Timer";
-import SyncIcon from "@material-ui/icons/Sync";
-import LinkIcon from "@material-ui/icons/Link";
 import WfmTimeModal from "./modals/WfmTimeModal";
 import SiteJobModal from "./modals/SiteJobModal";
 import CocModal from "../asbestoslab/modals/CocModal";
@@ -41,24 +24,15 @@ import AsbestosSampleCocEditModal from "../asbestoslab/modals/AsbestosSampleCocE
 import ClearanceModal from "./modals/ClearanceModal";
 import SiteVisitModal from "./modals/SiteVisitModal";
 
-import Popup from "reactjs-popup";
-import {
-  dateOf,
-  getDaysSinceDate,
-  getDaysSinceDateAgo,
-  andList
-} from "../../actions/helpers";
-
 import moment from "moment";
 
 import {
   fetchSites,
   clearWfmJob,
-  getDetailedWFMJob,
   getJobColor,
   fetchSiteJobs,
   fetchSiteAcm,
-  fetchSiteCocs
+  fetchSiteCocs,
 } from "../../actions/jobs";
 
 import { filterMap, filterMapReset } from "../../actions/display";
@@ -77,7 +51,7 @@ import SiteAddAcm from "./pages/SiteAddAcm";
 import TemplateBmModal from "./modals/TemplateBmModal";
 import TemplateAcmModal from "./modals/TemplateAcmModal";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     wfmJobs: state.jobs.wfmJobs,
     wfmJob: state.jobs.wfmJob,
@@ -97,18 +71,17 @@ const mapStateToProps = state => {
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
     modalType: state.modal.modalType,
-    modalTypeSecondary: state.modal.modalTypeSecondary
+    modalTypeSecondary: state.modal.modalTypeSecondary,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     clearWfmJob: () => dispatch(clearWfmJob()),
-    showModal: modal => dispatch(showModal(modal)),
+    showModal: (modal) => dispatch(showModal(modal)),
     fetchSites: () => dispatch(fetchSites()),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
-    fetchSiteJobs: site => dispatch(fetchSiteJobs(site)),
-    fetchSiteAcm: site => dispatch(fetchSiteAcm(site))
+    fetchSiteJobs: (site) => dispatch(fetchSiteJobs(site)),
+    fetchSiteAcm: (site) => dispatch(fetchSiteAcm(site)),
   };
 };
 
@@ -121,7 +94,7 @@ class Site extends React.Component {
     searchDateType: "",
     searchAnalyst: "",
     tabValue: "general",
-    jobModal: null
+    jobModal: null,
   };
 
   UNSAFE_componentWillMount = () => {
@@ -175,27 +148,7 @@ class Site extends React.Component {
               }`}</h6>
               <div className={classes.subtitle}>{site.address}</div>
             </div>
-            <div className={classes.flexRow}>
-              {/*<Tooltip title={'Re-sync with WorkflowMax'}>
-              <IconButton
-                onClick={e => this.props.getDetailedWFMJob(site.jobNumber)}>
-                <SyncIcon className={classes.iconRegular} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={'View Job on WorkflowMax'}>
-              <IconButton onClick={() => window.open(`https://my.workflowmax.com/job/jobview.aspx?id=${site.wfmID}`) }>
-                <LinkIcon className={classes.iconRegular} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={'Log Time to WorkflowMax'}>
-              <IconButton
-                onClick={e => {
-                  this.props.showModal({ modalType: WFM_TIME, modalProps: { job: jobs[job], }})
-                }}>
-                <TimerIcon className={classes.iconRegular} />
-              </IconButton>
-            </Tooltip>*/}
-            </div>
+            <div className={classes.flexRow}></div>
           </div>
           <Tabs
             value={this.state.tabValue}
@@ -213,7 +166,7 @@ class Site extends React.Component {
             {/*<Tab label="Maps and Diagrams" value="maps" />*/}
             {jobs &&
               Object.keys(jobs).length > 0 &&
-              Object.values(jobs).map(j => {
+              Object.values(jobs).map((j) => {
                 // console.log(j);
                 return (
                   <Tab label={j.jobDescription} value={j.uid} key={j.uid} />
@@ -270,7 +223,7 @@ class Site extends React.Component {
           )}
           {jobs &&
             Object.keys(jobs).length > 0 &&
-            Object.values(jobs).map(j => {
+            Object.values(jobs).map((j) => {
               if (this.state.tabValue === j.uid)
                 return (
                   <SiteJob
@@ -288,8 +241,5 @@ class Site extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(Site)
+  connect(mapStateToProps, mapDispatchToProps)(Site)
 );

@@ -11,12 +11,11 @@ import {
   asbestosAnalysisLogRef,
   asbestosCheckLogRef,
   usersRef,
-  stateRef,
+  stateRef
 } from "../config/firebase";
-import {
-  dateOf,
-} from "../actions/helpers";
-import moment from 'moment';
+import { GRAB_JOB_DATA, GRAB_LAB_DATA } from "../constants/action-types";
+import { dateOf } from "../actions/helpers";
+import moment from "moment";
 
 export const fixIds = () => dispatch => {
   //console.log("Running fixIds");
@@ -30,16 +29,87 @@ export const fixIds = () => dispatch => {
 };
 
 export const fixNoticeReads = () => {
-  stateRef.doc("noticereads").collection("users").get().then(querySnapshot => {
-    querySnapshot.forEach(doc => {
-      // console.log(doc.data().payload);
-      let newArray = Object.values(doc.data().payload).filter(e => e.value).map(e => e.value);
-      // console.log(newArray);
+  stateRef
+    .doc("noticereads")
+    .collection("users")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        // console.log(doc.data().payload);
+        let newArray = Object.values(doc.data().payload)
+          .filter(e => e.value)
+          .map(e => e.value);
+        // console.log(newArray);
 
-      stateRef.doc("noticereads").collection("users").doc(doc.id).update({payload: newArray});
-    })
-  })
-}
+        stateRef
+          .doc("noticereads")
+          .collection("users")
+          .doc(doc.id)
+          .update({ payload: newArray });
+      });
+    });
+};
+
+export const grabJobData = () => dispatch => {
+  let jobMap = {};
+  stateRef
+    .doc("wfmstate")
+    .collection("jobStates")
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        let day = doc.data();
+        let date = doc.id;
+        if (day) {
+          Object.entries(day).forEach(([key, value]) => {
+            if (!jobMap[key]) {
+              jobMap[key] = {
+                category: value.category || null,
+                client: value.client || null,
+                clientAddress: value.clientAddress || null,
+                clientID: value.clientID || null,
+                creationDate: value.creationDate || null,
+                geocodeAddress:
+                  (value.geocode && value.geocode.address) || null,
+                jobNumber: value.jobNumber || null,
+                name: value.name || null,
+                owner: value.owner || null,
+                wfmID: value.wfmID || key,
+                state: value.wfmState || value.state || null,
+                [value.wfmState || value.state]: date // Each state holds value of day it changed to that state
+              };
+            } else {
+              let state = value.wfmState || value.state;
+              if (state !== jobMap[key].state) {
+                jobMap[key].state = state || null;
+                if (jobMap[key][state]) {
+                  // Ignore returns to job states for the csv output
+                } else {
+                  jobMap[key][state] = date;
+                }
+              }
+            }
+          });
+          Object.entries(jobMap).forEach(([key, value]) => {
+            if (!day[key] && jobMap[key].completionDate === undefined) {
+              jobMap[key].completionDate = date
+                ? moment(dateOf(date))
+                    .subtract(1, "day")
+                    .format("YYYY-MM-DD")
+                : null;
+            }
+          });
+        }
+      });
+
+      dispatch({
+        type: GRAB_JOB_DATA,
+        payload: Object.values(jobMap)
+      });
+    });
+};
+
+export const grabLabData = () => dispatch => {};
 
 // export const iterateThroughBackup = (notices, staff) => {
 //   let batch = firestore.batch();
@@ -68,11 +138,12 @@ export const fixNoticeReads = () => {
 // }
 
 export const splitWFMStates = () => {
-  console.log('Splitting WFM states...');
+  console.log("Splitting WFM states...");
   stateRef
     .doc("wfmstate")
     .collection("states")
-    .get().then(querySnapshot => {
+    .get()
+    .then(querySnapshot => {
       querySnapshot.forEach(day => {
         let batch = firestore.batch(),
           date = day.id,
@@ -93,60 +164,69 @@ export const splitWFMStates = () => {
         console.log(Object.keys(leads1).length);
         console.log(Object.keys(leads2).length);
 
-        batch.set(stateRef
-          .doc("wfmstate")
-          .collection("jobStates")
-          .doc(date), jobs);
-        batch.set(stateRef
-          .doc("wfmstate")
-          .collection("leadStates1")
-          .doc(date), leads1);
-        batch.set(stateRef
-          .doc("wfmstate")
-          .collection("leadStates2")
-          .doc(date), leads2);
+        batch.set(
+          stateRef
+            .doc("wfmstate")
+            .collection("jobStates")
+            .doc(date),
+          jobs
+        );
+        batch.set(
+          stateRef
+            .doc("wfmstate")
+            .collection("leadStates1")
+            .doc(date),
+          leads1
+        );
+        batch.set(
+          stateRef
+            .doc("wfmstate")
+            .collection("leadStates2")
+            .doc(date),
+          leads2
+        );
         batch.commit();
       });
-    })
-}
+    });
+};
 
 export const fixSamples = () => {
   asbestosSamplesRef
     .where("cocUid", "==", "AS191071_CANTERBURY DEMOLITION_1573695746768")
-    .get().then(querySnapshot => {
+    .get()
+    .then(querySnapshot => {
       querySnapshot.forEach(s => {
         let sample = s.data();
         asbestosSamplesRef.doc(s.id).update({
-          analyst: 'Ben Dodd',
+          analyst: "Ben Dodd",
           analysisDate: new Date("November 18, 2019 14:00:00"),
           analysisRecordedBy: {
-            name: 'Ben Dodd',
-            uid: 'OgNBX60s1GThob3pODjtqM4tkNn1',
-          },
+            name: "Ben Dodd",
+            uid: "OgNBX60s1GThob3pODjtqM4tkNn1"
+          }
         });
-      })
-    })
-}
-
-export const transferNoticeboardReads = () => {
-  noticesRef
-    .get().then(querySnapshot => {
-      var notices = [];
-      querySnapshot.forEach(doc => {
-        let notice = doc.data();
-        if (notice.staff) {
-          notice.staff.forEach(staff => {
-            console.log(`Adding ${staff} to ${notice.uid}`);
-            noticeReadsRef.add({
-              noticeUid: notice.uid,
-              staffUid: staff,
-              date: new Date(),
-            });
-          });
-        }
       });
     });
-}
+};
+
+export const transferNoticeboardReads = () => {
+  noticesRef.get().then(querySnapshot => {
+    var notices = [];
+    querySnapshot.forEach(doc => {
+      let notice = doc.data();
+      if (notice.staff) {
+        notice.staff.forEach(staff => {
+          console.log(`Adding ${staff} to ${notice.uid}`);
+          noticeReadsRef.add({
+            noticeUid: notice.uid,
+            staffUid: staff,
+            date: new Date()
+          });
+        });
+      }
+    });
+  });
+};
 
 export const renameAnalysisLog = () => {
   let batch = firestore.batch();
@@ -156,13 +236,13 @@ export const renameAnalysisLog = () => {
       if (log.sampleUID) {
         batch.update(asbestosCheckLogRef.doc(logDoc.id), {
           sampleUid: log.sampleUID,
-          sampleUID: firebase.firestore.FieldValue.delete(),
+          sampleUID: firebase.firestore.FieldValue.delete()
         });
       }
     });
     batch.commit();
   });
-}
+};
 
 export const restructureAnalysisLog = () => {
   asbestosAnalysisLogRef.get().then(querySnapshot => {
@@ -175,40 +255,45 @@ export const restructureAnalysisLog = () => {
           weightReceived: logDoc.data().weightReceived,
           result: logDoc.data().result,
           cocUid: logDoc.data().cocUID,
-          sessionID: logDoc.data().sessionID,
+          sessionID: logDoc.data().sessionID
         };
         let uid = `${logDoc.data().sampleUID}-${logDoc.data().sessionID}`;
         let sample = {};
-        asbestosSamplesRef.doc(logDoc.data().sampleUID).get().then(sampleSnapshot => {
-          sample = sampleSnapshot.data();
-          log = {
-            ...log,
-            analysisRecordedBy: sample.analysisRecordedBy,
-            analysisStartDate: sample.analysisStartDate,
-            analysisStartedBy: sample.analysisStartedBy,
-            analysisTime: sample.analysisTime,
-            category: sample.category,
-            issueVersion: sample.issueVersion ? sample.issueVersion : 1,
-            jobNumber: sample.jobNumber,
-            material: sample.material,
-            receivedDate: sample.receivedDate,
-            sampleNumber: sample.sampleNumber,
-            genericLocation: sample.genericLocation,
-            specificLocation: sample.specificLocation,
-            description: sample.description,
-            sampleUid: sample.uid,
-            waAnalysisComplete: sample.waAnalysisComplete ? sample.waAnalysisComplete : null,
-            waTotals: sample.waTotals ? sample.waTotals : null,
-            weightAshed: sample.weightAshed ? sample.weightAshed : null,
-            weightDry: sample.weightDry ? sample.weightDry : null,
-            uid: uid,
-          }
-          asbestosAnalysisLogRef.doc(uid).set(log);
-        });
+        asbestosSamplesRef
+          .doc(logDoc.data().sampleUID)
+          .get()
+          .then(sampleSnapshot => {
+            sample = sampleSnapshot.data();
+            log = {
+              ...log,
+              analysisRecordedBy: sample.analysisRecordedBy,
+              analysisStartDate: sample.analysisStartDate,
+              analysisStartedBy: sample.analysisStartedBy,
+              analysisTime: sample.analysisTime,
+              category: sample.category,
+              issueVersion: sample.issueVersion ? sample.issueVersion : 1,
+              jobNumber: sample.jobNumber,
+              material: sample.material,
+              receivedDate: sample.receivedDate,
+              sampleNumber: sample.sampleNumber,
+              genericLocation: sample.genericLocation,
+              specificLocation: sample.specificLocation,
+              description: sample.description,
+              sampleUid: sample.uid,
+              waAnalysisComplete: sample.waAnalysisComplete
+                ? sample.waAnalysisComplete
+                : null,
+              waTotals: sample.waTotals ? sample.waTotals : null,
+              weightAshed: sample.weightAshed ? sample.weightAshed : null,
+              weightDry: sample.weightDry ? sample.weightDry : null,
+              uid: uid
+            };
+            asbestosAnalysisLogRef.doc(uid).set(log);
+          });
       }
     });
   });
-}
+};
 
 export const restructureSampleIssueLog = () => {
   asbestosSampleLogRef.get().then(querySnapshot => {
@@ -217,28 +302,37 @@ export const restructureSampleIssueLog = () => {
       // console.log(logDoc.data());
       if (logDoc.data().cocUid === "AS190906_PORT OTAGO_1568328045951") {
         let log = logDoc.data();
-        let uid = `${log.sampleUid}-${moment(dateOf(log.issueDate)).format('x')}`;
+        let uid = `${log.sampleUid}-${moment(dateOf(log.issueDate)).format(
+          "x"
+        )}`;
         log.uid = uid;
         batch.set(asbestosSampleIssueLogRef.doc(uid), log);
       }
     });
     batch.commit();
   });
-}
+};
 
 export const cleanLogs = () => {
   let counter = 1;
-  logsRef.collection("asbestosLab").get().then(querySnapshot => {
-    let batch = firestore.batch();
-    querySnapshot.forEach(logDoc => {
-      if (counter <= 499 && logDoc.data().chainOfCustody !== undefined && logDoc.data().chainOfCustody !== "AS190906_PORT OTAGO_1568328045951") {
-        batch.delete(logsRef.collection("asbestosLab").doc(logDoc.id));
-        if (counter === 499) batch.commit();
-        counter++;
-      }
-    })
-  })
-}
+  logsRef
+    .collection("asbestosLab")
+    .get()
+    .then(querySnapshot => {
+      let batch = firestore.batch();
+      querySnapshot.forEach(logDoc => {
+        if (
+          counter <= 499 &&
+          logDoc.data().chainOfCustody !== undefined &&
+          logDoc.data().chainOfCustody !== "AS190906_PORT OTAGO_1568328045951"
+        ) {
+          batch.delete(logsRef.collection("asbestosLab").doc(logDoc.id));
+          if (counter === 499) batch.commit();
+          counter++;
+        }
+      });
+    });
+};
 
 export const copyStaff = (oldId, newId) => dispatch => {
   usersRef

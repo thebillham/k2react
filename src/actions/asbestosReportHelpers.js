@@ -5,8 +5,7 @@ import {
   andList,
   lower,
   titleCase,
-  toDataURL,
-  writeDates
+  writeDates,
 } from "./helpers";
 import { writeResult, getBasicResult } from "./asbestosLab";
 import { handleJobChange } from "./jobs";
@@ -17,20 +16,20 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
     airMonitoringRecords = [];
 
   site.layout &&
-    Object.values(site.layout).forEach(roomGroup => {
+    Object.values(site.layout).forEach((roomGroup) => {
       console.log(roomGroup);
       let roomGroupTable = { label: roomGroup.label || null, rows: [] },
         roomGroupRows = [],
         roomGroupName = roomGroup.label || null;
       roomGroup.rooms &&
-        roomGroup.rooms.forEach(room => {
+        roomGroup.rooms.forEach((room) => {
           let roomName = room.label;
           if (roomName.includes("General") || roomName.includes("Generic"))
             roomName = "General Items";
           let roomTable = { label: roomName || "", rows: [] },
             rows = [];
           room.acm &&
-            room.acm.forEach(acmUid => {
+            room.acm.forEach((acmUid) => {
               let acm = siteAcm[acmUid];
               if (acm && acm.sampleType !== "air") {
                 // Columns AMP/Survey Positive (2018)
@@ -95,7 +94,7 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
                   materialRisk: null,
                   priorityRisk: null,
                   totalRisk: null,
-                  recommendation: null
+                  recommendation: null,
                 };
                 // Check if sample is negative
                 if (
@@ -149,7 +148,7 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
                     acm.sample.fibreResult || acm.sample.fibreResult === 0
                       ? acm.sample.fibreResult
                       : "N/A",
-                  reportConcentration: acm.sample.reportConcentration || "N/A"
+                  reportConcentration: acm.sample.reportConcentration || "N/A",
                 };
                 rows.push(row);
                 airMonitoringRecords.push(row);
@@ -166,11 +165,11 @@ export const collateSamples = (site, siteJobs, siteAcm, samples) => {
   return {
     registerList,
     registerMap,
-    airMonitoringRecords
+    airMonitoringRecords,
   };
 };
 
-export const writeAcmExtent = acm => {
+export const writeAcmExtent = (acm) => {
   let str = `N/A`;
   if (acm.extent && acm.extentNum && acm.extentNumUnits) {
     str = `${sentenceCase(acm.extent)} (${acm.extentNum}${acm.extentNumUnits})`;
@@ -187,7 +186,7 @@ export const writeAcmExtent = acm => {
   return str;
 };
 
-export const getAcmRemoved = acm => {
+export const getAcmRemoved = (acm) => {
   // Removed, see clearance report AS190209
   if (acm.acmRemovalJob) {
     console.log(acm.acmRemovalJob);
@@ -216,7 +215,7 @@ export const getAcmRemoved = acm => {
   }
 };
 
-export const getAsbestosResult = acm => {
+export const getAsbestosResult = (acm) => {
   let result = { text: "", color: "" };
   if (acm.idKey === "p") {
     result.text = "Presumed";
@@ -232,7 +231,7 @@ export const getAsbestosResult = acm => {
   return result;
 };
 
-export const getMaterialRisk = acm => {
+export const getMaterialRisk = (acm) => {
   let riskMap = {};
 
   // Product
@@ -240,36 +239,36 @@ export const getMaterialRisk = acm => {
     text: acm.material
       ? `${sentenceCase(acm.material)} (${acm.category || "Other"})`
       : "N/A",
-    score: acm.productScore || null
+    score: acm.productScore || null,
   };
 
   // Damage
   riskMap.damage = {
     text: acm.damageDescription ? sentenceCase(acm.damageDescription) : "N/A",
-    score: acm.damageScore || null
+    score: acm.damageScore || null,
   };
 
   // Surface
   riskMap.surface = {
     text: acm.surfaceDescription ? sentenceCase(acm.surfaceDescription) : "N/A",
-    score: acm.surfaceScore || null
+    score: acm.surfaceScore || null,
   };
 
   // Asbestos Type
   riskMap.asbestosType = {
     text: "Unknown",
-    score: 3
+    score: 3,
   };
 
   if (acm.idKey === "i" && acm.sample && acm.sample.result) {
     riskMap.asbestosType = {
       text: writeResult(acm.sample.result, false, true),
-      score: acm.sample.result.cr ? 3 : acm.sample.result.am ? 2 : 1
+      score: acm.sample.result.cr ? 3 : acm.sample.result.am ? 2 : 1,
     };
   } else if (acm.asbestosType && !acm.asbestosType.cr) {
     riskMap.asbestosType = {
       text: `${writeResult(acm.asbestosType, false, true)} (presumed)`,
-      score: acm.asbestosType.am ? 2 : 1
+      score: acm.asbestosType.am ? 2 : 1,
     };
   }
 
@@ -305,7 +304,7 @@ export const getMaterialRisk = acm => {
   return riskMap;
 };
 
-export const getPriorityRisk = acm => {
+export const getPriorityRisk = (acm) => {
   let riskMap = {},
     totalActivity = 0,
     numActivity = 0,
@@ -323,7 +322,7 @@ export const getPriorityRisk = acm => {
     color = "",
     text = "";
 
-  ["priMainActivityScore", "priSecondaryActivityScore"].forEach(x => {
+  ["priMainActivityScore", "priSecondaryActivityScore"].forEach((x) => {
     if (acm[x]) {
       totalActivity += parseInt(acm[x]);
       numActivity++;
@@ -333,16 +332,18 @@ export const getPriorityRisk = acm => {
   scoreActivity =
     numActivity > 0 ? Math.ceil(totalActivity / numActivity) : null;
 
-  ["priLocationScore", "priAccessibilityScore", "priExtentScore"].forEach(x => {
-    if (acm[x]) {
-      totalDisturbance += parseInt(acm[x]);
-      numDisturbance++;
+  ["priLocationScore", "priAccessibilityScore", "priExtentScore"].forEach(
+    (x) => {
+      if (acm[x]) {
+        totalDisturbance += parseInt(acm[x]);
+        numDisturbance++;
+      }
     }
-  });
+  );
   scoreDisturbance =
     numDisturbance > 0 ? Math.ceil(totalDisturbance / numDisturbance) : null;
 
-  ["priOccupantScore", "priUseFreqScore", "priAvgTimeScore"].forEach(x => {
+  ["priOccupantScore", "priUseFreqScore", "priAvgTimeScore"].forEach((x) => {
     if (acm[x]) {
       totalExposure += parseInt(acm[x]);
       numExposure++;
@@ -351,7 +352,7 @@ export const getPriorityRisk = acm => {
   scoreExposure =
     numExposure > 0 ? Math.ceil(totalExposure / numExposure) : null;
 
-  ["priMaintTypeScore", "priMaintFreqScore"].forEach(x => {
+  ["priMaintTypeScore", "priMaintFreqScore"].forEach((x) => {
     if (acm[x]) {
       totalMaintenance += parseInt(acm[x]);
       numMaintenance++;
@@ -396,7 +397,7 @@ export const getPriorityRisk = acm => {
       scoreMaintenance,
       score,
       color,
-      text
+      text,
     };
   } else riskMap = null;
 
@@ -424,12 +425,12 @@ export const getTotalRisk = (mRisk, pRisk) => {
   return riskMap;
 };
 
-export const getDamageSurfaceNotes = acm => {
+export const getDamageSurfaceNotes = (acm) => {
   if (acm.damageAndSurfaceNotes) return acm.damageAndSurfaceNotes;
   else return `${acm.damageDescription}, ${acm.surfaceDescription}`;
 };
 
-export const getRecommendation = acm => {
+export const getRecommendation = (acm) => {
   let str1 = "",
     str2 = "";
   if (acm.managementPrimary) {
@@ -491,8 +492,8 @@ export const issueDocument = ({
   registerMap,
   registerList,
   airMonitoringRecords,
-  staff
-}) => dispatch => {
+  staff,
+}) => (dispatch) => {
   // console.log(template);
   // console.log(site);
   // console.log(job);
@@ -504,7 +505,7 @@ export const issueDocument = ({
 
   if (job.versions && Object.keys(job.versions).length > 0) {
     latestIssue = Math.max(
-      ...Object.keys(job.versions).map(key => parseInt(key))
+      ...Object.keys(job.versions).map((key) => parseInt(key))
     );
   }
 
@@ -520,18 +521,18 @@ export const issueDocument = ({
       let authors = {
         writer: [],
         checker: [],
-        ktp: []
+        ktp: [],
       };
-      ["writer", "checker", "ktp"].forEach(field => {
+      ["writer", "checker", "ktp"].forEach((field) => {
         console.log(v[field]);
         if (v[field]) {
-          v[field].forEach(s => {
+          v[field].forEach((s) => {
             console.log(s);
             authors[field].push({
               name: s.name,
               asbestosAssessorNumber: staff[s.uid] ? staff[s.uid].aanumber : "",
               tertiary: staff[s.uid] ? staff[s.uid].tertiary : "",
-              ip402: staff[s.uid] ? staff[s.uid].ip402 : false
+              ip402: staff[s.uid] ? staff[s.uid].ip402 : false,
             });
             console.log(field);
           });
@@ -539,20 +540,20 @@ export const issueDocument = ({
       });
       versionHistory.push({
         no: index + 1,
-        changes: v.changes,
+        changes: v.changes || "",
         date: moment(dateOf(v.date)).format("DD/MM/YYYY"),
-        writer: andList(authors.writer.map(e => e.name)),
-        checker: andList(authors.checker.map(e => e.name)),
-        ktp: andList(authors.ktp.map(e => e.name)),
-        writerFull: authors.writer.map(e => nameFullQuals(e)).join("\n\n"),
-        checkerFull: authors.checker.map(e => nameFullQuals(e)).join("\n\n"),
-        ktpFull: authors.ktp.map(e => nameFullQuals(e)).join("\n\n"),
+        writer: andList(authors.writer.map((e) => e.name)),
+        checker: andList(authors.checker.map((e) => e.name)),
+        ktp: andList(authors.ktp.map((e) => e.name)),
+        writerFull: authors.writer.map((e) => nameFullQuals(e)).join("\n\n"),
+        checkerFull: authors.checker.map((e) => nameFullQuals(e)).join("\n\n"),
+        ktpFull: authors.ktp.map((e) => nameFullQuals(e)).join("\n\n"),
         noAsbestos:
-          registerList.filter(e => {
+          registerList.filter((e) => {
             return e.acmRemoved || e.asbestosResult;
           }).length > 0
             ? false
-            : true
+            : true,
       });
     });
   }
@@ -567,24 +568,24 @@ export const issueDocument = ({
     siteImageUrl:
       site.siteImageUrl.substring(0, site.siteImageUrl.lastIndexOf("&token")) ||
       null,
-    versionHistory
+    versionHistory,
   };
   if (template.includes("AMP")) {
     let sitePersonnel = [],
       siteVisits = [];
     if (site.siteVisits) {
-      Object.values(site.siteVisits).forEach(v => {
+      Object.values(site.siteVisits).forEach((v) => {
         if (v.referenceNumber === job.jobNumber) {
           v.date && siteVisits.push(v.date);
           v.personnel &&
-            v.personnel.forEach(s => {
+            v.personnel.forEach((s) => {
               sitePersonnel.push({
                 name: s.name,
                 asbestosAssessorNumber: staff[s.uid]
                   ? staff[s.uid].aanumber
                   : "",
                 tertiary: staff[s.uid] ? staff[s.uid].tertiary : "",
-                ip402: staff[s.uid] ? staff[s.uid].ip402 : false
+                ip402: staff[s.uid] ? staff[s.uid].ip402 : false,
               });
             });
         }
@@ -593,17 +594,17 @@ export const issueDocument = ({
     let authors = {
       writer: [],
       checker: [],
-      ktp: []
+      ktp: [],
     };
     if (job.versions && job.versions[`${latestIssue}`]) {
       let version = job.versions[`${latestIssue}`];
-      ["writer", "checker", "ktp"].forEach(field => {
+      ["writer", "checker", "ktp"].forEach((field) => {
         if (version[field]) {
-          version[field].forEach(s => {
+          version[field].forEach((s) => {
             authors[field].push({
               name: s.name,
               tertiary: staff[s.uid] ? staff[s.uid].tertiary : "",
-              ip402: staff[s.uid] ? staff[s.uid].ip402 : false
+              ip402: staff[s.uid] ? staff[s.uid].ip402 : false,
             });
           });
         }
@@ -613,19 +614,21 @@ export const issueDocument = ({
     json = {
       ...json,
       sitePersonnelNameTertiaryIp402: andList(
-        sitePersonnel.map(e => nameTertiaryIp402(e))
+        sitePersonnel.map((e) => nameTertiaryIp402(e))
       ),
       sitePersonnelAsbestosAssessorNumbers: andList(
-        sitePersonnel.map(e => `${e.asbestosAssessorNumber}`)
+        sitePersonnel.map((e) => `${e.asbestosAssessorNumber}`)
       ),
 
       writerNameTertiaryIp402: andList(
-        authors.writer.map(e => nameTertiaryIp402(e))
+        authors.writer.map((e) => nameTertiaryIp402(e))
       ),
       checkerNameTertiaryIp402: andList(
-        authors.checker.map(e => nameTertiaryIp402(e))
+        authors.checker.map((e) => nameTertiaryIp402(e))
       ),
-      ktpNameTertiaryIp402: andList(authors.ktp.map(e => nameTertiaryIp402(e))),
+      ktpNameTertiaryIp402: andList(
+        authors.ktp.map((e) => nameTertiaryIp402(e))
+      ),
 
       registerMap,
       airMonitoringRecords,
@@ -635,7 +638,7 @@ export const issueDocument = ({
       riskToHealth: job.riskToHealth,
       background: job.background,
       immediateActionsRequired: job.immediateActionsRequired,
-      removalOrTreatmentOfAsbestos: job.removalOrTreatmentOfAsbestos
+      removalOrTreatmentOfAsbestos: job.removalOrTreatmentOfAsbestos,
     };
   }
   console.log(json);
@@ -645,17 +648,18 @@ export const issueDocument = ({
       o1: "issues",
       field: `${latestIssue}`,
       val: json,
-      siteUid: site.uid
+      siteUid: site.uid,
     })
   );
 };
 
-export const nameTertiaryIp402 = e => {
-  return `${e.name}${e.tertiary !== "" &&
-    ` (${e.tertiary}${e.ip402 && `, IP402`})`}`;
+export const nameTertiaryIp402 = (e) => {
+  return `${e.name}${
+    e.tertiary !== "" && ` (${e.tertiary}${e.ip402 && `, IP402`})`
+  }`;
 };
 
-export const nameFullQuals = e => {
+export const nameFullQuals = (e) => {
   let quals = [];
   if (e.tertiary) quals.push(e.tertiary);
   if (e.ip402) quals.push("BOHS IP402");
@@ -664,7 +668,7 @@ export const nameFullQuals = e => {
   return `${e.name}\n${quals.join(", ")}`;
 };
 
-export const nameFullQualsOneLine = e => {
+export const nameFullQualsOneLine = (e) => {
   let quals = [];
   if (e.tertiary) quals.push(e.tertiary);
   if (e.ip402) quals.push("BOHS IP402");
@@ -677,7 +681,7 @@ export const writeExecutiveSummary = (job, siteAcm, template) => {
   if (template === 1 || true) {
     if (siteAcm) {
       let immediateRisk = false;
-      Object.values(siteAcm).forEach(e => {
+      Object.values(siteAcm).forEach((e) => {
         if (e.immediateRisk) immediateRisk = true;
       });
       if (immediateRisk)
@@ -702,12 +706,12 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
     if (siteAcm) {
       let immediateRisk = [],
         bullets = [],
-        acmGroups = [],
         genericRoom = false,
-        sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
+        sampledAcm =
+          Object.values(siteAcm).filter((e) => e.idKey === "i") || [],
         identifiedAcm =
           Object.values(siteAcm).filter(
-            e =>
+            (e) =>
               e.idKey === "i" &&
               e.sample &&
               e.sample.result &&
@@ -716,20 +720,20 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
           ) || [],
         presumedAcm =
           Object.values(siteAcm).filter(
-            e =>
+            (e) =>
               (e.idKey === "p" || e.idKey === "s") &&
               e.acmRemoved !== true &&
               (!e.sample ||
                 !e.sample.result ||
                 getBasicResult(e.sample) === "positive")
           ) || [];
-      Object.values(siteAcm).forEach(e => {
+      Object.values(siteAcm).forEach((e) => {
         if (e.immediateRisk) immediateRisk.push(e);
       });
       if (immediateRisk.length > 0) {
         bullets.push(
           `The ${andList(
-            immediateRisk.map(e => `${e.material} ${e.description}`)
+            immediateRisk.map((e) => `${e.material} ${e.description}`)
           ).toLowerCase()} ${
             immediateRisk.length === 1 ? "presents" : "present"
           } an immediate risk to health and must be remediated as soon as practicable.`
@@ -742,7 +746,7 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
         acmRooms = {};
 
       identifiedAcm.length > 0 &&
-        identifiedAcm.forEach(e => {
+        identifiedAcm.forEach((e) => {
           // First see what rooms each material is in
           if (e.material || e.description) {
             if (e.room && e.room.label) {
@@ -776,7 +780,7 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
         });
 
       Object.values(acmRooms) &&
-        Object.keys(acmRooms).forEach(e => {
+        Object.keys(acmRooms).forEach((e) => {
           acmRooms[e].materials &&
             bullets.push(
               `The asbestos-containing ${andList(
@@ -791,7 +795,7 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
         });
 
       presumedAcm.length > 0 &&
-        presumedAcm.forEach(e => {
+        presumedAcm.forEach((e) => {
           // This needs to be expanded to cover rooms with the same name
           if (e.room && e.room.label) {
             if (e.room.uid === "generic") genericRoom = true;
@@ -827,10 +831,10 @@ export const writeWhereIsTheHazard = (job, siteAcm, template) => {
       }
 
       console.log(bullets);
-      console.log(bullets.map(e => `<li>${e}</li>`));
+      console.log(bullets.map((e) => `<li>${e}</li>`));
 
       return `<h2>Where is the Hazard?</h2><ul>${bullets
-        .map(e => `<li>${e}</li>`)
+        .map((e) => `<li>${e}</li>`)
         .join("")}</ul>`;
     } else {
       return null;
@@ -846,11 +850,9 @@ export const writeRiskToHealth = (job, siteAcm, template) => {
     let str = "";
     if (siteAcm) {
       let immediateRisk = [],
-        acmGroups = [],
-        sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
         identifiedAcm =
           Object.values(siteAcm).filter(
-            e =>
+            (e) =>
               e.idKey === "i" &&
               e.sample &&
               e.sample.result &&
@@ -859,14 +861,14 @@ export const writeRiskToHealth = (job, siteAcm, template) => {
           ) || [],
         presumedAcm =
           Object.values(siteAcm).filter(
-            e =>
+            (e) =>
               (e.idKey === "p" || e.idKey === "s") &&
               e.acmRemoved !== true &&
               (!e.sample ||
                 !e.sample.result ||
                 getBasicResult(e.sample) === "positive")
           ) || [];
-      Object.values(siteAcm).forEach(e => {
+      Object.values(siteAcm).forEach((e) => {
         if (e.immediateRisk) immediateRisk.push(e);
       });
       // No positive samples and no presumed items
@@ -875,7 +877,7 @@ export const writeRiskToHealth = (job, siteAcm, template) => {
           "No asbestos-containing materials are present or presumed to be present at this site.";
       if (immediateRisk.length > 0) {
         str = `There is an immediate risk to health from the ${andList(
-          immediateRisk.map(e => `${e.material} ${e.description}`)
+          immediateRisk.map((e) => `${e.material} ${e.description}`)
         ).toLowerCase()}. This must be remediated as soon as practicable.`;
       } else {
         str = `There is not an immediate risk to health. However, any activity that disturbs the ${
@@ -921,13 +923,13 @@ export const writeBackground = (job, site, staff, template) => {
     let siteVisits = [];
     site.siteVisits &&
       Object.values(site.siteVisits)
-        .filter(e => e.type === "mgmt")
-        .forEach(e => {
+        .filter((e) => e.type === "mgmt")
+        .forEach((e) => {
           siteVisits.push(
             `${moment(dateOf(e.date)).format("dddd, D MMMM YYYY")}${
               e.personnel
                 ? ` by ${andList(
-                    e.personnel.map(s => {
+                    e.personnel.map((s) => {
                       let name = s.name;
                       if (staff[s.uid] && staff[s.uid].aanumber)
                         name += ` (${staff[s.uid].aanumber})`;
@@ -962,7 +964,7 @@ export const writeBackground = (job, site, staff, template) => {
     // }
 
     site.asbestosRemovals &&
-      site.asbestosRemovals.forEach(rem => {
+      site.asbestosRemovals.forEach((rem) => {
         bullets.push(
           `${rem.description} was carried out by ${rem.asbestosRemovalist}${
             rem.asbestosRemovalistLicence
@@ -987,7 +989,7 @@ export const writeBackground = (job, site, staff, template) => {
     );
 
     return `<h2>Background</h2><ul>${bullets
-      .map(e => `<li>${e}</li>`)
+      .map((e) => `<li>${e}</li>`)
       .join("")}</ul>`;
   } else if (template === 2) {
   } else {
@@ -998,11 +1000,9 @@ export const writeRecommendations = (job, siteAcm, template) => {
   if (template === 1 || true) {
     if (siteAcm) {
       let immediateRisk = [],
-        acmGroups = [],
-        sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
         identifiedAcm =
           Object.values(siteAcm).filter(
-            e =>
+            (e) =>
               e.idKey === "i" &&
               e.sample &&
               e.sample.result &&
@@ -1011,7 +1011,7 @@ export const writeRecommendations = (job, siteAcm, template) => {
           ) || [],
         presumedAcm =
           Object.values(siteAcm).filter(
-            e =>
+            (e) =>
               (e.idKey === "p" || e.idKey === "s") &&
               e.acmRemoved !== true &&
               (!e.sample ||
@@ -1028,7 +1028,7 @@ export const writeRecommendations = (job, siteAcm, template) => {
       // Check if immediate remediation needed
       let genericRoom = false,
         immediateRiskRooms = {};
-      Object.values(siteAcm).forEach(e => {
+      Object.values(siteAcm).forEach((e) => {
         if (e.immediateRisk) {
           if (e.room && e.room.value === "generic") genericRoom = true;
           else if (e.room && e.room.label)
@@ -1044,7 +1044,7 @@ export const writeRecommendations = (job, siteAcm, template) => {
 
         sectionStr = `<h3>Management of High Risk Materials</h3>`;
         sectionStr += `<ul><li>The ${andList(
-          immediateRisk.map(e => `${e.material} ${e.description}`)
+          immediateRisk.map((e) => `${e.material} ${e.description}`)
         ).toLowerCase()} ${
           immediateRisk.length === 1 ? "presents" : "present"
         } an immediate risk to health and must be remediated as soon as practicable.</li><li>Access to the ${roomStr} should be restricted to persons wearing appropriate PPE and RPE until the risk is remediated.</li></ul>`;
@@ -1058,7 +1058,7 @@ export const writeRecommendations = (job, siteAcm, template) => {
       let riskRooms = {};
       genericRoom = false;
       identifiedAcm.length > 0 &&
-        identifiedAcm.forEach(e => {
+        identifiedAcm.forEach((e) => {
           if (e.room && e.room.label) {
             if (e.room.value === "generic") genericRoom = true;
             else riskRooms[e.room.label] = true;
@@ -1080,7 +1080,7 @@ export const writeRecommendations = (job, siteAcm, template) => {
       // Check if ACD present
       let dustPresent = false;
       identifiedAcm.length > 0 &&
-        identifiedAcm.forEach(e => {
+        identifiedAcm.forEach((e) => {
           if (e.material && e.material.toLowerCase().includes("dust"))
             dustPresent = true;
         });
@@ -1103,8 +1103,8 @@ export const writeRecommendations = (job, siteAcm, template) => {
 
       identifiedAcm
         .concat(presumedAcm)
-        .filter(e => e.sampleType !== "air")
-        .forEach(e => {
+        .filter((e) => e.sampleType !== "air")
+        .forEach((e) => {
           // First see what rooms each material is in
           if (e.material || e.description) {
             if (e.room && e.room.label) {
@@ -1132,21 +1132,20 @@ export const writeRecommendations = (job, siteAcm, template) => {
           }
         });
 
-      Object.keys(acmMaterials).forEach(e => {
+      Object.keys(acmMaterials).forEach((e) => {
         let managementPrimary = "",
           managementSecondary = "",
           removalLicenceRequired = "",
-          material,
           recommendations = "",
+          material = "",
           inaccessibleItem = false,
           damage = 0,
           surface = 0,
           accessibility = 0,
           singular = true,
           acmCount = 0;
-        console.log(e);
         acmMaterials[e].acm &&
-          acmMaterials[e].acm.forEach(acm => {
+          acmMaterials[e].acm.forEach((acm) => {
             console.log(acm);
             if (!acm.singularItem) singular = false;
             if (acm.inaccessibleItem) inaccessibleItem = true;
@@ -1171,7 +1170,7 @@ export const writeRecommendations = (job, siteAcm, template) => {
         let genericArea = false;
         let roomList = [];
         acmMaterials[e].rooms &&
-          Object.keys(acmMaterials[e].rooms).forEach(room => {
+          Object.keys(acmMaterials[e].rooms).forEach((room) => {
             if (room === "other areas") genericArea = true;
             else roomList.push(room);
           });
@@ -1257,12 +1256,12 @@ export const writeRecommendations = (job, siteAcm, template) => {
 
       console.log({
         immediateActionsRequired: str,
-        removalOrTreatmentOfAsbestos: str2
+        removalOrTreatmentOfAsbestos: str2,
       });
 
       return {
         immediateActionsRequired: str,
-        removalOrTreatmentOfAsbestos: str2
+        removalOrTreatmentOfAsbestos: str2,
       };
     } else {
       return null;
@@ -1275,7 +1274,7 @@ export const writeAssetOverview = ({ site, job, classDescriptions }) => {
   // It was manufactured by General Motors (EMD), Canada in 1967
   // The locomotive was overhauled and modified with Low Cab at Clyde Engineering, South Australia in May 1979 and repainted at KiwiRail Worburn Railway Workshops in 2008
   let assetDescription = "";
-  classDescriptions.forEach(c => {
+  classDescriptions.forEach((c) => {
     if (c.label === site.assetClass) assetDescription = c.description;
   });
   if ("aeiou".includes(site.assetClass[0]))
@@ -1289,7 +1288,7 @@ export const writeAssetOverview = ({ site, job, classDescriptions }) => {
     `It was manufactured by ${site.manufacturedBy}, ${site.countryOfOrigin} in ${site.manufactureYear}`
   );
   bullets.push(site.notesOnModification);
-  return `<ul>${bullets.map(e => `<li>${e}</li>`).join("")}</ul>`;
+  return `<ul>${bullets.map((e) => `<li>${e}</li>`).join("")}</ul>`;
 };
 
 export const writeRiskOverview = (job, siteAcm) => {
@@ -1301,11 +1300,10 @@ export const writeRiskOverview = (job, siteAcm) => {
     let immediateRisk = [],
       immediateActionsRequired = [],
       shortTermActions = [],
-      acmGroups = [],
-      sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
+      // sampledAcm = Object.values(siteAcm).filter(e => e.idKey === "i") || [],
       identifiedAcm =
         Object.values(siteAcm).filter(
-          e =>
+          (e) =>
             e.idKey === "i" &&
             e.sample &&
             e.sample.result &&
@@ -1314,14 +1312,14 @@ export const writeRiskOverview = (job, siteAcm) => {
         ) || [],
       presumedAcm =
         Object.values(siteAcm).filter(
-          e =>
+          (e) =>
             (e.idKey === "p" || e.idKey === "s") &&
             e.acmRemoved !== true &&
             (!e.sample ||
               !e.sample.result ||
               getBasicResult(e.sample) === "positive")
         ) || [];
-    Object.values(siteAcm).forEach(e => {
+    Object.values(siteAcm).forEach((e) => {
       let label =
         e.description && e.material
           ? e.description.toLowerCase().includes(e.material.toLowerCase())
@@ -1404,7 +1402,7 @@ export const writeRiskOverview = (job, siteAcm) => {
         "No asbestos-containing materials are present or presumed to be present at this site.";
     if (immediateRisk.length > 0) {
       riskToHealthStr = `There is an immediate risk to health from the ${andList(
-        immediateRisk.map(e => `${e.material} ${e.description}`)
+        immediateRisk.map((e) => `${e.material} ${e.description}`)
       ).toLowerCase()}. This must be remediated as soon as practicable.`;
     } else {
       riskToHealthStr = `There is not an immediate risk to health. However, if any ${
@@ -1417,12 +1415,12 @@ export const writeRiskOverview = (job, siteAcm) => {
     }
     if (immediateActionsRequired.length > 0)
       immediateActionsRequiredStr = `<ul>${immediateActionsRequired
-        .map(a => `<li>${a}</li>`)
+        .map((a) => `<li>${a}</li>`)
         .join("")}</ul>`;
     else immediateActionsRequiredStr = "No immediate actions are required.";
     if (shortTermActions.length > 0)
       shortTermActionsStr = `<ol>${shortTermActions
-        .map(a => `<li>${a}</li>`)
+        .map((a) => `<li>${a}</li>`)
         .join("")}</ol>`;
     else shortTermActionsStr = "No short-term actions are required.";
   } else {
@@ -1436,7 +1434,7 @@ export const writeRiskOverview = (job, siteAcm) => {
 
 export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
   let dates = [];
-  site.siteVisits.forEach(c => {
+  site.siteVisits.forEach((c) => {
     console.log(c);
     if (c.type === "mgmt")
       dates.push({
@@ -1446,7 +1444,7 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
           c.referenceNumber
         }) was conducted by ${andList(
           c.personnel.map(
-            s =>
+            (s) =>
               `${s.name}${
                 staff[s.uid].tertiary || staff[s.uid].ip402
                   ? ` (${staff[s.uid].tertiary}${
@@ -1455,7 +1453,7 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
                   : ""
               }`
           )
-        )} of K2 Environmental Ltd`
+        )} of K2 Environmental Ltd`,
       });
     else if (c.type !== "stg4")
       dates.push({
@@ -1463,7 +1461,7 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
         dateFormatted: moment(dateOf(c.date)).format("DD/MM/YYYY"),
         desc: `A site visit (${c.referenceNumber}) was conducted by ${andList(
           c.personnel.map(
-            s =>
+            (s) =>
               `${s.name}${
                 staff[s.uid].tertiary ||
                 staff[s.uid].ip402 ||
@@ -1476,16 +1474,16 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
                   : ""
               }`
           )
-        )} of K2 Environmental Ltd`
+        )} of K2 Environmental Ltd`,
       });
   });
   site.asbestosRemovals &&
-    Object.values(site.asbestosRemovals).forEach(c => {
+    Object.values(site.asbestosRemovals).forEach((c) => {
       console.log(c);
       dates.push({
         date: dateOf(c.removalDate),
         dateFormatted: moment(dateOf(c.removalDate)).format("DD/MM/YYYY"),
-        desc: `${c.description} by ${c.asbestosRemovalist} (${c.asbestosRemovalistLicence})`
+        desc: `${c.description} by ${c.asbestosRemovalist} (${c.asbestosRemovalistLicence})`,
       });
       dates.push({
         date: dateOf(c.clearanceDate),
@@ -1493,27 +1491,29 @@ export const writeSiteVisitAndRemovalHistory = ({ site, staff }) => {
         desc: `An asbestos removal clearance (${
           c.referenceNumber
         }) was given by ${andList(
-          c.personnel.map(s =>
+          c.personnel.map((s) =>
             s.name === "3rd Party"
               ? `a 3rd party company (${c.asbestosAssessorNumber})`
               : `${s.name}${
                   staff[s.uid].tertiary || staff[s.uid].aanumber
-                    ? ` (${staff[s.uid].tertiary}, ${staff[s.uid].aanumber}) of K2 Environmental Ltd`
+                    ? ` (${staff[s.uid].tertiary}, ${
+                        staff[s.uid].aanumber
+                      }) of K2 Environmental Ltd`
                     : ""
                 }`
           )
-        )}`
+        )}`,
       });
     });
   return dates.sort((a, b) => a.date - b.date);
 };
 
-export const writeAcmSummary = registerMap => {
+export const writeAcmSummary = (registerMap) => {
   let acmSummary = [];
-  registerMap.forEach(roomGroup => {
-    roomGroup.rows.forEach(room => {
+  registerMap.forEach((roomGroup) => {
+    roomGroup.rows.forEach((room) => {
       let roomAcm = [];
-      room.rows.forEach(row => {
+      room.rows.forEach((row) => {
         if (!row.acmRemoved && row.asbestosResult) {
           roomAcm.push(
             `${row.label[0].toUpperCase()}${row.label
@@ -1534,14 +1534,14 @@ export const writeAcmSummary = registerMap => {
             label: "General Items",
             summary: `${roomAcm.join(
               "@~"
-            )}@~Gaskets, inaccessible pipe lagging and electrical components such as switches, fuse insulation, etc. (presumed)`
+            )}@~Gaskets, inaccessible pipe lagging and electrical components such as switches, fuse insulation, etc. (presumed)`,
           });
         } else
           acmSummary.push({
             label: room.label,
             summary: roomAcm
-              .map(e => `${e[0].toUpperCase()}${e.slice(1)}`)
-              .join("@~")
+              .map((e) => `${e[0].toUpperCase()}${e.slice(1)}`)
+              .join("@~"),
           });
       }
     });
@@ -1558,8 +1558,8 @@ export const issueTrainAmp = ({
   airMonitoringRecords,
   staff,
   siteAcm,
-  classDescriptions
-}) => dispatch => {
+  classDescriptions,
+}) => (dispatch) => {
   console.log(site);
   console.log(job);
   console.log(registerMap);
@@ -1569,7 +1569,7 @@ export const issueTrainAmp = ({
 
   if (job.versions && Object.keys(job.versions).length > 0) {
     latestIssue = Math.max(
-      ...Object.keys(job.versions).map(key => parseInt(key))
+      ...Object.keys(job.versions).map((key) => parseInt(key))
     );
   }
 
@@ -1580,12 +1580,12 @@ export const issueTrainAmp = ({
       let authors = {
         writer: [],
         checker: [],
-        ktp: []
+        ktp: [],
       };
-      ["writer", "checker", "ktp"].forEach(field => {
+      ["writer", "checker", "ktp"].forEach((field) => {
         console.log(v[field]);
         if (v[field]) {
-          v[field].forEach(s => {
+          v[field].forEach((s) => {
             authors[field].push(s.name);
           });
         }
@@ -1596,7 +1596,7 @@ export const issueTrainAmp = ({
         date: moment(dateOf(v.date)).format("DD/MM/YYYY"),
         writer: authors.writer.join("\n"),
         checker: authors.checker.join("\n"),
-        ktp: authors.ktp.join("\n")
+        ktp: authors.ktp.join("\n"),
       });
     });
   }
@@ -1604,18 +1604,18 @@ export const issueTrainAmp = ({
   let authors = {
     writer: [],
     checker: [],
-    ktp: []
+    ktp: [],
   };
   if (job.versions && job.versions[`${latestIssue}`]) {
     let version = job.versions[`${latestIssue}`];
-    ["writer", "checker", "ktp"].forEach(field => {
+    ["writer", "checker", "ktp"].forEach((field) => {
       if (version[field]) {
-        version[field].forEach(s => {
+        version[field].forEach((s) => {
           authors[field].push({
             name: s.name,
             asbestosAssessorNumber: staff[s.uid] ? staff[s.uid].aanumber : "",
             tertiary: staff[s.uid] ? staff[s.uid].tertiary : "",
-            ip402: staff[s.uid] ? staff[s.uid].ip402 : false
+            ip402: staff[s.uid] ? staff[s.uid].ip402 : false,
           });
         });
       }
@@ -1625,16 +1625,16 @@ export const issueTrainAmp = ({
   let surveyPersonnel = [],
     surveyDates = [];
   if (site.siteVisits) {
-    Object.values(site.siteVisits).forEach(v => {
+    Object.values(site.siteVisits).forEach((v) => {
       if (v.referenceNumber === job.jobNumber) {
         v.date && surveyDates.push(v.date);
         v.personnel &&
-          v.personnel.forEach(s => {
+          v.personnel.forEach((s) => {
             surveyPersonnel.push({
               name: s.name,
               asbestosAssessorNumber: staff[s.uid] ? staff[s.uid].aanumber : "",
               tertiary: staff[s.uid] ? staff[s.uid].tertiary : "",
-              ip402: staff[s.uid] ? staff[s.uid].ip402 : false
+              ip402: staff[s.uid] ? staff[s.uid].ip402 : false,
             });
           });
       }
@@ -1658,25 +1658,28 @@ export const issueTrainAmp = ({
     siteVisits: writeSiteVisitAndRemovalHistory({ site, staff }),
     writer:
       authors["writer"].length > 0
-        ? authors["writer"].map(e => nameFullQuals(e)).join("\n\n")
+        ? authors["writer"].map((e) => nameFullQuals(e)).join("\n\n")
         : "",
     checker:
       authors["checker"].length > 0
-        ? authors["checker"].map(e => nameFullQuals(e)).join("\n\n")
+        ? authors["checker"].map((e) => nameFullQuals(e)).join("\n\n")
         : "",
     ktp:
       authors["ktp"].length > 0
-        ? authors["ktp"].map(e => nameFullQuals(e)).join("\n\n")
+        ? authors["ktp"].map((e) => nameFullQuals(e)).join("\n\n")
         : "",
     surveyPersonnel: surveyPersonnel
-      .map(e => nameFullQualsOneLine(e))
+      .map((e) => nameFullQualsOneLine(e))
       .join("\n"),
-    surveyDates: writeDates(surveyDates.map(date => ({ date })), "date"),
+    surveyDates: writeDates(
+      surveyDates.map((date) => ({ date })),
+      "date"
+    ),
     siteImageUrl:
       site.siteImageUrl.substring(0, site.siteImageUrl.lastIndexOf("&token")) ||
       null,
     asbestosRemovalRecords: site.asbestosRemovals
-      ? Object.values(site.asbestosRemovals).map(c => ({
+      ? Object.values(site.asbestosRemovals).map((c) => ({
           asbestosRemovalist: c.asbestosRemovalist,
           asbestosRemovalistLicence: c.asbestosRemovalistLicence,
           removalDate: c.removalDate
@@ -1688,7 +1691,7 @@ export const issueTrainAmp = ({
             : "",
           asbestosAssessorName: c.personnel
             ? c.personnel
-                .map(p =>
+                .map((p) =>
                   p.name === "3rd Party"
                     ? "3rd Party"
                     : `${p.name} (K2 Environmental Ltd)`
@@ -1697,7 +1700,7 @@ export const issueTrainAmp = ({
             : "",
           asbestosAssessorLicence: c.personnel
             ? c.personnel
-                .map(p =>
+                .map((p) =>
                   p.name === "3rd Party"
                     ? c.asbestosAssessorLicence || "N/A"
                     : staff[p.uid].aanumber
@@ -1707,12 +1710,12 @@ export const issueTrainAmp = ({
           clearanceCertificateRef: c.referenceNumber,
           issueDate: c.issueDate
             ? moment(dateOf(c.issueDate)).format("DD MMMM YYYY")
-            : ""
+            : "",
         }))
       : "",
     versionHistory,
     airMonitoringRecords,
-    registerMap
+    registerMap,
   };
 
   console.log(json);
@@ -1722,7 +1725,7 @@ export const issueTrainAmp = ({
       o1: "issues",
       field: `${latestIssue}`,
       val: json,
-      siteUid: site.uid
+      siteUid: site.uid,
     })
   );
 };

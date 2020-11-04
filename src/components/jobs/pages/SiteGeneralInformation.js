@@ -9,22 +9,14 @@ import {
   SITE_JOB,
   ASBESTOS_COC_EDIT,
   SITE_VISIT,
-  ASBESTOS_CLEARANCE
+  ASBESTOS_CLEARANCE,
 } from "../../../constants/modal-types";
-import Button from "@material-ui/core/Button";
-
-import ClosedArrow from "@material-ui/icons/ArrowDropDown";
-import OpenArrow from "@material-ui/icons/ArrowDropUp";
 import InputLabel from "@material-ui/core/InputLabel";
-import Zoom from "@material-ui/core/Zoom";
-import Grow from "@material-ui/core/Grow";
 import Grid from "@material-ui/core/Grid";
 import Tooltip from "@material-ui/core/Tooltip";
-import Collapse from "@material-ui/core/Collapse";
 import TextField from "@material-ui/core/TextField";
 import IconButton from "@material-ui/core/IconButton";
 import AddIcon from "@material-ui/icons/AddCircleOutline";
-import RemoveIcon from "@material-ui/icons/Remove";
 import Select from "react-select";
 import SyncIcon from "@material-ui/icons/Sync";
 import LinkIcon from "@material-ui/icons/Link";
@@ -32,21 +24,13 @@ import TimerIcon from "@material-ui/icons/Timer";
 import DeleteIcon from "@material-ui/icons/Close";
 import EditIcon from "@material-ui/icons/Edit";
 
-import {
-  Map,
-  GoogleApiWrapper,
-  Marker,
-  InfoWindow,
-  Listing
-} from "google-maps-react";
-
-import { DatePicker, DateTimePicker } from "@material-ui/pickers";
+import { Map, GoogleApiWrapper, Marker } from "google-maps-react";
 
 import {
   dateOf,
   andList,
   personnelConvert,
-  numericOnly
+  numericOnly,
 } from "../../../actions/helpers";
 
 import moment from "moment";
@@ -73,12 +57,12 @@ import {
   getJobIcon,
   getDetailedWFMJob,
   handleJobChange,
-  handleSiteChange
+  handleSiteChange,
 } from "../../../actions/jobs";
 
 import { filterMap, filterMapReset } from "../../../actions/display";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     asbestosRemovalists: state.const.asbestosRemovalists,
     siteVisitTypeAsbestos: state.const.siteVisitTypeAsbestos,
@@ -101,33 +85,34 @@ const mapStateToProps = state => {
     otherOptions: state.const.otherOptions,
     modalType: state.modal.modalType,
     siteTypes: state.const.siteTypes,
-    assetClassesTrain: state.const.assetClassesTrain
+    assetClassesTrain: state.const.assetClassesTrain,
+    wfmAccessToken: state.local.wfmAccessToken,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     fetchWFMJobs: () => dispatch(fetchWFMJobs()),
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
-    handleSiteChange: info => dispatch(handleSiteChange(info)),
+    handleSiteChange: (info) => dispatch(handleSiteChange(info)),
     handleSiteChangeDebounced: _.debounce(
-      info => dispatch(handleSiteChange(info)),
+      (info) => dispatch(handleSiteChange(info)),
       500
     ),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
-    fetchCurrentJobState: ignoreCompleted =>
+    fetchCurrentJobState: (ignoreCompleted) =>
       dispatch(fetchCurrentJobState(ignoreCompleted)),
     clearWfmJob: () => dispatch(clearWfmJob()),
-    saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
-    saveGeocodes: g => dispatch(saveGeocodes(g)),
+    saveCurrentJobState: (state) => dispatch(saveCurrentJobState(state)),
+    saveGeocodes: (g) => dispatch(saveGeocodes(g)),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
-    updateGeocodes: g => dispatch(updateGeocodes(g)),
-    saveWFMItems: items => dispatch(saveWFMItems(items)),
-    saveStats: stats => dispatch(saveStats(stats)),
-    filterMap: filter => dispatch(filterMap(filter)),
+    updateGeocodes: (g) => dispatch(updateGeocodes(g)),
+    saveWFMItems: (items) => dispatch(saveWFMItems(items)),
+    saveStats: (stats) => dispatch(saveStats(stats)),
+    filterMap: (filter) => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
-    showModal: modal => dispatch(showModal(modal)),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
+    showModal: (modal) => dispatch(showModal(modal)),
+    getDetailedWFMJob: (info) => dispatch(getDetailedWFMJob(info)),
     collateJobsList: (
       wfmJobs,
       wfmLeads,
@@ -143,7 +128,7 @@ const mapDispatchToProps = dispatch => {
           wfmClients,
           geocodes
         )
-      )
+      ),
   };
 };
 
@@ -154,17 +139,17 @@ const mapStyles = {
   margin: 12,
   borderRadius: 12,
   width: "40vw",
-  height: "25vw"
+  height: "25vw",
 };
 
 class SiteGeneralInformation extends React.Component {
   state = {
-    update: {}
+    update: {},
   };
 
-  toggleCollapse = name => {
+  toggleCollapse = (name) => {
     this.setState({
-      [`open${name}`]: !this.state[`open${name}`]
+      [`open${name}`]: !this.state[`open${name}`],
     });
   };
 
@@ -185,7 +170,7 @@ class SiteGeneralInformation extends React.Component {
       siteJobs,
       siteCocs,
       siteTypes,
-      assetClassesTrain
+      assetClassesTrain,
     } = this.props;
     const names = [{ name: "3rd Party", uid: "3rd Party" }].concat(
       Object.values(this.props.staff).sort((a, b) =>
@@ -197,17 +182,17 @@ class SiteGeneralInformation extends React.Component {
 
     if (m && siteJobs && siteJobs[site]) {
       let jobList = [];
-      Object.values(siteJobs[site]).forEach(v => {
+      Object.values(siteJobs[site]).forEach((v) => {
         let jobSummary = {
           jobNumber: v.jobNumber,
-          jobDescription: v.jobDescription
+          jobDescription: v.jobDescription,
         };
         jobList.push(jobSummary);
       });
       this.props.handleSiteChangeDebounced({
         site: m,
         field: "jobList",
-        val: jobList
+        val: jobList,
       });
     }
 
@@ -216,11 +201,11 @@ class SiteGeneralInformation extends React.Component {
       let maxLength =
         this.props.otherOptions &&
         this.props.otherOptions.filter(
-          opt => opt.option === "jobLeadEmailLength"
+          (opt) => opt.option === "jobLeadEmailLength"
         ).length > 0
           ? parseInt(
               this.props.otherOptions.filter(
-                opt => opt.option === "jobLeadEmailLength"
+                (opt) => opt.option === "jobLeadEmailLength"
               )[0].value
             )
           : 600;
@@ -241,11 +226,11 @@ class SiteGeneralInformation extends React.Component {
                 id="siteName"
                 label="Site Name"
                 defaultValue={m.siteName || ""}
-                onChange={e => {
+                onChange={(e) => {
                   this.props.handleSiteChangeDebounced({
                     site: m,
                     field: "siteName",
-                    val: e.target.value
+                    val: e.target.value,
                   });
                 }}
               />
@@ -256,20 +241,20 @@ class SiteGeneralInformation extends React.Component {
                   m.type
                     ? {
                         value: m.type,
-                        label: siteTypes.filter(e => e.value === m.type)[0]
-                          .label
+                        label: siteTypes.filter((e) => e.value === m.type)[0]
+                          .label,
                       }
                     : { value: "", label: "" }
                 }
-                options={siteTypes.map(e => ({
+                options={siteTypes.map((e) => ({
                   value: e.value,
-                  label: e.label
+                  label: e.label,
                 }))}
-                onChange={e => {
+                onChange={(e) => {
                   this.props.handleSiteChangeDebounced({
                     site: m,
                     field: "type",
-                    val: e.target.value
+                    val: e.target.value,
                   });
                 }}
               />
@@ -284,15 +269,15 @@ class SiteGeneralInformation extends React.Component {
                           ? { value: m.assetClass, label: m.assetClass }
                           : { value: "", label: "" }
                       }
-                      options={assetClassesTrain.map(e => ({
+                      options={assetClassesTrain.map((e) => ({
                         value: e.label,
-                        label: e.label
+                        label: e.label,
                       }))}
-                      onChange={e => {
+                      onChange={(e) => {
                         this.props.handleSiteChange({
                           site: m,
                           field: "assetClass",
-                          val: e.value
+                          val: e.value,
                         });
                       }}
                     />
@@ -302,11 +287,11 @@ class SiteGeneralInformation extends React.Component {
                     id="assetClass"
                     label="Asset Number"
                     defaultValue={m.assetNumber || ""}
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         field: "assetNumber",
-                        val: numericOnly(e.target.value)
+                        val: numericOnly(e.target.value),
                       });
                     }}
                   />
@@ -315,11 +300,11 @@ class SiteGeneralInformation extends React.Component {
                     id="manufacturedBy"
                     label="Manufactured By"
                     defaultValue={m.manufacturedBy || ""}
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         field: "manufacturedBy",
-                        val: e.target.value
+                        val: e.target.value,
                       });
                     }}
                   />
@@ -328,11 +313,11 @@ class SiteGeneralInformation extends React.Component {
                     id="countryOfOrigin"
                     label="Country of Origin"
                     defaultValue={m.countryOfOrigin || ""}
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         field: "countryOfOrigin",
-                        val: e.target.value
+                        val: e.target.value,
                       });
                     }}
                   />
@@ -341,11 +326,11 @@ class SiteGeneralInformation extends React.Component {
                     id="manufactureYear"
                     label="Year(s) of Manufacture"
                     defaultValue={m.manufactureYear || ""}
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         field: "manufactureYear",
-                        val: e.target.value
+                        val: e.target.value,
                       });
                     }}
                   />
@@ -356,11 +341,11 @@ class SiteGeneralInformation extends React.Component {
                     multiline
                     rows={5}
                     defaultValue={m.previousClassifications || ""}
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChange({
                         site: m,
                         field: "previousClassifications",
-                        val: e.target.value
+                        val: e.target.value,
                       });
                     }}
                   />
@@ -372,11 +357,11 @@ class SiteGeneralInformation extends React.Component {
                     rows={5}
                     helperText="Write as full sentence. (e.g. The locomotive was in service from 1973.)"
                     defaultValue={m.notesOnService || ""}
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         field: "notesOnService",
-                        val: e.target.value
+                        val: e.target.value,
                       });
                     }}
                   />
@@ -388,11 +373,11 @@ class SiteGeneralInformation extends React.Component {
                     rows={5}
                     helperText="Write as full sentence. (e.g. The locomotive was repainted in 1981 and 2007. The engine was overhauled in 2003.)"
                     defaultValue={m.notesOnModification || ""}
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         field: "notesOnModification",
-                        val: e.target.value
+                        val: e.target.value,
                       });
                     }}
                   />
@@ -407,7 +392,7 @@ class SiteGeneralInformation extends React.Component {
                 style={mapStyles}
                 initialCenter={{
                   lat: m.geocode.location[0],
-                  lng: m.geocode.location[1]
+                  lng: m.geocode.location[1],
                 }}
               >
                 <Marker
@@ -418,12 +403,12 @@ class SiteGeneralInformation extends React.Component {
                   // }}
                   position={{
                     lat: m.geocode.location[0],
-                    lng: m.geocode.location[1]
+                    lng: m.geocode.location[1],
                   }}
                   title={`${m.jobNumber}: ${m.client}`}
                   icon={{
                     url: getJobIcon(m.category),
-                    scaledSize: new google.maps.Size(32, 32)
+                    scaledSize: new google.maps.Size(32, 32),
                   }}
                 />
               </Map>
@@ -437,10 +422,10 @@ class SiteGeneralInformation extends React.Component {
                 </div>
                 <Tooltip title={"Add Job"}>
                   <IconButton
-                    onClick={e => {
+                    onClick={(e) => {
                       this.props.showModal({
                         modalType: SITE_JOB,
-                        modalProps: { doc: { site: site, deleted: false } }
+                        modalProps: { doc: { site: site, deleted: false } },
                       });
                     }}
                   >
@@ -451,7 +436,7 @@ class SiteGeneralInformation extends React.Component {
               {siteJobs &&
               siteJobs[m.uid] &&
               Object.keys(siteJobs[m.uid]).length > 0 ? (
-                Object.values(siteJobs[m.uid]).map(j => {
+                Object.values(siteJobs[m.uid]).map((j) => {
                   // console.log(j);
                   let jColor = classes[getJobColor(j.category)];
                   return (
@@ -474,10 +459,12 @@ class SiteGeneralInformation extends React.Component {
                       <div className={classes.flexRow}>
                         <Tooltip title={"Re-sync with WorkflowMax"}>
                           <IconButton
-                            onClick={e =>
+                            onClick={(e) =>
                               this.props.getDetailedWFMJob({
                                 jobNumber: j.jobNumber,
-                                setUpJob: true
+                                setUpJob: true,
+                                accessToken: this.props.wfmAccessToken,
+                                refreshToken: this.props.me.refreshToken,
                               })
                             }
                           >
@@ -497,10 +484,10 @@ class SiteGeneralInformation extends React.Component {
                         </Tooltip>
                         <Tooltip title={"Log Time to WorkflowMax"}>
                           <IconButton
-                            onClick={e => {
+                            onClick={(e) => {
                               this.props.showModal({
                                 modalType: WFM_TIME,
-                                modalProps: { job: j }
+                                modalProps: { job: j },
                               });
                             }}
                           >
@@ -509,7 +496,7 @@ class SiteGeneralInformation extends React.Component {
                         </Tooltip>
                         <Tooltip title={"Delete Job"}>
                           <IconButton
-                            onClick={e => {
+                            onClick={(e) => {
                               if (
                                 window.confirm(
                                   "Are you sure you wish to delete this job?"
@@ -537,23 +524,23 @@ class SiteGeneralInformation extends React.Component {
                 </div>
                 <Tooltip title={"Add Site Visit"}>
                   <IconButton
-                    onClick={e => {
+                    onClick={(e) => {
                       this.props.showModal({
                         modalType: SITE_VISIT,
                         modalProps: {
                           doc: {},
                           siteUid: site,
-                          callBack: state => {
+                          callBack: (state) => {
                             console.log(state);
                             this.props.handleSiteChange({
                               site: m,
                               field: "siteVisits",
                               val: m.siteVisits
                                 ? m.siteVisits.concat([state])
-                                : [state]
+                                : [state],
                             });
-                          }
-                        }
+                          },
+                        },
                       });
                     }}
                   >
@@ -583,7 +570,7 @@ class SiteGeneralInformation extends React.Component {
                           <div className={classes.bold}>
                             {`${v.referenceNumber} ${
                               this.props.siteVisitTypeAsbestos.filter(
-                                e => e.value === v.type
+                                (e) => e.value === v.type
                               )[0].label
                             }`}
                           </div>
@@ -592,20 +579,20 @@ class SiteGeneralInformation extends React.Component {
                               "ddd, D MMMM YYYY"
                             )} `}
                             <span className={classes.italic}>
-                              {andList(v.personnel.map(e => e.name))}
+                              {andList(v.personnel.map((e) => e.name))}
                             </span>
                           </div>
                         </div>
                         <div className={classes.flexRow}>
                           <Tooltip title={"Edit"}>
                             <IconButton
-                              onClick={e => {
+                              onClick={(e) => {
                                 this.props.showModal({
                                   modalType: SITE_VISIT,
                                   modalProps: {
                                     doc: v,
                                     siteUid: site,
-                                    callBack: state => {
+                                    callBack: (state) => {
                                       console.log(state);
                                       this.props.handleSiteChange({
                                         site: m,
@@ -614,10 +601,10 @@ class SiteGeneralInformation extends React.Component {
                                           state,
                                           m.siteVisits,
                                           index
-                                        )
+                                        ),
                                       });
-                                    }
-                                  }
+                                    },
+                                  },
                                 });
                               }}
                             >
@@ -626,7 +613,7 @@ class SiteGeneralInformation extends React.Component {
                           </Tooltip>
                           <Tooltip title={"Delete Site Visit"}>
                             <IconButton
-                              onClick={e => {
+                              onClick={(e) => {
                                 if (
                                   window.confirm(
                                     "Are you sure you wish to delete this Site Visit?"
@@ -668,10 +655,10 @@ class SiteGeneralInformation extends React.Component {
                             deleted: false,
                             versionUpToDate: true,
                             mostRecentIssueSent: true,
-                            historicalCoc: true
+                            historicalCoc: true,
                           },
-                          isNew: true
-                        }
+                          isNew: true,
+                        },
                       });
                     }}
                   >
@@ -730,14 +717,16 @@ class SiteGeneralInformation extends React.Component {
                             <IconButton
                               onClick={() => {
                                 this.props.getDetailedWFMJob({
-                                  jobNumber: coc.jobNumber
+                                  jobNumber: coc.jobNumber,
+                                  accessToken: this.props.wfmAccessToken,
+                                  refreshToken: this.props.me.refreshToken,
                                 });
                                 this.props.showModal({
                                   modalType: ASBESTOS_COC_EDIT,
                                   modalProps: {
                                     title: "Edit Chain of Custody",
-                                    doc: coc
-                                  }
+                                    doc: coc,
+                                  },
                                 });
                               }}
                             >
@@ -760,22 +749,22 @@ class SiteGeneralInformation extends React.Component {
                 </div>
                 <Tooltip title={"Add Asbestos Removal"}>
                   <IconButton
-                    onClick={e => {
+                    onClick={(e) => {
                       this.props.showModal({
                         modalType: ASBESTOS_CLEARANCE,
                         modalProps: {
                           doc: {},
                           siteUid: site,
-                          callBack: state => {
+                          callBack: (state) => {
                             this.props.handleSiteChange({
                               site: m,
                               field: "asbestosRemovals",
                               val: m.asbestosRemovals
                                 ? m.asbestosRemovals.concat([state])
-                                : [state]
+                                : [state],
                             });
-                          }
-                        }
+                          },
+                        },
                       });
                     }}
                   >
@@ -823,13 +812,13 @@ class SiteGeneralInformation extends React.Component {
                         <div className={classes.flexRow}>
                           <Tooltip title={"Edit"}>
                             <IconButton
-                              onClick={e => {
+                              onClick={(e) => {
                                 this.props.showModal({
                                   modalType: ASBESTOS_CLEARANCE,
                                   modalProps: {
                                     doc: v,
                                     siteUid: site,
-                                    callBack: state => {
+                                    callBack: (state) => {
                                       this.props.handleSiteChange({
                                         site: m,
                                         field: "asbestosRemovals",
@@ -837,10 +826,10 @@ class SiteGeneralInformation extends React.Component {
                                           state,
                                           m.asbestosRemovals,
                                           index
-                                        )
+                                        ),
                                       });
-                                    }
-                                  }
+                                    },
+                                  },
                                 });
                               }}
                             >
@@ -849,7 +838,7 @@ class SiteGeneralInformation extends React.Component {
                           </Tooltip>
                           <Tooltip title={"Delete Asbestos Removal"}>
                             <IconButton
-                              onClick={e => {
+                              onClick={(e) => {
                                 if (
                                   window.confirm(
                                     "Are you sure you wish to delete this Asbestos Removal?"
@@ -881,12 +870,9 @@ class SiteGeneralInformation extends React.Component {
 }
 
 export default GoogleApiWrapper({
-  apiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY
+  apiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY,
 })(
   withStyles(styles)(
-    connect(
-      mapStateToProps,
-      mapDispatchToProps
-    )(SiteGeneralInformation)
+    connect(mapStateToProps, mapDispatchToProps)(SiteGeneralInformation)
   )
 );

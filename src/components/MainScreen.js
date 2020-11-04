@@ -17,6 +17,7 @@ import classNames from "classnames";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../config/styles";
 import img_Logo from "../images/logo.png";
+import moment from "moment";
 
 // Material UI;
 
@@ -96,8 +97,10 @@ import {
   analyseJobHistory,
   fetchWFMClients,
   authoriseWFM,
+  fetchWFMStaff,
+  fetchWFMAuth,
 } from "../actions/jobs";
-import { sendSlackMessage } from "../actions/helpers";
+import { sendSlackMessage, dateOf } from "../actions/helpers";
 import { resetModal, showModal } from "../actions/modal";
 import { resetDisplay } from "../actions/display";
 import { initConstants } from "../actions/const";
@@ -161,7 +164,10 @@ const mapStateToProps = (state) => {
     initialLoading: state.display.initialLoading,
     latestVersion: state.const.appVersion,
     menuItems: state.const.menuItems,
-    wfmToken: state.local.wfmToken,
+    wfmAccessToken: state.local.wfmAccessToken,
+    wfmRefreshToken: state.local.wfmRefreshToken,
+    wfmAccessExpiry: state.local.wfmAccessExpiry,
+    wfmAuthLoaded: state.local.wfmAuthLoaded,
   };
 };
 
@@ -173,17 +179,22 @@ const mapDispatchToProps = (dispatch) => {
     resetModal: () => dispatch(resetModal()),
     resetDisplay: () => dispatch(resetDisplay()),
     copyStaff: (oldId, newId) => dispatch(copyStaff(oldId, newId)),
-    fetchWFMClients: () => dispatch(fetchWFMClients()),
+    fetchWFMAuth: () => dispatch(fetchWFMAuth()),
+    fetchWFMClients: (accessToken, refreshToken) =>
+      dispatch(fetchWFMClients(accessToken, refreshToken)),
+    fetchWFMStaff: (accessToken, refreshToken) =>
+      dispatch(fetchWFMStaff(accessToken, refreshToken)),
+
     initConstants: () => dispatch(initConstants()),
     showModal: (modal) => dispatch(showModal(modal)),
     fetchStaff: () => dispatch(fetchStaff()),
     fetchAssets: (update) => dispatch(fetchAssets(update)),
-    authoriseWFM: (code) => dispatch(authoriseWFM(code)),
+    authoriseWFM: (params) => dispatch(authoriseWFM(params)),
     // fixIds: () => dispatch(fixIds())
   };
 };
 
-const thisVersion = "1.2.18";
+const thisVersion = "1.3.3";
 
 class MainScreen extends React.PureComponent {
   // static whyDidYouRender = true;
@@ -205,12 +216,10 @@ class MainScreen extends React.PureComponent {
   }
 
   UNSAFE_componentWillMount() {
-    if (!this.props.clients || this.props.clients.length === 0)
-      this.props.fetchWFMClients();
     sendSlackMessage(
       `${auth.currentUser.displayName} is triggering MainScreen componentWillMount`
     );
-    // if (!this.props.wfmToken) this.props.authoriseWFM();
+    // if (!this.props.wfmAccessToken) this.props.authoriseWFM();
     if (this.props.me && this.props.me.uid === undefined) this.props.fetchMe();
     if (this.props.menuItems === undefined) this.props.initConstants();
     this.props.fetchGeocodes();
@@ -218,19 +227,7 @@ class MainScreen extends React.PureComponent {
     // splitWFMStates();
     if (this.props.staff && Object.keys(this.props.staff).length === 0)
       this.props.fetchStaff();
-
-    if (!this.props.wfmToken) {
-      let code = qs.parse(this.props.location.search, {
-        ignoreQueryPrefix: true,
-      }).code;
-      console.log(code);
-      if (!code) {
-        let path = `${process.env.REACT_APP_WFM_AUTH_ROOT}${process.env.REACT_APP_WFM_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_WFM_REDIRECT_URI}&scope=workflowmax offline_access&state=${process.env.REACT_APP_WFM_STATE_KEY}`;
-        window.location.assign(path);
-      } else {
-        this.props.authoriseWFM(code);
-      }
-    }
+    this.props.fetchWFMAuth();
     // this.props.fixIds();
     // fixNoticeReads();
     // transferNoticeboardReads();
@@ -244,6 +241,8 @@ class MainScreen extends React.PureComponent {
     // fixNoticeReads();
     // renameAnalysisLog();
     // this.props.copyStaff('vpqfRcdsxOZMEoP5Aw6B','yrMXpAUR66Ug0Qb1kDeV8R9IBWq1');
+    this.checkWFMAuthorised();
+    this.getWFMData();
     setTimeout(
       () =>
         this.setState({
@@ -252,6 +251,62 @@ class MainScreen extends React.PureComponent {
       2000
     );
   }
+
+  getWFMData = () => {
+    if (this.props.wfmAccessToken && this.props.wfmRefreshToken) {
+      if (!this.props.clients || this.props.clients.length === 0) {
+        this.props.fetchWFMClients(
+          this.props.wfmAccessToken,
+          this.props.wfmRefreshToken
+        );
+      }
+      // this.props.fetchWFMStaff(
+      //   this.props.wfmAccessToken,
+      //   this.props.wfmRefreshToken
+      // );
+    } else {
+      console.log("token not here yet");
+      setTimeout(this.getWFMData, 500);
+    }
+  };
+
+  checkWFMAuthorised = () => {
+    console.log("CHECK AUTH CALLED");
+    if (this.props.wfmAuthLoaded) {
+      if (
+        this.props.wfmAccessToken &&
+        moment().isBefore(moment(dateOf(this.props.wfmAccessExpiry)))
+      ) {
+        console.log(
+          `Access Expires on ${moment(
+            dateOf(this.props.wfmAccessExpiry)
+          ).format("lll")}`
+        );
+        // All good
+      } else if (this.props.wfmRefreshToken) {
+        // Use refresh token to get a new access token
+        // console.log(this.props.wfmRefreshToken);
+        this.props.authoriseWFM({
+          refreshToken: this.props.wfmRefreshToken,
+        });
+      } else {
+        // Authenticate user and authorize MyK2 to use WFM
+        let code = qs.parse(this.props.location.search, {
+          ignoreQueryPrefix: true,
+        }).code;
+        if (!code) {
+          let path = `${process.env.REACT_APP_WFM_AUTH_ROOT}${process.env.REACT_APP_WFM_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_WFM_REDIRECT_URI}&scope=workflowmax offline_access&state=${process.env.REACT_APP_WFM_STATE_KEY}`;
+          window.location.assign(path);
+        } else {
+          // User has been sent back to MyK2 with the code
+          this.props.authoriseWFM({ code });
+        }
+      }
+    } else {
+      console.log("auth not here yet");
+      setTimeout(this.checkWFMAuthorised, 500);
+    }
+  };
 
   handleLogOut = () => {
     // sendSlackMessage(`${this.props.state.local.me.name} has logged out.`);

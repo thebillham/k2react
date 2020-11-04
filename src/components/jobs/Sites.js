@@ -7,23 +7,19 @@ import {
   Route,
   Link,
   Switch,
-  withRouter
+  withRouter,
 } from "react-router-dom";
 
-import List from "@material-ui/core/List";
 import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
 import Fade from "@material-ui/core/Fade";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardMedia from "@material-ui/core/CardMedia";
 import CardContent from "@material-ui/core/CardContent";
-import CardActions from "@material-ui/core/CardActions";
 import Tooltip from "@material-ui/core/Tooltip";
 import IconButton from "@material-ui/core/IconButton";
 import Avatar from "@material-ui/core/Avatar";
 import { connect } from "react-redux";
-import { auth, methodsRef, docsRef } from "../../config/firebase";
 import { SITE } from "../../constants/modal-types";
 
 import AddIcon from "@material-ui/icons/Add";
@@ -31,12 +27,11 @@ import EditIcon from "@material-ui/icons/Edit";
 
 import SiteModal from "./modals/SiteModal";
 
-import { onSearchChange, onCatChange, fetchStaff } from "../../actions/local";
+import { fetchStaff } from "../../actions/local";
 import { fetchSites, getJobColor, getSiteIcon } from "../../actions/jobs";
 import { showModal } from "../../actions/modal";
-import store from "../../store";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     sites: state.jobs.sites,
     me: state.local.me,
@@ -44,15 +39,15 @@ const mapStateToProps = state => {
     modalType: state.modal.modalType,
     category: state.local.category,
     search: state.local.search,
-    staff: state.local.staff
+    staff: state.local.staff,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     fetchSites: () => dispatch(fetchSites()),
     fetchStaff: () => dispatch(fetchStaff()),
-    showModal: modal => dispatch(showModal(modal))
+    showModal: (modal) => dispatch(showModal(modal)),
   };
 };
 
@@ -60,7 +55,7 @@ class Sites extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      listselect: null
+      listselect: null,
     };
   }
 
@@ -78,10 +73,10 @@ class Sites extends React.Component {
         <div className={classes.flexRowRightAlign}>
           <Tooltip title="Add New Site">
             <IconButton
-              onClick={e =>
+              onClick={(e) =>
                 this.props.showModal({
                   modalType: SITE,
-                  modalProps: { doc: { deleted: false } }
+                  modalProps: { doc: { deleted: false } },
                 })
               }
             >
@@ -92,15 +87,15 @@ class Sites extends React.Component {
         <Grid container spacing={2}>
           {sites &&
             Object.values(sites)
-              .filter(a => {
+              .filter((a) => {
                 if (this.props.search) {
                   let search = [a.siteName, a.primaryJobType, a.type];
                   let searchterm = this.props.search.toLowerCase().split(" ");
                   let res = true;
-                  searchterm.forEach(term => {
+                  searchterm.forEach((term) => {
                     if (
                       search.find(
-                        tag => tag && tag.toLowerCase().includes(term)
+                        (tag) => tag && tag.toLowerCase().includes(term)
                       ) === undefined
                     )
                       res = false;
@@ -113,7 +108,7 @@ class Sites extends React.Component {
               .sort(
                 (a, b) => a.siteName && a.siteName.localeCompare(b.siteName)
               )
-              .map(site => {
+              .map((site) => {
                 const color = classes[getJobColor(site.primaryJobType)];
                 return (
                   <Grid item sm={12} md={6} lg={4} xl={3} key={site.uid}>
@@ -134,10 +129,10 @@ class Sites extends React.Component {
                           }
                           action={
                             <IconButton
-                              onClick={e => {
+                              onClick={(e) => {
                                 this.props.showModal({
                                   modalType: SITE,
-                                  modalProps: { doc: site }
+                                  modalProps: { doc: site },
                                 });
                               }}
                             >
@@ -149,7 +144,7 @@ class Sites extends React.Component {
                         />
                         {site.jobList && (
                           <CardContent>
-                            {site.jobList.map(job => (
+                            {site.jobList.map((job) => (
                               <div>
                                 <b>{job.jobNumber}</b> {job.jobDescription}
                               </div>
@@ -160,7 +155,7 @@ class Sites extends React.Component {
                           <CardMedia
                             style={{
                               height: 0,
-                              paddingTop: "56.25%" // 16:9
+                              paddingTop: "56.25%", // 16:9
                             }}
                             className={classes.hoverImage}
                             image={
@@ -186,8 +181,5 @@ class Sites extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(Sites)
+  connect(mapStateToProps, mapDispatchToProps)(Sites)
 );

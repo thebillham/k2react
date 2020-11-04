@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import {
   appSettingsRef,
   sitesRef,
-  templateAcmRef
+  templateAcmRef,
 } from "../../../config/firebase";
 
 //Modals
@@ -44,7 +44,7 @@ import {
   getDaysSinceDate,
   getDaysSinceDateAgo,
   andList,
-  personnelConvert
+  personnelConvert,
 } from "../../../actions/helpers";
 
 import moment from "moment";
@@ -54,7 +54,6 @@ import {
   fetchWFMLeads,
   fetchWFMClients,
   saveCurrentJobState,
-  getDetailedWFMJob,
   clearWfmJob,
   saveWFMItems,
   saveGeocodes,
@@ -71,19 +70,19 @@ import {
   getLeadHistoryDescription,
   handleJobChange,
   loadAcmTemplate,
-  getRoomInLayout
+  getRoomInLayout,
 } from "../../../actions/jobs";
 
 import {
   writeDescription,
-  writeSimpleResult
+  writeSimpleResult,
 } from "../../../actions/asbestosLab";
 
 import { getFirestoreCollection } from "../../../actions/local";
 
 import { filterMap, filterMapReset } from "../../../actions/display";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     acmTemplates: state.local.acmTemplates,
     asbestosRemovalists: state.const.asbestosRemovalists,
@@ -105,39 +104,38 @@ const mapStateToProps = state => {
     me: state.local.me,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
-    modalType: state.modal.modalType
+    modalType: state.modal.modalType,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     fetchWFMJobs: () => dispatch(fetchWFMJobs()),
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
-    handleSiteChange: info => dispatch(handleSiteChange(info)),
+    handleSiteChange: (info) => dispatch(handleSiteChange(info)),
     handleSiteChangeDebounced: _.debounce(
-      info => dispatch(handleSiteChange(info)),
+      (info) => dispatch(handleSiteChange(info)),
       2000
     ),
     clearWfmJob: () => dispatch(clearWfmJob()),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
-    saveGeocodes: g => dispatch(saveGeocodes(g)),
+    saveGeocodes: (g) => dispatch(saveGeocodes(g)),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
-    updateGeocodes: g => dispatch(updateGeocodes(g)),
-    saveWFMItems: items => dispatch(saveWFMItems(items)),
-    saveStats: stats => dispatch(saveStats(stats)),
-    filterMap: filter => dispatch(filterMap(filter)),
+    updateGeocodes: (g) => dispatch(updateGeocodes(g)),
+    saveWFMItems: (items) => dispatch(saveWFMItems(items)),
+    saveStats: (stats) => dispatch(saveStats(stats)),
+    filterMap: (filter) => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
-    showModal: modal => dispatch(showModal(modal)),
+    showModal: (modal) => dispatch(showModal(modal)),
     fetchAcmTemplates: () =>
       dispatch(
         getFirestoreCollection({
           pathRef: appSettingsRef.doc("templates").collection("acm"),
           statePath: "acmTemplates",
           update: true,
-          subscribe: true
+          subscribe: true,
         })
-      )
+      ),
   };
 };
 
@@ -175,7 +173,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     ? `0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)`
     : `0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19)`,
   background: isDragging ? "#fafafa" : "white",
-  ...draggableStyle
+  ...draggableStyle,
 });
 
 const getListStyle = (isDraggingOver, mode) => ({
@@ -189,12 +187,12 @@ const getListStyle = (isDraggingOver, mode) => ({
       ? "#bbb"
       : "#ddd",
   margin: 4,
-  padding: 8
+  padding: 8,
 });
 
 class SiteAddAcm extends React.Component {
   state = {
-    templateSearch: ""
+    templateSearch: "",
   };
 
   UNSAFE_componentWillMount() {
@@ -204,15 +202,15 @@ class SiteAddAcm extends React.Component {
     this.props.sites[this.props.site] &&
       this.props.sites[this.props.site].layout &&
       Object.values(this.props.sites[this.props.site].layout).forEach(
-        roomGroup => {
+        (roomGroup) => {
           roomGroup &&
             roomGroup.rooms &&
-            roomGroup.rooms.forEach(room => {
+            roomGroup.rooms.forEach((room) => {
               // console.log(room);
               this.props.siteAcm[this.props.site] &&
                 console.log(
                   Object.values(this.props.siteAcm[this.props.site]).filter(
-                    a => a.room && a.room.uid === room.uid
+                    (a) => a.room && a.room.uid === room.uid
                   )
                 );
               if (room.acm) {
@@ -222,17 +220,17 @@ class SiteAddAcm extends React.Component {
                 this.setState({
                   [room.uid]: this.props.siteAcm[this.props.site]
                     ? Object.values(this.props.siteAcm[this.props.site])
-                        .filter(a => a.room && a.room.uid === room.uid)
-                        .map(e => e.uid)
-                    : []
+                        .filter((a) => a.room && a.room.uid === room.uid)
+                        .map((e) => e.uid)
+                    : [],
                 });
             });
           this.setState({
             generic: this.props.siteAcm[this.props.site]
               ? Object.values(this.props.siteAcm[this.props.site])
-                  .filter(a => a.room && a.room.uid === "generic")
-                  .map(e => e.uid)
-              : []
+                  .filter((a) => a.room && a.room.uid === "generic")
+                  .map((e) => e.uid)
+              : [],
           });
         }
       );
@@ -244,7 +242,7 @@ class SiteAddAcm extends React.Component {
     let layout = this.props.sites[this.props.site].layout,
       change = false;
     if (layout)
-      Object.keys(layout).forEach(k => {
+      Object.keys(layout).forEach((k) => {
         if (layout[k].rooms) {
           layout[k].rooms.forEach((r, index) => {
             if (this.state[r.uid] && this.state[r.uid].length > 0) {
@@ -258,7 +256,7 @@ class SiteAddAcm extends React.Component {
     if (change) sitesRef.doc(this.props.site).update({ layout });
   }
 
-  onDragEnd = result => {
+  onDragEnd = (result) => {
     const { source, destination } = result;
     // dropped outside the list
     if (!result.destination && source.droppableId === "templates") {
@@ -270,13 +268,9 @@ class SiteAddAcm extends React.Component {
       sourceClone.splice(source.index, 1);
       console.log(sourceClone);
       this.setState({
-        [source.droppableId]: sourceClone
+        [source.droppableId]: sourceClone,
       });
-      sitesRef
-        .doc(this.props.site)
-        .collection("acm")
-        .doc(acmKey)
-        .delete();
+      sitesRef.doc(this.props.site).collection("acm").doc(acmKey).delete();
     } else {
       if (source.droppableId === destination.droppableId) {
         if (source.droppableId === "templates") return;
@@ -293,7 +287,7 @@ class SiteAddAcm extends React.Component {
           let acm = this.getAcmTemplates()[source.index];
           let room = getRoomInLayout({
             site: this.props.sites[this.props.site],
-            searchRoom: destination.droppableId
+            searchRoom: destination.droppableId,
           });
           let uid = `${acm.description}_${acm.material}_${moment().format(
             "x"
@@ -303,16 +297,12 @@ class SiteAddAcm extends React.Component {
           acm.uid = uid;
           acm.idKey = "p"; // Presume by default
           acm.room = { label: room.label, uid: room.uid };
-          sitesRef
-            .doc(this.props.site)
-            .collection("acm")
-            .doc(uid)
-            .set(acm);
+          sitesRef.doc(this.props.site).collection("acm").doc(uid).set(acm);
           this.setState({
             [destination.droppableId]: [
               ...this.state[destination.droppableId],
-              uid
-            ]
+              uid,
+            ],
           });
         } else if (destination.droppableId === "templates") {
           // Delete ACM
@@ -320,13 +310,9 @@ class SiteAddAcm extends React.Component {
           let sourceClone = Array.from(this.state[source.droppableId]);
           sourceClone.splice(source.index, 1);
           this.setState({
-            [source.droppableId]: sourceClone
+            [source.droppableId]: sourceClone,
           });
-          sitesRef
-            .doc(this.props.site)
-            .collection("acm")
-            .doc(acmKey)
-            .delete();
+          sitesRef.doc(this.props.site).collection("acm").doc(acmKey).delete();
         } else {
           const result = move(
             this.state[source.droppableId] || [],
@@ -338,7 +324,7 @@ class SiteAddAcm extends React.Component {
           let acmKey = this.state[source.droppableId][source.index];
           let room = getRoomInLayout({
             site: this.props.sites[this.props.site],
-            searchRoom: destination.droppableId
+            searchRoom: destination.droppableId,
           });
           console.log(room);
           sitesRef
@@ -348,7 +334,7 @@ class SiteAddAcm extends React.Component {
             .update({ room: { label: room.label, uid: room.uid } });
 
           this.setState({
-            ...result
+            ...result,
           });
         }
       }
@@ -362,11 +348,11 @@ class SiteAddAcm extends React.Component {
             uid: "air",
             templateName: "Air Sample",
             sampleType: "air",
-            description: "Air Sample"
-          }
+            description: "Air Sample",
+          },
         ].concat(
           this.props.acmTemplates
-            .filter(e => {
+            .filter((e) => {
               let res = true;
               if (
                 this.state.templateSearch &&
@@ -404,8 +390,8 @@ class SiteAddAcm extends React.Component {
             uid: "air",
             templateName: "Air Sample",
             sampleType: "air",
-            description: "Air Sample"
-          }
+            description: "Air Sample",
+          },
         ];
   };
 
@@ -439,10 +425,10 @@ class SiteAddAcm extends React.Component {
                   </div>
                   <Tooltip title={"Add ACM Template"}>
                     <IconButton
-                      onClick={e => {
+                      onClick={(e) => {
                         this.props.showModal({
                           modalType: TEMPLATE_ACM,
-                          modalProps: { doc: null }
+                          modalProps: { doc: null },
                         });
                       }}
                     >
@@ -456,7 +442,7 @@ class SiteAddAcm extends React.Component {
                   <TextField
                     value={this.state.templateSearch}
                     style={{ width: "100%" }}
-                    onChange={e =>
+                    onChange={(e) =>
                       this.setState({ templateSearch: e.target.value })
                     }
                   />
@@ -505,13 +491,13 @@ class SiteAddAcm extends React.Component {
                   Asbestos Register
                 </div>
                 {m.layout &&
-                  Object.keys(m.layout).map(k =>
+                  Object.keys(m.layout).map((k) =>
                     m.layout[k].rooms && m.layout[k].rooms.length > 0
                       ? k === "default"
-                        ? m.layout[k].rooms.map(r => this.getDroppableRoom(r))
+                        ? m.layout[k].rooms.map((r) => this.getDroppableRoom(r))
                         : this.getFoldableRoomGroup({
                             roomGroup: m.layout[k],
-                            key: k
+                            key: k,
                           })
                       : null
                   )}
@@ -536,7 +522,7 @@ class SiteAddAcm extends React.Component {
     } else return <div />;
   }
 
-  getAcmTemplateCard = item => {
+  getAcmTemplateCard = (item) => {
     const { classes } = this.props;
     return (
       <div className={classes.flexRowSpread}>
@@ -550,10 +536,10 @@ class SiteAddAcm extends React.Component {
             }
           >
             <IconButton
-              onClick={e => {
+              onClick={(e) => {
                 this.props.showModal({
                   modalType: TEMPLATE_ACM,
-                  modalProps: { doc: item }
+                  modalProps: { doc: item },
                 });
               }}
             >
@@ -567,7 +553,7 @@ class SiteAddAcm extends React.Component {
             }
           >
             <IconButton
-              onClick={e => {
+              onClick={(e) => {
                 if (
                   window.confirm(
                     `Are you sure you wish to delete this template (${item.description} ${item.material})?`
@@ -584,7 +570,7 @@ class SiteAddAcm extends React.Component {
     );
   };
 
-  getAcmCard = item => {
+  getAcmCard = (item) => {
     const { classes } = this.props;
     let idKey = item.idKey || null;
     if (idKey === "i" && item.sample) {
@@ -655,7 +641,7 @@ class SiteAddAcm extends React.Component {
     );
   };
 
-  getDroppableRoom = room => {
+  getDroppableRoom = (room) => {
     const { classes } = this.props;
     return (
       <Droppable key={room.uid} droppableId={room.uid}>
@@ -697,7 +683,7 @@ class SiteAddAcm extends React.Component {
     return (
       <div className={this.props.classes.informationBoxWhiteRounded}>
         <h6>{roomGroup.label}</h6>
-        {roomGroup.rooms.map(r => {
+        {roomGroup.rooms.map((r) => {
           this.getDroppableRoom(r);
         })}
       </div>
@@ -706,8 +692,5 @@ class SiteAddAcm extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(SiteAddAcm)
+  connect(mapStateToProps, mapDispatchToProps)(SiteAddAcm)
 );

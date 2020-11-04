@@ -3,15 +3,12 @@ import {
   GET_FIRESTORE_COLLECTION,
   CAT_CHANGE,
   CLEAR_LOG,
-  GET_ASBESTOS_ANALYSIS,
   GET_AIR_ANALYSTS,
   GET_BULK_ANALYSTS,
-  GET_COCS,
   GET_ASSETS,
   GET_DOCUMENTS,
   GET_EDIT_STAFF,
   CLEAR_EDIT_STAFF,
-  GET_GEOCODES,
   GET_HELP,
   GET_INCIDENTS,
   GET_LOGS,
@@ -24,44 +21,31 @@ import {
   GET_QUIZZES,
   GET_QUIZLOG,
   GET_READINGLOG,
-  GET_SAMPLES,
   GET_STAFF,
   GET_TOOLS,
   GET_TRAININGS,
   GET_UPDATES,
   GET_USER,
   GET_VEHICLES,
-  GET_WFM_JOBS,
-  GET_WFM_JOB,
-  GET_WFM_LEADS,
   GET_WFM_CLIENTS,
-  GET_CURRENT_JOB_STATE,
   SAVE_WFM_ITEMS,
   SAVE_WFM_STATS,
   RESET_LOCAL,
   SEARCH_CHANGE,
-  SET_ANALYSIS_MODE,
   SET_ANALYST,
-  SET_MODAL_ERROR,
   SET_STEPPER,
   UPDATE_STAFF,
-  EDIT_MODAL_DOC,
-  GET_WFM_CONTACT
 } from "../constants/action-types";
 import moment from "moment";
 import {
-  asbestosSamplesRef,
-  asbestosAnalysisLogRef,
   assetsRef,
   auth,
-  cocsRef,
   docsRef,
   helpRef,
   incidentsRef,
   logsRef,
   methodsRef,
   noticesRef,
-  noticeReadsRef,
   questionsRef,
   quizzesRef,
   stateRef,
@@ -70,13 +54,11 @@ import {
   updateRef,
   usersRef,
   vehiclesRef,
-  firestore
+  firestore,
 } from "../config/firebase";
 import { sendSlackMessage } from "./helpers";
-import { xmlToJson } from "../config/XmlToJson";
-// import assetData from "./assetData.json";
 
-export const resetLocal = () => dispatch => {
+export const resetLocal = () => (dispatch) => {
   dispatch({ type: RESET_LOCAL });
 };
 
@@ -88,17 +70,17 @@ export const getFirestoreCollection = ({
   update,
   orderBy,
   order,
-  subscribe
-}) => async dispatch => {
+  subscribe,
+}) => async (dispatch) => {
   if (update) {
     if (orderBy) {
       if (subscribe) {
-        pathRef.orderBy(orderBy, order).onSnapshot(querySnapshot => {
+        pathRef.orderBy(orderBy, order).onSnapshot((querySnapshot) => {
           sendSlackMessage(
             `${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`
           );
           var docs = [];
-          querySnapshot.forEach(doc => {
+          querySnapshot.forEach((doc) => {
             let ref = doc.data();
             ref.uid = doc.id;
             docs.push(ref);
@@ -107,19 +89,19 @@ export const getFirestoreCollection = ({
             type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
             payload: docs,
             statePath,
-            update: true
+            update: true,
           });
         });
       } else {
         pathRef
           .orderBy(orderBy, order)
           .get()
-          .then(querySnapshot => {
+          .then((querySnapshot) => {
             sendSlackMessage(
               `${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`
             );
             var docs = [];
-            querySnapshot.forEach(doc => {
+            querySnapshot.forEach((doc) => {
               let ref = doc.data();
               ref.uid = doc.id;
               docs.push(ref);
@@ -128,18 +110,18 @@ export const getFirestoreCollection = ({
               type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
               payload: docs,
               statePath,
-              update: true
+              update: true,
             });
           });
       }
     } else {
       if (subscribe) {
-        pathRef.onSnapshot(querySnapshot => {
+        pathRef.onSnapshot((querySnapshot) => {
           sendSlackMessage(
             `${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`
           );
           var docs = [];
-          querySnapshot.forEach(doc => {
+          querySnapshot.forEach((doc) => {
             let ref = doc.data();
             ref.uid = doc.id;
             docs.push(ref);
@@ -149,16 +131,16 @@ export const getFirestoreCollection = ({
             type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
             payload: docs,
             statePath,
-            update: true
+            update: true,
           });
         });
       } else {
-        pathRef.get().then(querySnapshot => {
+        pathRef.get().then((querySnapshot) => {
           sendSlackMessage(
             `${auth.currentUser.displayName} read getFirestoreCollection ${statePath} (${querySnapshot.size} documents)`
           );
           var docs = [];
-          querySnapshot.forEach(doc => {
+          querySnapshot.forEach((doc) => {
             let ref = doc.data();
             ref.uid = doc.id;
             docs.push(ref);
@@ -168,7 +150,7 @@ export const getFirestoreCollection = ({
             type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
             payload: docs,
             statePath,
-            update: true
+            update: true,
           });
         });
       }
@@ -177,7 +159,7 @@ export const getFirestoreCollection = ({
     stateRef
       .doc(statePath)
       .get()
-      .then(doc => {
+      .then((doc) => {
         sendSlackMessage(
           `${auth.currentUser.displayName} read getFirestoreCollection ${statePath} from state (1 document)`
         );
@@ -186,7 +168,7 @@ export const getFirestoreCollection = ({
           dispatch({
             type: actionType ? actionType : GET_FIRESTORE_COLLECTION,
             statePath,
-            payload: doc.data().payload
+            payload: doc.data().payload,
           });
         } else {
           console.log("State document doesn't exist");
@@ -196,9 +178,9 @@ export const getFirestoreCollection = ({
 };
 
 // Separate stream for just your information. So you don't re-read all staff for just changing your details.
-export const fetchMe = () => async dispatch => {
+export const fetchMe = () => async (dispatch) => {
   auth.currentUser &&
-    usersRef.doc(auth.currentUser.uid).onSnapshot(doc => {
+    usersRef.doc(auth.currentUser.uid).onSnapshot((doc) => {
       // //console.log("Read a doc (fetchMe)!");
       if (doc.exists) {
         let user = doc.data();
@@ -234,18 +216,18 @@ export const fetchMe = () => async dispatch => {
     });
 };
 
-export const fetchStaff = update => async dispatch => {
+export const fetchStaff = (update) => async (dispatch) => {
   if (update) {
     // //console.log("Running fetch staff to update");
     var users = {};
-    usersRef.get().then(querySnapshot => {
+    usersRef.get().then((querySnapshot) => {
       // //console.log(querySnapshot);
       sendSlackMessage(
         `${auth.currentUser.displayName} read fetchStaff (${querySnapshot.size} documents)`
       );
       let airAnalysts = [];
       let bulkAnalysts = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         // //console.log(doc.data());
         if (doc.data().key !== undefined) {
           // //console.log("Read a doc! " + doc.data().name);
@@ -265,30 +247,30 @@ export const fetchStaff = update => async dispatch => {
       dispatch({
         type: GET_BULK_ANALYSTS,
         payload: bulkAnalysts,
-        update: true
+        update: true,
       });
     });
   } else {
     // //console.log("Fetching staff from cache");
-    stateRef.doc("staff").onSnapshot(doc => {
+    stateRef.doc("staff").onSnapshot((doc) => {
       sendSlackMessage(
         `${auth.currentUser.displayName} read fetchStaff from state (1 document)`
       );
       if (doc.exists) {
         // .filter((m) => m.uid !== auth.currentUser.uid)
         let staffRead = {};
-        Object.values(doc.data()).forEach(s => {
+        Object.values(doc.data()).forEach((s) => {
           stateRef
             .doc("noticereads")
             .collection("users")
             .doc(s.uid)
             .get()
-            .then(d => {
+            .then((d) => {
               if (d.data()) staffRead[s.name] = d.data().payload.length;
               else staffRead[s.name] = 0;
             });
         });
-        console.log(staffRead);
+        // console.log(staffRead);
         dispatch({ type: GET_STAFF, payload: doc.data() });
       } else {
         // //console.log("Doc doesn't exist");
@@ -297,7 +279,7 @@ export const fetchStaff = update => async dispatch => {
     stateRef
       .doc("airAnalysts")
       .get()
-      .then(doc => {
+      .then((doc) => {
         sendSlackMessage(
           `${auth.currentUser.displayName} read fetchStaff air analysts from state (1 document)`
         );
@@ -308,7 +290,7 @@ export const fetchStaff = update => async dispatch => {
     stateRef
       .doc("bulkAnalysts")
       .get()
-      .then(doc => {
+      .then((doc) => {
         sendSlackMessage(
           `${auth.currentUser.displayName} read fetchStaff bulk analysts from state (1 document)`
         );
@@ -319,7 +301,7 @@ export const fetchStaff = update => async dispatch => {
   }
 };
 
-export const getUserAttrs = (userPath, editStaff) => async dispatch => {
+export const getUserAttrs = (userPath, editStaff) => async (dispatch) => {
   console.log("Calling get user attrs for " + userPath);
   let user = {};
   auth.currentUser &&
@@ -327,7 +309,7 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
       .doc(userPath)
       .collection("attr")
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         sendSlackMessage(
           `${auth.currentUser.displayName} read getUserAttrs for ${userPath} (${querySnapshot.size} documents)`
         );
@@ -340,10 +322,10 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
           nzqatraining: "None",
           firstaid: null,
           maskfit: "",
-          docimages: []
+          docimages: [],
         };
         if (querySnapshot.size > 0) {
-          querySnapshot.forEach(doc => {
+          querySnapshot.forEach((doc) => {
             // //console.log("Read a doc (Attr)!");
             let attr = doc.data();
             attr.uid = doc.id;
@@ -351,7 +333,7 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
             if (attr.fileUrl) {
               user.docimages.push({
                 type: attr.type,
-                url: attr.fileUrl
+                url: attr.fileUrl,
               });
             }
             if (attr.type === "NZQAUnitStandard" && attr.date) {
@@ -419,14 +401,14 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
             firstaid: user.firstaid,
             maskfit: user.maskfit,
             aanumber: user.aanumber,
-            docimages: user.docimages
+            docimages: user.docimages,
           });
           if (userPath === auth.currentUser.uid) {
             // //console.log("Updating user");
             // //console.log(user);
             dispatch({
               type: GET_ME,
-              payload: user
+              payload: user,
             });
           }
           // //console.log("Updating other staff");
@@ -434,51 +416,51 @@ export const getUserAttrs = (userPath, editStaff) => async dispatch => {
           dispatch({
             type: UPDATE_STAFF,
             userPath: userPath,
-            payload: user
+            payload: user,
           });
           if (editStaff) {
             dispatch({
               type: GET_EDIT_STAFF,
-              payload: user
+              payload: user,
             });
           }
         }
       });
 };
 
-export const getEditStaff = userPath => async dispatch => {
+export const getEditStaff = (userPath) => async (dispatch) => {
   console.log("Get edit staff");
   dispatch(getUserAttrs(userPath, true));
   auth.currentUser &&
-    usersRef.doc(userPath).onSnapshot(doc => {
+    usersRef.doc(userPath).onSnapshot((doc) => {
       sendSlackMessage(
         `${auth.currentUser.displayName} read getEditStaff for ${userPath} (1 document)`
       );
       console.log(doc.data());
       dispatch({
         type: GET_EDIT_STAFF,
-        payload: doc.data()
+        payload: doc.data(),
       });
     });
 };
 
-export const clearEditStaff = () => dispatch => {
+export const clearEditStaff = () => (dispatch) => {
   dispatch({
-    type: CLEAR_EDIT_STAFF
+    type: CLEAR_EDIT_STAFF,
   });
 };
 
-export const fetchDocuments = update => async dispatch => {
+export const fetchDocuments = (update) => async (dispatch) => {
   if (update) {
     docsRef
       .orderBy("title")
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         sendSlackMessage(
           `${auth.currentUser.displayName} read fetchDocuments (${querySnapshot.size} documents)`
         );
         var docs = [];
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
           let ref = doc.data();
           ref.uid = doc.id;
           docs.push(ref);
@@ -486,14 +468,14 @@ export const fetchDocuments = update => async dispatch => {
         dispatch({
           type: GET_DOCUMENTS,
           payload: docs,
-          update: true
+          update: true,
         });
       });
   } else {
     stateRef
       .doc("documents")
       .get()
-      .then(doc => {
+      .then((doc) => {
         sendSlackMessage(
           `${auth.currentUser.displayName} read fetchDocuments from state (1 document)`
         );
@@ -506,14 +488,14 @@ export const fetchDocuments = update => async dispatch => {
   }
 };
 
-export const fetchMethods = update => async dispatch => {
+export const fetchMethods = (update) => async (dispatch) => {
   if (update) {
     methodsRef
       .orderBy("title")
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         var methods = [];
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
           let method = doc.data();
           method.uid = doc.id;
           methods.push(method);
@@ -521,14 +503,14 @@ export const fetchMethods = update => async dispatch => {
         dispatch({
           type: GET_METHODS,
           payload: methods,
-          update: true
+          update: true,
         });
       });
   } else {
     stateRef
       .doc("methods")
       .get()
-      .then(doc => {
+      .then((doc) => {
         if (doc.exists) {
           dispatch({ type: GET_METHODS, payload: doc.data().payload });
         } else {
@@ -538,19 +520,19 @@ export const fetchMethods = update => async dispatch => {
   }
 };
 
-export const fetchNotices = update => async dispatch => {
+export const fetchNotices = (update) => async (dispatch) => {
   if (update) {
     noticesRef
       .orderBy("date", "desc")
       // .limit(200)
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         console.log(querySnapshot);
         sendSlackMessage(
           `${auth.currentUser.displayName} read fetchNotices (${querySnapshot.size} documents)`
         );
         var notices = [];
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
           let notice = doc.data();
           notice.uid = doc.id;
           notices.push(notice);
@@ -558,11 +540,11 @@ export const fetchNotices = update => async dispatch => {
         dispatch({
           type: GET_NOTICES,
           payload: notices,
-          update: true
+          update: true,
         });
       });
   } else {
-    stateRef.doc("notices").onSnapshot(doc => {
+    stateRef.doc("notices").onSnapshot((doc) => {
       sendSlackMessage(
         `${auth.currentUser.displayName} read fetchNotices from state (1 document)`
       );
@@ -576,20 +558,17 @@ export const fetchNotices = update => async dispatch => {
 };
 
 export const removeNoticeReads = async (notice, reads) => {
-  let noticeArray = [];
-  // let batch = firestore.batch();
-
   stateRef
     .doc("noticereads")
     .collection("notices")
     .doc(notice.uid)
     .get()
-    .then(doc => {
+    .then((doc) => {
       sendSlackMessage(
         `${auth.currentUser.displayName} ran removeNoticeReads (notices) (1 document)`
       );
       if (doc.exists) {
-        doc.data().payload.forEach(user => {
+        doc.data().payload.forEach((user) => {
           let userArray = [];
           // console.log(user);
           stateRef
@@ -597,14 +576,14 @@ export const removeNoticeReads = async (notice, reads) => {
             .collection("users")
             .doc(user)
             .get()
-            .then(doc => {
+            .then((doc) => {
               sendSlackMessage(
                 `${auth.currentUser.displayName} ran removeNoticeReads (users) (1 document)`
               );
               if (doc.exists && doc.data() && doc.data().payload)
                 userArray = doc
                   .data()
-                  .payload.filter(uid => uid !== notice.uid);
+                  .payload.filter((uid) => uid !== notice.uid);
               // console.log(userArray);
               stateRef
                 .doc("noticereads")
@@ -640,32 +619,25 @@ export const readNotice = (notice, me, reads) => {
     .collection("notices")
     .doc(notice.uid)
     .get()
-    .then(doc => {
+    .then((doc) => {
       sendSlackMessage(
         `${auth.currentUser.displayName} ran readNotice (1 document)`
       );
       if (doc.exists) noticeArray = [...doc.data().payload];
       if (userArray.includes(notice.uid)) {
         // Remove read notice
-        userArray = userArray.filter(uid => uid !== notice.uid);
-        noticeArray = noticeArray.filter(uid => uid !== me.uid);
+        userArray = userArray.filter((uid) => uid !== notice.uid);
+        noticeArray = noticeArray.filter((uid) => uid !== me.uid);
       } else {
         // Add to read notices
         userArray.push(notice.uid);
         noticeArray.push(me.uid);
       }
+      batch.set(stateRef.doc("noticereads").collection("users").doc(me.uid), {
+        payload: userArray,
+      });
       batch.set(
-        stateRef
-          .doc("noticereads")
-          .collection("users")
-          .doc(me.uid),
-        { payload: userArray }
-      );
-      batch.set(
-        stateRef
-          .doc("noticereads")
-          .collection("notices")
-          .doc(notice.uid),
+        stateRef.doc("noticereads").collection("notices").doc(notice.uid),
         { payload: noticeArray }
       );
       // stateRef.doc("noticereads").collection("users").doc(me.uid).set({ payload: userArray });
@@ -675,31 +647,31 @@ export const readNotice = (notice, me, reads) => {
     });
 };
 
-export const fetchNoticeReads = update => async dispatch => {
+export const fetchNoticeReads = (update) => async (dispatch) => {
   stateRef
     .doc("noticereads")
     .collection("users")
     .doc(auth.currentUser.uid)
-    .onSnapshot(doc => {
+    .onSnapshot((doc) => {
       sendSlackMessage(
         `${auth.currentUser.displayName} ran fetchNoticeReads (1 document)`
       );
       dispatch({
         type: GET_NOTICE_READS,
-        payload: doc.exists ? doc.data().payload : []
+        payload: doc.exists ? doc.data().payload : [],
       });
     });
 };
 
-export const fetchIncidents = update => async dispatch => {
+export const fetchIncidents = (update) => async (dispatch) => {
   if (update) {
     incidentsRef
       // .orderBy("date", "desc")
       // .limit(100)
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         var incidents = [];
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
           let incident = doc.data();
           incident.uid = doc.id;
           incidents.push(incident);
@@ -707,11 +679,11 @@ export const fetchIncidents = update => async dispatch => {
         dispatch({
           type: GET_INCIDENTS,
           payload: incidents,
-          update: true
+          update: true,
         });
       });
   } else {
-    stateRef.doc("incidents").onSnapshot(doc => {
+    stateRef.doc("incidents").onSnapshot((doc) => {
       if (doc.exists) {
         dispatch({ type: GET_INCIDENTS, payload: doc.data().payload });
       } else {
@@ -721,15 +693,15 @@ export const fetchIncidents = update => async dispatch => {
   }
 };
 
-export const fetchQuestions = update => async dispatch => {
+export const fetchQuestions = (update) => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchQuestions`);
   if (update) {
     questionsRef
       .orderBy("question")
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         var questions = [];
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
           let question = doc.data();
           question.uid = doc.id;
           questions.push(question);
@@ -737,11 +709,11 @@ export const fetchQuestions = update => async dispatch => {
         dispatch({
           type: GET_QUESTIONS,
           payload: questions,
-          update: true
+          update: true,
         });
       });
   } else {
-    stateRef.doc("questions").onSnapshot(doc => {
+    stateRef.doc("questions").onSnapshot((doc) => {
       if (doc.exists) {
         dispatch({ type: GET_QUESTIONS, payload: doc.data().payload });
       } else {
@@ -751,15 +723,15 @@ export const fetchQuestions = update => async dispatch => {
   }
 };
 
-export const fetchQuizzes = update => async dispatch => {
+export const fetchQuizzes = (update) => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchQuizzes`);
   if (update) {
     quizzesRef
       .orderBy("title")
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         var quizzes = [];
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
           let quiz = doc.data();
           quiz.uid = doc.id;
           quizzes.push(quiz);
@@ -767,11 +739,11 @@ export const fetchQuizzes = update => async dispatch => {
         dispatch({
           type: GET_QUIZZES,
           payload: quizzes,
-          update: true
+          update: true,
         });
       });
   } else {
-    stateRef.doc("quizzes").onSnapshot(doc => {
+    stateRef.doc("quizzes").onSnapshot((doc) => {
       if (doc.exists) {
         dispatch({ type: GET_QUIZZES, payload: doc.data().payload });
       } else {
@@ -781,15 +753,15 @@ export const fetchQuizzes = update => async dispatch => {
   }
 };
 
-export const fetchTools = update => async dispatch => {
+export const fetchTools = (update) => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchTools`);
   if (update) {
     toolsRef
       .orderBy("title")
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         var tools = [];
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
           let tool = doc.data();
           tool.uid = doc.id;
           tools.push(tool);
@@ -797,11 +769,11 @@ export const fetchTools = update => async dispatch => {
         dispatch({
           type: GET_TOOLS,
           payload: tools,
-          update: true
+          update: true,
         });
       });
   } else {
-    stateRef.doc("tools").onSnapshot(doc => {
+    stateRef.doc("tools").onSnapshot((doc) => {
       if (doc.exists) {
         dispatch({ type: GET_TOOLS, payload: doc.data().payload });
       } else {
@@ -811,15 +783,15 @@ export const fetchTools = update => async dispatch => {
   }
 };
 
-export const fetchTrainingPaths = update => async dispatch => {
+export const fetchTrainingPaths = (update) => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchTrainingPaths`);
   if (update) {
     trainingPathsRef
       .orderBy("title")
       .get()
-      .then(querySnapshot => {
+      .then((querySnapshot) => {
         var trainings = [];
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
           let training = doc.data();
           training.uid = doc.id;
           trainings.push(training);
@@ -827,11 +799,11 @@ export const fetchTrainingPaths = update => async dispatch => {
         dispatch({
           type: GET_TRAININGS,
           payload: trainings,
-          update: true
+          update: true,
         });
       });
   } else {
-    stateRef.doc("trainings").onSnapshot(doc => {
+    stateRef.doc("trainings").onSnapshot((doc) => {
       if (doc.exists) {
         dispatch({ type: GET_TRAININGS, payload: doc.data().payload });
       } else {
@@ -841,12 +813,12 @@ export const fetchTrainingPaths = update => async dispatch => {
   }
 };
 
-export const fetchVehicles = update => async dispatch => {
+export const fetchVehicles = (update) => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchVehicles`);
   if (update) {
-    vehiclesRef.get().then(querySnapshot => {
+    vehiclesRef.get().then((querySnapshot) => {
       var vehicles = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         var vehicle = doc.data();
         vehicle.number = doc.id;
         vehicles.push(vehicle);
@@ -854,11 +826,11 @@ export const fetchVehicles = update => async dispatch => {
       dispatch({
         type: GET_VEHICLES,
         payload: vehicles,
-        update: true
+        update: true,
       });
     });
   } else {
-    stateRef.doc("vehicles").onSnapshot(doc => {
+    stateRef.doc("vehicles").onSnapshot((doc) => {
       if (doc.exists) {
         dispatch({ type: GET_VEHICLES, payload: doc.data().payload });
       } else {
@@ -868,25 +840,25 @@ export const fetchVehicles = update => async dispatch => {
   }
 };
 
-export const fetchAssets = update => async dispatch => {
+export const fetchAssets = (update) => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchAssets`);
   if (update) {
-    assetsRef.get().then(querySnapshot => {
+    assetsRef.get().then((querySnapshot) => {
       var assets = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         assets.push(doc.data());
       });
       dispatch({
         type: GET_ASSETS,
         payload: assets,
-        update: true
+        update: true,
       });
     });
   } else {
-    stateRef.doc("assets").onSnapshot(doc => {
+    stateRef.doc("assets").onSnapshot((doc) => {
       if (doc.exists) {
         let assets = [];
-        Object.keys(doc.data()).forEach(bucket => {
+        Object.keys(doc.data()).forEach((bucket) => {
           assets.push(...doc.data()[bucket]);
         });
         dispatch({ type: GET_ASSETS, payload: assets });
@@ -897,23 +869,23 @@ export const fetchAssets = update => async dispatch => {
   }
 };
 
-export const fetchReadingLog = () => async dispatch => {
+export const fetchReadingLog = () => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchReadingLogs`);
   usersRef
     .doc(auth.currentUser.uid)
     .collection("readinglog")
     .orderBy("date", "desc")
     .get()
-    .then(querySnapshot => {
+    .then((querySnapshot) => {
       var logs = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         let log = doc.data();
         //console.log(log);
         log.uid = doc.id;
         docsRef
           .doc(doc.id)
           .get()
-          .then(doc2 => {
+          .then((doc2) => {
             log.title = doc2.data().title;
             log.updatedate = doc2.data().updatedate
               ? doc2.data().updatedate
@@ -922,35 +894,35 @@ export const fetchReadingLog = () => async dispatch => {
             //console.log(log);
             dispatch({
               type: GET_READINGLOG,
-              payload: logs
+              payload: logs,
             });
           });
       });
     });
 };
 
-export const fetchQuizLog = () => async dispatch => {
+export const fetchQuizLog = () => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchQuizLog`);
   usersRef
     .doc(auth.currentUser.uid)
     .collection("quizlog")
     .orderBy("latestSubmit", "desc")
     .get()
-    .then(querySnapshot => {
+    .then((querySnapshot) => {
       var logs = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         let log = doc.data();
         log.uid = doc.id;
         quizzesRef
           .doc(doc.id)
           .get()
-          .then(doc2 => {
+          .then((doc2) => {
             if (doc2.exists) {
               log.title = doc2.data().title;
               logs.push(log);
               dispatch({
                 type: GET_QUIZLOG,
-                payload: logs
+                payload: logs,
               });
             } else {
               usersRef
@@ -964,22 +936,22 @@ export const fetchQuizLog = () => async dispatch => {
     });
 };
 
-export const fetchMethodLog = () => async dispatch => {
+export const fetchMethodLog = () => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchMethodLog`);
   usersRef
     .doc(auth.currentUser.uid)
     .collection("methodlog")
     .orderBy("methodCompleted", "desc")
     .get()
-    .then(querySnapshot => {
+    .then((querySnapshot) => {
       var logs = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         let log = doc.data();
         log.uid = doc.id;
         methodsRef
           .doc(doc.id)
           .get()
-          .then(doc2 => {
+          .then((doc2) => {
             if (doc2.exists) {
               log.title = doc2.data().title;
               log.subtitle = doc2.data().subtitle;
@@ -997,106 +969,102 @@ export const fetchMethodLog = () => async dispatch => {
       });
       dispatch({
         type: GET_METHODLOG,
-        payload: logs
+        payload: logs,
       });
     });
 };
 
-export const fetchHelp = () => async dispatch => {
+export const fetchHelp = () => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchHelp`);
   helpRef
     .orderBy("date", "desc")
     .get()
-    .then(querySnapshot => {
+    .then((querySnapshot) => {
       var helps = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         helps.push(doc.data());
       });
       dispatch({
         type: GET_HELP,
-        payload: helps
+        payload: helps,
       });
     });
 };
 
-export const fetchUpdates = () => async dispatch => {
+export const fetchUpdates = () => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran fetchUpdates`);
   updateRef
     .orderBy("date", "desc")
     .get()
-    .then(querySnapshot => {
+    .then((querySnapshot) => {
       var updates = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         updates.push(doc.data());
       });
       dispatch({
         type: GET_UPDATES,
-        payload: updates
+        payload: updates,
       });
     });
 };
 
-export const getUser = userRef => async dispatch => {
+export const getUser = (userRef) => async (dispatch) => {
   sendSlackMessage(`${auth.currentUser.displayName} ran getUser`);
   usersRef
     .doc(userRef)
     .get()
-    .then(doc => {
+    .then((doc) => {
       dispatch({
         type: GET_USER,
-        payload: doc.data()
+        payload: doc.data(),
       });
     });
 };
 
-export const onSearchChange = value => dispatch => {
+export const onSearchChange = (value) => (dispatch) => {
   dispatch({
     type: SEARCH_CHANGE,
-    payload: value
+    payload: value,
   });
 };
 
-export const onCatChange = value => dispatch => {
+export const onCatChange = (value) => (dispatch) => {
   dispatch({
     type: CAT_CHANGE,
-    payload: value
+    payload: value,
   });
 };
 
-export const setStepper = (steppers, uid, step) => dispatch => {
+export const setStepper = (steppers, uid, step) => (dispatch) => {
   steppers[uid] = step;
   dispatch({
     type: SET_STEPPER,
-    payload: steppers
+    payload: steppers,
   });
 };
 
-export const copyStaff = (oldId, newId) => dispatch => {
+export const copyStaff = (oldId, newId) => (dispatch) => {
   usersRef
     .doc(oldId)
     .get()
-    .then(doc => {
+    .then((doc) => {
       usersRef.doc(newId).set(doc.data());
     });
   usersRef
     .doc(oldId)
     .collection("attr")
     .get()
-    .then(querySnapshot => {
-      querySnapshot.forEach(doc => {
-        usersRef
-          .doc(newId)
-          .collection("attr")
-          .doc(doc.id)
-          .set(doc.data());
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        usersRef.doc(newId).collection("attr").doc(doc.id).set(doc.data());
       });
     });
   usersRef
     .doc(oldId)
     .collection("readinglog")
     .get()
-    .then(querySnapshot => {
-      querySnapshot.forEach(doc => {
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
         usersRef
           .doc(newId)
           .collection("readinglog")
@@ -1108,26 +1076,18 @@ export const copyStaff = (oldId, newId) => dispatch => {
     .doc(oldId)
     .collection("quizlog")
     .get()
-    .then(querySnapshot => {
-      querySnapshot.forEach(doc => {
-        usersRef
-          .doc(newId)
-          .collection("quizlog")
-          .doc(doc.id)
-          .set(doc.data());
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        usersRef.doc(newId).collection("quizlog").doc(doc.id).set(doc.data());
       });
     });
   usersRef
     .doc(oldId)
     .collection("myjobs")
     .get()
-    .then(querySnapshot => {
-      querySnapshot.forEach(doc => {
-        usersRef
-          .doc(newId)
-          .collection("myjobs")
-          .doc(doc.id)
-          .set(doc.data());
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        usersRef.doc(newId).collection("myjobs").doc(doc.id).set(doc.data());
       });
     });
 };
@@ -1141,55 +1101,48 @@ export const addLog = (collection, log, user, batch) => {
     ...log,
     date: new Date(),
     user: user.uid,
-    userName: user.name
+    userName: user.name,
   };
 
   // //console.log('Adding Log');
   // //console.log(log);
   if (batch) batch.set(logsRef.collection(collection).doc(uid), log);
-  else
-    logsRef
-      .collection(collection)
-      .doc(uid)
-      .set(log);
+  else logsRef.collection(collection).doc(uid).set(log);
 };
 
-export const fetchLogs = (
-  collection,
-  filter,
-  filterValue,
-  limit
-) => async dispatch => {
+export const fetchLogs = (collection, filter, filterValue, limit) => async (
+  dispatch
+) => {
   logsRef
     .collection(collection)
     .where(filter, "==", filterValue)
     .orderBy("date", "desc")
     .limit(limit)
     .get()
-    .then(querySnapshot => {
+    .then((querySnapshot) => {
       sendSlackMessage(
         `${auth.currentUser.displayName} ran fetchLogs (${querySnapshot.size} documents)`
       );
       var logs = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         let log = doc.data();
         log.uid = doc.id;
         logs.push(log);
       });
       dispatch({
         type: GET_LOGS,
-        payload: logs
+        payload: logs,
       });
     });
 };
 
-export const clearLog = () => dispatch => {
+export const clearLog = () => (dispatch) => {
   dispatch({
-    type: CLEAR_LOG
+    type: CLEAR_LOG,
   });
 };
 
-export const getEmailSignature = user => {
+export const getEmailSignature = (user) => {
   let officePhone = "+64 3 384 8966";
   if (user.office === "Auckland" || user.office === "Hamilton")
     officePhone = "+64 9 275 1261";
@@ -1201,7 +1154,7 @@ export const getEmailSignature = user => {
     Wellington: `5/408 Hutt Road, Alicetown,<br /><b>Lower Hutt</b> 5010`,
     Hamilton: `37 Lake Road, Frankton<br /><b>Hamilton</b> 3204`,
     ChristchurchPostal: `PO Box 28147,<br /> Beckenham,<br /><b>Christchurch</b> 8242`,
-    ChristchurchPhysical: `Unit 24,<br />105 Bamford Street,<br />Woolston, <b>Christchurch</b>`
+    ChristchurchPhysical: `Unit 24,<br />105 Bamford Street,<br />Woolston, <b>Christchurch</b>`,
   };
   let address = "";
   if (user.office === "Christchurch")
@@ -1275,9 +1228,11 @@ export const getEmailSignature = user => {
             </span><br />
           </td>
           <td colspan=2 style='vertical-align: bottom; white-space: nowrap'>
-            ${user.workphone &&
+            ${
+              user.workphone &&
               `<span style='color: #FF2D00; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>M</span>
-            <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>${user.workphone}</span><br />`}
+            <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>${user.workphone}</span><br />`
+            }
             <span style='color: #FF2D00; font-family: Calibri, Arial, Sans Serif; font-weight: bold; font-size: small'>W</span>
             <span style='color: #000; font-family: Calibri, Arial, Sans Serif; font-size: small'>
               <a href="https://www.k2.co.nz" onMouseOver="this.style.color='#FF2D00'" onMouseOut="this.style.color='#D32500'" style="color:#FFA28E; ">www.k2.co.nz</a>

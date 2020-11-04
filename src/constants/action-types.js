@@ -35,6 +35,8 @@ export const RESET_LOCAL = "RESET_LOCAL";
 export const SEARCH_CHANGE = "SEARCH_CHANGE";
 export const SET_STEPPER = "SET_STEPPER";
 export const UPDATE_STAFF = "UPDATE_STAFF";
+export const GRAB_JOB_DATA = "GRAB_JOB_DATA";
+export const GRAB_LAB_DATA = "GRAB_LAB_DATA";
 
 // Modal
 export const EDIT_MODAL = "EDIT_MODAL";
