@@ -28,6 +28,8 @@ import {
   RESET_LOCAL,
   UPDATE_STAFF,
   GET_VEHICLES,
+  GRAB_JOB_DATA,
+  GRAB_LAB_DATA,
   AUTHORISE_WFM,
 } from "../constants/action-types";
 
@@ -45,6 +47,8 @@ const localInit = {
   helps: [],
   logs: [],
   me: {},
+  jobData: [],
+  labData: [],
   methodLog: [],
   methods: [],
   notices: [],
@@ -62,7 +66,7 @@ const localInit = {
   userRef: null,
   userRefName: null,
   vehicles: [],
-  wfmToken: null,
+  wfmAccessToken: null,
   wfmRefreshToken: null,
 };
 
@@ -75,6 +79,16 @@ export default function localReducer(state = localInit, action) {
       return {
         ...state,
         [action.statePath]: action.payload,
+      };
+    case GRAB_JOB_DATA:
+      return {
+        ...state,
+        jobData: action.payload,
+      };
+    case GRAB_LAB_DATA:
+      return {
+        ...state,
+        labData: action.payload,
       };
     case GET_DOCUMENTS:
       if (action.update)
@@ -96,8 +110,7 @@ export default function localReducer(state = localInit, action) {
     case AUTHORISE_WFM:
       return {
         ...state,
-        wfmToken: action.payload.access_token,
-        wfmRefreshToken: action.payload.refresh_token,
+        ...action.payload,
       };
     case GET_ASSETS:
       if (action.update) {

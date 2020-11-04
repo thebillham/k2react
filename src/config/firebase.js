@@ -9,13 +9,13 @@ const FirebaseConfig = {
   databaseURL: process.env.REACT_APP_GOOGLE_DATABASE_URL,
   projectId: process.env.REACT_APP_GOOGLE_PROJECT_ID,
   storageBucket: process.env.REACT_APP_GOOGLE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_GOOGLE_SENDER_ID
+  messagingSenderId: process.env.REACT_APP_GOOGLE_SENDER_ID,
 };
 
 const app = firebase.initializeApp(FirebaseConfig);
 var p = new firebase.auth.GoogleAuthProvider();
 p.setCustomParameters({
-  prompt: "select_account"
+  prompt: "select_account",
 });
 p.addScope("https://www.googleapis.com/auth/calendar");
 
@@ -26,12 +26,31 @@ const auth = firebase.auth();
 const storage = firebase.storage();
 
 const appSettingsRef = firestore.collection("appsettings");
-const asbestosSampleIssueLogRef = firestore.collection("lab").doc("asbestos").collection("sampleIssueLog");
-const asbestosCheckLogRef = firestore.collection("lab").doc("asbestos").collection("checkLog");
-const asbestosMicroscopeCalibrationsRef = firestore.collection("lab").doc("asbestos").collection("microscopeCalibrations");
-const assetsRef = firestore.collection("inventory").doc("entities").collection("assets");
-const modelsRef = firestore.collection("inventory").doc("categories").collection("models");
-const manufacturersRef = firestore.collection("inventory").doc("categories").collection("manufacturers");
+const asbestosSampleIssueLogRef = firestore
+  .collection("lab")
+  .doc("asbestos")
+  .collection("sampleIssueLog");
+const asbestosCheckLogRef = firestore
+  .collection("lab")
+  .doc("asbestos")
+  .collection("checkLog");
+const asbestosMicroscopeCalibrationsRef = firestore
+  .collection("lab")
+  .doc("asbestos")
+  .collection("microscopeCalibrations");
+const assetsRef = firestore
+  .collection("inventory")
+  .doc("entities")
+  .collection("assets");
+const authRef = firestore.collection("appsettings").doc("auth");
+const modelsRef = firestore
+  .collection("inventory")
+  .doc("categories")
+  .collection("models");
+const manufacturersRef = firestore
+  .collection("inventory")
+  .doc("categories")
+  .collection("manufacturers");
 const constRef = firestore.collection("appsettings").doc("constants");
 const docsRef = firestore.collection("documents");
 const geocodesRef = firestore.collection("state").doc("geocodes");
@@ -48,16 +67,30 @@ const sitesRef = firestore.collection("sites");
 const stateRef = firestore.collection("state");
 const toolsRef = firestore.collection("tools");
 const trainingPathsRef = firestore.collection("trainingpaths");
-const templateAcmRef = firestore.collection("appsettings").doc("templates").collection("acm");
-const templateBmRef = firestore.collection("appsettings").doc("templates").collection("buildingMaterials");
+const templateAcmRef = firestore
+  .collection("appsettings")
+  .doc("templates")
+  .collection("acm");
+const templateBmRef = firestore
+  .collection("appsettings")
+  .doc("templates")
+  .collection("buildingMaterials");
 const updateRef = firestore.collection("updates");
 const usersRef = firestore.collection("users");
 const vehiclesRef = firestore.collection("vehicles");
 
-
-const asbestosSamplesRef = firestore.collection("lab").doc("asbestos").collection("samples");
-const asbestosAnalysisLogRef = firestore.collection("lab").doc("asbestos").collection("analysisLog");
-const asbestosSampleLogRef = firestore.collection("lab").doc("asbestos").collection("sampleLog");
+const asbestosSamplesRef = firestore
+  .collection("lab")
+  .doc("asbestos")
+  .collection("samples");
+const asbestosAnalysisLogRef = firestore
+  .collection("lab")
+  .doc("asbestos")
+  .collection("analysisLog");
+const asbestosSampleLogRef = firestore
+  .collection("lab")
+  .doc("asbestos")
+  .collection("sampleLog");
 const logsRef = firestore.collection("logs").doc("logs");
 const cocsRef = firestore.collection("lab").doc("asbestos").collection("cocs");
 
@@ -78,6 +111,7 @@ export {
   asbestosCheckLogRef,
   asbestosMicroscopeCalibrationsRef,
   assetsRef,
+  authRef,
   modelsRef,
   manufacturersRef,
   cocsRef,
@@ -101,6 +135,6 @@ export {
   trainingPathsRef,
   updateRef,
   usersRef,
-  vehiclesRef
+  vehiclesRef,
 };
 export default firebase;

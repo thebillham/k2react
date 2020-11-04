@@ -6,37 +6,28 @@ import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import moment from "moment";
 // import store from '../../store';
-import { TEMPLATE_ACM } from "../../../constants/modal-types";
-import { sitesRef, storage, templateAcmRef } from "../../../config/firebase";
+import { sitesRef, storage } from "../../../config/firebase";
 import "../../../config/tags.css";
 
-import Button from "@material-ui/core/Button";
-import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 
-import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "react-select";
 import IconButton from "@material-ui/core/IconButton";
 import Checkbox from "@material-ui/core/Checkbox";
 import Tooltip from "@material-ui/core/Tooltip";
-// import Geosuggest from 'react-geosuggest';
-import ImageUploader from "react-images-upload";
-import ImageTools from "../../../config/ImageTools";
 import SuggestionField from "../../../widgets/SuggestionField";
 
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
 import UploadIcon from "@material-ui/icons/CloudUpload";
-import Go from "@material-ui/icons/ArrowForwardIos";
 import CheckWriterIcon from "@material-ui/icons/Done";
 import CheckCheckerIcon from "@material-ui/icons/DoneAll";
 import CheckKTPIcon from "@material-ui/icons/VerifiedUser";
@@ -47,25 +38,25 @@ import {
   handleModalSubmit,
   resetModal,
   onUploadFile,
-  setModalError
+  setModalError,
 } from "../../../actions/modal";
-import { fetchSites, getDetailedWFMJob } from "../../../actions/jobs";
+import { fetchSites } from "../../../actions/jobs";
 import {
   getSampleColors,
   updateResultMap,
-  writeDescription
+  writeDescription,
 } from "../../../actions/asbestosLab";
 import { getUserAttrs } from "../../../actions/local";
 import {
   getMaterialRisk,
   getPriorityRisk,
-  getTotalRisk
+  getTotalRisk,
 } from "../../../actions/asbestosReportHelpers";
 import {
   sendSlackMessage,
   numericAndLessThanOnly,
   dateOf,
-  quillModules
+  quillModules,
 } from "../../../actions/helpers";
 import { AsbButton, ScoreButton } from "../../../widgets/FormWidgets";
 import _ from "lodash";
@@ -73,7 +64,7 @@ import classNames from "classnames";
 
 import "../../../config/geosuggest.css";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
@@ -112,26 +103,25 @@ const mapStateToProps = state => {
 
     // Maintenance
     asbestosPriMaintTypeScores: state.const.asbestosPriMaintTypeScores,
-    asbestosPriMaintFreqScores: state.const.asbestosPriMaintFreqScores
+    asbestosPriMaintFreqScores: state.const.asbestosPriMaintFreqScores,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    fetchSites: update => dispatch(fetchSites(update)),
+    fetchSites: (update) => dispatch(fetchSites(update)),
     hideModal: () => dispatch(hideModal()),
-    setModalError: e => dispatch(setModalError(e)),
+    setModalError: (e) => dispatch(setModalError(e)),
     resetModal: () => dispatch(resetModal()),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
     onUploadFile: (file, pathRef, prefix, imageQuality) =>
       dispatch(onUploadFile(file, pathRef, prefix, imageQuality)),
     handleModalChange: _.debounce(
-      target => dispatch(handleModalChange(target)),
+      (target) => dispatch(handleModalChange(target)),
       300
     ),
-    handleSelectChange: target => dispatch(handleModalChange(target)),
+    handleSelectChange: (target) => dispatch(handleModalChange(target)),
     handleModalSubmit: (doc, pathRef) =>
-      dispatch(handleModalSubmit(doc, pathRef))
+      dispatch(handleModalSubmit(doc, pathRef)),
   };
 };
 
@@ -163,7 +153,7 @@ const initState = {
   asbestosType: {
     ch: true,
     am: true,
-    cr: true
+    cr: true,
   },
   asbestosContent: "",
 
@@ -204,7 +194,7 @@ const initState = {
   room: { label: "", uid: "" },
   templateName: "",
   uid: null,
-  sampleType: "bulk"
+  sampleType: "bulk",
 };
 
 class AcmCard extends React.Component {
@@ -215,9 +205,9 @@ class AcmCard extends React.Component {
     this.setState({ acmImageUrl: null, acmImageRef: null });
   };
 
-  handleAsbestosType = res => {
+  handleAsbestosType = (res) => {
     this.setState({
-      asbestosType: updateResultMap(res, this.state.asbestosType)
+      asbestosType: updateResultMap(res, this.state.asbestosType),
     });
   };
 
@@ -255,13 +245,9 @@ class AcmCard extends React.Component {
     }
   };
 
-  saveAcm = item => {
+  saveAcm = (item) => {
     console.log("saving");
-    sitesRef
-      .doc(this.props.site)
-      .collection("acm")
-      .doc(item.uid)
-      .update(item);
+    sitesRef.doc(this.props.site).collection("acm").doc(item.uid).update(item);
   };
 
   render() {
@@ -274,9 +260,9 @@ class AcmCard extends React.Component {
     let samples = {};
     this.props.siteCocs &&
       this.props.siteCocs[this.props.site] &&
-      Object.keys(this.props.siteCocs[this.props.site]).forEach(k => {
+      Object.keys(this.props.siteCocs[this.props.site]).forEach((k) => {
         if (this.props.samples && this.props.samples[k])
-          Object.values(this.props.samples[k]).forEach(m => {
+          Object.values(this.props.samples[k]).forEach((m) => {
             samples[m.uid] = m;
           });
       });
@@ -355,19 +341,19 @@ class AcmCard extends React.Component {
                       value: this.state.sample,
                       label: `${this.state.sample.jobNumber}-${
                         this.state.sample.sampleNumber
-                      }: ${writeDescription(this.state.sample)}`
+                      }: ${writeDescription(this.state.sample)}`,
                     }
                   : { value: "", label: "" }
               }
               options={Object.values(samples)
-                .filter(e => e.sampleType === "air")
-                .map(e => ({
+                .filter((e) => e.sampleType === "air")
+                .map((e) => ({
                   value: e || null,
                   label: e
                     ? `${e.jobNumber}-${e.sampleNumber}: ${writeDescription(e)}`
-                    : null
+                    : null,
                 }))}
-              onChange={e => {
+              onChange={(e) => {
                 this.setState({ sample: e ? e.value : null });
               }}
             />
@@ -440,7 +426,7 @@ class AcmCard extends React.Component {
               label="Item Description"
               controlled
               value={this.state.description ? this.state.description : ""}
-              onModify={value => this.setState({ description: value })}
+              onModify={(value) => this.setState({ description: value })}
             />
             <Tooltip title="Write item before material (e.g. pipework lagging), otherwise material will be written first (e.g. cement sheet soffits)">
               <FormControlLabel
@@ -448,7 +434,7 @@ class AcmCard extends React.Component {
                 control={
                   <Switch
                     checked={this.state.writeItemFirst || false}
-                    onClick={e => {
+                    onClick={(e) => {
                       this.setState({ writeItemFirst: e.target.checked });
                     }}
                     value="writeItemFirst"
@@ -464,7 +450,7 @@ class AcmCard extends React.Component {
                 control={
                   <Switch
                     checked={this.state.singularItem || false}
-                    onClick={e => {
+                    onClick={(e) => {
                       this.setState({ singularItem: e.target.checked });
                     }}
                     value="singularItem"
@@ -480,7 +466,7 @@ class AcmCard extends React.Component {
                 control={
                   <Switch
                     checked={this.state.inaccessibleItem || false}
-                    onClick={e => {
+                    onClick={(e) => {
                       this.setState({ inaccessibleItem: e.target.checked });
                     }}
                     value="inaccessibleItem"
@@ -495,7 +481,7 @@ class AcmCard extends React.Component {
                 control={
                   <Switch
                     checked={this.state.unknownItem || false}
-                    onClick={e => {
+                    onClick={(e) => {
                       this.setState({ unknownItem: e.target.checked });
                     }}
                     value="unknownItem"
@@ -514,7 +500,7 @@ class AcmCard extends React.Component {
                   label="Material"
                   controlled
                   value={this.state.material ? this.state.material : ""}
-                  onModify={value => {
+                  onModify={(value) => {
                     let category = "",
                       asbestosType = this.state.asbestosType
                         ? this.state.asbestosType
@@ -524,14 +510,14 @@ class AcmCard extends React.Component {
                         : "",
                       materialObj = Object.values(
                         this.props.materialSuggestions
-                      ).filter(e => e.label === value);
+                      ).filter((e) => e.label === value);
                     if (materialObj.length > 0) {
                       category = materialObj[0].category;
                       if (materialObj[0].asbestosType)
                         asbestosType = {
                           ch: materialObj[0].asbestosType.includes("ch"),
                           am: materialObj[0].asbestosType.includes("am"),
-                          cr: materialObj[0].asbestosType.includes("cr")
+                          cr: materialObj[0].asbestosType.includes("cr"),
                         };
                       if (materialObj[0].asbestosContent)
                         asbestosContent = parseInt(
@@ -542,7 +528,7 @@ class AcmCard extends React.Component {
                       material: value,
                       category,
                       asbestosType,
-                      asbestosContent
+                      asbestosContent,
                     });
                   }}
                 />
@@ -556,15 +542,15 @@ class AcmCard extends React.Component {
                     this.state.category
                       ? {
                           value: this.state.category,
-                          label: this.state.category
+                          label: this.state.category,
                         }
                       : { value: "", label: "" }
                   }
-                  options={this.props.asbestosMaterialCategories.map(e => ({
+                  options={this.props.asbestosMaterialCategories.map((e) => ({
                     value: e.label,
-                    label: e.label
+                    label: e.label,
                   }))}
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ category: e ? e.value : null });
                   }}
                 />
@@ -580,21 +566,21 @@ class AcmCard extends React.Component {
                   label: "Presumed",
                   value: "p",
                   color: "Warning",
-                  tooltip: "Default."
+                  tooltip: "Default.",
                 },
                 {
                   label: "Strongly Presumed",
                   value: "s",
                   color: "StrongWarning",
-                  tooltip: "Strongly presumed."
+                  tooltip: "Strongly presumed.",
                 },
                 {
                   label: "Sampled",
                   value: "i",
                   color: negative ? "Ok" : "Bad",
-                  tooltip: "Sampled."
-                }
-              ].map(res => {
+                  tooltip: "Sampled.",
+                },
+              ].map((res) => {
                 return ScoreButton(
                   classes[
                     `colorsButton${
@@ -628,27 +614,27 @@ class AcmCard extends React.Component {
                           value: this.state.sample,
                           label: `${this.state.sample.jobNumber}-${
                             this.state.sample.sampleNumber
-                          }: ${writeDescription(this.state.sample)}`
+                          }: ${writeDescription(this.state.sample)}`,
                         }
                       : { value: "", label: "" }
                   }
                   options={Object.values(samples)
-                    .filter(e => e.sampleType !== "air")
-                    .map(e => ({
+                    .filter((e) => e.sampleType !== "air")
+                    .map((e) => ({
                       value: e || null,
                       label: e
                         ? `${e.jobNumber}-${e.sampleNumber}: ${writeDescription(
                             e
                           )}`
-                        : null
+                        : null,
                     }))}
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({
                       sample: e.value,
                       materialRisk: getMaterialRisk({
                         ...this.state,
-                        sample: e ? e.value : null
-                      })
+                        sample: e ? e.value : null,
+                      }),
                     });
                   }}
                 />
@@ -660,7 +646,7 @@ class AcmCard extends React.Component {
               label="Extent Description"
               controlled
               value={this.state.extent || ""}
-              onModify={value => this.setState({ extent: value })}
+              onModify={(value) => this.setState({ extent: value })}
             />
 
             <div className={classes.flexRow}>
@@ -669,9 +655,9 @@ class AcmCard extends React.Component {
                 label="Extent Amount"
                 style={{ width: "60%" }}
                 value={this.state.extentNum}
-                onChange={e =>
+                onChange={(e) =>
                   this.setState({
-                    extentNum: numericAndLessThanOnly(e.target.value)
+                    extentNum: numericAndLessThanOnly(e.target.value),
                   })
                 }
               />
@@ -681,15 +667,15 @@ class AcmCard extends React.Component {
                   this.state.extentNumUnits
                     ? {
                         value: this.state.extentNumUnits,
-                        label: this.state.extentNumUnits
+                        label: this.state.extentNumUnits,
                       }
                     : { value: "m²", label: "m²" }
                 }
-                options={["m²", "m", "lm", "m³", "items"].map(e => ({
+                options={["m²", "m", "lm", "m³", "items"].map((e) => ({
                   value: e,
-                  label: e
+                  label: e,
                 }))}
-                onChange={e => {
+                onChange={(e) => {
                   this.setState({ extentNumUnits: e.value });
                 }}
               />
@@ -701,7 +687,7 @@ class AcmCard extends React.Component {
                   control={
                     <Switch
                       checked={this.state.acmRemoved || false}
-                      onClick={e => {
+                      onClick={(e) => {
                         this.setState({ acmRemoved: e.target.checked });
                       }}
                       value="acmRemoved"
@@ -729,7 +715,7 @@ class AcmCard extends React.Component {
                                 this.state.acmRemovalJob.asbestosRemovalist
                               } (${moment(
                                 dateOf(this.state.acmRemovalJob.removalDate)
-                              ).format("D MMM YYYY")})`
+                              ).format("D MMM YYYY")})`,
                             }
                           : { value: "", label: "" }
                       }
@@ -739,17 +725,17 @@ class AcmCard extends React.Component {
                         this.props.sites[this.props.site].asbestosRemovals
                           ? this.props.sites[
                               this.props.site
-                            ].asbestosRemovals.map(e => ({
+                            ].asbestosRemovals.map((e) => ({
                               value: e,
                               label: `${e.referenceNumber} ${
                                 e.asbestosRemovalist
                               } (${moment(dateOf(e.removalDate)).format(
                                 "D MMM YYYY"
-                              )})`
+                              )})`,
                             }))
                           : []
                       }
-                      onChange={e => {
+                      onChange={(e) => {
                         this.setState({ acmRemovalJob: e ? e.value : null });
                       }}
                     />
@@ -765,7 +751,7 @@ class AcmCard extends React.Component {
                 </InputLabel>
                 <div className={classes.flexRow}>
                   {this.props.asbestosAccessibilitySuggestions &&
-                    this.props.asbestosAccessibilitySuggestions.map(res => {
+                    this.props.asbestosAccessibilitySuggestions.map((res) => {
                       return ScoreButton(
                         classes[
                           `colorsButton${
@@ -792,7 +778,7 @@ class AcmCard extends React.Component {
                   control={
                     <Switch
                       checked={this.state.genericItem || false}
-                      onClick={e => {
+                      onClick={(e) => {
                         this.setState({ genericItem: e.target.checked });
                       }}
                       value="genericItem"
@@ -826,7 +812,7 @@ class AcmCard extends React.Component {
                     </InputLabel>
                     <div className={classes.flexRow}>
                       {this.props.asbestosProductScores &&
-                        this.props.asbestosProductScores.map(res => {
+                        this.props.asbestosProductScores.map((res) => {
                           return ScoreButton(
                             classes[
                               `colorsButton${
@@ -849,8 +835,8 @@ class AcmCard extends React.Component {
                                 productScore: res.label,
                                 materialRisk: getMaterialRisk({
                                   ...this.state,
-                                  productScore: res.label
-                                })
+                                  productScore: res.label,
+                                }),
                               })
                           );
                         })}
@@ -861,7 +847,7 @@ class AcmCard extends React.Component {
                     </InputLabel>
                     <div className={classes.flexRow}>
                       {this.props.asbestosDamageScores &&
-                        this.props.asbestosDamageScores.map(res => {
+                        this.props.asbestosDamageScores.map((res) => {
                           return ScoreButton(
                             classes[
                               `colorsButton${
@@ -884,8 +870,8 @@ class AcmCard extends React.Component {
                                 damageScore: res.label,
                                 materialRisk: getMaterialRisk({
                                   ...this.state,
-                                  damageScore: res.label
-                                })
+                                  damageScore: res.label,
+                                }),
                               })
                           );
                         })}
@@ -896,7 +882,7 @@ class AcmCard extends React.Component {
                       label="Damage Description"
                       controlled
                       value={this.state.damageDescription || ""}
-                      onModify={value =>
+                      onModify={(value) =>
                         this.setState({ damageDescription: value })
                       }
                     />
@@ -906,7 +892,7 @@ class AcmCard extends React.Component {
                     </InputLabel>
                     <div className={classes.flexRow}>
                       {this.props.asbestosSurfaceScores &&
-                        this.props.asbestosSurfaceScores.map(res => {
+                        this.props.asbestosSurfaceScores.map((res) => {
                           return ScoreButton(
                             classes[
                               `colorsButton${
@@ -929,8 +915,8 @@ class AcmCard extends React.Component {
                                 surfaceScore: res.label,
                                 materialRisk: getMaterialRisk({
                                   ...this.state,
-                                  surfaceScore: res.label
-                                })
+                                  surfaceScore: res.label,
+                                }),
                               })
                           );
                         })}
@@ -941,7 +927,7 @@ class AcmCard extends React.Component {
                       label="Surface Treatment Description"
                       controlled
                       value={this.state.surfaceDescription || ""}
-                      onModify={value =>
+                      onModify={(value) =>
                         this.setState({ surfaceDescription: value })
                       }
                     />
@@ -954,7 +940,7 @@ class AcmCard extends React.Component {
                             : "Presumed Asbestos Type"}
                         </InputLabel>
                         <div className={classes.flexRow}>
-                          {["ch", "am", "cr"].map(res => {
+                          {["ch", "am", "cr"].map((res) => {
                             return AsbButton(
                               classes[`colorsButton${colors[res]}`],
                               classes[`colorsDiv${colors[res]}`],
@@ -979,14 +965,14 @@ class AcmCard extends React.Component {
                           InputProps={{
                             endAdornment: (
                               <InputAdornment position="end">%</InputAdornment>
-                            )
+                            ),
                           }}
-                          onChange={e => {
+                          onChange={(e) => {
                             this.setState({
                               asbestosContent: numericAndLessThanOnly(
                                 e.target.value,
                                 1
-                              )
+                              ),
                             });
                           }}
                         />
@@ -1012,7 +998,9 @@ class AcmCard extends React.Component {
                     multiline
                     rows={2}
                     label="Why Not Sampled?"
-                    onModify={value => this.setState({ whyNotSampled: value })}
+                    onModify={(value) =>
+                      this.setState({ whyNotSampled: value })
+                    }
                   />
                 )}
 
@@ -1024,9 +1012,9 @@ class AcmCard extends React.Component {
                       ? this.state.damageSurfaceNotes
                       : ""
                   }
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({
-                      damageSurfaceNotes: e.target.value
+                      damageSurfaceNotes: e.target.value,
                     });
                   }}
                 />
@@ -1054,15 +1042,15 @@ class AcmCard extends React.Component {
                     this.state.managementPrimary
                       ? {
                           value: this.state.managementPrimary,
-                          label: this.state.managementPrimary
+                          label: this.state.managementPrimary,
                         }
                       : { value: "", label: "" }
                   }
-                  options={this.props.asbestosManagementOptions.map(e => ({
+                  options={this.props.asbestosManagementOptions.map((e) => ({
                     value: e.label,
-                    label: e.label
+                    label: e.label,
                   }))}
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ managementPrimary: e ? e.value : null });
                   }}
                 />
@@ -1077,15 +1065,15 @@ class AcmCard extends React.Component {
                     this.state.managementSecondary
                       ? {
                           value: this.state.managementSecondary,
-                          label: this.state.managementSecondary
+                          label: this.state.managementSecondary,
                         }
                       : { value: "", label: "" }
                   }
-                  options={this.props.asbestosManagementOptions.map(e => ({
+                  options={this.props.asbestosManagementOptions.map((e) => ({
                     value: e.label,
-                    label: e.label
+                    label: e.label,
                   }))}
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ managementSecondary: e ? e.value : null });
                   }}
                 />
@@ -1100,17 +1088,17 @@ class AcmCard extends React.Component {
                     this.state.removalLicenceRequired
                       ? {
                           value: this.state.removalLicenceRequired,
-                          label: this.state.removalLicenceRequired
+                          label: this.state.removalLicenceRequired,
                         }
                       : { value: "", label: "" }
                   }
-                  options={["Class A", "Class B", "Unlicensed"].map(e => ({
+                  options={["Class A", "Class B", "Unlicensed"].map((e) => ({
                     value: e,
-                    label: e
+                    label: e,
                   }))}
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({
-                      removalLicenceRequired: e ? e.value : null
+                      removalLicenceRequired: e ? e.value : null,
                     });
                   }}
                 />
@@ -1125,17 +1113,17 @@ class AcmCard extends React.Component {
                     this.state.immediateActionRequired
                       ? {
                           value: this.state.immediateActionRequired,
-                          label: this.state.immediateActionRequired
+                          label: this.state.immediateActionRequired,
                         }
                       : { value: "", label: "" }
                   }
-                  options={this.props.asbestosManagementOptions.map(e => ({
+                  options={this.props.asbestosManagementOptions.map((e) => ({
                     value: e.label,
-                    label: e.label
+                    label: e.label,
                   }))}
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({
-                      immediateActionRequired: e ? e.value : null
+                      immediateActionRequired: e ? e.value : null,
                     });
                   }}
                 />
@@ -1150,15 +1138,15 @@ class AcmCard extends React.Component {
                     this.state.shortTermAction
                       ? {
                           value: this.state.shortTermAction,
-                          label: this.state.shortTermAction
+                          label: this.state.shortTermAction,
                         }
                       : { value: "", label: "" }
                   }
-                  options={this.props.asbestosManagementOptions.map(e => ({
+                  options={this.props.asbestosManagementOptions.map((e) => ({
                     value: e.label,
-                    label: e.label
+                    label: e.label,
                   }))}
-                  onChange={e => {
+                  onChange={(e) => {
                     this.setState({ shortTermAction: e.value });
                   }}
                 />
@@ -1188,14 +1176,14 @@ class AcmCard extends React.Component {
                   {
                     label: "Main type of activity in area",
                     options: "asbestosPriMainActivityScores",
-                    stateVar: "priMainActivityScore"
+                    stateVar: "priMainActivityScore",
                   },
                   {
                     label: "Secondary activities for area",
                     options: "asbestosPriSecondaryActivityScores",
-                    stateVar: "priSecondaryActivityScore"
-                  }
-                ].map(e => {
+                    stateVar: "priSecondaryActivityScore",
+                  },
+                ].map((e) => {
                   return (
                     <div>
                       <InputLabel className={classes.marginTopSmall}>
@@ -1203,7 +1191,7 @@ class AcmCard extends React.Component {
                       </InputLabel>
                       <div className={classes.flexRow}>
                         {this.props[e.options] &&
-                          this.props[e.options].map(res => {
+                          this.props[e.options].map((res) => {
                             return ScoreButton(
                               classes[
                                 `colorsButton${
@@ -1232,8 +1220,8 @@ class AcmCard extends React.Component {
                                     [e.stateVar]:
                                       this.state[e.stateVar] === res.label
                                         ? null
-                                        : res.label
-                                  })
+                                        : res.label,
+                                  }),
                                 })
                             );
                           })}
@@ -1250,19 +1238,19 @@ class AcmCard extends React.Component {
                   {
                     label: "Location",
                     options: "asbestosPriLocationScores",
-                    stateVar: "priLocationScore"
+                    stateVar: "priLocationScore",
                   },
                   {
                     label: "Accessibility",
                     options: "asbestosPriAccessibilityScores",
-                    stateVar: "priAccessibilityScore"
+                    stateVar: "priAccessibilityScore",
                   },
                   {
                     label: "Extent/amount",
                     options: "asbestosPriExtentScores",
-                    stateVar: "priExtentScore"
-                  }
-                ].map(e => {
+                    stateVar: "priExtentScore",
+                  },
+                ].map((e) => {
                   return (
                     <div>
                       <InputLabel className={classes.marginTopSmall}>
@@ -1270,7 +1258,7 @@ class AcmCard extends React.Component {
                       </InputLabel>
                       <div className={classes.flexRow}>
                         {this.props[e.options] &&
-                          this.props[e.options].map(res => {
+                          this.props[e.options].map((res) => {
                             return ScoreButton(
                               classes[
                                 `colorsButton${
@@ -1299,8 +1287,8 @@ class AcmCard extends React.Component {
                                     [e.stateVar]:
                                       this.state[e.stateVar] === res.label
                                         ? null
-                                        : res.label
-                                  })
+                                        : res.label,
+                                  }),
                                 })
                             );
                           })}
@@ -1317,19 +1305,19 @@ class AcmCard extends React.Component {
                   {
                     label: "Number of occupants",
                     options: "asbestosPriOccupantsScores",
-                    stateVar: "priOccupantScore"
+                    stateVar: "priOccupantScore",
                   },
                   {
                     label: "Frequency of use of area",
                     options: "asbestosPriUseFreqScores",
-                    stateVar: "priUseFreqScore"
+                    stateVar: "priUseFreqScore",
                   },
                   {
                     label: "Average daily time area is in use",
                     options: "asbestosPriAvgTimeScores",
-                    stateVar: "priAvgTimeScore"
-                  }
-                ].map(e => {
+                    stateVar: "priAvgTimeScore",
+                  },
+                ].map((e) => {
                   return (
                     <div>
                       <InputLabel className={classes.marginTopSmall}>
@@ -1337,7 +1325,7 @@ class AcmCard extends React.Component {
                       </InputLabel>
                       <div className={classes.flexRow}>
                         {this.props[e.options] &&
-                          this.props[e.options].map(res => {
+                          this.props[e.options].map((res) => {
                             return ScoreButton(
                               classes[
                                 `colorsButton${
@@ -1366,8 +1354,8 @@ class AcmCard extends React.Component {
                                     [e.stateVar]:
                                       this.state[e.stateVar] === res.label
                                         ? null
-                                        : res.label
-                                  })
+                                        : res.label,
+                                  }),
                                 })
                             );
                           })}
@@ -1384,14 +1372,14 @@ class AcmCard extends React.Component {
                   {
                     label: "Type of maintenance activity",
                     options: "asbestosPriMaintTypeScores",
-                    stateVar: "priMaintTypeScore"
+                    stateVar: "priMaintTypeScore",
                   },
                   {
                     label: "Frequency of maintenance activity",
                     options: "asbestosPriMaintFreqScores",
-                    stateVar: "priMaintFreqScore"
-                  }
-                ].map(e => {
+                    stateVar: "priMaintFreqScore",
+                  },
+                ].map((e) => {
                   return (
                     <div>
                       <InputLabel className={classes.marginTopSmall}>
@@ -1399,7 +1387,7 @@ class AcmCard extends React.Component {
                       </InputLabel>
                       <div className={classes.flexRow}>
                         {this.props[e.options] &&
-                          this.props[e.options].map(res => {
+                          this.props[e.options].map((res) => {
                             return ScoreButton(
                               classes[
                                 `colorsButton${
@@ -1428,8 +1416,8 @@ class AcmCard extends React.Component {
                                     [e.stateVar]:
                                       this.state[e.stateVar] === res.label
                                         ? null
-                                        : res.label
-                                  })
+                                        : res.label,
+                                  }),
                                 })
                             );
                           })}
@@ -1443,7 +1431,7 @@ class AcmCard extends React.Component {
                     control={
                       <Checkbox
                         checked={this.state.immediateRisk || false}
-                        onChange={e =>
+                        onChange={(e) =>
                           this.setState({ immediateRisk: e.target.checked })
                         }
                       />
@@ -1454,7 +1442,7 @@ class AcmCard extends React.Component {
                     control={
                       <Checkbox
                         checked={this.state.labelImmediately || false}
-                        onChange={e =>
+                        onChange={(e) =>
                           this.setState({ labelImmediately: e.target.checked })
                         }
                       />
@@ -1465,7 +1453,7 @@ class AcmCard extends React.Component {
                     control={
                       <Checkbox
                         checked={this.state.sealImmediately || false}
-                        onChange={e =>
+                        onChange={(e) =>
                           this.setState({ sealImmediately: e.target.checked })
                         }
                       />
@@ -1510,7 +1498,7 @@ class AcmCard extends React.Component {
                   style={{
                     opacity: "0.5",
                     borderStyle: "solid",
-                    borderWidth: "2px"
+                    borderWidth: "2px",
                   }}
                 />
                 <IconButton
@@ -1520,7 +1508,7 @@ class AcmCard extends React.Component {
                     left: "-120px",
                     borderStyle: "solid",
                     borderWidth: "2px",
-                    fontSize: 8
+                    fontSize: 8,
                   }}
                   onClick={() => {
                     if (
@@ -1543,7 +1531,7 @@ class AcmCard extends React.Component {
                 id="attr_upload_file"
                 type="file"
                 style={{ display: "none" }}
-                onChange={e => {
+                onChange={(e) => {
                   if (this.state.acmImageUrl) {
                     storage.ref(this.state.acmImageRef).delete();
                   }
@@ -1552,7 +1540,7 @@ class AcmCard extends React.Component {
                     storagePath: "sites/",
                     prefix: "siteImage",
                     imageQuality: 30,
-                    imageHeight: 100
+                    imageHeight: 100,
                   });
                 }}
               />
@@ -1631,8 +1619,5 @@ class AcmCard extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(AcmCard)
+  connect(mapStateToProps, mapDispatchToProps)(AcmCard)
 );

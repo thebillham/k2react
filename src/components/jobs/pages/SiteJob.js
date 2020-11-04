@@ -6,23 +6,12 @@ import { connect } from "react-redux";
 //Modals
 import { WFM_TIME } from "../../../constants/modal-types";
 import { showModal } from "../../../actions/modal";
-import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
 import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
 import Collapse from "@material-ui/core/Collapse";
+import InputLabel from "@material-ui/core/InputLabel";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
-import WfmTimeModal from "../modals/WfmTimeModal";
 import ClosedArrow from "@material-ui/icons/ArrowDropDown";
 import OpenArrow from "@material-ui/icons/ArrowDropUp";
 import AddIcon from "@material-ui/icons/Add";
@@ -32,12 +21,6 @@ import LinkIcon from "@material-ui/icons/Link";
 import TimerIcon from "@material-ui/icons/Timer";
 import Select from "react-select";
 import SuggestionField from "../../../widgets/SuggestionField";
-import ReactTable from "react-table";
-import "react-table/react-table.css";
-import AsbestosRegisterTable from "../components/AsbestosRegisterTable";
-import AsbestosSurveyTable from "../components/AsbestosSurveyTable";
-import NonAsbestosTable from "../components/NonAsbestosTable";
-import AirMonitoringRecords from "../components/AirMonitoringRecords";
 import AsbestosManagementPlan from "../jobs/AsbestosManagementPlan";
 import AsbestosSurvey from "../jobs/AsbestosSurvey";
 
@@ -45,13 +28,7 @@ import { DatePicker } from "@material-ui/pickers";
 
 import classNames from "classnames";
 import Popup from "reactjs-popup";
-import {
-  dateOf,
-  getDaysSinceDate,
-  getDaysSinceDateAgo,
-  andList,
-  personnelConvert
-} from "../../../actions/helpers";
+import { dateOf, andList, personnelConvert } from "../../../actions/helpers";
 
 import moment from "moment";
 import _ from "lodash";
@@ -72,64 +49,53 @@ import {
   collateJobsList,
   getJobColor,
   getStateString,
-  getNextActionType,
-  getNextActionOverdueBy,
-  getWfmUrl,
-  getLeadHistoryDescription,
-  handleJobChange
+  handleJobChange,
 } from "../../../actions/jobs";
-
-import { collateSamples } from "../../../actions/asbestosReportHelpers";
 
 import { filterMap, filterMapReset } from "../../../actions/display";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     wfmJobs: state.jobs.wfmJobs,
     wfmJob: state.jobs.wfmJob,
     wfmLeads: state.jobs.wfmLeads,
-    wfmClients: state.jobs.wfmClients,
     currentJobState: state.jobs.currentJobState,
-    geocodes: state.jobs.geocodes,
     wfmItems: state.jobs.wfmItems,
     wfmStats: state.jobs.wfmStats,
     jobList: state.jobs.jobList,
     search: state.local.search,
     staff: state.local.staff,
-    sites: state.jobs.sites,
-    siteJobs: state.jobs.siteJobs,
-    siteAcm: state.jobs.siteAcm,
-    samples: state.asbestosLab.samples,
     me: state.local.me,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
-    modalType: state.modal.modalType
+    modalType: state.modal.modalType,
+    wfmAccessToken: state.local.wfmAccessToken,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     fetchWFMJobs: () => dispatch(fetchWFMJobs()),
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
-    handleJobChange: info => dispatch(handleJobChange(info)),
+    handleJobChange: (info) => dispatch(handleJobChange(info)),
     handleJobChangeDebounced: _.debounce(
-      info => dispatch(handleJobChange(info)),
+      (info) => dispatch(handleJobChange(info)),
       2000
     ),
-    fetchCurrentJobState: ignoreCompleted =>
+    fetchCurrentJobState: (ignoreCompleted) =>
       dispatch(fetchCurrentJobState(ignoreCompleted)),
     clearWfmJob: () => dispatch(clearWfmJob()),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
-    saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
-    saveGeocodes: g => dispatch(saveGeocodes(g)),
+    getDetailedWFMJob: (info) => dispatch(getDetailedWFMJob(info)),
+    saveCurrentJobState: (state) => dispatch(saveCurrentJobState(state)),
+    saveGeocodes: (g) => dispatch(saveGeocodes(g)),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
-    updateGeocodes: g => dispatch(updateGeocodes(g)),
-    saveWFMItems: items => dispatch(saveWFMItems(items)),
-    saveStats: stats => dispatch(saveStats(stats)),
-    filterMap: filter => dispatch(filterMap(filter)),
+    updateGeocodes: (g) => dispatch(updateGeocodes(g)),
+    saveWFMItems: (items) => dispatch(saveWFMItems(items)),
+    saveStats: (stats) => dispatch(saveStats(stats)),
+    filterMap: (filter) => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
-    showModal: modal => dispatch(showModal(modal)),
+    showModal: (modal) => dispatch(showModal(modal)),
     collateJobsList: (
       wfmJobs,
       wfmLeads,
@@ -145,7 +111,7 @@ const mapDispatchToProps = dispatch => {
           wfmClients,
           geocodes
         )
-      )
+      ),
   };
 };
 
@@ -153,7 +119,7 @@ class SiteJob extends React.Component {
   state = {
     countVersions: 1,
 
-    update: {}
+    update: {},
   };
 
   UNSAFE_componentWillMount() {
@@ -166,30 +132,30 @@ class SiteJob extends React.Component {
       let job = this.props.siteJobs[this.props.site][this.props.m.uid];
       if (job.versions && Object.keys(job.versions).length > 0) {
         countVersions = Math.max(
-          ...Object.keys(job.versions).map(key => parseInt(key))
+          ...Object.keys(job.versions).map((key) => parseInt(key))
         );
       }
     }
     this.setState({
-      countVersions
+      countVersions,
     });
   }
 
-  toggleCollapse = name => {
+  toggleCollapse = (name) => {
     this.setState({
-      [`open${name}`]: !this.state[`open${name}`]
+      [`open${name}`]: !this.state[`open${name}`],
     });
   };
 
-  addList = field => {
+  addList = (field) => {
     this.setState({
       [`count${field}`]: this.state[`count${field}`]
         ? this.state[`count${field}`] + 1
-        : 2
+        : 2,
     });
   };
 
-  removeList = field => {
+  removeList = (field) => {
     let obj = field ? field.slice(0, 1).toLowerCase() + field.slice(1) : null;
     let num = this.state[`count${field}`] ? this.state[`count${field}`] : 1;
     if (obj)
@@ -197,30 +163,19 @@ class SiteJob extends React.Component {
         job: this.props.siteJobs[this.props.site][this.props.m.uid],
         o1: [obj],
         field: num,
-        val: "delete"
+        val: "delete",
       });
     this.setState({
       [`count${field}`]: this.state[`count${field}`]
         ? this.state[`count${field}`] > 1
           ? this.state[`count${field}`] - 1
           : 1
-        : 1
+        : 1,
     });
   };
 
   render() {
-    const {
-      classes,
-      that,
-      m,
-      wfmClients,
-      geocodes,
-      site,
-      sites,
-      siteJobs,
-      siteAcm,
-      samples
-    } = this.props;
+    const { classes, that, m, site } = this.props;
     const names = [{ name: "3rd Party", uid: "3rd Party" }].concat(
       Object.values(this.props.staff).sort((a, b) =>
         a.name.localeCompare(b.name)
@@ -241,10 +196,12 @@ class SiteJob extends React.Component {
                 <div className={classes.flexRow}>
                   <Tooltip title={"Re-sync with WorkflowMax"}>
                     <IconButton
-                      onClick={e =>
+                      onClick={(e) =>
                         this.props.getDetailedWFMJob({
                           jobNumber: m.jobNumber,
-                          setUpJob: true
+                          setUpJob: true,
+                          accessToken: this.props.wfmAccessToken,
+                          refreshToken: this.props.me.refreshToken,
                         })
                       }
                     >
@@ -264,10 +221,10 @@ class SiteJob extends React.Component {
                   </Tooltip>
                   <Tooltip title={"Log Time to WorkflowMax"}>
                     <IconButton
-                      onClick={e => {
+                      onClick={(e) => {
                         this.props.showModal({
                           modalType: WFM_TIME,
-                          modalProps: { job: m }
+                          modalProps: { job: m },
                         });
                       }}
                     >
@@ -281,12 +238,12 @@ class SiteJob extends React.Component {
                 that={this}
                 suggestions="siteJobDescriptions"
                 defaultValue={m.jobDescription ? m.jobDescription : ""}
-                onModify={value =>
+                onModify={(value) =>
                   this.props.handleJobChange({
                     job: m,
                     field: "jobDescription",
                     val: value,
-                    siteUid: site
+                    siteUid: site,
                   })
                 }
               />
@@ -311,7 +268,7 @@ class SiteJob extends React.Component {
               <div>
                 {m.assigned && (
                   <div>
-                    <b> Assigned: </b> {andList(m.assigned.map(e => e.name))}
+                    <b> Assigned: </b> {andList(m.assigned.map((e) => e.name))}
                   </div>
                 )}
                 {m.lastActionDate && m.wfmState !== "Completed" && (
@@ -353,7 +310,7 @@ class SiteJob extends React.Component {
                   </div>
                   <Collapse in={this.state.openHistory}>
                     <div className={classes.expandBody}>
-                      {Object.keys(m.stateHistory).map(key => {
+                      {Object.keys(m.stateHistory).map((key) => {
                         return (
                           <span key={key}>
                             <b>{key}:</b> {m.stateHistory[key]}
@@ -380,7 +337,7 @@ class SiteJob extends React.Component {
                   </div>
                   <Collapse in={this.state.openMilestones}>
                     <div className={classes.expandBody}>
-                      {m.milestones.map(item => {
+                      {m.milestones.map((item) => {
                         if (item.completed === "true") {
                           return (
                             <span
@@ -418,7 +375,7 @@ class SiteJob extends React.Component {
                   </div>
                   <Collapse in={this.state.openNotes}>
                     <div className={classes.expandBody}>
-                      {m.notes.map(item => (
+                      {m.notes.map((item) => (
                         <div key={moment(dateOf(item.date)).format("x")}>
                           <div className={color}>
                             <b>
@@ -468,8 +425,8 @@ class SiteJob extends React.Component {
               {[
                 ...Array(
                   this.state.countVersions ? this.state.countVersions : 1
-                ).keys()
-              ].map(i => {
+                ).keys(),
+              ].map((i) => {
                 let num = i + 1,
                   s = m.versions && m.versions[num] ? m.versions[num] : {};
                 return (
@@ -487,14 +444,14 @@ class SiteJob extends React.Component {
                         label={"Date"}
                         views={["year", "month", "date"]}
                         openTo="year"
-                        onChange={date => {
+                        onChange={(date) => {
                           this.props.handleJobChange({
                             job: m,
                             o1: "versions",
                             o2: num.toString(),
                             field: "date",
                             val: dateOf(date),
-                            siteUid: site
+                            siteUid: site,
                           });
                         }}
                       />
@@ -503,14 +460,14 @@ class SiteJob extends React.Component {
                         label="Changes"
                         className={classes.columnLarge}
                         defaultValue={s.changes ? s.changes : null}
-                        onChange={e => {
+                        onChange={(e) => {
                           this.props.handleJobChangeDebounced({
                             job: m,
                             o1: "versions",
                             o2: num.toString(),
                             field: "changes",
                             val: e.target.value,
-                            siteUid: site
+                            siteUid: site,
                           });
                         }}
                       />
@@ -525,24 +482,24 @@ class SiteJob extends React.Component {
                         )}
                         value={
                           s.writer
-                            ? s.writer.map(e => ({
+                            ? s.writer.map((e) => ({
                                 value: e.uid,
-                                label: e.name
+                                label: e.name,
                               }))
                             : null
                         }
-                        options={names.map(e => ({
+                        options={names.map((e) => ({
                           value: e.uid,
-                          label: e.name
+                          label: e.name,
                         }))}
-                        onChange={e => {
+                        onChange={(e) => {
                           this.props.handleJobChange({
                             job: m,
                             o1: "versions",
                             o2: num.toString(),
                             field: "writer",
                             val: personnelConvert(e),
-                            siteUid: site
+                            siteUid: site,
                           });
                         }}
                       />
@@ -555,24 +512,24 @@ class SiteJob extends React.Component {
                         )}
                         value={
                           s.checker
-                            ? s.checker.map(e => ({
+                            ? s.checker.map((e) => ({
                                 value: e.uid,
-                                label: e.name
+                                label: e.name,
                               }))
                             : null
                         }
-                        options={names.map(e => ({
+                        options={names.map((e) => ({
                           value: e.uid,
-                          label: e.name
+                          label: e.name,
                         }))}
-                        onChange={e => {
+                        onChange={(e) => {
                           this.props.handleJobChange({
                             job: m,
                             o1: "versions",
                             o2: num.toString(),
                             field: "checker",
                             val: personnelConvert(e),
-                            siteUid: site
+                            siteUid: site,
                           });
                         }}
                       />
@@ -585,21 +542,24 @@ class SiteJob extends React.Component {
                         )}
                         value={
                           s.ktp
-                            ? s.ktp.map(e => ({ value: e.uid, label: e.name }))
+                            ? s.ktp.map((e) => ({
+                                value: e.uid,
+                                label: e.name,
+                              }))
                             : null
                         }
-                        options={names.map(e => ({
+                        options={names.map((e) => ({
                           value: e.uid,
-                          label: e.name
+                          label: e.name,
                         }))}
-                        onChange={e => {
+                        onChange={(e) => {
                           this.props.handleJobChange({
                             job: m,
                             o1: "versions",
                             o2: num.toString(),
                             field: "ktp",
                             val: personnelConvert(e),
-                            siteUid: site
+                            siteUid: site,
                           });
                         }}
                       />
@@ -625,8 +585,5 @@ class SiteJob extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(SiteJob)
+  connect(mapStateToProps, mapDispatchToProps)(SiteJob)
 );

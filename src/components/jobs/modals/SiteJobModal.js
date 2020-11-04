@@ -6,7 +6,6 @@ import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 // import store from '../../store';
 import { SITE_JOB } from "../../../constants/modal-types";
-import { storage } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
@@ -17,107 +16,92 @@ import DialogActions from "@material-ui/core/DialogActions";
 import FormControl from "@material-ui/core/FormControl";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
-// import Geosuggest from 'react-geosuggest';
-import ImageUploader from "react-images-upload";
 import SuggestionField from "../../../widgets/SuggestionField";
-
-import UploadIcon from "@material-ui/icons/CloudUpload";
-import Go from "@material-ui/icons/ArrowForwardIos";
-import Close from "@material-ui/icons/Close";
-import {
-  hideModal,
-  handleModalChange,
-  handleModalSubmit,
-  resetModal,
-  onUploadFile,
-  setModalError
-} from "../../../actions/modal";
+import { hideModal, resetModal, setModalError } from "../../../actions/modal";
 import {
   fetchSites,
   getDetailedWFMJob,
-  resetWfmJob
+  resetWfmJob,
 } from "../../../actions/jobs";
-import { getUserAttrs } from "../../../actions/local";
-import _ from "lodash";
-import classNames from "classnames";
 
 import "../../../config/geosuggest.css";
+//
+// const siteTypes = [
+//   {
+//     value: "residential",
+//     label: "Residential",
+//   },
+//   {
+//     value: "industrial",
+//     label: "Industrial",
+//   },
+//   {
+//     value: "commercial",
+//     label: "Commercial",
+//   },
+//   {
+//     value: "public",
+//     label: "Public Building",
+//   },
+//   {
+//     value: "other",
+//     label: "Other Building",
+//   },
+//   {
+//     value: "land",
+//     label: "Land/Soil",
+//   },
+//   {
+//     value: "substation",
+//     label: "Substation",
+//   },
+//   {
+//     value: "train",
+//     label: "Train",
+//   },
+//   {
+//     value: "ship",
+//     label: "Ship",
+//   },
+//   {
+//     value: "vehicle",
+//     label: "Other Vehicle",
+//   },
+// ];
+//
+// const jobTypes = [
+//   "Stack",
+//   "Workplace",
+//   "Noise",
+//   "Asbestos",
+//   "Methamphetamine",
+//   "Biological",
+//   "Other",
+// ];
 
-const siteTypes = [
-  {
-    value: "residential",
-    label: "Residential"
-  },
-  {
-    value: "industrial",
-    label: "Industrial"
-  },
-  {
-    value: "commercial",
-    label: "Commercial"
-  },
-  {
-    value: "public",
-    label: "Public Building"
-  },
-  {
-    value: "other",
-    label: "Other Building"
-  },
-  {
-    value: "land",
-    label: "Land/Soil"
-  },
-  {
-    value: "substation",
-    label: "Substation"
-  },
-  {
-    value: "train",
-    label: "Train"
-  },
-  {
-    value: "ship",
-    label: "Ship"
-  },
-  {
-    value: "vehicle",
-    label: "Other Vehicle"
-  }
-];
-
-const jobTypes = [
-  "Stack",
-  "Workplace",
-  "Noise",
-  "Asbestos",
-  "Methamphetamine",
-  "Biological",
-  "Other"
-];
-
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
-    doc: state.modal.modalProps.doc
+    doc: state.modal.modalProps.doc,
+    wfmAccessToken: state.local.wfmAccessToken,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    fetchSites: update => dispatch(fetchSites(update)),
+    fetchSites: (update) => dispatch(fetchSites(update)),
     hideModal: () => dispatch(hideModal()),
-    setModalError: error => dispatch(setModalError(error)),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
+    setModalError: (error) => dispatch(setModalError(error)),
+    getDetailedWFMJob: (info) => dispatch(getDetailedWFMJob(info)),
     resetWfmJob: () => dispatch(resetWfmJob()),
-    resetModal: () => dispatch(resetModal())
+    resetModal: () => dispatch(resetModal()),
   };
 };
 
 class SiteJobModal extends React.Component {
   state = {
-    jobNumber: ""
+    jobNumber: "",
   };
 
   wfmSync = () => {
@@ -136,13 +120,15 @@ class SiteJobModal extends React.Component {
         createUid: true,
         setUpJob: true,
         site: this.props.doc.site,
-        jobDescription
+        jobDescription,
+        accessToken: this.props.wfmAccessToken,
+        refreshToken: this.props.me.refreshToken,
       });
     }
   };
 
   render() {
-    const { modalProps, doc, classes } = this.props;
+    const { modalProps, classes } = this.props;
     return (
       <Dialog
         open={this.props.modalType === SITE_JOB}
@@ -159,7 +145,7 @@ class SiteJobModal extends React.Component {
             defaultValue={
               this.state.jobDescription ? this.state.jobDescription : ""
             }
-            onModify={value => this.setState({ jobDescription: value })}
+            onModify={(value) => this.setState({ jobDescription: value })}
           />
           <FormControl>
             <InputLabel shrink>Job Number</InputLabel>
@@ -167,9 +153,9 @@ class SiteJobModal extends React.Component {
               id="jobNumber"
               className={classes.bigInput}
               value={this.state.jobNumber}
-              onChange={e => {
+              onChange={(e) => {
                 this.setState({
-                  jobNumber: e.target.value.replace(/\s/g, "").toUpperCase()
+                  jobNumber: e.target.value.replace(/\s/g, "").toUpperCase(),
                 });
               }}
             />
@@ -192,8 +178,5 @@ class SiteJobModal extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(SiteJobModal)
+  connect(mapStateToProps, mapDispatchToProps)(SiteJobModal)
 );

@@ -17,8 +17,11 @@ import {
   getSubsampleData,
 } from "../../../actions/asbestosLab";
 import { addLog } from "../../../actions/local";
-import { getDetailedWFMJob, } from "../../../actions/jobs";
-import { setAsbestosLabExpanded, toggleAsbestosSampleDisplayMode, } from "../../../actions/display";
+import { getDetailedWFMJob } from "../../../actions/jobs";
+import {
+  setAsbestosLabExpanded,
+  toggleAsbestosSampleDisplayMode,
+} from "../../../actions/display";
 import { showModal } from "../../../actions/modal";
 import { CSVLink } from "react-csv";
 import {
@@ -55,7 +58,7 @@ import MoreIcon from "@material-ui/icons/MoreVert";
 import StartAnalysisIcon from "@material-ui/icons/Colorize";
 import AirIcon from "@material-ui/icons/AcUnit";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     me: state.local.me,
     staff: state.local.staff,
@@ -70,30 +73,33 @@ const mapStateToProps = state => {
     expanded: state.display.asbestosLabExpanded,
     asbestosSampleDisplayAdvanced: state.display.asbestosSampleDisplayAdvanced,
     modalType: state.modal.modalType,
+    wfmAccessToken: state.local.wfmAccessToken,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     fetchCocs: () => dispatch(fetchCocs()),
-    showModal: modal => dispatch(showModal(modal)),
+    showModal: (modal) => dispatch(showModal(modal)),
     fetchSamples: (cocUid, jobNumber) =>
       dispatch(fetchSamples(cocUid, jobNumber)),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
-    logSample: (coc, sample, cocStats) => dispatch(logSample(coc, sample, cocStats)),
-    setSessionID: session => dispatch(setSessionID(session)),
+    getDetailedWFMJob: (info) => dispatch(getDetailedWFMJob(info)),
+    logSample: (coc, sample, cocStats) =>
+      dispatch(logSample(coc, sample, cocStats)),
+    setSessionID: (session) => dispatch(setSessionID(session)),
     deleteCoc: (coc, samples, me) => dispatch(deleteCoc(coc, samples, me)),
-    setAsbestosLabExpanded: ex => dispatch(setAsbestosLabExpanded(ex)),
-    toggleAsbestosSampleDisplayMode: () => dispatch(toggleAsbestosSampleDisplayMode()),
+    setAsbestosLabExpanded: (ex) => dispatch(setAsbestosLabExpanded(ex)),
+    toggleAsbestosSampleDisplayMode: () =>
+      dispatch(toggleAsbestosSampleDisplayMode()),
   };
 };
 
 class AsbestosAirCocCard extends React.Component {
   // static whyDidYouRender = true;
-  state = { cocAnchorEl: null, };
+  state = { cocAnchorEl: null };
 
   UNSAFE_componentWillMount = () => {
-    let uid = `${this.props.job}-${this.props.me.name}-${moment().format('x')}`;
+    let uid = `${this.props.job}-${this.props.me.name}-${moment().format("x")}`;
     this.props.setSessionID(uid.replace(/[.:/,\s]/g, "_"));
   };
 
@@ -103,19 +109,42 @@ class AsbestosAirCocCard extends React.Component {
     if (this.props.modalType === ASBESTOS_COC_EDIT) return false; // COC modal is open
     // if (nextProps.doNotRender) return false;
     // console.log(nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job);
-    if (nextProps.expanded !== nextProps.job && this.props.expanded !== nextProps.job) return false; // List is not expanded (hidden)
-    if (this.props.expanded === this.props.job && nextProps.expanded !== this.props.job) {
+    if (
+      nextProps.expanded !== nextProps.job &&
+      this.props.expanded !== nextProps.job
+    )
+      return false; // List is not expanded (hidden)
+    if (
+      this.props.expanded === this.props.job &&
+      nextProps.expanded !== this.props.job
+    ) {
       return true; // List has been collapsed
     }
-    if (nextProps.expanded === nextProps.job && this.props.expanded !== this.props.job) {
+    if (
+      nextProps.expanded === nextProps.job &&
+      this.props.expanded !== this.props.job
+    ) {
       return true; // List has been opened
     }
 
-    if (this.props.cocs[this.props.job] && nextProps.cocs[nextProps.job] && this.props.cocs[this.props.job].versionUpToDate !== nextProps.cocs[nextProps.job].versionUpToDate) return true;
-    if (nextProps.samples[nextProps.job] && nextProps.cocs[nextProps.job] && nextProps.cocs[nextProps.job].sampleList) {
+    if (
+      this.props.cocs[this.props.job] &&
+      nextProps.cocs[nextProps.job] &&
+      this.props.cocs[this.props.job].versionUpToDate !==
+        nextProps.cocs[nextProps.job].versionUpToDate
+    )
+      return true;
+    if (
+      nextProps.samples[nextProps.job] &&
+      nextProps.cocs[nextProps.job] &&
+      nextProps.cocs[nextProps.job].sampleList
+    ) {
       // console.log(Object.keys(nextProps.samples[nextProps.job]).length);
       // console.log(nextProps.cocs[nextProps.job].sampleList.length);
-      if (Object.keys(nextProps.samples[nextProps.job]).length === nextProps.cocs[nextProps.job].sampleList.length) {
+      if (
+        Object.keys(nextProps.samples[nextProps.job]).length ===
+        nextProps.cocs[nextProps.job].sampleList.length
+      ) {
         return true;
       }
     }
@@ -136,26 +165,36 @@ class AsbestosAirCocCard extends React.Component {
     // console.log(job);
     if (job === undefined || job.deleted) return null;
     let version = 1,
-      labFunctions = this.props.me.auth &&
-        (this.props.me.auth['Asbestos Admin'] ||
-        this.props.me.auth['Analysis Checker'] ||
-        this.props.me.auth['Asbestos Air Analysis']) ? true : false,
-      adminFunctions = this.props.me.auth &&
-        (this.props.me.auth['Asbestos Admin'] ||
-        this.props.me.auth['Analysis Checker']) ? true : false;
+      labFunctions =
+        this.props.me.auth &&
+        (this.props.me.auth["Asbestos Admin"] ||
+          this.props.me.auth["Analysis Checker"] ||
+          this.props.me.auth["Asbestos Air Analysis"])
+          ? true
+          : false,
+      adminFunctions =
+        this.props.me.auth &&
+        (this.props.me.auth["Asbestos Admin"] ||
+          this.props.me.auth["Analysis Checker"])
+          ? true
+          : false;
 
     if (job.currentVersion) version = job.currentVersion + 1;
-    if (job.deleted === true) return (<div />);
+    if (job.deleted === true) return <div />;
 
     // console.log(`${job.jobNumber} Bulk COC Card rendering`);
     let filteredSamples = {};
     if (samples && samples[job.uid]) {
-      Object.values(samples[job.uid]).filter(s => !s.deleted && s.cocUid === job.uid).forEach(s => {
-        filteredSamples[s.sampleNumber] = s;
-      });
+      Object.values(samples[job.uid])
+        .filter((s) => !s.deleted && s.cocUid === job.uid)
+        .forEach((s) => {
+          filteredSamples[s.sampleNumber] = s;
+        });
     }
 
-    let coc = JSON.stringify(printCocBulk(job, filteredSamples, this.props.me, this.props.staff));
+    let coc = JSON.stringify(
+      printCocBulk(job, filteredSamples, this.props.me, this.props.staff)
+    );
     // console.log(coc);
     let jobStatus = getJobStatus(filteredSamples, job);
     if (job.status && jobStatus === "No Samples") jobStatus = job.status;
@@ -164,143 +203,254 @@ class AsbestosAirCocCard extends React.Component {
         expanded={this.props.expanded === job.uid}
         className={classes.fullWidth}
         onChange={(event, ex) => {
-          if (!samples[this.props.job]) this.getSamples(ex, job.uid, job.jobNumber);
+          if (!samples[this.props.job])
+            this.getSamples(ex, job.uid, job.jobNumber);
           this.props.setAsbestosLabExpanded(ex ? job.uid : null);
         }}
       >
         <ExpansionPanelSummary expandIcon={<ExpandMore />}>
           <div>
             <span className={classes.boldSmallText}>{job.jobNumber}</span>
-            <span>{job.client} ({job.address})</span>
-            <AirIcon color='action' className={classes.marginLeftSmall} />
-            {(job.priority === 1 || job.isClearance) && !job.versionUpToDate && <UrgentIcon color='secondary' className={classes.marginLeftSmall} />}
-            {job.versionUpToDate && <VerifyIcon color='primary' className={classes.marginLeftSmall} />}
-            {jobStatus && <span className={classes.boldSmallText}>{jobStatus ? jobStatus : ''}</span>}
+            <span>
+              {job.client} ({job.address})
+            </span>
+            <AirIcon color="action" className={classes.marginLeftSmall} />
+            {(job.priority === 1 || job.isClearance) &&
+              !job.versionUpToDate && (
+                <UrgentIcon
+                  color="secondary"
+                  className={classes.marginLeftSmall}
+                />
+              )}
+            {job.versionUpToDate && (
+              <VerifyIcon color="primary" className={classes.marginLeftSmall} />
+            )}
+            {jobStatus && (
+              <span className={classes.boldSmallText}>
+                {jobStatus ? jobStatus : ""}
+              </span>
+            )}
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
           <div className={classes.fullWidth}>
             <div className={classes.flexRow}>
-              <Tooltip id="h-tooltip" title={'Edit Chain of Custody'}>
+              <Tooltip id="h-tooltip" title={"Edit Chain of Custody"}>
                 <IconButton
                   onClick={() => {
-                    this.props.getDetailedWFMJob({ jobNumber: job.jobNumber });
+                    this.props.getDetailedWFMJob({
+                      jobNumber: job.jobNumber,
+                      accessToken: this.props.wfmAccessToken,
+                      refreshToken: this.props.me.refreshToken,
+                    });
                     this.props.showModal({
                       modalType: ASBESTOS_COC_EDIT,
                       modalProps: {
                         title: "Edit Chain of Custody",
-                        doc: { ...job, samples: samples[job.uid] ? samples[job.uid] : {} }
-                      }
+                        doc: {
+                          ...job,
+                          samples: samples[job.uid] ? samples[job.uid] : {},
+                        },
+                      },
                     });
-                  }}>
+                  }}
+                >
                   <EditIcon className={classes.iconRegular} />
                 </IconButton>
               </Tooltip>
-              <Tooltip title={'Print Chain of Custody'}>
+              <Tooltip title={"Print Chain of Custody"}>
                 <div>
-                  <form method="post" target="_blank" action={job.waAnalysis ? "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php" : "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php"}>
+                  <form
+                    method="post"
+                    target="_blank"
+                    action={
+                      job.waAnalysis
+                        ? "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_wa.php"
+                        : "https://api.k2.co.nz/v1/doc/scripts/asbestos/lab/coc_bulk.php"
+                    }
+                  >
                     <input type="hidden" name="data" value={coc} />
-                    <IconButton type="submit" onClick={() => {
-                      let log = {
-                        type: "Document",
-                        log: `Chain of Custody downloaded.`,
-                        chainOfCustody: job.uid,
-                      };
-                      addLog("asbestosLab", log, this.props.me);
-                    }}>
+                    <IconButton
+                      type="submit"
+                      onClick={() => {
+                        let log = {
+                          type: "Document",
+                          log: `Chain of Custody downloaded.`,
+                          chainOfCustody: job.uid,
+                        };
+                        addLog("asbestosLab", log, this.props.me);
+                      }}
+                    >
                       <PrintCocIcon className={classes.iconRegular} />
                     </IconButton>
                   </form>
                 </div>
               </Tooltip>
-              {labFunctions &&
-                <Tooltip id="reca-tooltip" title={'Receive Samples'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+              {labFunctions && (
+                <Tooltip
+                  id="reca-tooltip"
+                  title={"Receive Samples"}
+                  disabled={
+                    !filteredSamples ||
+                    Object.values(filteredSamples).length === 0
+                  }
+                >
                   <div>
-                    <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
-                      onClick={event => {
+                    <IconButton
+                      disabled={
+                        !filteredSamples ||
+                        Object.values(filteredSamples).length === 0
+                      }
+                      onClick={(event) => {
                         this.props.showModal({
                           modalType: ASBESTOS_ACTIONS,
-                          modalProps: { job: job, field: 'receivedByLab', title: `Receive Samples for ${job.jobNumber}`, }});
-                      }}>
+                          modalProps: {
+                            job: job,
+                            field: "receivedByLab",
+                            title: `Receive Samples for ${job.jobNumber}`,
+                          },
+                        });
+                      }}
+                    >
                       <ReceiveIcon className={classes.iconRegular} />
                     </IconButton>
                   </div>
                 </Tooltip>
-              }
-              {labFunctions &&
-                  <Tooltip id="analysisa-tooltip" title={'Start Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
-                    <div>
-                      <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
-                        onClick={event => {
-                          this.props.showModal({
-                            modalType: ASBESTOS_ACTIONS,
-                            modalProps: { job: job, field: 'analysisStarted', title: `Start Analysis on ${job.jobNumber} (${job.client}: ${job.address})`,
-                          }});
-                        }}>
-                        <StartAnalysisIcon className={classes.iconRegular} />
-                      </IconButton>
-                    </div>
-                </Tooltip>
-              }
-              {labFunctions &&
-                <Tooltip title={'Record Analysis'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+              )}
+              {labFunctions && (
+                <Tooltip
+                  id="analysisa-tooltip"
+                  title={"Start Analysis"}
+                  disabled={
+                    !filteredSamples ||
+                    Object.values(filteredSamples).length === 0
+                  }
+                >
                   <div>
-                    <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0 || (!this.props.me.auth || (!this.props.me.auth['Asbestos Admin'] && !this.props.me.auth['Asbestos Bulk Analysis']))}
-                      onClick={event => {
-                        if (this.props.asbestosSampleDisplayAdvanced) this.props.toggleAsbestosSampleDisplayMode();
+                    <IconButton
+                      disabled={
+                        !filteredSamples ||
+                        Object.values(filteredSamples).length === 0
+                      }
+                      onClick={(event) => {
+                        this.props.showModal({
+                          modalType: ASBESTOS_ACTIONS,
+                          modalProps: {
+                            job: job,
+                            field: "analysisStarted",
+                            title: `Start Analysis on ${job.jobNumber} (${job.client}: ${job.address})`,
+                          },
+                        });
+                      }}
+                    >
+                      <StartAnalysisIcon className={classes.iconRegular} />
+                    </IconButton>
+                  </div>
+                </Tooltip>
+              )}
+              {labFunctions && (
+                <Tooltip
+                  title={"Record Analysis"}
+                  disabled={
+                    !filteredSamples ||
+                    Object.values(filteredSamples).length === 0
+                  }
+                >
+                  <div>
+                    <IconButton
+                      disabled={
+                        !filteredSamples ||
+                        Object.values(filteredSamples).length === 0 ||
+                        !this.props.me.auth ||
+                        (!this.props.me.auth["Asbestos Admin"] &&
+                          !this.props.me.auth["Asbestos Bulk Analysis"])
+                      }
+                      onClick={(event) => {
+                        if (this.props.asbestosSampleDisplayAdvanced)
+                          this.props.toggleAsbestosSampleDisplayMode();
                         this.props.showModal({
                           modalType: ASBESTOS_SAMPLE_EDIT,
                           modalProps: {
                             activeSample: Object.keys(filteredSamples)[0],
                             activeCoc: job.uid,
                             sampleList: job.sampleList,
-                        }});
-                      }}>
+                          },
+                        });
+                      }}
+                    >
                       <RecordAnalysisIcon className={classes.iconRegular} />
                     </IconButton>
                   </div>
                 </Tooltip>
-              }
-              {adminFunctions &&
-                <Tooltip title={'Verify Results'} disabled={!filteredSamples || Object.values(filteredSamples).length === 0}>
+              )}
+              {adminFunctions && (
+                <Tooltip
+                  title={"Verify Results"}
+                  disabled={
+                    !filteredSamples ||
+                    Object.values(filteredSamples).length === 0
+                  }
+                >
                   <div>
-                    <IconButton disabled={!filteredSamples || Object.values(filteredSamples).length === 0}
-                      onClick={event => {
+                    <IconButton
+                      disabled={
+                        !filteredSamples ||
+                        Object.values(filteredSamples).length === 0
+                      }
+                      onClick={(event) => {
                         this.props.showModal({
                           modalType: ASBESTOS_ACTIONS,
-                          modalProps: { job: job, field: 'verified', title: `Verify Samples for ${job.jobNumber} (${job.client}: ${job.address})`,
-                        }});
-                      }}>
+                          modalProps: {
+                            job: job,
+                            field: "verified",
+                            title: `Verify Samples for ${job.jobNumber} (${job.client}: ${job.address})`,
+                          },
+                        });
+                      }}
+                    >
                       <VerifyIcon className={classes.iconRegular} />
                     </IconButton>
                   </div>
                 </Tooltip>
-              }
+              )}
               {adminFunctions && <div className={classes.spacerSmall} />}
-              {adminFunctions && <Button
-                className={classes.buttonIconText}
-                // disabled={job.versionUpToDate}
-                onClick={() => {
-                  this.props.showModal({
-                    modalType: ASBESTOS_ACTIONS,
-                    modalProps: { job: job, field: 'issue', title: `Issue ${job.jobNumber} (${job.client}: ${job.address})`, }
-                  });
-                }} >
-                <IssueVersionIcon className={classes.iconRegular} />
-                Issue Certificate
-              </Button>}
+              {adminFunctions && (
+                <Button
+                  className={classes.buttonIconText}
+                  // disabled={job.versionUpToDate}
+                  onClick={() => {
+                    this.props.showModal({
+                      modalType: ASBESTOS_ACTIONS,
+                      modalProps: {
+                        job: job,
+                        field: "issue",
+                        title: `Issue ${job.jobNumber} (${job.client}: ${job.address})`,
+                      },
+                    });
+                  }}
+                >
+                  <IssueVersionIcon className={classes.iconRegular} />
+                  Issue Certificate
+                </Button>
+              )}
               {labFunctions && <div className={classes.spacerSmall} />}
               <Button
                 className={classes.buttonIconText}
                 disabled={!job.currentVersion || !job.versionUpToDate}
                 onClick={() => {
-                  printLabReport(job, job.currentVersion, this.props.me, this.props.showModal);
+                  printLabReport(
+                    job,
+                    job.currentVersion,
+                    this.props.me,
+                    this.props.showModal
+                  );
                 }}
               >
-                <DownloadIcon className={classes.iconRegular} /> Download Certificate
+                <DownloadIcon className={classes.iconRegular} /> Download
+                Certificate
               </Button>
               <IconButton
-                onClick={event => {
+                onClick={(event) => {
                   this.setState({ cocAnchorEl: event.currentTarget });
                 }}
               >
@@ -320,7 +470,7 @@ class AsbestosAirCocCard extends React.Component {
                       modalType: COC_LOG,
                       modalProps: {
                         ...job,
-                      }
+                      },
                     });
                   }}
                 >
@@ -328,26 +478,40 @@ class AsbestosAirCocCard extends React.Component {
                 </MenuItem>
                 <MenuItem>
                   <CSVLink
-                    data={filteredSamples ? verifySamples(Object.values(filteredSamples), job, this.props.me.uid, true, false) : null}
+                    data={
+                      filteredSamples
+                        ? verifySamples(
+                            Object.values(filteredSamples),
+                            job,
+                            this.props.me.uid,
+                            true,
+                            false
+                          )
+                        : null
+                    }
                     filename={`${job.jobNumber}_issues_to_fix.csv`}
                   >
                     Download Issues as CSV
                   </CSVLink>
                 </MenuItem>
                 <MenuItem>
-                  <CSVLink data={getSampleData(filteredSamples, job)}
+                  <CSVLink
+                    data={getSampleData(filteredSamples, job)}
                     filename={`${job.jobNumber}_sample_data.csv`}
                   >
                     Download Sample Data as CSV
                   </CSVLink>
                 </MenuItem>
-                {job.waAnalysis && <MenuItem>
-                  <CSVLink data={getSubsampleData(filteredSamples, job)}
-                    filename={`${job.jobNumber}_subsample_data.csv`}
-                  >
-                    Download Subsample Data as CSV
-                  </CSVLink>
-                </MenuItem>}
+                {job.waAnalysis && (
+                  <MenuItem>
+                    <CSVLink
+                      data={getSubsampleData(filteredSamples, job)}
+                      filename={`${job.jobNumber}_subsample_data.csv`}
+                    >
+                      Download Subsample Data as CSV
+                    </CSVLink>
+                  </MenuItem>
+                )}
                 {/*<MenuItem
                   onClick={() => {
                     this.props.showModal({
@@ -373,12 +537,17 @@ class AsbestosAirCocCard extends React.Component {
                 <Divider />
                 {job.currentVersion &&
                   // job.currentVersion > 1 &&
-                  [...Array(job.currentVersion).keys()].map(i => {
+                  [...Array(job.currentVersion).keys()].map((i) => {
                     return (
                       <MenuItem
                         key={i}
                         onClick={() => {
-                          printLabReport(job, i + 1, this.props.me, this.props.showModal);
+                          printLabReport(
+                            job,
+                            i + 1,
+                            this.props.me,
+                            this.props.showModal
+                          );
                         }}
                       >
                         Download Version {i + 1}
@@ -386,7 +555,11 @@ class AsbestosAirCocCard extends React.Component {
                     );
                   })}
                 <Divider />
-                <MenuItem onClick={() => this.props.deleteCoc(job, filteredSamples, this.props.me)}>
+                <MenuItem
+                  onClick={() =>
+                    this.props.deleteCoc(job, filteredSamples, this.props.me)
+                  }
+                >
                   Delete Chain of Custody
                 </MenuItem>
               </Menu>
@@ -394,13 +567,14 @@ class AsbestosAirCocCard extends React.Component {
             <AsbestosCocSummary job={job.uid} expanded={this.state.expanded} />
             {filteredSamples && Object.values(filteredSamples).length > 0 ? (
               <div>
-                {Object.values(filteredSamples)
-                  .map(sample => {
-                    return (<AsbestosSampleListItem
+                {Object.values(filteredSamples).map((sample) => {
+                  return (
+                    <AsbestosSampleListItem
                       key={sample.uid}
                       job={job.uid}
                       sample={sample.sampleNumber}
-                    />);
+                    />
+                  );
                 })}
               </div>
             ) : (
@@ -416,8 +590,5 @@ class AsbestosAirCocCard extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(AsbestosAirCocCard)
+  connect(mapStateToProps, mapDispatchToProps)(AsbestosAirCocCard)
 );

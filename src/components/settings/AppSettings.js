@@ -82,10 +82,10 @@ const settings = {
     label: "Notice Categories",
     value: "noticeCategories",
     group: "appCategories",
-    fields: ["desc", "key"],
+    fields: ["desc", "key", "color"],
     noSort: true,
     hint:
-      'Put each category on a new line in the form "category description|category key".'
+      'Put each category on a new line in the form "category description|category key|category color (web)".'
   },
   toolCategories: {
     label: "Tool Categories",

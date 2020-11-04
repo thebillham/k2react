@@ -4,32 +4,12 @@ import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 
 //Modals
-import { WFM_TIME } from "../../../constants/modal-types";
 import { showModal } from "../../../actions/modal";
-import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
-import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions";
 import TextField from "@material-ui/core/TextField";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
-import WfmTimeModal from "../modals/WfmTimeModal";
-import ClosedArrow from "@material-ui/icons/ArrowDropDown";
-import OpenArrow from "@material-ui/icons/ArrowDropUp";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
-import SyncIcon from "@material-ui/icons/Sync";
-import LinkIcon from "@material-ui/icons/Link";
-import TimerIcon from "@material-ui/icons/Timer";
 import Select from "react-select";
 import SuggestionField from "../../../widgets/SuggestionField";
 
@@ -37,53 +17,32 @@ import { DatePicker } from "@material-ui/pickers";
 import _ from "lodash";
 
 import classNames from "classnames";
-import Popup from "reactjs-popup";
-import {
-  dateOf,
-  getDaysSinceDate,
-  getDaysSinceDateAgo,
-  andList,
-  personnelConvert
-} from "../../../actions/helpers";
-
-import moment from "moment";
+import { dateOf, personnelConvert } from "../../../actions/helpers";
 
 import {
   fetchWFMJobs,
   fetchWFMLeads,
   fetchWFMClients,
-  fetchCurrentJobState,
-  saveCurrentJobState,
-  getDetailedWFMJob,
   clearWfmJob,
   saveWFMItems,
   saveGeocodes,
   fetchGeocodes,
   updateGeocodes,
   saveStats,
-  collateJobsList,
   getJobColor,
-  getStateString,
-  getNextActionType,
-  getNextActionOverdueBy,
   handleSiteChange,
-  getWfmUrl,
-  getLeadHistoryDescription,
-  handleJobChange
 } from "../../../actions/jobs";
 
 import { filterMap, filterMapReset } from "../../../actions/display";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     asbestosRemovalists: state.const.asbestosRemovalists,
     siteVisitTypeAsbestos: state.const.siteVisitTypeAsbestos,
     wfmJobs: state.jobs.wfmJobs,
     wfmJob: state.jobs.wfmJob,
     wfmLeads: state.jobs.wfmLeads,
-    wfmClients: state.jobs.wfmClients,
     currentJobState: state.jobs.currentJobState,
-    geocodes: state.jobs.geocodes,
     wfmItems: state.jobs.wfmItems,
     wfmStats: state.jobs.wfmStats,
     jobList: state.jobs.jobList,
@@ -94,30 +53,29 @@ const mapStateToProps = state => {
     me: state.local.me,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
-    modalType: state.modal.modalType
+    modalType: state.modal.modalType,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     fetchWFMJobs: () => dispatch(fetchWFMJobs()),
     fetchWFMLeads: () => dispatch(fetchWFMLeads()),
     fetchWFMClients: () => dispatch(fetchWFMClients()),
-    handleSiteChange: info => dispatch(handleSiteChange(info)),
+    handleSiteChange: (info) => dispatch(handleSiteChange(info)),
     handleSiteChangeDebounced: _.debounce(
-      info => dispatch(handleSiteChange(info)),
+      (info) => dispatch(handleSiteChange(info)),
       2000
     ),
     clearWfmJob: () => dispatch(clearWfmJob()),
-    getDetailedWFMJob: info => dispatch(getDetailedWFMJob(info)),
-    saveGeocodes: g => dispatch(saveGeocodes(g)),
+    saveGeocodes: (g) => dispatch(saveGeocodes(g)),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
-    updateGeocodes: g => dispatch(updateGeocodes(g)),
-    saveWFMItems: items => dispatch(saveWFMItems(items)),
-    saveStats: stats => dispatch(saveStats(stats)),
-    filterMap: filter => dispatch(filterMap(filter)),
+    updateGeocodes: (g) => dispatch(updateGeocodes(g)),
+    saveWFMItems: (items) => dispatch(saveWFMItems(items)),
+    saveStats: (stats) => dispatch(saveStats(stats)),
+    filterMap: (filter) => dispatch(filterMap(filter)),
     filterMapReset: () => dispatch(filterMapReset()),
-    showModal: modal => dispatch(showModal(modal))
+    showModal: (modal) => dispatch(showModal(modal)),
   };
 };
 
@@ -126,7 +84,7 @@ class SiteVisitHistory extends React.Component {
     countSiteVisitsAsbestos: 1,
     countClearances: 1,
 
-    update: {}
+    update: {},
   };
 
   UNSAFE_componentWillMount() {
@@ -136,7 +94,7 @@ class SiteVisitHistory extends React.Component {
       let site = this.props.sites[this.props.site];
       if (site.siteVisits && Object.keys(site.siteVisits).length > 0) {
         countSiteVisitsAsbestos = Math.max(
-          ...Object.keys(site.siteVisits).map(key => parseInt(key))
+          ...Object.keys(site.siteVisits).map((key) => parseInt(key))
         );
       }
       if (
@@ -144,25 +102,25 @@ class SiteVisitHistory extends React.Component {
         Object.keys(site.asbestosRemovals).length > 0
       ) {
         countClearances = Math.max(
-          ...Object.keys(site.asbestosRemovals).map(key => parseInt(key))
+          ...Object.keys(site.asbestosRemovals).map((key) => parseInt(key))
         );
       }
     }
     this.setState({
       countSiteVisitsAsbestos,
-      countClearances
+      countClearances,
     });
   }
 
-  addList = field => {
+  addList = (field) => {
     this.setState({
       [`count${field}`]: this.state[`count${field}`]
         ? this.state[`count${field}`] + 1
-        : 2
+        : 2,
     });
   };
 
-  removeList = field => {
+  removeList = (field) => {
     let obj = field ? field.slice(0, 1).toLowerCase() + field.slice(1) : null;
     let num = this.state[`count${field}`] ? this.state[`count${field}`] : 1;
     if (obj)
@@ -170,19 +128,19 @@ class SiteVisitHistory extends React.Component {
         site: this.props.sites[this.props.site],
         o1: [obj],
         field: num,
-        val: "delete"
+        val: "delete",
       });
     this.setState({
       [`count${field}`]: this.state[`count${field}`]
         ? this.state[`count${field}`] > 1
           ? this.state[`count${field}`] - 1
           : 1
-        : 1
+        : 1,
     });
   };
 
   render() {
-    const { classes, that, site, wfmClients, geocodes } = this.props;
+    const { classes, that, site } = this.props;
     const names = [{ name: "3rd Party", uid: "3rd Party" }].concat(
       Object.values(this.props.staff).sort((a, b) =>
         a.name.localeCompare(b.name)
@@ -228,8 +186,8 @@ class SiteVisitHistory extends React.Component {
                 this.state.countSiteVisitsAsbestos
                   ? this.state.countSiteVisitsAsbestos
                   : 1
-              ).keys()
-            ].map(i => {
+              ).keys(),
+            ].map((i) => {
               let num = i + 1,
                 s = m.siteVisits && m.siteVisits[num] ? m.siteVisits[num] : {};
               console.log(s);
@@ -249,13 +207,13 @@ class SiteVisitHistory extends React.Component {
                     variant="inline"
                     openTo="year"
                     views={["year", "month", "date"]}
-                    onChange={date => {
+                    onChange={(date) => {
                       this.props.handleSiteChange({
                         site: m,
                         o1: "siteVisitsAsbestos",
                         o2: num.toString(),
                         field: "date",
-                        val: dateOf(date)
+                        val: dateOf(date),
                       });
                     }}
                   />
@@ -271,23 +229,23 @@ class SiteVisitHistory extends React.Component {
                       )}
                       value={
                         s.personnel
-                          ? s.personnel.map(e => ({
+                          ? s.personnel.map((e) => ({
                               value: e.uid,
-                              label: e.name
+                              label: e.name,
                             }))
                           : null
                       }
-                      options={names.map(e => ({
+                      options={names.map((e) => ({
                         value: e.uid,
-                        label: e.name
+                        label: e.name,
                       }))}
-                      onChange={e => {
+                      onChange={(e) => {
                         this.props.handleSiteChange({
                           site: m,
                           o1: "siteVisitsAsbestos",
                           o2: num.toString(),
                           field: "personnel",
-                          val: personnelConvert(e)
+                          val: personnelConvert(e),
                         });
                       }}
                     />
@@ -297,13 +255,13 @@ class SiteVisitHistory extends React.Component {
                       label="3rd Party Company Name"
                       className={classes.columnMedLarge}
                       defaultValue={s.companyName ? s.companyName : null}
-                      onChange={e => {
+                      onChange={(e) => {
                         this.props.handleSiteChangeDebounced({
                           site: m,
                           o1: "siteVisitsAsbestos",
                           o2: num.toString(),
                           field: "companyName",
-                          val: e.target.value
+                          val: e.target.value,
                         });
                       }}
                     />
@@ -320,19 +278,19 @@ class SiteVisitHistory extends React.Component {
                           ? {
                               value: s.type,
                               label: this.props.siteVisitTypeAsbestos.filter(
-                                e => e.value === s.type
-                              )[0].label
+                                (e) => e.value === s.type
+                              )[0].label,
                             }
                           : null
                       }
                       options={this.props.siteVisitTypeAsbestos}
-                      onChange={e => {
+                      onChange={(e) => {
                         this.props.handleSiteChange({
                           site: m,
                           o1: "siteVisitsAsbestos",
                           o2: num.toString(),
                           field: "type",
-                          val: e.value
+                          val: e.value,
                         });
                       }}
                     />
@@ -344,13 +302,13 @@ class SiteVisitHistory extends React.Component {
                       defaultValue={
                         s.referenceNumber ? s.referenceNumber : null
                       }
-                      onChange={e => {
+                      onChange={(e) => {
                         this.props.handleSiteChangeDebounced({
                           site: m,
                           o1: "siteVisitsAsbestos",
                           o2: num.toString(),
                           field: "referenceNumber",
-                          val: e.target.value
+                          val: e.target.value,
                         });
                       }}
                     />
@@ -367,25 +325,27 @@ class SiteVisitHistory extends React.Component {
                           s.referenceNumber
                             ? {
                                 value: s.referenceNumber,
-                                label: s.referenceNumber
+                                label: s.referenceNumber,
                               }
                             : null
                         }
                         options={
                           this.props.siteJobs &&
                           this.props.siteJobs[m.uid] &&
-                          Object.values(this.props.siteJobs[m.uid]).map(e => ({
-                            value: e.jobNumber,
-                            label: `${e.jobNumber}: ${e.jobDescription}`
-                          }))
+                          Object.values(this.props.siteJobs[m.uid]).map(
+                            (e) => ({
+                              value: e.jobNumber,
+                              label: `${e.jobNumber}: ${e.jobDescription}`,
+                            })
+                          )
                         }
-                        onChange={e => {
+                        onChange={(e) => {
                           this.props.handleSiteChange({
                             site: m,
                             o1: "siteVisitsAsbestos",
                             o2: num.toString(),
                             field: "referenceNumber",
-                            val: e.value
+                            val: e.value,
                           });
                         }}
                       />
@@ -396,13 +356,13 @@ class SiteVisitHistory extends React.Component {
                     label="Notes"
                     className={classes.columnLarge}
                     defaultValue={s.notes ? s.notes : null}
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         o1: "siteVisitsAsbestos",
                         o2: num.toString(),
                         field: "notes",
-                        val: e.target.value
+                        val: e.target.value,
                       });
                     }}
                   />
@@ -437,8 +397,8 @@ class SiteVisitHistory extends React.Component {
             {[
               ...Array(
                 this.state.countClearances ? this.state.countClearances : 1
-              ).keys()
-            ].map(i => {
+              ).keys(),
+            ].map((i) => {
               let num = i + 1,
                 s = m.clearances && m.clearances[num] ? m.clearances[num] : {};
               return (
@@ -452,18 +412,18 @@ class SiteVisitHistory extends React.Component {
                       defaultValue={
                         s.asbestosRemovalist ? s.asbestosRemovalist : ""
                       }
-                      onModify={value => {
+                      onModify={(value) => {
                         this.props.handleSiteChangeDebounced({
                           site: m,
                           o1: "clearances",
                           o2: num.toString(),
                           field: "asbestosRemovalist",
-                          val: value
+                          val: value,
                         });
                         if (
                           this.props.asbestosRemovalists &&
                           this.props.asbestosRemovalists.filter(
-                            e => e.label === value
+                            (e) => e.label === value
                           ).length > 0
                         )
                           this.props.handleSiteChange({
@@ -472,8 +432,8 @@ class SiteVisitHistory extends React.Component {
                             o2: num.toString(),
                             field: "asbestosRemovalistLicence",
                             val: this.props.asbestosRemovalists.filter(
-                              e => e.label === value
-                            )[0].value
+                              (e) => e.label === value
+                            )[0].value,
                           });
                       }}
                     />
@@ -486,13 +446,13 @@ class SiteVisitHistory extends React.Component {
                         ? s.asbestosRemovalistLicence
                         : ""
                     }
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChange({
                         site: m,
                         o1: "clearances",
                         o2: num.toString(),
                         field: "asbestosRemovalistLicence",
-                        val: e.target.value
+                        val: e.target.value,
                       });
                     }}
                   />
@@ -506,13 +466,13 @@ class SiteVisitHistory extends React.Component {
                     label={"Removal Completion Date"}
                     views={["year", "month", "date"]}
                     openTo="year"
-                    onChange={date => {
+                    onChange={(date) => {
                       this.props.handleSiteChange({
                         site: m,
                         o1: "clearances",
                         o2: num.toString(),
                         field: "removalDate",
-                        val: dateOf(date)
+                        val: dateOf(date),
                       });
                     }}
                   />
@@ -521,13 +481,13 @@ class SiteVisitHistory extends React.Component {
                     className={classes.columnMedLarge}
                     multiline
                     defaultValue={s.description ? s.description : ""}
-                    onChange={e => {
+                    onChange={(e) => {
                       this.props.handleSiteChangeDebounced({
                         site: m,
                         o1: "clearances",
                         o2: num.toString(),
                         field: "description",
-                        val: e.target.value
+                        val: e.target.value,
                       });
                     }}
                   />
@@ -542,13 +502,13 @@ class SiteVisitHistory extends React.Component {
                     label={"Clearance Inspection Date"}
                     views={["year", "month", "date"]}
                     openTo="year"
-                    onChange={date => {
+                    onChange={(date) => {
                       this.props.handleSiteChange({
                         site: m,
                         o1: "clearances",
                         o2: num.toString(),
                         field: "clearanceDate",
-                        val: dateOf(date)
+                        val: dateOf(date),
                       });
                     }}
                   />
@@ -566,23 +526,23 @@ class SiteVisitHistory extends React.Component {
                       className={classes.selectTight}
                       value={
                         s.personnel
-                          ? s.personnel.map(e => ({
+                          ? s.personnel.map((e) => ({
                               value: e.uid,
-                              label: e.name
+                              label: e.name,
                             }))
                           : null
                       }
-                      options={names.map(e => ({
+                      options={names.map((e) => ({
                         value: e.uid,
-                        label: e.name
+                        label: e.name,
                       }))}
-                      onChange={e => {
+                      onChange={(e) => {
                         this.props.handleSiteChange({
                           site: m,
                           o1: "clearances",
                           o2: num.toString(),
                           field: "personnel",
-                          val: personnelConvert(e)
+                          val: personnelConvert(e),
                         });
                       }}
                     />
@@ -596,13 +556,13 @@ class SiteVisitHistory extends React.Component {
                           ? s.asbestosAssessorLicence
                           : ""
                       }
-                      onChange={e => {
+                      onChange={(e) => {
                         this.props.handleSiteChangeDebounced({
                           site: m,
                           o1: "clearances",
                           o2: num.toString(),
                           field: "asbestosAssessorLicence",
-                          val: e.target.value
+                          val: e.target.value,
                         });
                       }}
                     />
@@ -614,13 +574,13 @@ class SiteVisitHistory extends React.Component {
                       defaultValue={
                         s.referenceNumber ? s.referenceNumber : null
                       }
-                      onChange={e => {
+                      onChange={(e) => {
                         this.props.handleSiteChangeDebounced({
                           site: m,
                           o1: "clearances",
                           o2: num.toString(),
                           field: "referenceNumber",
-                          val: e.target.value
+                          val: e.target.value,
                         });
                       }}
                     />
@@ -637,25 +597,27 @@ class SiteVisitHistory extends React.Component {
                           s.referenceNumber
                             ? {
                                 value: s.referenceNumber,
-                                label: s.referenceNumber
+                                label: s.referenceNumber,
                               }
                             : null
                         }
                         options={
                           this.props.siteJobs &&
                           this.props.siteJobs[m.uid] &&
-                          Object.values(this.props.siteJobs[m.uid]).map(e => ({
-                            value: e.jobNumber,
-                            label: `${e.jobNumber}: ${e.jobDescription}`
-                          }))
+                          Object.values(this.props.siteJobs[m.uid]).map(
+                            (e) => ({
+                              value: e.jobNumber,
+                              label: `${e.jobNumber}: ${e.jobDescription}`,
+                            })
+                          )
                         }
-                        onChange={e => {
+                        onChange={(e) => {
                           this.props.handleSiteChange({
                             site: m,
                             o1: "clearances",
                             o2: num.toString(),
                             field: "referenceNumber",
-                            val: e.value
+                            val: e.value,
                           });
                         }}
                       />
@@ -672,13 +634,13 @@ class SiteVisitHistory extends React.Component {
                     label={"Certificate Issue Date"}
                     views={["year", "month", "date"]}
                     openTo="year"
-                    onChange={date => {
+                    onChange={(date) => {
                       this.props.handleSiteChange({
                         site: m,
                         o1: "clearances",
                         o2: num.toString(),
                         field: "issueDate",
-                        val: dateOf(date)
+                        val: dateOf(date),
                       });
                     }}
                   />
@@ -693,8 +655,5 @@ class SiteVisitHistory extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(SiteVisitHistory)
+  connect(mapStateToProps, mapDispatchToProps)(SiteVisitHistory)
 );

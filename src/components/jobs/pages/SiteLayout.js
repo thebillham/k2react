@@ -3,7 +3,6 @@ import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 import { appSettingsRef } from "../../../config/firebase";
-import { showModal } from "../../../actions/modal";
 
 import Grid from "@material-ui/core/Grid";
 import Card from "@material-ui/core/Card";
@@ -15,32 +14,18 @@ import Tooltip from "@material-ui/core/Tooltip";
 import ArrowIcon from "@material-ui/icons/ArrowForwardIos";
 import SelectIcon from "@material-ui/icons/Info";
 import DeleteIcon from "@material-ui/icons/Close";
-import SuggestionField from "../../../widgets/SuggestionField";
-
-import { DatePicker } from "@material-ui/pickers";
-import _ from "lodash";
-
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 import classNames from "classnames";
-import Popup from "reactjs-popup";
-import {
-  dateOf,
-  getDaysSinceDate,
-  getDaysSinceDateAgo,
-  andList,
-  personnelConvert,
-  titleCase
-} from "../../../actions/helpers";
+import { titleCase } from "../../../actions/helpers";
 
 import moment from "moment";
 
 import { getJobColor, handleSiteChange } from "../../../actions/jobs";
 
 import { getFirestoreCollection } from "../../../actions/local";
-import { filterMap, filterMapReset } from "../../../actions/display";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     search: state.local.search,
     staff: state.local.staff,
@@ -49,13 +34,13 @@ const mapStateToProps = state => {
     me: state.local.me,
     filter: state.display.filterMap,
     otherOptions: state.const.otherOptions,
-    modalType: state.modal.modalType
+    modalType: state.modal.modalType,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    handleSiteChange: info => dispatch(handleSiteChange(info)),
+    handleSiteChange: (info) => dispatch(handleSiteChange(info)),
     fetchBmTemplates: () =>
       dispatch(
         getFirestoreCollection({
@@ -63,9 +48,9 @@ const mapDispatchToProps = dispatch => {
             .doc("templates")
             .collection("buildingMaterials"),
           statePath: "bmTemplates",
-          update: true
+          update: true,
         })
-      )
+      ),
   };
 };
 
@@ -100,7 +85,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     ? `0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)`
     : `0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19)`,
   background: isDragging ? "#fafafa" : "white",
-  ...draggableStyle
+  ...draggableStyle,
 });
 
 const getListStyle = (isDraggingOver, isDefault) => ({
@@ -113,17 +98,17 @@ const getListStyle = (isDraggingOver, isDefault) => ({
     ? "#FF2D00"
     : "#ff5733",
   margin: 4,
-  padding: 8
+  padding: 8,
 });
 
 class SiteLayout extends React.Component {
   state = {
     roomGroups: "",
     rooms: "",
-    selectedRoom: null
+    selectedRoom: null,
   };
 
-  onDragEnd = result => {
+  onDragEnd = (result) => {
     const { source, destination } = result;
     // dropped outside the list
     if (!result.destination) {
@@ -142,7 +127,7 @@ class SiteLayout extends React.Component {
         o1: "layout",
         o2: source.droppableId,
         field: "rooms",
-        val: items
+        val: items,
       });
     } else {
       const result = move(
@@ -157,13 +142,13 @@ class SiteLayout extends React.Component {
         destination
       );
 
-      Object.keys(result).forEach(key => {
+      Object.keys(result).forEach((key) => {
         this.props.handleSiteChange({
           site: this.props.sites[this.props.site],
           o1: "layout",
           o2: key,
           field: "rooms",
-          val: result[key]
+          val: result[key],
         });
       });
     }
@@ -176,7 +161,7 @@ class SiteLayout extends React.Component {
       .map((e, index) => ({
         label: titleCase(e),
         uid: `${e.replace(/[.:/,\s]/g, "_")}${moment().format("x")}${index}`,
-        materials: []
+        materials: [],
       }));
     // Have a template for materials based on room name
     this.setState({ rooms: "" });
@@ -191,14 +176,14 @@ class SiteLayout extends React.Component {
         o1: "layout",
         o2: "default",
         field: "rooms",
-        val: rooms
+        val: rooms,
       });
     } else {
       this.props.handleSiteChange({
         site: this.props.sites[this.props.site],
         o1: "layout",
         field: "default",
-        val: { rooms }
+        val: { rooms },
       });
     }
   };
@@ -211,15 +196,15 @@ class SiteLayout extends React.Component {
         uid: `${e}${index}`,
         label: titleCase(e),
         index: index,
-        rooms: []
+        rooms: [],
       }));
 
-    rooms.forEach(room => {
+    rooms.forEach((room) => {
       this.props.handleSiteChange({
         site: this.props.sites[this.props.site],
         o1: "layout",
         field: room.uid,
-        val: room
+        val: room,
       });
     });
 
@@ -228,18 +213,18 @@ class SiteLayout extends React.Component {
 
   deleteRoom = (r, key) => {
     let rooms = this.props.sites[this.props.site].layout[key].rooms.filter(
-      e => e.uid !== r.uid
+      (e) => e.uid !== r.uid
     );
     this.props.handleSiteChange({
       site: this.props.sites[this.props.site],
       o1: "layout",
       o2: key,
       field: "rooms",
-      val: rooms
+      val: rooms,
     });
   };
 
-  deleteRoomGroup = key => {
+  deleteRoomGroup = (key) => {
     if (
       this.props.sites[this.props.site].layout[key] &&
       this.props.sites[this.props.site].layout[key].rooms
@@ -256,14 +241,14 @@ class SiteLayout extends React.Component {
           o1: "layout",
           o2: "default",
           field: "rooms",
-          val: rooms
+          val: rooms,
         });
       } else {
         this.props.handleSiteChange({
           site: this.props.sites[this.props.site],
           o1: "layout",
           field: "default",
-          val: { rooms }
+          val: { rooms },
         });
       }
     }
@@ -271,17 +256,12 @@ class SiteLayout extends React.Component {
       site: this.props.sites[this.props.site],
       o1: "layout",
       field: key,
-      val: "delete"
+      val: "delete",
     });
   };
 
   render() {
-    const { classes, that, site, wfmClients, geocodes } = this.props;
-    const names = [{ name: "3rd Party", uid: "3rd Party" }].concat(
-      Object.values(this.props.staff).sort((a, b) =>
-        a.name.localeCompare(b.name)
-      )
-    );
+    const { classes, site } = this.props;
     const m =
       this.props.sites && this.props.sites[site]
         ? this.props.sites[site]
@@ -300,9 +280,9 @@ class SiteLayout extends React.Component {
               multiline
               rows={20}
               value={this.state.rooms}
-              onChange={e => {
+              onChange={(e) => {
                 this.setState({
-                  rooms: e.target.value
+                  rooms: e.target.value,
                 });
               }}
               helperText={
@@ -322,9 +302,9 @@ class SiteLayout extends React.Component {
               multiline
               rows={10}
               value={this.state.roomGroups}
-              onChange={e => {
+              onChange={(e) => {
                 this.setState({
-                  roomGroups: e.target.value
+                  roomGroups: e.target.value,
                 });
               }}
               helperText={
@@ -341,7 +321,7 @@ class SiteLayout extends React.Component {
             <DragDropContext onDragEnd={this.onDragEnd}>
               {m.layout &&
                 Object.keys(m.layout)
-                  .filter(e => e !== "default")
+                  .filter((e) => e !== "default")
                   .map((key, index) => (
                     <Droppable key={key} droppableId={key}>
                       {(provided, snapshot) => (
@@ -360,7 +340,7 @@ class SiteLayout extends React.Component {
                               }
                             >
                               <IconButton
-                                onClick={e => {
+                                onClick={(e) => {
                                   if (
                                     window.confirm(
                                       "Are you sure you wish to delete this room group?"
@@ -477,7 +457,7 @@ class SiteLayout extends React.Component {
             }
           >
             <IconButton
-              onClick={e => {
+              onClick={(e) => {
                 if (
                   window.confirm(
                     `Are you sure you wish to delete this room (${r.label})?`
@@ -496,8 +476,5 @@ class SiteLayout extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(SiteLayout)
+  connect(mapStateToProps, mapDispatchToProps)(SiteLayout)
 );

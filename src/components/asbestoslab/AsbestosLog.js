@@ -2,30 +2,15 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { styles } from "../../config/styles";
 import { connect } from "react-redux";
-import {
-  fetchSampleLog,
-} from "../../actions/asbestosLab";
-import AsbestosLogCard from "./components/AsbestosLogCard";
 
-//Modals
-import { showModal } from "../../actions/modal";
-import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
-import Select from "@material-ui/core/Select";
-import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import TextField from "@material-ui/core/TextField";
-
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     search: state.local.search,
     me: state.local.me,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     // fetchSampleLog: update => dispatch(fetchSampleLog(update)),
   };
@@ -33,12 +18,12 @@ const mapDispatchToProps = dispatch => {
 
 class AsbestosLog extends React.Component {
   state = {
-    searchJobNumber: '',
-    searchClient: '',
-    searchStartDate: '',
-    searchEndDate: '',
-    searchDateType: '',
-    searchAnalyst: '',
+    searchJobNumber: "",
+    searchClient: "",
+    searchStartDate: "",
+    searchEndDate: "",
+    searchDateType: "",
+    searchAnalyst: "",
   };
 
   UNSAFE_componentWillMount = () => {
@@ -132,8 +117,5 @@ class AsbestosLog extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(AsbestosLog)
+  connect(mapStateToProps, mapDispatchToProps)(AsbestosLog)
 );

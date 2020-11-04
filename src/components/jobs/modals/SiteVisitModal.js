@@ -6,7 +6,6 @@ import { styles } from "../../../config/styles";
 import { connect } from "react-redux";
 // import store from '../../store';
 import { SITE_VISIT } from "../../../constants/modal-types";
-import { sitesRef, storage } from "../../../config/firebase";
 import "../../../config/tags.css";
 
 import Button from "@material-ui/core/Button";
@@ -16,37 +15,15 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import FormGroup from "@material-ui/core/FormGroup";
 import TextField from "@material-ui/core/TextField";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import FormControl from "@material-ui/core/FormControl";
-import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
-import IconButton from "@material-ui/core/IconButton";
-import { DatePicker, DateTimePicker } from "@material-ui/pickers";
+import { DatePicker } from "@material-ui/pickers";
 import Select from "react-select";
-
-import UploadIcon from "@material-ui/icons/CloudUpload";
-import Close from "@material-ui/icons/Close";
-import {
-  hideModal,
-  resetModal,
-  handleModalChange,
-  handleModalSubmit,
-  onUploadFile
-} from "../../../actions/modal";
-import { fetchSites } from "../../../actions/jobs";
-import { getUserAttrs } from "../../../actions/local";
-import {
-  sendSlackMessage,
-  numericOnly,
-  dateOf,
-  personnelConvert
-} from "../../../actions/helpers";
-import _ from "lodash";
-import classNames from "classnames";
+import { hideModal, resetModal } from "../../../actions/modal";
+import { dateOf, personnelConvert } from "../../../actions/helpers";
 
 import "../../../config/geosuggest.css";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
@@ -54,32 +31,30 @@ const mapStateToProps = state => {
     doc: state.modal.modalProps.doc,
     userRefName: state.local.userRefName,
     siteJobs: state.jobs.siteJobs,
-    siteTypes: state.const.siteTypes,
-    assetClasses: state.const.assetClassesTrain,
-    siteVisitTypeAsbestos: state.const.siteVisitTypeAsbestos
+    siteVisitTypeAsbestos: state.const.siteVisitTypeAsbestos,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     resetModal: () => dispatch(resetModal()),
-    hideModal: () => dispatch(hideModal())
+    hideModal: () => dispatch(hideModal()),
   };
 };
 
 class SiteVisitModal extends React.Component {
   state = {
-    date: null
+    date: null,
   };
 
   loadProps = () => {
     this.setState({
-      ...this.props.doc
+      ...this.props.doc,
     });
   };
 
   render() {
-    const { modalProps, doc, classes, siteTypes, assetClasses } = this.props;
+    const { modalProps, classes } = this.props;
     const names = [{ name: "3rd Party", uid: "3rd Party" }].concat(
       Object.values(this.props.staff).sort((a, b) =>
         a.name.localeCompare(b.name)
@@ -108,7 +83,7 @@ class SiteVisitModal extends React.Component {
             variant="inline"
             openTo="year"
             views={["year", "month", "date"]}
-            onChange={date => this.setState({ date: dateOf(date) })}
+            onChange={(date) => this.setState({ date: dateOf(date) })}
           />
           <InputLabel className={classes.marginTopSmall}>
             Site Personnel
@@ -118,17 +93,17 @@ class SiteVisitModal extends React.Component {
             className={classes.selectTight}
             value={
               this.state.personnel
-                ? this.state.personnel.map(e => ({
+                ? this.state.personnel.map((e) => ({
                     value: e.uid,
-                    label: e.name
+                    label: e.name,
                   }))
                 : null
             }
-            options={names.map(e => ({
+            options={names.map((e) => ({
               value: e.uid,
-              label: e.name
+              label: e.name,
             }))}
-            onChange={e => this.setState({ personnel: personnelConvert(e) })}
+            onChange={(e) => this.setState({ personnel: personnelConvert(e) })}
           />
           {this.state.personnel &&
             this.state.personnel[0].uid === "3rd Party" && (
@@ -137,7 +112,7 @@ class SiteVisitModal extends React.Component {
                 defaultValue={
                   this.state.companyName ? this.state.companyName : null
                 }
-                onChange={e => this.setState({ companyName: e.target.value })}
+                onChange={(e) => this.setState({ companyName: e.target.value })}
               />
             )}
           <InputLabel>Site Visit Type</InputLabel>
@@ -148,13 +123,13 @@ class SiteVisitModal extends React.Component {
                 ? {
                     value: this.state.type,
                     label: this.props.siteVisitTypeAsbestos.filter(
-                      e => e.value === this.state.type
-                    )[0].label
+                      (e) => e.value === this.state.type
+                    )[0].label,
                   }
                 : null
             }
             options={this.props.siteVisitTypeAsbestos}
-            onChange={e => this.setState({ type: e.value })}
+            onChange={(e) => this.setState({ type: e.value })}
           />
           {this.state.personnel &&
           this.state.personnel[0].uid === "3rd Party" ? (
@@ -164,7 +139,9 @@ class SiteVisitModal extends React.Component {
               defaultValue={
                 this.state.referenceNumber ? this.state.referenceNumber : null
               }
-              onChange={e => this.setState({ referenceNumber: e.target.value })}
+              onChange={(e) =>
+                this.setState({ referenceNumber: e.target.value })
+              }
             />
           ) : (
             <div>
@@ -176,7 +153,7 @@ class SiteVisitModal extends React.Component {
                   this.state.referenceNumber
                     ? {
                         value: this.state.referenceNumber,
-                        label: this.state.referenceNumber
+                        label: this.state.referenceNumber,
                       }
                     : null
                 }
@@ -184,13 +161,13 @@ class SiteVisitModal extends React.Component {
                   this.props.siteJobs &&
                   this.props.siteJobs[modalProps.siteUid] &&
                   Object.values(this.props.siteJobs[modalProps.siteUid]).map(
-                    e => ({
+                    (e) => ({
                       value: e.jobNumber,
-                      label: `${e.jobNumber}: ${e.jobDescription}`
+                      label: `${e.jobNumber}: ${e.jobDescription}`,
                     })
                   )
                 }
-                onChange={e => this.setState({ referenceNumber: e.value })}
+                onChange={(e) => this.setState({ referenceNumber: e.value })}
               />
             </div>
           )}
@@ -200,7 +177,7 @@ class SiteVisitModal extends React.Component {
             defaultValue={this.state.notes ? this.state.notes : null}
             multiline
             rows={5}
-            onChange={e => this.setState({ notes: e.target.value })}
+            onChange={(e) => this.setState({ notes: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
@@ -223,8 +200,5 @@ class SiteVisitModal extends React.Component {
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(SiteVisitModal)
+  connect(mapStateToProps, mapDispatchToProps)(SiteVisitModal)
 );

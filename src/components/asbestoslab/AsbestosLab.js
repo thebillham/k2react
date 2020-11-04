@@ -10,9 +10,7 @@ import {
   setAnalysisMode,
   deleteCoc,
 } from "../../actions/asbestosLab";
-import {
-  fetchStaff,
-} from "../../actions/local";
+import { fetchStaff } from "../../actions/local";
 import {
   fetchWFMJobs,
   fetchWFMLeads,
@@ -71,18 +69,12 @@ import InputLabel from "@material-ui/core/InputLabel";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import Grid from "@material-ui/core/Grid";
-import TextField from "@material-ui/core/TextField";
 import moment from "moment";
-import momenttimezone from "moment-timezone";
-import momentbusinesstime from "moment-business-time";
 import classNames from "classnames";
 
-import {
-  DatePicker,
-} from "@material-ui/pickers";
+import { DatePicker } from "@material-ui/pickers";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     cocs: state.asbestosLab.cocs,
     search: state.local.search,
@@ -105,29 +97,51 @@ const mapStateToProps = state => {
     jobList: state.jobs.jobList,
     search: state.local.search,
     filter: state.display.filterMap,
+    wfmAccessToken: state.local.wfmAccessToken,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     fetchCocs: () => dispatch(fetchCocs()),
-    fetchCocsByJobNumber: jobNumber => dispatch(fetchCocsByJobNumber(jobNumber)),
-    fetchCocsBySearch: (client, startDate, endDate) => dispatch(fetchCocsBySearch(client, startDate, endDate)),
+    fetchCocsByJobNumber: (jobNumber) =>
+      dispatch(fetchCocsByJobNumber(jobNumber)),
+    fetchCocsBySearch: (client, startDate, endDate) =>
+      dispatch(fetchCocsBySearch(client, startDate, endDate)),
     fetchStaff: () => dispatch(fetchStaff()),
-    showModal: modal => dispatch(showModal(modal)),
-    setAnalyst: analyst => dispatch(setAnalyst(analyst)),
-    setAnalysisMode: analysisMode => dispatch(setAnalysisMode(analysisMode)),
-    fetchWFMJobs: () => dispatch(fetchWFMJobs()),
-    fetchWFMLeads: () => dispatch(fetchWFMLeads()),
-    fetchWFMClients: () => dispatch(fetchWFMClients()),
-    fetchCurrentJobState: ignoreCompleted => dispatch(fetchCurrentJobState(ignoreCompleted)),
-    saveCurrentJobState: state => dispatch(saveCurrentJobState(state)),
-    saveGeocodes: g => dispatch(saveGeocodes(g)),
+    showModal: (modal) => dispatch(showModal(modal)),
+    setAnalyst: (analyst) => dispatch(setAnalyst(analyst)),
+    setAnalysisMode: (analysisMode) => dispatch(setAnalysisMode(analysisMode)),
+    fetchWFMJobs: (accessToken, refreshToken) =>
+      dispatch(fetchWFMJobs(accessToken, refreshToken)),
+    fetchWFMLeads: (accessToken, refreshToken) =>
+      dispatch(fetchWFMLeads(accessToken, refreshToken)),
+    fetchWFMClients: (accessToken, refreshToken) =>
+      dispatch(fetchWFMClients(accessToken, refreshToken)),
+    fetchCurrentJobState: (ignoreCompleted) =>
+      dispatch(fetchCurrentJobState(ignoreCompleted)),
+    saveCurrentJobState: (state) => dispatch(saveCurrentJobState(state)),
+    saveGeocodes: (g) => dispatch(saveGeocodes(g)),
     fetchGeocodes: () => dispatch(fetchGeocodes()),
-    updateGeocodes: g => dispatch(updateGeocodes(g)),
-    saveWFMItems: items => dispatch(saveWFMItems(items)),
-    saveStats: stats => dispatch(saveStats(stats)),
-    collateJobsList: (wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes) => dispatch(collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes)),
+    updateGeocodes: (g) => dispatch(updateGeocodes(g)),
+    saveWFMItems: (items) => dispatch(saveWFMItems(items)),
+    saveStats: (stats) => dispatch(saveStats(stats)),
+    collateJobsList: (
+      wfmJobs,
+      wfmLeads,
+      currentJobState,
+      wfmClients,
+      geocodes
+    ) =>
+      dispatch(
+        collateJobsList(
+          wfmJobs,
+          wfmLeads,
+          currentJobState,
+          wfmClients,
+          geocodes
+        )
+      ),
   };
 };
 
@@ -135,10 +149,10 @@ class AsbestosLab extends React.Component {
   // static whyDidYouRender = true;
   state = {
     analyst: false,
-    searchClient: '',
-    searchJobNumber: '',
-    searchStartDate: moment().subtract(1, 'months').format('YYYY-MM-DD'),
-    searchEndDate: moment().format('YYYY-MM-DD'),
+    searchClient: "",
+    searchJobNumber: "",
+    searchStartDate: moment().subtract(1, "months").format("YYYY-MM-DD"),
+    searchEndDate: moment().format("YYYY-MM-DD"),
   };
 
   UNSAFE_componentWillMount = () => {
@@ -152,13 +166,15 @@ class AsbestosLab extends React.Component {
         this.props.me.auth["Asbestos Bulk Analysis"]
       ) {
         this.setState({
-          analyst: true
+          analyst: true,
         });
-        if (this.props.analyst !== this.props.me.name) this.props.setAnalyst(this.props.me.name);
+        if (this.props.analyst !== this.props.me.name)
+          this.props.setAnalyst(this.props.me.name);
       }
     }
-    if (!this.props.staff || Object.keys(this.props.staff).length === 0) this.props.fetchStaff();
-    if (this.props.wfmJobs.length === 0) this.props.fetchWFMJobs();
+    if (!this.props.staff || Object.keys(this.props.staff).length === 0)
+      this.props.fetchStaff();
+    this.getWFMData();
     // if (this.props.jobList && Object.keys(this.props.jobList).length === 0) {
     //   if (this.props.wfmJobs.length === 0) this.props.fetchWFMJobs();
     //   if (this.props.wfmLeads.length === 0) this.props.fetchWFMLeads();
@@ -168,12 +184,32 @@ class AsbestosLab extends React.Component {
     // }
   };
 
+  getWFMData = () => {
+    if (this.props.wfmAccessToken && this.props.me) {
+      // console.log(this.props.clients);
+      if (!this.props.wfmJobs || this.props.wfmJobs.length === 0) {
+        this.props.fetchWFMJobs(
+          this.props.wfmAccessToken,
+          this.props.me.wfmRefreshToken
+        );
+      }
+    } else {
+      console.log("token not here yet");
+      setTimeout(this.getWFMData, 500);
+    }
+  };
+
   shouldComponentUpdate(nextProps, nextState) {
-    if (this.props.cocs && Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length) return true;
+    if (
+      this.props.cocs &&
+      Object.keys(this.props.cocs).length !== Object.keys(nextProps.cocs).length
+    )
+      return true;
     if (this.props.search !== nextProps.search) return true;
     if (this.state !== nextState) return true;
     if (this.props.modalType !== nextProps.modalType) return true;
-    if (this.props.modalTypeSecondary !== nextProps.modalTypeSecondary) return true;
+    if (this.props.modalTypeSecondary !== nextProps.modalTypeSecondary)
+      return true;
     else return false;
     // return true;
   }
@@ -191,7 +227,18 @@ class AsbestosLab extends React.Component {
   // }
 
   render() {
-    const { cocs, classes, modalType, modalTypeSecondary, wfmJobs, wfmLeads, wfmClients, currentJobState, jobList, geocodes, } = this.props;
+    const {
+      cocs,
+      classes,
+      modalType,
+      modalTypeSecondary,
+      wfmJobs,
+      wfmLeads,
+      wfmClients,
+      currentJobState,
+      jobList,
+      geocodes,
+    } = this.props;
     // if (
     //   wfmJobs.length > 0 &&
     //   wfmLeads.length > 0 &&
@@ -202,85 +249,133 @@ class AsbestosLab extends React.Component {
     //   this.props.collateJobsList(wfmJobs, wfmLeads, currentJobState, wfmClients, geocodes, );
 
     moment.tz.setDefault("Pacific/Auckland");
-    moment.updateLocale('en', {
+    moment.updateLocale("en", {
       // workingWeekdays: [1,2,3,4,5],
       workinghours: {
         0: null,
-        1: ['08:30:00', '17:00:00'],
-        2: ['08:30:00', '17:00:00'],
-        3: ['08:30:00', '17:00:00'],
-        4: ['08:30:00', '17:00:00'],
-        5: ['08:30:00', '17:00:00'],
+        1: ["08:30:00", "17:00:00"],
+        2: ["08:30:00", "17:00:00"],
+        3: ["08:30:00", "17:00:00"],
+        4: ["08:30:00", "17:00:00"],
+        5: ["08:30:00", "17:00:00"],
         6: null,
       },
       holidays: [
-        '2019-11-15',
-        '2019-12-25',
-        '2019-12-26',
-        '2020-01-01',
-        '2020-01-02',
-        '2020-02-06',
-        '2020-04-10',
-        '2020-04-13',
-        '2020-04-27',
-        '2020-06-01',
-        '2020-10-26',
-        '2020-11-13',
-        '2020-12-25',
-        '2020-12-26',
+        "2019-11-15",
+        "2019-12-25",
+        "2019-12-26",
+        "2020-01-01",
+        "2020-01-02",
+        "2020-02-06",
+        "2020-04-10",
+        "2020-04-13",
+        "2020-04-27",
+        "2020-06-01",
+        "2020-10-26",
+        "2020-11-13",
+        "2020-12-25",
+        "2020-12-26",
       ],
     });
 
     // console.log('Asbestos Cocs Re-Rendering');
 
     let filteredCocs = Object.keys(cocs)
-    .filter(job => {
-      let res = true;
-      if (this.props.search) {
-        let terms = this.props.search.split(" ");
-        let search =
-          job + " " + cocs[job].client + " " + cocs[job].address;
-        terms.forEach(term => {
-          if (!search.toLowerCase().replace('ā','a').includes(term.toLowerCase()))
-            res = false;
-        });
-      }
-      if (this.state.searchClient !== "" && cocs[job].client !== this.state.searchClient) res = false;
-      if (this.state.searchStartDate !== "" && moment(cocs[job].lastModified.toDate()).isBefore(new Date(this.state.searchStartDate), 'day')) res = false;
-      if (this.state.searchEndDate !== "" && moment(cocs[job].lastModified.toDate()).isAfter(new Date(this.state.searchEndDate), 'day')) res = false;
-      if (this.state.searchJobNumber !== "" && cocs[job].jobNumber.includes(this.state.searchJobNumber.toUpperCase()) === false) res = false;
-      if (cocs[job].deleted === true) res = false;
-      return res;
-    }).sort((aJob, bJob) => {
-      let a = cocs[aJob],
-        b = cocs[bJob];
-      let urgentA = (a.priority && a.priority > 0) || a.isClearance ? a.priority ? a.priority : 1 : 0,
-        urgentB = (b.priority && b.priority > 0) || b.isClearance ? b.priority ? b.priority : 1 : 0;
+      .filter((job) => {
+        let res = true;
+        if (this.props.search) {
+          let terms = this.props.search.split(" ");
+          let search = job + " " + cocs[job].client + " " + cocs[job].address;
+          terms.forEach((term) => {
+            if (
+              !search
+                .toLowerCase()
+                .replace("ā", "a")
+                .includes(term.toLowerCase())
+            )
+              res = false;
+          });
+        }
+        if (
+          this.state.searchClient !== "" &&
+          cocs[job].client !== this.state.searchClient
+        )
+          res = false;
+        if (
+          this.state.searchStartDate !== "" &&
+          moment(cocs[job].lastModified.toDate()).isBefore(
+            new Date(this.state.searchStartDate),
+            "day"
+          )
+        )
+          res = false;
+        if (
+          this.state.searchEndDate !== "" &&
+          moment(cocs[job].lastModified.toDate()).isAfter(
+            new Date(this.state.searchEndDate),
+            "day"
+          )
+        )
+          res = false;
+        if (
+          this.state.searchJobNumber !== "" &&
+          cocs[job].jobNumber.includes(
+            this.state.searchJobNumber.toUpperCase()
+          ) === false
+        )
+          res = false;
+        if (cocs[job].deleted === true) res = false;
+        return res;
+      })
+      .sort((aJob, bJob) => {
+        let a = cocs[aJob],
+          b = cocs[bJob];
+        let urgentA =
+            (a.priority && a.priority > 0) || a.isClearance
+              ? a.priority
+                ? a.priority
+                : 1
+              : 0,
+          urgentB =
+            (b.priority && b.priority > 0) || b.isClearance
+              ? b.priority
+                ? b.priority
+                : 1
+              : 0;
 
-      // Put urgent/clearance at top, normal in the middle, issued at bottom
-      if (a.versionUpToDate === b.versionUpToDate && urgentA === urgentB) {
-        if (a.versionUpToDate) return a.jobNumber.localeCompare(b.jobNumber);
-        else return 0;
-      }
-      if (a.versionUpToDate && !b.versionUpToDate) return 1;
-      if (!a.versionUpToDate && b.versionUpToDate) return -1;
-      return urgentB - urgentA;
-    });
+        // Put urgent/clearance at top, normal in the middle, issued at bottom
+        if (a.versionUpToDate === b.versionUpToDate && urgentA === urgentB) {
+          if (a.versionUpToDate) return a.jobNumber.localeCompare(b.jobNumber);
+          else return 0;
+        }
+        if (a.versionUpToDate && !b.versionUpToDate) return 1;
+        if (!a.versionUpToDate && b.versionUpToDate) return -1;
+        return urgentB - urgentA;
+      });
 
     return (
       <div className={classes.marginTopStandard}>
-        { modalType === ASBESTOS_COC_EDIT && <CocModal /> }
-        { modalType === ASBESTOS_SAMPLE_LOG && <SampleLogModal /> }
-        { modalType === ASBESTOS_SAMPLE_EDIT && <AsbestosSampleEditModal /> }
-        { modalType === DOWNLOAD_LAB_CERTIFICATE && <DownloadLabCertificateModal /> }
-        { modalType === COC_LOG && <CocLogModal /> }
-        { modalType === CONFIRM_RESULT && <ConfirmResultModal /> }
-        { (modalType === ASBESTOS_SAMPLE_DETAILS || modalTypeSecondary === ASBESTOS_SAMPLE_DETAILS) && <AsbestosSampleDetailsModal /> }
-        { modalType === ASBESTOS_ACTIONS && <AsbestosActionsModal /> }
-        { modalTypeSecondary === SOIL_DETAILS && <SoilDetailsModal /> }
-        { modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && <AsbestosSampleCocEditModal /> }
-        { modalType === ASBESTOS_LOGGED_SAMPLES && <LoggedSamplesModal />}
-        { modalTypeSecondary === ASBESTOS_ACTION_DETAILS && <AsbestosActionDetailsModal />}
+        {modalType === ASBESTOS_COC_EDIT && <CocModal />}
+        {modalType === ASBESTOS_SAMPLE_LOG && <SampleLogModal />}
+        {modalType === ASBESTOS_SAMPLE_EDIT && <AsbestosSampleEditModal />}
+        {modalType === DOWNLOAD_LAB_CERTIFICATE && (
+          <DownloadLabCertificateModal />
+        )}
+        {modalType === COC_LOG && <CocLogModal />}
+        {modalType === CONFIRM_RESULT && <ConfirmResultModal />}
+        {(modalType === ASBESTOS_SAMPLE_DETAILS ||
+          modalTypeSecondary === ASBESTOS_SAMPLE_DETAILS) && (
+          <AsbestosSampleDetailsModal />
+        )}
+        {modalType === ASBESTOS_ACTIONS && <AsbestosActionsModal />}
+        {modalTypeSecondary === SOIL_DETAILS && <SoilDetailsModal />}
+        {modalTypeSecondary === ASBESTOS_SAMPLE_EDIT_COC && (
+          <AsbestosSampleCocEditModal />
+        )}
+        {modalType === ASBESTOS_LOGGED_SAMPLES && <LoggedSamplesModal />}
+        {modalTypeSecondary === ASBESTOS_ACTION_DETAILS && (
+          <AsbestosActionDetailsModal />
+        )}
         <span>
           <Button
             variant="outlined"
@@ -290,9 +385,14 @@ class AsbestosLab extends React.Component {
                 modalType: ASBESTOS_COC_EDIT,
                 modalProps: {
                   title: "Create New Chain of Custody",
-                  doc: { samples: {}, deleted: false, versionUpToDate: false, mostRecentIssueSent: false, },
+                  doc: {
+                    samples: {},
+                    deleted: false,
+                    versionUpToDate: false,
+                    mostRecentIssueSent: false,
+                  },
                   isNew: true,
-                }
+                },
               });
             }}
           >
@@ -304,8 +404,7 @@ class AsbestosLab extends React.Component {
             onClick={() => {
               this.props.showModal({
                 modalType: ASBESTOS_LOGGED_SAMPLES,
-                modalProps: {
-                }
+                modalProps: {},
               });
             }}
           >
@@ -346,36 +445,56 @@ class AsbestosLab extends React.Component {
         </span>
         <div className={classes.flexRow}>
           <div className={classes.searchBoxRoot}>
-            <InputLabel className={classes.marginLeftBottomSmall}>Search by Job Number</InputLabel>
+            <InputLabel className={classes.marginLeftBottomSmall}>
+              Search by Job Number
+            </InputLabel>
             <div>
               <FormControl>
                 <InputLabel shrink>Job Number</InputLabel>
                 <Input
                   id="searchJobNumber"
                   value={this.state.searchJobNumber}
-                  onChange={e => this.setState({ searchJobNumber: e.target.value})}
-                  startAdornment={<InputAdornment position="start">AS</InputAdornment>}
+                  onChange={(e) =>
+                    this.setState({ searchJobNumber: e.target.value })
+                  }
+                  startAdornment={
+                    <InputAdornment position="start">AS</InputAdornment>
+                  }
                 />
               </FormControl>
               <Button
                 className={classes.buttonGo}
-                onClick={() => this.props.fetchCocsByJobNumber(`AS${this.state.searchJobNumber}`)}
+                onClick={() =>
+                  this.props.fetchCocsByJobNumber(
+                    `AS${this.state.searchJobNumber}`
+                  )
+                }
               >
                 Go
               </Button>
             </div>
           </div>
           <div className={classes.spacerSmall} />
-          <div className={classes.searchBoxRoot} >
-            <InputLabel className={classes.marginLeftBottomSmall}>Search by Client and/or Date</InputLabel>
+          <div className={classes.searchBoxRoot}>
+            <InputLabel className={classes.marginLeftBottomSmall}>
+              Search by Client and/or Date
+            </InputLabel>
             <div className={classes.flexRow}>
               <FormControl className={classes.formSelectClient}>
                 <InputLabel shrink>Client</InputLabel>
                 <Select
                   className={classes.select}
-                  defaultValue={{label: this.state.searchClient, id: this.state.searchClient}}
-                  options={this.props.clients.map(client => ({ value: client.name, label: client.name }))}
-                  onChange={e => this.setState({searchClient: e ? e.value : ""})}
+                  defaultValue={{
+                    label: this.state.searchClient,
+                    id: this.state.searchClient,
+                  }}
+                  options={this.props.clients.map((client) => ({
+                    value: client.name,
+                    label: client.name,
+                  }))}
+                  onChange={(e) =>
+                    this.setState({ searchClient: e ? e.value : "" })
+                  }
                   isClearable
                   isSearchable
                 />
@@ -387,9 +506,9 @@ class AsbestosLab extends React.Component {
                 label="From"
                 openTo="year"
                 format="D MMMM YYYY"
-                views={['year', 'month', 'date']}
+                views={["year", "month", "date"]}
                 clearable
-                onChange={date => this.setState({ searchStartDate: date})}
+                onChange={(date) => this.setState({ searchStartDate: date })}
               />
               <DatePicker
                 value={this.state.searchEndDate}
@@ -399,12 +518,18 @@ class AsbestosLab extends React.Component {
                 disableFuture
                 format="D MMMM YYYY"
                 clearable
-                views={['year', 'month', 'date']}
-                onChange={date => this.setState({ searchEndDate: date})}
+                views={["year", "month", "date"]}
+                onChange={(date) => this.setState({ searchEndDate: date })}
               />
               <Button
                 className={classes.buttonGo}
-                onClick={() => this.props.fetchCocsBySearch(this.state.searchClient, this.state.searchStartDate, this.state.searchEndDate)}
+                onClick={() =>
+                  this.props.fetchCocsBySearch(
+                    this.state.searchClient,
+                    this.state.searchStartDate,
+                    this.state.searchEndDate
+                  )
+                }
               >
                 Go
               </Button>
@@ -421,38 +546,45 @@ class AsbestosLab extends React.Component {
                   <InputLabel shrink>Analyst</InputLabel>
                   <Select
                     className={classes.select}
-                    defaultValue={{label: this.props.analyst, id: this.props.analyst }}
-                    options={this.props.bulkAnalysts.map(e => ({ value: e.name, label: e.name }))}
-                    onChange={e => this.props.setAnalyst(e ? e.value : e)}
+                    defaultValue={{
+                      label: this.props.analyst,
+                      id: this.props.analyst,
+                    }}
+                    options={this.props.bulkAnalysts.map((e) => ({
+                      value: e.name,
+                      label: e.name,
+                    }))}
+                    onChange={(e) => this.props.setAnalyst(e ? e.value : e)}
                   />
                 </FormControl>
               </div>
             </div>
           )}
         </div>
-        {cocs && Object.keys(cocs).length === 0 ?
+        {cocs && Object.keys(cocs).length === 0 ? (
           <div className={classes.marginTopSmall}>
             <LinearProgress color="secondary" />
           </div>
-        :
-          filteredCocs.length < 1 ? (
-            <div className={classNames(classes.marginTopSmall, classes.noItems)}>
-              No Chains of Custody to display.
-            </div>
-          ) : (
-            <div className={classes.marginTopSmall}>
-              {filteredCocs.map(job => cocs[job].sampleType === "air" ? <AsbestosAirCocCard key={job} job={job} /> : <AsbestosBulkCocCard key={job} job={job} />)}
-            </div>
-          )
-        }
+        ) : filteredCocs.length < 1 ? (
+          <div className={classNames(classes.marginTopSmall, classes.noItems)}>
+            No Chains of Custody to display.
+          </div>
+        ) : (
+          <div className={classes.marginTopSmall}>
+            {filteredCocs.map((job) =>
+              cocs[job].sampleType === "air" ? (
+                <AsbestosAirCocCard key={job} job={job} />
+              ) : (
+                <AsbestosBulkCocCard key={job} job={job} />
+              )
+            )}
+          </div>
+        )}
       </div>
     );
   }
 }
 
 export default withStyles(styles)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(AsbestosLab)
+  connect(mapStateToProps, mapDispatchToProps)(AsbestosLab)
 );
