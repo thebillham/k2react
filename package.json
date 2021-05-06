@@ -65,7 +65,7 @@
     "react-dates": "^20.3.0",
     "react-day-picker": "^7.4.0",
     "react-dom": "^16.12.0",
-    "react-draft-wysiwyg": "^1.13.2",
+    "react-draft-wysiwyg": "^1.14.6",
     "react-dropzone": "^10.2.1",
     "react-fabricjs": "^0.1.6",
     "react-firebaseui": "^3.1.2",
